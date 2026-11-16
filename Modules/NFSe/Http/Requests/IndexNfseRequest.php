@@ -13,8 +13,8 @@ use Illuminate\Validation\Rule;
  * Filtros de listagem. Sem validação:
  *   - status arbitrário (SQL injection-like via where('status', $unsafe)) — mitigado por
  *     PDO bind mas pode quebrar índices ou retornar inesperado.
- *   - de/ate: datas livres caem em Carbon::parse() que aceita formatos exóticos
- *     ("now -100 years") podendo causar tempo de query alto.
+ *   - de/ate: competência (mês, AAAA-MM). Antes de 2026-11-16 a regra pedia Y-m-d e a
+ *     tela mandava AAAA-MM: todo filtro de competência voltava com erro de validação.
  *   - q: busca livre — limite chars pra evitar LIKE %x% massivo.
  *
  * RBAC `nfse.view` continua no Controller (gate diferente do FormRequest authorize).
@@ -23,6 +23,9 @@ use Illuminate\Validation\Rule;
  */
 class IndexNfseRequest extends FormRequest
 {
+    /** Vocabulário único de status — o mesmo do StatusBadge kind="nfse" e do filtro da tela. */
+    public const STATUS = ['rascunho', 'processando', 'emitida', 'cancelada', 'erro'];
+
     public function authorize(): bool
     {
         // RBAC `nfse.view` checado via $this->authorize() no Controller.
@@ -32,13 +35,13 @@ class IndexNfseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['nullable', Rule::in([
-                'rascunho', 'pendente', 'processando',
-                'emitida', 'autorizada', 'rejeitada',
-                'cancelada', 'erro',
-            ])],
-            'de'  => ['nullable', 'date_format:Y-m-d'],
-            'ate' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:de'],
+            // Os 5 status que a coluna `nfse_emissoes.status` aceita (enum da migration do
+            // módulo). 'pendente', 'autorizada' e 'rejeitada' saíram em 2026-11-16: nada grava
+            // esses valores, e o filtro que os pedia voltava sempre vazio.
+            'status' => ['nullable', Rule::in(self::STATUS)],
+            // Competência é mês. A tela manda o valor do <input type="month">: AAAA-MM.
+            'de'  => ['nullable', 'date_format:Y-m'],
+            'ate' => ['nullable', 'date_format:Y-m', 'after_or_equal:de'],
             'q'   => ['nullable', 'string', 'max:120'],
         ];
     }
@@ -46,9 +49,9 @@ class IndexNfseRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'de.date_format'  => 'Data inicial deve estar em formato Y-m-d.',
-            'ate.date_format' => 'Data final deve estar em formato Y-m-d.',
-            'ate.after_or_equal' => 'Data final deve ser igual ou posterior à inicial.',
+            'de.date_format'  => 'Competência inicial deve estar no formato AAAA-MM.',
+            'ate.date_format' => 'Competência final deve estar no formato AAAA-MM.',
+            'ate.after_or_equal' => 'Competência final deve ser igual ou posterior à inicial.',
             'q.max'           => 'Busca limitada a 120 caracteres.',
         ];
     }
