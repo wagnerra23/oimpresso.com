@@ -127,5 +127,12 @@ last_run: "2026-09-29"
 - **Origem:** pedido [W] 2026-11-06 ("todos como o Financeiro"). Até aqui abria o popover-2
   `.sb-item-popover` (UI-0011, 2026-05-05). ⚠️ O protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx`,
   `ItemCascade`) ainda desenha a cascata lateral: a mudança precisa nascer também no Cowork.
-- **Teste:** `tests/js/sidebar-filhos-inline.test.tsx` (render, 4 casos, lane
+- **Atalhos (ghosts) de item com sub-itens:** quando o item também publica `ghosts` (Vendas,
+  Conector, Jana, Atendimento), eles aparecem logo depois dos sub-itens enquanto a cascata está
+  aberta — que abre sozinha na rota de um sub-item. Medido em produção (biz=1, `/sells`) em
+  2026-11-16: 16 atalhos (Catálogo QR, WooCommerce…) estavam no `shell.menu` e em nenhum lugar do
+  DOM. A condição é a cascata aberta, não `item.href`: pai de dropdown chega sem `href`
+  (`LegacyMenuAdapter::convertItem`). Protótipo: `MenuGroup` em `sidebar.jsx` põe a `GhostList`
+  depois da cascata.
+- **Teste:** `tests/js/sidebar-filhos-inline.test.tsx` (render, 6 casos, lane
   `cockpit-sidebar-jsdom-gate`).
