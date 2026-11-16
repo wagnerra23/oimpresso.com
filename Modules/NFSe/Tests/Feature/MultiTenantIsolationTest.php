@@ -2,245 +2,157 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Testa isolamento multi-tenant Tier 0 dos Models NFSe.
+ * Isolamento multi-tenant Tier 0 dos Models NFSe (ADR 0093, trait NfseBusinessScope).
  *
- * NFSe = Nota Fiscal de Serviço Eletrônica (fiscal/compliance). Vazar dado
- * cross-tenant aqui é incidente regulatório — IRS estadual/municipal exposto.
+ * Empresa da sessão = 98 (fictícia canônica, ADR 0358); adversário = 99. Nunca biz=4,
+ * nunca biz=1 (WR2, empresa real: no CT 100 a base é clone de produção e não se limpa).
+ * Tudo roda dentro de DatabaseTransactions — o rollback desfaz só o que o teste gravou.
  *
- * ADR 0093: global scope business_id IRREVOGÁVEL (trait NfseBusinessScope).
- * Dados do biz=1 NÃO podem aparecer em queries com session biz=99 e vice-versa.
+ * ⚠️ `rps_numero` é varchar(20). A versão anterior gravava 'RPS-TESTE-ISOL-CROSS-F'
+ * (22 caracteres): o valor era truncado e a busca exata devolvia 0 linhas — foi o
+ * vermelho do run 43865896173 (:154), defeito do teste, não do escopo.
  *
- * NUNCA usar biz=4 (ROTA LIVRE — cliente Larissa produção) — conforme ADR 0101.
- * Tests usam biz=1 (Wagner WR2) e biz=99 (fictício, sem dados reais).
- *
- * Modelos cobertos:
- *   - NfseEmissao        (tabela nfse_emissoes)
- *   - NfseProviderConfig (tabela nfse_provider_configs)
+ * Modelos cobertos: NfseEmissao (nfse_emissoes) · NfseProviderConfig (nfse_provider_configs).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
- * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  * @see Modules/NFSe/Models/Concerns/NfseBusinessScope.php
  */
 
-// Guard SQLite: Models NFSe com global scope requerem schema MySQL UltimatePOS.
+const NFSE_ISOL_TENANT = 98;
+const NFSE_ISOL_ADVERSARIO = 99;
+
 beforeEach(function () {
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: Models NFSe com NfseBusinessScope requerem schema MySQL UltimatePOS (ADR 0101)');
+    if (DB::connection()->getDriverName() !== 'mysql') {
+        $this->markTestSkipped('Requer MySQL (lane nfse-pest).');
     }
     if (! Schema::hasTable('nfse_emissoes') || ! Schema::hasTable('nfse_provider_configs')) {
-        $this->markTestSkipped('Tabelas nfse_emissoes / nfse_provider_configs ausentes — rode Modules/NFSe migrate primeiro');
+        $this->markTestSkipped('Tabelas nfse_emissoes / nfse_provider_configs ausentes.');
+    }
+    if (! \App\Business::find(NFSE_ISOL_TENANT) || ! \App\Business::find(NFSE_ISOL_ADVERSARIO)) {
+        $this->markTestSkipped('Lane sem os tenants 98/99 semeados (ADR 0358).');
     }
 });
 
-// IDs usados nos testes — biz=1 (Wagner WR2) e biz=99 (fictício isolamento)
-const BIZ_NFSE_WAGNER   = 1;
-const BIZ_NFSE_FICTICIO = 99;
-
-// ------------------------------------------------------------------
-// Helpers internos
-// ------------------------------------------------------------------
-
-/**
- * Simula sessão de um business sem autenticar usuário (suficiente pro global scope NFSe).
- */
-function setNfseBizSession(int $businessId): void
+/** Sessão de uma empresa sem login — basta para o NfseBusinessScope (modo aberto lê a sessão). */
+function nfseIsolSessao(int $businessId): void
 {
     session(['user.business_id' => $businessId]);
 }
 
-// ------------------------------------------------------------------
-// NfseEmissao — emissão de nota fiscal de serviço
-// ------------------------------------------------------------------
+/** Emissão crua de uma empresa, gravada sem escopo (setup do teste). */
+function nfseIsolEmissao(int $businessId, string $rps): NfseEmissao
+{
+    expect(strlen($rps))->toBeLessThanOrEqual(20, "rps_numero '{$rps}' passa de varchar(20) e seria truncado.");
 
-it('NfseEmissao biz=1 não aparece com session biz=99', function () {
-    // Insere emissão biz=1 bypassando scope (setup de teste)
-    $emissao = NfseEmissao::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'      => BIZ_NFSE_WAGNER,
-        'serie'            => 'RPS',
-        'rps_numero'       => 'RPS-TESTE-ISOL-001',
-        'competencia'      => now()->startOfMonth()->toDateString(),
-        'tomador_cnpj'     => '00000000000000', // PII redacted — CNPJ fictício
-        'tomador_nome'     => 'TOMADOR FICTICIO TESTE LTDA',
-        'descricao'        => 'Servico teste isolamento multi-tenant',
-        'valor_servicos'   => 100.00,
+    return NfseEmissao::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
+        'business_id'        => $businessId,
+        'serie'              => 'RPS',
+        'rps_numero'         => $rps,
+        'competencia'        => now()->startOfMonth()->toDateString(),
+        'tomador_nome'       => 'TOMADOR FICTICIO TESTE LTDA',
+        'descricao'          => 'Servico teste isolamento multi-tenant',
+        'valor_servicos'     => 100.00,
         'valor_base_calculo' => 100.00,
-        'aliquota_iss'     => 0.02,
-        'valor_iss'        => 2.00,
-        'status'           => 'rascunho',
-        'idempotency_key'  => 'TEST-ISOL-NFSE-EMISSAO-001-' . uniqid(),
+        'aliquota_iss'       => 0.02,
+        'valor_iss'          => 2.00,
+        'status'             => 'rascunho',
+        'idempotency_key'    => 'TEST-ISOL-NFSE-' . uniqid('', true),
     ]);
+}
 
-    // Consulta com session biz=99 — NÃO deve aparecer (Tier 0 isolation)
-    setNfseBizSession(BIZ_NFSE_FICTICIO);
-    $resultado = NfseEmissao::where('id', $emissao->id)->get();
+// ------------------------------------------------------------------
+// NfseEmissao
+// ------------------------------------------------------------------
 
-    expect($resultado)->toHaveCount(0);
-})->after(function () {
-    NfseEmissao::withoutGlobalScopes()
-        ->where('rps_numero', 'RPS-TESTE-ISOL-001')
-        ->forceDelete();
+it('[T0] NfseEmissao da empresa 99 nao aparece com sessao 98', function () {
+    $alheia = nfseIsolEmissao(NFSE_ISOL_ADVERSARIO, 'ISOL-A-99');
+
+    nfseIsolSessao(NFSE_ISOL_TENANT);
+
+    expect(NfseEmissao::where('id', $alheia->id)->get())->toHaveCount(0);
+    // A linha existe: o 0 acima é o escopo, não ausência do dado.
+    expect(NfseEmissao::withoutGlobalScopes()->whereKey($alheia->id)->exists())->toBeTrue(); // SUPERADMIN: prova de existência
 });
 
-it('NfseEmissao biz=1 aparece com session biz=1', function () {
-    $emissao = NfseEmissao::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'      => BIZ_NFSE_WAGNER,
-        'serie'            => 'RPS',
-        'rps_numero'       => 'RPS-TESTE-ISOL-002',
-        'competencia'      => now()->startOfMonth()->toDateString(),
-        'tomador_cnpj'     => '00000000000000',
-        'tomador_nome'     => 'TOMADOR FICTICIO TESTE 2 LTDA',
-        'descricao'        => 'Servico teste mesmo-tenant',
-        'valor_servicos'   => 250.00,
-        'valor_base_calculo' => 250.00,
-        'aliquota_iss'     => 0.02,
-        'valor_iss'        => 5.00,
-        'status'           => 'rascunho',
-        'idempotency_key'  => 'TEST-ISOL-NFSE-EMISSAO-002-' . uniqid(),
-    ]);
+it('[T0] NfseEmissao da empresa 98 aparece com sessao 98 (controle positivo)', function () {
+    $propria = nfseIsolEmissao(NFSE_ISOL_TENANT, 'ISOL-P-98');
 
-    setNfseBizSession(BIZ_NFSE_WAGNER);
-    $resultado = NfseEmissao::where('id', $emissao->id)->get();
+    nfseIsolSessao(NFSE_ISOL_TENANT);
+    $resultado = NfseEmissao::where('id', $propria->id)->get();
 
     expect($resultado)->toHaveCount(1);
-    expect($resultado->first()->rps_numero)->toBe('RPS-TESTE-ISOL-002');
-})->after(function () {
-    NfseEmissao::withoutGlobalScopes()
-        ->where('rps_numero', 'RPS-TESTE-ISOL-002')
-        ->forceDelete();
+    expect($resultado->first()->rps_numero)->toBe('ISOL-P-98');
 });
 
-it('NfseEmissao all() com session biz=99 retorna apenas dados do biz=99', function () {
-    // Cria 2 emissões — uma biz=1, outra biz=99
-    NfseEmissao::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'      => BIZ_NFSE_WAGNER,
-        'serie'            => 'RPS',
-        'rps_numero'       => 'RPS-TESTE-ISOL-CROSS-W',
-        'competencia'      => now()->startOfMonth()->toDateString(),
-        'tomador_nome'     => 'WAGNER WR2 TESTE FICTICIO',
-        'descricao'        => 'Servico biz=1',
-        'valor_servicos'   => 100.00,
-        'valor_base_calculo' => 100.00,
-        'valor_iss'        => 2.00,
-        'status'           => 'rascunho',
-        'idempotency_key'  => 'TEST-ISOL-NFSE-CROSS-W-' . uniqid(),
-    ]);
+it('[T0] NfseEmissao com sessao 99 so devolve as notas da 99', function () {
+    nfseIsolEmissao(NFSE_ISOL_TENANT, 'ISOL-X-98');
+    nfseIsolEmissao(NFSE_ISOL_ADVERSARIO, 'ISOL-X-99');
 
-    NfseEmissao::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'      => BIZ_NFSE_FICTICIO,
-        'serie'            => 'RPS',
-        'rps_numero'       => 'RPS-TESTE-ISOL-CROSS-F',
-        'competencia'      => now()->startOfMonth()->toDateString(),
-        'tomador_nome'     => 'FICTICIO BIZ 99 TESTE',
-        'descricao'        => 'Servico biz=99',
-        'valor_servicos'   => 50.00,
-        'valor_base_calculo' => 50.00,
-        'valor_iss'        => 1.00,
-        'status'           => 'rascunho',
-        'idempotency_key'  => 'TEST-ISOL-NFSE-CROSS-F-' . uniqid(),
-    ]);
-
-    // Session biz=99 só enxerga RPS-TESTE-ISOL-CROSS-F
-    setNfseBizSession(BIZ_NFSE_FICTICIO);
-    $resultado = NfseEmissao::whereIn('rps_numero', ['RPS-TESTE-ISOL-CROSS-W', 'RPS-TESTE-ISOL-CROSS-F'])->get();
+    nfseIsolSessao(NFSE_ISOL_ADVERSARIO);
+    $resultado = NfseEmissao::whereIn('rps_numero', ['ISOL-X-98', 'ISOL-X-99'])->get();
 
     expect($resultado)->toHaveCount(1);
-    expect($resultado->first()->rps_numero)->toBe('RPS-TESTE-ISOL-CROSS-F');
-    expect($resultado->first()->business_id)->toBe(BIZ_NFSE_FICTICIO);
-})->after(function () {
-    NfseEmissao::withoutGlobalScopes()
-        ->whereIn('rps_numero', ['RPS-TESTE-ISOL-CROSS-W', 'RPS-TESTE-ISOL-CROSS-F'])
-        ->forceDelete();
+    expect($resultado->first()->rps_numero)->toBe('ISOL-X-99');
+    expect((int) $resultado->first()->business_id)->toBe(NFSE_ISOL_ADVERSARIO);
 });
 
 // ------------------------------------------------------------------
-// NfseProviderConfig — configuração de prefeitura por business
+// NfseProviderConfig — configuração de prefeitura por empresa
 // ------------------------------------------------------------------
 
-it('NfseProviderConfig biz=1 não aparece com session biz=99', function () {
-    $config = NfseProviderConfig::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'           => BIZ_NFSE_WAGNER,
+function nfseIsolConfig(int $businessId, string $ibge, string $ambiente, float $aliquota): NfseProviderConfig
+{
+    return NfseProviderConfig::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
+        'business_id'           => $businessId,
         'provider'              => 'sn_nfse_federal',
-        'municipio_codigo_ibge' => '4218905', // Termas do Gravatal/SC (fictício para teste — único por business)
+        'municipio_codigo_ibge' => $ibge,
         'serie_default'         => 'RPS',
         'cnae'                  => '6201-5/00',
         'lc116_codigo_default'  => '1.05',
-        'aliquota_iss'          => 0.02,
-        'ambiente'              => 'homologacao',
+        'aliquota_iss'          => $aliquota,
+        'ambiente'              => $ambiente,
     ]);
-    $this->nfseCfgIds = [$config->id];
+}
 
-    // Consulta com session biz=99 — NÃO deve aparecer
-    setNfseBizSession(BIZ_NFSE_FICTICIO);
-    $resultado = NfseProviderConfig::where('id', $config->id)->get();
+it('[T0] NfseProviderConfig da empresa 99 nao aparece com sessao 98', function () {
+    $alheia = nfseIsolConfig(NFSE_ISOL_ADVERSARIO, '4218905', 'homologacao', 0.02);
 
-    expect($resultado)->toHaveCount(0);
-})->after(function () {
-    // SUPERADMIN: cleanup de teste — só as configs que o teste criou, pelo id. Apagar por
-    // (business_id, município) levaria a config real de biz=1 se o create() falhasse no unique.
-    NfseProviderConfig::withoutGlobalScopes()->whereIn('id', $this->nfseCfgIds ?? [])->forceDelete();
+    nfseIsolSessao(NFSE_ISOL_TENANT);
+
+    expect(NfseProviderConfig::where('id', $alheia->id)->get())->toHaveCount(0);
+    expect(NfseProviderConfig::withoutGlobalScopes()->whereKey($alheia->id)->exists())->toBeTrue(); // SUPERADMIN: prova de existência
 });
 
-it('NfseProviderConfig biz=1 aparece com session biz=1', function () {
-    $config = NfseProviderConfig::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'           => BIZ_NFSE_WAGNER,
-        'provider'              => 'sn_nfse_federal',
-        'municipio_codigo_ibge' => '3550308', // São Paulo (fictício para teste)
-        'serie_default'         => 'RPS',
-        'cnae'                  => '6201-5/00',
-        'lc116_codigo_default'  => '1.05',
-        'aliquota_iss'          => 0.05,
-        'ambiente'              => 'homologacao',
-    ]);
-    $this->nfseCfgIds = [$config->id];
+it('[T0] NfseProviderConfig da empresa 98 aparece com sessao 98 (controle positivo)', function () {
+    $propria = nfseIsolConfig(NFSE_ISOL_TENANT, '3550308', 'homologacao', 0.05);
 
-    setNfseBizSession(BIZ_NFSE_WAGNER);
-    $resultado = NfseProviderConfig::where('id', $config->id)->get();
+    nfseIsolSessao(NFSE_ISOL_TENANT);
+    $resultado = NfseProviderConfig::where('id', $propria->id)->get();
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->municipio_codigo_ibge)->toBe('3550308');
     expect($resultado->first()->ambiente)->toBe('homologacao');
-})->after(function () {
-    // SUPERADMIN: cleanup de teste — só as configs que o teste criou, pelo id. Apagar por
-    // (business_id, município) levaria a config real de biz=1 se o create() falhasse no unique.
-    NfseProviderConfig::withoutGlobalScopes()->whereIn('id', $this->nfseCfgIds ?? [])->forceDelete();
 });
 
-it('NfseProviderConfig biz=1 e biz=99 coexistem isolados no mesmo município', function () {
-    // unique(business_id, municipio_codigo_ibge) permite mesma cidade em business diferente
-    $configWagner = NfseProviderConfig::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'           => BIZ_NFSE_WAGNER,
-        'provider'              => 'sn_nfse_federal',
-        'municipio_codigo_ibge' => '4314902', // Porto Alegre
-        'ambiente'              => 'producao',
-        'aliquota_iss'          => 0.04,
-    ]);
+it('[T0] NfseProviderConfig 98 e 99 no mesmo municipio: sessao 99 nao ve a producao da 98', function () {
+    // unique(business_id, municipio_codigo_ibge) permite a mesma cidade em empresas diferentes
+    nfseIsolConfig(NFSE_ISOL_TENANT, '4314902', 'producao', 0.04);
+    nfseIsolConfig(NFSE_ISOL_ADVERSARIO, '4314902', 'homologacao', 0.02);
 
-    $configFicticio = NfseProviderConfig::withoutGlobalScopes()->create([ // SUPERADMIN: setup de teste cross-tenant
-        'business_id'           => BIZ_NFSE_FICTICIO,
-        'provider'              => 'sn_nfse_federal',
-        'municipio_codigo_ibge' => '4314902', // mesmo município, outro tenant
-        'ambiente'              => 'homologacao',
-        'aliquota_iss'          => 0.02,
-    ]);
-    $this->nfseCfgIds = [$configWagner->id, $configFicticio->id];
-
-    // Session biz=99 SÓ enxerga config do biz=99 (não vaza ambiente=producao do biz=1)
-    setNfseBizSession(BIZ_NFSE_FICTICIO);
+    nfseIsolSessao(NFSE_ISOL_ADVERSARIO);
     $resultado = NfseProviderConfig::where('municipio_codigo_ibge', '4314902')->get();
 
     expect($resultado)->toHaveCount(1);
-    expect($resultado->first()->business_id)->toBe(BIZ_NFSE_FICTICIO);
+    expect((int) $resultado->first()->business_id)->toBe(NFSE_ISOL_ADVERSARIO);
     expect($resultado->first()->ambiente)->toBe('homologacao');
-})->after(function () {
-    // SUPERADMIN: cleanup de teste — só as configs que o teste criou, pelo id. Apagar por
-    // (business_id, município) levaria a config real de biz=1 se o create() falhasse no unique.
-    NfseProviderConfig::withoutGlobalScopes()->whereIn('id', $this->nfseCfgIds ?? [])->forceDelete();
 });

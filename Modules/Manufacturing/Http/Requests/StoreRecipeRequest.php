@@ -67,7 +67,9 @@ class StoreRecipeRequest extends FormRequest
             'ingredients_cost' => ['nullable', 'string'],
             'waste_percent' => ['nullable', 'string'],
             'extra_cost' => ['nullable', 'string'],
-            'production_cost_type' => ['nullable', 'string', 'in:fixed,percentage,per_unit'],
+            // Obrigatório desde o lote 2.3 da auditoria (UC-RECIPE-23): vazio não é uma das três formas e
+            // gravava nulo, que a conta trata como fixo e a lista mostrava como percentual.
+            'production_cost_type' => ['required', 'string', 'in:fixed,percentage,per_unit'],
             'instructions' => ['nullable', 'string'],
             'sub_unit_id' => ['nullable', 'integer'],
             'ingredient_groups' => ['nullable', 'array'],

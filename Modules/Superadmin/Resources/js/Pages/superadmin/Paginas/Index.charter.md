@@ -12,6 +12,7 @@ related_adrs: [104, 93]
 tier: B
 charter_version: 1
 runbook: memory/requisitos/Superadmin/RUNBOOK-paginas.md
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-paginas.md
 ---
 
 # Page Charter — /superadmin/frontend-pages

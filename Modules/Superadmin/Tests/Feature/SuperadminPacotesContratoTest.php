@@ -466,3 +466,53 @@ it('UC-SAPAC-11 · criar e editar gravam o mesmo preço, e editar com vírgula d
 
     expect($comVirgula)->toBe(49.9);
 });
+
+// ── UC-SAPAC-12 · pacote inválido é recusado antes de gravar ────────────────
+
+it('UC-SAPAC-12 · preço e campos inválidos dão 422 e não criam nem alteram pacote', function () {
+    $superadmin = pacSuperadmin();
+    $nome = 'Pacote ficticio validacao UC-SAPAC-12';
+    DB::table('packages')->where('name', $nome)->delete();
+
+    $base = [
+        'name' => $nome,
+        'description' => 'So para a prova da validacao.',
+        'location_count' => 0, 'user_count' => 0, 'product_count' => 0, 'invoice_count' => 0,
+        'interval' => 'months', 'interval_count' => 1, 'trial_days' => 0,
+        'sort_order' => 902, 'is_active' => 1,
+        'custom_permissions' => ['zz_prova_validacao_module' => 1],
+    ];
+
+    $invalidos = [
+        'price' => ['-5', 'abc', '1.234,56', ''],
+        'interval' => ['semanas'],
+        'name' => [''],
+    ];
+
+    foreach ($invalidos as $campo => $valores) {
+        foreach ($valores as $valor) {
+            $this->actingAs($superadmin)->withSession(['user.id' => $superadmin->id])
+                ->postJson(ROTA_PAC, array_merge($base, ['price' => '49.90'], [$campo => $valor]))
+                ->assertStatus(422)
+                ->assertJsonValidationErrors($campo);
+        }
+    }
+    expect(DB::table('packages')->where('name', $nome)->exists())->toBeFalse();
+
+    // Controle: o mesmo payload com preço válido passa e cria.
+    $this->actingAs($superadmin)->withSession(['user.id' => $superadmin->id])
+        ->post(ROTA_PAC, $base + ['price' => '49.90'])
+        ->assertSessionHasNoErrors();
+    $id = DB::table('packages')->where('name', $nome)->value('id');
+    expect($id)->not->toBeNull();
+
+    // Editar com preço inválido não mexe no gravado.
+    $this->actingAs($superadmin)
+        ->putJson(ROTA_PAC.'/'.$id, $base + ['price' => '-1'])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('price');
+    $gravado = (float) DB::table('packages')->where('id', $id)->value('price');
+    DB::table('packages')->where('id', $id)->delete();
+
+    expect($gravado)->toBe(49.9);
+});

@@ -17,6 +17,8 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters (telas sem contrato). Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
+> **Errata 2026-11-16 (lote 3 da auditoria NFSe, PRs #11041 · #11044 · este):** os itens marcados *(errata 2026-11-16)* foram medidos contra o código e corrigidos. O texto anterior de cada um fica citado no próprio item.
+>
 > Backend: `Modules/NFSe/Http/Controllers/NfseController@show` + `@cancelar` (POST, motivo) + `@pdf`. Gates `nfse.view` (ver) e `nfse.cancel` (cancelar). US-NFSE-006.
 >
 > **Nota de Padrão de Tela:** é uma tela de detalhe, mas o layout usa `InfoRow`/`Card` bespoke (não `<dl>`/StatCard/FsmActionPanel), então NÃO declara PT-03 — declaração seria count-pump reprovado por `pt:conformance:check`. Se um dia migrar pro padrão de Detalhe canônico, atualizar `related_prototype` pra PT-03.
@@ -31,12 +33,12 @@ Detalhe de uma NFS-e emitida: mostra número, status, tomador, valores (serviço
 
 ## Goals — Features (faz)
 
-- Exibe os dados da nota (`InfoRow`/`Card`): número, `StatusBadge`, tomador (nome/CNPJ/CPF/e-mail), valor dos serviços, valor do ISS, competência, LC 116, descrição, data de criação
-- Link pra venda de origem (`venda`) quando a nota veio de uma `Transaction`
+- Exibe os dados da nota (`InfoRow`/`Card`): número, `StatusBadge`, tomador (nome/CNPJ/CPF/e-mail), valor dos serviços, valor do ISS, competência, LC 116, descrição, data de criação; "Cancelada em" na nota cancelada; ambiente do provedor da empresa, rotulado "configurado hoje" (a nota não grava o ambiente em que saiu)
+- Link pra venda de origem (`venda`) quando a nota veio de uma `Transaction` **da mesma empresa da nota** (lote 0, #10972)
 - Baixar PDF (`pdf_url`) quando disponível
-- Cancelar a nota via `AlertDialog` com campo de motivo obrigatório (`POST /nfse/{id}/cancelar`)
-- Reemitir quando `status === 'erro'` (`podeReemitir`)
-- AppShellV2 + PageHeader shared, flash de sucesso/erro
+- Cancelar a nota via `AlertDialog` com campo de motivo obrigatório (`POST /nfse/{id}/cancelar`, `useForm`): "Cancelando…" durante o envio, erro do motivo dentro do diálogo. O motivo **não é gravado** em coluna nenhuma; mostrá-lo depende do evento de cancelamento (lote 2, PR 2.4)
+- "Nova emissão" quando `status === 'erro'` (`podeReemitir`): abre o formulário `/nfse/emitir`, com a venda (`?transaction_id=`) quando a nota tem venda. Não reenvia a nota — é uma nota nova *(errata 2026-11-16: dizia "Reemitir")*
+- AppShellV2 + PageHeader shared; aviso de sucesso/erro pelo toast global do `app.tsx` (flash compartilhado) *(errata 2026-11-16: a tela tinha banner próprio)*
 
 ---
 
@@ -62,15 +64,15 @@ Detalhe de uma NFS-e emitida: mostra número, status, tomador, valores (serviço
 
 ## Automation hooks (faz)
 
-- `cancelar` dispara o fluxo de cancelamento no backend (registro permanece — número segue usado oficialmente, CONFAZ SINIEF 07/2005)
-- Reemissão reabre a emissão assíncrona quando a nota falhou
+- `cancelar` pede o cancelamento ao provedor com o certificado e o ambiente da empresa da nota, e só grava `cancelada` com a confirmação dele; sem confirmação a nota continua emitida (lote 0, #10987). O registro permanece — número segue usado oficialmente, CONFAZ SINIEF 07/2005
+- *(errata 2026-11-16: removido "Reemissão reabre a emissão assíncrona quando a nota falhou" — nada reabre a emissão automaticamente; "Nova emissão" é ação do operador, ver Goals)*
 
 ---
 
 ## Anti-hooks (NÃO faz automaticamente)
 
 - ❌ NÃO cancela automaticamente por status/tempo — sempre ação humana com motivo
-- ❌ NÃO faz `forceDelete` da nota (append-only fiscal — cancelada permanece no banco)
+- ❌ NÃO faz `forceDelete` da nota (append-only fiscal — cancelada permanece no banco). Escopo do anti-hook: esta tela não tem ação que apague. O model (`SoftDeletes`) não recusa `delete()`/`forceDelete()` por conta própria — ver lote 1, #11031 *(errata 2026-11-16)*
 - ❌ NÃO notifica o tomador automaticamente sem checar opt-in (LGPD) — fora do escopo desta tela
 - ❌ NÃO reemite em loop automático em caso de erro recorrente
 
