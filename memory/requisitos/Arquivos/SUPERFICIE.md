@@ -78,7 +78,7 @@ module: Arquivos
 
 - [web.php](../../../Modules/Arquivos/Routes/web.php)
 
-## Migrations (schema) — 10
+## Migrations (schema) — 11
 
 - [2026_05_10_000001_create_arquivos_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000001_create_arquivos_table.php)
 - [2026_05_10_000002_create_arquivos_audit_log_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000002_create_arquivos_audit_log_table.php)
@@ -90,6 +90,7 @@ module: Arquivos
 - [2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php](../../../Modules/Arquivos/Database/Migrations/2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php)
 - [2026_10_01_000001_add_titular_avisado_at_and_notice_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_10_01_000001_add_titular_avisado_at_and_notice_to_arquivos.php)
 - [2026_10_15_000001_add_legenda_etapa_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php)
+- [2026_11_16_000001_audit_log_append_only_e_fk_business.php](../../../Modules/Arquivos/Database/Migrations/2026_11_16_000001_audit_log_append_only_e_fk_business.php)
 
 ## Config — 2
 
