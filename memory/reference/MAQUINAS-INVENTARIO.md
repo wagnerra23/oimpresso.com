@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 155 (47 contexts required)
+## 1. Workflows / Gates de CI — 156 (47 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -120,6 +120,7 @@ lifecycle: ativo
 | `kb-pest.yml` | pr+push+manual | `memory/requisitos/KB/SDD-tela-kb-unificado-v1.0.md` +15 | KB · Pest (MySQL) |
 | `knowledge-ghost-gate.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +4 | Knowledge Ghost Gate (catraca anti-ghost · baseline por módulo · ADVISORY — KL-A2) |
 | `layout-primitives-guard.yml` | pr+push+manual | `memory/decisions/0417-aposenta-tela-piloto-0253.md` +13 | Layout primitives guard (flex/grid solto) |
+| `load-test.yml` | manual | — | Load test k6 (manual, só staging) |
 | `manufacturing-jsdom-gate.yml` | pr+push+manual | `memory/requisitos/Manufacturing/SPEC.md` +2 | Manufacturing jsdom — specs jsdom do módulo: filtro De/Até das Ordens (UC-OP-06) e as 6 regras de tela do editor de ingredientes (UC-INGRED-08..13) |
 | `manufacturing-pest.yml` | pr+push+manual | (só sessão/handoff · 1) | Manufacturing · Pest (MySQL) |
 | `mcp-drift-sentinel.yml` | cron+manual | `memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md` +6 | MCP Drift Sentinel — servido vs main (ADR 0256 + 0062) |
