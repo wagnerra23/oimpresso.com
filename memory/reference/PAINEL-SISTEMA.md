@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-15**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-16**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -24,6 +24,7 @@ lente: [construir]
 |---|---|---|
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-10-26 |
+| Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | — |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-11-10 |
 | Captacao | [BRIEFING](../requisitos/Captacao/BRIEFING.md) | 2026-11-14 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
@@ -135,7 +136,7 @@ lente: [construir]
 - Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 155 workflows por classe
+### Censo — 157 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -143,15 +144,15 @@ lente: [construir]
 |---|---|---|
 | gate (bloqueia/valida PR) | 119 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
-| automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
+| automacao (cron/dispatch) | 27 | affects-clientes-label, agent-cost-per-pr, agent-pr-outcomes, baseline-folga, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 | governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
 
 ## Decisões (ADRs)
 
-- **456** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 389 · superseded: 28 · proposto: 25 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **458** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 391 · superseded: 28 · proposto: 25 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **6** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -432,14 +433,14 @@ lente: [construir]
 
 ## Rastro
 
-- **627** handoffs · **805** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **628** handoffs · **806** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-11-14-runbook-deploy-producao`
   - `2026-11-14-captacao-onda1-adr-esqueleto`
   - `2026-11-05-refutacao-gt-g5-lote-10376-r1`
   - `2026-10-30-session-04`
   - `2026-10-30-session-02-venda-v3-edicao`
   - `2026-10-26-fase0-nsu-dfe-seco-medicao`
-  - `2026-10-20-pesquisa-consulta-venda-concorrentes-cv`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-11-15 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-11-16 · deriva das fontes canônicas, não as substitui._

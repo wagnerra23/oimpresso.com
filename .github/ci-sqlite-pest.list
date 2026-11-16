@@ -152,6 +152,7 @@ tests/Feature/Services/FeatureFlagServiceTest.php
 tests/Feature/Services/GrowthBookCriarFeatureTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php
 Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
+Modules/Jana/Tests/Feature/Mcp/LgpdEsquecerTitularEmpresaTest.php
 # PR-7c — guard do fix de auth-manager resolver no McpAuthMiddleware (ADR 0283/0081).
 # Source-ratchet (sem DB) → sqlite-safe.
 Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
@@ -684,6 +685,7 @@ tests/Feature/Testing/GuardableColumnsCacheResetTest.php
 # /manage-modules — ações de módulo por POST+CSRF quando o router registra POST (DB-less: router + reflexão + partial).
 tests/Feature/Install/ManageModulesPostTest.php
 tests/Feature/Install/InstalacaoSoPorPostTest.php
+tests/Feature/Site/AjudaRedirectTest.php
 tests/Feature/Site/PrivacidadeAppContratoTest.php
 tests/Feature/Site/PrivacidadeFisioContratoTest.php
 tests/Feature/Modules/OficinaAuto/PlacaStubForaDeProducaoTest.php
@@ -806,3 +808,4 @@ Modules/Whatsapp/Tests/Feature/ConversationTagsTest.php
 # Uniafibro (uniafibro.com.br) — página da associação servida por este app; rota por domínio, sem DB.
 tests/Feature/Site/UniafibroSiteTest.php
 tests/Feature/Security/UploadExtensaoExecutavelTest.php
+tests/Unit/Tenancy/ContextoEmpresaEscopoTest.php

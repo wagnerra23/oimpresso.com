@@ -34,6 +34,8 @@ class StoreEmissaoRequest extends FormRequest
             'modelo' => ['nullable', 'string', Rule::in(['55', '65'])],
             // US-NFE-069: NF-e só da parte mercadoria (botão "Emitir NF-e + NFS-e").
             'separada' => ['sometimes', 'boolean'],
+            // Onda 5 das naturezas: natureza escolhida no lançamento (só com a flag useV2NfeNaturezas).
+            'operacao_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
         ];
     }
 

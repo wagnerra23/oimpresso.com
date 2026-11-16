@@ -103,6 +103,7 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
 | UC-PIDX-46 | "O que é" no painel e a coluna Tipo fora do padrão (resto da CV1) | should | `ProductController::buildProdutoDetalhe` (`uso`) + `oQueE` em `tipos.ts` + `PainelDetalhe.tsx` + `colunasOpcionais` | `ProdutoListaUsoTest` (lane Estoque · MySQL) + `produto-o-que-e.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-47 | "Locais de armazenagem" para quem só pode mexer nos locais | should | `CU-PROD-20` (proposta #10765, autorizada pelo [F] em 2026-11-12) · `ProductController::index` (`permissions.armazenagem`) + `AcoesProduto.tsx` + `PainelDetalhe.tsx`: com `product.armazenagem` sem `product.update`, o menu da linha e o rodapé do painel trazem "Locais de armazenagem" (abre o Editar só com os locais) no lugar de "Editar"; com `product.update` segue "Editar"; produto sem estoque controlado ou excluído não tem o item | `ProdutoArmazenagemPermissaoTest` (Pest) + `produto-locais-armazenagem-acesso.test.tsx` (Vitest) | ✅ verde no CI (job 131372610661 Pest + Frontend / Vite build) |
 | UC-PIDX-48 | Receita da Fabricação no painel, só leitura (D-29) | should | `ProductController::receitasDoProduto` + `App\Contracts\Fabricacao\ReceitaDoProduto` (`RecipeBomService::fichasDoProduto`) + `PainelDetalhe.tsx` | `ProdutoReceitaNoPainelTest` (lane Estoque · MySQL) + `produto-receita-no-painel.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
+| UC-PIDX-49 | Lotes com saldo no painel, com o relatório de Lotes filtrado (CV3) | should | `ProductController::lotesDoProduto` + `App\Services\Estoque\ConsultaDeLotes` (a consulta do relatório de Lotes) + `PainelDetalhe.tsx` | `ProdutoLotesNoPainelTest` (lane Estoque · MySQL) + `produto-lotes-no-painel.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -629,6 +630,15 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
 - **Gates:** o painel (`product.view`); a aba só com a Fabricação no pacote da empresa (`manufacturing_module`, a mesma regra do Roteiro); custo, custo por unidade e margem só com `view_purchase_price`; "Abrir receita" só com `manufacturing.access_recipe`. Tier 0: a receita sai pelo `products.business_id` do produto.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-PIDX-49 · Lotes com saldo no painel, com o relatório de Lotes filtrado (CV3) · `should`
+- **Persona:** quem cuida do estoque numa comunicação visual, onde cada rolo de lona ou vinil é um lote, e quer saber, sem sair da consulta, quais rolos do material ainda têm saldo e quanto.
+- **Aceite:** Dado uma lona com três rolos — ROLO-A comprado com 50 e 12 já usados, ROLO-B com 30 e 30 usados, ROLO-C com 25 e validade vencida · Quando abro o painel da lona · Então aparece a aba Lotes com 2 · Com o ROLO-A com 38 e o ROLO-C com 25, marcado "Vencido" · O ROLO-B, zerado, não aparece · Os saldos são os do relatório de Lotes · "Abrir no relatório de Lotes" abre o relatório já filtrado no produto (UC-RLT-07), onde estão também os lotes zerados e o rastreio do lote por OS (UC-RLT-06) · Com mais de 50 lotes de saldo o painel mostra 50 e avisa que o relatório mostra todos · Produto sem lote com saldo não tem a aba · Sem ver o relatório de estoque, não há a aba.
+- **Teste:** [`ProdutoLotesNoPainelTest`](../../../../tests/Feature/Produto/ProdutoLotesNoPainelTest.php) — `UC-PIDX-49` (o saldo por três caminhos: a conta à mão, o relatório de Lotes no link do painel e o painel; sem `stock_report.view`; o limite de 50; os lotes só para a empresa dona — lane Estoque · MySQL) e [`produto-lotes-no-painel.test.tsx`](../../../../tests/js/produto-lotes-no-painel.test.tsx) — `UC-PIDX-49` (a aba só com lote de saldo; validade, saldo e "Vencido"; a coluna Variação só quando há variação; o aviso dos 50; o botão — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-16: tirar a aba derruba os 4 casos de tela.
+- **Contrato:** backlog CV3 (pesquisa de 2026-10-20: Mubisys, estoque fracionado com rastreio da mídia; Calcgraf, controle de bobinas) — a consulta é a porta de entrada e o relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18). O saldo sai da consulta do relatório de Lotes, que passou de `ReportController::consultaLotes` para `App\Services\Estoque\ConsultaDeLotes` sem mudança de regra (o relatório chama a mesma classe): o painel não recalcula. Só leitura.
+- **Gates:** o painel (`product.view`); a aba e o link com `stock_report.view`, a mesma permissão do relatório de Lotes e da aba Estoque; só produto que controla estoque. Os lotes respeitam os locais que o usuário pode ver, como no relatório. Tier 0: a consulta sai pelo `products.business_id`.
+- **Fora daqui:** o rastreio do lote por OS dentro do painel (fica no relatório, UC-RLT-06); os lotes zerados (o relatório os mostra).
+- **Status: ⬜** — nasce neste PR.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -815,10 +825,7 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
   venda da CV, que o UC-FLX-14 ainda lista como falta.
 - Saldo do material em rolos e em m² (CV2) saiu deste backlog em 2026-11-04: virou UC-PIDX-39, com teste, usando as subunidades que a empresa já cadastra.
 - A receita da Fabricação no painel (CV6) saiu deste backlog em 2026-11-12: virou UC-PIDX-48, com teste, pela decisão D-29.
-- **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — cada rolo é um lote, e o
-  relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18, parcial). A
-  consulta seria a porta de entrada: a aba Rolos do painel lista os rolos e leva ao relatório de
-  Lotes. Fonte: Mubisys (estoque fracionado com rastreio da mídia), Calcgraf (controle de bobinas).
+- Rastrear o rolo por OS a partir da consulta (CV3) saiu deste backlog em 2026-11-16: virou UC-PIDX-49 (a aba Lotes do painel, com teste) e UC-RLT-07 (o relatório de Lotes filtrado no produto). A aba se chama Lotes, não Rolos: o painel vale para qualquer produto com lote, e na comunicação visual cada rolo é um lote.
 
 **Regras e fluxos do Wagner (2026-10-22)**
 
@@ -930,6 +937,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Campo "Compra com nota" no lançamento — Sai antes, mas é um campo novo na compra, e o saldo fica tão certo quanto quem marca o campo.
 
 ## Trilha do tempo
+- 2026-11-16 · [F+C] **UC-PIDX-49**: a aba Lotes no painel mostra os lotes com saldo, pela consulta do relatório de Lotes, com o botão que abre o relatório filtrado no produto (CV3).
 - 2026-11-12 · [F+C] **UC-PIDX-48**: a aba Receita no painel mostra a receita da Fabricação, só leitura (insumos, custo e margem da tela de Receitas), com "Abrir receita" (D-29).
 - 2026-11-12 · [F+C] **UC-PIDX-46**: o painel diz "O que é" o produto (Para vender, Material ou Serviço, pela regra do filtro "Uso") e a coluna Tipo deixa de vir ligada (resto da CV1).
 - 2026-11-12 · [F+C] **UC-PIDX-45**: o servidor passa a recusar (409) Editar, Preços por grupo e Estoque inicial do excluído, e as ações em lote deixam o excluído de fora. Antes só a tela escondia essas ações.
