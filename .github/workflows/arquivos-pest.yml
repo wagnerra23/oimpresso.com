@@ -207,6 +207,7 @@ jobs:
             Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
             Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
+            Modules/Arquivos/Tests/Feature/Wave28ArquivosSaturationTest.php \
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
             Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
             Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
@@ -218,6 +219,12 @@ jobs:
             Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
             Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php
 
+
+      # +1 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.6):
+      #   Wave28ArquivosSaturationTest. O caso "summary e READ-ONLY" deixou de ser
+      #   grep no fonte e passou a rodar o summary() contra o banco (tenant 98 x 99,
+      #   DatabaseTransactions). Os demais casos do arquivo sao puros. (Fica aqui
+      #   porque a allowlist do run acima nao aceita comentario no meio da lista.)
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
       # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir
