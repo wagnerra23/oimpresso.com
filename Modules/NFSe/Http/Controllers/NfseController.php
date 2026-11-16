@@ -72,12 +72,14 @@ class NfseController extends Controller
         }
 
         return $query->paginate(25)->withQueryString()->through(fn (NfseEmissao $n) => [
+            // valor_iss é anulável na coluna; o cast decimal:2 esconde isso do Larastan,
+            // por isso a leitura crua.
             'id'             => $n->id,
             'numero'         => $n->numero,
             'status'         => $n->status,
             'tomador_nome'   => $n->tomador_nome,
             'valor_servicos' => (float) $n->valor_servicos,
-            'valor_iss'      => $n->valor_iss !== null ? (float) $n->valor_iss : null,
+            'valor_iss'      => $n->getRawOriginal('valor_iss') === null ? null : (float) $n->getRawOriginal('valor_iss'),
             'competencia'    => $n->competencia?->format('m/Y'),
             'pdf_url'        => $n->pdf_url,
             'erro_mensagem'  => $n->erro_mensagem,
