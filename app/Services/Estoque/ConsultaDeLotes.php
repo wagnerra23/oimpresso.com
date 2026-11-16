@@ -44,7 +44,8 @@ final class ConsultaDeLotes
         $permitted_locations = auth()->user()->permitted_locations();
         $location_filter = 'WHERE ';
 
-        if ($permitted_locations != 'all') {
+        // `permitted_locations()` devolve 'all' ou a lista de ids: lista = restringe.
+        if (is_array($permitted_locations)) {
             $query->whereIn('t.location_id', $permitted_locations);
 
             $locations_imploded = implode(', ', $permitted_locations);
