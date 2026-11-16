@@ -839,6 +839,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SecurityHardeningTest.php \
             Modules/Superadmin/Tests/Feature/CrossTenantSuperadminTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminCrossTenantPolicyTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminAgendamentoTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
