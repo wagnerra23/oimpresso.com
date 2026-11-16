@@ -59,8 +59,12 @@ trait ValidaNumerosDaOrdem
         ];
     }
 
-    private function numeroDaOrdem(?string $valor): float
+    /**
+     * Sem tipo no parâmetro de propósito: o docblock de `Util::num_uf` diz `int`, embora todo o sistema
+     * passe o texto do formulário (mesmo idioma do `StoreRecipeRequest`).
+     */
+    private function numeroDaOrdem($valor): float
     {
-        return (float) app(ModuleUtil::class)->num_uf((string) $valor);
+        return (float) app(ModuleUtil::class)->num_uf($valor);
     }
 }

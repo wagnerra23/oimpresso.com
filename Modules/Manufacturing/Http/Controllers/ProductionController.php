@@ -667,7 +667,7 @@ class ProductionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Request  $request
+     * @param  UpdateProductionRequest  $request
      * @return Response
      */
     public function update(UpdateProductionRequest $request, $id)
