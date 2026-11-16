@@ -2103,6 +2103,9 @@ class ProductController extends Controller
 
         if ($telaReact) {
             return Inertia::render('Produto/Create', [
+                // UC-PCAD-30: a chave do rascunho no navegador, por empresa e usuário. A tela não monta a
+                // chave sozinha: a empresa vem da sessão, nunca do cliente (ADR 0093).
+                'rascunho' => $business_id . '.' . auth()->id(),
                 // UC-PCAD-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
                 // UC-PCAD-28: o "+" de unidade e de marca, com a permissão de cada cadastro (como o Blade).

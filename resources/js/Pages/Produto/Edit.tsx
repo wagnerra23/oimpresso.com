@@ -7,7 +7,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -26,6 +26,7 @@ import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCus
 import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
 import type { EnderecoNoEstoque, SaldoPorLocal } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
+import { semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
 import type { Folheto } from './_components/formulario/envioMidia';
@@ -202,6 +203,12 @@ function EditarCompleto(props: ProdutoEditPageProps) {
     expiry_period_type: p.expiryPeriodType ?? '',
   });
 
+  // UC-PEDIT-30: aviso ao sair com alterações não salvas (o Editar não guarda rascunho).
+  const retrato = JSON.stringify({ form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto });
+  const retratoInicial = useRef<string | null>(null);
+  if (retratoInicial.current === null) retratoInicial.current = retrato;
+  const aviso = useAvisoAoSair(retrato !== retratoInicial.current);
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // O botão do rodapé diz a tela seguinte (submit_type, o mesmo do Blade); sem ele, volta à lista.
@@ -219,7 +226,8 @@ function EditarCompleto(props: ProdutoEditPageProps) {
         ...camposDaPolitica(politica, politicaGravada),
       };
     });
-    put(`/products/${p.id}`);
+    aviso.liberar();
+    put(`/products/${p.id}`, { onError: () => aviso.travar() });
   };
 
   return (
