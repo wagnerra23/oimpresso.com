@@ -5,7 +5,6 @@ namespace Modules\Manufacturing\Entities;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Manufacturing\Concerns\AssertsBusinessChain;
-use Modules\Manufacturing\Concerns\RegistraEmpresaNaTrilha;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -13,15 +12,6 @@ class MfgRecipe extends Model
 {
     use AssertsBusinessChain; // Wave 18 D1 — multi-tenant chain helper (substitui JOIN ad-hoc) — ADR 0093
     use LogsActivity; // D7.b LGPD — audit trail receita produção (Wave S Batch 2)
-    use RegistraEmpresaNaTrilha; // UC-RECIPE-25: o registro leva a empresa do produto
-
-    /** Empresa pela cadeia até o produto (a tabela não tem `business_id`). */
-    protected function empresaDaTrilha(): ?int
-    {
-        $empresa = DB::table('products')->where('id', $this->product_id)->value('business_id');
-
-        return $empresa !== null ? (int) $empresa : null;
-    }
 
     /**
      * Spatie ActivityLog — registra mudanças nos atributos críticos da receita.

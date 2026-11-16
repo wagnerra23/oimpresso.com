@@ -954,7 +954,8 @@ class ProductionController extends Controller
                             ->where('mfg_is_final', 0)
                             ->first();
                 if ($ordem === null) {
-                    return ['success' => false, 'msg' => trans('messages.something_went_wrong')];
+                    // Finalizada ou id que não existe: nada foi apagado, a resposta não diz que foi.
+                    throw new ModelNotFoundException();
                 }
 
                 DB::beginTransaction();
@@ -973,6 +974,8 @@ class ProductionController extends Controller
                     'success' => true,
                     'msg' => __('lang_v1.deleted_success'),
                 ];
+            } catch (ModelNotFoundException $e) {
+                $output = ['success' => false, 'msg' => trans('messages.something_went_wrong')];
             } catch (\Exception $e) {
                 $this->desfazerTransacaoDaOrdem($nivelTransacao);
                 $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
