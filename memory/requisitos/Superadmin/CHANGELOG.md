@@ -6,6 +6,10 @@ Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 li
 
 - Desativar empresa (`toggle-active`) passa a POST com `is_active` só 0 ou 1; excluir empresa e excluir pacote só pelo DELETE do resource (os aliases `GET .../destroy` saíram); `BusinessController::destroy` consulta `BusinessAuditService::canDestroy` (empresa 1, a própria e a última não se excluem) e registra `negocio_excluido` em `activity_log` — o que é apagado não mudou (B5 com o [W]); resources de pacote, assinatura do superadmin e `/subscription` deixam de expor métodos sem view ou sem corpo (`SuperadminRotasDestrutivasContratoTest`).
 
+## 2026-11-16 — Lote 0 da auditoria (pagamento)
+
+- `SubscriptionController::confirm` só cria assinatura com gateway configurado em `_payment_gateways()` que tenha `pay_<gateway>`; recusa pacote privado, de uso único já assinado e inexistente; rota passa a POST (PayPal/Pesapal voltam por `confirm/retorno`, GET que só aceita os dois); exceção vai ao log redigido, não à tela. Teste: `SubscriptionConfirmContratoTest` (UC-SACF-01..07).
+
 ## 2026-11-16 — Lote L4 da auditoria (fila e agendamento)
 
 - As 7 notificações de `Notifications/` passam a ir para a fila própria `superadmin-mail`, com payload criptografado (`ShouldQueue` + `ShouldBeEncrypted`, trait `NaFilaDoSuperadmin`); o worker da fila é agendado no `registerScheduleCommands()` (só `live`). O Comunicador deixa de mandar um e-mail por dono dentro do request. Teste: `Tests/Feature/SuperadminNotificacoesNaFilaTest.php`.

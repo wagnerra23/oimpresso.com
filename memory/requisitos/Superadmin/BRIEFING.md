@@ -56,6 +56,7 @@ Sem Superadmin Wagner precisaria SSH + tinker + SQL pra criar cliente novo, alte
 ## Gaps reconhecidos
 
 - ✅ (2026-11-16) Fechado: desativar e excluir empresa ou pacote saía por GET (um link bastava) — agora POST/DELETE com CSRF, `is_active` só 0/1 e as travas de `canDestroy` na exclusão (`SuperadminRotasDestrutivasContratoTest`). O que a exclusão apaga continua como antes (B5).
+- ✅ (2026-11-16) Fechado: `confirm` aprovava pacote pago com gateway inventado e por GET sem CSRF — agora só gateway configurado, POST, travas de pacote privado/uso único (`SubscriptionConfirmContratoTest`)
 - 🟡 PIX BR não nativo (gateways herdados são internacionais; Asaas/Inter integrados via `Modules/RecurringBilling`/`Modules/PaymentGateway`)
 - 🟡 Sem dashboard de receita consolidada por package/cohort (P2 backlog)
 - 🟡 Sem export CSV de audit do Communicator (LGPD opt-in)
