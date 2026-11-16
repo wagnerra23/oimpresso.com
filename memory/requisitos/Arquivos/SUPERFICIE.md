@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 90 arquivos em 16 papéis.
+**Total mapeado:** 91 arquivos em 16 papéis.
 
 ## Controllers — 5
 
@@ -47,9 +47,10 @@ module: Arquivos
 - [RetencaoStatsReader.php](../../../Modules/Arquivos/Services/RetencaoStatsReader.php)
 - [VaultEncryptionService.php](../../../Modules/Arquivos/Services/VaultEncryptionService.php)
 
-## Models / Entities — 1
+## Models / Entities — 2
 
 - [Arquivo.php](../../../Modules/Arquivos/Entities/Arquivo.php)
+- [EscopoDeEmpresa.php](../../../Modules/Arquivos/Entities/Concerns/EscopoDeEmpresa.php)
 
 ## Jobs — 2
 
