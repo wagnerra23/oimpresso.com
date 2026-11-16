@@ -50,6 +50,8 @@ on:
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/arquivos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
+      - 'tests/Feature/ArquivosMinioDiskTest.php'
+      - 'tests/Feature/Console/ArquivosHealthCheckScheduleTest.php'
 
 concurrency:
   group: arquivos-pest-${{ github.ref }}
@@ -88,6 +90,8 @@ jobs:
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/arquivos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
+              - 'tests/Feature/ArquivosMinioDiskTest.php'
+              - 'tests/Feature/Console/ArquivosHealthCheckScheduleTest.php'
 
       - name: Skip-as-pass (nada do Arquivos mudou)
         if: steps.changes.outputs.arq == 'false'
@@ -122,12 +126,24 @@ jobs:
         # eles dropam o schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
         # Os daqui usam DB::table()/factory + cleanup no afterEach (sem refresh).
         #
+        # +1 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.4b):
+        #   ArquivosTenantIsolationTest. Era esqueleto com 3 ->todo() (auditoria RBAC
+        #   2026-11-14); agora prova listagem, download assinado e exclusao 98 x 99
+        #   pelo HTTP, com controle positivo, dentro de DatabaseTransactions.
+        #
         # +3 em 2026-08-10 (eixo 2 do test-lane-coverage · `--mudos`): os 3 abaixo têm
         # guard `if sqlite → markTestSkipped` e a ÚNICA lane que os alcançava era o
         # modules-pest.yml, que roda sqlite :memory: ⇒ pulavam 100% das vezes, e skip
         # sai exit 0 (verde que não prova nada). Entram AQUI, que é o lar declarado do
         # ratchet MySQL-only do Arquivos. Nenhum usa RefreshDatabase/migrate:fresh/
         # dropIfExists; ConsumersTraitTest escreve 0 linhas (reflexão sobre models).
+        #
+        # +2 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.5):
+        #   tests/Feature/ArquivosMinioDiskTest.php e Console/ArquivosHealthCheck
+        #   ScheduleTest.php. Testam o Arquivos mas moram fora do modulo, e nenhuma
+        #   lane os executava. Sao puros (config e schedule, sem banco). Os paths
+        #   deles entram tambem no push.paths e no paths-filter, senao mexer neles
+        #   nao dispararia esta lane.
         #
         # ERAM 5 CANDIDATOS. Rodados de verdade pela 1ª vez (run 31411208410), 2 ficaram
         # VERMELHOS e por isso NÃO entram — a catraca é "allowlist VERDE", e ligar um
@@ -225,6 +241,8 @@ jobs:
             Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
             Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
             Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
+            tests/Feature/ArquivosMinioDiskTest.php \
+            tests/Feature/Console/ArquivosHealthCheckScheduleTest.php \
             Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
             Modules/Arquivos/Tests/Feature/Wave28ArquivosSaturationTest.php \
@@ -242,6 +260,7 @@ jobs:
             Modules/Arquivos/Tests/Feature/BackfillConsumersTest.php \
             Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php \
             Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
+            Modules/Arquivos/Tests/Feature/ArquivosTenantIsolationTest.php \
             Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php \
             Modules/Arquivos/Tests/Feature/CuradorEngineTest.php \
             Modules/Arquivos/Tests/Feature/CuradorParityTest.php
