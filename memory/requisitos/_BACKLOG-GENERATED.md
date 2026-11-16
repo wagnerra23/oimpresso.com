@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1084 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1089 tarefas abertas** em **62 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -53,6 +53,7 @@
 | [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Associacoes`](#associacoes) | 5 | 0 | 0 | 0 | 5 |
+| [`Captacao`](#captacao) | 5 | 0 | 0 | 0 | 5 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`Auditoria`](#auditoria) | 4 | 0 | 0 | 0 | 4 |
@@ -1440,6 +1441,17 @@
 - **US-ASSOC-003** — Associadas com consentimento — **P0**
 - **US-ASSOC-004** — Painel da rede — **P1**
 - **US-ASSOC-005** — Área da associada no app — **P1**
+
+## Captacao
+
+
+### todo
+
+- **US-CAPT-001** — Camada de dados dos projetos de captação — **P0**
+- **US-CAPT-002** — Fontes e projetos — **P0**
+- **US-CAPT-003** — Aportes — **P0**
+- **US-CAPT-004** — Comprovantes e prestação de contas — **P1**
+- **US-CAPT-005** — Integração com o Financeiro — **P2**
 
 ## LaravelAI
 
