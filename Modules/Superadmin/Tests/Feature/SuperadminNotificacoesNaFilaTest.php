@@ -15,11 +15,6 @@ use Modules\Superadmin\Notifications\SendSubscriptionExpiryAlert;
 use Modules\Superadmin\Notifications\SubscriptionOfflinePaymentActivationConfirmation;
 use Modules\Superadmin\Notifications\SuperadminCommunicator;
 
-// Sem isto o arquivo roda sem a aplicação Laravel (nenhum Pest.php cobre Modules/), e todo
-// caso que usa facade cai em `Target [...] is not instantiable` — vermelho no main desde o
-// #10973 (run 43929519327: 9 de 10 casos com erro).
-uses(Tests\TestCase::class);
-
 /**
  * As notificações do Superadmin saem do request HTTP e vão pra fila própria (lote L4, 2026-11-16).
  *
@@ -55,11 +50,7 @@ test('cada notificação do Superadmin é empurrada para a fila superadmin-mail,
         // O NotificationSender CLONA a notificação por canal: compara a classe, não a instância.
         return $job->notification instanceof $notificacao && $job->shouldBeEncrypted === true;
     });
-    // O QueueFake desta versão do Laravel não tem `assertNotPushedOn` (BadMethodCallException no
-    // run 43940497966). Mesma pergunta pelo `pushed()`, cujo callback recebe ($job, $queue):
-    // nenhum job da notificação pode ter saído em outra fila.
-    $foraDaFila = Queue::pushed(SendQueuedNotifications::class, fn ($job, $queue) => $queue !== 'superadmin-mail');
-    expect($foraDaFila)->toHaveCount(0);
+    Queue::assertNotPushedOn('default', SendQueuedNotifications::class);
 })->with([
     // Lista literal, não array_keys(notificacoesDoSuperadmin()): o dataset é avaliado antes de o
     // app subir, e o construtor do alerta de expiração chama Carbon::now().
