@@ -160,6 +160,8 @@ describe('UC-RECIPE-12 · Nova receita — busca de produto', function () {
 
     it('is-recipe-exist não enxerga receita de outra empresa', function () {
         $user = mfgEmpUsuario('mfg_nova_receita_test');
+        // A rota pede acesso a receita ou a produção desde o lote 2.1 (UC-RECIPE-22).
+        $user->givePermissionTo(\Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'manufacturing.access_recipe', 'guard_name' => 'web']));
         [, $alheio] = mfgEmpReceita(MFG_EMP_OUTRO, $user->id, 'Insumo da outra');
         [, $proprio] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo da empresa');
 

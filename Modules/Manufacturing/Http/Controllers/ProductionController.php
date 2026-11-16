@@ -1033,6 +1033,13 @@ class ProductionController extends Controller
     {
         $business_id = request()->session()->get('user.business_id');
 
+        // Gate ANTES dos três ramos (lote 2.1 da auditoria, UC-REPORT-06): o JSON de totais e o
+        // `?legacy=1` não passavam por gate nenhum. Decisão B3 de [W] (2026-11-09): o relatório usa
+        // `access_production`, sem permissão nova.
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
         // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
         // `request()->ajax()` é TRUE numa navegação SPA — sem este guarda o controller
@@ -1072,15 +1079,14 @@ class ProductionController extends Controller
      * `indexV2`), não o cutover-no-mesmo-endereço que a tela de Receitas usou (aquele foi
      * decisão [W] explícita — {@see RUNBOOK-report.md}).
      *
-     * Mesmo gate do Blade legado acima: só o pacote `manufacturing_module`, sem permissão
-     * Spatie granular própria (o legado nunca teve uma pra "relatório" — não inauguro
-     * restrição nova que o usuário de hoje não tem em `/manufacturing/report`).
+     * Gate: pacote `manufacturing_module` + `manufacturing.access_production` desde o lote 2.1 da
+     * auditoria (decisão B3 de [W], 2026-11-09; UC-REPORT-06). Até ali era só o pacote.
      */
     public function reportV2(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
