@@ -156,16 +156,21 @@ class NfseEmissaoService
      *
      * @throws NfseException se a emissão falhar após todas as tentativas
      */
-    public function emitir(NfseEmissaoPayload $payload): NfseEmissao
+    /**
+     * @param bool $retomarPendente true só na retentativa do próprio EmitirNfseJob: a linha
+     *        `processando` que ficou de um timeout é reenviada com o MESMO nº de DPS (lote 2,
+     *        PR 2.2). Sem a flag, `processando` é emissão em andamento e é devolvida intacta.
+     */
+    public function emitir(NfseEmissaoPayload $payload, bool $retomarPendente = false): NfseEmissao
     {
         // OtelHelper::spanBiz — observability webservice prefeitura (HTTP externo p99 crítico).
         // D9.a Wave 14: span por emissão envolve adapter HTTP + idempotência + retries.
-        return OtelHelper::spanBiz('nfse.emissao', function () use ($payload) {
-            return $this->emitirInterno($payload);
+        return OtelHelper::spanBiz('nfse.emissao', function () use ($payload, $retomarPendente) {
+            return $this->emitirInterno($payload, $retomarPendente);
         }, ['nfse.business_id' => $payload->businessId]);
     }
 
-    private function emitirInterno(NfseEmissaoPayload $payload): NfseEmissao
+    private function emitirInterno(NfseEmissaoPayload $payload, bool $retomarPendente): NfseEmissao
     {
         // Idempotência: retorna nota existente se já foi emitida com mesmo payload
         // SUPERADMIN: service de emissão NFSe sem context tenant — business_id vem do payload (DTO recebido); idempotência cross-session
@@ -173,14 +178,22 @@ class NfseEmissaoService
             ->where('idempotency_key', $payload->idempotencyKey())
             ->where('business_id', $payload->businessId)
             ->whereIn('status', ['emitida', 'processando'])
+            ->latest('id')
             ->first();
 
-        if ($existente) {
+        if ($existente && ($existente->isEmitida() || ! $retomarPendente)) {
             return $existente;
         }
 
         $config = $this->getConfig($payload->businessId);
         $this->validarCertificado($config);
+
+        if ($existente) {
+            // Retentativa do job depois de timeout: a Sefin pode ter recebido a DPS. Reenvia
+            // a MESMA linha com o MESMO nº de DPS — se ela já existir lá, volta duplicada e
+            // não vira uma segunda nota. Antes daqui a retentativa criava linha e nº novos.
+            return $this->enviar($existente, $payload->comNumeroDps((string) $existente->id));
+        }
 
         $emissao = NfseEmissao::create([
             'business_id'     => $payload->businessId,
@@ -214,6 +227,18 @@ class NfseEmissaoService
         $payload = $payload->comNumeroDps((string) $emissao->id);
         $emissao->update(['rps_numero' => $payload->rpsNumero]);
 
+        return $this->enviar($emissao, $payload);
+    }
+
+    /**
+     * Envia a DPS da linha, com retentativa só em timeout e sempre com o nº de DPS da linha.
+     *
+     * Erro terminal (certificado, ISS, tomador, código de serviço...) marca `erro` e sobe:
+     * o job não retenta. Timeout esgotado deixa a linha `processando` — a nota pode ter
+     * sido aceita — para a retentativa do job reenviar o mesmo nº de DPS.
+     */
+    private function enviar(NfseEmissao $emissao, NfseEmissaoPayload $payload): NfseEmissao
+    {
         $tentativa = 0;
         $ultimoErro = null;
 
@@ -241,17 +266,17 @@ class NfseEmissaoService
 
                 return $emissao->fresh();
             } catch (RpsDuplicadoException $e) {
-                // Duplicado = nota já foi aceita; atualiza e retorna sem retry
-                $emissao->update(['status' => 'emitida', 'erro_mensagem' => $e->getMessage()]);
-                throw $e;
+                // A Sefin já tem uma nota para este nº de DPS (típico do reenvio depois de
+                // timeout). Antes a linha virava `emitida` sem número. Agora consulta a nota.
+                return $this->resolverDuplicado($emissao, $payload);
             } catch (CertificadoInvalidoException $e) {
                 // Cert inválido = não adianta retry
                 $this->marcarErro($emissao, $e);
                 throw $e;
             } catch (ProviderTimeoutException $e) {
                 $ultimoErro = $e;
-                // Backoff exponencial: 1s, 2s, 4s
-                sleep(2 ** ($tentativa - 1));
+                // Backoff exponencial: 1s, 2s, 4s (base em config; os testes usam 0).
+                sleep((int) config('nfse.backoff_base_segundos', 1) * 2 ** ($tentativa - 1));
                 continue;
             } catch (NfseException $e) {
                 $this->marcarErro($emissao, $e);
@@ -259,9 +284,55 @@ class NfseEmissaoService
             }
         }
 
-        // Esgotou retries de timeout
-        $this->marcarErro($emissao, $ultimoErro);
-        throw $ultimoErro ?? new ProviderTimeoutException($tentativa);
+        // Esgotou as retentativas de timeout. A nota pode ter sido aceita: fica `processando`
+        // (não `erro`), e a retentativa do job reenvia o mesmo nº de DPS.
+        $timeout = $ultimoErro ?? new ProviderTimeoutException($tentativa);
+        $emissao->update([
+            'status'        => 'processando',
+            'erro_mensagem' => app(PiiRedactor::class)->redact($timeout->getMessage()),
+        ]);
+        Log::channel('nfse')->warning('NFSe sem resposta da Sefin', [
+            'business_id' => $emissao->business_id,
+            'emissao_id'  => $emissao->id,
+            'tentativas'  => $tentativa,
+        ]);
+
+        throw $timeout;
+    }
+
+    /**
+     * DPS duplicada: a nota existe na Sefin. Com a chave de acesso da linha, consulta e grava
+     * número e status reais. Sem a chave, a linha fica `processando` com o aviso — nunca
+     * `emitida` sem número. A consulta pelo nº de DPS depende do endpoint do manual da Sefin,
+     * que não está no repo (lote 2, PR 2.2).
+     */
+    private function resolverDuplicado(NfseEmissao $emissao, NfseEmissaoPayload $payload): NfseEmissao
+    {
+        $chave = (string) $emissao->provider_protocolo;
+        if ($chave !== '') {
+            $consulta = $this->provider->consultar($chave);
+            if ($consulta->sucesso && ! empty($consulta->numero)) {
+                $emissao->update([
+                    'status'        => 'emitida',
+                    'numero'        => $consulta->numero,
+                    'pdf_url'       => $consulta->pdfUrl ?? $emissao->pdf_url,
+                    'erro_mensagem' => null,
+                ]);
+
+                return $emissao->fresh();
+            }
+        }
+
+        $emissao->update([
+            'status'        => 'processando',
+            'erro_mensagem' => "A Sefin já recebeu a DPS nº {$payload->rpsNumero}. Consulte a nota antes de emitir de novo.",
+        ]);
+        Log::channel('nfse')->warning('NFSe com DPS duplicada', [
+            'business_id' => $emissao->business_id,
+            'emissao_id'  => $emissao->id,
+        ]);
+
+        return $emissao->fresh();
     }
 
     public function cancelar(NfseEmissao $emissao, string $motivo): void
