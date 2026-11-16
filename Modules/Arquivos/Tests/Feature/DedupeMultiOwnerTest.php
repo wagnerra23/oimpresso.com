@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,7 @@ use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\ArquivosRetentionService;
 use Modules\Repair\Entities\JobSheet;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Dedupe de STORAGE não pode custar o VÍNCULO do dono (ADR 0123 §API · US-ARQ-004).
@@ -71,10 +72,8 @@ afterEach(function () {
         return;
     }
     $md5 = md5(DEDUP_MULTI_CONTEUDO);
-    $ids = DB::table('arquivos')->where('md5', $md5)->pluck('id');
-    if ($ids->isNotEmpty()) {
-        DB::table('arquivos_audit_log')->whereIn('arquivo_id', $ids)->delete();
-    }
+    // A trilha (`arquivos_audit_log`) não é limpa por DELETE: ela ganha trigger append-only
+    // (lote L2) e o arquivo roda em DatabaseTransactions, que desfaz o que o teste gravou.
     DB::table('arquivos')->where('md5', $md5)->delete();
     DB::table('arquivos_dedupe')->where('md5', $md5)->delete();
 });

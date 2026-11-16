@@ -58,6 +58,7 @@ drift_alerts: []
 ## Riscos transversais (Agent C 2026-05-10)
 
 - Storage `local-ct100` mount + `.env` ARQUIVOS_DISK_DEFAULT precisam ser configurados em ambos Hostinger e CT 100 — testes integration passam local mas quebram em prod sem isso
+  - _Estado em 2026-11-16 (auditoria L2): o disk `local-ct100` nunca foi criado. `arquivos.disk_default` cai em `local` e o `config/filesystems.php` não tem `local-ct100`. A troca para `arquivos-minio` (ADR 0214) está **pendente** da decisão B4 do [W]; até lá, nada aqui depende de CT 100._
 - Encryption-at-rest do disk `vault` exige decisão tech (middleware vs explicit encrypt)
 - Drift JS↔PHP timezone — Date.now() vs time(). Forçar UTC em ambos
 - ParityTest sem fixtures = paridade circular

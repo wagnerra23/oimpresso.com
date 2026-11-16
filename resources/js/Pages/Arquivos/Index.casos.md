@@ -29,18 +29,25 @@ last_run: "2026-10-01"
   com a permissão `arquivos.access` · Então vê a lista do **próprio** business com nome do
   arquivo, dono (`arquivable`), bucket, disco, tamanho e data de vencimento — e nenhum arquivo
   de outro `business_id`.
-- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** asserções
-  citando `UC-INDEX-01` no título do `it()` (scope não quebrado · sem `storage_path`/hash ·
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **8** `it()`
+  citando `UC-INDEX-01` no título (scope não quebrado · sem `storage_path`/hash ·
   leitura pura · `politica()` devolve prazo E base legal · todo bucket da Request existe no enum
-  do banco · entrada no sidebar com as 3 camadas)
+  do banco · entrada no sidebar com as 3 camadas · o resumo conta o acervo do business, nunca a
+  página · `index()` não estoura sem a tabela). _Recontado em 2026-11-16 com
+  `grep -E "^\s*(it|test)\(" … | grep -c UC-INDEX-01` — 8; o 6 abaixo é fato de 2026-08-25._
   + `e2e/arquivos-index.spec.ts` (stub `test.fixme`, vira asserção quando a rota subir em prod).
   _Este número dizia **5** e estava stale desde 2026-08-25: a asserção do bucket entrou com o fix
   do filtro ([#6244](https://github.com/wagnerra23/oimpresso.com/pull/6244)) e a enumeração aqui
   não acompanhou. Recontado com `grep -c "^it('UC-INDEX-01"` — 6 —, não de memória._
 - **Regressão que defende:** vazamento cross-tenant no acervo (ADR 0093, Tier 0) e prazo
   exibido sem a lei que o sustenta.
-- **Status: 🧪** — a lane executou e o manifesto aterrissou: `scripts/casos-test-results.json`
-  (gerado 2026-08-25, fonte `test-results/pest-arquivos-junit.xml`) traz
+- **Status: 🧪** — fica em 🧪 de propósito, e não por falta de veredito. O manifesto de
+  2026-11-15 traz `UC-INDEX-01 → verdict pass · tests 9`, mas **9 = 8 deste arquivo + 1 de
+  `tests/Feature/DocumentacaoRouteTest.php`**, que usa o mesmo id para outra tela. O manifesto
+  agrega por id, então um ✅ aqui seria creditado em parte por teste de outro módulo (§5
+  2026-09-04, prova por id casado num corpus global). Vira ✅ quando o lote L4 der a este
+  arquivo um prefixo próprio (item 4.2). _Fato de 2026-08-25, preservado:_ o manifesto de
+  então (fonte `test-results/pest-arquivos-junit.xml`) trazia
   `UC-INDEX-01 → verdict pass · tests 4` — quatro, não cinco, porque o manifesto foi gerado
   ANTES de a asserção do sidebar entrar ([#6245](https://github.com/wagnerra23/oimpresso.com/pull/6245),
   2026-08-25); ela conta a partir do próximo `casos:results`. Não é ✅ porque, pelo
@@ -73,8 +80,9 @@ last_run: "2026-10-01"
   acervo por causa disso — aplicado à trilha, ele proibiria a própria defesa (é a regra de
   precedência de 2026-07-06). Defende também: prazo/nome de arquivo vazando pra vista de
   governança, e a trilha ganhar caminho de escrita.
-- **Status: ⬜** — os testes existem e as asserções puras foram medidas fora do CI, mas
-  ⬜ é o que o cabeçalho manda enquanto o veredito não veio da lane: 🧪 exige o manifesto
+- **Status: 🧪** — fica em 🧪 de propósito: o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-02 → verdict pass · tests 8`, mas 8 = 7 deste arquivo + 1 de `tests/Feature/DocumentacaoRouteTest.php`, que usa o mesmo id. Um ✅ seria creditado em parte por teste de outro módulo (§5 2026-09-04). Vira ✅ com o prefixo próprio do item 4.2 do lote L4.
+  _Fato anterior, preservado:_ ⬜ — os testes existem e as asserções puras foram medidas fora do CI, mas
+  ⬜ era o que o cabeçalho manda enquanto o veredito não veio da lane: 🧪 exige o manifesto
   (`scripts/casos-test-results.json`), não a minha leitura (G-7). Vira 🧪 com o run da
   `Arquivos · Pest (MySQL)` deste PR.
 
@@ -111,7 +119,8 @@ last_run: "2026-10-01"
   deixou de caber, porque o leitor precisa do hash pra agrupar; (c) o cap virar `50` escrito na
   tela, divergindo do que o `VaultEncryptionService` recusa em runtime; (d) mais de uma prop
   deferida registrada de uma vez, que faria a vista fechada custar.
-- **Status: ⬜** — os testes existem e as asserções puras foram medidas fora do CI, mas ⬜ é o
+- **Status: 🧪** — fica em 🧪 de propósito: o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-03 → verdict pass · tests 9`, mas 9 = 8 deste arquivo + 1 de `tests/Feature/DocumentacaoRouteTest.php`, que usa o mesmo id. Um ✅ seria creditado em parte por teste de outro módulo (§5 2026-09-04). Vira ✅ com o prefixo próprio do item 4.2 do lote L4.
+  _Fato anterior, preservado:_ ⬜ — os testes existem e as asserções puras foram medidas fora do CI, mas ⬜ era o
   que o cabeçalho manda enquanto o veredito não veio da lane: 🧪 exige o manifesto
   (`scripts/casos-test-results.json`), não a minha leitura (G-7). Vira 🧪 com o run da
   `Arquivos · Pest (MySQL)` deste PR.
@@ -143,7 +152,8 @@ last_run: "2026-10-01"
   operador correr atrás de arquivo que o job já tratou; (e) `Config/retention.php` seguir
   **não registrado** — era o caso até esta leva, e sem isso a tela mostraria defaults inline
   como se fossem a política.
-- **Status: ⬜** — os testes existem, mas ⬜ é o que o cabeçalho manda enquanto o veredito não
+- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-04 → verdict pass · tests 4`, e 4 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+  _Antes:_ ⬜ — os testes existem, mas ⬜ era o que o cabeçalho manda enquanto o veredito não
   veio da lane: 🧪 exige o manifesto (G-7), não a minha leitura.
 
 ---
@@ -165,7 +175,8 @@ last_run: "2026-10-01"
 - **Regressão que defende:** servir arquivo do vault por `Storage::url` (Non-Goal do charter,
   ADR 0123 §6) · oferecer botão que leva a 404 · trocar o `URL::temporarySignedRoute` pelo
   `signedUrl()` do Service e passar a gravar 25 linhas de auditoria por render do acervo.
-- **Status: 🧪** — a lane do CT 100 executou em 2026-08-27: **35 passed · 140 assertions**,
+- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-05 → verdict pass · tests 3`, e 3 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+  _Antes:_ 🧪 — a lane do CT 100 executou em 2026-08-27: **35 passed · 140 assertions**,
   contra **30 · 118** com o arquivo de teste anterior no mesmo código. O delta `+5/+22` é o
   contador provando que os testes novos rodaram, não o nome deles aparecendo no log.
   **Bite-test:** trocar `DOWNLOAD_EXPIRA_MIN` de 60 pra 1440 deixa o UC vermelho (`1 failed`).
@@ -190,7 +201,8 @@ last_run: "2026-10-01"
   negócio · gerar link pra rota que não existe (`RouteNotFoundException` derrubaria o `paginate`
   inteiro, não só a célula) · perder o valor técnico, que é o que resolve a ambiguidade entre as
   duas "Ordem de serviço" (OficinaAuto × Repair).
-- **Status: 🧪** — mesma run de UC-INDEX-05. **Bite-test:** anular a rota do `ServiceOrder` no
+- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-06 → verdict pass · tests 2`, e 2 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+  _Antes:_ 🧪 — mesma run de UC-INDEX-05. **Bite-test:** anular a rota do `ServiceOrder` no
   mapa deixa o UC vermelho (`1 failed`).
 
 ---
@@ -216,7 +228,8 @@ last_run: "2026-10-01"
 - **Regressão que defende:** motivo validado e jogado fora (a Request o exigia e nada o
   consumia) · `force_bucket` aceito em silêncio, prometendo uma classificação manual que o
   Service não faz · linha de trilha gravada com o business da entrada em vez do do arquivo.
-- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 02.
+- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-07 → verdict pass · tests 5`, e 5 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+  _Antes:_ ⬜ — o veredito era da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 02.
 
 ---
 
@@ -245,7 +258,8 @@ last_run: "2026-10-01"
 - **Regressão que defende:** exclusão virar apagamento (perda de dado + quebra da guarda legal) ·
   restaurar depois que a retenção já é dona do arquivo · botão de restaurar desabilitado em vez
   de ausente · exclusão de arquivo de outro business.
-- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 03.
+- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-08 → verdict pass · tests 7`, e 7 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+  _Antes:_ ⬜ — o veredito era da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 03.
 
 ---
 
@@ -273,7 +287,8 @@ last_run: "2026-10-01"
 - **Regressão que defende:** simulação virar execução (trocar o `true` do controller por
   `false` reprova o canário) · purge pela tela · simular o acervo de outro business · nome ou
   caminho de arquivo saindo no relatório.
-- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 04.
+- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-09 → verdict pass · tests 6`, e 6 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+  _Antes:_ ⬜ — o veredito era da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 04.
 - **Sem botão ainda:** a vista de retenção (UC-INDEX-04) segue leitura pura. O relatório fica
   no cache (24h, por business); desenhar o botão e a leitura dele na tela é o próximo passo.
 
