@@ -7,6 +7,8 @@ use App\Util\OtelHelper;
 use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
+use Modules\Superadmin\Http\Requests\StorePackageRequest;
+use Modules\Superadmin\Http\Requests\UpdatePackageRequest;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -242,7 +244,7 @@ class PackagesController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StorePackageRequest $request)
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
@@ -316,7 +318,7 @@ class PackagesController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdatePackageRequest $request, $id)
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');

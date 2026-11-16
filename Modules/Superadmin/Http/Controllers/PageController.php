@@ -4,6 +4,8 @@ namespace Modules\Superadmin\Http\Controllers;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
+use Modules\Superadmin\Http\Requests\StoreFrontendPageRequest;
+use Modules\Superadmin\Http\Requests\UpdateFrontendPageRequest;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
@@ -81,7 +83,7 @@ class PageController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(StoreFrontendPageRequest $request)
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
@@ -126,7 +128,9 @@ class PageController extends Controller
      */
     public function showPage($slug)
     {
-        $page = SuperadminFrontendPage::where('slug', $slug)->first();
+        // Página oculta (`is_shown = 0`) é rascunho: some do site também por URL direta, não só
+        // do menu. Antes abria para quem soubesse o slug (auditoria 2026-11-05, eixo 5 §1).
+        $page = SuperadminFrontendPage::where('slug', $slug)->where('is_shown', 1)->first();
 
         if (! empty($page)) {
             return view('superadmin::pages.show')->with(compact('page'));
@@ -141,7 +145,7 @@ class PageController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateFrontendPageRequest $request, $id)
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');

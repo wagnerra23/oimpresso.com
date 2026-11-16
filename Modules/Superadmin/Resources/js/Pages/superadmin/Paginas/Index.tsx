@@ -129,13 +129,13 @@ function Gaveta({ alvo, onFechar }: { alvo: Pagina | 'nova'; onFechar: () => voi
           <SheetDescription>O endereço público é /page/ seguido do slug.</SheetDescription>
         </SheetHeader>
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4">
-          <Campo id="pg-titulo" rotulo="Título">
+          <Campo id="pg-titulo" rotulo="Título" erro={form.errors.title}>
             <Input id="pg-titulo" value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} />
           </Campo>
           <Campo id="pg-slug" rotulo="Slug" erro={form.errors.slug}>
             <Input id="pg-slug" value={form.data.slug} onChange={(e) => form.setData('slug', e.target.value)} />
           </Campo>
-          <Campo id="pg-ordem" rotulo="Ordem no menu">
+          <Campo id="pg-ordem" rotulo="Ordem no menu" erro={form.errors.menu_order}>
             <Input id="pg-ordem" inputMode="numeric" className="tabular-nums" value={form.data.menu_order} onChange={(e) => form.setData('menu_order', e.target.value)} />
           </Campo>
           <div className="flex items-center gap-2">
