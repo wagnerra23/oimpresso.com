@@ -82,7 +82,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
           />
           {errors.name && <p className="text-[12px] text-destructive mt-1">{errors.name}</p>}
         </div>
-        <div>
+        <div className="relative">
           <Label htmlFor="sku">{novo ? 'SKU (deixe em branco pra gerar automático)' : 'SKU'}</Label>
           <Inline gap={2}>
             <Input
@@ -107,8 +107,11 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               Bipar
             </Button>
           </Inline>
+          {/* Fora do fluxo: o aviso some no blur do SKU, que acontece no mousedown do próximo
+              clique. Se ocupasse altura, a linha de baixo subiria entre mousedown e mouseup e o
+              clique se perderia (medido 2026-11-16: o 1º clique no IMEI após bipar não marcava). */}
           {leitorPronto && (
-            <p role="status" className="text-[12px] text-muted-foreground mt-1">
+            <p role="status" className="absolute left-0 top-full mt-0.5 whitespace-nowrap text-[12px] text-muted-foreground">
               Leitor pronto: bipe o produto e o código cai no SKU.
             </p>
           )}
