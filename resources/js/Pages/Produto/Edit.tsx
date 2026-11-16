@@ -34,6 +34,7 @@ import type {
   OptionMap,
   OptionStringMap,
   CampoDaEmpresa,
+  SubUnidade,
 } from './_components/formulario/tipos';
 
 
@@ -44,7 +45,10 @@ interface ProdutoEditModel {
   type: 'single' | 'variable' | 'combo';
   brandId: number | null;
   unitId: number | null;
-  subUnitIds: string | null;
+  /** As sub-unidades ligadas (o model faz o cast da coluna JSON para lista). */
+  subUnitIds: Array<number | string> | null;
+  /** UC-PEDIT-27: IMEI / nº de série. */
+  enableSrNo?: boolean;
   categoryId: number | null;
   subCategoryId: number | null;
   tax: number | null;
@@ -116,6 +120,10 @@ export interface ProdutoEditPageProps {
   somenteArmazenagem?: boolean;
   /** UC-PEDIT-24: os campos personalizados com o nome que a empresa deu. */
   camposDaEmpresa?: CampoDaEmpresa[];
+  /** UC-PEDIT-25: categoria => {subcategoria => nome}; vazio sem subcategoria na empresa. */
+  subcategoriasPorCategoria?: Record<string, Record<string, string>>;
+  /** UC-PEDIT-26: unidade => sub-unidades; vazio sem sub-unidades na empresa. */
+  subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -163,6 +171,11 @@ function EditarCompleto(props: ProdutoEditPageProps) {
     unit_id: p.unitId ?? '',
     category_id: p.categoryId ?? '',
     sub_category_id: p.subCategoryId ?? '',
+    // UC-PEDIT-26: as sub-unidades gravadas voltam no envio. Sem elas o update() gravava nulo
+    // (`sub_unit_ids` ausente → null) e salvar pelo Editar React desligava as sub-unidades.
+    sub_unit_ids: (p.subUnitIds ?? []).map(Number),
+    // UC-PEDIT-27: o IMEI / nº de série gravado.
+    enable_sr_no: p.enableSrNo ? 1 : 0,
     tax: p.tax ?? '',
     tax_type: p.taxType,
     origem_mercadoria: p.origemMercadoria ?? 0,

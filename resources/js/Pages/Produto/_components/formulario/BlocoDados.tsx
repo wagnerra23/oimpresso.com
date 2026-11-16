@@ -16,6 +16,7 @@ import {
 } from '@/Components/ui/select';
 import { Grid, Inline } from '@/Components/layout';
 import { CampoLocais } from './BlocoLocais';
+import { CampoSubcategoria, CampoSubUnidades } from './BlocoSubcampos';
 import { avisoCodigoBarras } from './ean';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
@@ -31,6 +32,9 @@ interface Props {
 export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
   const novo = modo === 'novo';
   const avisoEan = avisoCodigoBarras(data.sku, data.barcode_type);
+  // UC-PCAD-25/26 · UC-PEDIT-25/26: o servidor manda as listas vazias quando a empresa não usa.
+  const temSubcategoria = Object.keys(opcoes.subcategoriasPorCategoria ?? {}).length > 0;
+  const temSubUnidades = Object.keys(opcoes.subUnidadesPorUnidade ?? {}).length > 0;
 
   return (
     <Card>
@@ -82,7 +86,11 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
           <Label htmlFor="unit_id">{novo ? 'Unidade *' : 'Unidade'}</Label>
           <Select
             value={String(data.unit_id ?? '')}
-            onValueChange={(v) => definir('unit_id', Number(v))}
+            onValueChange={(v) => {
+              definir('unit_id', Number(v));
+              // As sub-unidades são da unidade: trocar a unidade desmarca as da anterior.
+              if (temSubUnidades && Number(v) !== Number(data.unit_id)) definir('sub_unit_ids', []);
+            }}
           >
             <SelectTrigger id="unit_id">
               <SelectValue placeholder="Selecione" />
@@ -96,6 +104,9 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
             </SelectContent>
           </Select>
         </div>
+        {temSubUnidades && (
+          <CampoSubUnidades data={data} definir={definir} porUnidade={opcoes.subUnidadesPorUnidade ?? {}} />
+        )}
         <div>
           <Label htmlFor="brand_id">Marca</Label>
           <Select
@@ -118,7 +129,11 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
           <Label htmlFor="category_id">Categoria</Label>
           <Select
             value={String(data.category_id ?? '')}
-            onValueChange={(v) => definir('category_id', Number(v))}
+            onValueChange={(v) => {
+              definir('category_id', Number(v));
+              // A subcategoria é da categoria: trocar a categoria limpa a subcategoria.
+              if (temSubcategoria && Number(v) !== Number(data.category_id)) definir('sub_category_id', '');
+            }}
           >
             <SelectTrigger id="category_id">
               <SelectValue placeholder="Selecione" />
@@ -132,6 +147,9 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
             </SelectContent>
           </Select>
         </div>
+        {temSubcategoria && (
+          <CampoSubcategoria data={data} definir={definir} porCategoria={opcoes.subcategoriasPorCategoria ?? {}} />
+        )}
         {novo && opcoes.businessLocations && (
           <CampoLocais data={data} definir={definir} locais={opcoes.businessLocations} />
         )}

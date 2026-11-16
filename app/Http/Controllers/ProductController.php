@@ -1879,6 +1879,58 @@ class ProductController extends Controller
     }
 
     /**
+     * UC-PCAD-25 · UC-PEDIT-25: as subcategorias de cada categoria da empresa, para a tela trocar a
+     * lista quando a categoria muda (o Blade pede uma a uma em `/products/get_sub_categories`). Vazio
+     * quando a empresa não usa categoria ou subcategoria, como o Blade esconde o campo.
+     *
+     * @return object  categoria => {subcategoria => nome}
+     */
+    protected function subcategoriasPorCategoria(int $business_id): object
+    {
+        if (! (session('business.enable_category') && session('business.enable_sub_category'))) {
+            return (object) [];
+        }
+        $mapa = [];
+        $subs = Category::where('business_id', $business_id)
+            ->whereNotNull('parent_id')->where('parent_id', '!=', 0)
+            ->orderBy('name')->get(['id', 'name', 'parent_id']);
+        foreach ($subs as $c) {
+            $mapa[(int) $c->parent_id][(int) $c->id] = (string) $c->name;
+        }
+
+        return (object) array_map(fn (array $l) => (object) $l, $mapa);
+    }
+
+    /**
+     * UC-PCAD-26 · UC-PEDIT-26: as sub-unidades de cada unidade da empresa, com o multiplicador do
+     * cadastro de unidades, como o Blade lista em `/products/get_sub_units` (a unidade principal e as
+     * que derivam dela). Vazio quando a empresa não usa sub-unidades (`enable_sub_units`).
+     *
+     * @return object  unidade => list<{id, nome, multiplicador}>
+     */
+    protected function subUnidadesPorUnidade(int $business_id): object
+    {
+        if (! session('business.enable_sub_units')) {
+            return (object) [];
+        }
+        $mapa = [];
+        $unidades = Unit::where('business_id', $business_id)->orderBy('id')->get(['id', 'actual_name', 'base_unit_id', 'base_unit_multiplier']);
+        foreach ($unidades as $u) {
+            if ($u->base_unit_id === null) {
+                $mapa[(int) $u->id] = [['id' => (int) $u->id, 'nome' => (string) $u->actual_name, 'multiplicador' => 1.0]];
+            }
+        }
+        foreach ($unidades as $u) {
+            // Só a derivada de uma principal desta empresa entra (a principal veio do mesmo filtro).
+            if ($u->base_unit_id !== null && isset($mapa[(int) $u->base_unit_id])) {
+                $mapa[(int) $u->base_unit_id][] = ['id' => (int) $u->id, 'nome' => (string) $u->actual_name, 'multiplicador' => (float) $u->base_unit_multiplier];
+            }
+        }
+
+        return (object) $mapa;
+    }
+
+    /**
      * UC-PCAD-24 · UC-PEDIT-24: os campos personalizados que a empresa nomeou em Configurações →
      * Rótulos (`custom_labels.product.custom_field_N`), com o tipo de cada um
      * (`custom_labels.product_cf_details.N`: texto, data ou lista). Como no Blade
@@ -2017,6 +2069,9 @@ class ProductController extends Controller
             return Inertia::render('Produto/Create', [
                 // UC-PCAD-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PCAD-25 · UC-PCAD-26: subcategorias e sub-unidades, só se a empresa as usa.
+                'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
+                'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
                 'categories' => $categories,
                 'brands' => $brands,
                 'units' => $units,
@@ -2048,6 +2103,9 @@ class ProductController extends Controller
                     'weight' => $duplicate_product->weight,
                     'product_description' => $duplicate_product->product_description,
                     'type' => $duplicate_product->type,
+                    // UC-PCAD-26 · UC-PCAD-27: duplicar leva as sub-unidades e o IMEI, como o Blade.
+                    'sub_unit_ids' => array_map('intval', (array) ($duplicate_product->sub_unit_ids ?? [])),
+                    'enable_sr_no' => (int) $duplicate_product->enable_sr_no,
                 ] : null,
                 'subCategories' => $sub_categories,
                 'rackDetails' => $rack_details,
@@ -2808,6 +2866,8 @@ class ProductController extends Controller
                     'brandId' => $product->brand_id,
                     'unitId' => $product->unit_id,
                     'subUnitIds' => $product->sub_unit_ids,
+                    // UC-PEDIT-27: o IMEI / nº de série volta no envio; sem ele o update() mantém o gravado.
+                    'enableSrNo' => (bool) $product->enable_sr_no,
                     'categoryId' => $product->category_id,
                     'subCategoryId' => $product->sub_category_id,
                     'tax' => $product->tax,
@@ -2846,6 +2906,9 @@ class ProductController extends Controller
                 ],
                 // UC-PEDIT-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PEDIT-25 · UC-PEDIT-26: subcategorias e sub-unidades, só se a empresa as usa.
+                'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
+                'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
                 'categories' => $categories,
                 'brands' => $brands,
                 'units' => $units,
