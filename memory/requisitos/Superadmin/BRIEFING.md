@@ -1,79 +1,88 @@
 ---
 id: requisitos-superadmin-briefing
+module: Superadmin
+status: producao
+status_nota: "backoffice interno do oimpresso + telas de assinatura do cliente (/subscription/*)"
+updated_at: "2026-11-16"
+owner: W
+related_adrs:
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0170-onda5-simplificada"
+  - "0399-aposentar-rubrica-module-grade-gate-e-baseline"
 ---
 
 # BRIEFING — Modules/Superadmin
 
-> **Estado:** ✅ legado UltimatePOS v6 em uso interno Wagner | **Atualizado:** 2026-08-01 (refresh — 76d de código desde 05-16; 2 commits Superadmin-próprios: health-check registrado #2647 + `// SUPERADMIN` scope audit #2707) | **Owner:** [W]
-> Canon: [SPEC.md](SPEC.md) · [SCOPE.md](SCOPE.md) · [CHANGELOG](CHANGELOG.md) · Rubrica v3: [ADR 0155](../../decisions/0155-module-grade-v3-anti-injustica-na-justified.md) + [ADR 0156](../../decisions/0156-rubrica-v3-pesos-redistribuidos.md)
+> **Atualizado:** 2026-11-16 (lote L6 da auditoria de 2026-11-05; a versão anterior era de 2026-08-01) | **Owner:** [W]
+> Canon: [SPEC.md](SPEC.md) · [SCOPE.md](SCOPE.md) · [CHANGELOG](CHANGELOG.md) · [SUPERFICIE.md](SUPERFICIE.md) (inventário gerado de arquivos)
 
 ## O que é
 
-Painel backoffice de **governança interna do oimpresso**. Wagner usa pra criar businesses novos, gerenciar packages (planos comerciais), confirmar pagamentos offline, enviar comunicados cross-tenant, editar páginas do site público e configurar settings globais (SMTP, gateways, cron, backup).
+Duas coisas no mesmo módulo:
 
-**Cross-tenant intencional** — uma das poucas áreas legítimas que opera sobre TODOS os `business_id` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) §exceções).
+1. **Backoffice da plataforma** (`/superadmin/*`, middleware `superadmin`): o operador do oimpresso cria negócios, gerencia pacotes (planos), aprova/vence/cancela assinaturas, envia comunicados cross-tenant, edita páginas do site público, configura settings globais e abre o raio-X de um usuário (Usuário 360).
+2. **Telas de assinatura do cliente** (`/subscription/*`, permissão `superadmin.access_package_subscriptions`): Minha assinatura e Pagar. Essas são do tenant, não do operador.
 
-## Por que existe
+O backoffice é **cross-tenant intencional** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) §exceções); cada bypass de escopo leva a marca `// SUPERADMIN: <razão>`.
 
-Sem Superadmin Wagner precisaria SSH + tinker + SQL pra criar cliente novo, alterar plano ou ver consolidado. Centraliza operação comercial+suporte numa UI.
+## Telas (medido em 2026-11-16: 12 `Inertia::render` em `Modules/Superadmin/Http`)
 
-## Capacidades hoje
-
-- ✅ CRUD de businesses + reset de senha owner
-- ✅ Packages com `custom_permissions` JSON + limites
-- ✅ Subscriptions com 7 gateways (PayPal/Stripe/Razorpay/PesaPal/Paystack/Flutterwave/offline)
-- ✅ Communicator com audit log
-- ✅ Frontend Pages (Sobre/Contato/Termos)
-- ✅ Manage Modules per-business
-- ✅ Settings globais (SMTP/Pusher/Cron/Backup/Gateways)
-- ✅ Pricing público `/pricing`
-- ✅ Usuario 360 (consolidado por cliente) — Inertia/React (`resources/js/Pages/superadmin/Usuario360/` Index+Show, `Usuario360Controller`)
-- ✅ Auto-onboarding SaaS: `Business::created` → auto-Subscription via observer (`registerBusinessAutoSubscriptionObserver`) + cron `paymentgateway:emit-trial-expired` 08:00 (ADR 0170 Onda 5.B, PaymentGateway 2026-05-19)
-- ✅ Health-check `superadmin:health` (`--detail`/`--notify`) — biz=1 imutável + subscriptions aging + self-destroy guard; alimenta `jana:health-check`. Registrado no ServiceProvider desde #2647 (2026-06-13; antes definido mas fora de `Artisan::all()`)
-- ✅ Cron `pos:sendSubscriptionExpiryAlert` daily (alerta expiração assinatura)
-
-## Diferencial vs concorrentes
-
-- Vs Bling/Tiny/Omie: ERPs comerciais BR não expõem painel admin self-hosted — Wagner pode rodar próprio MVP cobrando direto via Stripe/PIX, sem intermediário
-- Vs SaaS genérico (Cobre/Vindi): Superadmin já vem com multi-tenant + packages + módulos plugáveis integrados ao mesmo banco — sem custo de integração
-
-## Score module-grade
-
-| Versão | Score | Observação |
+| Tela | Rota | Desde |
 |---|---|---|
-| v2 (pré-PR3) | ~55-60/100 | Penalizava D5 (cross-tenant sem cliente externo), D4.c (Blade legacy intencional), D8.b (CSRF except) — injusto pro design backoffice Wagner-only |
-| **v3 (pós-PR3)** | **~85-90/100** (esperado) | `na_justified` D5+D4.c+D8.b declarado no SPEC → rubrica v3 (ADR 0155) redistribui pesos pras dimensões aplicáveis |
+| `superadmin/Dashboard/Index` | `/superadmin` | SA-O1 |
+| `superadmin/Negocios/Index` + drawers Novo negócio e Adicionar assinatura | `/superadmin/business` | SA-O2; drawers #8714, #8733 (2026-10-05) |
+| `superadmin/Pacotes/Index` + drawer criar/editar | `/superadmin/packages` | SA-O4c; drawer #8725 (2026-10-05) |
+| `superadmin/Assinaturas/Index` (aprovar · vencer · cancelar · vigência) | `/superadmin/superadmin-subscription` | SA-O4a/b |
+| `superadmin/Comunicador/Index` | `/superadmin/communicator` | #8342 |
+| `superadmin/Configuracoes/Index` (segredos mascarados) | `/superadmin/settings` | #8361 |
+| `superadmin/Paginas/Index` | `/superadmin/frontend-pages` | cutover #10028 (2026-10-28) |
+| `superadmin/Usuario360/Index` e `Show` (grava log de acesso, #8364) | `/superadmin/usuarios` | — |
+| `superadmin/MinhaAssinatura/Index` (cliente) | `/subscription` | — |
+| `superadmin/Pagar/Index` (cliente, atrás da flag `useV2SuperadminPagar`) | `/subscription/{id}/pay` | #10267 |
+| `Site/Pricing` (público) | `/pricing` | — |
 
-**`na_justified` declarado no SPEC:**
-- **D5 (cliente externo):** cross-tenant intencional Wagner-only, ADR 0093 §exceções + Constituição Art. 6 — biz=4 ROTA LIVRE não é alvo. Todo bypass de global scope marcado com `// SUPERADMIN` auditável (US-GOV-019, #2707 2026-06-14 — 44 marcações no módulo).
-- **D4.c (MWART migração):** Blade legacy preservado por design — herdado UltimatePOS v6 (~50 views), Wagner-only não justifica investimento Inertia (ADR 0104 escopo só fronts cliente).
-- **D8.b (CSRF except):** nenhuma rota Superadmin em `VerifyCsrfToken::except` — middleware CSRF padrão sempre aplicado.
+Seguem em Blade: o pagamento sem a flag (ou com `?classico=1`), `/pricing/old`, a página pública `/page/{slug}` e os partials de `subscription/`. As 18 Blades sem renderizador foram apagadas no #10967 (2026-11-16).
+
+## Cobrança e acesso — como o código faz hoje
+
+Empresa nova → `BusinessAutoSubscriptionObserver` cria assinatura `waiting` com `trial_end_date` → cron `paymentgateway:emit-trial-expired` (08:00, só `live`) emite PIX Automático no trial vencido → `CobrancaPaga` → `OnCobrancaPagaUpdateSubscription` aprova e calcula a vigência → `ModuleUtil::hasThePermissionInSubscription` libera os módulos do `package_details`. Inadimplência: `CobrancaVencida` → `declined` + `officeimpresso_bloqueado`. Detalhe e buracos no SDD do fluxo (lote L6, PR 3).
+
+**Pendências de decisão [W] (abertas em 2026-11-16, comportamento atual descrito, futuro não decidido):**
+- **B1 — trial sem módulos:** `active_subscription()` só conta `approved` (`Subscription.php:111-125`); a assinatura `waiting` do trial não libera módulo por pacote. Inferido do código, não medido em runtime.
+- **B2 — renovação:** `OnCobrancaPagaUpdateSubscription.php:65` ignora `CobrancaPaga` de assinatura já `approved`; nenhum cron emite a cobrança seguinte.
+- **B3 — expiração:** nenhum processo automático grava `expired`; só a ação "vencer" da tela (`SubscriptionLifecycleService.php:97`). `findOverdueApproved()` não tem chamador fora dos testes.
+
+## Gateways
+
+A tela Pagar nova oferece **só PIX Automático e offline** (UC-SAPG-03). A Blade de pagamento ainda tem partials de PayPal, Stripe, Razorpay, PesaPal, Paystack, Flutterwave, offline e PIX Automático. A emissão de PIX é do `Modules/PaymentGateway` ([ADR 0170](../../decisions/0170-onda5-simplificada.md)). Segundo o docblock do ServiceProvider, em 2026-09-09 havia 0 cobranças `subscription_license` em prod; não remedido.
+
+## Operação
+
+- `superadmin:health` (`--detail`/`--notify`) alimenta o `jana:health-check`; o agendamento às 06:20 está no PR aberto #11022.
+- `pos:sendSubscriptionExpiryAlert` diário.
+- As 7 notificações vão para a fila `superadmin-mail`, criptografadas (lote L4, 2026-11-16).
+
+## Testes
+
+`node scripts/governance/test-lane-coverage.mjs --json` (2026-11-16): **28** arquivos no módulo, **15 fora de qualquer lane de PR** — entre eles todo o fluxo de cobrança (Observer, os dois listeners, `AssinaturaAtivaDeterministaTest`, `PackageManagerServiceTest`). O lote L1 trata disso. Os `*ContratoTest` das telas declaram `@covers-us` e estão citados no SPEC. Rodar Pest só no CT 100.
 
 ## Gaps reconhecidos
 
-- 🟡 PIX BR não nativo (gateways herdados são internacionais; Asaas/Inter integrados via `Modules/RecurringBilling`/`Modules/PaymentGateway`)
-- 🟡 Sem dashboard de receita consolidada por package/cohort (P2 backlog)
-- 🟡 Sem export CSV de audit do Communicator (LGPD opt-in)
-- 🟡 `Config/retention.php` (política LGPD Art. 16, Wave 11 D7.c) declarada, mas o `RetentionCleanupCommand` de purge/anonymize segue como `TODO` — nenhum job consome os TTLs ainda
-
-## Estado de testes
-
-`ls Modules/Superadmin/Tests/Feature/` (2026-08-01) → 15 arquivos/dirs. Núcleo:
-- Cross-tenant saturado: `Wave23CrossTenantIsolationTest` + `Wave25CrossTenantIsolationTest` + `Wave26SaturationTest` + `Wave27CrossTenantSaturationTest` (~89 cenários acumulados, CHANGELOG W27) + `CrossTenantSuperadminTest` + `SuperadminCrossTenantPolicyTest`
-- Gate/segurança: `SuperadminGateTest`, `SecurityHardeningTest`, `SmokeRoutesTest`, `Lgpd/`
-- Lifecycle assinatura: `SubscriptionLifecycleServiceTest`, `PackageManagerServiceTest`, `BusinessAutoSubscriptionObserverTest`, `OnCobrancaPagaUpdateSubscriptionTest`, `OnCobrancaVencidaBloqueaSubscriptionTest`
-
-> ⚠️ Rodar sempre no CT 100 (proibições §Testes). Status = veredito do run, não desta lista.
+- US-SUPER-006 (respeitar `requires` do `module.json`) e US-SUPER-007 (versão PHP/MySQL, disco, jobs com falha): parciais
+- US-SUPER-011: o MRR entrou na SA-O1b (#5955, delegado ao RecurringBilling no #5981; `SuperadminDashboardService::calcularMrr`); funil trial→pago e receita por pacote seguem sem query. O comentário em `SuperadminController.php:41-43` ainda diz que o MRR não tem query (é anterior ao #5955)
+- US-SUPER-012 (Primeiros passos): atrás de flag desligada
+- 11 dos 12 charters em `status: draft`
+- B1/B2/B3 acima; pendências humanas da ADR 0170 (credencial BCB, homologação, smoke) sem registro de conclusão
 
 ## Decisões relacionadas
 
-- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 (exceções superadmin)
-- [ADR 0011](../../decisions/0011-alinhamento-padrao-jana.md) — Padrão modular Jana
-- [ADR 0022](../../decisions/0022-meta-5mi-ano-financeira.md) — Meta R$ [redacted Tier 0]mi/ano (Superadmin é peça de cobrança)
+- [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0 (exceções superadmin)
+- [ADR 0170](../../decisions/0170-onda5-simplificada.md) — cobrança da licença por PIX Automático
+- [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md) — aposentou a rubrica module-grade; o score "~85-90" que ficava aqui saiu por isso
 
 ## Próximo passo sugerido
 
-Não há US ativa. Quando precisar mexer:
-1. Ler este BRIEFING + SPEC.md
-2. Confirmar com Wagner se mudança comercial (package novo, gateway novo) tem ADR
-3. NUNCA editar audit logs (`superadmin_communicator_logs` append-only)
+Ondas em curso da auditoria de 2026-11-05: L0 (confirm de pagamento só com gateway configurado e por POST, #10974), L1 (testes em lane), L2 (cobrança), L3 (validação), L7 (medição das telas). B1/B2/B3 dependem de decisão [W].
+
+---
+**Atualizado:** 2026-11-16 pelo lote L6 PR 2 (auditoria Superadmin) · **Mantenedor:** Claude (skill `brief-update`) + [W]
