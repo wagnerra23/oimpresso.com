@@ -169,6 +169,14 @@ last_run: "2026-11-16"
 - **Teste:** `tests/Feature/Cliente/ClienteExcluidosTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-16 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## UC-CIDX-17 · Anexos, extrato por e-mail e ativar/desativar conferem permissão e estado no servidor `[T0]` `[must]`
+- **Persona:** dono que limita o que cada funcionário mexe no cadastro; atendente que desativa um cliente que outra pessoa pode ter mexido.
+- **Como usa:** gaveta da lista de clientes, aba Operações › Documentos e Extrato; ficha, menu Ações → **Desativar cliente** / **Reativar cliente**.
+- **Aceite:** Dado um usuário sem permissão de ver clientes · Quando ele lista, envia ou apaga anexo de um cadastro, ou manda o extrato por e-mail · Então recebe 403 e nada é enviado · E com "Ver clientes" a lista de anexos abre · E Dado um cadastro já inativo · Quando alguém confirma "Desativar" · Então ele segue inativo (não reativa) · E "Reativar" aplica ativo · E o botão da lista Blade, que não manda estado, segue invertendo · E cadastro de outra empresa responde 404 sem mudar nada.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-16 ("corrige o 1, o 3 e o 4") · regra de permissão do `getLedger` e das abas JSON da ficha (ver cliente ou fornecedor, todos ou os próprios) · legado `DocumentAndNoteController::__getPermission` (anexos de `App\Contact` seguem quem vê o contato, decisão Wagner 2026-06-01 no `Index.tsx`) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteAcoesPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-17 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
@@ -290,6 +298,7 @@ last_run: "2026-11-16"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-11-16 · [F+C] **UC-CIDX-17**: anexos (listar/enviar/apagar) e extrato por e-mail passam a exigir permissão de ver clientes; ativar/desativar recebe o estado confirmado por POST (o GET do Blade segue invertendo) e id de outra empresa dá 404 em vez de 500. Não mexe em `Index.tsx`.
 - 2026-11-16 · [F+C] **UC-CIDX-16**: filtro Status › Excluídos (servidor, `onlyTrashed`) e Restaurar (`POST /contacts/{id}/restore`, mesma permissão de excluir). Charter v11. `last_run` 2026-10-29 → 2026-11-16 (G-6).
 - 2026-11-16 · [F+C] **UC-CIDX-15**: excluir exige "Remover cliente" no servidor, recusa cadastro com qualquer registro de negócio (não só lançamentos) e o cliente padrão com mensagem; a ficha completa mostra a recusa. Charter v10. Não mexe em `Index.tsx`.
 - 2026-11-12 · [F+C] **UC-CIDX-12..14**: na gaveta (aba Operações, componentes `_show/*`), o envio do extrato por e-mail manda os campos que o servidor lê e usa o modelo da empresa; desconto e anotação mostram a recusa do servidor; a anotação não se duplica mais a cada salvamento. Não mexe em `Index.tsx`.

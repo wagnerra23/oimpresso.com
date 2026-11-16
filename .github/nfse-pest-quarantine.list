@@ -1,0 +1,26 @@
+# Quarentena da lane "PHP / Pest (NFSe · MySQL)" — .github/workflows/nfse-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/NFSe/Tests/**/*Test.php e
+# tests/Feature/Modules/NFSe/**/*Test.php, MENOS (1) quem tem dono em outra lane
+# (.github/ci-sqlite-pest.list), (2) quem tem construto destrutivo em código (derivado
+# pelo step) e (3) este arquivo. Arquivo NOVO entra rodando.
+#
+# Entra aqui só teste MEDIDO falhando, com o motivo, a linha e o run de recibo.
+# Nunca apagar teste nem enfraquecer assert para tirar daqui.
+#
+# 1 path por linha · '#' comenta · merge=union no .gitattributes. Depois de mergear o
+# main, confira duplicata como a lane compara:
+#   sed 's/#.*//; s/[[:space:]]*$//' <lista> | grep -vE '^$' | sort | uniq -d   # vazio = ok
+#
+# ── Medido no 1º run da lane (43865896173, 2026-11-16): 121 passed, 8 failed, 1 skipped,
+# 281 assertions. Consertados no mesmo PR (defeito de teste óbvio): Wave26/Wave27 afirmavam
+# o bypass de superadmin que [W] removeu em 2026-08-26; NfseEmissaoServiceTest lia
+# `first()` da tabela inteira. Ficam aqui (saída: lote 1 da auditoria NFSe):
+#
+# Saíram no lote 1 PR 1.1 (2026-11-16), causa medida e consertada no teste:
+#  - MultiTenantIsolationTest: rps_numero é varchar(20) e o teste gravava 22 caracteres
+#    ('RPS-TESTE-ISOL-CROSS-F'); o valor era truncado e a busca exata devolvia 0 linhas (:154).
+#  - NfseCertificadoMultiTenantIsolationTest: colunas antigas de nfe_certificados (1054) e
+#    SHOW COLUMNS ... LIKE com binding (1064); além disso, sem login o ScopeByBusiness não
+#    filtra no modo aberto, então o "não vaza" nunca tinha sido exercitado.
+# Os dois foram reescritos em 98×99. Nenhum arquivo em quarentena agora.

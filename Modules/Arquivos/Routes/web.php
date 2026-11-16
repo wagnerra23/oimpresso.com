@@ -84,7 +84,8 @@ Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'l
 
 // Download via signed URL (Sprint 1 dia 4 — US-ARQ-008).
 // Middleware `signed` valida expiração + assinatura HMAC (Laravel built-in).
-// Auth obrigatório — multi-tenant Tier 0 aplica global scope no Arquivo::find.
+// Auth obrigatório. Sem SetSessionData: o controller tira a empresa do ContextoEmpresa
+// (ADR 0453) e filtra por ela; outra empresa ou sem empresa → 404.
 // Wave 14 D8 — throttle:60,1 anti-brute-force em arquivo_id sequencial (signed URLs
 // curtas têm TTL mas atacante pode varrer enquanto válidas).
 Route::middleware(['throttle:60,1', 'web', 'auth', 'signed'])

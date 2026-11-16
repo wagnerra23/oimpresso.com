@@ -176,6 +176,10 @@ on:
       - 'Modules/Marketplaces/**'
       # US-ASSOC-001 — fundo do Associacoes (FK, escopo 98×99 e trigger de consentimento exigem MySQL).
       - 'Modules/Associacoes/**'
+      # US-ASSOC-004 — painel da rede (a tela mora no núcleo).
+      - 'resources/js/Pages/Associacoes/**'
+      # US-CAPT-001 — fundo do Captacao (FK e escopo 98×99 exigem MySQL).
+      - 'Modules/Captacao/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
       - 'public/sw-fisio-portal.js'
       # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -335,6 +339,10 @@ jobs:
               - 'Modules/Marketplaces/**'
               # US-ASSOC-001 — fundo do Associacoes.
               - 'Modules/Associacoes/**'
+              # US-ASSOC-004 — painel da rede.
+              - 'resources/js/Pages/Associacoes/**'
+              # US-CAPT-001 — fundo do Captacao.
+              - 'Modules/Captacao/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
               - 'public/sw-fisio-portal.js'
               # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -741,6 +749,10 @@ jobs:
         #
         # ENTRA 2026-11-09 — ComunicacaoVisual/ApontamentoControllerTest (US-COMVIS-004 · UC-CVAPT-01..05):
         # lista só com id e nome do operador; sem permissão 403; OS/peça da 99 recusadas na validação.
+        #
+        # ENTRA 2026-11-16 — Superadmin/SubscriptionConfirmContratoTest (UC-SACF-01..07): o confirm
+        # só cria assinatura com gateway configurado; GET → 405; offline nasce `waiting`; pacote
+        # privado ou inexistente não assina; sem permissão 403.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -816,7 +828,9 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminMinhaAssinaturaContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPagarContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SubscriptionConfirmContratoTest.php \
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
@@ -930,6 +944,9 @@ jobs:
             Modules/Associacoes/Tests/Feature/AssociacoesAcessoContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php \
+            Modules/Associacoes/Tests/Feature/SemearRedeCommandTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php \
+            Modules/Captacao/Tests/Feature/CaptacaoEsquemaContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php \
