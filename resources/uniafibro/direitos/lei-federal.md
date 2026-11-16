@@ -4,7 +4,7 @@ resumo: "O que as leis nacionais garantem: tratamento integral pelo SUS e a poss
 secao: direitos
 ordem: 1
 updated_at: "2026-11-15"
-disclaimer_version: 1
+disclaimer_version: 2
 fontes:
   - titulo: "Lei 14.705/2023 — atendimento pelo SUS (Planalto)"
     url: "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/L14705.htm"

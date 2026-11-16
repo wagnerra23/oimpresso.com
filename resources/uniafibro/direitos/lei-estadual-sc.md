@@ -4,7 +4,7 @@ resumo: "O que vale em SC: a fibromialgia na lei estadual da pessoa com deficiê
 secao: direitos
 ordem: 2
 updated_at: "2026-11-15"
-disclaimer_version: 1
+disclaimer_version: 2
 fontes:
   - titulo: "Lei estadual 18.928/2024 — texto sancionado (Alesc)"
     url: "https://portalelegis.alesc.sc.gov.br/documentos/K9XMa"
