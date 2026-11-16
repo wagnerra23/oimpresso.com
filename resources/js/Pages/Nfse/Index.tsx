@@ -7,7 +7,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Plus, Eye, XCircle, Download } from 'lucide-react';
 
@@ -16,7 +16,7 @@ import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { Skeleton } from '@/Components/ui/skeleton';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { PaginatorShape } from '@/Components/shared/DataTable';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -91,7 +91,7 @@ function savedFilters(): Filters {
 }
 
 export default function NfseIndex({ notas, filters }: Props) {
-  const rows = notas?.data ?? [];
+  const rows = useMemo(() => notas?.data ?? [], [notas?.data]);
   const merged = { ...savedFilters(), ...filters };
 
   const [status, setStatus] = useState(merged.status ?? '');
@@ -128,7 +128,7 @@ export default function NfseIndex({ notas, filters }: Props) {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusedIdx, notas?.data]);
+  }, [focusedIdx, rows]);
 
   function applyFilters() {
     // D-14: partial reload — só re-busca o que muda com filtro.
@@ -283,10 +283,10 @@ export default function NfseIndex({ notas, filters }: Props) {
       <Head title="Notas Fiscais de Serviço" />
       <div className="p-6 space-y-5 max-w-6xl mx-auto">
         <PageHeader
-          icon="file-text"
+          leading={<FileText size={18} aria-hidden="true" />}
           title="Notas Fiscais de Serviço"
-          description={notas ? `${notas.total} nota(s) no filtro atual` : 'Carregando notas…'}
-          action={
+          subtitle={notas ? `${notas.total} nota(s) no filtro atual` : 'Carregando notas…'}
+          actions={
             <Button onClick={() => router.visit('/nfse/emitir')}>
               <Plus size={16} className="mr-1" />
               <span>Emitir NFSe</span>
