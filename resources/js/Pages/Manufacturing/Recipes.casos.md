@@ -346,6 +346,10 @@ last_run: "2026-10-27"
   auditoria do Manufacturing, lote 2.7.
 - **Teste:** `ExcluirRascunhoTrilhaTest.php`
 - **Regressão que defende:** a receita não tem coluna de empresa, e o registro nascia sem ela — sumia da auditoria.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-23 · A receita sempre tem forma de custo extra, e a lista mostra a forma que a conta usou
 - **Persona:** Wagner — lê "Custo extra (…)" no painel da receita.
 - **Aceite:** Dado o salvar sem `production_cost_type` (ausente ou vazio) · Então volta com erro no campo e a
