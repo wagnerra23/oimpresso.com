@@ -3,6 +3,7 @@
 namespace Modules\NFSe\Adapters;
 
 use Illuminate\Support\Facades\Http;
+use Modules\NFSe\Contracts\NfseCancelaComCertificado;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\DTO\NfseResultado;
@@ -29,7 +30,7 @@ use NFePHP\Common\Certificate;
  *
  * A conexão é mTLS com o mesmo certificado A1 que assina a DPS.
  */
-class SnNfseAdapter implements NfseProviderInterface
+class SnNfseAdapter implements NfseProviderInterface, NfseCancelaComCertificado
 {
     private string $baseUrl;
 
@@ -125,12 +126,44 @@ class SnNfseAdapter implements NfseProviderInterface
         );
     }
 
+    /**
+     * Sem ambiente da empresa nem certificado este caminho não cancela: o ambiente global
+     * podia não ser o da nota, e a Sefin exige mTLS. O serviço usa cancelarNoAmbiente().
+     */
     public function cancelar(string $numero, string $motivo): bool
     {
-        $response = Http::timeout(15)
-            ->delete("{$this->baseUrl}/nfse/{$numero}", ['motivo' => $motivo]);
+        throw new NfseException(
+            'Cancelamento exige o ambiente e o certificado da empresa da nota.',
+            'CANCELAMENTO_SEM_CONTEXTO',
+        );
+    }
 
-        return $response->successful();
+    public function cancelarNoAmbiente(
+        string $numero,
+        string $motivo,
+        string $ambiente,
+        string $certPfxBase64,
+        string $certSenha,
+    ): bool {
+        $pfx = base64_decode($certPfxBase64, true);
+        if ($pfx === false || $pfx === '') {
+            throw new CertificadoInvalidoException('Nenhum certificado A1 para cancelar a nota.');
+        }
+
+        [$certPem, $keyPem] = $this->pemTemporarios($pfx, $certSenha);
+        try {
+            $response = Http::timeout(15)
+                ->acceptJson()
+                ->withOptions(['cert' => $certPem, 'ssl_key' => $keyPem])
+                ->delete($this->resolveBaseUrl($ambiente) . "/nfse/{$numero}", ['motivo' => $motivo]);
+
+            return $response->successful();
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            throw new ProviderTimeoutException(1, $e);
+        } finally {
+            @unlink($certPem);
+            @unlink($keyPem);
+        }
     }
 
     /**
