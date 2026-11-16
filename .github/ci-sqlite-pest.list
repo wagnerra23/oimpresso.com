@@ -684,7 +684,9 @@ tests/Feature/Testing/GuardableColumnsCacheResetTest.php
 # /manage-modules — ações de módulo por POST+CSRF quando o router registra POST (DB-less: router + reflexão + partial).
 tests/Feature/Install/ManageModulesPostTest.php
 tests/Feature/Install/InstalacaoSoPorPostTest.php
+tests/Feature/Site/AjudaRedirectTest.php
 tests/Feature/Site/PrivacidadeAppContratoTest.php
+tests/Feature/Site/PrivacidadeFisioContratoTest.php
 tests/Feature/Modules/OficinaAuto/PlacaStubForaDeProducaoTest.php
 tests/Feature/Modules/ModuleManagerServiceTest.php
 Modules/Producao/Tests/Feature/ProducaoModuloAtivacaoTest.php
@@ -804,3 +806,4 @@ Modules/Whatsapp/Tests/Feature/LinkContactTest.php
 Modules/Whatsapp/Tests/Feature/ConversationTagsTest.php
 # Uniafibro (uniafibro.com.br) — página da associação servida por este app; rota por domínio, sem DB.
 tests/Feature/Site/UniafibroSiteTest.php
+tests/Feature/Security/UploadExtensaoExecutavelTest.php

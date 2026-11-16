@@ -62,7 +62,7 @@ export function TelaConsultas({ token, onVoltar, onAgendar }: {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-col">
                     <span className="font-medium">{c.tipo ?? 'Consulta'} · {quando(c.inicio)}</span>
-                    <span className="text-sm text-muted-foreground">{c.profissional}{c.teleconsulta ? ' · por vídeo' : ''}</span>
+                    <span className="text-sm text-muted-foreground">{c.profissional}{c.teleconsulta ? ' · a distância' : ''}</span>
                   </div>
                   <Badge variant={ROTULO[c.status][1]}>{ROTULO[c.status][0]}</Badge>
                 </div>

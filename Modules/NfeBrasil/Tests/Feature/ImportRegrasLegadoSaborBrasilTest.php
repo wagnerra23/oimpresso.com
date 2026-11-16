@@ -107,3 +107,19 @@ it('UC-NFIM-05 · condimento no Normal sai como o Delphi emite hoje: CST 10, bas
     expect($t->valor_icms)->toBe(120.01);
     expect($t->valor_st)->toBe(0.0);
 });
+
+it('R-NFE-025b · o CSV do Delphi leva o CST de PIS/COFINS (tempero 01, alho 06) e o motor devolve', function () {
+    if (! Schema::hasColumn('nfe_fiscal_rules', 'cst_pis')) {
+        $this->markTestSkipped('Migração de cst_pis/cst_cofins não rodou.');
+    }
+    Artisan::call('nfe:importar-regras-csv', ['business' => test()->seededTenant()->id, 'arquivo' => SB_CSV, '--apply' => true]);
+
+    // Gabarito: XML das notas autorizadas no Delphi (setembro e outubro de 2026, Simples):
+    // 21039021 sai com PIS/COFINS CST 01 a 0,65% / 3%; 07032090 sai com CST 06.
+    $tempero = sbMotor('21039021', 1);
+    expect([$tempero->cst_pis, $tempero->cst_cofins, $tempero->valor_pis, $tempero->valor_cofins])
+        ->toBe(['01', '01', 6.5, 30.0]);
+
+    $alho = sbMotor('07032090', 1);
+    expect([$alho->cst_pis, $alho->cst_cofins])->toBe(['06', '06']);
+});
