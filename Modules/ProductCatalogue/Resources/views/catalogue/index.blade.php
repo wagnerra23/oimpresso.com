@@ -34,7 +34,7 @@
                     @foreach($categories as $key => $value)
                         <li><a href="#category{{$key}}" class="menu">{{$value}}</a></li>
                     @endforeach 
-                        <li><a href="#category0" class="menu">Uncategorized</a></li>           
+                        <li><a href="#category0" class="menu">{{ __('lang_v1.uncategorized') }}</a></li>           
                     </ul>
                 </div><!--/.nav-collapse -->
             </div><!--/.container-fluid -->
@@ -47,7 +47,7 @@
         @foreach($products as $product_category)
             <div class="row">
                 <div class="col-md-12">
-                    <h2 class="page-header" id="category{{$product_category->first()->category->id ?? 0}}">{{$product_category->first()->category->name ?? 'Uncategorized'}}</h2>
+                    <h2 class="page-header" id="category{{$product_category->first()->category->id ?? 0}}">{{$product_category->first()->category->name ?? __('lang_v1.uncategorized')}}</h2>
                 </div>
             </div>
             <div class="row eq-height-row">
@@ -74,7 +74,8 @@
                                 <tr>
                                     <th class="pb-0"> @lang('lang_v1.price'):</th>
                                     <td class="pb-0">
-                                        <span class="display_currency" data-currency_symbol="true">{{($max_price)}}</span> @if($max_price != $min_price) - <span class="display_currency" data-currency_symbol="true">{{($min_price)}}</span> @endif
+                                        {{-- Faixa do menor para o maior. --}}
+                                        <span class="display_currency" data-currency_symbol="true">{{($min_price)}}</span> @if($max_price != $min_price) - <span class="display_currency" data-currency_symbol="true">{{($max_price)}}</span> @endif
                                     </td>
                                 </tr>
                                 <tr>
@@ -91,7 +92,7 @@
                                         <td>
                                             <select class="form-control input-sm">
                                             @foreach($product_variation as $variation)
-                                                <option value="{{$variation->id}}">{{$variation->name}} ({{$variation->sub_sku}}) - {{($variation->sell_price_inc_tax)}}</option>
+                                                <option value="{{$variation->id}}">{{$variation->name}} ({{$variation->sub_sku}}) - {{ $formato->dinheiro($variation->sell_price_inc_tax) }}</option>
                                             @endforeach
                                             </select>
                                         </td>
