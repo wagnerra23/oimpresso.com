@@ -103,7 +103,7 @@ describe('Sidebar · item com filhos abre inline', () => {
         items={[
           {
             label: 'Vendas',
-            href: '/sells',
+            // Pai de dropdown chega SEM href (LegacyMenuAdapter::convertItem).
             children: [{ label: 'Todas as vendas', href: '/sells' }],
             ghosts: [{ key: 'catalogue-qr', label: 'Catálogo QR', href: '/product-catalogue/qr' }],
           },
@@ -117,14 +117,14 @@ describe('Sidebar · item com filhos abre inline', () => {
     expect(qr.getAttribute('href')).toBe('/product-catalogue/qr');
   });
 
-  it('item com filhos E ghosts não mostra os ghosts fora da rota dele', () => {
+  it('item com filhos E ghosts: fora da rota, ghosts só com a cascata aberta', () => {
     irPara('/auditoria');
     render(
       <SidebarMenu
         items={[
           {
             label: 'Vendas',
-            href: '/sells',
+            // Pai de dropdown chega SEM href (LegacyMenuAdapter::convertItem).
             children: [{ label: 'Todas as vendas', href: '/sells' }],
             ghosts: [{ key: 'catalogue-qr', label: 'Catálogo QR', href: '/product-catalogue/qr' }],
           },
@@ -134,6 +134,10 @@ describe('Sidebar · item com filhos abre inline', () => {
     );
 
     expect(screen.queryByRole('link', { name: 'Catálogo QR' })).toBeNull();
+
+    // Abrir a cascata à mão também mostra os atalhos.
+    fireEvent.click(screen.getByRole('button', { name: /Vendas/ }));
+    expect(screen.getByRole('link', { name: 'Catálogo QR' })).not.toBeNull();
   });
 
   it('ghost que é prefixo de outro não divide o aria-current com ele', () => {
