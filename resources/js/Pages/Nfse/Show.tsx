@@ -6,7 +6,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Download, XCircle, AlertTriangle, RefreshCw, ShoppingCart, User, Calendar, DollarSign } from 'lucide-react';
 
 import { Button } from '@/Components/ui/button';
@@ -15,7 +15,6 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -31,7 +30,6 @@ interface NfseDetail {
   id: number;
   numero: string | null;
   status: string;
-  status_label: string;
   tomador_nome: string;
   tomador_cnpj: string | null;
   tomador_cpf: string | null;
@@ -44,6 +42,7 @@ interface NfseDetail {
   pdf_url: string | null;
   erro_mensagem: string | null;
   created_at: string;
+  cancelada_em: string | null;
   transaction_id: number | null;
 }
 
@@ -58,7 +57,8 @@ interface Venda {
 interface Props {
   nfse: NfseDetail;
   venda?: Venda | null;
-  flash?: { success: boolean; msg: string } | null;
+  /** Ambiente do provedor da empresa configurado HOJE (a nota não grava o ambiente em que saiu). */
+  ambiente?: 'homologacao' | 'producao' | null;
 }
 
 const brl = (v: number | null) =>
@@ -75,30 +75,41 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-export default function NfseShow({ nfse, venda, flash }: Props) {
-  const [cancelMotivo, setCancelMotivo] = useState('');
-  const { post: cancelPost, processing: canceling } = useForm({ motivo: '' });
+export default function NfseShow({ nfse, venda, ambiente }: Props) {
+  const podeCancelar = nfse.status === 'emitida';
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const cancelForm = useForm({ motivo: '' });
+
+  // O ícone "Cancelar" da lista chega com ?cancelar=… — abre o diálogo direto.
+  useEffect(() => {
+    if (podeCancelar && new URLSearchParams(window.location.search).has('cancelar')) {
+      setCancelOpen(true);
+    }
+  }, [podeCancelar]);
 
   function handleCancelar() {
-    router.post(`/nfse/${nfse.id}/cancelar`, { motivo: cancelMotivo });
+    cancelForm.post(`/nfse/${nfse.id}/cancelar`, {
+      preserveScroll: true,
+      // Erro de validação (motivo) fica no diálogo; o erro do provedor volta no flash
+      // compartilhado e sai como toast — aí o diálogo fecha.
+      onSuccess: () => {
+        setCancelOpen(false);
+        cancelForm.reset();
+      },
+    });
   }
 
   const podeReemitir = nfse.status === 'erro';
+  // Nova emissão a partir de nota com erro leva a venda junto (o formulário vem preenchido).
+  const urlNovaEmissao = nfse.transaction_id
+    ? `/nfse/emitir?transaction_id=${nfse.transaction_id}`
+    : '/nfse/emitir';
+  const motivoLen = cancelForm.data.motivo.length;
 
   return (
     <AppShellV2 title={`NFSe ${nfse.numero ?? '#' + nfse.id}`}>
       <Head title={`NFSe ${nfse.numero ?? '#' + nfse.id}`} />
       <div className="p-6 space-y-5">
-
-        {flash && (
-          <div className={`rounded-lg px-4 py-3 text-sm border ${
-            flash.success
-              ? 'bg-[color:var(--accent-soft)] border-[color:var(--accent-2)] text-[color:var(--text)]'
-              : 'bg-destructive/10 border-destructive/30 text-destructive'
-          }`}>
-            {flash.msg}
-          </div>
-        )}
 
         <PageHeader
           icon="file-text"
@@ -125,6 +136,11 @@ export default function NfseShow({ nfse, venda, flash }: Props) {
                 <span className="text-xs text-[color:var(--text-mute)] flex items-center gap-1">
                   <RefreshCw size={12} className="animate-spin" />
                   Processando na prefeitura — atualize a página em instantes.
+                </span>
+              )}
+              {nfse.status === 'cancelada' && nfse.cancelada_em && (
+                <span className="text-xs text-[color:var(--text-mute)]">
+                  Cancelada em {nfse.cancelada_em}
                 </span>
               )}
               {nfse.status === 'erro' && nfse.erro_mensagem && (
@@ -158,6 +174,16 @@ export default function NfseShow({ nfse, venda, flash }: Props) {
                   <InfoRow label="Valor serviços" value={brl(nfse.valor_servicos)} />
                   <InfoRow label="ISS" value={brl(nfse.valor_iss)} />
                   <InfoRow label="Código LC 116" value={nfse.lc116_codigo} />
+                  <InfoRow
+                    label="Ambiente do provedor (configurado hoje)"
+                    value={
+                      ambiente === 'producao'
+                        ? 'Produção'
+                        : ambiente === 'homologacao'
+                          ? 'Homologação — sem valor fiscal'
+                          : 'Provedor não configurado'
+                    }
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -189,15 +215,20 @@ export default function NfseShow({ nfse, venda, flash }: Props) {
               {podeReemitir && (
                 <Button
                   variant="outline"
-                  onClick={() => router.visit('/nfse/emitir')}
+                  onClick={() => router.visit(urlNovaEmissao)}
                 >
                   <RefreshCw size={15} className="mr-1.5" />
                   Nova emissão
                 </Button>
               )}
 
-              {nfse.status === 'emitida' && (
-                <AlertDialog>
+              {podeCancelar && (
+                <AlertDialog
+                  open={cancelOpen}
+                  onOpenChange={(open) => {
+                    if (!cancelForm.processing) setCancelOpen(open);
+                  }}
+                >
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive">
                       <XCircle size={15} className="mr-1.5" />
@@ -213,29 +244,39 @@ export default function NfseShow({ nfse, venda, flash }: Props) {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="mt-2">
-                      <Label className="text-xs">Motivo do cancelamento *</Label>
+                      <Label htmlFor="nfse-cancel-motivo" className="text-xs">Motivo do cancelamento *</Label>
                       <Textarea
-                        value={cancelMotivo}
-                        onChange={(e) => setCancelMotivo(e.target.value)}
+                        id="nfse-cancel-motivo"
+                        value={cancelForm.data.motivo}
+                        onChange={(e) => cancelForm.setData('motivo', e.target.value)}
+                        aria-invalid={cancelForm.errors.motivo ? true : undefined}
+                        aria-describedby={cancelForm.errors.motivo ? 'nfse-cancel-motivo-erro' : undefined}
                         placeholder="Descreva o motivo do cancelamento..."
                         rows={3}
                         minLength={15}
                         maxLength={255}
                         className="mt-1 resize-none"
                       />
+                      {cancelForm.errors.motivo && (
+                        <p id="nfse-cancel-motivo-erro" role="alert" className="text-xs text-destructive mt-1">
+                          {cancelForm.errors.motivo}
+                        </p>
+                      )}
                       <p className="text-xs text-[color:var(--text-mute)] mt-0.5 text-right">
-                        {cancelMotivo.length}/255
+                        {motivoLen}/255
                       </p>
                     </div>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Voltar</AlertDialogCancel>
-                      <AlertDialogAction
+                      <AlertDialogCancel disabled={cancelForm.processing}>Voltar</AlertDialogCancel>
+                      {/* Button, não AlertDialogAction: a Action fecha o diálogo no clique e o
+                          erro do motivo sumia junto. */}
+                      <Button
+                        variant="destructive"
                         onClick={handleCancelar}
-                        disabled={cancelMotivo.length < 15 || canceling}
-                        className="bg-destructive hover:bg-destructive/90"
+                        disabled={motivoLen < 15 || cancelForm.processing}
                       >
-                        {canceling ? 'Cancelando...' : 'Confirmar cancelamento'}
-                      </AlertDialogAction>
+                        {cancelForm.processing ? 'Cancelando…' : 'Confirmar cancelamento'}
+                      </Button>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
