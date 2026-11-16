@@ -193,4 +193,6 @@ return [
     'offline_payment_details_tooltip' => 'Instruções de pagamento offline, como detalhes da conta bancária',
     'allow_registration' => 'Permitir registro',
     'flutterwave_help_text' => 'Clique neste link para verificar as moedas suportadas para flutterwave',
+    'forma_pagamento_indisponivel' => 'Forma de pagamento não disponível para este pacote.',
+    'package_not_found' => 'Pacote não encontrado.',
 ];

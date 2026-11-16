@@ -42,6 +42,17 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-SAMA-06 · Quem pode abrir a tela vê o item no menu · `should`
+
+**Dado** um usuário com `superadmin.access_package_subscriptions` e **sem** acesso às configurações
+do negócio **Quando** ele abre qualquer tela **Então** o item "Assinatura" está no menu de
+configurações, apontando para `/subscription`.
+
+> Auditoria do Superadmin (2026-11-05, eixo 5 §5): o menu exigia `business_settings.access` além da
+> permissão da rota — quem abria a tela não tinha o item.
+
+Status: 🧪
+
 ## UC-SAMA-05 · Pacote privado não aparece para quem não é superadmin · `must`
 
 **Dado** um pacote ativo marcado como privado **Quando** um admin de negócio abre a tela **Então**

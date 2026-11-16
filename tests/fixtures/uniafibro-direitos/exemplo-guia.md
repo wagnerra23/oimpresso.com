@@ -4,7 +4,7 @@ resumo: "Guia de exemplo."
 secao: guias
 ordem: 1
 updated_at: "2026-11-15"
-disclaimer_version: 1
+disclaimer_version: 2
 fontes: []
 ---
 

@@ -13,7 +13,7 @@ resumo: "Uma frase que aparece no cartão do índice."
 secao: direitos            # direitos | guias
 ordem: 1                   # posição dentro da seção
 updated_at: "2026-11-15"   # data da última revisão do texto (sempre entre aspas)
-disclaimer_version: 1      # versão do aviso legal (App\Support\Uniafibro\Layout::AVISO_VERSAO)
+disclaimer_version: 2      # versão do aviso legal (App\Support\Uniafibro\Layout::AVISO_VERSAO)
 fontes:
   - titulo: "Lei 15.176/2025 (Planalto)"
     url: "https://www.planalto.gov.br/..."
