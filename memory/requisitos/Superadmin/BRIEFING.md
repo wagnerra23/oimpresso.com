@@ -1,5 +1,9 @@
 ---
 id: requisitos-superadmin-briefing
+module: Superadmin
+status: producao
+status_nota: "legado UltimatePOS v6 em uso interno [W]"
+updated_at: "2026-11-16"
 ---
 
 # BRIEFING — Modules/Superadmin
