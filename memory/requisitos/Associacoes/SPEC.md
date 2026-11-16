@@ -28,31 +28,49 @@ owner: [W]
 
 ### US-ASSOC-002 · Associações e documentos, com a pendência de 30 dias — **P0**
 
-**Implementado em:** _pendente_ — onda 3 da ADR 0451.
+**Implementado em:** `Modules/Associacoes/Http/Controllers/AssociacoesController.php` · `Modules/Associacoes/Http/Controllers/DocumentosAssociacaoController.php` · `Modules/Associacoes/Services/PendenciaDiretoria.php` · `Modules/Associacoes/Services/DocumentosDaAssociacao.php` · `Modules/Associacoes/Resources/js/Pages/Associacoes/Index.tsx`
+
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php`
 
 Cadastro e lista das associações-membro (nome, cidade, região, CNPJ, representante, situação) e dos documentos (estatuto, ata da diretoria, certidão). Mudança de diretoria abre pendência; sem ata nova em 30 dias, ela aparece como atrasada. O representante vê só a associação dele (D4).
 
+**DoD:** a lista e a ficha passam por `AssociacoesAcesso::restringir()` (diretoria vê a rede, representante só a dele, 98 não vê 99); gravar exige `associacoes.editar`, e criar associação e trocar representantes exige também `associacoes.rede`; documento com arquivo no `Modules/Arquivos`, sai da lista com motivo e nunca se apaga; mudança de diretoria abre pendência, ata da diretoria enviada fecha, e passado `associacoes.prazo_ata_diretoria_dias` ela fica atrasada (cálculo único em `PendenciaDiretoria`, que o painel da onda 5 reusa). Casos: `Modules/Associacoes/Resources/js/Pages/Associacoes/Index.casos.md` (UC-ASSOC-00..07).
+
 ### US-ASSOC-003 · Associadas com consentimento — **P0**
 
-**Implementado em:** _pendente_ — onda 4 da ADR 0451.
+**Implementado em:** `Modules/Associacoes/Http/Controllers/AssociadasController.php` · `Modules/Associacoes/Services/Consentimentos.php` · `Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.tsx` · teste `Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php`
 
 Cadastro da associada pelo contato do núcleo (nome, celular, cidade; sem CPF), com consentimento explícito por finalidade e celular mascarado nas listas.
 
+- Lista em `/associacoes/associadas` com filtro por associação e situação; o celular sai mascarado do servidor e o nome só aparece para a diretoria da rede se a associada aceitou `visivel_rede` (D5).
+- Cadastro pelo contato do núcleo: busca no servidor ou contato novo pelo `ContactUtil`, sem duplicar celular na empresa.
+- Aceite por finalidade no cadastro (`associada` obrigatório; `whatsapp` e `visivel_rede` opcionais), na versão de `config('associacoes.consentimento_versoes')`. O Service `Consentimentos` (conceder, revogar, vigente) é o mesmo que o app da onda 6 vai usar.
+- Desligar guarda situação e data; nada se apaga.
+- Casos: `Associadas.casos.md` (UC-ASSOCI-00..07).
+
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php`
+
+**DoD:** a lista e o cadastro passam por `AssociacoesAcesso::restringir()` (diretoria vê a rede, representante só a associação dele, 98 não vê 99); o celular sai mascarado do servidor e o nome só aparece para a diretoria com o aceite `visivel_rede`; sem o aceite `associada` o cadastro é recusado, e a versão gravada vem da config, nunca do request; gravar e desligar exigem `associacoes.editar`; desligar guarda situação e data, e consentimento não se apaga, só se revoga. Casos: `Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.casos.md` (UC-ASSOCI-00..07).
+
 ### US-ASSOC-004 · Painel da rede — **P1**
 
-**Implementado em:** _pendente_ — onda 5 da ADR 0451.
+**Implementado em:** `Modules/Associacoes/Http/Controllers/PainelDaRedeController.php` · `Modules/Associacoes/Services/PendenciasDaRede.php` · `resources/js/Pages/Associacoes/Painel.tsx`
+
+**Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php`
+
+**DoD:** `/associacoes` (menu Associações → Painel, PT-04) mostra associações por situação, cidades, associadas ativas (total e por associação) e as pendências de documentação: sem estatuto, sem ata da diretoria, certidão vencida, e diretoria que mudou sem ata nova (no prazo até `associacoes.prazo_ata_diretoria_dias`, depois atrasada). Só números e nomes de associação, nenhum dado pessoal de associada (D5). A diretoria vê a rede; o representante vê só os números da associação dele (D4); nada vaza entre empresas (98 × 99). Props com `Inertia::defer`.
 
 Quantas associações, cidades e associadas ativas, e as pendências de documentação.
 
-### US-ASSOC-005 · Área da associada no app — **P1**
+### US-ASSOC-005 · Área da associada no site da Uniafibro e no app — **P1**
 
 **Implementado em:** `Modules/Associacoes/Services/PortalAssociadaService.php`, `Modules/Associacoes/Http/Controllers/PortalAssociadaController.php`, `Modules/Associacoes/Http/Controllers/PortalLinkController.php`, `Modules/Associacoes/Resources/js/Pages/Associacoes/Public/Membro.tsx`
 
 **Testado em:** `Modules/Associacoes/Tests/Feature/AssociacoesPortalMembroContratoTest.php`
 
-**DoD:** link válido pede o PIN e não entrega dado antes dele; link de outra empresa, adulterado ou substituído é o mesmo estado vazio; 5 PINs errados travam por 30 min; PIN certo mostra nome, associação, situação, data de entrada e as autorizações; retirar autorização grava `revoked_at` sem apagar e `associada` não se retira pelo app; gerar e revogar o link exige `associacoes.editar` e alcance D4, nunca de outra empresa (98 × 99).
+**DoD:** link válido pede o PIN e não entrega dado antes dele; link de outra empresa, adulterado ou substituído é o mesmo estado vazio; 5 PINs errados travam por 30 min; PIN certo mostra nome, associação, situação, data de entrada e as autorizações; retirar autorização grava `revoked_at` sem apagar e `associada` não se retira pelo app; gerar e revogar o link exige `associacoes.editar` e alcance D4, nunca de outra empresa (98 × 99); o link gerado abre em `uniafibro.com.br`, onde o PIN funciona e o resto do site continua igual.
 
-Link + PIN no padrão do portal do Fisio, no domínio que o app da Play já abre. A associada vê o próprio cadastro e os consentimentos, e pode revogar.
+Link + PIN no padrão do portal do Fisio. O link abre em `uniafibro.com.br` (rota de domínio em `routes/web.php`, emenda D6 de 2026-11-14), e a mesma área segue no domínio que o app da Play já abre. A associada vê o próprio cadastro e os consentimentos, e pode revogar.
 
 - Rota pública `/associacoes/m/{token}` (sem login, throttle): PIN → "Meus dados" (nome, associação, situação, data de entrada) → autorizações com "Retirar". Retirar grava `revoked_at`; `associada` só a associação encerra.
 - Gerar/revogar: `POST|DELETE /associacoes/associadas/{id}/portal` (`associacoes.editar` + alcance D4). O botão entra na tela de associadas da onda 4.

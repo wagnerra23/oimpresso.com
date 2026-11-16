@@ -26,6 +26,7 @@ related_us: [US-ASSOC-005]
 | UC-AMB-04 | PIN certo abre Meus dados e autorizações | must | `AssociacoesPortalMembroContratoTest` |
 | UC-AMB-05 | retirar autorização grava a data e não apaga; `associada` só pela associação | must | `AssociacoesPortalMembroContratoTest` |
 | UC-AMB-06 | gerar e revogar o link: só quem edita e alcança, nunca de outra empresa | must | `AssociacoesPortalMembroContratoTest` |
+| UC-AMB-07 | o link abre no site da Uniafibro e o PIN funciona lá; o site segue igual | must | `AssociacoesPortalMembroContratoTest` |
 
 ---
 
@@ -61,6 +62,13 @@ related_us: [US-ASSOC-005]
 - **Teste:** `Modules/Associacoes/Tests/Feature/AssociacoesPortalMembroContratoTest.php`
 - **Status: 🧪**
 
+## UC-AMB-07 · O link abre no site da Uniafibro · `must`
+- **Persona:** associada que recebe o link pelo WhatsApp e abre no celular.
+- **Âncora:** ADR 0451 D6 (emenda de 2026-11-14 — [W]: *"Eu quero no site uniafibro.com.br"*).
+- **Aceite:** O link gerado começa por `https://uniafibro.com.br/associacoes/m/` · Dado o link, Quando aberto em `uniafibro.com.br`, Então pede o PIN, e o PIN certo abre Meus dados · Outro caminho do site continua voltando ao início (a tela do ERP não abre no domínio da rede) · A página inicial do site segue respondendo.
+- **Teste:** `Modules/Associacoes/Tests/Feature/AssociacoesPortalMembroContratoTest.php`
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - [BACKLOG] "Lembrar este aparelho" por 30 dias (ADR 0451 D6, como UC-FPP-22/23 do Fisio).
@@ -69,3 +77,4 @@ related_us: [US-ASSOC-005]
 ## Histórico
 
 - 2026-11-13 · [CC] criado com a onda 6 da ADR 0451 (US-ASSOC-005).
+- 2026-11-15 · [W+C] UC-AMB-07: a área abre também em `uniafibro.com.br` (emenda D6 da ADR 0451).

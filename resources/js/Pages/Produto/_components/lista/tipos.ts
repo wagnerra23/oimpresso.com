@@ -182,7 +182,7 @@ export interface RelatorioEstoqueLista {
 
 /** Painel de detalhe (ProductController::buildProdutoDetalhe). Chave de preço ausente = sem permissão. */
 /** Abas do painel de detalhe. Quem abre o painel escolhe em qual ele começa. */
-export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'receita' | 'roteiro' | 'fiscal' | 'prateleira';
+export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'lotes' | 'receita' | 'roteiro' | 'fiscal' | 'prateleira';
 
 /** Preço proposto pela compra recebida, aguardando aprovação (UC-PIDX-28). */
 export interface PrecoPropostoDoProduto {
@@ -215,6 +215,16 @@ export interface ReceitaDoProdutoNoPainel {
   custo_unitario: number | null;
   margem: number | null;
   link: string | null;
+}
+
+/**
+ * UC-PIDX-49 (CV3): os lotes do produto com saldo, pela mesma consulta do relatório de Lotes. Cada rolo é um
+ * lote. `mais` = há mais lotes que os mostrados; `link` abre o relatório filtrado no produto.
+ */
+export interface LotesDoProdutoNoPainel {
+  lotes: Array<{ lote: string; variacao: string | null; validade: string; vencido: boolean; estoque: number; unidade: string }>;
+  mais: boolean;
+  link: string;
 }
 
 /** Roteiro de produção do produto, com o posto e o setor de cada etapa (UC-PIDX-29). */
@@ -333,6 +343,8 @@ export interface DetalheProdutoDados {
   roteiro?: RoteiroDoProduto | null;
   /** UC-PIDX-48: null = a empresa não tem a Fabricação; [] = o produto não tem receita. */
   receitas?: ReceitaDoProdutoNoPainel[] | null;
+  /** UC-PIDX-49: null = sem ver o relatório de estoque ou produto sem controle de estoque. */
+  lotes?: LotesDoProdutoNoPainel | null;
   /** Só vem para quem vê o preço de venda (ausência ≠ lista vazia). */
   precos_propostos?: PrecoPropostoDoProduto[];
   /** UC-PIDX-30: ausente sem permissão de ver requisições; null = nenhuma aberta. */

@@ -3,14 +3,15 @@
 namespace Modules\Associacoes\Http\Controllers;
 
 use Illuminate\Routing\Controller;
+use Menu;
 use Modules\Associacoes\Services\AssociacoesAcesso;
 
 /**
  * DataController — Modules/Associacoes (ADR 0451).
  *
  * Habilitação é SEMPRE por UI (pacote do superadmin + permissão do papel), nunca por if de
- * business no código ({@see memory/proibicoes.md}). Sem item de menu até existir a primeira
- * tela (onda 3).
+ * business no código ({@see memory/proibicoes.md}). O dropdown "Associações" nasce na onda 3
+ * com a lista de associações; as ondas 4 e 5 acrescentam uma linha cada dentro dele.
  *
  * Papéis (D4 da ADR 0451): `associacoes.rede` é da diretoria da rede (vê todas as associações);
  * sem ela, quem tem `associacoes.access` vê só as associações em que é representante
@@ -36,8 +37,38 @@ class DataController extends Controller
         ];
     }
 
+    /**
+     * Dropdown "Associações". A mesma regra do middleware das rotas ({@see AssociacoesAcesso::liberado}),
+     * para menu e rota nunca discordarem. A onda 3 (US-ASSOC-002) é dona do dropdown e acrescenta
+     * as linhas dela; a onda 4 (US-ASSOC-003) é dona só da linha "Associadas".
+     */
     public function modifyAdminMenu(): void
     {
-        // A onda 3 da ADR 0451 cria a tela de associações e o item de menu.
+        // Mesma regra de rota e lista (AssociacoesAcesso): pacote + `associacoes.access`.
+        if (! app(AssociacoesAcesso::class)->liberado(auth()->user(), session()->get('user.business_id'))) {
+            return;
+        }
+
+        $ativo = request()->segment(1) === 'associacoes';
+
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($ativo) {
+            $menu->dropdown('Associações', function ($sub) {
+                // onda 3 · US-ASSOC-002
+                $sub->url(url('/associacoes/lista'), 'Associações', [
+                    'icon' => 'fa fa-sitemap',
+                    'active' => request()->segment(1) === 'associacoes' && request()->segment(2) === 'lista',
+                ]);
+                // onda 4 · US-ASSOC-003
+                $sub->url(url('/associacoes/associadas'), 'Associadas', [
+                    'icon' => 'fa fa-users',
+                    'active' => request()->segment(1) === 'associacoes' && request()->segment(2) === 'associadas',
+                ]);
+                // onda 5 · US-ASSOC-004
+                $sub->url(url('/associacoes'), 'Painel', [
+                    'icon' => 'fa fa-tachometer-alt',
+                    'active' => request()->segment(1) === 'associacoes' && request()->segment(2) === null,
+                ]);
+            }, ['icon' => 'fa fa-hands-helping', 'active' => $ativo]);
+        });
     }
 }

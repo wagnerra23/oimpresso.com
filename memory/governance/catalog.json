@@ -25,26 +25,26 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 39,
-    "nodes": 984,
-    "edges": 1320,
+    "modules": 40,
+    "nodes": 1005,
+    "edges": 1347,
     "by_node_type": {
-      "module": 44,
+      "module": 45,
       "table": 116,
       "adr": 155,
-      "component": 576,
-      "api": 93
+      "component": 591,
+      "api": 98
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 96,
+      "providesApi": 101,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 576,
-      "dependsOn": 144,
-      "delegatesTo": 131,
+      "hasComponent": 591,
+      "dependsOn": 148,
+      "delegatesTo": 134,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 79,
@@ -1286,9 +1286,41 @@
       ]
     },
     {
+      "id": "api:/associacoes",
+      "type": "api",
+      "prefix": "/associacoes",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/associadas",
+      "type": "api",
+      "prefix": "/associacoes/associadas",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/associacoes/install",
       "type": "api",
       "prefix": "/associacoes/install",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/lista",
+      "type": "api",
+      "prefix": "/associacoes/lista",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/m/{token}",
+      "type": "api",
+      "prefix": "/associacoes/m/{token}",
       "providers": [
         "Associacoes"
       ]
@@ -1315,6 +1347,14 @@
       "prefix": "/c/*",
       "providers": [
         "Cms"
+      ]
+    },
+    {
+      "id": "api:/captacao/install",
+      "type": "api",
+      "prefix": "/captacao/install",
+      "providers": [
+        "Captacao"
       ]
     },
     {
@@ -2034,11 +2074,32 @@
       "desc": "regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
     },
     {
+      "id": "component:Associacoes/AssociacoesController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociacoesController",
+      "desc": "lista PT-01 e ficha das associações, representantes e mudança de diretoria (US-ASSOC-002)"
+    },
+    {
       "id": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
       "type": "component",
       "module": "Associacoes",
       "name": "Associadas como contacts do núcleo, sem CPF",
       "desc": "US-ASSOC-001"
+    },
+    {
+      "id": "component:Associacoes/AssociadasController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociadasController",
+      "desc": "lista de associadas com celular mascarado, cadastro pelo contato do núcleo e desligamento (onda 4) — US-ASSOC-003"
+    },
+    {
+      "id": "component:Associacoes/Consentimentos",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Consentimentos",
+      "desc": "conceder, revogar e vigente por finalidade e versão da config; usado pelo cadastro e pelo app da onda 6 — US-ASSOC-003"
     },
     {
       "id": "component:Associacoes/DataController",
@@ -2048,11 +2109,46 @@
       "desc": ""
     },
     {
+      "id": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "desc": "documentos com arquivo no Arquivos, tirar da lista com motivo (US-ASSOC-002)"
+    },
+    {
       "id": "component:Associacoes/InstallController",
       "type": "component",
       "module": "Associacoes",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PainelDaRedeController + PendenciasDaRede",
+      "desc": "painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
+    },
+    {
+      "id": "component:Associacoes/PendenciaDiretoria",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PendenciaDiretoria",
+      "desc": "cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
+    },
+    {
+      "id": "component:Associacoes/PortalAssociadaController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalAssociadaController",
+      "desc": "área da associada por link + PIN, no site uniafibro.com.br e no endereço do app: ver os dados e revogar consentimento — ADR 0451 D6, US-ASSOC-005"
+    },
+    {
+      "id": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalLinkController + PortalAssociadaService",
+      "desc": "a diretoria gera e revoga o link + PIN da área da associada (só os hashes ficam no banco) — US-ASSOC-005"
     },
     {
       "id": "component:Auditoria/AuditEntryService",
@@ -2144,6 +2240,41 @@
       "module": "Auditoria",
       "name": "unrevertibleRegistry()",
       "desc": "whitelist do que NUNCA reverte (append-only legal/fiscal)"
+    },
+    {
+      "id": "component:Captacao/Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "type": "component",
+      "module": "Captacao",
+      "name": "Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "desc": "US-CAPT-001"
+    },
+    {
+      "id": "component:Captacao/CaptacaoAcesso + CaptacaoLiberado",
+      "type": "component",
+      "module": "Captacao",
+      "name": "CaptacaoAcesso + CaptacaoLiberado",
+      "desc": "regra única de acesso: pacote captacao_module e permissão captacao.access — ADR 0452 D1"
+    },
+    {
+      "id": "component:Captacao/DataController",
+      "type": "component",
+      "module": "Captacao",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Captacao/Fontes de recurso",
+      "type": "component",
+      "module": "Captacao",
+      "name": "Fontes de recurso",
+      "desc": "US-CAPT-001"
+    },
+    {
+      "id": "component:Captacao/InstallController",
+      "type": "component",
+      "module": "Captacao",
+      "name": "InstallController",
+      "desc": ""
     },
     {
       "id": "component:Cms/CmsController",
@@ -3159,6 +3290,13 @@
       "module": "Financeiro",
       "name": "ContaReceberController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/CorrigirTipoLegadoCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CorrigirTipoLegadoCommand",
+      "desc": "financeiro:corrigir-tipo-legado --business=N corrige título do Delphi com TIPO=RECEBIDA importado como pagar (metadata.delphi_tipo_raw); só mostra por padrão, --apply grava e marca metadata.tipo_corrigido"
     },
     {
       "id": "component:Financeiro/CoworkSidebarController",
@@ -4475,6 +4613,13 @@
       "module": "NfeBrasil",
       "name": "Middleware PermissaoNfe",
       "desc": "permissão por rota nas ações fiscais que só exigiam login (lote 3.2 da auditoria, #10728)"
+    },
+    {
+      "id": "component:NfeBrasil/NaturezaOperacaoController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "NaturezaOperacaoController",
+      "desc": "naturezas de operação na Tributação, atrás da flag useV2NfeNaturezas (RUNBOOK-tributacao §Naturezas, onda 3a)"
     },
     {
       "id": "component:NfeBrasil/NfeEmissaoController",
@@ -6006,6 +6151,19 @@
       "permission_prefix": "auditoria.*",
       "charter_adr": "0094",
       "path": "memory/requisitos/Auditoria/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Captacao",
+      "type": "module",
+      "module": "Captacao",
+      "purpose": "Projetos de captação de recursos de ONGs e associações (primeira: Uniafibro-SC e associações-membro): fontes (edital, lei de incentivo, fundo, doação, parceria, voluntariado), projetos com proponente, aportes recebidos e comprovantes de despesa para prestação de contas. Decidido pela ADR 0452 em 2026-11-14.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Captacao/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -8902,7 +9060,25 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociacoesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociadasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Consentimentos",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8914,13 +9090,67 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/InstallController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PendenciaDiretoria",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalAssociadaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/associadas",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "api:/associacoes/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/lista",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/m/{token}",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -9085,6 +9315,90 @@
     {
       "from": "module:Auditoria",
       "to": "api:/reports/activity-log",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Arquivo do comprovante"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Associacoes",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Cadastro da rede de associações e das associadas"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Título a receber e despesa no caixa"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Arquivo do comprovante"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Associacoes",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cadastro da rede de associações e das associadas"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Título a receber e despesa no caixa"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/CaptacaoAcesso + CaptacaoLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/Fontes de recurso",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "api:/captacao/install",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10545,6 +10859,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/ContaReceberController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CorrigirTipoLegadoCommand",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13370,6 +13690,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/Middleware PermissaoNfe",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/NaturezaOperacaoController",
       "type": "hasComponent",
       "source": "contains"
     },

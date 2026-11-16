@@ -14,9 +14,9 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 362 arquivos em 20 papéis.
+**Total mapeado:** 377 arquivos em 20 papéis.
 
-## Controllers — 16
+## Controllers — 17
 
 - [CertificadoController.php](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php)
 - [ConfigDefaultController.php](../../../Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php)
@@ -27,6 +27,7 @@ module: NfeBrasil
 - [ImportRegrasController.php](../../../Modules/NfeBrasil/Http/Controllers/ImportRegrasController.php)
 - [InstallController.php](../../../Modules/NfeBrasil/Http/Controllers/InstallController.php)
 - [ManifestacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/ManifestacaoController.php)
+- [NaturezaOperacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NaturezaOperacaoController.php)
 - [NfeEmissaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php)
 - [NfeInutilizacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeInutilizacaoController.php)
 - [NfeStatusController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeStatusController.php)
@@ -35,7 +36,7 @@ module: NfeBrasil
 - [SugestaoFiscalController.php](../../../Modules/NfeBrasil/Http/Controllers/SugestaoFiscalController.php)
 - [TributacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/TributacaoController.php)
 
-## Requests (validação) — 11
+## Requests (validação) — 12
 
 - [AtivarContingenciaRequest.php](../../../Modules/NfeBrasil/Http/Requests/AtivarContingenciaRequest.php)
 - [CancelarNfeRequest.php](../../../Modules/NfeBrasil/Http/Requests/CancelarNfeRequest.php)
@@ -47,13 +48,14 @@ module: NfeBrasil
 - [SugestaoFiscalRequest.php](../../../Modules/NfeBrasil/Http/Requests/SugestaoFiscalRequest.php)
 - [UploadCertificadoRequest.php](../../../Modules/NfeBrasil/Http/Requests/UploadCertificadoRequest.php)
 - [UpsertConfigDefaultRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertConfigDefaultRequest.php)
+- [UpsertNaturezaRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertNaturezaRequest.php)
 - [UpsertRegraTributariaRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertRegraTributariaRequest.php)
 
 ## Middleware — 1
 
 - [PermissaoNfe.php](../../../Modules/NfeBrasil/Http/Middleware/PermissaoNfe.php)
 
-## Services — 42
+## Services — 43
 
 - [CancelamentoFiscalNfeBrasil.php](../../../Modules/NfeBrasil/Services/CancelamentoFiscalNfeBrasil.php)
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
@@ -85,6 +87,7 @@ module: NfeBrasil
 - [SeparacaoNotasDaVenda.php](../../../Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php)
 - [ApuracaoDasService.php](../../../Modules/NfeBrasil/Services/Tributacao/ApuracaoDasService.php)
 - [CoerenciaFiscalDoItem.php](../../../Modules/NfeBrasil/Services/Tributacao/CoerenciaFiscalDoItem.php)
+- [ConferenciaNaturezaService.php](../../../Modules/NfeBrasil/Services/Tributacao/ConferenciaNaturezaService.php)
 - [ContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/ContadorService.php)
 - [FechamentoContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/FechamentoContadorService.php)
 - [GtinCest.php](../../../Modules/NfeBrasil/Services/Tributacao/GtinCest.php)
@@ -164,7 +167,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 41
+## Migrations (schema) — 44
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -207,6 +210,9 @@ module: NfeBrasil
 - [2026_11_04_000001_add_cnpj_destinatario_to_nfe_dfe_recebidos.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_04_000001_add_cnpj_destinatario_to_nfe_dfe_recebidos.php)
 - [2026_11_10_000001_add_proxima_consulta_em_to_nfe_dfe_nsu_state.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_10_000001_add_proxima_consulta_em_to_nfe_dfe_nsu_state.php)
 - [2026_11_10_000001_grant_nfebrasil_emit_manage_to_sellers.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_10_000001_grant_nfebrasil_emit_manage_to_sellers.php)
+- [2026_11_13_000001_add_cst_pis_cofins_to_nfe_fiscal_rules.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_13_000001_add_cst_pis_cofins_to_nfe_fiscal_rules.php)
+- [2026_11_15_000001_add_campos_da_tela_naturezas_to_nfe_operacoes_fiscais.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_15_000001_add_campos_da_tela_naturezas_to_nfe_operacoes_fiscais.php)
+- [2026_11_15_000002_add_config_tela_to_nfe_operacoes_fiscais.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_15_000002_add_config_tela_to_nfe_operacoes_fiscais.php)
 
 ## Seeders — 2
 
@@ -233,12 +239,14 @@ module: NfeBrasil
 - [Index.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx)
 - [RegraForm.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx)
 
-## Componentes / apoio de tela — 6
+## Componentes / apoio de tela — 8
 
 - [LinkedFornecedor.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedFornecedor.tsx)
 - [LinkedHistorico.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedHistorico.tsx)
 - [LinkedItens.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedItens.tsx)
 - [ConfigurarPeloCertificado.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/ConfigurarPeloCertificado.tsx)
+- [NaturezaEditor.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/Naturezas/NaturezaEditor.tsx)
+- [NaturezasSecao.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/Naturezas/NaturezasSecao.tsx)
 - [SaudeFiscal.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/SaudeFiscal.tsx)
 - [SimuladorNota.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/SimuladorNota.tsx)
 
@@ -260,12 +268,12 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 120
+## Testes (Pest) — 125
 
-- 120 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 125 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 52
+## Demais arquivos (manifestos, docs, assets e misc) — 54
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -276,6 +284,7 @@ module: NfeBrasil
 - [.gitkeep](../../../Modules/NfeBrasil/Entities/.gitkeep)
 - [AliquotaInternaNaoCadastradaException.php](../../../Modules/NfeBrasil/Exceptions/AliquotaInternaNaoCadastradaException.php)
 - [ContingenciaException.php](../../../Modules/NfeBrasil/Exceptions/ContingenciaException.php)
+- [NaturezaDoLancamentoInvalidaException.php](../../../Modules/NfeBrasil/Exceptions/NaturezaDoLancamentoInvalidaException.php)
 - [NcmObrigatorioException.php](../../../Modules/NfeBrasil/Exceptions/NcmObrigatorioException.php)
 - [NcmPadraoAusenteException.php](../../../Modules/NfeBrasil/Exceptions/NcmPadraoAusenteException.php)
 - [TributacaoNaoConfiguradaException.php](../../../Modules/NfeBrasil/Exceptions/TributacaoNaoConfiguradaException.php)
@@ -319,3 +328,4 @@ module: NfeBrasil
 - [composer.json](../../../Modules/NfeBrasil/composer.json)
 - [module.json](../../../Modules/NfeBrasil/module.json)
 - [SCOPE.md](../../../memory/requisitos/NfeBrasil/SCOPE.md)
+- [natureza.ts](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/Naturezas/natureza.ts)

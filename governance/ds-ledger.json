@@ -442,7 +442,7 @@
     },
     {
       "screen": "Site",
-      "note": "3 arquivo(s)",
+      "note": "4 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "no",
@@ -719,8 +719,8 @@
   "progressPct": 63,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ceacd445fb",
-  "generatedAt": "2026-11-12T17:49:49.534Z",
+  "measuredAgainstSha": "20040dde34",
+  "generatedAt": "2026-11-15T16:31:54.183Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

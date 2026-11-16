@@ -40,7 +40,7 @@ class PortalLinkController extends Controller
         }
 
         return response()->json([
-            'link' => url('/associacoes/m/'.$r['token']),
+            'link' => rtrim((string) config('associacoes.portal.url_base', url('/')), '/').'/associacoes/m/'.$r['token'],
             'pin' => $r['pin'],
             'expira_em' => $r['expires_at']->toDateString(),
         ], 201);

@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 155 (47 contexts required)
+## 1. Workflows / Gates de CI — 157 (47 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -31,6 +31,7 @@ lifecycle: ativo
 | `acessos-pest.yml` | pr+push+manual | `memory/requisitos/Woocommerce/RUNBOOK-log.md` +18 | Acessos · Pest (MySQL) |
 | `adr-index-gate.yml` | pr+manual | `memory/08-handoff.md` +3 | ADR Index Gate — ADR 0258 |
 | `adr-lint.yml` | pr+push | `memory/decisions/0063-prevenir-composer-lock-drift.md` +16 | ADR frontmatter lint |
+| `affects-clientes-label.yml` | pr | — | Label affects/<cliente> — rotula o PR com affects/rota-livre e/ou affects/wr2 quando ele altera o source de uma tela marcada com `clientes` em scripts/screen-smoke/routes… |
 | `agent-cost-per-pr.yml` | cron+manual | `memory/proibicoes.md` +11 | Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de AL… |
 | `agent-pr-outcomes.yml` | cron+manual | `memory/08-handoff.md` +2 | Agent PR outcomes (advisory · DORA dos PRs do agente · change-failure-rate + accept-rate + time-to-merge via gh pr list · weekly schedule + dispatch · card #0 grade-das-r… |
 | `anchor-content-required.yml` | pr+push | `memory/decisions/0327-anchor-content-required-emenda-0314.md` +3 | Ancora de design nao-shell — REQUIRED (F2/F6 revisão adversarial 2026-07-08: related_prototype do charter != shell/fantasma; anchor-content-check --check hard-fail; emend… |
@@ -46,7 +47,7 @@ lifecycle: ativo
 | `briefing-coverage-required.yml` | pr+push | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +1 | Cobertura BRIEFING (required) — modulo backend (Modules/<X>/ com dir requisitos/<X>/) sem BRIEFING.md falha o merge. Sinal = EXISTENCIA (isBriefingCoverageGap), nao data … |
 | `brl-scan.yml` | pr+manual | `memory/decisions/0416-pii-redactor-arquivado-emenda-0224.md` +10 | BRL scan (advisory · valor monetário em linha NOVA do PR · diff-only · arquivos + PR body + mensagem INTEIRA dos commits) |
 | `card-anatomia-gate.yml` | pr+push+manual | (só sessão/handoff · 1) | Card Anatomia — slots aditivos (badge/note/flush) sem mexer no default de 733033864088 |
-| `casos-gate.yml` | pr+push | `memory/decisions/0402-denominador-de-tela-inclui-pages-de-modulo.md` +175 | Casos-coverage ratchet (trio-de-tela + caso↔teste) |
+| `casos-gate.yml` | pr+push | `memory/decisions/0402-denominador-de-tela-inclui-pages-de-modulo.md` +176 | Casos-coverage ratchet (trio-de-tela + caso↔teste) |
 | `casos-results-publish.yml` | cron+manual | `memory/decisions/0354-teammcp-pest-required-emenda-0314.md` +11 | Casos results publish — colhe o JUnit das lanes (que já emitem --log-junit) e aterrissa o veredito por-UC em scripts/casos-test-results.json, fonte do G-7 do casos-gate; … |
 | `catalog-graph.yml` | pr+manual | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +26 | Catalog graph — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exerci… |
 | `charter-refs-gate.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256) |
@@ -57,14 +58,14 @@ lifecycle: ativo
 | `cobranca-filtros-gate.yml` | pr+push+manual | — | Cobrança filtros gate — precedência localStorage × querystring (UC-COB-03). Trava o comportamento reescrito com prova em 2026-09-03: o servidor filtra pela querystring e … |
 | `cockpit-sidebar-jsdom-gate.yml` | pr+push+manual | — | Cockpit Sidebar jsdom — os 9 specs vitest da sidebar do AppShellV2 (menu do rodapé · Sair · aparência · presença · rail) |
 | `components-tree-guard.yml` | pr+push+manual | `memory/requisitos/_DesignSystem/CHANGELOG.md` +7 | Components tree guard (árvore canônica de Components/) |
-| `composer-lock-sync.yml` | manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +6 | Composer lock sync |
+| `composer-lock-sync.yml` | manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +7 | Composer lock sync |
 | `compras-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +16 | Compras · Pest (MySQL) |
 | `connector-pest.yml` | pr+push+manual | — | Connector · Pest (MySQL) |
 | `contrato-de-tela.yml` | pr+push | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +29 | Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md) |
 | `dashboard-pest.yml` | pr+push+manual | `memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md` | Dashboard · Pest (MySQL) |
 | `datatable-nome-acessivel-gate.yml` | pr+push+manual | — | DataTable Nome Acessível — a tabela do DS não volta a ser anônima (caption sr-only + scope col) |
 | `deadlink-gate.yml` | pr | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +44 | deadlink-gate (ratchet · integridade referencial) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história app… |
-| `deploy.yml` | push+manual | `memory/decisions/0425-webhook-sync-memory-so-memory-codigo-so-pelo-deploy.md` +79 | Deploy to Hostinger |
+| `deploy.yml` | push+manual | `memory/decisions/0425-webhook-sync-memory-so-memory-codigo-so-pelo-deploy.md` +82 | Deploy to Hostinger |
 | `design-coverage.yml` | pr+manual | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +15 | ds-design-coverage (advisory) — catraca da cobertura de DESIGN por tela: quantas telas DECLARAM a fonte de design (protótipo via related_prototype ou 'segue DS' explícito… |
 | `design-identity-gate.yml` | pr+manual | `memory/requisitos/Jana/AUDITORIA-design-as-code-token-driven-2026-06-22.md` +4 | Design Identity Gate (soft) |
 | `design-memory-gate.yml` | pr+manual | `memory/decisions/0327-anchor-content-required-emenda-0314.md` +29 | Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalen… |
@@ -120,6 +121,7 @@ lifecycle: ativo
 | `kb-pest.yml` | pr+push+manual | `memory/requisitos/KB/SDD-tela-kb-unificado-v1.0.md` +15 | KB · Pest (MySQL) |
 | `knowledge-ghost-gate.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +4 | Knowledge Ghost Gate (catraca anti-ghost · baseline por módulo · ADVISORY — KL-A2) |
 | `layout-primitives-guard.yml` | pr+push+manual | `memory/decisions/0417-aposenta-tela-piloto-0253.md` +13 | Layout primitives guard (flex/grid solto) |
+| `load-test.yml` | manual | — | Load test k6 (manual, só staging) |
 | `manufacturing-jsdom-gate.yml` | pr+push+manual | `memory/requisitos/Manufacturing/SPEC.md` +2 | Manufacturing jsdom — specs jsdom do módulo: filtro De/Até das Ordens (UC-OP-06) e as 6 regras de tela do editor de ingredientes (UC-INGRED-08..13) |
 | `manufacturing-pest.yml` | pr+push+manual | (só sessão/handoff · 1) | Manufacturing · Pest (MySQL) |
 | `mcp-drift-sentinel.yml` | cron+manual | `memory/requisitos/Infra/AUDITORIA-OPS-DR-2026-07.md` +6 | MCP Drift Sentinel — servido vs main (ADR 0256 + 0062) |
@@ -162,7 +164,7 @@ lifecycle: ativo
 | `scope-guard.yml` | pr+push+manual | `memory/decisions/0283-handoff-loop-zero-paste.md` +18 | Scope Guard (anti-drift) |
 | `screen-coverage-gate.yml` | pr | `memory/decisions/0343-promove-adr-gate-required-emenda-0341.md` +16 | Screen Coverage Gate (catraca de cobertura) |
 | `screen-grades-ratchet.yml` | pr | `memory/decisions/0373-screen-grades-ratchet-required-emenda-0314.md` +11 | Screen grades ratchet (nota 16-dim de tela não desce vs origin/main · cobre 2 vetores: baixar o valor e apagar o item) |
-| `screen-smoke-after-merge.yml` | manual | `memory/decisions/0164-screen-review-pdca-tela-smoke-pos-merge.md` +13 | Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy… |
+| `screen-smoke-after-merge.yml` | manual | `memory/decisions/0164-screen-review-pdca-tela-smoke-pos-merge.md` +14 | Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy… |
 | `sdd-scorecard-publish.yml` | push+cron+manual | `memory/proibicoes.md` +16 | SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279) |
 | `sdd-scorecard-ratchet.yml` | pr+manual | `memory/requisitos/_Governanca/roadmap/P14-catraca-floor-morde-no-required.md` +7 | SDD Scorecard Ratchet (2º dente SDD · GT-G3 — métrica armada não regride; hard, candidato a required; ADR 0275 §3) |
 | `sdd-scorecard.yml` | pr+cron+manual | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +33 | SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275) |
@@ -506,7 +508,7 @@ lifecycle: ativo
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `aguardar-deploy.mjs` | ci | 🟢 só lê | — | `memory/governance/shipped/CYCLE-08.md` | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
+| `aguardar-deploy.mjs` | ci | 🟢 só lê | — | `memory/requisitos/Infra/RUNBOOK-deploy-producao.md` +1 | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
 | `smoke-bundle.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` +2 | o prod serve os assets que ESTE build gerou? |
 
 ### 5.9 `scripts/design/` — 27
@@ -592,7 +594,7 @@ lifecycle: ativo
 | `ancora-codigo-sync.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/SDD-TEMPLATE.md` +5 | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-folga.mjs` | ci | 🔴 disco | — | (só sessão/handoff · 1) | trava o ganho que ninguém lembrou de travar (auto-APERTO de baseline). |
 | `baseline-tamper-guard.mjs` | ci, script | 🟢 só lê | selftest | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +48 | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
-| `blade-migration-census.mjs` | agente, ci, script | 🟢 só lê | — | `memory/proibicoes.md` +45 | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
+| `blade-migration-census.mjs` | agente, ci, script | 🟢 só lê | — | `memory/proibicoes.md` +46 | o CONTRATO DE COMPLETUDE da ADR 0277, derivado da árvore. |
 | `briefing-code-staleness.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +26 | sentinela: a PORTA (BRIEFING.md) ficou atrás do CÓDIGO? |
 | `brl-scan-diff.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0407-regra-brl-protege-valor-de-cliente-no-canon-nao-numero-em-artefato.md` +6 | varre as LINHAS ADICIONADAS de um PR procurando valor BRL não-redigido. |
 | `catalog-graph.mjs` | agente, ci, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +32 | GERADOR determinístico do GRAFO TIPADO de módulos. |
@@ -656,7 +658,7 @@ lifecycle: ativo
 | `maquinas-inventario.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +21 | DERIVA um índice único e legível de TODAS as "máquinas" |
 | `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +7 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
-| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +117 | GERADOR determinístico da "Superfície de código" de um módulo. |
+| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +118 | GERADOR determinístico da "Superfície de código" de um módulo. |
 | `negocio-vs-governanca-ratio.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md` +11 | o alarme anti-atrofia da inteligência de negócio. |
 | `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +13 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | 🔴 disco | — | `memory/decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md` +1 | normaliza status/lifecycle de ADR pro enum canônico. |
@@ -749,7 +751,7 @@ lifecycle: ativo
 | `placar-recibo.mjs` | ci, script | 🟢 só lê | — | — | o AVALIADOR DE RECIBO do placar da lista (provas `execucao` · `revisao` · |
 | `placar.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0427-auto-merge-de-pr-de-thread-emenda-0040.md` +13 | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
 | `prototipo-readiness.mjs` | ci | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +9 | "quais telas de protótipo posso aplicar SEM me preocupar?" |
-| `screen-coverage-map.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +75 | mapa de cobertura de QA por tela + baseline da catraca. |
+| `screen-coverage-map.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +76 | mapa de cobertura de QA por tela + baseline da catraca. |
 | `screen-grade-report.mjs` | npm | 🟢 só lê | test | `memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md` +7 | a FOTO LADO A LADO: UX × comportamento por tela. |
 | `screen-grade-seed.mjs` | script | 🔴 disco | — | `memory/decisions/0250-screen-qa-specialist-sustentavel.md` +1 | materializa os scorecards YAML por tela a partir do |
 | `screen-grades-ratchet.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0373-screen-grades-ratchet-required-emenda-0314.md` +19 | catraca anti-regressão da nota por tela. |
@@ -758,10 +760,11 @@ lifecycle: ativo
 | `uc-lane-coverage.mjs` | ci, script | 🔴 disco | test | `memory/LICOES_CODE.md` +4 | o teste que o `casos.md` cita EXISTE, e alguma lane de CI o RODA? |
 | `vital-signs.mjs` | ci, script | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/MV1-espinha-dorsal-vital-signs.md` +8 | sinais vitais da frota por módulo (MV1 · espinha dorsal do Módulo Vivo). |
 
-### 5.19 `scripts/screen-smoke/` — 3
+### 5.19 `scripts/screen-smoke/` — 4
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
+| `affects-clientes.mjs` | ci | 🟢 só lê | — | — | quais clientes vivos um PR afeta? |
 | `aguardar-bundle-live.mjs` | ci | 🟢 só lê | — | — | fecha o residual #7 do screen-smoke-after-merge: |
 | `select-routes.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Seleciona as rotas do smoke pós-deploy e mantém explícito o que não foi medido. |
 | `smoke.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/Infra/RUNBOOK-screen-smoke-ativacao.md` +3 | ───────────────────────────────────────────────────────────────────────────── |

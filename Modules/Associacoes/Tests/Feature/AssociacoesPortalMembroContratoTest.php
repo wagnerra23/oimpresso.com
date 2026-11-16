@@ -17,8 +17,8 @@ use Modules\Associacoes\Services\PortalAssociadaService;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Área da associada no app — `/associacoes/m/{token}` (ADR 0451 D6 · US-ASSOC-005). Contrato em
- * `Modules/Associacoes/Resources/js/Pages/Associacoes/Public/Membro.casos.md` (UC-AMB-01..06).
+ * Área da associada no site da Uniafibro e no app — `/associacoes/m/{token}` (ADR 0451 D6 · US-ASSOC-005). Contrato em
+ * `Modules/Associacoes/Resources/js/Pages/Associacoes/Public/Membro.casos.md` (UC-AMB-01..07).
  * Tenant 98 × 99 (ADR 0358): o pacote fica ligado só para a 98.
  *
  * ⚠️ SKIP em SQLite: schema UltimatePOS (LC-13). A lane é verticais-pest (MySQL).
@@ -196,4 +196,22 @@ it('UC-AMB-06 · gerar e revogar o link: só quem edita e alcança a associada, 
     // SUPERADMIN: leitura da linha da fixture.
     $linha = PortalAssociada::withoutGlobalScopes()->where('associada_id', $this->a98->id)->firstOrFail();
     expect($linha->revogado_em)->not->toBeNull();
+});
+
+it('UC-AMB-07 · o link abre no site da Uniafibro, o PIN funciona lá, e o site segue igual', function () {
+    config(['associacoes.portal.url_base' => 'https://uniafibro.com.br']);
+    $this->actingAs($this->u98);
+    session(['user.business_id' => $this->b98]);
+    $r = $this->postJson('/associacoes/associadas/'.$this->a98->id.'/portal')->assertCreated();
+    expect($r->json('link'))->toStartWith('https://uniafibro.com.br/associacoes/m/');
+    auth()->logout();
+
+    // O link de UMA associada: o mesmo PIN vale no domínio do site.
+    $g = $this->servico->emitir($this->a98);
+    $this->get('https://uniafibro.com.br/associacoes/m/'.$g['token'])->assertOk();
+    $this->postJson('https://uniafibro.com.br/associacoes/m/'.$g['token'].'/pin', ['pin' => $g['pin']])->assertOk();
+
+    // Âncora negativa: a rota nova não abre o caminho genérico do site para o ERP.
+    $this->get('https://uniafibro.com.br/associacoes/lista')->assertRedirect('https://uniafibro.com.br/');
+    $this->get('https://uniafibro.com.br/')->assertOk();
 });
