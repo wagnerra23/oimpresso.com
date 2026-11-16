@@ -3,7 +3,7 @@ slug: 0453-escopo-de-empresa-fecha-sem-contexto
 number: 453
 title: "Escopo de empresa fecha quando não há contexto: consulta sem empresa definida lança exceção em vez de devolver tudo (emenda da 0093, Garantia 2)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
