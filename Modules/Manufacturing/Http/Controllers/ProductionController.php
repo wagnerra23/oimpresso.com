@@ -1171,8 +1171,7 @@ class ProductionController extends Controller
     /**
      * `User::permitted_locations()`, com uma exceção: o superadmin da plataforma alcança todos os locais,
      * como o papel `Admin#` da empresa já alcança pelo `Gate::before` (e como ele vê custo, lote 2.6).
-     *
-     * @return 'all'|array<int, int>
+     * Devolve 'all' ou a lista de ids, como o `permitted_locations()` do núcleo.
      */
     private function locaisPermitidos()
     {
