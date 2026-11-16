@@ -97,7 +97,19 @@ class RecipeController extends Controller
             'sort' => in_array(request()->query('sort'), RecipeBomService::ORDENAVEIS, true) ? request()->query('sort') : 'name',
             'dir'  => request()->query('dir') === 'desc' ? 'desc' : 'asc',
         ];
+        // Lote 2.6 (decisão B3 de [W]): sem `view_purchase_price` o custo não sai do servidor — nem como
+        // número, nem como ordem da lista ou filtro de margem, que revelariam o mesmo dado (UC-RECIPE-26).
+        $podeVerCusto = \Modules\Manufacturing\Support\OcultaCusto::podeVer();
+        if (! $podeVerCusto) {
+            if (in_array($filtros['sort'], ['total', 'unit', 'venda', 'margem'], true)) {
+                $filtros['sort'] = 'name';
+            }
+            $filtros['kpi'] = null;
+        }
         $filtradas = $this->recipeBomService->filtrarOrdenar($todas, $filtros);
+        if (! $podeVerCusto) {
+            $filtradas = array_map([\Modules\Manufacturing\Support\OcultaCusto::class, 'receita'], $filtradas);
+        }
 
         $porPagina = 10; // R-07 — 10 por página, como o protótipo
         $ultima = max(1, (int) ceil(count($filtradas) / $porPagina));
@@ -115,17 +127,20 @@ class RecipeController extends Controller
             'recipes' => $recipes,
             'filtros' => $filtros,
             // KPIs sobre TODAS as receitas, nunca sobre a página nem o filtro (§4.2).
-            'kpis' => $this->recipeBomService->kpis($todas),
+            'kpis' => $podeVerCusto
+                ? $this->recipeBomService->kpis($todas)
+                : \Modules\Manufacturing\Support\OcultaCusto::kpisReceitas($this->recipeBomService->kpis($todas)),
             // Categorias na ordem de chegada (nome do produto) — a mesma do `Set` que o cliente montava.
             'categorias' => array_values(array_unique(array_map(fn ($r) => $r['cat'], $todas))),
             // R-08 — "Selecionar todas" marca as FILTRADAS, não só as da página: a tela precisa dos ids.
             'ids_filtrados' => array_map(fn ($r) => $r['id'], $filtradas),
             // Fichas das receitas marcadas em OUTRAS páginas — só calculado no reload parcial que
             // a impressão pede (`only: ['fichas']`). Sai da mesma lista já isolada por tenant.
-            'fichas' => Inertia::optional(function () use ($todas) {
+            'fichas' => Inertia::optional(function () use ($todas, $podeVerCusto) {
                 $ids = array_map('intval', array_filter(explode(',', (string) request()->query('fichas', ''))));
+                $fichas = array_values(array_filter($todas, fn ($r) => in_array($r['id'], $ids, true)));
 
-                return array_values(array_filter($todas, fn ($r) => in_array($r['id'], $ids, true)));
+                return $podeVerCusto ? $fichas : array_map([\Modules\Manufacturing\Support\OcultaCusto::class, 'receita'], $fichas);
             }),
             // "Copiar de outra receita" da janela Nova receita — só no reload parcial que a janela
             // pede ao abrir (`only: ['receitas_copia']`). Mesma lista do modal antigo, já da empresa.
@@ -135,6 +150,7 @@ class RecipeController extends Controller
                 ->values()),
             'permissions' => [
                 'criar'  => auth()->user()->can('manufacturing.add_recipe'),
+                'custo'  => $podeVerCusto,
                 'editar' => auth()->user()->can('manufacturing.edit_recipe'),
                 'prod'   => auth()->user()->can('manufacturing.access_production'),
             ],
@@ -173,16 +189,20 @@ class RecipeController extends Controller
 
         $ordens = $productionService->summary($business_id);
 
+        // Lote 2.6 (decisão B3 de [W]): sem `view_purchase_price` custo e margem vêm nulos (UC-INS-07).
+        $podeVerCusto = \Modules\Manufacturing\Support\OcultaCusto::podeVer();
+        $insumos = $this->recipeBomService->listInsumosComUso($business_id);
+        $usos = $variationId ? $this->recipeBomService->usosDoInsumo($variationId, $business_id, $pct) : [];
+
         return Inertia::render('Manufacturing/Insumos', [
-            'insumos' => $this->recipeBomService->listInsumosComUso($business_id),
+            'insumos' => $podeVerCusto ? $insumos : \Modules\Manufacturing\Support\OcultaCusto::insumos($insumos),
             'selecionado' => $variationId,
-            'usos' => $variationId
-                ? $this->recipeBomService->usosDoInsumo($variationId, $business_id, $pct)
-                : [],
+            'usos' => $podeVerCusto ? $usos : \Modules\Manufacturing\Support\OcultaCusto::usos($usos),
             'variacao_pct' => $pct,
             'metodo_custo' => $variationId ? $this->metodoCustoDoInsumo($business_id, $variationId) : null,
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
+                'custo' => $podeVerCusto,
             ],
             'producao' => [
                 'total' => (int) $ordens['total_count'],
@@ -630,13 +650,19 @@ class RecipeController extends Controller
             ! empty($copiar) ? (int) $copiar : null
         );
         $settings = $this->mfgUtil->getSettings($business_id) ?: [];
+        // Lote 2.6 (UC-INGRED-16): sem `view_purchase_price` o custo de cada insumo vem nulo. O custo
+        // extra da receita fica: é campo do formulário, e nulo zeraria a receita ao salvar.
+        $podeVerCusto = \Modules\Manufacturing\Support\OcultaCusto::podeVer();
+        if (! $podeVerCusto) {
+            $dados['grupos'] = \Modules\Manufacturing\Support\OcultaCusto::itensDoEditor($dados['grupos']);
+        }
 
         // Sem `Inertia::defer` de propósito: estes props SÃO o formulário. O `useForm` da tela copia
         // os props uma vez ao montar (handoff §5 regra 5 — a cópia); adiados, ele nasceria vazio.
         return Inertia::render('Manufacturing/IngredientesEditor', $dados + [
             // Regra 3: "editar" = poder GRAVAR, e quem grava é o `store()`, que exige `add_recipe`
             // (o `edit_recipe` não tem rota que o alcance — R-MANU-004).
-            'perms' => ['editar' => auth()->user()->can('manufacturing.add_recipe')],
+            'perms' => ['editar' => auth()->user()->can('manufacturing.add_recipe'), 'custo' => $podeVerCusto],
             // Regra 2: a mesma configuração trava a quantidade aqui e na ordem de produção.
             'travar_qtd' => ! empty($settings['disable_editing_ingredient_qty']),
         ]);
@@ -652,8 +678,10 @@ class RecipeController extends Controller
 
         $termo = mb_substr(trim((string) request()->query('q', '')), 0, 80);
 
+        $insumos = $this->recipeBomService->buscarInsumos($termo, $business_id);
+
         return response()->json([
-            'insumos' => $this->recipeBomService->buscarInsumos($termo, $business_id),
+            'insumos' => \Modules\Manufacturing\Support\OcultaCusto::podeVer() ? $insumos : \Modules\Manufacturing\Support\OcultaCusto::insumosDaBusca($insumos),
         ]);
     }
 

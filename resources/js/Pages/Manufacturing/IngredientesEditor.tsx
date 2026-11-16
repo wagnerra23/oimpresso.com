@@ -57,7 +57,8 @@ interface Props {
   };
   grupos: GrupoEditor[];
   grupos_da_empresa: string[];
-  perms: { editar: boolean };
+  /** `custo` falso: o servidor não mandou o custo dos insumos (sem `view_purchase_price`, UC-INGRED-16). */
+  perms: { editar: boolean; custo?: boolean };
   travar_qtd: boolean;
 }
 
@@ -70,6 +71,7 @@ const deValor = (v: string) => (v === BASE ? null : Number(v));
 
 export default function IngredientesEditor({ produto, receita, grupos, grupos_da_empresa, perms, travar_qtd }: Props) {
   const podeEditar = perms.editar;
+  const verCusto = perms.custo !== false;
   // Regra 5: a ficha em edição é uma CÓPIA dos props. Cancelar só sai da tela.
   const form = useForm({
     total_quantity: receita.total_quantity,
@@ -151,7 +153,7 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
               <div className="mfg-grp-h">
                 <b>{g.nome}</b>
                 <span className="rounded-[3px] bg-[var(--surface)] px-[5px] py-px font-mono text-[10.5px] text-[var(--text-mute)]">{g.itens.length}</span>
-                <span className="v">{fmt(g.itens.reduce((s, l) => s + subtotalDoIngrediente(l), 0))}</span>
+                <span className="v">{verCusto ? fmt(g.itens.reduce((s, l) => s + subtotalDoIngrediente(l), 0)) : '—'}</span>
                 {podeEditar && (
                   <button type="button" className="mfg-mini danger" aria-label={`Remover grupo ${g.nome}`} title="Remover grupo" onClick={() => mudarGrupos((gs) => gs.filter((_, i) => i !== gi))}>
                     <X className="h-3 w-3" />
@@ -206,9 +208,9 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
                       )}
                     </span>
                     <span className="m">
-                      {fmt(l.custo_unitario)} / {l.unidade_base}
+                      {verCusto ? fmt(l.custo_unitario) : '—'} / {l.unidade_base}
                     </span>
-                    <span className="m tot">{fmt(subtotalDoIngrediente(l))}</span>
+                    <span className="m tot">{verCusto ? fmt(subtotalDoIngrediente(l)) : '—'}</span>
                     <span>
                       {podeEditar && (
                         <button type="button" className="mfg-mini danger" aria-label={`Remover ${l.nome}`} title="Remover" onClick={() => removerLinha(gi, li)}>
@@ -316,19 +318,23 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
             <Textarea value={data.instructions} disabled={!podeEditar} aria-label="Instruções" rows={4} onChange={(e) => setData('instructions', e.target.value)} />
           </FormSection>
 
-          <div className="mfg-sec">
-            <span>Custo ao vivo</span>
-            <span className="ln" />
-          </div>
-          <dl className="mfg-tot">
-            <dt>Ingredientes ({nIng})</dt>
-            <dd>{fmt(c.ingredientes)}</dd>
-            <dt>Custo extra</dt>
-            <dd>{fmt(c.extra)}</dd>
-            <hr />
-            <dt>Custo por {produto.unidade}</dt>
-            <dd>{fmt(c.unitario)}</dd>
-          </dl>
+          {verCusto && (
+            <>
+              <div className="mfg-sec">
+                <span>Custo ao vivo</span>
+                <span className="ln" />
+              </div>
+              <dl className="mfg-tot">
+                <dt>Ingredientes ({nIng})</dt>
+                <dd>{fmt(c.ingredientes)}</dd>
+                <dt>Custo extra</dt>
+                <dd>{fmt(c.extra)}</dd>
+                <hr />
+                <dt>Custo por {produto.unidade}</dt>
+                <dd>{fmt(c.unitario)}</dd>
+              </dl>
+            </>
+          )}
           {travar_qtd && (
             <Alert>
               <AlertDescription>Edição de quantidade de ingrediente está bloqueada em Configurações.</AlertDescription>

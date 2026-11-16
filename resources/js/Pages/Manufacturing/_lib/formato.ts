@@ -10,13 +10,19 @@
 
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 
-/** Dinheiro: prefixa `R$ ` ao número pt-BR de 2 casas. `fmt(148.72)` devolve `148,72` com o prefixo. */
+/**
+ * Dinheiro: prefixa `R$ ` ao número pt-BR de 2 casas. `fmt(148.72)` devolve `148,72` com o prefixo.
+ * Nulo é "não posso mostrar" (custo escondido de quem não tem `view_purchase_price`, lote 2.6 da
+ * auditoria): devolve "—", nunca "R$ 0,00", que diria um custo zero que não existe.
+ */
 export function fmt(n: number | null | undefined): string {
+  if (n === null || n === undefined) return '—';
   return `R$ ${formatDecimalPtBR(n, 2)}`;
 }
 
-/** Quantidade com N casas. `num(14.4, 2)` → `"14,40"`. */
+/** Quantidade com N casas. `num(14.4, 2)` → `"14,40"`. Nulo → "—" (mesma regra do `fmt`). */
 export function num(n: number | null | undefined, casas = 2): string {
+  if (n === null || n === undefined) return '—';
   return formatDecimalPtBR(n, casas);
 }
 
@@ -31,7 +37,9 @@ export function rotuloCustoExtra(tipo: string, extra: number, unidade: string): 
 }
 
 /** Faixa de cor da margem — §7.5 `[FECHADA]`: ≥55 positivo · 45–54,9 alerta · <45 negativo. */
-export function faixaMargem(margem: number): 'ok' | 'warn' | 'bad' {
+export function faixaMargem(margem: number | null): 'ok' | 'warn' | 'bad' {
+  // Margem escondida (sem `view_purchase_price`): tom neutro de atenção, nunca o vermelho de margem baixa.
+  if (margem === null) return 'warn';
   if (margem >= 55) return 'ok';
   if (margem >= 45) return 'warn';
   return 'bad';
