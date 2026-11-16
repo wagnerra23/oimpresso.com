@@ -369,6 +369,21 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-21 · A ordem recusa quantidade que não existe, antes de gravar
+- **Persona:** quem grava ou edita a ordem de produção.
+- **Aceite:** Dado um POST ou PUT com quantidade produzida zero ou negativa, perda negativa ou igual/maior que a
+  produção, custo extra negativo, ou consumo de insumo negativo · Quando a ordem é gravada · Então volta com erro
+  no campo e nada é gravado (nem ordem nova, nem mudança no rascunho) · Dado os mesmos dados com números válidos ·
+  Então a ordem grava.
+- **Fonte:** SDD Fabricação §4 (a ordem produz quantidade positiva; entra no estoque a produzida menos a perdida) ·
+  SPEC US-MANU-008 · auditoria do Manufacturing, lote 2.2.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemValidacaoTest.php`
+- **Regressão que defende:** quantidade 0 dividindo o total (erro 500) e consumo negativo somando estoque em vez
+  de baixar.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
