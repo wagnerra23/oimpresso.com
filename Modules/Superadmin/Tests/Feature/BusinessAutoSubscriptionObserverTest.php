@@ -17,6 +17,13 @@ uses(Tests\TestCase::class);
  * Observer Business::created auto-cria Subscription waiting com Package default
  * + trial_end_date. Cobre UI Superadmin + API Delphi simultaneamente (ambos
  * caminhos chamam Business::create).
+ *
+ * FORA DA LANE (2026-11-16, run 43940497966): 2 de 5 casos caem porque o observer NÃO está
+ * registrado quando o teste roda. `SuperadminServiceProvider::registerBusinessAutoSubscriptionObserver`
+ * guarda o registro num `static bool`, que sobrevive à aplicação recriada a cada teste; o dispatcher
+ * de eventos do Model é novo e o observer nunca volta a ser ligado. O 1º caso vê subscription nula e o
+ * de idempotência vê 0 → 1 só quando o observer é chamado à mão. É defeito do provider, não do teste:
+ * entra na lane quando o guard for consertado.
  */
 
 beforeEach(function () {

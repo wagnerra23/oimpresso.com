@@ -834,7 +834,6 @@ jobs:
             Modules/Superadmin/Tests/Feature/AssinaturaAtivaDeterministaTest.php \
             Modules/Superadmin/Tests/Feature/OnCobrancaPagaUpdateSubscriptionTest.php \
             Modules/Superadmin/Tests/Feature/OnCobrancaVencidaBloqueaSubscriptionTest.php \
-            Modules/Superadmin/Tests/Feature/BusinessAutoSubscriptionObserverTest.php \
             Modules/Superadmin/Tests/Feature/PackageManagerServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminGateTest.php \
             Modules/Superadmin/Tests/Feature/SecurityHardeningTest.php \

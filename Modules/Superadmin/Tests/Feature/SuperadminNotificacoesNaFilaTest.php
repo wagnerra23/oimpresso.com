@@ -55,7 +55,11 @@ test('cada notificação do Superadmin é empurrada para a fila superadmin-mail,
         // O NotificationSender CLONA a notificação por canal: compara a classe, não a instância.
         return $job->notification instanceof $notificacao && $job->shouldBeEncrypted === true;
     });
-    Queue::assertNotPushedOn('default', SendQueuedNotifications::class);
+    // O QueueFake desta versão do Laravel não tem `assertNotPushedOn` (BadMethodCallException no
+    // run 43940497966). Mesma pergunta pelo `pushed()`, cujo callback recebe ($job, $queue):
+    // nenhum job da notificação pode ter saído em outra fila.
+    $foraDaFila = Queue::pushed(SendQueuedNotifications::class, fn ($job, $queue) => $queue !== 'superadmin-mail');
+    expect($foraDaFila)->toHaveCount(0);
 })->with([
     // Lista literal, não array_keys(notificacoesDoSuperadmin()): o dataset é avaliado antes de o
     // app subir, e o construtor do alerta de expiração chama Carbon::now().
