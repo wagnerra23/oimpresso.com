@@ -131,7 +131,7 @@ function EtapaPin({ token, restantes }: { token: string; restantes: number }) {
                 type="button"
                 onClick={() => tecla(t)}
                 aria-label={t === 'apagar' ? 'Apagar' : `Número ${t}`}
-                className="flex h-14 items-center justify-center rounded-xl border bg-card text-xl font-semibold active:bg-muted"
+                className="flex h-14 items-center justify-center rounded-lg border bg-card text-xl font-semibold active:bg-muted"
               >
                 {t === 'apagar' ? <Delete className="size-5" aria-hidden="true" /> : t}
               </button>
@@ -166,7 +166,7 @@ function MeusDados({ token, dados, iniciais }: { token: string; dados: NonNullab
     <div className="flex flex-1 flex-col gap-5" data-contract="assoc-membro-dados">
       <section className="flex flex-col gap-3">
         <h1 className="text-2xl font-semibold leading-tight">Meus dados</h1>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-xl border bg-card p-4 text-sm">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-lg border bg-card p-4 text-sm">
           <dt className="text-muted-foreground">Nome</dt><dd className="font-medium">{dados.nome ?? '—'}</dd>
           <dt className="text-muted-foreground">Associação</dt><dd className="font-medium">{dados.associacao ?? '—'}</dd>
           <dt className="text-muted-foreground">Situação</dt><dd className="font-medium">{dados.situacao === 'ativa' ? 'Ativa' : 'Desligada'}</dd>
@@ -181,7 +181,7 @@ function MeusDados({ token, dados, iniciais }: { token: string; dados: NonNullab
           {consentimentos.map((c) => {
             const f = FINALIDADES[c.finalidade] ?? { titulo: c.finalidade, texto: '' };
             return (
-              <li key={c.finalidade} className="flex flex-col gap-2 rounded-xl border bg-card p-4" data-finalidade={c.finalidade}>
+              <li key={c.finalidade} className="flex flex-col gap-2 rounded-lg border bg-card p-4" data-finalidade={c.finalidade}>
                 <div className="flex items-start justify-between gap-3">
                   <span className="font-medium">{f.titulo}</span>
                   <span className={cn('shrink-0 text-sm', c.vigente ? 'text-foreground' : 'text-muted-foreground')}>
