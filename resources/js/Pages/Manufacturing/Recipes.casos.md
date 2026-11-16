@@ -338,6 +338,18 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-22 · Perguntar se o produto tem receita exige acesso ao módulo
+- **Persona:** quem monta ordem de produção pela tela legada.
+- **Aceite:** Dado um usuário sem `access_recipe` nem `access_production` · Quando pergunta
+  `/manufacturing/is-recipe-exist/{variação}` · Então recebe 403 · Dado o mesmo pedido com `access_recipe`
+  ou com `access_production` · Então recebe a resposta (1 quando a receita existe).
+- **Fonte:** auditoria do Manufacturing, lote 2.1: todas as rotas do módulo checam pacote e permissão.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** a única rota do módulo sem gate nenhum.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - ~~**[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** e uma requisição **ajax real** recebe o
