@@ -49,7 +49,7 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 - ❌ NÃO configura certificado / provider / município (isso é setup do módulo, não desta tela)
 - ❌ NÃO edita nota já emitida (NFS-e autorizada é imutável)
 - ❌ NÃO calcula na tela tributos além de ISS: a retenção de PIS/COFINS/CSLL é marcada aqui e calculada no envio pelo backend (regime da empresa). IRRF e INSS seguem fora. *(Revisado em 2026-10-13 por decisão [W]: "Marcação na nota". Antes dizia "sem IR/PIS/COFINS retidos nesta tela".)*
-- ❌ NÃO permite emitir sem certificado válido / módulo configurado — **na tela**: alerta e botão de envio desabilitado. O `store` não recusa o POST por isso: o job falha **antes** de gravar a nota (`getConfig`/`validarCertificado` vêm antes do `create`), então nenhuma nota aparece na lista e o operador só viu "enviada para processamento" *(errata 2026-11-16: dizia só "bloqueia com alerta"; o defeito do backend foi passado ao lote 2)*
+- ❌ NÃO permite emitir sem certificado válido / módulo configurado — **na tela**: alerta e botão de envio desabilitado. O `store` não recusa o POST por isso. Medido no `main` de 2026-11-16: o job falhava **antes** de gravar a nota (`getConfig`/`validarCertificado` vinham antes do `create`), e nenhuma nota aparecia na lista. O #11025 (lote 2) passa a gravar a nota antes, em `erro` com o motivo, visível em `/nfse` *(errata 2026-11-16: dizia só "bloqueia com alerta")*
 - ❌ NÃO cria/edita o cadastro do tomador (usa o que veio da venda ou digitado; não persiste contato)
 
 ---
