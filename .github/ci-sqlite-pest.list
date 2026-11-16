@@ -812,3 +812,4 @@ tests/Feature/Site/UniafibroDireitosTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoTest.php
 tests/Unit/Tenancy/ContextoEmpresaJobTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoModulosTest.php
+tests/Unit/Tenancy/ContextoEmpresaEscopoArquivoTest.php
