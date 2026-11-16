@@ -214,12 +214,13 @@ it('UC-PCOSF-07 · o Quadro com ?os= entrega a Ficha; as abas só quando pedidas
     $a = $quadro("?os={$this->ordem->id}", 'ficha_artes')->assertOk()->json('props');
     expect(array_column($a['ficha_artes'], 'arquivo'))->toBe(['https://ex.test/arte-a.pdf'])->and($a)->not->toHaveKey('ficha');
 
-    // Tier 0: a OS da empresa 98 pedida por quem está na 99 não aparece, e o Quadro abre igual.
-    $outro = $this->usuarioComPermissoes(['producao.access'], $this->seededSupportClientTenant());
-    $p99 = $this->actingAs($outro)->get("/producao/quadro?os={$this->ordem->id}", ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
-        'X-Inertia-Version' => $versao, 'X-Inertia-Partial-Data' => 'ficha,ficha_artes', 'X-Inertia-Partial-Component' => 'Producao/Quadro/Index'])
-        ->assertOk()->json('props');
-    expect($p99['ficha'])->toBeNull()->and($p99['ficha_artes'])->toBeNull();
+    // Tier 0: a empresa vem da sessão (98 aqui). Uma OS da empresa 99 pedida no Quadro da 98 não aparece, e o Quadro
+    // abre igual — o mesmo desenho do UC-PCOSF-02 (trocar só o usuário não troca a empresa da sessão).
+    // SUPERADMIN: fixture da empresa 99.
+    $os99 = Ordem::withoutGlobalScopes()->create(['business_id' => $this->b99, 'transaction_id' => 990023,
+        'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => 1, 'quantidade' => '1.0000']);
+    $p99 = $quadro("?os={$os99->id}", 'ficha,ficha_artes')->assertOk()->json('props');
+    expect($p99)->toHaveKey('ficha')->and($p99['ficha'])->toBeNull()->and($p99['ficha_artes'])->toBeNull();
 
     // Sem ?os= ou com lixo: Ficha nula.
     expect($quadro('', 'ficha')->assertOk()->json('props.ficha'))->toBeNull()
