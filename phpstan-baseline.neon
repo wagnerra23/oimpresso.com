@@ -15358,18 +15358,6 @@ parameters:
 			path: app/Http/Controllers/ContactController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\ContactController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: app/Http/Controllers/ContactController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\ContactController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns array\<string, array\|bool\|string\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/ContactController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\ContactController\:\:edit\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1

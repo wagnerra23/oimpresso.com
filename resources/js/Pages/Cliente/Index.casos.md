@@ -147,6 +147,14 @@ last_run: "2026-10-29"
 - **Teste:** `tests/Feature/Cliente/ClienteAnotacaoTest.php` (Pest) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-14 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
 
+## UC-CIDX-15 · Excluir só cadastro sem vínculo, só com "Remover cliente", e a recusa aparece `[T0]` `[must]`
+- **Persona:** gerente da loja que limpa cadastros duplicados ou feitos por engano; vendedor que não deveria excluir.
+- **Como usa:** lista de clientes, menu ⋮ → **Excluir**; ou a ficha completa, menu Ações → **Excluir cliente**.
+- **Aceite:** Dado um cadastro sem nenhum registro ligado · Quando quem tem "Remover cliente" exclui · Então ele é marcado como excluído (`deleted_at`) e a linha continua no banco · E quem só tem "Ver os próprios clientes" recebe 403, mesmo no cadastro que criou · E cadastro com veículo (sem venda nenhuma) é recusado com mensagem que diz "veículos" · E o cliente padrão é recusado com mensagem · E cadastro de outra empresa responde 404 · E na ficha completa a recusa aparece e a ficha não sai como se tivesse excluído.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-16 (excluir marca o registro como excluído para consulta; o vendedor não exclui) · charter v9 (soft delete, cliente padrão protegido, permissão `customer.delete`/`supplier.delete`) e v10 · padrão de mercado: Omie só exclui cadastro sem pedido, OS, contas a receber/pagar ou nota e orienta inativar · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteExcluirRegrasTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-15 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
@@ -268,6 +276,7 @@ last_run: "2026-10-29"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-11-16 · [F+C] **UC-CIDX-15**: excluir exige "Remover cliente" no servidor, recusa cadastro com qualquer registro de negócio (não só lançamentos) e o cliente padrão com mensagem; a ficha completa mostra a recusa. Charter v10. Não mexe em `Index.tsx`.
 - 2026-11-12 · [F+C] **UC-CIDX-12..14**: na gaveta (aba Operações, componentes `_show/*`), o envio do extrato por e-mail manda os campos que o servidor lê e usa o modelo da empresa; desconto e anotação mostram a recusa do servidor; a anotação não se duplica mais a cada salvamento. Não mexe em `Index.tsx`.
 - 2026-10-29 · [W+C] **UC-CIDX-09..11** (P-025): sinal mínimo por cliente (`contacts.sinal_minimo_pct`), campo na aba Comercial, lido por `SinalDaOrdem::minimo` no Liberar da OS. O prazo do cliente já existia (`pay_term_number`).
 - 2026-10-29 · [W+C] **UC-CIDX-06..08** (P-087): tabela de preço no próprio cliente (`contacts.selling_price_group_id`), que vale no lugar da do grupo na busca de cliente da venda. Comportamento novo na aba Comercial (campo "Tabela própria do cliente"); `last_run` sobe por isso.

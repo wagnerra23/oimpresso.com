@@ -2610,48 +2610,53 @@ class ContactController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed>|null JSON {success, msg} no pedido AJAX; nada fora dele.
      */
     public function destroy($id)
     {
-        if (! auth()->user()->can('supplier.delete') && ! auth()->user()->can('customer.delete') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
+        // Só quem tem "Remover cliente/fornecedor". Antes, "Ver os próprios" também passava aqui,
+        // embora a tela só mostrasse o botão com a permissão de remover.
+        if (! auth()->user()->can('supplier.delete') && ! auth()->user()->can('customer.delete')) {
             abort(403, 'Unauthorized action.');
         }
 
         if ($this->isLegacyAjax()) {
+            $business_id = request()->user()->business_id;
+            // Tier 0 (ADR 0093): fora do try, para outra empresa responder 404 e não "algo deu errado".
+            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+
+            if ($contact->is_default) {
+                return ['success' => false, 'msg' => 'O cliente padrão não pode ser excluído.'];
+            }
+
+            // Excluir não apaga a linha: marca o cadastro como excluído (deleted_at), e ele pode ser
+            // consultado e restaurado. Mesmo assim, cadastro com histórico não sai das telas.
+            $vinculos = $this->vinculosDoContato((int) $business_id, (int) $contact->id);
+            if (! empty($vinculos)) {
+                return ['success' => false,
+                    'msg' => 'Este cadastro não pode ser excluído porque tem '.implode(', ', $vinculos).'. Se não vai mais usar, inative-o.',
+                ];
+            }
+
             try {
-                $business_id = request()->user()->business_id;
+                $log_properities = [
+                    'id' => $contact->id,
+                    'name' => $contact->name,
+                    'supplier_business_name' => $contact->supplier_business_name,
+                ];
+                $this->contactUtil->activityLog($contact, 'contact_deleted', $log_properities);
 
-                //Check if any transaction related to this contact exists
-                $count = Transaction::where('business_id', $business_id)
-                                    ->where('contact_id', $id)
-                                    ->count();
-                if ($count == 0) {
-                    $contact = Contact::where('business_id', $business_id)->findOrFail($id);
-                    if (! $contact->is_default) {
-                        $log_properities = [
-                            'id' => $contact->id,
-                            'name' => $contact->name,
-                            'supplier_business_name' => $contact->supplier_business_name,
-                        ];
-                        $this->contactUtil->activityLog($contact, 'contact_deleted', $log_properities);
+                //Disable login for associated users
+                User::where('crm_contact_id', $contact->id)
+                    ->update(['allow_login' => 0]);
 
-                        //Disable login for associated users
-                        User::where('crm_contact_id', $contact->id)
-                            ->update(['allow_login' => 0]);
+                $contact->delete();
 
-                        $contact->delete();
+                event(new ContactCreatedOrModified($contact, 'deleted'));
 
-                        event(new ContactCreatedOrModified($contact, 'deleted'));
-                    }
-                    $output = ['success' => true,
-                        'msg' => __('contact.deleted_success'),
-                    ];
-                } else {
-                    $output = ['success' => false,
-                        'msg' => __('lang_v1.you_cannot_delete_this_contact'),
-                    ];
-                }
+                $output = ['success' => true,
+                    'msg' => __('contact.deleted_success'),
+                ];
             } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
@@ -2662,6 +2667,54 @@ class ContactController extends Controller
 
             return $output;
         }
+
+        return null;
+    }
+
+    /**
+     * O que impede excluir o cadastro: registros de negócio ou financeiros que apontam para ele.
+     * Antes só se contavam os lançamentos (`transactions`); OS, assinatura, cobrança, veículo e
+     * crédito do cliente ficavam apontando para um cadastro excluído. Tabela de módulo que não
+     * existe nesta instalação é pulada; linhas já excluídas (deleted_at) não contam.
+     *
+     * @return list<string> rótulos do que existe, na ordem da tabela abaixo
+     */
+    private function vinculosDoContato(int $business_id, int $contact_id): array
+    {
+        $tabelas = [
+            'transactions' => 'vendas, compras, orçamentos ou pagamentos',
+            'repair_job_sheets' => 'ordens de serviço de reparo',
+            'service_orders' => 'ordens de serviço da oficina',
+            'rb_subscriptions' => 'assinaturas',
+            'rb_invoices' => 'faturas de assinatura',
+            'cobrancas' => 'cobranças',
+            'vehicles' => 'veículos',
+            'vestuario_creditos_cliente' => 'crédito do cliente',
+            'devolucaos' => 'devoluções',
+            'bookings' => 'reservas',
+            'crm_proposals' => 'propostas',
+            'crm_deals' => 'negócios do CRM',
+            'journal_entries' => 'lançamentos contábeis',
+        ];
+
+        $vinculos = [];
+        foreach ($tabelas as $tabela => $rotulo) {
+            if (! \Illuminate\Support\Facades\Schema::hasTable($tabela) || ! \Illuminate\Support\Facades\Schema::hasColumn($tabela, 'contact_id')) {
+                continue;
+            }
+            $consulta = DB::table($tabela)->where('contact_id', $contact_id);
+            if (\Illuminate\Support\Facades\Schema::hasColumn($tabela, 'business_id')) {
+                $consulta->where('business_id', $business_id);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn($tabela, 'deleted_at')) {
+                $consulta->whereNull('deleted_at');
+            }
+            if ($consulta->exists()) {
+                $vinculos[] = $rotulo;
+            }
+        }
+
+        return $vinculos;
     }
 
     /**
