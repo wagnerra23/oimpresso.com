@@ -27,7 +27,7 @@
   "stats": {
     "modules": 40,
     "nodes": 1017,
-    "edges": 1371,
+    "edges": 1369,
     "by_node_type": {
       "module": 45,
       "table": 122,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 84,
       "hasComponent": 595,
-      "dependsOn": 153,
-      "delegatesTo": 138,
+      "dependsOn": 152,
+      "delegatesTo": 137,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 80,
@@ -6148,7 +6148,7 @@
       "id": "module:Arquivos",
       "type": "module",
       "module": "Arquivos",
-      "purpose": "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe sha256, signed URL e soft-delete. Não tem tela própria: a UI é do módulo dono. Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação.",
+      "purpose": "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe md5, signed URL e soft-delete. O anexo aparece na tela do módulo dono; o acervo inteiro da empresa tem tela própria em /arquivos (Arquivos/Index, 4 vistas: Acervo, Retenção, Cofre, Trilha). Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, aviso ao titular, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "arquivos.*",
@@ -8893,24 +8893,10 @@
     },
     {
       "from": "module:Arquivos",
-      "to": "module:SRS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MemCofre senhas/segredos"
-    },
-    {
-      "from": "module:Arquivos",
       "to": "module:Jana",
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Memoria RAG semântico Jana"
-    },
-    {
-      "from": "module:Arquivos",
-      "to": "module:SRS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MemCofre senhas/segredos"
     },
     {
       "from": "module:Arquivos",
