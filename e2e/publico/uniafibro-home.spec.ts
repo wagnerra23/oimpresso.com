@@ -16,10 +16,10 @@ test('home da Uniafibro abre pelo domínio, sem sessão do ERP', async ({ page, 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Uniafibro');
 });
 
-test('sonda de feature: caminho desconhecido conta como ausente', async ({ request }) => {
+test('sonda de feature: caminho desconhecido conta como ausente', async ({ page }) => {
   // Hoje o domínio redireciona caminho desconhecido para a home (302). A sonda não segue o
   // redirect, então responde "ausente" — é o comportamento que os specs de /direitos usam
   // para pular com motivo enquanto o PR deles não mergeia.
-  expect(await rotaExiste(request, '/caminho-que-nao-existe-e2e')).toBe(false);
-  expect(await rotaExiste(request, '/')).toBe(true);
+  expect(await rotaExiste(page, '/caminho-que-nao-existe-e2e')).toBe(false);
+  expect(await rotaExiste(page, '/')).toBe(true);
 });
