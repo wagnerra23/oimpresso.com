@@ -49,6 +49,7 @@ afterEach(function () {
         DB::table('arquivos_audit_log')->whereIn('arquivo_id', $ids)->delete();
     }
     DB::table('arquivos')->where('md5', DOWNLOAD_AUDIT_MD5)->delete();
+    DB::table('users')->where('username', 'like', 'arqdl_l0_%')->delete();
 });
 
 it('consumir a signed URL grava audit signed_url_consumed', function () {
@@ -96,4 +97,112 @@ it('consumir a signed URL grava audit signed_url_consumed', function () {
     // Payload carrega IP (o que alimenta o detector anti-scraping do audit-log --suspicious).
     $payload = json_decode((string) $row->payload, true);
     expect($payload)->toHaveKey('ip');
+});
+
+/*
+ * Isolamento entre empresas no download (auditoria Arquivos 2026-11-05, lote 0 · D1).
+ *
+ * A rota `arquivos.download` não roda SetSessionData. Antes do conserto o controller fazia
+ * `Arquivo::find()` e confiava no global scope, que só filtra quando a sessão tem
+ * `user.business_id`. Sessão autenticada sem empresa (ex.: restaurada por "lembrar de mim")
+ * baixava o arquivo de qualquer empresa com um link assinado vazado.
+ *
+ * Tenant de teste 98, vizinho 99 (ADR 0358). `arquivos.business_id` não tem FK (comentada
+ * na migration 2026_05_10_000001), então o arquivo da 99 não depende da empresa existir.
+ */
+
+function arquivoDl(int $businessId, string $nome): Arquivo
+{
+    $arquivo = Arquivo::withoutGlobalScopes()->create([ // SUPERADMIN: fixture de teste cria arquivo de outra empresa
+        'business_id'   => $businessId,
+        'disk'          => 'arquivos',
+        'storage_path'  => "biz-{$businessId}/{$nome}",
+        'original_name' => $nome,
+        'mime_type'     => 'text/plain',
+        'size_bytes'    => 20,
+        'md5'           => DOWNLOAD_AUDIT_MD5,
+        'bucket'        => 'active',
+        'encrypted'     => false,
+    ]);
+    Storage::disk('arquivos')->put($arquivo->storage_path, "conteudo-da-{$businessId}");
+
+    return $arquivo;
+}
+
+function usuarioDl(?int $businessId, string $sufixo): User
+{
+    return User::factory()->create([
+        'business_id' => $businessId,
+        'username'    => 'arqdl_l0_'.$sufixo.'_'.uniqid(),
+    ]);
+}
+
+function linkDl(Arquivo $arquivo): string
+{
+    return URL::temporarySignedRoute('arquivos.download', now()->addMinutes(10), ['arquivo' => $arquivo->id]);
+}
+
+it('UC-ARQ-DL-01: sessão da 98 baixa o próprio arquivo e recebe 404 no arquivo da 99', function () {
+    Storage::fake('arquivos');
+    $user = usuarioDl(98, 'a');
+    $proprio = arquivoDl(98, 'proprio-98.txt');
+    $vizinho = arquivoDl(99, 'vizinho-99.txt');
+    $sessao = ['user' => ['business_id' => 98, 'id' => $user->id]];
+
+    // Controle positivo: o caminho feliz funciona, então o 404 abaixo é do isolamento.
+    $ok = $this->actingAs($user)->withSession($sessao)->get(linkDl($proprio));
+    $ok->assertOk();
+    expect($ok->streamedContent())->toBe('conteudo-da-98');
+
+    $this->actingAs($user)->withSession($sessao)->get(linkDl($vizinho))->assertNotFound();
+});
+
+it('UC-ARQ-DL-02: usuário autenticado sem empresa na sessão não baixa arquivo de outra empresa', function () {
+    Storage::fake('arquivos');
+    $user = usuarioDl(98, 'b');
+    $vizinho = arquivoDl(99, 'vizinho-99.txt');
+
+    // Sem withSession: é a sessão restaurada por "lembrar de mim", sem SetSessionData.
+    $resp = $this->actingAs($user)->get(linkDl($vizinho));
+
+    $resp->assertNotFound();
+    expect((string) $resp->getContent())->not->toContain('conteudo-da-99');
+});
+
+it('UC-ARQ-DL-03: usuário sem empresa nenhuma não baixa nada, nem com link válido', function () {
+    Storage::fake('arquivos');
+    $user = usuarioDl(null, 'c');
+    $arquivo = arquivoDl(98, 'qualquer-98.txt');
+
+    $resp = $this->actingAs($user)->get(linkDl($arquivo));
+
+    $resp->assertNotFound();
+    expect((string) $resp->getContent())->not->toContain('conteudo-da-98');
+});
+
+it('UC-ARQ-DL-04: sem sessão, a empresa vem do usuário autenticado (ADR 0453) e ele baixa o próprio arquivo', function () {
+    Storage::fake('arquivos');
+    $user = usuarioDl(98, 'd');
+    $proprio = arquivoDl(98, 'proprio-98.txt');
+
+    $resp = $this->actingAs($user)->get(linkDl($proprio));
+
+    $resp->assertOk();
+    expect($resp->streamedContent())->toBe('conteudo-da-98');
+});
+
+it('UC-ARQ-DL-05: link adulterado ou expirado continua barrado', function () {
+    Storage::fake('arquivos');
+    $user = usuarioDl(98, 'e');
+    $proprio = arquivoDl(98, 'proprio-98.txt');
+    $sessao = ['user' => ['business_id' => 98, 'id' => $user->id]];
+
+    $adulterado = linkDl($proprio).'0';
+    $this->actingAs($user)->withSession($sessao)->get($adulterado)->assertForbidden();
+
+    $expirado = URL::temporarySignedRoute('arquivos.download', now()->subMinute(), ['arquivo' => $proprio->id]);
+    $this->actingAs($user)->withSession($sessao)->get($expirado)->assertForbidden();
+
+    $semAssinatura = route('arquivos.download', ['arquivo' => $proprio->id]);
+    $this->actingAs($user)->withSession($sessao)->get($semAssinatura)->assertForbidden();
 });
