@@ -108,7 +108,10 @@ class Media extends Model
         }
 
         //check if base64
-        if (! empty($request->$file_name) && ! is_array($request->$file_name)) {
+        // Só quando o campo não veio como arquivo: com arquivo, `$request->$file_name` é o UploadedFile, e o
+        // cast para texto dá o caminho temporário dele (ex.: /tmp/phpAbC1); se esse caminho passar no
+        // is_base64, o código gravava um segundo arquivo sem sentido em public/uploads/media (UC-PEDIT-29).
+        if (! $request->hasFile($file_name) && ! empty($request->$file_name) && ! is_array($request->$file_name)) {
             $base64_array = explode(',', $request->$file_name);
 
             $base64_string = $base64_array[1] ?? $base64_array[0];
