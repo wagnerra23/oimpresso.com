@@ -170,6 +170,21 @@ async function run() {
     log('⚠️ sem login (SMOKE_PROD_USER/PASS ausentes ou inválidos) — rotas auth serão puladas.');
   }
 
+  // Modo clientes: SÓ LEITURA, garantido por máquina. Depois do login, toda requisição que não
+  // seja GET/HEAD é abortada e contada — o smoke abre telas de clientes pagantes e nunca pode
+  // gravar (marcação de ponto, venda, baixa). Uma escrita tentada vira QUEBRADO da rota.
+  // As rotas abrem uma de cada vez, então a lista é zerada no início de cada uma.
+  let escritasDaRota = [];
+  if (MODO_CLIENTES) {
+    await context.route('**/*', (rota) => {
+      const req = rota.request();
+      if (['GET', 'HEAD'].includes(req.method())) return rota.continue();
+      escritasDaRota.push(`${req.method()} ${req.url()}`);
+      log(`⛔ escrita barrada: ${req.method()} ${req.url()}`);
+      return rota.abort();
+    });
+  }
+
   const results = [];
   for (const route of routes) {
     if (route.auth && !loggedIn) {
@@ -177,6 +192,7 @@ async function run() {
       continue;
     }
     const consoleErrors = [];
+    escritasDaRota = [];
     const page = await context.newPage();
     page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text().slice(0, 300)); });
     page.on('pageerror', (e) => consoleErrors.push(`pageerror: ${e.message}`.slice(0, 300)));
@@ -205,6 +221,7 @@ async function run() {
 
     // Veredito: QUEBRADO se não carregou, ou tela branca, ou console errors, ou OpenAI=quebrado.
     const brokenDet = !det || !det.conteudo || !det.titulo;
+    if (escritasDaRota.length) consoleErrors.push(`escrita barrada no smoke só-leitura: ${escritasDaRota.join(' · ')}`.slice(0, 300));
     const broken = !!loadErr || brokenDet || consoleErrors.length > 0 || vision.severidade === 'quebrado';
     const verdict = broken ? 'QUEBRADO' : (vision.severidade === 'aviso' ? 'AVISO' : 'OK');
 

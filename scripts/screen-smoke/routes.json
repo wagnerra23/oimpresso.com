@@ -32,6 +32,8 @@
     { "label": "ponto-aprovacoes", "path": "/ponto/aprovacoes", "auth": true, "source": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx", "clientes": ["wr2"] },
     { "label": "ponto-intercorrencias", "path": "/ponto/intercorrencias", "auth": true, "source": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx", "clientes": ["wr2"] },
     { "label": "ponto-banco-horas", "path": "/ponto/banco-horas", "auth": true, "source": "resources/js/Pages/Ponto/BancoHoras/Index.tsx", "clientes": ["wr2"] },
-    { "label": "ponto-importacoes", "path": "/ponto/importacoes", "auth": true, "source": "resources/js/Pages/Ponto/Importacoes/Index.tsx", "clientes": ["wr2"] }
+    { "label": "ponto-importacoes", "path": "/ponto/importacoes", "auth": true, "source": "resources/js/Pages/Ponto/Importacoes/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-relatorios", "path": "/ponto/relatorios", "auth": true, "source": "resources/js/Pages/Ponto/Relatorios/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-marcacao", "path": "/ponto/mobile", "auth": true, "source": "resources/js/Pages/Ponto/Mobile/Index.tsx", "clientes": ["wr2"] }
   ]
 }
