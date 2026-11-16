@@ -63,7 +63,11 @@ class DataController extends Controller
                     'icon' => 'fa fa-users',
                     'active' => request()->segment(1) === 'associacoes' && request()->segment(2) === 'associadas',
                 ]);
-                // onda 5 · painel da rede em /associacoes (US-ASSOC-004) — uma linha aqui.
+                // onda 5 · US-ASSOC-004
+                $sub->url(url('/associacoes'), 'Painel', [
+                    'icon' => 'fa fa-tachometer-alt',
+                    'active' => request()->segment(1) === 'associacoes' && request()->segment(2) === null,
+                ]);
             }, ['icon' => 'fa fa-hands-helping', 'active' => $ativo]);
         });
     }

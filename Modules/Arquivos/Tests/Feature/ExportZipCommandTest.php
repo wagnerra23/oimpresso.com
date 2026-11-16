@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * arquivos:export-zip — Pest tests Sprint 2 ADR 0123 (LGPD Art. 18 portabilidade).
@@ -366,7 +367,6 @@ it('multi-tenant: --business=1 não exporta arquivos de biz=99', function () {
     // Cleanup
     @unlink($outputPath);
     DB::table('arquivos')->where('id', $idBiz99)->delete();
-    DB::table('arquivos_audit_log')->where('arquivo_id', $idBiz99)->delete();
 });
 
 // ---------------------------------------------------------------------------

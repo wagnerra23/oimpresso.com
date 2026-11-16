@@ -50,6 +50,8 @@ on:
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/arquivos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
+      - 'tests/Feature/ArquivosMinioDiskTest.php'
+      - 'tests/Feature/Console/ArquivosHealthCheckScheduleTest.php'
 
 concurrency:
   group: arquivos-pest-${{ github.ref }}
@@ -88,6 +90,8 @@ jobs:
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/arquivos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
+              - 'tests/Feature/ArquivosMinioDiskTest.php'
+              - 'tests/Feature/Console/ArquivosHealthCheckScheduleTest.php'
 
       - name: Skip-as-pass (nada do Arquivos mudou)
         if: steps.changes.outputs.arq == 'false'
@@ -122,12 +126,24 @@ jobs:
         # eles dropam o schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
         # Os daqui usam DB::table()/factory + cleanup no afterEach (sem refresh).
         #
+        # +1 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.4b):
+        #   ArquivosTenantIsolationTest. Era esqueleto com 3 ->todo() (auditoria RBAC
+        #   2026-11-14); agora prova listagem, download assinado e exclusao 98 x 99
+        #   pelo HTTP, com controle positivo, dentro de DatabaseTransactions.
+        #
         # +3 em 2026-08-10 (eixo 2 do test-lane-coverage · `--mudos`): os 3 abaixo têm
         # guard `if sqlite → markTestSkipped` e a ÚNICA lane que os alcançava era o
         # modules-pest.yml, que roda sqlite :memory: ⇒ pulavam 100% das vezes, e skip
         # sai exit 0 (verde que não prova nada). Entram AQUI, que é o lar declarado do
         # ratchet MySQL-only do Arquivos. Nenhum usa RefreshDatabase/migrate:fresh/
         # dropIfExists; ConsumersTraitTest escreve 0 linhas (reflexão sobre models).
+        #
+        # +2 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.5):
+        #   tests/Feature/ArquivosMinioDiskTest.php e Console/ArquivosHealthCheck
+        #   ScheduleTest.php. Testam o Arquivos mas moram fora do modulo, e nenhuma
+        #   lane os executava. Sao puros (config e schedule, sem banco). Os paths
+        #   deles entram tambem no push.paths e no paths-filter, senao mexer neles
+        #   nao dispararia esta lane.
         #
         # ERAM 5 CANDIDATOS. Rodados de verdade pela 1ª vez (run 31411208410), 2 ficaram
         # VERMELHOS e por isso NÃO entram — a catraca é "allowlist VERDE", e ligar um
@@ -159,6 +175,13 @@ jobs:
         #
         # Os dois seguem mudos até serem tratados — dívida agora VISÍVEL e datada, em
         # vez de verde-fantasma.
+        #
+        # +3 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.2):
+        #   ReencryptVaultCommandTest + RecalcularMetadataCommand{,V2}Test. Antes so a
+        #   lane sqlite os alcancava e o guard de tabela os pulava sempre; e mesmo no
+        #   MySQL teriam caido: o INSERT usava a coluna `filename`, que a tabela nao
+        #   tem (e `original_name`). Agora semeiam no tenant 98 com marcador em
+        #   classified_by e limpam no afterEach de arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -166,6 +189,13 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
+        # +2 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.3):
+        #   BackfillConsumersTest + BackfillNfeXmlTest. Liam o que as migrations de
+        #   backfill ja tivessem produzido no banco do CI, que nao tem NFe nem consumer
+        #   nenhum, e pulavam ("Sem dados backfilled"). Agora semeiam a origem no tenant
+        #   98 e no vizinho 99 e chamam up()/down() da migration, dentro de
+        #   DatabaseTransactions (nada fica gravado no seed).
+        #
         # +2 em 2026-08-25. MEDIDO antes de entrar, contra o veto deste bloco:
         #
         #   MultiTenantTest — e o buraco que ele fecha. Ele e o dono do isolamento
@@ -198,6 +228,12 @@ jobs:
         # Se algum dos dois vier VERMELHO: ou o defeito e real e se conserta, ou sai
         # daqui com a divida datada. Vermelho permanente em lane advisory so ensina o
         # time a ignora-la — foi o que este bloco decidiu em 2026-08-10.
+        #
+        # +2 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.1):
+        #   CuradorEngineTest + CuradorParityTest (US-ARQ-006/007). Logica pura: so
+        #   instanciam Arquivo em memoria e leem tests/Fixtures/CuradorParity/
+        #   fixtures.json, zero escrita no banco. Antes so rodavam na lane sqlite,
+        #   onde o guard Schema::hasTable('arquivos') os pulava em 100% das runs.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -205,19 +241,36 @@ jobs:
             Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
             Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
             Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
+            tests/Feature/ArquivosMinioDiskTest.php \
+            tests/Feature/Console/ArquivosHealthCheckScheduleTest.php \
             Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
+            Modules/Arquivos/Tests/Feature/Wave28ArquivosSaturationTest.php \
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
             Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
             Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
             Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php \
             Modules/Arquivos/Tests/Feature/MultiTenantTest.php \
+            Modules/Arquivos/Tests/Feature/ReencryptVaultCommandTest.php \
+            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandTest.php \
+            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandV2Test.php \
             Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php \
             Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
             Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php \
+            Modules/Arquivos/Tests/Feature/BackfillConsumersTest.php \
+            Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php \
             Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
-            Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php
+            Modules/Arquivos/Tests/Feature/ArquivosTenantIsolationTest.php \
+            Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php \
+            Modules/Arquivos/Tests/Feature/CuradorEngineTest.php \
+            Modules/Arquivos/Tests/Feature/CuradorParityTest.php
 
+
+      # +1 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.6):
+      #   Wave28ArquivosSaturationTest. O caso "summary e READ-ONLY" deixou de ser
+      #   grep no fonte e passou a rodar o summary() contra o banco (tenant 98 x 99,
+      #   DatabaseTransactions). Os demais casos do arquivo sao puros. (Fica aqui
+      #   porque a allowlist do run acima nao aceita comentario no meio da lista.)
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
       # O sumario conta `assertions` por arquivo — e o corpus que falta pra medir

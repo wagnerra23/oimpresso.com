@@ -5,6 +5,7 @@ use Modules\Associacoes\Http\Controllers\AssociacoesController;
 use Modules\Associacoes\Http\Controllers\DocumentosAssociacaoController;
 use Modules\Associacoes\Http\Controllers\AssociadasController;
 use Modules\Associacoes\Http\Controllers\InstallController;
+use Modules\Associacoes\Http\Controllers\PainelDaRedeController;
 use Modules\Associacoes\Http\Middleware\AssociacoesLiberado;
 
 /*
@@ -45,4 +46,5 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('associadas/{id}/desligar', [AssociadasController::class, 'desligar'])->whereNumber('id')->name('associadas.desligar');
 
         // ── onda 5 · painel da rede (US-ASSOC-004) ──
+        Route::get('/', [PainelDaRedeController::class, 'index'])->name('painel');
     });

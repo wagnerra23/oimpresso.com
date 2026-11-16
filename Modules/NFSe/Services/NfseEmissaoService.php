@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Support\Privacy\PiiRedactor;
+use Modules\NFSe\Contracts\NfseCancelaComCertificado;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\Exceptions\CertificadoInvalidoException;
@@ -281,8 +282,41 @@ class NfseEmissaoService
         if ($emissao->isCancelada()) {
             throw new \Modules\NFSe\Exceptions\NfseJaCanceladaException($emissao->numero ?? '');
         }
+        // Só nota emitida (com número) cancela. Antes, nota em `erro` chegava aqui e ia ao
+        // provedor com número nulo.
+        if (! $emissao->isEmitida() || empty($emissao->numero)) {
+            throw new NfseException('Só nota emitida pode ser cancelada.', 'STATUS_NAO_CANCELAVEL');
+        }
+        if (! $this->provider instanceof NfseCancelaComCertificado) {
+            throw new NfseException('Provedor sem cancelamento com o certificado da empresa.', 'CANCELAMENTO_SEM_CONTEXTO');
+        }
 
-        $this->provider->cancelar($emissao->numero, $motivo);
+        // Ambiente e certificado da EMPRESA da nota (não o global), igual à emissão.
+        $config = $this->getConfig((int) $emissao->business_id);
+        $certificado = $config->certificado;
+        if (! $certificado instanceof NfeCertificado) {
+            throw new CertificadoInvalidoException('Nenhum certificado A1 configurado.');
+        }
+        try {
+            $cert = app(CertificadoService::class)->carregarCertificado($certificado);
+        } catch (\RuntimeException $e) {
+            throw new CertificadoInvalidoException('Certificado A1 da empresa indisponível: ' . $e->getMessage());
+        }
+
+        $confirmado = $this->provider->cancelarNoAmbiente(
+            (string) $emissao->numero,
+            $motivo,
+            $config->ambiente ?? 'homologacao',
+            base64_encode($cert['pfx_binary']),
+            (string) $cert['senha'],
+        );
+
+        // Só grava `cancelada` com a confirmação do provedor. A troca de status estorna a
+        // retenção no Financeiro (NfseEmissaoRetencaoObserver): falso "cancelada" mexia em
+        // dinheiro com a nota ainda válida na Sefin.
+        if (! $confirmado) {
+            throw new NfseException('O provedor não confirmou o cancelamento. A nota continua emitida.', 'CANCELAMENTO_NAO_CONFIRMADO');
+        }
 
         $emissao->update(['status' => 'cancelada']);
 

@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Services;
 
+use App\Tenancy\ContextoEmpresa;
 use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -68,6 +69,12 @@ class ArquivosService
      */
     public function attachNoNegocio(Model $owner, UploadedFile $file, int $businessId): Arquivo
     {
+        // ADR 0453: sem sessão (token/portal), o escopo do Arquivo usa esta empresa.
+        $contexto = app(ContextoEmpresa::class);
+        if ($contexto->atual() === null) {
+            $contexto->definir($businessId);
+        }
+
         return OtelHelper::spanBiz('arquivos.attach', function () use ($owner, $file, $businessId) {
             return $this->attachInternal($owner, $file, [], $businessId);
         }, [
@@ -402,21 +409,22 @@ class ArquivosService
      * sub_destination ou metadados livres. PiiRedactor (Modules\Jana) cobre
      * todos padrões BR canônicos (CPF, CNPJ, email, phone, CEP).
      *
-     * Fail-open: se PiiRedactor não puder ser resolvido (boot/teardown), retorna
-     * payload original. Auditoria SEMPRE acontece, redaction é defesa em profundidade.
+     * Falha FECHADO (auditoria L2, 2026-11-16): se o PiiRedactor não puder ser resolvido ou
+     * falhar, a linha da trilha é gravada mesmo assim, mas SEM o payload — antes ia o texto
+     * cru, que é justamente o que a redação existe para impedir.
      */
     private function redactPayload(array $payload): array
     {
         try {
             return App::make(PiiRedactor::class)->redactArray($payload);
         } catch (\Throwable) {
-            return $payload; // fail-open: audit > redaction
+            return ['redacao_falhou' => true];
         }
     }
 
     /**
      * D7 LGPD — redactor seguro pra strings de log (mensagens de erro).
-     * Fail-open por design — não pode quebrar o fluxo de auditoria.
+     * Não quebra o fluxo de auditoria, mas falha FECHADO: sem redator, a mensagem não vai.
      */
     private function redactPiiSafe(?string $input): string
     {
@@ -427,7 +435,7 @@ class ArquivosService
         try {
             return App::make(PiiRedactor::class)->redact($input);
         } catch (\Throwable) {
-            return $input;
+            return '[mensagem omitida: redação de PII indisponível]';
         }
     }
 }

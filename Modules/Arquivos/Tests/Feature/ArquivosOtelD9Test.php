@@ -47,7 +47,7 @@ it('D9.a — ArquivosService source contem chamadas OtelHelper::spanBiz nos meto
     expect($source)->toContain("OtelHelper::spanBiz('arquivos.restore'");
 });
 
-it('D9.b — ArquivosService.attach() emite log estruturado arquivos.upload', function () {
+it('D9.b — o fonte do ArquivosService tem Log::info(\'arquivos.upload\') (lido, não executado)', function () {
     $source = file_get_contents(__DIR__ . '/../../Services/ArquivosService.php');
     // Verifica Log::info('arquivos.upload', ...) presente.
     expect($source)->toContain("Log::info('arquivos.upload'");

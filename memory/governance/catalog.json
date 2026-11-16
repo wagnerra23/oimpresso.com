@@ -26,28 +26,28 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1000,
-    "edges": 1342,
+    "nodes": 1012,
+    "edges": 1357,
     "by_node_type": {
       "module": 45,
-      "table": 116,
-      "adr": 155,
-      "component": 588,
-      "api": 96
+      "table": 118,
+      "adr": 157,
+      "component": 595,
+      "api": 97
     },
     "by_edge_type": {
-      "ownsTable": 105,
+      "ownsTable": 107,
       "ownsLegacyView": 13,
-      "consumesTable": 6,
-      "providesApi": 99,
+      "consumesTable": 7,
+      "providesApi": 100,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 588,
-      "dependsOn": 148,
-      "delegatesTo": 134,
+      "hasComponent": 595,
+      "dependsOn": 150,
+      "delegatesTo": 135,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 79,
+      "supersedesPartially": 80,
       "supersededBy": 31
     },
     "dangling": 0
@@ -1140,6 +1140,20 @@
       "exists": true
     },
     {
+      "id": "adr:0451",
+      "type": "adr",
+      "num": "0451",
+      "slug": "0451-associacoes-rede-uniafibro-area-de-membros",
+      "exists": true
+    },
+    {
+      "id": "adr:0454",
+      "type": "adr",
+      "num": "0454",
+      "slug": "0454-uniafibro-estatuto-tipos-de-membro-projetos-e-dinheiro",
+      "exists": true
+    },
+    {
       "id": "api:/.well-known/assetlinks.json",
       "type": "api",
       "prefix": "/.well-known/assetlinks.json",
@@ -1283,6 +1297,14 @@
       "prefix": "/asset/*",
       "providers": [
         "AssetManagement"
+      ]
+    },
+    {
+      "id": "api:/associacoes",
+      "type": "api",
+      "prefix": "/associacoes",
+      "providers": [
+        "Associacoes"
       ]
     },
     {
@@ -2107,6 +2129,13 @@
       "desc": ""
     },
     {
+      "id": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PainelDaRedeController + PendenciasDaRede",
+      "desc": "painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
+    },
+    {
       "id": "component:Associacoes/PendenciaDiretoria",
       "type": "component",
       "module": "Associacoes",
@@ -2139,7 +2168,7 @@
       "type": "component",
       "module": "Auditoria",
       "name": "AuditoriaLiberado",
-      "desc": "middleware das leituras: pacote auditoria_module + auditoria.view (superadmin passa)"
+      "desc": "middleware das leituras: auditoria.view (superadmin passa); o pacote auditoria_module vale só para o menu"
     },
     {
       "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
@@ -4634,10 +4663,24 @@
       "desc": "CRUD regras NCM (US-NFE-010 fase 2)"
     },
     {
+      "id": "component:NFSe/Comandos nfse:health e nfse:importar-cert",
+      "type": "component",
+      "module": "NFSe",
+      "name": "Comandos nfse:health e nfse:importar-cert",
+      "desc": ""
+    },
+    {
       "id": "component:NFSe/DataController",
       "type": "component",
       "module": "NFSe",
       "name": "DataController",
+      "desc": "menu e permissões nfse.view/emit/cancel"
+    },
+    {
+      "id": "component:NFSe/EmitirNfseJob",
+      "type": "component",
+      "module": "NFSe",
+      "name": "EmitirNfseJob",
       "desc": ""
     },
     {
@@ -4652,7 +4695,35 @@
       "type": "component",
       "module": "NFSe",
       "name": "NfseController",
-      "desc": ""
+      "desc": "telas Index/Emitir/Show, cancelar, pdf e POST /nfse/transactions/{tx}/emitir (emissão a partir da venda)"
+    },
+    {
+      "id": "component:NFSe/NfseEmissaoService",
+      "type": "component",
+      "module": "NFSe",
+      "name": "NfseEmissaoService",
+      "desc": "idempotência, retry e cancelamento"
+    },
+    {
+      "id": "component:NFSe/NotaDaVendaNfse",
+      "type": "component",
+      "module": "NFSe",
+      "name": "NotaDaVendaNfse",
+      "desc": "diz à venda se ela tem NFS-e emitida (trava de edição, US-SELL-072)"
+    },
+    {
+      "id": "component:NFSe/SnNfseAdapter",
+      "type": "component",
+      "module": "NFSe",
+      "name": "SnNfseAdapter",
+      "desc": "chamada HTTP à Sefin Nacional; a DPS é serializada e assinada pela DpsXml do NfeBrasil"
+    },
+    {
+      "id": "component:NFSe/TransactionNfseObserver",
+      "type": "component",
+      "module": "NFSe",
+      "name": "TransactionNfseObserver",
+      "desc": "cria rascunho a partir da venda recorrente"
     },
     {
       "id": "component:Officeimpresso/AuditController",
@@ -6368,7 +6439,7 @@
       "id": "module:NFSe",
       "type": "module",
       "module": "NFSe",
-      "purpose": "Emissão, consulta e cancelamento de NFS-e pelo Sistema Nacional (sefin.nfse.gov.br) com certificado A1 e ambiente por business. Dono do schema nfse_emissoes em produção; serve as telas /nfse e é consumido pela tela de venda e pelo cockpit Fiscal.",
+      "purpose": "Emite, consulta e cancela NFS-e pelo Sistema Nacional (Sefin Nacional) com certificado A1 e ambiente por empresa; serve as telas /nfse e a emissão a partir da venda. Divide a tabela nfse_emissoes com o Modules/NfeBrasil, que também a cria e altera. A decisão [W] de 2026-10-13 de consolidar a NFS-e no NfeBrasil (D-NFSE-CONSOLIDA) ainda não tem ADR.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "nfse.*",
@@ -7666,7 +7737,9 @@
       "owners": [
         "NfeBrasil"
       ],
-      "consumers": [],
+      "consumers": [
+        "NFSe"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -7880,11 +7953,33 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfse_emissoes",
+      "type": "table",
+      "name": "nfse_emissoes",
+      "owners": [
+        "NFSe"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfse_eventos_cancelamento",
       "type": "table",
       "name": "nfse_eventos_cancelamento",
       "owners": [
         "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfse_provider_configs",
+      "type": "table",
+      "name": "nfse_provider_configs",
+      "owners": [
+        "NFSe"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -8726,6 +8821,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0454",
+      "to": "adr:0451",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -9065,6 +9166,12 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/PendenciaDiretoria",
       "type": "hasComponent",
       "source": "contains"
@@ -9084,6 +9191,12 @@
     {
       "from": "module:Associacoes",
       "to": "api:/associacoes/lista",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -13844,45 +13957,72 @@
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
+      "to": "table:nfe_certificados",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:Financeiro",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "MCP server admin"
+      "note": "Retenção da NFS-e como baixa no título"
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
+      "to": "module:Fiscal",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Tasks Jira-style"
+      "note": "Cockpit fiscal de leitura (/fiscal/nfse)"
     },
     {
       "from": "module:NFSe",
-      "to": "module:KB",
+      "to": "module:NfeBrasil",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Conhecimento canônico (ADRs, sessions)"
+      "note": "Cancelamento por evento assinado (nfse_eventos_cancelamento, CancelarNfseJob)"
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Serialização e assinatura da DPS, leitura do certificado A1 e lista de serviços nacional"
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
+      "to": "module:Financeiro",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Tasks Jira-style"
+      "note": "Retenção da NFS-e como baixa no título"
     },
     {
       "from": "module:NFSe",
-      "to": "module:KB",
+      "to": "module:Fiscal",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Conhecimento canônico (ADRs, sessions)"
+      "note": "Cockpit fiscal de leitura (/fiscal/nfse)"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cancelamento por evento assinado (nfse_eventos_cancelamento, CancelarNfseJob)"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "nfe_certificados"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Serialização e assinatura da DPS, leitura do certificado A1 e lista de serviços nacional"
     },
     {
       "from": "module:NFSe",
@@ -13898,7 +14038,19 @@
     },
     {
       "from": "module:NFSe",
+      "to": "component:NFSe/Comandos nfse:health e nfse:importar-cert",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
       "to": "component:NFSe/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/EmitirNfseJob",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13913,6 +14065,42 @@
       "to": "component:NFSe/NfseController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/NfseEmissaoService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/NotaDaVendaNfse",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/SnNfseAdapter",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/TransactionNfseObserver",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "table:nfse_emissoes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "table:nfse_provider_configs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
     },
     {
       "from": "module:NFSe",
