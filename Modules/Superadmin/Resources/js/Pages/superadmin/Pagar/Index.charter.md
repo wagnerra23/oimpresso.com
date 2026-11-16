@@ -12,6 +12,7 @@ related_adrs: [104, 93]
 tier: B
 charter_version: 1
 runbook: memory/requisitos/Superadmin/RUNBOOK-pagar.md
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-pagar.md
 ---
 
 # Page Charter — /subscription/{id}/pay (Pagar assinatura)

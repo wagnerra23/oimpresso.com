@@ -12,6 +12,7 @@ related_adrs: [104, 93]
 tier: B
 charter_version: 1
 runbook: memory/requisitos/Superadmin/RUNBOOK-comunicador.md
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-comunicador.md
 ---
 
 # Page Charter — /superadmin/communicator

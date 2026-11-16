@@ -1,7 +1,7 @@
 {
-  "measured_against_sha": "40d2c8c49c",
+  "measured_against_sha": "ea71fde073",
   "generated_by": "reuse-index.mjs --write-baseline",
-  "count": 18,
+  "count": 19,
   "keys": [
     "component:Avatar",
     "component:Caixa",
@@ -13,6 +13,7 @@
     "component:KpiCard",
     "component:Login",
     "component:PageHeader",
+    "component:Painel",
     "component:StatusBadge",
     "util:LS",
     "util:MOCK_NODES",
