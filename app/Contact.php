@@ -444,29 +444,33 @@ class Contact extends Authenticatable
         return $types;
     }
 
+    /**
+     * Endereço formatado em HTML (partes separadas por <br>), exibido com {!! !!} nas views.
+     * Cada parte é dado digitado, então sai escapada; só o <br> é marcação.
+     */
     public function getContactAddressAttribute()
     {
         $address_array = [];
         if (! empty($this->supplier_business_name)) {
-            $address_array[] = $this->supplier_business_name;
+            $address_array[] = e($this->supplier_business_name);
         }
         if (! empty($this->name)) {
-            $address_array[] = ! empty($this->supplier_business_name) ? '<br>'.$this->name : $this->name;
+            $address_array[] = ! empty($this->supplier_business_name) ? '<br>'.e($this->name) : e($this->name);
         }
         if (! empty($this->address_line_1)) {
-            $address_array[] = '<br>'.$this->address_line_1;
+            $address_array[] = '<br>'.e($this->address_line_1);
         }
         if (! empty($this->address_line_2)) {
-            $address_array[] = '<br>'.$this->address_line_2;
+            $address_array[] = '<br>'.e($this->address_line_2);
         }
         if (! empty($this->city)) {
-            $address_array[] = '<br>'.$this->city;
+            $address_array[] = '<br>'.e($this->city);
         }
         if (! empty($this->state)) {
-            $address_array[] = $this->state;
+            $address_array[] = e($this->state);
         }
         if (! empty($this->country)) {
-            $address_array[] = $this->country;
+            $address_array[] = e($this->country);
         }
 
         $address = '';
@@ -474,7 +478,7 @@ class Contact extends Authenticatable
             $address = implode(', ', $address_array);
         }
         if (! empty($this->zip_code)) {
-            $address .= ',<br>'.$this->zip_code;
+            $address .= ',<br>'.e($this->zip_code);
         }
 
         return $address;
