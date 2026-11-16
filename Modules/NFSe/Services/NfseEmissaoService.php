@@ -148,7 +148,9 @@ class NfseEmissaoService
      */
     public function despacharEmissaoAsync(NfseEmissaoPayload $payload): void
     {
-        EmitirNfseJob::dispatch($payload)->onQueue('nfse');
+        // Sem o certificado: o job é serializado na fila. O envio resolve de novo pelo
+        // business_id (lote 2, PR 2.3).
+        EmitirNfseJob::dispatch($payload->semCertificado())->onQueue('nfse');
     }
 
     /**
@@ -187,6 +189,7 @@ class NfseEmissaoService
 
         $config = $this->getConfig($payload->businessId);
         $this->validarCertificado($config);
+        $payload = $this->comCertificadoDaEmpresa($payload, $config);
 
         if ($existente) {
             // Retentativa do job depois de timeout: a Sefin pode ter recebido a DPS. Reenvia
@@ -394,8 +397,40 @@ class NfseEmissaoService
         Log::channel('nfse')->info('NFSe cancelada', [
             'business_id' => $emissao->business_id,
             'numero'      => $emissao->numero,
-            'motivo'      => $motivo,
+            // O motivo é texto livre do usuário e pode trazer CPF/CNPJ do tomador.
+            'motivo'      => app(PiiRedactor::class)->redact($motivo),
         ]);
+    }
+
+    /**
+     * Certificado da empresa da nota, lido do disco do dono (NfeBrasil) na hora de enviar.
+     * O job chega sem ele (despacharEmissaoAsync, lote 2 PR 2.3); quem chama de forma
+     * síncrona com o certificado no payload segue usando o que passou.
+     *
+     * Se o arquivo não carrega, o payload segue sem certificado e quem precisa dele recusa:
+     * o SnNfseAdapter lança CertificadoInvalidoException ("Nenhum certificado A1 no payload").
+     */
+    private function comCertificadoDaEmpresa(NfseEmissaoPayload $payload, NfseProviderConfig $config): NfseEmissaoPayload
+    {
+        if ($payload->certPfxBase64 !== null && $payload->certSenha !== null) {
+            return $payload;
+        }
+        $certificado = $config->certificado;
+        if (! $certificado instanceof NfeCertificado) {
+            return $payload;
+        }
+        try {
+            $cert = app(CertificadoService::class)->carregarCertificado($certificado);
+        } catch (\RuntimeException $e) {
+            Log::channel('nfse')->warning('NFSe sem certificado legível no envio', [
+                'business_id' => $payload->businessId,
+                'mensagem'    => app(PiiRedactor::class)->redact($e->getMessage()),
+            ]);
+
+            return $payload;
+        }
+
+        return $payload->comCertificado(base64_encode($cert['pfx_binary']), (string) $cert['senha']);
     }
 
     private function getConfig(int $businessId): NfseProviderConfig
