@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-11-06"
-last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
+last_run: "2026-11-16"
+last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
 # Casos de Uso & Aceite — Produção · Apontamento (`/producao/apontamento`)
@@ -29,7 +29,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra 
 **Dado** o operador Diego **Quando** abre o app **Então** vê só as etapas atribuídas a ele hoje, na ordem
 programada, com máquina e horário, e não vê etapas de outro operador.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-20 · QR e cronômetro · `must`
 
@@ -39,46 +39,46 @@ O QR da **etapa** (sufixo `:e<programacao_id>`, etiqueta térmica · UC-PCV-37 E
 etapa, não a primeira do operador; etapa de outra OS, de outra empresa ou encerrada → "Etapa não encontrada".
 Prova do formato e da leitura: `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-PCV-37 E1).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-21 · Fechar a etapa passa adiante · `must`
 
 **Quando** o operador conclui a etapa **Então** a OS vai para a próxima etapa e o responsável seguinte é avisado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-22 · Cronômetro esquecido · `must`
 
 **Dado** um apontamento aberto às 18h **Então** o sistema fecha às 18h marcado como automático e avisa o PCP,
 e o operador pode pedir correção com justificativa (o original fica).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-23 · Sem internet · `should`
 
 **Dado** o celular offline **Quando** o operador aponta **Então** o toque fica guardado com a hora real e,
 ao voltar a rede, é enviado uma vez só.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-31 · Dois cronômetros: máquina e pessoa · `must`
 
 **Dado** Diego com a Roland imprimindo **Quando** inicia o acabamento **Então** os dois ficam abertos, a hora
 da Roland não conta como hora do Diego, e ele não abre um 2º apontamento de pessoa.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-34 · QR de etapa alheia não aponta · `must`
 
 **Quando** Diego lê a etiqueta da etapa do Felipe **Então** vê onde está e com quem, e nenhum apontamento é gravado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-35 · Deixar a máquina rodando · `must`
 
 **Quando** o operador segue para outra etapa **Então** o apontamento da máquina continua aberto, sem pausa.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-36 · Fecha pela saída do ponto · `must`
 
@@ -86,7 +86,7 @@ Status: 🧪
 sem saída, fecha no fim do turno; horas de pessoa no dia acima da presença + 30 min geram pendência ao gestor;
 o Ponto não é alterado.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -106,7 +106,7 @@ Status: 🧪
 sem informar nada grava o fim como antes, com os campos vazios. Os campos aparecem só na linha de máquina,
 com toque ≥ 44px.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCIMP-02 · Valor fora do formato recusa o concluir · `must`
 
@@ -114,14 +114,14 @@ Status: 🧪
 dois separadores **Então** o concluir é recusado com `quantidade_invalida`, nada grava e a etapa segue aberta. A
 tela troca a vírgula por ponto antes de enviar.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCIMP-03 · Reenvio offline não duplica · `must`
 
 **Dado** a fila offline reenviando o mesmo concluir (mesma chave) com m² e tinta **Então** existe uma linha `fim`
 só, com os valores do primeiro envio.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -150,7 +150,7 @@ Status: 🧪
 **Dado** a OS de um item da venda feita na loja L, com a etapa do Diego iniciada **Quando** ele aponta 3 un de
 lona **Então** o saldo da lona em L cai 3, e a baixa fica gravada com a etapa, quem apontou e quando.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-02 · Custo do lote que saiu · `must` valor
 
@@ -158,42 +158,42 @@ Status: 🧪
 **Quando** a etapa baixa 3 un **Então** saem 2 de A e 1 de B e o custo é 2 × 10,00 + 1 × 14,00 = 34,00 —
 nem o preço do dia nem o lote de outro local; compra feita depois não muda esse valor.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-03 · Concluir congela horas e material · `must` valor
 
 **Dado** 1 h de pessoa a 30,00 e 34,00 de material na OS **Quando** a última etapa é concluída **Então** o custo
 real congelado é 64,00; material apontado depois da conclusão é recusado e não muda o congelado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-04 · Reenvio não baixa duas vezes · `must`
 
 **Dado** a fila offline reenviando a mesma chave **Então** a baixa acontece uma vez só; a mesma chave com outra
 quantidade é recusada.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-05 · Só quem está na etapa, só material da empresa · `must`
 
 **Quando** outro operador aponta na etapa do Diego, ou a etapa ainda não começou, ou o material é de outra
 empresa, ou a quantidade não é positiva **Então** nada é baixado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-06 · Sem lote no local, a baixa é recusada inteira · `must`
 
 **Dado** 7 un em lote na loja L e a empresa não vende sem estoque **Quando** a etapa aponta 8 **Então** a baixa
 é recusada e nada muda (saldo, lote, saída de estoque).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-07 · O operador não vê o custo · `must`
 
 **Quando** o material é apontado pela PWA ou pelo app **Então** a resposta diz o que saiu, sem o custo (que é do
 gestor), e o reenvio responde sem gravar de novo.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-08 · A baixa sai do rolo escolhido · `must` estoque
 
@@ -204,7 +204,7 @@ Status: 🧪
 outro local, de outro material, de outra empresa, de compra ainda não recebida ou sem saldo para a quantidade inteira é recusado e nada é baixado; a
 mesma chave com outro lote é conflito.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-09 · A tela oferece o material da receita e os rolos com saldo · `must` estoque
 
@@ -216,7 +216,7 @@ o lote C **Quando** o operador abre "Material" na etapa rodando **Então** vê a
 e B (saldo 5), nessa ordem, sem o C (outro local), sem material de outra empresa e sem custo. **E** depois de baixar 3
 pelo FIFO o A some (saldo 0) e o B mostra 4, o mesmo saldo da linha da compra.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMAT-10 · O rolo escolhido na tela é o que sai · `must` estoque
 
@@ -224,7 +224,7 @@ Status: 🧪
 — o FIFO teria tirado do A. A quantidade digitada com vírgula sai com ponto (`2,5` → `2.5`; `1.000,25` → `1000.25`) e o
 botão mostra o que vai baixar (vitest `producao-apontamento-quantidade`).
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -244,7 +244,7 @@ Status: 🧪
 2 banners é aprovada e a OS nasce **Então** a OS reserva 2,5 × 2 = 5,0000 de lona no local da venda, sem data de
 expiração, e o saldo da lona não muda; aprovar de novo não reserva de novo.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCRES-02 · Revenda e chave desligada não reservam · `must` estoque
 
@@ -252,42 +252,42 @@ Status: 🧪
 nada é reservado — o núcleo segue baixando a peça na venda. **E** com a chave desligada a OS do banner nasce sem
 reserva.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCRES-03 · A baixa real abate a reserva · `must` estoque
 
 **Dado** 5 de lona reservados e saldo 10 **Quando** a etapa aponta 3 **Então** o saldo vai a 7 e a reserva a 2 — uma
 baixa só.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCRES-04 · Consumo além do reservado baixa normalmente · `must` estoque
 
 **Dado** 5 reservados **Quando** a etapa aponta 3 e depois 4 **Então** o saldo cai 7 (10 → 3) e a reserva abate só o
 que tinha: fica zerada e `consumed`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCRES-05 · OS concluída libera o que sobrou · `must` estoque
 
 **Dado** 5 reservados e 3 apontados **Quando** a OS é concluída **Então** os 2 que sobraram são liberados e o saldo
 segue 7.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCRES-06 · Venda cancelada libera tudo · `must` estoque
 
 **Dado** 5 reservados e nada apontado **Quando** a venda vai para a etapa cancelada **Então** a reserva é liberada e o
 saldo segue 10.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCRES-07 · Reserva só dentro da empresa · `must`
 
 **Quando** outra empresa lê a receita, abate ou libera a reserva da OS **Então** nada muda; a mesma chamada na empresa
 dona abate.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCRES-08 · A venda não baixa nem solta a reserva de insumo da OS · `must` estoque
 
@@ -296,7 +296,7 @@ Status: 🧪
 **Então** só a reserva comum é baixada (saldo 6); a reserva da OS segue ativa com 2 — quem baixa o insumo é o
 apontamento, e quem solta a reserva é a OS concluída ou a venda cancelada.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -314,7 +314,7 @@ Status: 🧪
 "Mantêm o custo da abertura" **Quando** o gestor consulta em 20/03 **Então** vê abertura 30,00 e hoje 45,00,
 o item marcado como mudou, e a previsão em 30,00; nada é gravado.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -335,7 +335,7 @@ enviado **Quando** o cliente abre o link e aprova **Então** a etapa de aprovaç
 execução pelo motor (sem mexer na situação à mão) e a Impressão pode começar — antes da aprovação, não podia.
 O banco guarda só o hash do token.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-02 · Recusar volta para a Arte com o comentário · `must`
 
@@ -343,28 +343,28 @@ Status: 🧪
 etapa nova "Arte (alteração)" para o mesmo designer, o comentário fica gravado, a aprovação continua pendente
 e a Impressão segue esperando. Pedido de alteração sem comentário é recusado e nada muda.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-03 · O link vale uma resposta só · `must`
 
 **Dado** um link já respondido **Quando** alguém tenta aprovar ou recusar de novo **Então** a resposta é recusada
 (410) e nada muda.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-04 · Link vencido é recusado · `must`
 
 **Dado** um link com mais de 7 dias **Quando** o cliente abre ou aprova **Então** a resposta é recusada (410) e a
 etapa fica como estava.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-05 · Só a empresa da OS gera link · `must`
 
 **Quando** um usuário da empresa 99 pede o link de uma OS da empresa 98 **Então** recebe 404 e nada é gravado;
 token desconhecido também é 404.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-06 · O link da prova vai ao cliente por WhatsApp · `must`
 
@@ -379,7 +379,7 @@ Status: 🧪
 `whatsapp: {enviado: true}` · Venda de outra empresa ou sem cliente: nada é enviado, o link é gerado igual e a
 resposta diz `{enviado: false, motivo: sem_cliente}` para a tela pedir contato manual.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-08 · Só a prova mais recente vale, e o link não depende de quem está logado · `must`
 
@@ -395,7 +395,7 @@ recusa pelo link com o navegador logado noutra empresa **Então** a "Arte (alter
 da prova · **Quando** um usuário da empresa 99 pede prova para a OS da 98 **Então** recebe 404 e o link da 98 segue
 valendo.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-09 · Cada envio guarda a versão da arte, que só sobe quando o arquivo muda · `must`
 
@@ -408,7 +408,7 @@ v2 aprovada tem o arquivo trocado **Então** a troca é a v3, que espera o clien
 Voltar a um arquivo antigo depois de outro conta como versão nova (A, B, A = v1, v2, v3) · Os envios gravados antes
 da coluna existir são numerados OS a OS, na ordem em que foram feitos, e cada empresa conta à parte.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-11 · Arte aprovada travada · `must`
 
@@ -421,7 +421,7 @@ sai um link novo · Enquanto o cliente não aprova, a arte que vale (`GET /produ
 última aprovada · Sem arte aprovada, ou com o mesmo arquivo, a troca é recusada e nada muda · OS de outra empresa: 404.
 A tela do operador mostra essa arte vigente desde 2026-11-05 (UC-PCAPA-01, logo abaixo).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAPA-01 · O operador vê a arte que vale da OS · `must`
 
@@ -434,7 +434,7 @@ mostrado · OS que pediu aprovação e não teve nenhuma aprovada mostra "Sem ar
 cliente" · OS sem pedido de arte não mostra o bloco · Aprovação gravada em outra empresa não conta.
 O arquivo vem com o número da versão, como no protótipo: "v2 · arte-v2.pdf" (UC-PCART-09).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAPA-02 · O operador vê o material já baixado na OS · `must`
 
@@ -453,26 +453,26 @@ Status: 🧪
 **Dado** a regra em "Passam a usar o custo novo" **Então** a previsão é 45,00, o custo do lote segue 30,00 e
 nada é gravado; com a regra desligada, vale a abertura.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCOSA-03 · Sem regra gravada, congela · `must`
 
 **Dado** a empresa que nunca mexeu na regra **Então** vale o padrão: a OS mantém o custo da abertura.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCOSA-04 · OS concluída mostra o congelado · `must` valor
 
 **Dado** a OS concluída (1 h × 30,00 + 30,00 de material) **Então** a consulta mostra só o congelado, 60,00,
 nas duas regras.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCOSA-05 · Custo é do gestor · `must`
 
 **Quando** o operador sem `producao.desempenho.ver` consulta **Então** 403; OS de outra empresa **Então** 404.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -493,14 +493,14 @@ Status: 🧪
 posto **Então** o refugo fica gravado com a etapa, a OS, o motivo, a quantidade, quem e quando; sem material
 nem retrabalho, o estoque e a situação da OS não mudam.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCREF-02 · Material reposto sai pelo lote · `must` valor
 
 **Dado** em L o lote A (2 un × 10,00) e o B (5 un × 14,00) **Quando** o refugo repõe 3 un de lona **Então** o
 saldo cai 3 e a baixa custa 2 × 10,00 + 1 × 14,00 = 34,00, igual à baixa de material da etapa.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCREF-03 · Retrabalho e custo do refugo na OS · `must` valor
 
@@ -509,14 +509,14 @@ retrabalho **Então** a OS vai para Retrabalho com a etapa "Impressão (retrabal
 Acabamento em 0,5 h, a OS conclui com custo real 94,00 (pessoa 60,00 + material 34,00) — sem o refugo seriam
 45,00.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCREF-04 · Reenvio não grava nem baixa duas vezes · `must`
 
 **Dado** a fila offline reenviando a mesma chave **Então** o refugo e a baixa acontecem uma vez só; a mesma
 chave com outra quantidade é recusada.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCREF-05 · Só motivo de refugo do posto, da empresa · `must`
 
@@ -524,14 +524,14 @@ Status: 🧪
 não começou, a quantidade passa das peças da OS, ou falta lote para o material **Então** nada é gravado nem
 baixado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCREF-06 · O operador não vê custo e não manda sozinho para retrabalho · `must`
 
 **Quando** o operador aponta o refugo pela PWA **Então** a resposta não traz custo e o reenvio não grava de
 novo; pedindo retrabalho sem o papel de qualidade **Então** 403 e nada fica (nem o refugo, nem a baixa).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCREF-07 · Registrar refugo pela etapa que está rodando · `must`
 
@@ -540,7 +540,7 @@ material" no posto, e um motivo de refugo de outra empresa **Quando** ele toca e
 o formulário pede o motivo (só os de refugo daquele posto, da empresa dele), as peças refugadas e se vai para
 retrabalho, com todo controle de toque ≥ 44px; a lista de pausa continua sem os motivos de refugo.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -560,7 +560,7 @@ romaneio para essa etapa **Então** sai o `ROM-<nº da OS>-v1` com 2 linhas, na 
 com descrição, mídia, largura, altura, quantidade e área, o posto de destino e quem gerou; o operador lê o
 mesmo romaneio.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROM-02 · Gravado não muda; gerar de novo é a v2 · `must`
 
@@ -568,21 +568,21 @@ Status: 🧪
 segue com × 2 e 6,000 m², e editar ou apagar o romaneio ou a linha é recusado; **Quando** o PCP gera de novo
 **Então** sai a v2 com × 5, e a linha do Banner aponta que a peça já saiu no romaneio v1.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROM-03 · Gerar é do PCP; ler é de quem produz · `must`
 
 **Quando** o operador sem o papel `producao.liberar` tenta gerar **Então** 403 e nada é gravado; sem
 `producao.access` a leitura é 403. OS sem peças no orçamento **Então** 422 `quantidade_invalida`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROM-04 · Outra empresa, 404 · `must`
 
 **Quando** o PCP do tenant 98 gera romaneio de OS do tenant 99, ou aponta como destino a etapa de outra OS,
 **Então** 404 e nada é gravado; romaneio de outra empresa na leitura **Então** 404.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCISO-01 · Linhas de romaneio de outra empresa não são lidas nem marcam peça · `must`
 
@@ -590,14 +590,14 @@ Status: 🧪
 gera a versão seguinte **Então** a peça sai sem "já enviada" · A leitura desse romaneio pela 98 dá 404 · **Controle:**
 a peça que saiu na versão anterior da própria empresa continua marcada. Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCISO-05 · Operação de outra empresa não aparece na consulta · `must`
 
 **Dado** a mesma operação (código igual) cadastrada na 98 e na 99 **Quando** cada empresa consulta **Então** vê só a
 sua, e o id da outra não é encontrado. Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCISO-06 · Liberar recusa etapa de outra empresa · `must`
 
@@ -605,7 +605,7 @@ Status: 🧪
 liberação e a etapa alheia fica sem responsável · **Controle:** o mesmo Liberar passa com a etapa da própria OS.
 Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -625,7 +625,7 @@ Status: 🧪
 1,600 m de largura útil e 0,020 m de margem **Então** a bobina fica com giro permitido; trocar para sem giro não
 duplica (uma bobina por mídia); largura 0 é recusada.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAPV-02 · Girando, 4 peças em 2 faixas · `must`
 
@@ -634,14 +634,14 @@ Status: 🧪
 (1,600 m), faixa 2 = as duas faixas (1,580 m); 1,020 m de rolo, 1,570 m² úteis em 1,632 m², perda 3,80% — uma a
 uma seriam 2,060 m e 52,37% · o consumo previsto rateado pela área: A 0,507 m, B 0,513 m · simular não grava nada.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAPV-03 · Sem giro o rolo cresce; peça maior que a bobina é recusada · `must`
 
 **Dado** a mesma Lona sem giro **Quando** simula **Então** o banner fica em pé (faixa de 1,000 m) e o rolo vai a
 1,520 m · peça de 1,700 × 1,700 m numa bobina de 1,600 m **Então** 422 `material_invalido`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAPV-04 · Aceitar vira o romaneio de cada OS · `must`
 
@@ -650,14 +650,14 @@ com a etapa de destino de cada OS **Então** grava o arranjo (1,020 m, 2,060 m u
 previsto de cada OS (0,507 m e 0,513 m) e gera o romaneio de impressão de cada OS nessa etapa (US-PCP-023), ligado
 ao arranjo.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAPV-05 · Outra empresa, 404 · `must`
 
 **Quando** o PCP do tenant 98 cadastra bobina ou simula com mídia do tenant 99, põe OS do tenant 99 no arranjo,
 ou aponta etapa do tenant 99 como destino **Então** 404, e nenhuma bobina, arranjo ou romaneio é gravado.
 
-Status: 🧪
+Status: ✅
 
 ---
 
@@ -677,7 +677,7 @@ Status: 🧪
 o operador inicia a Impressão **Então** o apontamento é recusado com `os_nao_liberada` (409); depois do
 Liberar, a OS fica Na fila.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCLIB-02 · Liberar exige o responsável de cada etapa aberta · `must`
 
@@ -686,7 +686,7 @@ Status: 🧪
 cada etapa grava o seu responsável, a OS vai para Na fila e o histórico guarda os responsáveis. Etapa que já
 tinha responsável e não vem na escolha fica com o dele.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCLIB-03 · Liberar só dentro da empresa · `must`
 
@@ -694,7 +694,7 @@ Status: 🧪
 liberar a OS da 98 **Então** a liberação é recusada (`responsavel_invalido` ou OS não encontrada) e a OS
 segue em Aguardando liberação.
 
-Status: 🧪
+Status: ✅
 
 - **[BACKLOG]** Liberar sem o papel `producao.liberar` é recusado pelo motor FSM (`ProcessoDaOrdem::ACOES`),
   mas ainda não tem teste próprio nesta tela.
@@ -716,7 +716,7 @@ Status: 🧪
 **Dado** a lona com 3 de saldo e a OS do banner que precisa de 5 **Quando** o PCP libera com a chave da empresa
 desligada **Então** a OS vai para Na fila, como antes, e o saldo segue 3.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAGM-02 · Liberada sem material fica Aguardando material e não começa · `must`
 
@@ -725,14 +725,14 @@ PCP libera **Então** a OS vai para Aguardando material; a lista mostra necessá
 2,0000 e 5,0000 a caminho nas duas compras não recebidas · o operador tenta começar a etapa **Então** é recusado e
 nada muda no saldo.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAGM-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
 
 **Dado** saldo 10, reserva ativa de 5 desta OS, reserva ativa de 6 de outra venda e uma liberada de 50 **Então** o
 disponível é 4,0000 e a falta 1,0000.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAGM-04 · Conferir devolve para Na fila quando o material chega · `must`
 
@@ -740,13 +740,13 @@ Status: 🧪
 **Quando** o PCP confere ainda faltando **Então** fica onde está e a resposta traz a falta · com o saldo em 5
 **Então** volta para Na fila, a lista vem vazia e a etapa começa; o saldo segue 5.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCAGM-05 · Outra empresa, 404 · `must`
 
 **Quando** o PCP da 98 lê ou confere o material de uma OS da 99 **Então** 404 e a OS da 99 não muda.
 
-Status: 🧪
+Status: ✅
 
 - **[BACKLOG]** Conferir sozinho quando a compra do insumo é recebida (hoje o PCP confere); mostrar a falta e o
   atalho para Compras na tela da OS; ligar a chave pela aba Fluxos da empresa.
@@ -768,7 +768,7 @@ Status: 🧪
 consulta **Então** vê orçado 50,00, realizado 62,00, diferença +12,00 (+24,00%), margem orçada 50,00% e real
 38,00%; nada é gravado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPR-02 · OS aberta mostra o parcial; cancelada, nada · `must` valor
 
@@ -776,7 +776,7 @@ Status: 🧪
 "em andamento", realizado 7,50, diferença −12,50 (−62,50%) e o congelado segue vazio; a OS cancelada não tem
 realizado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPR-03 · A venda soma as OS · `must` valor
 
@@ -784,21 +784,21 @@ Status: 🧪
 realizado 69,50, diferença −0,50 (−0,71%), margem orçada 56,25% e real 56,56%, "em andamento" enquanto
 alguma OS não concluiu; a cancelada fica fora.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPR-04 · Linha sem custo guardado · `must`
 
 **Dado** a linha vendida sem custo guardado **Então** não há orçado, diferença nem margem orçada; a margem real
 aparece, e a venda avisa `sem_orcado`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPR-05 · Custo é do gestor · `must`
 
 **Quando** o operador sem `producao.desempenho.ver` consulta a OS ou a venda **Então** 403; OS ou venda de outra
 empresa **Então** 404.
 
-Status: 🧪
+Status: ✅
 ## Sinal pago libera a OS (US-PCP-025 · UC-FLX-28)
 
 > **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (*"A empresa configura se a produção exige
@@ -814,7 +814,7 @@ Status: 🧪
 **Dado** a empresa sem sinal mínimo **Quando** o PCP libera a OS de uma venda de 1.000,00 sem nada pago
 **Então** a OS vai para Na fila, como antes.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCLIB-05 · Com a regra ligada, sem o sinal o Liberar recusa · `must` valor
 
@@ -823,14 +823,14 @@ sem pagamento, ou com 299,99 pago **Então** a liberação é recusada com `sina
 pago …"*, e a OS segue em Aguardando liberação. O exigido arredonda ao centavo: 333,33 × 30% = 100,00, e
 99,99 não basta.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCLIB-06 · Sinal alcançado, o Liberar manual passa · `must` valor
 
 **Dado** a mesma regra e 350,00 de entrada com 50,00 de troco (pago 300,00) **Quando** o PCP libera **Então** a
 OS vai para Na fila.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCLIB-07 · O pagamento libera a OS sozinho · `must`
 
@@ -840,7 +840,7 @@ exigido no histórico; registrar de novo não executa a transição outra vez. O
 em Aguardando liberação. Pagamento gravado por outra empresa não conta e não libera, e a empresa 99 não acha
 a OS da 98.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCLIB-08 · O retorno do banco grava o pagamento da venda · `must` valor
 
@@ -854,7 +854,7 @@ da 98. O business dono do SaaS fica de fora. Desligada a config, nada muda.
 
 Teste: `tests/Feature/PaymentGateway/RetornoDoBancoPagamentoNaVendaContratoTest.php`.
 
-Status: 🧪
+Status: ✅
 
 - **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro);
   hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
@@ -878,14 +878,14 @@ anterior e o material baixado (lona 2,0000), o saldo segue 8 e os 3 reservados s
 baixa é recusada pela etapa cancelada (`etapa_encerrada`) e o saldo segue 8; parar o relógio grava o tempo e a etapa segue
 cancelada; cancelar de novo não faz nada.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCCAN-02 · A OS ainda não liberada também é cancelada · `must`
 
 **Dado** uma OS da venda em Aguardando liberação **Quando** a venda é cancelada **Então** a OS e a etapa
 ficam canceladas e iniciar a etapa é recusado (`etapa_encerrada`).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCCAN-03 · OS de venda cancelada antes desta mudança não baixa material · `must` estoque
 
@@ -893,14 +893,14 @@ Status: 🧪
 operador baixa material **Então** é recusado com *"A venda desta OS foi cancelada."* e o saldo não muda.
 Iniciar etapa dessa OS também é recusado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCCAN-04 · Só dentro da empresa · `must`
 
 **Quando** a empresa 99 manda cancelar as OS da venda da 98 **Então** nada muda (0 canceladas) e, para a
 99, a venda da 98 não aparece como cancelada.
 
-Status: 🧪
+Status: ✅
 
 ## Rotas das ações de tela da OS (auditoria lote 2.2)
 
@@ -916,33 +916,33 @@ Status: 🧪
 responsável de todas as etapas abertas **Então** 422 `responsavel_invalido` e nada muda. Com os
 responsáveis, a OS vai para Na fila; liberar de novo dá 409 `acao_invalida`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCOSR-02 · Refazer pela rota · `must`
 
 **Quando** a OS não está em Retrabalho **Então** 409. **Dado** a OS reprovada no controle **Quando** quem
 não tem o papel do PCP manda refazer **Então** 403; o PCP manda refazer e a OS volta a Em execução.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCOSR-03 · Cancelar item pela rota · `must`
 
 **Quando** o PCP sem o papel de gerente cancela **Então** 403. O gerente cancela a OS em Aguardando
 liberação: ela e as etapas ficam canceladas; cancelar de novo dá 409.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCOSR-04 · Só dentro da empresa · `must`
 
 **Quando** a empresa 98 chama qualquer das três rotas com a OS da 99 **Então** 404 e a OS da 99 não muda.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCOSR-05 · Módulo fora do pacote · `must`
 
 **Quando** a empresa não tem o Producao no pacote **Então** as três rotas dão 403 e nada muda.
 
-Status: 🧪
+Status: ✅
 
 ## Robustez do fechamento do turno e da criação da OS (auditoria lote 2.3)
 
@@ -959,14 +959,14 @@ Status: 🧪
 **Quando** o comando roda **Então** a 99 é fechada, a 98 fica como estava, o log de erro diz qual empresa
 falhou e o comando termina com falha. A trava da sobreposição vence em 30 min.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCROB-02 · A criação da OS espera entre as tentativas e a falha final aparece · `must`
 
 **Dado** o job que cria a OS da venda aprovada **Então** são 3 tentativas com 30 s e 2 min de espera; na
 falha final, o log de erro guarda a empresa e a venda que ficou sem OS.
 
-Status: 🧪
+Status: ✅
 
 ## Pedido de compra do cliente na OS (pedido de 2026-10-23)
 

@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: o celular só oferece os motivos do posto; motivo de outro posto ou de outra empresa corrompe o registro de pausa e refugo. Custo-hora da pessoa é dado de desempenho.
 owner: wagner
-last_run: "2026-10-21"
-last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando a lane verticais-pest rodar o ProducaoRoteirosContratoTest."
+last_run: "2026-11-16"
+last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
 # Casos de Uso & Aceite — Produção · Postos e cadastros (`/producao/postos`)
@@ -26,7 +26,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Persona:** gestor de produção; operador no celular (A4/A5).
 - **Aceite:** Dado o posto Roland com 6 motivos de pausa · Então a lista do posto mostra só esses 6 · E outro posto mostra os dele · E a empresa 99 não vê nem altera os motivos da 98.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php`.
-- **Status: ⬜** — teste escrito, aguarda a lane MySQL.
+- **Status: ✅**
 - **Revalidado 2026-10-19:** a tela mudou só na largura dos campos (custo-hora, nome da ferramenta, unidade — #9574); motivos por posto não foram tocados.
 
 ---
@@ -44,21 +44,21 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Persona:** gestor de produção.
 - **Aceite:** Dado a Roland a 42,00/h e o acabamento a 28,00/h · Quando a OS tem 2 h de Roland e 1 h de acabamento fechadas, mais 480,00 de terceiro · Então o custo real é 84,00 + 28,00 + 480,00 = 592,00 · E mudar o custo-hora da Roland para 999,00 depois não muda esse valor · E apontamento aberto, de outra OS ou de outra empresa não entra.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php` (UC-PCV-32).
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-02 · Custo-hora da pessoa é do gestor · `must`
 
 - **Persona:** gestor de produção com `producao.desempenho.ver`.
 - **Aceite:** Dado um gestor sem `producao.desempenho.ver` · Então a lista de colaboradores vem vazia e gravar o custo-hora é 403, sem nada gravado · Dado o gestor com a permissão · Quando grava 42,50 para o operador · Então a lista mostra 42,50 · E colaborador de outra empresa é recusado, mesmo com a permissão.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-12 · Custo-hora sem float · `must` valor
 
 - **Persona:** gestor de produção.
 - **Aceite:** Dado o custo-hora digitado com três casas · Então grava e compara em centavos, arredondando a terceira casa para cima (1,005 → 1,01; 2,675 → 2,68; 30,001 → 30,00) · Dado o posto a 50,00 · Quando salva 50,001 · Então o custo direto fica; quando salva 50,01, sai · Dado "1e2" · Então a validação recusa e nada é gravado.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoCustoHoraDecimalContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## Custeio RKW e ponto de equilíbrio (US-FIN-070 · UC-FLX-20)
 
@@ -74,49 +74,49 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Persona:** gestor financeiro com `producao.desempenho.ver`.
 - **Aceite:** Dado 4.000,00 de despesas em contas fixas no mês (título cancelado e conta sem classe ficam fora) · E 30 h fechadas no posto A (30,00/h) e 10 h no posto B (50,00/h) · Quando o fechamento roda · Então a parcela fixa é 100,00/h, o rateio é 3.000,00 para A e 1.000,00 para B, e o custo-hora RKW sugerido é 130,00 e 150,00 · E divisão não exata fecha ao centavo (maior resto) · E nada é gravado (o comando também só lê).
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-04 · Ponto de equilíbrio do mês · `must` valor
 
 - **Persona:** gestor financeiro.
 - **Aceite:** Dado receita 10.000,00, custos variáveis 2.000,00 e fixas 4.000,00 · Então a margem de contribuição é 80,00% e o ponto de equilíbrio 5.000,00 · Dado custos variáveis maiores que a receita · Então não há número: aparece o aviso de que o ponto de equilíbrio não se aplica.
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-05 · Aplicar o custo-hora sugerido é ação explícita · `must` valor
 
 - **Persona:** gestor financeiro.
 - **Aceite:** Quando aplica o sugerido no posto A · Então a resposta traz antes 30,00 → depois 130,00 · E só o posto A muda · E o apontamento já gravado segue com 30,00 (UC-PCCH-01).
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-06 · Isolamento e permissão do fechamento · `must`
 
 - **Persona:** gestor de outra empresa; usuário sem uma das permissões.
 - **Aceite:** Dado a empresa 99 com despesa fixa e horas próprias · Então o fechamento da 98 não as soma · E aplicar num posto da 99 é 404, sem gravar · E quem tem só o Financeiro ou só `producao.desempenho.ver` recebe 403, sem gravar.
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-07 · O fechamento tem tela: aba Custeio da DRE · `must` valor
 
 - **Persona:** gestor financeiro (`financeiro.relatorios.view`).
 - **Aceite:** Quando abre `/financeiro/dre?aba=custeio&mes=AAAA-MM` · Então vê despesas fixas, custos variáveis, receita, margem de contribuição, ponto de equilíbrio e o rateio por posto com os MESMOS números do `GET /financeiro/custeio-rkw` (a tela só formata) · E sem `producao.desempenho.ver` vê o fechamento mas não o custo-hora dos postos · E mês inválido cai no mês anterior · E nenhuma outra aba calcula o custeio, e nada é gravado.
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-08 · A conta do plano diz se é fixa ou variável · `must` valor
 
 - **Persona:** gestor financeiro (`financeiro.relatorios.view`), na tela Plano de contas.
 - **Aceite:** Quando marca como fixa uma conta de despesa sem classe que tem 500,00 a pagar no mês · Então as despesas fixas do fechamento passam de 4.000,00 para 4.500,00 · E "Fora do custeio" volta a deixá-la de fora · E conta de receita, valor fora de fixa/variável, conta de outra empresa (404) e usuário sem a permissão (403) não gravam.
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-10 · O centro de custo é o setor do posto · `must` valor
 
 - **Persona:** gestor financeiro. Decisão [W] 2026-10-21: o setor é o campo `pcp_postos.setor` do cadastro do posto; agrupa os postos e rateia por setor.
 - **Aceite:** Dado o posto A (30 h) no setor "Corte" e o posto B (10 h) sem setor · Então o fechamento traz Corte com 3.000,00 e "sem setor" com 1.000,00, sem setor por último · Quando o posto B passa a "corte " · Então há um setor só, Corte, com 2 postos, 40 h e 4.000,00 (= despesas fixas) · E a aba Custeio da DRE mostra os setores mesmo para quem não vê o custo-hora dos postos.
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCCH-11 · Aplicar de novo não soma outra parcela · `must` valor
 
@@ -124,7 +124,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Aceite:** Dado o posto A com 30,00 digitados e parcela fixa de 100,00/h · Quando aplica o custeio · Então o custo-hora vai a 130,00 e os 30,00 ficam guardados como custo-hora direto · E aplicar de novo (o mesmo mês ou outro com a mesma parcela) mantém 130,00, nunca 230,00 · E o sugerido é sempre direto + parcela do mês · E digitar outro custo-hora no posto (40,00) troca o direto e tira a parcela até aplicar de novo (140,00) · E salvar o posto sem mexer no custo-hora mantém o direto.
 - **Origem:** decisão [W] 2026-10-21 (opção a). Antes, o sugerido era o custo-hora gravado + parcela, e cada aplicação somava outra parcela (30 → 130 → 230 → 330).
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 - **[BACKLOG]** Botão "Aplicar custo-hora" em Postos — saiu do #9716 por decisão [W] (2026-10-21). O sugerido é o custo-hora GRAVADO + parcela fixa, e depois de aplicar o gravado já contém a parcela: aplicar de novo o mesmo mês, ou aplicar o mês seguinte, soma outra parcela (fixture F 4.000 / 40 h: posto A 30 → 130 → 230 → 330). O [W] escolheu guardar o custo-hora direto separado da parcela (UC-PCCH-11, `pcp_postos.custo_hora_direto`); o botão volta em PR próprio, depois que ela entrar. O endpoint `POST /financeiro/custeio-rkw/aplicar/{posto}` (UC-PCCH-05) segue no main.
 
@@ -142,42 +142,42 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Persona:** gestor de produção com `producao.etapa.mover`.
 - **Aceite:** Dado o posto Plotter · Quando o gestor grava Ana e Bia como operadoras · Então a lista do Plotter mostra só as duas · E o Acabamento segue sem cadastro · E gravar a lista vazia limpa o cadastro.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCOPE-02 · Liberar só aceita operador do posto como responsável · `must`
 
 - **Persona:** PCP com `producao.liberar`.
 - **Aceite:** Dado o Plotter com Ana cadastrada · Quando o PCP libera a OS com Bia na etapa do Plotter · Então o Liberar é recusado com "Responsável não é operador do posto de Impressão." · E a OS segue Aguardando liberação, sem responsável · Quando escolhe Ana · Então a OS vai para Na fila com Ana na etapa.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCOPE-03 · Posto sem operadores cadastrados segue como antes · `must`
 
 - **Persona:** PCP e operador.
 - **Aceite:** Dado o Plotter sem cadastro (e o Acabamento com Ana cadastrada) · Quando o PCP libera com Bia no Plotter · Então aceita · E Bia, responsável de outra etapa do Plotter, começa a etapa normalmente.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCOPE-04 · Só o operador do posto começa a etapa · `must`
 
 - **Persona:** operador no celular.
 - **Aceite:** Dado a etapa do Plotter com Bia de responsável, escolhida antes do cadastro · E o Plotter com só Ana cadastrada · Quando Bia inicia · Então é recusado (`etapa_alheia`, "Você não está cadastrado como operador deste posto.") e nada é gravado · Quando a etapa passa a Ana · Então Ana começa.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCOPE-05 · Empresa e permissão · `must`
 
 - **Persona:** gestor de produção.
 - **Aceite:** Dado um operador da empresa 99 na lista · Então gravar é recusado (422) e nada é gravado · E posto de outra empresa é 404 para ler e para gravar · E quem não tem `producao.etapa.mover` recebe 403 ao gravar.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 ## UC-PCOPE-06 · A tela mostra e edita os operadores do posto · `must`
 
 - **Persona:** gestor de produção.
 - **Aceite:** Dado o Plotter com Ana cadastrada · Então a linha do Plotter em `/producao/postos` mostra "Operadores: Ana" · E o Acabamento, sem cadastro, mostra "qualquer pessoa da Produção" · E um usuário da empresa 99 pendurado no cadastro não aparece · Quando o gestor (`producao.etapa.mover`) abre a gaveta do posto · Então o campo "Operadores do posto" oferece só gente da empresa com acesso à Produção · E trocar Ana por Bia grava e a lista recarregada mostra Bia · Dado quem não tem `producao.etapa.mover` · Então vê a lista, mas a gaveta não oferece o campo.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php`.
-- **Status: 🧪**
+- **Status: ✅**
 
 - **[BACKLOG]** Alocador (UC-FLX-10 · US-PCP-029, PR #9647) chamar a mesma regra ao trocar o responsável.
 ## Alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10)
@@ -193,28 +193,28 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 **Dado** a etapa Impressão do Diego, pendente, prevista das 08:00 às 09:30 **Quando** o gestor a passa para a
 Ana às 14:00 **Então** a etapa fica com a Ana das 14:00 às 15:30, e a situação da OS não muda.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCALO-02 · Quem mudou e quando fica no histórico · `must`
 
 **Quando** o gestor muda só o início da etapa **Então** o histórico guarda o gestor, a hora, o responsável e o
 início de antes e de depois; o responsável continua o mesmo.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCALO-03 · Etapa começada não se realoca · `must`
 
 **Dado** uma etapa iniciada ou concluída **Quando** o gestor tenta trocar o responsável **Então** é recusado e
 nada muda, nem o histórico.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCALO-04 · Só pessoa da empresa com acesso à Produção · `must`
 
 **Quando** o responsável escolhido é de outra empresa ou não tem acesso à Produção **Então** é recusado e a
 etapa segue com quem estava.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCALO-07 · Posto com operadores cadastrados só aceita um deles como responsável · `must`
 
@@ -223,14 +223,14 @@ Status: 🧪
 muda, nem o histórico · mudar só o início previsto segue permitido · trocar para a op2 é aceito. Posto sem
 operadores cadastrados aceita qualquer pessoa da empresa com acesso à Produção (UC-PCALO-01/04).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCALO-05 · Operador não aloca; outra empresa não existe · `must`
 
 **Quando** um operador sem permissão de mover etapa tenta alocar ou ver a fila **Então** recebe 403 **E** etapa
 ou posto de outra empresa respondem 404, sem mudar nada.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCALO-06 · Fila do posto pela ordem do início previsto · `must`
 
@@ -238,7 +238,7 @@ Status: 🧪
 concluída (dia 1) **Quando** o gestor abre a fila **Então** vêm as três abertas nessa ordem, com o responsável
 de cada uma; a concluída não aparece.
 
-Status: 🧪
+Status: ✅
 
 ## Prazo de entrega calculado pela fila (US-PCP-028 · UC-FLX-06)
 
@@ -266,7 +266,7 @@ Acabamento 2,5→2,7, Conferência 3,5→4,0 — 4,0 dias × 10 h do turno = 40 
 entrega prevista é seg 26/10 09:00 (sábado e domingo pulam) — a etapa opcional, a programação concluída e a
 de outra empresa no mesmo posto não contam, e as premissas dizem o padrão usado.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-02 · Itens da mesma venda disputam os postos · `must`
 
@@ -274,21 +274,21 @@ Status: 🧪
 posto (Impressão 2,5→3,0, Corte 3,5→4,5, Acabamento 3,0→3,2, fim 5,0), a entrega vai para ter 27/10 09:00 e a instalação fica
 fora do prazo, listada sem roteiro.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-03 · Só leitura, e a venda aprovada não entra na própria fila · `must`
 
 **Dado** a venda já aprovada com a OS dela programada 8 h na impressora **Quando** pede o prazo **Então** a fila da
 impressora segue 16 h (a OS da própria venda não conta) e o cálculo não grava nada na venda nem nas programações.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-04 · Quem vende ou quem produz consulta · `must`
 
 **Quando** quem tem `sell.view` ou `producao.access` pede o prazo **Então** recebe a data; sem uma das duas, ou sem o
 módulo no pacote, 403; venda de outra empresa, 404.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-05 · Sem nada cadastrado: 08h–18h, folga no sábado e no domingo · `must`
 
@@ -297,7 +297,7 @@ Status: 🧪
 é Finados; feriado é o que a empresa cadastra · antes das 08:00 começa às 08:00, depois das 18:00 no dia útil seguinte,
 fechar às 18:00 fica no mesmo dia · as premissas avisam o padrão.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-06 · Feriados do RH: da empresa e da loja da venda · `must`
 
@@ -306,7 +306,7 @@ Status: 🧪
 02/11 12:00 na 99 (os feriados da 98 não valem nela) · a venda leva a loja dela: com feriado da loja em 26/10, a entrega do
 UC-PCPRZ-01 passa de seg 26/10 09:00 para ter 27/10 09:00. Mesma regra do Ponto (`ApuracaoService::aplicarFeriado`).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-07 · Hora útil: turno da produção, senão expediente do RH · `must`
 
@@ -314,7 +314,7 @@ Status: 🧪
 6 h desde sex 30/10 16:00 terminam seg 02/11 08:00 (sáb 07→12, dom folga) · com o turno da produção 08h–18h cadastrado,
 ele manda na hora e as folgas seguem o expediente: sáb 31/10 12:00 · a 99 não vê o expediente da 98.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-08 · Na aprovação a data prometida vai para a venda e para a OS · `must`
 
@@ -322,7 +322,7 @@ Status: 🧪
 a OS recebe a mesma data · venda com data digitada pelo vendedor (30/11) **não** é sobrescrita, e a OS recebe 30/11 ·
 venda de outra empresa não muda.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCPRZ-09 · A data prometida não muda o vencimento do título · `must`
 
@@ -331,7 +331,7 @@ Status: 🧪
 condição de pagamento: venda a 30 dias de 20/10 vence 19/11; venda sem condição vence 20/10 — antes e depois da gravação
 de 26/10. Regra mestre de valor.
 
-Status: 🧪
+Status: ✅
 
 - **[BACKLOG]** UC-FLX-06 — descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
 
@@ -345,7 +345,7 @@ motivos, ferramenta, operadores ou custo-hora, ou pede a etiqueta da OS **Então
 gravado; com o pacote, o mesmo gestor grava. Antes, esses 6 controllers só checavam a permissão (auditoria
 lote 2.4, P-03 do eixo 5). Prova: `ProducaoRoteirosContratoTest`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCMOU-01 · Motivo já usado sai da lista sem ser apagado · `must`
 
@@ -355,7 +355,7 @@ nasce e a pausa antiga segue apontando para Setup; voltando "Setup" à lista, o 
 duplicar. Antes, apagar o motivo usado dava erro de chave estrangeira (auditoria lote 2.4, P-08 do eixo 5).
 Prova: `ProducaoRoteirosContratoTest`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCISO-02 · A outra empresa não vê nem altera a ferramenta · `must`
 
@@ -363,7 +363,7 @@ Status: 🧪
 da 98 estando na 99 dá 404 e nada muda · **Controle:** a mesma rota altera a ferramenta da própria empresa.
 Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
-Status: 🧪
+Status: ✅
 
 ## Backlog de casos (sem id — a E03 não traz UC próprio; o teste já os defende)
 

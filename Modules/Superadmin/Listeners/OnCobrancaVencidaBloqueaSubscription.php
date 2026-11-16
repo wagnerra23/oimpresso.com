@@ -16,7 +16,8 @@ use Modules\Superadmin\Entities\Subscription;
  * Wagner regra: "se não paga, bloqueia. paga, libera."
  *
  * Multi-tenant Tier 0:
- *   - Business update usa withoutGlobalScopes() (cross-tenant intencional)
+ *   - Business update busca pelo id da Subscription (cross-tenant intencional).
+ *     `App\Business` não tem escopo global, então não há escopo a tirar.
  *   - Pattern documentado em Subscription.php:30 "Subscriptions tocam
  *     pagamento de TODOS tenants (cross-tenant intencional Wagner-only)"
  *
@@ -68,8 +69,7 @@ final class OnCobrancaVencidaBloqueaSubscription
         $subscription->status = 'declined';
         $subscription->save();
 
-        // SUPERADMIN: listener SaaS roda sem sessão de tenant; bloqueia o Business do assinante inadimplente cross-tenant
-        $business = Business::withoutGlobalScopes()->find($subscription->business_id);
+        $business = Business::find($subscription->business_id);
         if ($business && (bool) $business->officeimpresso_bloqueado === false) {
             $business->officeimpresso_bloqueado = true;
             $business->save();
