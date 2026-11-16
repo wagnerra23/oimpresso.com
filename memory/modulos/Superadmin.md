@@ -1,5 +1,7 @@
 # Módulo: Superadmin
 
+> ⚠️ **Snapshot gerado em 2026-05-29** por `module:specs`; as contagens abaixo (rotas, views, testes) são daquela data e não foram regeneradas. Inventário atual de arquivos: [SUPERFICIE.md](../requisitos/Superadmin/SUPERFICIE.md) (gerado por `module-surface.mjs`). Em 2026-11-16 só a linha de Policies foi corrigida à mão (lote L6 da auditoria); regenerar com `php artisan module:specs Superadmin` sobrescreve esta nota.
+
 > **Allows you to create packages & sell subscription to multiple businesses**
 
 - **Alias:** `superadmin`
@@ -169,7 +171,7 @@ _(arquivo existe mas parse não identificou rotas explícitas — pode ter grupo
 
 ## Peças adicionais
 
-- **Policies:** `PackagePolicy`
+- **Policies:** nenhuma desde 2026-11-16 (`PackagePolicy` removida no #10979; este snapshot de 2026-05-29 ainda a listava)
 - **Notifications:** `NewBusinessNotification`, `NewBusinessWelcomNotification`, `NewSubscriptionNotification`, `PasswordUpdateNotification`, `SendSubscriptionExpiryAlert`, `SubscriptionOfflinePaymentActivationConfirmation`, `SuperadminCommunicator`
 - **Seeders:** `SuperadminDatabaseSeeder`
 

@@ -188,3 +188,97 @@ it('CobrancaPaga em Subscription já approved é idempotente (return sem touch)'
     expect($subscription->start_date->toDateString())->toBe($originalStart);
     onda5_cleanup();
 });
+
+/*
+ * L2 PR1 (auditoria Superadmin 2026-11-05) — o listener confere o valor pago com o preço
+ * da assinatura antes de aprovar, e a aprovação passa pelo SubscriptionLifecycleService.
+ * Preço do pacote de teste: 99.90 → 9990 centavos (round(preço × 100), a mesma conta das
+ * duas origens da cobrança subscription_license).
+ */
+
+function onda5_eventoPago(int $subscriptionId, int $cobrancaId, int $centavos): CobrancaPaga
+{
+    return new CobrancaPaga(
+        cobrancaId: $cobrancaId,
+        businessId: 1,
+        valorPagoCentavos: $centavos,
+        pagaEm: new \DateTimeImmutable(),
+        formaPagamento: 'pix',
+        occurredAt: new \DateTimeImmutable(),
+        payerCpfCnpj: null,
+        origemType: 'subscription_license',
+        origemId: $subscriptionId,
+    );
+}
+
+it('valorEsperadoCentavos usa package_price e cai no preço do pacote quando ele é zero', function () {
+    $pacote = new Package(['price' => 149.90]);
+
+    expect(OnCobrancaPagaUpdateSubscription::valorEsperadoCentavos(new Subscription(['package_price' => 99.90]), $pacote))->toBe(9990);
+    expect(OnCobrancaPagaUpdateSubscription::valorEsperadoCentavos(new Subscription(['package_price' => 0]), $pacote))->toBe(14990);
+});
+
+it('CobrancaPaga com valor MENOR que o preço não aprova nem desbloqueia', function () {
+    $package = onda5_makeTestPackage();
+    $business = Business::firstOrCreate(['id' => ONDA5_BIZ_TENANT_TEST], ['name' => 'Tenant Onda 5 Test', 'currency_id' => 1]);
+    Business::withoutGlobalScopes()->where('id', ONDA5_BIZ_TENANT_TEST)->update(['officeimpresso_bloqueado' => true]);
+    $subscription = onda5_makeTestSubscription($package->id, ONDA5_BIZ_TENANT_TEST, 'waiting');
+
+    (new OnCobrancaPagaUpdateSubscription())->handle(onda5_eventoPago($subscription->id, 9999005, 9989));
+
+    $subscription->refresh();
+    $business->refresh();
+    expect($subscription->status)->toBe('waiting');
+    expect($subscription->start_date)->toBeNull();
+    expect($subscription->payment_transaction_id)->toBeNull();
+    expect((bool) $business->officeimpresso_bloqueado)->toBeTrue();
+
+    onda5_cleanup();
+});
+
+it('CobrancaPaga com valor MAIOR que o preço não aprova', function () {
+    $package = onda5_makeTestPackage();
+    Business::firstOrCreate(['id' => ONDA5_BIZ_TENANT_TEST], ['name' => 'Tenant Onda 5 Test', 'currency_id' => 1]);
+    $subscription = onda5_makeTestSubscription($package->id, ONDA5_BIZ_TENANT_TEST, 'waiting');
+
+    (new OnCobrancaPagaUpdateSubscription())->handle(onda5_eventoPago($subscription->id, 9999006, 9991));
+
+    $subscription->refresh();
+    expect($subscription->status)->toBe('waiting');
+    expect($subscription->end_date)->toBeNull();
+
+    onda5_cleanup();
+});
+
+it('pacote anual aprovado pelo serviço termina 1 ano depois do início (não cai no default de 1 mês)', function () {
+    $package = onda5_makeTestPackage();
+    $package->update(['interval' => 'years', 'interval_count' => 1]);
+    Business::firstOrCreate(['id' => ONDA5_BIZ_TENANT_TEST], ['name' => 'Tenant Onda 5 Test', 'currency_id' => 1]);
+    $subscription = onda5_makeTestSubscription($package->id, ONDA5_BIZ_TENANT_TEST, 'waiting');
+
+    (new OnCobrancaPagaUpdateSubscription())->handle(onda5_eventoPago($subscription->id, 9999007, 9990));
+
+    $subscription->refresh();
+    expect($subscription->status)->toBe('approved');
+    expect($subscription->end_date->toDateString())
+        ->toBe($subscription->start_date->copy()->addYear()->toDateString());
+    expect((string) $subscription->payment_transaction_id)->toBe('9999007');
+
+    onda5_cleanup();
+});
+
+it('CobrancaPaga em assinatura cancelada não aprova nem desbloqueia', function () {
+    $package = onda5_makeTestPackage();
+    $business = Business::firstOrCreate(['id' => ONDA5_BIZ_TENANT_TEST], ['name' => 'Tenant Onda 5 Test', 'currency_id' => 1]);
+    Business::withoutGlobalScopes()->where('id', ONDA5_BIZ_TENANT_TEST)->update(['officeimpresso_bloqueado' => true]);
+    $subscription = onda5_makeTestSubscription($package->id, ONDA5_BIZ_TENANT_TEST, 'cancelled');
+
+    (new OnCobrancaPagaUpdateSubscription())->handle(onda5_eventoPago($subscription->id, 9999008, 9990));
+
+    $subscription->refresh();
+    $business->refresh();
+    expect($subscription->status)->toBe('cancelled');
+    expect((bool) $business->officeimpresso_bloqueado)->toBeTrue();
+
+    onda5_cleanup();
+});

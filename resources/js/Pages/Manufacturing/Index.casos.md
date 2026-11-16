@@ -380,6 +380,15 @@ last_run: "2026-10-07"
 - **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemValidacaoTest.php`
 - **Regressão que defende:** quantidade 0 dividindo o total (erro 500) e consumo negativo somando estoque em vez
   de baixar.
+## UC-OP-22 · Quem só pode um local só vê e só grava ordem nesse local
+- **Persona:** operador com acesso a um local só (sem `access_all_locations`).
+- **Aceite:** Dado um usuário com o local A e sem o B · Quando grava ordem em B, ou edita o rascunho para B ·
+  Então recebe 403 e nada muda · Quando abre a lista · Então só vem ordem de A · Quando abre o detalhe de uma ordem
+  de B · Então recebe 403 · As mesmas ações em A funcionam.
+- **Fonte:** regra de local do sistema (`User::permitted_locations()`), a mesma do dropdown de local e do relatório
+  de totais do módulo · auditoria do Manufacturing, lote 2.5.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemLocalPermitidoTest.php`
+- **Regressão que defende:** o dropdown esconder o local e o servidor aceitar qualquer um da empresa.
 - **Status: 🧪**
 
 ---

@@ -164,14 +164,15 @@ class BaseController extends Controller
             // SUPERADMIN: credencial BCB da cobrança SaaS vive em biz=1 (Wagner); checagem cross-tenant pra decidir se mostra o gateway
             return \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
                 ->withoutGlobalScopes()
-                ->where('business_id', 1)
+                ->where('business_id', (int) config('app.saas_owner_business_id'))
                 ->where('gateway_key', 'bcb_pix')
                 ->where('ativo', true)
                 ->whereNotNull('conta_bancaria_id')
                 ->exists();
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[onda5] isPaymentGatewayPixAutomaticoConfigured threw', [
-                'exception' => $e->getMessage(),
+                // LGPD D7.a — a mensagem pode trazer PII ou SQL: vai redigida.
+                'exception' => app(\App\Support\Privacy\PiiRedactor::class)->redact((string) $e->getMessage()),
             ]);
 
             return false;

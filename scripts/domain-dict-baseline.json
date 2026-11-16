@@ -121,6 +121,7 @@
     "dominio:undeclared-code-value:FiscalFaturamento:ambiente:1",
     "dominio:undeclared-code-value:FiscalFaturamento:ambiente:2",
     "dominio:undeclared-code-value:FiscalFaturamento:status:emitida",
+    "dominio:undeclared-code-value:FiscalFaturamento:status:erro",
     "dominio:undeclared-code-value:FiscalFaturamento:status:processando",
     "dominio:undeclared-code-value:VendasCore:status:completed",
     "dominio:undeclared-code-value:VendasCore:status:emitida",
