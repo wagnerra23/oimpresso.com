@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Log;
 /**
  * Auditoria Arquivos 2026-11-05, lote L2 (D5).
  *
- * 1. Trigger BEFORE UPDATE em `arquivos_audit_log`: a trilha é append-only (ADR 0123 §8) e até
- *    aqui só o código respeitava isso. Nenhum código nem teste faz UPDATE nela (medido em
- *    2026-11-16). O BEFORE DELETE fica PENDENTE: 6 testes do módulo limpam a trilha por DELETE
- *    e precisam mudar antes (lote L1).
+ * 1. Triggers BEFORE UPDATE e BEFORE DELETE em `arquivos_audit_log`: a trilha é append-only
+ *    (ADR 0123 §8) e até aqui só o código respeitava isso. Medido no origin/main em 2026-11-16,
+ *    depois do #10996, #11018 (L1) e #10962 (L0): nenhum código nem teste faz UPDATE ou DELETE
+ *    nela. Os testes limpam por rollback (DatabaseTransactions).
+ *    Atenção: FK com ON DELETE CASCADE não dispara trigger no MySQL. Hoje `arquivo_id` não tem
+ *    FK, então apagar o arquivo não apaga a trilha; se um dia ganhar FK, que não seja cascade.
  * 2. FK de `business_id` → `business.id` em `arquivos` e `arquivos_audit_log` (estava comentada).
  *    Medido em produção em 2026-11-16 (leitura): 0 linhas com business_id = 0 e 0 sem empresa
  *    nas duas tabelas; `business.id` é int(10) unsigned, igual às colunas.
@@ -23,6 +25,8 @@ use Illuminate\Support\Facades\Log;
 return new class extends Migration
 {
     private const TRIGGER_UPDATE = 'trg_arquivos_audit_log_no_update';
+
+    private const TRIGGER_DELETE = 'trg_arquivos_audit_log_no_delete';
 
     /** tabela => nome da FK */
     private const FKS = [
@@ -39,6 +43,10 @@ return new class extends Migration
         DB::unprepared('DROP TRIGGER IF EXISTS ' . self::TRIGGER_UPDATE);
         DB::unprepared('CREATE TRIGGER ' . self::TRIGGER_UPDATE . " BEFORE UPDATE ON arquivos_audit_log FOR EACH ROW
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'arquivos_audit_log e append-only: grave uma linha nova, nunca altere.'");
+
+        DB::unprepared('DROP TRIGGER IF EXISTS ' . self::TRIGGER_DELETE);
+        DB::unprepared('CREATE TRIGGER ' . self::TRIGGER_DELETE . " BEFORE DELETE ON arquivos_audit_log FOR EACH ROW
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'arquivos_audit_log e append-only: linha da trilha nao se apaga.'");
 
         foreach (self::FKS as $tabela => $fk) {
             if ($this->fkExiste($tabela, $fk)) {
@@ -66,6 +74,7 @@ return new class extends Migration
         }
 
         DB::unprepared('DROP TRIGGER IF EXISTS ' . self::TRIGGER_UPDATE);
+        DB::unprepared('DROP TRIGGER IF EXISTS ' . self::TRIGGER_DELETE);
 
         foreach (self::FKS as $tabela => $fk) {
             if ($this->fkExiste($tabela, $fk)) {

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  * Só MySQL (trigger e FK não existem no sqlite): roda na lane arquivos-pest.
  * Tenant fictício 98 (ADR 0358); a empresa inexistente é um id muito alto, nunca criado.
  */
-// Limpeza por rollback: a trilha não pode ser apagada (o BEFORE DELETE vem em seguida).
+// Limpeza por rollback: a trilha não pode ser apagada (BEFORE DELETE).
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 const AAO_BIZ = 98;
@@ -57,6 +57,37 @@ it('trilha aceita linha nova e recusa UPDATE', function () {
         ->toThrow(QueryException::class, 'append-only');
 
     expect(DB::table('arquivos_audit_log')->where('id', $linha)->value('action'))->toBe('upload');
+});
+
+it('trilha recusa DELETE e a linha continua lá', function () {
+    $arquivoId = aaoArquivo(AAO_BIZ);
+    $linha = DB::table('arquivos_audit_log')->insertGetId([
+        'arquivo_id' => $arquivoId,
+        'business_id' => AAO_BIZ,
+        'action' => 'upload',
+        'payload' => json_encode(['size' => 3]),
+        'created_at' => now(),
+    ]);
+
+    expect(fn () => DB::table('arquivos_audit_log')->where('id', $linha)->delete())
+        ->toThrow(QueryException::class, 'append-only');
+
+    expect(DB::table('arquivos_audit_log')->where('id', $linha)->exists())->toBeTrue();
+});
+
+it('apagar o arquivo nao apaga a trilha dele', function () {
+    $arquivoId = aaoArquivo(AAO_BIZ);
+    DB::table('arquivos_audit_log')->insert([
+        'arquivo_id' => $arquivoId,
+        'business_id' => AAO_BIZ,
+        'action' => 'hard_delete',
+        'created_at' => now(),
+    ]);
+
+    DB::table('arquivos')->where('id', $arquivoId)->delete();
+
+    expect(DB::table('arquivos')->where('id', $arquivoId)->exists())->toBeFalse();
+    expect(DB::table('arquivos_audit_log')->where('arquivo_id', $arquivoId)->count())->toBe(1);
 });
 
 it('arquivo de empresa existente grava (controle positivo da FK)', function () {
