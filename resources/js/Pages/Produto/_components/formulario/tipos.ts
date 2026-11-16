@@ -153,6 +153,9 @@ export interface OpcoesProduto {
   subcategoriasPorCategoria?: Record<string, Record<string, string>>;
   /** UC-PCAD-26 · UC-PEDIT-26: unidade => sub-unidades. Vazio: a empresa não usa sub-unidades. */
   subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
+  /** UC-PCAD-28 · UC-PEDIT-28: libera o "+" de unidade (`unit.create`) e de marca (`brand.create`). */
+  podeCriarUnidade?: boolean;
+  podeCriarMarca?: boolean;
 }
 
 /** Uma unidade da lista de sub-unidades: `multiplicador` em unidades da principal (a principal tem 1). */
