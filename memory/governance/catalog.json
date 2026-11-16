@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1000,
-    "edges": 1340,
+    "nodes": 1002,
+    "edges": 1342,
     "by_node_type": {
       "module": 45,
       "table": 116,
       "adr": 155,
-      "component": 588,
-      "api": 96
+      "component": 589,
+      "api": 97
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 99,
+      "providesApi": 100,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 588,
+      "hasComponent": 589,
       "dependsOn": 147,
       "delegatesTo": 133,
       "migratesTo": 1,
@@ -1286,6 +1286,14 @@
       ]
     },
     {
+      "id": "api:/associacoes",
+      "type": "api",
+      "prefix": "/associacoes",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/associacoes/associadas",
       "type": "api",
       "prefix": "/associacoes/associadas",
@@ -2107,6 +2115,13 @@
       "desc": ""
     },
     {
+      "id": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PainelDaRedeController + PendenciasDaRede",
+      "desc": "painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
+    },
+    {
       "id": "component:Associacoes/PendenciaDiretoria",
       "type": "component",
       "module": "Associacoes",
@@ -2139,7 +2154,7 @@
       "type": "component",
       "module": "Auditoria",
       "name": "AuditoriaLiberado",
-      "desc": "middleware das leituras: pacote auditoria_module + auditoria.view (superadmin passa)"
+      "desc": "middleware das leituras: auditoria.view (superadmin passa); o pacote auditoria_module vale só para o menu"
     },
     {
       "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
@@ -9051,6 +9066,12 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/PendenciaDiretoria",
       "type": "hasComponent",
       "source": "contains"
@@ -9070,6 +9091,12 @@
     {
       "from": "module:Associacoes",
       "to": "api:/associacoes/lista",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes",
       "type": "providesApi",
       "source": "url_prefixes"
     },

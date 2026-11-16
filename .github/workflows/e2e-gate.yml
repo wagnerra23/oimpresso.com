@@ -82,6 +82,8 @@ jobs:
               - 'composer.lock'
               - 'package.json'
               - 'package-lock.json'
+              - 'resources/uniafibro/**'
+              - 'public/uniafibro/**'
               - 'e2e/**'
               - 'playwright.config.ts'
               - '.github/workflows/e2e-gate.yml'
