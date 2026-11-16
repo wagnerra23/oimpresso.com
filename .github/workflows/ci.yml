@@ -200,6 +200,8 @@ jobs:
 
       - name: Status fiscal da venda (vitest, UC-NFST-06/07)
         run: npx vitest run tests/js/nfe-status-tela.test.tsx
+      - name: Natureza da operação ao emitir a NF-e (vitest, UC-NFTR-63/64)
+        run: npx vitest run tests/js/nfe-natureza-lancamento.test.tsx
 
       - name: Comportamento React — lista de vendas, Excluir avisa a recusa do servidor (UC-SIDX-08)
         run: npx vitest run tests/js/sells-index-excluir-recusa.test.tsx
