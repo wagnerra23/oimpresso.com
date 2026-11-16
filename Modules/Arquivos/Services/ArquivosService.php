@@ -18,7 +18,7 @@ use App\Support\Privacy\PiiRedactor;
  * ArquivosService — API canônica do DMS backbone (ADR 0123 §API).
  *
  * Métodos:
- * - attach(): upload + classify + dedupe + audit log
+ * - attach(): valida tipo/tamanho (ValidacaoUpload) + upload + classify + dedupe + audit log
  * - classify(): chama CuradorEngine
  * - signedUrl(): URL temporária expiração 1h
  * - softDelete() / restore()
@@ -41,7 +41,9 @@ class ArquivosService
      *
      * @param Model        $owner Model que vai receber o arquivo
      * @param UploadedFile $file  Arquivo upload
-     * @param array        $opts  ['context' => 'nfe-xml'|'ticket-anexo'|...] (futuro: MIME whitelist)
+     * @param array        $opts  ['context' => 'nfe-xml'|'ticket-anexo'|...]
+     *
+     * @throws \Illuminate\Validation\ValidationException tipo ou tamanho fora da regra (ValidacaoUpload)
      */
     public function attach(Model $owner, UploadedFile $file, array $opts = []): Arquivo
     {
@@ -85,6 +87,9 @@ class ArquivosService
      */
     private function attachInternal(Model $owner, UploadedFile $file, array $opts, int $businessId): Arquivo
     {
+        // Tipo e tamanho ANTES de tocar storage ou dedupe: rede de baixo para todo consumidor.
+        app(ValidacaoUpload::class)->validar($file);
+
         $md5 = md5_file($file->getRealPath());
 
         // Dedupe em 2 níveis. A dedupe economiza STORAGE, nunca o VÍNCULO do dono:
