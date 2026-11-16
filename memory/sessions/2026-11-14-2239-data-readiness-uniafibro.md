@@ -1,4 +1,5 @@
 ---
+id: sessions-2026-11-14-2239-data-readiness-uniafibro
 date: "2026-11-14"
 hour: "22:39"
 topic: "Data readiness da Uniafibro: mapa das migrations das 6 ondas Associacoes, seed versionado das associações-membro, auditoria Tier 0 e perguntas para [W]"
@@ -15,6 +16,13 @@ related_adrs:
 ---
 
 # Data readiness da Uniafibro
+
+## TL;DR
+
+RUNBOOK de entrada da Uniafibro em produção em rascunho, seed versionado das associações-membro
+(`associacoes:semear-rede`, simulação por padrão) e auditoria Tier 0 em SQL. Só 2 migrations nas 6
+ondas, ambas criando tabelas novas. Risco: o deploy migra sozinho no merge e não faz dump do banco,
+então o backup manual vem antes. Nada executado em ambiente algum.
 
 ## Pedido
 
