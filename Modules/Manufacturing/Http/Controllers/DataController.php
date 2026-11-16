@@ -64,7 +64,8 @@ class DataController extends Controller
     public function modifyAdminMenu()
     {
         $business_id = session()->get('user.business_id');
-        $module_util = new ModuleUtil();
+        // Do container (não `new`): mesmo objeto em produção, e o teste do menu consegue fixar o pacote.
+        $module_util = app(ModuleUtil::class);
         $is_mfg_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'manufacturing_module', 'superadmin_package');
 
         if ($is_mfg_enabled && (auth()->user()->can('manufacturing.access_recipe') || auth()->user()->can('manufacturing.access_production'))) {
