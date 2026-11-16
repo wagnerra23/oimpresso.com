@@ -392,36 +392,33 @@ class SubscriptionController extends BaseController
             // têm callbacks próprios, então também ficam de fora.
             $recusa = $this->motivoRecusaConfirm($business_id, $package_id, $gateway, $request);
             if ($recusa !== null) {
-                return redirect()
-                    ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
-                    ->with('status', ['success' => 0, 'msg' => $recusa]);
+                $output = ['success' => 0, 'msg' => $recusa];
+            } else {
+                $package = Package::active()->find($package_id);
+
+                DB::beginTransaction();
+
+                //Call the payment method
+                $pay_function = 'pay_'.$gateway;
+                $payment_transaction_id = $this->$pay_function($business_id, $business_name, $package, $request);
+
+                // `pay_paypal` (ACK recusado) devolve um redirect em vez do id da transação. Antes o
+                // redirect seguia como "id" e a assinatura nascia aprovada mesmo assim.
+                if ($payment_transaction_id instanceof \Symfony\Component\HttpFoundation\Response) {
+                    DB::rollBack();
+                    $output = ['success' => 0, 'msg' => __('messages.something_went_wrong')];
+                } else {
+                    //Add subscription details after payment is succesful
+                    $this->_add_subscription($business_id, $package, $gateway, $payment_transaction_id, $user_id);
+                    DB::commit();
+
+                    $msg = __('lang_v1.success');
+                    if ($gateway == 'offline') {
+                        $msg = __('superadmin::lang.notification_sent_for_approval');
+                    }
+                    $output = ['success' => 1, 'msg' => $msg];
+                }
             }
-
-            $package = Package::active()->find($package_id);
-
-            DB::beginTransaction();
-
-            //Call the payment method
-            $pay_function = 'pay_'.$gateway;
-            $payment_transaction_id = $this->$pay_function($business_id, $business_name, $package, $request);
-
-            // `pay_paypal` (ACK recusado) e `pay_offline` (demo) devolvem um redirect em vez do id da
-            // transação. Antes o redirect seguia como "id" e a assinatura nascia aprovada mesmo assim.
-            if ($payment_transaction_id instanceof \Symfony\Component\HttpFoundation\Response) {
-                DB::rollBack();
-
-                return $payment_transaction_id;
-            }
-
-            //Add subscription details after payment is succesful
-            $this->_add_subscription($business_id, $package, $gateway, $payment_transaction_id, $user_id);
-            DB::commit();
-
-            $msg = __('lang_v1.success');
-            if ($gateway == 'offline') {
-                $msg = __('superadmin::lang.notification_sent_for_approval');
-            }
-            $output = ['success' => 1, 'msg' => $msg];
         } catch (\Exception $e) {
             if (DB::transactionLevel() > 0) {
                 DB::rollBack();
@@ -457,7 +454,11 @@ class SubscriptionController extends BaseController
      */
     protected function motivoRecusaConfirm($business_id, $package_id, string $gateway, Request $request): ?string
     {
-        if ($gateway === '' || ! array_key_exists($gateway, $this->_payment_gateways())
+        // `_payment_gateways()` declara `@return Response`; o tipo real vai aqui (igual ao `pay()`).
+        /** @var array<string, string> $gateways */
+        $gateways = $this->_payment_gateways();
+
+        if ($gateway === '' || ! array_key_exists($gateway, $gateways)
             || ! method_exists($this, 'pay_'.$gateway)) {
             return __('superadmin::lang.forma_pagamento_indisponivel');
         }
