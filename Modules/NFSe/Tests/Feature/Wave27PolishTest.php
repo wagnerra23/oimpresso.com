@@ -286,9 +286,10 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
     it('D9 spans: NfseEmissaoService idempotência preserva 1ª nota (anti-duplicação fiscal)', function () {
         $src = file_get_contents((new ReflectionClass(NfseEmissaoService::class))->getFileName());
 
-        // Status 'emitida' OU 'processando' já existe → retorna sem duplicar fiscal
-        expect($src)->toContain("whereIn('status', ['emitida', 'processando'])")
-            ->and($src)->toContain('if ($existente)');
+        // Lote 2 PR 2.2: a chave é UNIQUE — emitida/processando/erro reusam a linha, nunca
+        // criam outra (emitida devolve; erro volta a processando com o mesmo nº de DPS).
+        expect($src)->toContain("whereIn('status', ['emitida', 'processando', 'erro'])")
+            ->and($src)->toContain('if ($existente === null)');
     });
 
     // ---- Tier 0 imutabilidade fiscal ----

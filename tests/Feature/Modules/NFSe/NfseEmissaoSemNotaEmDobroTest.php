@@ -8,7 +8,9 @@ declare(strict_types=1);
 //      linha com o MESMO nº de DPS — antes ela virava `erro` e o job criava linha e nº novos;
 //  (b) erro terminal (ISS, tomador, certificado...) não é retentado pelo job nem recria linha;
 //  (c) DPS duplicada não grava `emitida` sem número: consulta a nota pela chave, ou fica
-//      `processando` com o aviso.
+//      `processando` com o aviso;
+//  (d) sem config ou certificado a nota é gravada em `erro` com o motivo (antes sumia), e o
+//      reenvio reusa a mesma linha — criar outra estourava o UNIQUE de idempotency_key.
 // Tenant 98 (ADR 0358). Nunca biz=4.
 
 use Carbon\Carbon;
@@ -233,5 +235,37 @@ it('DPS duplicada com chave consulta a nota e grava o número real', function ()
     expect($provider->consultas)->toBe(['CHAVE-FICTICIA']);
     expect($emissao->status)->toBe('emitida');
     expect($emissao->numero)->toBe('900777');
+    expect(nfsdobroLinhas($p))->toHaveCount(1);
+});
+
+it('sem config a nota fica gravada em erro com o motivo e o job falha', function () {
+    NfseProviderConfig::withoutGlobalScopes()->where('business_id', NFSDOBRO_TENANT)->delete();
+    $p = nfsdobroPayload();
+    $provider = nfsdobroProvider([]);
+
+    $job = (new EmitirNfseJob($p))->withFakeQueueInteractions();
+    $job->handle($provider);
+
+    $job->assertFailed();
+    $linhas = nfsdobroLinhas($p);
+    expect($linhas)->toHaveCount(1);
+    expect($linhas[0]->status)->toBe('erro');
+    expect((string) $linhas[0]->erro_mensagem)->toContain('Configuração NFSe não encontrada');
+    expect($provider->envios)->toBe([]);
+});
+
+it('reenvio de nota em erro reusa a mesma linha e o mesmo nº de DPS', function () {
+    $p = nfsdobroPayload();
+    $recusa = nfsdobroProvider([new IssInvalidoException('E501')]);
+    expect(fn () => (new NfseEmissaoService($recusa))->emitir($p))->toThrow(IssInvalidoException::class);
+    $linha = nfsdobroLinhas($p)->first();
+    expect($linha->status)->toBe('erro');
+
+    $provider = nfsdobroProvider([NfseResultado::sucesso('900888', 'CHAVE-FICTICIA')]);
+    $emissao = (new NfseEmissaoService($provider))->emitir($p);
+
+    expect($emissao->id)->toBe($linha->id);
+    expect($emissao->status)->toBe('emitida');
+    expect($provider->envios)->toBe([(string) $linha->id]);
     expect(nfsdobroLinhas($p))->toHaveCount(1);
 });

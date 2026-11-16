@@ -172,33 +172,21 @@ class NfseEmissaoService
 
     private function emitirInterno(NfseEmissaoPayload $payload, bool $retomarPendente): NfseEmissao
     {
-        // Idempotência: retorna nota existente se já foi emitida com mesmo payload
+        // Idempotência por chave (UNIQUE na tabela): a mesma nota tem uma linha só.
         // SUPERADMIN: service de emissão NFSe sem context tenant — business_id vem do payload (DTO recebido); idempotência cross-session
         $existente = NfseEmissao::withoutGlobalScopes()
             ->where('idempotency_key', $payload->idempotencyKey())
             ->where('business_id', $payload->businessId)
-            ->whereIn('status', ['emitida', 'processando'])
+            ->whereIn('status', ['emitida', 'processando', 'erro'])
             ->latest('id')
             ->first();
 
-        if ($existente && ($existente->isEmitida() || ! $retomarPendente)) {
+        if ($existente && ($existente->isEmitida() || ($existente->isPendente() && ! $retomarPendente))) {
             return $existente;
         }
 
-        $config = $this->getConfig($payload->businessId);
-        $this->validarCertificado($config);
-
-        if ($existente) {
-            // Retentativa do job depois de timeout: a Sefin pode ter recebido a DPS. Reenvia
-            // a MESMA linha com o MESMO nº de DPS — se ela já existir lá, volta duplicada e
-            // não vira uma segunda nota. Antes daqui a retentativa criava linha e nº novos.
-            return $this->enviar($existente, $payload->comNumeroDps((string) $existente->id));
-        }
-
-        $emissao = NfseEmissao::create([
-            'business_id'     => $payload->businessId,
+        $dados = [
             'serie'           => $payload->serieDps,
-            'rps_numero'      => $payload->rpsNumero,
             'competencia'     => $payload->competencia,
             'tomador_cnpj'    => $payload->tomadorCnpj,
             'tomador_cpf'     => $payload->tomadorCpf,
@@ -206,7 +194,6 @@ class NfseEmissaoService
             'tomador_email'   => $payload->tomadorEmail,
             'lc116_codigo'    => $payload->lc116Codigo,
             'ctrib_nac'       => $payload->cTribNac,
-            'cnae'            => $config->cnae,
             'descricao'       => $payload->descricao,
             'valor_servicos'  => $payload->valorServicos,
             'aliquota_iss'    => $payload->aliquotaIss,
@@ -217,15 +204,43 @@ class NfseEmissaoService
             'valor_ret_pis'    => $payload->retPisCentavos / 100,
             'valor_ret_cofins' => $payload->retCofinsCentavos / 100,
             'valor_ret_csll'   => $payload->retCsllCentavos / 100,
-            'status'          => 'processando',
-            'idempotency_key' => $payload->idempotencyKey(),
             'transaction_id'  => $payload->transactionId,
-        ]);
+        ];
+
+        if ($existente === null) {
+            $emissao = NfseEmissao::create($dados + [
+                'business_id'     => $payload->businessId,
+                'rps_numero'      => $payload->rpsNumero,
+                'status'          => 'processando',
+                'idempotency_key' => $payload->idempotencyKey(),
+            ]);
+        } elseif ($existente->isErro()) {
+            // Reenvio de nota recusada (Sefin, config ou certificado): a MESMA linha volta a
+            // `processando`. Criar outra estourava o UNIQUE de idempotency_key.
+            $existente->update($dados + ['status' => 'processando', 'erro_mensagem' => null]);
+            $emissao = $existente;
+        } else {
+            // Retentativa do job depois de timeout: a Sefin pode ter recebido a DPS. Reenvia
+            // a mesma linha com o mesmo nº de DPS — se já existir lá, volta duplicada e é
+            // tratada em resolverDuplicado(), sem virar uma segunda nota.
+            $emissao = $existente;
+        }
 
         // R-NFSE-005: nDPS = id da emissão (único, sequencial, cabe nos 15 dígitos do
         // leiaute). O número provisório YmdHis+contador tinha 18 dígitos e não é único.
         $payload = $payload->comNumeroDps((string) $emissao->id);
         $emissao->update(['rps_numero' => $payload->rpsNumero]);
+
+        // Config e certificado depois de gravar a linha: sem eles a nota fica `erro` com o
+        // motivo e aparece em /nfse. Antes a validação vinha antes do create e a nota sumia.
+        try {
+            $config = $this->getConfig($payload->businessId);
+            $this->validarCertificado($config);
+        } catch (NfseException $e) {
+            $this->marcarErro($emissao, $e);
+            throw $e;
+        }
+        $emissao->update(['cnae' => $config->cnae]);
 
         return $this->enviar($emissao, $payload);
     }
