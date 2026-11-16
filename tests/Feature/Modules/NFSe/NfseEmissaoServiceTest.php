@@ -252,7 +252,7 @@ it('retenta 3 vezes em ProviderTimeoutException e lança após esgotar', functio
 
 // ── cancelamento ──────────────────────────────────────────────────────────────
 
-it('cancela nota emitida com sucesso', function () {
+it('provedor sem ambiente e certificado da empresa nao cancela a nota', function () {
     $cert = seedCert();
     seedConfig(certId: $cert->id);
 
@@ -270,13 +270,16 @@ it('cancela nota emitida com sucesso', function () {
         'idempotency_key' => 'abc123',
     ]);
 
+    // Lote 0 PR 0.3: o caminho antigo (`cancelar()` sem ambiente da empresa nem certificado)
+    // não cancela mais. O caminho que cancela é coberto em NfseCancelamentoHonestoTest.
     $provider = mockProvider();
-    $provider->shouldReceive('cancelar')->once()->with('123456', 'Solicitação do cliente')->andReturn(true);
+    $provider->shouldNotReceive('cancelar');
 
     $service = new NfseEmissaoService($provider);
-    $service->cancelar($emissao, 'Solicitação do cliente');
 
-    expect($emissao->fresh()->status)->toBe('cancelada');
+    expect(fn () => $service->cancelar($emissao, 'Solicitação do cliente'))
+        ->toThrow(NfseException::class, 'Provedor sem cancelamento');
+    expect($emissao->fresh()->status)->toBe('emitida');
 });
 
 it('lança NfseJaCanceladaException ao cancelar nota já cancelada', function () {
