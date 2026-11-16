@@ -13,10 +13,10 @@ namespace App\Support\Uniafibro;
  */
 final class Layout
 {
-    public const AVISO_VERSAO = 1;
+    public const AVISO_VERSAO = 2;
 
     public const AVISO = 'Orientação geral, não é consultoria jurídica. As regras mudam e cada caso tem detalhes. '
-        .'Antes de pedir um benefício ou entrar na Justiça, fale com um advogado ou com a Defensoria Pública de SC. '
+        .'Antes de pedir um benefício ou entrar na Justiça, fale com um advogado ou com a Defensoria Pública (do Estado; para o INSS, a da União). '
         .'Sobre a sua saúde, fale com o seu médico.';
 
     public static function documento(string $titulo, string $descricao, string $caminho, string $miolo): string
