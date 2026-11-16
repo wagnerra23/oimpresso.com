@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 // @covers-us US-NFSE-006
+// Contrato: resources/js/Pages/Nfse/Emitir.casos.md — UC-NFSEM-06 (venda da própria empresa).
 // Tier 0 (ADR 0093): a NFS-e só se liga a venda da PRÓPRIA empresa, e o detalhe da nota
 // só mostra venda da mesma empresa da nota. Auditoria NFSe 2026-11-05, lote 0, PR 0.2:
 // StoreNfseRequest aceitava `transaction_id` só como integer e App\Transaction não tem
