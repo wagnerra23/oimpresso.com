@@ -150,3 +150,27 @@ it('UC-SAPAG-06 · excluir pela tela remove a página e volta para a lista', fun
     expect((string) $resposta->headers->get('Location'))->toEndWith(ROTA_PAG);
     expect(SuperadminFrontendPage::whereKey($p->id)->exists())->toBeFalse();
 });
+
+it('UC-SAPAG-07 · página sem título dá 422 e não grava, e o slug livre é normalizado', function () {
+    $super = pagUsuario('pag_superadmin_test', true);
+    $antes = SuperadminFrontendPage::count();
+
+    $this->actingAs($super)
+        ->postJson(ROTA_PAG, ['title' => '', 'slug' => 'uc-sapag-sem-titulo', 'content' => 'x', 'menu_order' => 1])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('title');
+    expect(SuperadminFrontendPage::count())->toBe($antes);
+
+    $this->actingAs($super)
+        ->post(ROTA_PAG, ['title' => 'Sobre', 'slug' => 'UC SAPAG Sobre Nós', 'content' => 'x', 'menu_order' => 1, 'is_shown' => 1], pagInertia())
+        ->assertSessionHasNoErrors();
+    expect(SuperadminFrontendPage::where('slug', 'uc-sapag-sobre-nos')->exists())->toBeTrue();
+});
+
+it('UC-SAPAG-08 · /page/{slug} dá 404 para página oculta e abre a visível', function () {
+    $oculta = pagCriar('oculta', ['is_shown' => 0]);
+    $visivel = pagCriar('visivel');
+
+    $this->get('/page/' . $oculta->slug)->assertNotFound();
+    $this->get('/page/' . $visivel->slug)->assertOk();
+});

@@ -10,6 +10,7 @@ parent_module: Superadmin
 related_adrs: [114, 101, 94]
 tier: B
 charter_version: 1
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-pricing.md
 ---
 
 # Page Charter — /pricing (DRAFT)

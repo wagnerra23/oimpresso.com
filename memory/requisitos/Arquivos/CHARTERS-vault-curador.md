@@ -4,7 +4,7 @@ id: requisitos-arquivos-charters-vault-curador
 
 # CHARTERS — Vault Encryption + Curador (Modules/Arquivos)
 
-> **Contrato vivo** dos componentes-chave do módulo. Substitui charters `.charter.md` ao lado de `.tsx` (não aplicável — módulo backend-only no momento). Quando UI Inertia surgir, charters migram pra `resources/js/Pages/Arquivos/<Tela>.charter.md`.
+> **Contrato vivo** dos componentes de backend do módulo (serviço do cofre, curador, trait). A tela `/arquivos` tem charter próprio ao lado do `.tsx`: [`resources/js/Pages/Arquivos/Index.charter.md`](../../../resources/js/Pages/Arquivos/Index.charter.md). Até 2026-08-24 o módulo não tinha tela e este arquivo dizia "backend-only".
 
 ---
 
@@ -19,10 +19,17 @@ id: requisitos-arquivos-charters-vault-curador
 
 Cifrar arquivos sensíveis em repouso (vault encryption AES-256-GCM envelope) com chave por tenant rotacionável, mantendo audit log append-only de toda operação encrypt/decrypt/rotate. Garantir que vazamento de DB sem chave KMS é inútil; vazamento de chave KMS sem DB é inútil.
 
+> **Divergência medida em 2026-11-16 — o código não faz o que a Mission e os Goals 1 e 4 descrevem.**
+> `VaultEncryptionService` usa `Crypt::encryptString` do Laravel: AES-256-CBC com HMAC, chave
+> única da aplicação (`APP_KEY`). Não há DEK por arquivo nem KEK por empresa; o isolamento entre
+> empresas vem do global scope de `business_id`, não da chave. A escolha está no docblock do
+> serviço (decisão [W] 2026-05-10). Mudar o contrato ou o código é decisão [W]; até lá, o
+> comportamento real é o do serviço.
+
 ### Goals
 
 1. Envelope encryption — DEK random per-file cifrada com KEK per-tenant
-2. Key rotation sem downtime — `arquivos:reencrypt-vault {biz}` re-cifra DEKs com KEK nova
+2. Key rotation sem downtime — `arquivos:reencrypt-vault --old-key=...` re-cifra o cofre depois da troca da `APP_KEY`
 3. Audit log append-only — toda decrypt registra `user_id` + `arquivo_id` + `ip` + `motivo`
 4. Multi-tenant Tier 0 — KEK biz=1 NUNCA decifra arquivo biz=99 (Pest `MultiTenantTest.php`)
 5. LGPD compliance — retention policy + right-to-be-forgotten via `arquivos:retention-cleanup`
@@ -115,14 +122,14 @@ Ingerir batch de arquivos heterogêneos (PDFs, .md, .docx, .xml, .key, .pfx) e c
 
 ### Mission
 
-Permitir que qualquer Eloquent Model anexe arquivos via `$model->arquivos()` polimórfico, mantendo `business_id` scope + vault encryption transparente + dedupe SHA-256 cross-módulo, sem que consumer precise conhecer detalhes do vault.
+Permitir que qualquer Eloquent Model anexe arquivos via `$model->arquivos()` polimórfico, mantendo `business_id` scope + vault encryption transparente + dedupe por MD5 dentro da empresa, sem que consumer precise conhecer detalhes do vault.
 
 ### Goals
 
-1. API minimalista — `$model->arquivos()->attach($uploadedFile)` + `$model->arquivos` (collection)
+1. API minimalista — `$model->attachArquivo($uploadedFile, $opts)` + `$model->arquivos` (collection) + `$model->arquivosClassificados($bucket)`
 2. Polimórfico — funciona em qualquer Eloquent (Transaction, JobSheet, Contact, etc.)
 3. Multi-tenant transparente — herda `business_id` do model parent
-4. Dedupe automático — SHA-256 colliding reusa arquivo existente (decremento contador delete)
+4. Dedupe automático — mesmo MD5 na mesma empresa reusa o blob já gravado (`ArquivosService::attachInternal`)
 5. Eager-load friendly — `with('arquivos')` sem N+1
 
 ### Non-Goals
@@ -140,7 +147,7 @@ Permitir que qualquer Eloquent Model anexe arquivos via `$model->arquivos()` pol
 
 - 🚨 Consumer chama `VaultEncryptionService::encrypt()` direto → use trait API
 - 🚨 Consumer query `Arquivo::where()` sem `business_id` scope → global scope já garante, mas evitar pattern
-- 🚨 Attach mesmo arquivo 2x sem dedupe → SHA-256 check obrigatório
+- 🚨 Attach mesmo arquivo 2x sem dedupe → checagem de MD5 obrigatória
 
 ### Tests canônicos
 
@@ -153,5 +160,5 @@ Permitir que qualquer Eloquent Model anexe arquivos via `$model->arquivos()` pol
 **Notas de manutenção:**
 
 - Charters acima são `live` — alterações exigem PR + ADR se mudar mission/non-goals
-- Quando UI Inertia surgir (`resources/js/Pages/Arquivos/<Tela>.tsx`), criar `.charter.md` ao lado e migrar conteúdo relevante deste doc
+- A UI Inertia surgiu em 2026-08-24 (`resources/js/Pages/Arquivos/Index.tsx`), com charter próprio ao lado; este doc segue cobrindo só os componentes de backend
 - Skill `charter-first` (Tier A dormente até S4) aplicará automaticamente quando charters virarem path-scoped

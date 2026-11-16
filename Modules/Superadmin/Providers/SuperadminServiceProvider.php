@@ -118,37 +118,58 @@ class SuperadminServiceProvider extends ServiceProvider
         //schedule command for sending subscription expiry alert
         if ($env === 'live') {
             $this->app->booted(function () {
-                $schedule = $this->app->make(Schedule::class);
-                $schedule->command('pos:sendSubscriptionExpiryAlert')->daily();
-                // ADR 0170 Onda 5.B — emite cobrança PIX Automático pra Subscriptions
-                // waiting com trial expirado (auto-onboarding).
-                $schedule->command('paymentgateway:emit-trial-expired')->dailyAt('08:00');
-
-                // Worker da fila `superadmin-mail`: drena as 7 notificações do Superadmin
-                // (Comunicador, boas-vindas, nova assinatura, troca de senha, alerta de
-                // expiração...), que saíram do request HTTP em 2026-11-16 (lote L4).
-                //
-                // POR QUE FILA PRÓPRIA, e não `default`: quem drena `default` em produção é
-                // o worker de backlog do app/Console/Kernel.php, atrás de
-                // `queue.backlog_worker_enabled` (default false). E-mail mandado pra `default`
-                // ficaria parado na tabela `jobs`, em silêncio — mesmo motivo de `backups`,
-                // `attendance-import` e `sales-import`. Não gated: a fila só recebe e-mail
-                // recém-disparado por ação humana ou pelo cron do alerta de expiração.
-                //
-                // --tries=3: a fila tem um job por destinatário, então o retry de uma falha
-                // de SMTP reenvia só para quem falhou. Hostinger é shared hosting sem
-                // supervisor — cron everyMinute + --max-time=55 é o padrão dos outros workers.
-                $schedule->command('queue:work database --queue='.SuperadminCommunicator::FILA.' --max-time=55 --tries=3')
-                    ->everyMinute()
-                    ->withoutOverlapping(1)
-                    ->runInBackground()
-                    ->onFailure(function () {
-                        \Illuminate\Support\Facades\Log::channel('single')->error(
-                            'Schedule queue:work superadmin-mail FALHOU — e-mails do Superadmin podem ficar parados na jobs table'
-                        );
-                    });
+                $this->agendar($this->app->make(Schedule::class));
             });
         }
+    }
+
+    /**
+     * Os crons do Superadmin. Só é chamado em `live` (o gate de ambiente fica em
+     * `registerScheduleCommands()`); separado em método para o teste exercitar o
+     * agendamento real sem depender do ambiente — o gate de `live` é medido em produção
+     * por `php artisan schedule:list`.
+     */
+    public function agendar(Schedule $schedule): void
+    {
+        $schedule->command('pos:sendSubscriptionExpiryAlert')->daily();
+        // ADR 0170 Onda 5.B — emite cobrança PIX Automático pra Subscriptions
+        // waiting com trial expirado (auto-onboarding).
+        $schedule->command('paymentgateway:emit-trial-expired')->dailyAt('08:00');
+
+        // Worker da fila `superadmin-mail`: drena as 7 notificações do Superadmin
+        // (Comunicador, boas-vindas, nova assinatura, troca de senha, alerta de
+        // expiração...), que saíram do request HTTP em 2026-11-16 (lote L4).
+        //
+        // POR QUE FILA PRÓPRIA, e não `default`: quem drena `default` em produção é
+        // o worker de backlog do app/Console/Kernel.php, atrás de
+        // `queue.backlog_worker_enabled` (default false). E-mail mandado pra `default`
+        // ficaria parado na tabela `jobs`, em silêncio — mesmo motivo de `backups`,
+        // `attendance-import` e `sales-import`. Não gated: a fila só recebe e-mail
+        // recém-disparado por ação humana ou pelo cron do alerta de expiração.
+        //
+        // --tries=3: a fila tem um job por destinatário, então o retry de uma falha
+        // de SMTP reenvia só para quem falhou. Hostinger é shared hosting sem
+        // supervisor — cron everyMinute + --max-time=55 é o padrão dos outros workers.
+        $schedule->command('queue:work database --queue='.SuperadminCommunicator::FILA.' --max-time=55 --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(1)
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work superadmin-mail FALHOU — e-mails do Superadmin podem ficar parados na jobs table'
+                );
+            });
+
+        // Health-check do módulo (Wave 23 D9.c). Registrado desde a Wave 23 e nunca
+        // agendado: em 2026-11-16 o `schedule:list` de produção (HEAD fd6cbaa2c4) não
+        // o listava, embora o docblock dissesse "roda 06:20". O comando só LÊ (4
+        // consultas + log ALERT com --notify), então é medidor e pode rodar sozinho.
+        // 06:20 BRT, logo depois do connector:health das 06:15 — mesmo formato.
+        $schedule->command('superadmin:health --notify')
+            ->dailyAt('06:20')
+            ->timezone('America/Sao_Paulo')
+            ->name('superadmin:health daily')
+            ->withoutOverlapping(10);
     }
 
     /**
