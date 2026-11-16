@@ -59,7 +59,9 @@ it('ArquivosService::signedUrl assina TTL configurável', function () {
     expect($params['expiresMinutes']->getDefaultValue())->toBe(60);
 });
 
-it('ArquivosService::dedupe scopa por business_id (sem leak cross-tenant)', function () {
+// Título honesto (2026-11-16): este caso olha só a ASSINATURA. O comportamento — mesmo md5
+// na 98 e na 99 devolvendo a linha de cada uma — é provado no MultiTenantTest.
+it('ArquivosService::dedupe declara businessId:int na assinatura', function () {
     $reflection = new ReflectionMethod(ArquivosService::class, 'dedupe');
     $params = collect($reflection->getParameters())->keyBy(fn ($p) => $p->getName());
     expect($params->has('businessId'))->toBeTrue('dedupe sem businessId = leak cross-tenant (ADR 0093)');

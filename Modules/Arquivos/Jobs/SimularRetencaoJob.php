@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Arquivos\Jobs;
 
+use App\Tenancy\ContextoEmpresa;
 use Illuminate\Bus\Queueable;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Cache;
@@ -62,6 +63,9 @@ class SimularRetencaoJob
         if (! $this->dryRun || $this->purge) {
             throw new LogicException('Simulação de retenção só roda em dry-run, sem purge (D4).');
         }
+
+        // ADR 0453: job sem sessão — a empresa do escopo do Arquivo vem do contexto.
+        app(ContextoEmpresa::class)->definir($this->businessId);
 
         $resultado = $service->run($this->businessId, $this->retentionDays, true, false);
         $limite = now()->subDays($this->retentionDays);

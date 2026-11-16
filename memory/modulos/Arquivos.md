@@ -1,6 +1,6 @@
 # Módulo: Arquivos
 
-> **DMS backbone — todo arquivo anexado da empresa cai aqui (multi-tenant Tier 0). Polimorfismo Eloquent morph (arquivable_type/arquivable_id). Outros módulos adotam trait HasArquivos opt-in. Storage abstraído (disk local-ct100 + vault encrypted). Curador como engine de classificação. Soft-delete + audit log integral. Ver ADR 0123.**
+> **DMS backbone — todo arquivo anexado da empresa cai aqui (multi-tenant Tier 0). Polimorfismo Eloquent morph (arquivable_type/arquivable_id). Outros módulos adotam trait HasArquivos opt-in. Storage abstraído (disk de `arquivos.disk_default`, hoje `local`, + vault encrypted; MinIO pendente de decisão). Curador como engine de classificação. Soft-delete + audit log integral. Ver ADR 0123.**
 
 - **Alias:** `arquivos`
 - **Versão:** ?

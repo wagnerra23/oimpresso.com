@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1005,
-    "edges": 1347,
+    "nodes": 1007,
+    "edges": 1348,
     "by_node_type": {
       "module": 45,
       "table": 116,
-      "adr": 155,
+      "adr": 157,
       "component": 591,
       "api": 98
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 134,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 79,
+      "supersedesPartially": 80,
       "supersededBy": 31
     },
     "dangling": 0
@@ -1140,6 +1140,20 @@
       "exists": true
     },
     {
+      "id": "adr:0451",
+      "type": "adr",
+      "num": "0451",
+      "slug": "0451-associacoes-rede-uniafibro-area-de-membros",
+      "exists": true
+    },
+    {
+      "id": "adr:0454",
+      "type": "adr",
+      "num": "0454",
+      "slug": "0454-uniafibro-estatuto-tipos-de-membro-projetos-e-dinheiro",
+      "exists": true
+    },
+    {
       "id": "api:/.well-known/assetlinks.json",
       "type": "api",
       "prefix": "/.well-known/assetlinks.json",
@@ -2176,7 +2190,7 @@
       "type": "component",
       "module": "Auditoria",
       "name": "AuditoriaLiberado",
-      "desc": "middleware das leituras: pacote auditoria_module + auditoria.view (superadmin passa)"
+      "desc": "middleware das leituras: auditoria.view (superadmin passa); o pacote auditoria_module vale só para o menu"
     },
     {
       "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
@@ -8759,6 +8773,12 @@
     {
       "from": "adr:0449",
       "to": "adr:0090",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0454",
+      "to": "adr:0451",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },

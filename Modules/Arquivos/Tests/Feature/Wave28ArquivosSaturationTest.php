@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use App\Util\OtelHelper;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Services\ArquivosRetentionService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Wave 28 Arquivos SATURATION FINAL — polish 74-88 → ≥92 (+4pp).
@@ -53,7 +56,7 @@ describe('Wave 28 Arquivos POLISH 74-88 → ≥92', function () {
     // D2 W28 — +3 Pest cenários adicionais
     // ------------------------------------------------------------------
 
-    it('D2 W28: summary exige businessId + retentionDays Tier 0 (multi-tenant ADR 0093)', function () {
+    it('D2 W28: summary declara businessId e retentionDays como int na assinatura', function () {
         $ref = new ReflectionMethod(ArquivosRetentionService::class, 'summary');
         $params = collect($ref->getParameters())->keyBy(fn ($p) => $p->getName());
 
@@ -64,7 +67,7 @@ describe('Wave 28 Arquivos POLISH 74-88 → ≥92', function () {
         expect($params['retentionDays']->getType()?->getName())->toBe('int');
     });
 
-    it('D2 W28: summary documenta shape canon (total/soft_deleted/expired_eligible/business_id)', function () {
+    it('D2 W28: o fonte do RetentionService tem as 4 chaves do shape do summary', function () {
         $src = file_get_contents((new ReflectionClass(ArquivosRetentionService::class))->getFileName());
 
         // Shape canônico no return array
@@ -73,20 +76,59 @@ describe('Wave 28 Arquivos POLISH 74-88 → ≥92', function () {
         }
     });
 
-    it('D2 W28: summary é READ-ONLY (zero mutação — preserva fail-secure dry_run Wave 18)', function () {
-        $src = file_get_contents((new ReflectionClass(ArquivosRetentionService::class))->getFileName());
+    // Até 2026-11-16 este título era afirmado por grep no FONTE (o bloco não continha
+    // "delete"/"update"). Agora o summary roda contra o banco: conta o que diz contar, só
+    // da empresa pedida, e não muda nenhuma linha. Contrato: docblock do summary + ADR 0093.
+    // Ao exercitar, apareceu um defeito: `soft_deleted` saía sempre 0 (o SoftDeletes do
+    // model já filtra deleted_at IS NULL); corrigido com withTrashed() no service.
+    it('D2 W28: summary é READ-ONLY e conta só a empresa pedida (total / soft_deleted / expired_eligible)', function () {
+        if (DB::connection()->getDriverName() === 'sqlite' || ! Schema::hasTable('arquivos')) {
+            $this->markTestSkipped('Precisa do schema MySQL do Arquivos — roda na lane arquivos-pest.');
+        }
+        session()->forget(['user', 'business']);
 
-        // Localiza bloco summary e valida que não chama delete/forceDelete/restore
-        $summaryStart = strpos($src, 'public function summary(');
-        expect($summaryStart)->not->toBeFalse();
+        $biz = $this->seededTenant()->id;
+        $vizinho = $this->seededSupportClientTenant()->id;
+        $svc = app(ArquivosRetentionService::class);
 
-        $summaryEnd = strpos($src, "\n    }\n", $summaryStart);
-        $summaryBlock = substr($src, $summaryStart, $summaryEnd - $summaryStart);
+        $antes = $svc->summary($biz, 30);
 
-        expect($summaryBlock)->not->toContain('->delete()');
-        expect($summaryBlock)->not->toContain('forceDelete');
-        expect($summaryBlock)->not->toContain('restore');
-        expect($summaryBlock)->not->toContain('update(');
+        $linha = fn (int $b, string $nome, $criado, $apagado = null) => DB::table('arquivos')->insertGetId([
+            'business_id'   => $b,
+            'disk'          => 'arquivos',
+            'storage_path'  => "biz-{$b}/w28/{$nome}",
+            'original_name' => $nome,
+            'mime_type'     => 'text/plain',
+            'size_bytes'    => 1,
+            'md5'           => md5("w28-{$b}-{$nome}"),
+            'bucket'        => 'active',
+            'created_at'    => $criado,
+            'updated_at'    => $criado,
+            'deleted_at'    => $apagado,
+        ]);
+        $ids = [
+            $linha($biz, 'antigo.txt', now()->subDays(100)),          // total + expired_eligible
+            $linha($biz, 'novo.txt', now()),                          // total
+            $linha($biz, 'excluido.txt', now(), now()->subDay()),     // soft_deleted
+            $linha($vizinho, 'antigo-99.txt', now()->subDays(100)),   // não pode contar na 98
+        ];
+        $retrato = fn () => DB::table('arquivos')->whereIn('id', $ids)->orderBy('id')
+            ->get(['id', 'business_id', 'deleted_at', 'updated_at', 'bucket'])->toArray();
+        $retratoAntes = $retrato();
+        $totalAntes = DB::table('arquivos')->count();
+
+        $depois = $svc->summary($biz, 30);
+
+        expect(array_keys($depois))->toBe(['total', 'soft_deleted', 'expired_eligible', 'business_id']);
+        expect($depois['business_id'])->toBe($biz);
+        // Deltas: a linha da 99 não entra em nenhum dos três números da 98.
+        expect($depois['total'] - $antes['total'])->toBe(2);
+        expect($depois['soft_deleted'] - $antes['soft_deleted'])->toBe(1);
+        expect($depois['expired_eligible'] - $antes['expired_eligible'])->toBe(1);
+
+        // READ-ONLY: nenhuma linha mudou e nenhuma sumiu.
+        expect($retrato())->toEqual($retratoAntes);
+        expect(DB::table('arquivos')->count())->toBe($totalAntes);
     });
 
     it('D9 W28: OtelHelper preserva exception em spans arquivos.retention.* (fail-loud)', function () {
