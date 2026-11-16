@@ -74,7 +74,11 @@ Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'Admi
     Route::get('/subscription/{package_id}/pesapal-callback', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'pesapalCallback'])->name('pesapalCallback');
 
     Route::get('/subscription/{package_id}/pay', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'pay']);
-    Route::any('/subscription/{package_id}/confirm', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirm'])->name('subscription-confirm');
+    // POST com CSRF: o confirm cria a assinatura. Era `Route::any`, e um GET sem CSRF (link clicado
+    // por admin logado) assinava pacote pago. PayPal e Pesapal voltam pelo navegador (GET) e por
+    // isso têm o retorno próprio, que só aceita esses dois.
+    Route::post('/subscription/{package_id}/confirm', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirm'])->name('subscription-confirm');
+    Route::get('/subscription/{package_id}/confirm/retorno', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirmRetorno'])->name('subscription-confirm-retorno');
     Route::get('/all-subscriptions', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'allSubscriptions']);
 
     Route::get('/subscription/{package_id}/register-pay', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'registerPay'])->name('register-pay');
