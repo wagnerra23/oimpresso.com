@@ -29,7 +29,7 @@ import { camposDaPolitica, politicaInicial } from './_components/formulario/poli
 import { semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
-import type { Folheto } from './_components/formulario/CampoMidia';
+import type { Folheto } from './_components/formulario/envioMidia';
 import type {
   NaturezaFiscalProduto,
   NumeroCampoPersonalizado,
