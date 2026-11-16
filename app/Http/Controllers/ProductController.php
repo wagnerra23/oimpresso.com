@@ -1879,6 +1879,42 @@ class ProductController extends Controller
     }
 
     /**
+     * UC-PCAD-24 · UC-PEDIT-24: os campos personalizados que a empresa nomeou em Configurações →
+     * Rótulos (`custom_labels.product.custom_field_N`), com o tipo de cada um
+     * (`custom_labels.product_cf_details.N`: texto, data ou lista). Como no Blade
+     * (product/create.blade.php), campo sem nome não aparece; a lista sem opções vira texto.
+     *
+     * @return list<array{numero:int, rotulo:string, tipo:string, opcoes:list<string>}>
+     */
+    protected function camposPersonalizadosDaEmpresa(): array
+    {
+        $labels = json_decode((string) request()->session()->get('business.custom_labels'), true);
+        $labels = is_array($labels) ? $labels : [];
+        $rotulos = is_array($labels['product'] ?? null) ? $labels['product'] : [];
+        $detalhes = is_array($labels['product_cf_details'] ?? null) ? $labels['product_cf_details'] : [];
+        $campos = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $rotulo = trim((string) ($rotulos['custom_field_' . $i] ?? ''));
+            if ($rotulo === '') {
+                continue;
+            }
+            $d = is_array($detalhes[$i] ?? null) ? $detalhes[$i] : [];
+            $tipo = in_array($d['type'] ?? null, ['text', 'date', 'dropdown'], true) ? $d['type'] : 'text';
+            $opcoes = [];
+            if ($tipo === 'dropdown') {
+                $linhas = preg_split('/\R/', (string) ($d['dropdown_options'] ?? '')) ?: [];
+                $opcoes = array_values(array_unique(array_filter(array_map('trim', $linhas), fn ($o) => $o !== '')));
+                if ($opcoes === []) {
+                    $tipo = 'text';
+                }
+            }
+            $campos[] = ['numero' => $i, 'rotulo' => $rotulo, 'tipo' => $tipo, 'opcoes' => $opcoes];
+        }
+
+        return $campos;
+    }
+
+    /**
      * O valor gravado dos 20 campos personalizados do produto (1 → 20). O Editar React devolve
      * todos no envio, porque o update() grava '' em quem não vem no request (UC-PEDIT-10).
      *
@@ -1979,6 +2015,8 @@ class ProductController extends Controller
 
         if ($telaReact) {
             return Inertia::render('Produto/Create', [
+                // UC-PCAD-24: os campos personalizados com o nome que a empresa deu.
+                'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
                 'categories' => $categories,
                 'brands' => $brands,
                 'units' => $units,
@@ -2806,6 +2844,8 @@ class ProductController extends Controller
                     // edit_single_product_form_part.blade.php mostra. Variável e composto: null.
                     'precoSimples' => $this->precoSimplesDoProduto($product),
                 ],
+                // UC-PEDIT-24: os campos personalizados com o nome que a empresa deu.
+                'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
                 'categories' => $categories,
                 'brands' => $brands,
                 'units' => $units,

@@ -56,7 +56,7 @@ export function camposPersonalizadosGravados(
  * alarga o valor inicial `''` para string. Os quatro campos opcionais existem só no formulário
  * da tela Novo, e os blocos só os mostram em modo `novo`.
  */
-export interface CamposProduto {
+export interface CamposProduto extends Record<CampoPersonalizado, string> {
   name: string;
   sku: string;
   unit_id: number | string;
@@ -80,8 +80,6 @@ export interface CamposProduto {
   comprimento_cm?: number | string;
   product_description: string;
   warranty_id: number | string;
-  product_custom_field1: string;
-  product_custom_field2: string;
   type?: TipoProduto;
   enable_stock?: number;
   not_for_selling?: number;
@@ -120,6 +118,18 @@ export type ErrosProduto = Partial<
 
 export type DefinirCampo = <K extends keyof CamposProduto>(campo: K, valor: CamposProduto[K]) => void;
 
+/**
+ * UC-PCAD-24 · UC-PEDIT-24: um campo personalizado que a empresa nomeou em Configurações → Rótulos
+ * (ProductController::camposPersonalizadosDaEmpresa). Campo sem nome não vem, como no Blade.
+ */
+export interface CampoDaEmpresa {
+  numero: NumeroCampoPersonalizado;
+  rotulo: string;
+  /** `dropdown` só vem com opções; sem elas o servidor manda `text`. */
+  tipo: 'text' | 'date' | 'dropdown';
+  opcoes: string[];
+}
+
 /** As listas de opções que as duas telas recebem do servidor. */
 export interface OpcoesProduto {
   units: OptionMap;
@@ -131,6 +141,8 @@ export interface OpcoesProduto {
   productTypes: OptionStringMap;
   /** Novo: os locais do negócio que quem cadastra pode acessar. */
   businessLocations?: OptionMap;
+  /** Os campos personalizados com o nome que a empresa deu (UC-PCAD-24 · UC-PEDIT-24). */
+  camposDaEmpresa?: CampoDaEmpresa[];
 }
 
 /**

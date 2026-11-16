@@ -3285,7 +3285,7 @@ class ReportController extends Controller
     }
 
     /** Filtros do relatório de Lotes — os mesmos nomes que o report.js manda. */
-    private const FILTROS_LOTES = ['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'only_mfg_products'];
+    private const FILTROS_LOTES = ['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'only_mfg_products', 'product_id'];
 
     /**
      * Lotes — a consulta do relatório (estoque, vendido e ajustado por lote), usada pelo DataTable da Blade e
@@ -3328,6 +3328,12 @@ class ReportController extends Controller
 
         if (! empty($filtros['category_id'] ?? null)) {
             $query->where('products.category_id', $filtros['category_id']);
+        }
+
+        // UC-RLT-07 (CV3): os lotes de um produto, vindo do painel da consulta de produto. A empresa já está
+        // no `products.business_id` acima: o id de outra empresa só esvazia a lista.
+        if (! empty($filtros['product_id'] ?? null)) {
+            $query->where('products.id', (int) $filtros['product_id']);
         }
 
         if (! empty($filtros['sub_category_id'] ?? null)) {
@@ -3426,7 +3432,12 @@ class ReportController extends Controller
                 'category_id' => (string) ($filtros['category_id'] ?? ''),
                 'brand_id' => (string) ($filtros['brand_id'] ?? ''),
                 'unit_id' => (string) ($filtros['unit_id'] ?? ''),
+                'product_id' => (string) ($filtros['product_id'] ?? ''),
             ],
+            // UC-RLT-07: o nome do produto filtrado, para a etiqueta "Produto: …". Só da empresa do usuário.
+            'produto' => ! empty($filtros['product_id'] ?? null)
+                ? Product::where('business_id', $business_id)->where('id', (int) $filtros['product_id'])->value('name')
+                : null,
             'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
             'categorias' => collect(Category::forDropdown($business_id, 'product'))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
             'marcas' => collect(Brands::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),

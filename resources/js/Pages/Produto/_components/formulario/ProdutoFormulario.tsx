@@ -72,6 +72,7 @@ export function ProdutoFormulario({
         definir={definir}
         errors={errors}
         mostrarValidade={mostrarValidade}
+        campos={opcoes.camposDaEmpresa}
         armazenagem={
           armazenagem && opcoes.businessLocations ? (
             <BlocoArmazenagem
