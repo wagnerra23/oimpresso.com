@@ -28,7 +28,7 @@ Route::middleware([
     'CheckUserLogin',
 ])->prefix('auditoria')->name('auditoria.')->group(function () {
 
-    // Leitura: pacote `auditoria_module` + `auditoria.view` (superadmin passa). Mesma regra do menu.
+    // Leitura: `auditoria.view` (superadmin passa). Pacote fora da regra: ver AuditoriaLiberado.
     Route::get('/', [AuditoriaController::class, 'index'])
         ->middleware(AuditoriaLiberado::class)
         ->name('index');
