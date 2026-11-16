@@ -1,0 +1,74 @@
+name: Label affects/<cliente>
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Rotula o PR com `affects/rota-livre` e/ou `affects/wr2` quando ele altera o `source`
+# de uma tela que esses clientes vivos usam (campo `clientes` em
+# scripts/screen-smoke/routes.json — o mesmo conjunto que o job smoke-clientes do
+# screen-smoke-after-merge abre em todo deploy). Remove o label quando o PR deixa de
+# tocar essas telas. Decisão [W] 2026-11-15: label automático, sem comentário em PR.
+#
+# Automação, não gate: nunca reprova o PR. Se não conseguir medir (routes.json ilegível),
+# avisa e não mexe nos labels — "não medi" não vira "não afeta ninguém".
+#
+# Base do diff = HEAD^1 do merge ref (1º pai = base atual do PR). Não usar
+# pull_request.base.sha: congela no `opened` e inclui no range o que entrou em main
+# depois (§5 2026-09-15).
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: affects-clientes-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    name: Label affects/<cliente>
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Selftest
+        run: node scripts/screen-smoke/affects-clientes.mjs --selftest
+
+      - name: Calcular e aplicar labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          CHANGED="$(git diff --name-only HEAD^1 HEAD)"
+          set +e
+          WANT="$(printf '%s\n' "$CHANGED" | node scripts/screen-smoke/affects-clientes.mjs)"
+          RC=$?
+          set -e
+          if [ "$RC" -ne 0 ]; then
+            echo "::warning::affects-clientes NÃO MEDIU (rc=$RC) — labels não alterados."
+            exit 0
+          fi
+          echo "labels devidos: ${WANT:-(nenhum)}"
+          HAVE="$(gh pr view "$PR" --json labels --jq '.labels[].name' | grep -E '^affects/' || true)"
+          for L in $WANT; do
+            if ! printf '%s\n' "$HAVE" | grep -qFx "$L"; then
+              gh label create "$L" --color D93F0B --description "PR toca tela usada por cliente vivo" 2>/dev/null || true
+              gh pr edit "$PR" --add-label "$L" || echo "::warning::não consegui aplicar $L (PR de fork?)"
+            fi
+          done
+          for L in $HAVE; do
+            if ! printf '%s\n' "$WANT" | grep -qFx "$L"; then
+              gh pr edit "$PR" --remove-label "$L" || echo "::warning::não consegui remover $L"
+            fi
+          done
+          {
+            echo "### affects/<cliente>"
+            echo "${WANT:-nenhum cliente vivo afetado}"
+          } >> "$GITHUB_STEP_SUMMARY"
