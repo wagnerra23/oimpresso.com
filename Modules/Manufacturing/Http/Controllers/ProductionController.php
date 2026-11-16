@@ -21,6 +21,7 @@ use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
+use Modules\Manufacturing\Http\Requests\UpdateProductionRequest;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
@@ -669,7 +670,7 @@ class ProductionController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProductionRequest $request, $id)
     {
         $business_id = $request->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
@@ -681,11 +682,7 @@ class ProductionController extends Controller
         try {
             $nivelTransacao = DB::transactionLevel();
 
-            $request->validate([
-                'transaction_date' => 'required',
-                'location_id' => 'required',
-                'final_total' => 'required',
-            ]);
+            // Data, local, total e os números da ordem: `UpdateProductionRequest` (UC-OP-15, UC-OP-21).
 
             //Create Production purchase
             $transaction_data = $request->only(['ref_no', 'transaction_date', 'location_id']);
