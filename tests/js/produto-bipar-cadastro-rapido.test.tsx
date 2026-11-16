@@ -26,7 +26,13 @@ let estado: CamposProduto
 function Dados({ opcoes }: { opcoes: OpcoesProduto }) {
   const [data, setData] = useState({ name: '', sku: '', barcode_type: 'C128', unit_id: 4, brand_id: 2 } as unknown as CamposProduto)
   estado = data
-  return <BlocoDados modo="novo" data={data} definir={(k, v) => setData((d) => ({ ...d, [k]: v }))} errors={{}} opcoes={opcoes} />
+  // Dentro de <form>, como na tela: só aí o Select do Radix cria o <select> nativo escondido, que é o
+  // que devolvia '' quando a unidade/marca nova ainda não estava na lista.
+  return (
+    <form>
+      <BlocoDados modo="novo" data={data} definir={(k, v) => setData((d) => ({ ...d, [k]: v }))} errors={{}} opcoes={opcoes} />
+    </form>
+  )
 }
 
 let chamadas: Array<{ url: string; corpo: Record<string, unknown> }>
@@ -75,6 +81,10 @@ describe('UC-PCAD-28 · "+" de unidade e de marca', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Gravar' }))
 
     await waitFor(() => expect(estado.unit_id).toBe(31))
+    // A unidade nova ainda não está na lista (a recarga é assíncrona): a escolha tem de ficar, não só
+    // passar pelo campo. Teste no Chrome 2026-11-16: o Select devolvia '' e a unidade virava 0.
+    await new Promise((r) => setTimeout(r, 50))
+    expect(estado.unit_id).toBe(31)
     expect(chamadas).toEqual([{ url: '/units', corpo: { actual_name: 'Caixa', short_name: 'CX', allow_decimal: 1 } }])
     expect(recarregar).toHaveBeenCalledWith({ only: ['units'] })
   })
@@ -88,6 +98,8 @@ describe('UC-PCAD-28 · "+" de unidade e de marca', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Gravar' }))
 
     await waitFor(() => expect(estado.brand_id).toBe(7))
+    await new Promise((r) => setTimeout(r, 50))
+    expect(estado.brand_id).toBe(7)
     expect(chamadas).toEqual([{ url: '/brands', corpo: { name: '3M', description: '' } }])
     expect(recarregar).toHaveBeenCalledWith({ only: ['brands'] })
   })

@@ -1,8 +1,9 @@
 // UC-PCAD-28 · UC-PCAD-30 (Create.casos.md): o "+" de marca/unidade e o rascunho recuperado mudam o
 // valor das caixas de seleção por código. No navegador o Radix responde com onValueChange("") e o
-// cadastro gravava 0 em unidade, marca e categoria (medido no Chromium em 2026-11-16). O jsdom não
-// reproduz esse disparo (medido: um teste montando o Select real passa com e sem a correção), então
-// o teste simula o Radix entregando "" ao Select do DS e confere que ele não chega a quem usa.
+// cadastro gravava 0 em unidade, marca e categoria (medido no Chromium em 2026-11-16). O disparo só
+// acontece com o Select dentro de <form> (é lá que o Radix cria o <select> nativo escondido); os casos
+// reais estão em produto-bipar-cadastro-rapido e produto-rascunho-aviso, montados dentro de <form>.
+// Este teste trava o contrato do componente: o "" do Radix não chega a quem usa.
 import { render } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 
