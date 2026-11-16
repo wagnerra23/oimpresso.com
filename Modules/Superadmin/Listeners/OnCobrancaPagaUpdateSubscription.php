@@ -29,7 +29,8 @@ use Modules\Superadmin\Entities\Subscription;
  *   - Cobranca.business_id = 1 (Wagner — dono da cobrança)
  *   - Subscription.business_id = <tenant_id> (cross-tenant Wagner-only,
  *     pattern legacy UltimatePOS documentado em Subscription.php:30)
- *   - Business update usa withoutGlobalScopes() pra cross-tenant explícito.
+ *   - Business update busca pelo id da Subscription. `App\Business` não tem escopo
+ *     global, então não há escopo a tirar.
  *
  * Idempotência: se Subscription.status === 'approved' → return (não duplica).
  * Race: se Subscription.id no event não bate em DB → log + return (Wagner
@@ -86,8 +87,7 @@ final class OnCobrancaPagaUpdateSubscription
         $subscription->save();
         // Spatie LogsActivity append-only registra mudança (LGPD D7.b CC Art. 206)
 
-        // SUPERADMIN: listener SaaS roda sem sessão de tenant; desbloqueia o Business do assinante pago cross-tenant
-        $business = Business::withoutGlobalScopes()->find($subscription->business_id);
+        $business = Business::find($subscription->business_id);
         if ($business && (bool) $business->officeimpresso_bloqueado === true) {
             $business->officeimpresso_bloqueado = false;
             $business->save();

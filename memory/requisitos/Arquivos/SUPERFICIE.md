@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 92 arquivos em 17 papéis.
+**Total mapeado:** 94 arquivos em 17 papéis.
 
 ## Controllers — 5
 
@@ -38,7 +38,7 @@ module: Arquivos
 
 - [ArquivosNoPacote.php](../../../Modules/Arquivos/Http/Middleware/ArquivosNoPacote.php)
 
-## Services — 10
+## Services — 11
 
 - [AnexosDoAppService.php](../../../Modules/Arquivos/Services/AnexosDoAppService.php)
 - [ArquivosRetentionService.php](../../../Modules/Arquivos/Services/ArquivosRetentionService.php)
@@ -49,6 +49,7 @@ module: Arquivos
 - [CuradorEngine.php](../../../Modules/Arquivos/Services/Curador/CuradorEngine.php)
 - [CuradorStatsReader.php](../../../Modules/Arquivos/Services/Curador/CuradorStatsReader.php)
 - [RetencaoStatsReader.php](../../../Modules/Arquivos/Services/RetencaoStatsReader.php)
+- [ValidacaoUpload.php](../../../Modules/Arquivos/Services/ValidacaoUpload.php)
 - [VaultEncryptionService.php](../../../Modules/Arquivos/Services/VaultEncryptionService.php)
 
 ## Models / Entities — 2
@@ -116,9 +117,9 @@ module: Arquivos
 
 - [Index.casos.md](../../../resources/js/Pages/Arquivos/Index.casos.md)
 
-## Testes (Pest) — 33
+## Testes (Pest) — 34
 
-- 33 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
+- 34 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4

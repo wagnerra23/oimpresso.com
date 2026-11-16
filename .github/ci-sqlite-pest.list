@@ -813,5 +813,6 @@ tests/Unit/Tenancy/ContextoEmpresaEscopoTest.php
 tests/Unit/Tenancy/ContextoEmpresaJobTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoModulosTest.php
 Modules/Arquivos/Tests/Feature/ArquivosNoPacoteTest.php
+Modules/Arquivos/Tests/Feature/ValidacaoUploadTest.php
 Modules/Arquivos/Tests/Feature/ArquivosConsertosL2Test.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoArquivoTest.php
