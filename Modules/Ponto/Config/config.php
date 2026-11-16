@@ -180,8 +180,9 @@ return [
     |--------------------------------------------------------------------------
     | Smoke diário dos clientes vivos (sells:smoke-daily → checkClientesVivos)
     |--------------------------------------------------------------------------
-    | wr2_business_id: business da WR2 no oimpresso. PLACEHOLDER = 1 (demo) até o [W]
-    | informar o business real; enquanto isso a contagem de marcações é só informativa.
+    | wr2_business_id: business da WR2 (Eliana) em produção = 1 ([W] 2026-11-15).
+    | A contagem de marcações dela é só informativa: zero marcações em 365 dias, medido em
+    | 2026-11-15 — ver SmokeDailyCommand::checkClientesVivos.
     */
     'smoke' => [
         'wr2_business_id'        => (int) env('SMOKE_WR2_BIZ', 1),

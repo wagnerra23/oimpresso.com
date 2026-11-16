@@ -247,9 +247,12 @@ class SmokeDailyCommand extends Command
      * venda, maior lacuna sem venda = 3 dias. Uma janela de 5 dias teria dado zero alarme
      * falso naquele ano. Se a rotina da loja mudar (férias), a janela é config.
      *
-     * WR2: o business da Eliana ainda não está registrado; usa pontowr2.smoke.wr2_business_id
-     * (env SMOKE_WR2_BIZ, padrão 1 = demo). Por ser placeholder, a contagem de marcações é só
-     * informativa. Reprova só se o Ponto estiver habilitado e a tabela de marcações sumir.
+     * WR2: business 1 em produção ([W] 2026-11-15; env SMOKE_WR2_BIZ). A contagem de marcações
+     * é só informativa: medido em 2026-11-15, o biz=1 tinha zero marcações nos 365 dias
+     * anteriores (a produção inteira tinha 2, de outro business), então um alarme de "sem
+     * marcação" nasceria vermelho para sempre. Reprova só se o Ponto estiver habilitado e a
+     * tabela de marcações sumir. Se a WR2 passar a marcar ponto aqui, medir a cadência e armar
+     * o alarme como o da ROTA LIVRE.
      */
     protected function checkClientesVivos(): void
     {
@@ -302,7 +305,7 @@ class SmokeDailyCommand extends Command
                 ->where('business_id', $wr2Biz)
                 ->where('momento', '>=', now()->subDays(7))
                 ->count();
-            $linhas[] = "clientes vivos: wr2 biz={$wr2Biz} marcações em 7d={$marcacoes} (informativo — business placeholder)";
+            $linhas[] = "clientes vivos: wr2 biz={$wr2Biz} marcações em 7d={$marcacoes} (informativo — sem cadência medida para alarmar)";
         }
 
         return ['falhas' => $falhas, 'linhas' => $linhas];

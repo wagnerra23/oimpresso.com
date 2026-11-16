@@ -14,7 +14,7 @@ use Tests\Support\EstoqueFixture;
  * ÂNCORA: decisão [W] 2026-11-15 (sessão guardião dos clientes vivos): o smoke diário acusa
  * quando a ROTA LIVRE para de vender por mais que a janela (padrão 5 dias, medida em produção:
  * maior lacuna sem venda em 365 dias = 3), com ALERT no log e o comando saindo FAILURE; a WR2
- * é só informativa enquanto o business dela for placeholder.
+ * é só informativa (zero marcações do biz=1 em 365 dias, medido em 2026-11-15).
  *
  * Tenants: 98 (canônico, ADR 0358) e um business inexistente para o caso "zero vendas".
  * Nunca biz=4 — o business da ROTA LIVRE entra por parâmetro.
@@ -85,7 +85,7 @@ it('venda fora da janela não conta: a janela é o que decide, não a existênci
     expect(implode("\n", $r['linhas']))->toContain("rota-livre biz={$this->bizId} vendas em 5d={$antes}");
 });
 
-it('WR2 placeholder nunca reprova por falta de marcação: só informa', function () {
+it('WR2 nunca reprova por falta de marcação: só informa', function () {
     $r = SmokeDailyCommand::avaliarClientesVivos($this->bizId, 5, (int) DB::table('business')->max('id') + 1000);
 
     expect(collect($r['falhas'])->filter(fn ($f) => str_contains($f, 'cliente=wr2'))->all())->toBe([]);
