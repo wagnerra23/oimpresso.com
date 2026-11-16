@@ -5,8 +5,8 @@ irmaos: Membro.charter.md (lei) · Membro.tsx (tela) · precedente Modules/Fisio
 tecnica: Caso de uso = narrativa da associada + critério de aceite verificável (Dado/Quando/Então)
 por_que: a rota é pública na internet e a associada é pessoa com fibromialgia (dado sensível, LGPD art. 11). Sem PIN e trava é força bruta; sem token assinado é vazamento entre empresas.
 owner: wagner
-last_run: "2026-11-13"
-last_run_ci: "_pendente_ — AssociacoesPortalMembroContratoTest entra na lane Verticais (MySQL); o veredito por UC entra quando o manifesto da lane for regenerado."
+last_run: "2026-11-16"
+last_run_ci: "run 43899580137 (lane Verticais, 2026-11-16): UC-AMB-01..07 passaram, 7 de 7, depois do rounded-lg em Membro.tsx; o veredito por UC entra quando o manifesto da lane for regenerado."
 related_us: [US-ASSOC-005]
 ---
 
