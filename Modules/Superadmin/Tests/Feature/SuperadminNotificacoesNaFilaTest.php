@@ -15,6 +15,11 @@ use Modules\Superadmin\Notifications\SendSubscriptionExpiryAlert;
 use Modules\Superadmin\Notifications\SubscriptionOfflinePaymentActivationConfirmation;
 use Modules\Superadmin\Notifications\SuperadminCommunicator;
 
+// Sem isto o arquivo roda sem a aplicação Laravel (nenhum Pest.php cobre Modules/), e todo
+// caso que usa facade cai em `Target [...] is not instantiable` — vermelho no main desde o
+// #10973 (run 43929519327: 9 de 10 casos com erro).
+uses(Tests\TestCase::class);
+
 /**
  * As notificações do Superadmin saem do request HTTP e vão pra fila própria (lote L4, 2026-11-16).
  *

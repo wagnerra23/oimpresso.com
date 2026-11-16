@@ -26,6 +26,10 @@ beforeEach(function () {
     if (!Schema::hasTable('subscriptions') || !Schema::hasTable('packages') || !Schema::hasTable('business') || !Schema::hasTable('system')) {
         $this->markTestSkipped('Schema Superadmin/System ausente.');
     }
+
+    // Sobra de um caso que caiu antes do cleanup faria o próximo cair em id duplicado.
+    Subscription::where('business_id', ONDA5B_BIZ_TEST)->forceDelete();
+    Business::withoutGlobalScopes()->where('id', ONDA5B_BIZ_TEST)->forceDelete();
 });
 
 const ONDA5B_BIZ_TEST = 9991;
@@ -54,6 +58,34 @@ function onda5b_setProperty(?int $packageId): void
     }
 }
 
+/**
+ * Cria o business de teste 9991 pelo Eloquent (dispara o `created` do observer, como o
+ * `Business::create` de produção). Até 2026-11-16 o teste fazia `Business::create(['id' => 9991, ...])`
+ * sem as colunas NOT NULL do schema — `id` é guarded (o insert saía sem ele) e faltava
+ * `owner_id`: os 4 casos caíam em FK `business_owner_id_foreign` antes de chegar ao observer.
+ * Ninguém viu porque o arquivo não estava em lane nenhuma.
+ */
+function onda5b_business(string $nome): Business
+{
+    $dono = Business::withoutGlobalScopes()->whereKey(98)->value('owner_id')
+        ?? DB::table('users')->orderBy('id')->value('id');
+
+    $business = new Business();
+    $business->forceFill([
+        'id' => ONDA5B_BIZ_TEST,
+        'name' => $nome,
+        'currency_id' => DB::table('currencies')->orderBy('id')->value('id') ?? 1,
+        'owner_id' => $dono,
+        'stop_selling_before' => 0,
+        'weighing_scale_setting' => '',
+        'certificado' => '',
+        'officeimpresso_numerodemaquinas' => 0,
+    ]);
+    $business->save();
+
+    return $business;
+}
+
 function onda5b_cleanup(int $packageId): void
 {
     Subscription::where('package_id', $packageId)->forceDelete();
@@ -66,11 +98,7 @@ it('Business::create dispara auto-Subscription waiting com Package default + tri
     $package = onda5b_pkg();
     onda5b_setProperty($package->id);
 
-    $business = Business::create([
-        'id' => ONDA5B_BIZ_TEST,
-        'name' => 'Tenant Onda 5B Test',
-        'currency_id' => 1,
-    ]);
+    $business = onda5b_business('Tenant Onda 5B Test');
 
     $sub = Subscription::where('business_id', $business->id)->first();
 
@@ -106,11 +134,7 @@ it('Business::create biz=1 (Wagner) NÃO dispara auto-Subscription', function ()
 it('Sem default_saas_package_id Observer faz no-op', function () {
     onda5b_setProperty(null);
 
-    $business = Business::create([
-        'id' => ONDA5B_BIZ_TEST,
-        'name' => 'Tenant Sem Property',
-        'currency_id' => 1,
-    ]);
+    $business = onda5b_business('Tenant Sem Property');
 
     $count = Subscription::where('business_id', $business->id)->count();
     expect($count)->toBe(0);
@@ -122,11 +146,7 @@ it('Business já com Subscription NÃO duplica (idempotência)', function () {
     $package = onda5b_pkg();
     onda5b_setProperty($package->id);
 
-    $business = Business::create([
-        'id' => ONDA5B_BIZ_TEST,
-        'name' => 'Tenant Re-test',
-        'currency_id' => 1,
-    ]);
+    $business = onda5b_business('Tenant Re-test');
     $firstCount = Subscription::where('business_id', $business->id)->count();
 
     // Re-invoca observer manualmente (simula Eloquent observer reentrante)
@@ -141,11 +161,7 @@ it('Business já com Subscription NÃO duplica (idempotência)', function () {
 it('Package default inexistente faz no-op + log warning', function () {
     onda5b_setProperty(99999); // ID inexistente
 
-    $business = Business::create([
-        'id' => ONDA5B_BIZ_TEST,
-        'name' => 'Tenant Pkg Inexistente',
-        'currency_id' => 1,
-    ]);
+    $business = onda5b_business('Tenant Pkg Inexistente');
 
     $count = Subscription::where('business_id', $business->id)->count();
     expect($count)->toBe(0);

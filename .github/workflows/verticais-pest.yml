@@ -831,6 +831,15 @@ jobs:
             Modules/Superadmin/Tests/Feature/SubscriptionConfirmContratoTest.php \
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
+            Modules/Superadmin/Tests/Feature/AssinaturaAtivaDeterministaTest.php \
+            Modules/Superadmin/Tests/Feature/OnCobrancaPagaUpdateSubscriptionTest.php \
+            Modules/Superadmin/Tests/Feature/OnCobrancaVencidaBloqueaSubscriptionTest.php \
+            Modules/Superadmin/Tests/Feature/BusinessAutoSubscriptionObserverTest.php \
+            Modules/Superadmin/Tests/Feature/PackageManagerServiceTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminGateTest.php \
+            Modules/Superadmin/Tests/Feature/SecurityHardeningTest.php \
+            Modules/Superadmin/Tests/Feature/CrossTenantSuperadminTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminCrossTenantPolicyTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
