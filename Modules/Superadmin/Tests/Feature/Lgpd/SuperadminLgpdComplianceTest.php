@@ -214,9 +214,17 @@ it('D7.c: pending_offline_payments = 730 dias (2 anos anonymize)', function () {
 // Cross-cutting — multi-tenant Tier 0 preserve cross-tenant intent
 // ============================================================================
 
-it('cross-tenant: D7 changes NÃO removeram withoutGlobalScopes (Constituição Art. 6)', function () {
-    $businessController = file_get_contents(__DIR__.'/../../../Http/Controllers/BusinessController.php');
-    // Cross-tenant intent legítimo: BusinessController DEVE listar TODOS businesses
-    // Garantir que ainda usa Business::with(...) cross-tenant (sem business_id where)
-    expect($businessController)->toContain('Business::with');
+it('cross-tenant: a lista de negócios segue marcada como leitura global intencional (ADR 0093)', function () {
+    // Reescrito em 2026-11-16: a versão anterior procurava `Business::with` no
+    // BusinessController, que deixou de existir quando a lista virou `DB::table('business')`
+    // com JOIN (tela Inertia superadmin/Negocios). O teste avermelhava e ninguém via porque
+    // não estava em lane nenhuma.
+    //
+    // O COMPORTAMENTO (a lista traz negócios de todas as empresas, não só da sessão) é provado
+    // no MySQL pelo UC-SANEG-04 (SuperadminNegociosContratoTest). Aqui, sem banco, fica a
+    // convenção: a leitura global é feita na base `business` e carrega a marca `SUPERADMIN:`.
+    $src = file_get_contents(__DIR__.'/../../../Http/Controllers/BusinessController.php');
+
+    expect($src)->toContain("DB::table('business')")
+        ->and($src)->toContain('SUPERADMIN: leitura GLOBAL cross-tenant intencional');
 });

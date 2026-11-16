@@ -815,3 +815,6 @@ tests/Unit/Tenancy/ContextoEmpresaEscopoModulosTest.php
 Modules/Arquivos/Tests/Feature/ValidacaoUploadTest.php
 Modules/Arquivos/Tests/Feature/ArquivosConsertosL2Test.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoArquivoTest.php
+# Superadmin L1 (2026-11-16) — sem banco: traits/config LGPD e o registry do Artisan.
+Modules/Superadmin/Tests/Feature/Lgpd/SuperadminLgpdComplianceTest.php
+tests/Feature/Architecture/SuperadminScheduledCommandsRegisteredTest.php
