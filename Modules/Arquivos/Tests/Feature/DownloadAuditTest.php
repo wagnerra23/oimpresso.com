@@ -3,13 +3,14 @@
 declare(strict_types=1);
 
 use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Modules\Arquivos\Entities\Arquivo;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Regressão do bug de audit `signed_url_consumed` (code review adversarial 2026-07-02).
@@ -39,18 +40,9 @@ beforeEach(function () {
     }
 });
 
-afterEach(function () {
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        return;
-    }
-    // Cleanup scope-free (sem global scope): remove audit rows da fixture + o arquivo.
-    $ids = DB::table('arquivos')->where('md5', DOWNLOAD_AUDIT_MD5)->pluck('id');
-    if ($ids->isNotEmpty()) {
-        DB::table('arquivos_audit_log')->whereIn('arquivo_id', $ids)->delete();
-    }
-    DB::table('arquivos')->where('md5', DOWNLOAD_AUDIT_MD5)->delete();
-    DB::table('users')->where('username', 'like', 'arqdl_l0_%')->delete();
-});
+// Sem afterEach de limpeza: cada teste roda numa transação revertida (DatabaseTransactions).
+// arquivos_audit_log é append-only (ADR 0123 §8) e vai ganhar trigger BEFORE DELETE no L2;
+// apagar linhas da trilha no teardown cairia nele.
 
 it('consumir a signed URL grava audit signed_url_consumed', function () {
     Storage::fake('arquivos');
