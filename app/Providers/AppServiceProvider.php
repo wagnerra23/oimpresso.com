@@ -36,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
         ini_set('memory_limit', '-1');
         set_time_limit(0);
 
+        // ADR 0453 — job com $businessId roda com essa empresa no ContextoEmpresa (fila e síncrono).
+        \Illuminate\Support\Facades\Bus::pipeThrough([\App\Tenancy\DefinirContextoEmpresaDoJob::class]);
+
         /*
          * VISREG — congela o relógio do PHP DO PROCESSO QUE SERVE O REQUEST.
          *

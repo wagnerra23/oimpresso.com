@@ -1,7 +1,7 @@
 // Wave E — US-CRM-067 Menu Ações dropdown + atalhos (MWART F3 paridade /contacts/{id} header actions)
 // Restrições Tier 0 (ADR 0093): backend endpoints filtram business_id global scope.
 // Backend endpoints existentes:
-//   GET /contacts/update-status/{id} (toggle is_active, ContactController::updateStatus linha 1960)
+//   POST /contacts/update-status/{id} com status=active|inactive (ContactController::updateStatus)
 //   DELETE /contacts/{id} (ContactController::destroy linha 1190)
 //   POST /payments/pay-contact-due/{contact_id} (TransactionPaymentController::getPayContactDue linha 447 routes)
 //   POST /ledger-discount (LedgerDiscountController::store)
@@ -66,7 +66,13 @@ export default function ActionsMenu({
     if (!confirm(isActive ? `Desativar ${contactName}?` : `Reativar ${contactName}?`)) return;
     setBusy(true);
     try {
+      // Manda o estado confirmado: se outra pessoa já tiver mudado, o servidor aplica o
+      // pedido em vez de inverter de novo. POST porque muda dado (o GET é do botão Blade).
+      const fd = new FormData();
+      fd.append('status', isActive ? 'inactive' : 'active');
       const res = await fetch(`/contacts/update-status/${contactId}`, {
+        method: 'POST',
+        body: fd,
         credentials: 'same-origin',
         headers: {
           'X-CSRF-TOKEN': getCsrf(),
