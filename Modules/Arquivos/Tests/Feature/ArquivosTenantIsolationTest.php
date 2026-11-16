@@ -105,8 +105,19 @@ beforeEach(function () {
 it('Arquivos · listagem da empresa 98 não traz registro da 99 (com controle positivo)', function () {
     $ids = atiIdsDoAcervo($this);
 
-    expect($ids)->toContain($this->id98);
-    expect($ids)->not->toContain($this->id99);
+    // assertContains em vez de toContain: o matcher do Pest é variádico e trataria a
+    // mensagem como needle (§5 2026-07-28). A mensagem diz o que veio, se o assert cair.
+    $diag = sprintf(
+        'acervo devolveu %d ids (primeiros: %s) · id98=%d (biz %d) · id99=%d · sessão biz %s',
+        count($ids),
+        json_encode(array_slice($ids, 0, 10)),
+        $this->id98,
+        $this->biz,
+        $this->id99,
+        json_encode($this->sessao['user']['business_id'] ?? null)
+    );
+    $this->assertContains($this->id98, $ids, $diag);
+    $this->assertNotContains($this->id99, $ids, $diag);
 })->group('arquivos', 'multi-tenant');
 
 it('Arquivos · leitura por id de registro da 99 com sessão da 98 dá 404 (com controle positivo)', function () {
