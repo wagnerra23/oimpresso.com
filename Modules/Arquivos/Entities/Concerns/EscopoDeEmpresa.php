@@ -21,7 +21,7 @@ trait EscopoDeEmpresa
     protected static function bootEscopoDeEmpresa(): void
     {
         static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = static::empresaDoEscopoDeArquivos();
+            $businessId = self::empresaDoEscopoDeArquivos();
             if ($businessId !== null) {
                 $query->where('arquivos.business_id', $businessId);
             }
