@@ -18,6 +18,7 @@ supersedes_partially:
 superseded_by: []
 related:
   - 0451-associacoes-rede-uniafibro-area-de-membros
+  - 0452-captacao-projetos-de-captacao-de-recursos
   - 0093-multi-tenant-isolation-tier-0
 pii: false
 review_triggers:
@@ -37,8 +38,9 @@ review_triggers:
 ## Contexto
 
 A [ADR 0451](0451-associacoes-rede-uniafibro-area-de-membros.md) (aceita) desenhou a rede como
-cadastro e documentos, com dinheiro **fora**. A ADR 0452 (Captação, proposta no PR #10895) cobre o
-ciclo do projeto, também com o Financeiro fora (D7).
+cadastro e documentos, com dinheiro **fora**. A
+[ADR 0452](0452-captacao-projetos-de-captacao-de-recursos.md) (Captação, esqueleto mergeado no
+PR #10895) cobre o ciclo do projeto, também com o Financeiro fora (D7).
 
 Fonte desta emenda: *Estatuto Social – UNIAFIBRO-SC (versão revisada)*, documento do [W] no claude.ai,
 lido inteiro em 2026-11-16. O documento ainda tem sugestões não aceitas e **ainda não foi registrado**;
