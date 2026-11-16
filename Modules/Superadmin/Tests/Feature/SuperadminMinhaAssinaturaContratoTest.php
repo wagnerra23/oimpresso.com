@@ -171,3 +171,48 @@ it('UC-SAMA-05 · pacote privado só aparece para o superadmin', function () {
 
     expect($nomes)->not->toContain('Pacote privado thread 07');
 });
+
+/** Todos os `href` do menu lateral, incluindo os filhos dos dropdowns. */
+function maHrefsDoMenu(array $itens): array
+{
+    $hrefs = [];
+    foreach ($itens as $item) {
+        $item = (array) $item;
+        if (! empty($item['href'])) {
+            $hrefs[] = (string) $item['href'];
+        }
+        if (! empty($item['children'])) {
+            $hrefs = array_merge($hrefs, maHrefsDoMenu((array) $item['children']));
+        }
+    }
+
+    return $hrefs;
+}
+
+it('UC-SAMA-06 · o item Assinatura aparece para quem só tem a permissão da rota', function () {
+    // O menu só chama o DataController de módulo INSTALADO (`superadmin_version` em `system`).
+    // A lane MySQL pode não semear a chave: semeia só quando falta e desfaz no fim.
+    $semeou = false;
+    if (! DB::table('system')->where('key', 'superadmin_version')->exists()) {
+        DB::table('system')->insert(['key' => 'superadmin_version', 'value' => '1.0']);
+        $semeou = true;
+    }
+
+    try {
+        $this->actingAs(maUsuario('ma_permitido_test', true))
+            ->get(ROTA_MA)
+            ->assertOk()
+            ->assertInertia(function (AssertableInertia $page) {
+                $hrefs = maHrefsDoMenu((array) ($page->toArray()['props']['shell']['menu'] ?? []));
+                $daRota = array_filter($hrefs, fn ($h) => (string) parse_url($h, PHP_URL_PATH) === ROTA_MA);
+                expect($daRota)->not->toBeEmpty();
+                // Discrimina: o usuário NÃO tem business_settings.access (o item dele não está no menu).
+                $deConfig = array_filter($hrefs, fn ($h) => str_ends_with((string) parse_url($h, PHP_URL_PATH), '/business/settings'));
+                expect($deConfig)->toBeEmpty();
+            });
+    } finally {
+        if ($semeou) {
+            DB::table('system')->where('key', 'superadmin_version')->delete();
+        }
+    }
+});

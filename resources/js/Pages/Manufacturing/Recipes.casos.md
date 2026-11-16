@@ -346,6 +346,15 @@ last_run: "2026-10-27"
   auditoria do Manufacturing, lote 2.7.
 - **Teste:** `ExcluirRascunhoTrilhaTest.php`
 - **Regressão que defende:** a receita não tem coluna de empresa, e o registro nascia sem ela — sumia da auditoria.
+## UC-RECIPE-23 · A receita sempre tem forma de custo extra, e a lista mostra a forma que a conta usou
+- **Persona:** Wagner — lê "Custo extra (…)" no painel da receita.
+- **Aceite:** Dado o salvar sem `production_cost_type` (ausente ou vazio) · Então volta com erro no campo e a
+  receita não grava · Dado uma receita antiga gravada sem a forma · Quando a lista e o editor a mostram ·
+  Então os dois dizem "fixo", que é a forma que o custo calculado usou (15 de ingredientes + 2,5 = 17,5).
+- **Fonte:** charter de Recipes (❌ aceitar `production_cost_type` fora de `{fixed, percentage, per_unit}`) ·
+  UC-RECIPE-04 · auditoria do Manufacturing, lote 2.3.
+- **Teste:** `FormaCustoExtraTest.php` — a conta à mão e a fórmula que o rótulo anuncia.
+- **Regressão que defende:** o painel dizer "Custo extra (2,5%)" ao lado de um custo que somou 2,5 inteiro.
 - **Status: 🧪**
 
 ---

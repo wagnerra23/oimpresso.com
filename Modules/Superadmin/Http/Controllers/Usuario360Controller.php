@@ -129,6 +129,8 @@ class Usuario360Controller extends Controller
             return back()->withErrors(['reason' => $e->getMessage()]);
         }
 
+        $this->registrarEvento($request, $id, 'usuario360_trancado', ['lockout_id' => $lockoutId]);
+
         return back()->with('status', "Usuário trancado (lockout #{$lockoutId}).");
     }
 
@@ -145,6 +147,8 @@ class Usuario360Controller extends Controller
         } catch (\Throwable $e) {
             return back()->withErrors(['general' => $e->getMessage()]);
         }
+
+        $this->registrarEvento($request, $id, 'usuario360_destrancado');
 
         return back()->with('status', 'Usuário destrancado.');
     }
@@ -190,6 +194,38 @@ class Usuario360Controller extends Controller
                 $activity->business_id = $visto->business_id;
             })
             ->log('usuario360_visualizado');
+    }
+
+    /**
+     * Trilha de trancar/destrancar no mesmo dono do acesso ao raio-X (`activity_log`, log
+     * `superadmin_acesso`), com o `business_id` do usuário afetado — o dono do negócio vê,
+     * pelo Modules/Auditoria, que o superadmin trancou alguém da casa dele.
+     *
+     * O MOTIVO não entra no payload: é texto livre do superadmin sobre o titular e pode
+     * carregar PII. Ele já fica em `user_lockouts`, ligado pelo `lockout_id`.
+     *
+     * Listar (`index`) não registra, por contrato (UC-SAUX-06): é busca, não acesso a um titular.
+     */
+    private function registrarEvento(Request $request, int $userId, string $evento, array $extra = []): void
+    {
+        $afetado = User::find($userId);
+        if ($afetado === null) {
+            return;
+        }
+
+        activity('superadmin_acesso')
+            ->causedBy($request->user())
+            ->performedOn($afetado)
+            ->event($evento)
+            ->withProperties($extra + [
+                'tela'       => 'superadmin/Usuario360/Show',
+                'ip'         => $request->ip(),
+                'user_agent' => mb_substr((string) $request->userAgent(), 0, 255),
+            ])
+            ->tap(function ($activity) use ($afetado) {
+                $activity->business_id = $afetado->business_id;
+            })
+            ->log($evento);
     }
 
     private function hasActiveLockout(int $userId): bool
