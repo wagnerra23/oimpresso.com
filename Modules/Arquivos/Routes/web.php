@@ -5,6 +5,7 @@ use Modules\Arquivos\Http\Controllers\ArquivosAdminController;
 use Modules\Arquivos\Http\Controllers\DownloadController;
 use Modules\Arquivos\Http\Controllers\InstallController;
 use Modules\Arquivos\Http\Controllers\RetencaoSimulacaoController;
+use Modules\Arquivos\Http\Middleware\ArquivosNoPacote;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,8 +14,8 @@ use Modules\Arquivos\Http\Controllers\RetencaoSimulacaoController;
 |
 | Sprint 1 — ADR 0123 (Modules/Arquivos DMS backbone).
 |
-| Arquivos é backbone consumido via trait HasArquivos. Não tem UI própria.
-| UI admin entra em Sprint 2 (Pages/Arquivos no Modules/Admin).
+| Arquivos é backbone consumido via trait HasArquivos e TEM tela própria: /arquivos
+| (resources/js/Pages/Arquivos/), no próprio módulo — ver o bloco "UI admin" abaixo.
 |
 | Rotas:
 | - 3 Install obrigatórias (ADR 0024)
@@ -35,7 +36,10 @@ use Modules\Arquivos\Http\Controllers\RetencaoSimulacaoController;
 // que rodaria antes do SetSessionData. Excluir/restaurar = thread 03; retencao/purge
 // dependem da proposta de ADR `arquivos-retencao-ui-aviso-titular`. Excluir/restaurar
 // entraram na thread 03 (2026-10-01).
-Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+//
+// `ArquivosNoPacote` (2026-11-16, auditoria L2): a tela só abre com `arquivos_module` no
+// pacote da empresa — a mesma regra do menu. Vem depois do SetSessionData (lê a sessão).
+Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', ArquivosNoPacote::class])
     ->prefix('arquivos')
     ->group(function () {
         Route::get('/', [ArquivosAdminController::class, 'index'])
