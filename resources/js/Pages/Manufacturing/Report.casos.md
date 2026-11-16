@@ -122,6 +122,16 @@ last_run: "2026-10-06"
 
 ---
 
+## UC-REPORT-07 · Sem `view_purchase_price`, o relatório não traz custo
+- **Persona:** quem tem acesso à produção, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre o relatório (ou pede o JSON de totais) · Então custo total, custo médio, percentual e o total do período vêm vazios · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** o relatório de custo entregue a quem só acompanha a produção.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Custo **congelado** por ordem finalizada (`custoSnap`) — não existe ainda;

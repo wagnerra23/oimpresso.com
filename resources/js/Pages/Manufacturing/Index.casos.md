@@ -369,6 +369,16 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-24 · Sem `view_purchase_price`, a lista de ordens não traz custo
+- **Persona:** quem acompanha a produção, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre Ordens de produção · Então o total e o custo unitário de cada ordem, o valor somado e o custo do painel da ordem vêm vazios · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** o custo da produção entregue a quem só acompanha as ordens.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.

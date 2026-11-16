@@ -185,6 +185,16 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-INGRED-16 · Sem `view_purchase_price`, o editor não traz o custo dos insumos
+- **Persona:** quem edita receita, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre o editor · Então o custo de cada insumo vem vazio e o cartão "Custo ao vivo" não aparece; o custo extra da receita continua no formulário (esvaziá-lo zeraria a receita ao salvar) · Dado o mesmo usuário com `view_purchase_price` · Então o custo vem.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** o editor entregar o custo de compra de cada insumo a quem só edita a ficha.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D2 · decisão [W] 2026-10-13) Salvar a composição grava em `product_bom` e `mfg_recipes` passa a ler dela, sem mudar a resposta de `ProductController`, `ProdutoUnificadoController` e `ProductUtil`. Mexe em estoque/valor: REGRA MESTRE (dupla prova + antes→depois). Depende do ADR.
