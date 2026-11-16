@@ -1,0 +1,199 @@
+<?php
+
+declare(strict_types=1);
+// Cobre UC-PIDX-50 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+
+use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Tests\Support\EstoqueFixture;
+
+/**
+ * D-30 (decisão [F] 2026-11-12), a parte da venda: o kit segue "Permitir vender sem estoque" como qualquer
+ * produto. Desligada, a venda não passa de quantos kits os componentes permitem; ligada, passa e os
+ * componentes ficam negativos.
+ *
+ * A venda é a do Blade (`sale_pos/product_row.blade.php` manda a linha do kit com `product_type=combo` e a
+ * lista `combo` dos componentes), gravada por `/pos` (SellPosController@store, o caminho de produção). A
+ * venda React (Create/CreateV3) ainda não monta o kit (backlog P-066, Sells/Create.casos.md).
+ *
+ * Dupla prova da REGRA MESTRE (estoque): o kit é 2 A + 1 B, com A = 6 e B = 5 em estoque e o mesmo lastro
+ * de compra.
+ *   Caminho 1 — conta à mão: kits possíveis = min(6 ÷ 2, 5 ÷ 1) = 3. Vender 3 baixa A para 0 e B para 2.
+ *   Caminho 2 — ProductUtil::calculateComboQuantity (a conta que a venda Blade usa para o saldo do kit)
+ *               dá os mesmos 3 antes da venda.
+ *
+ * Setup copiado de SellsCreateV3GravarContratoTest.php (lastro de compra, sessão com o modelo Business),
+ * com outro prefixo: os arquivos rodam no mesmo processo da lane. Tenant 98 (ADR 0358). Nunca biz=4.
+ */
+uses(DatabaseTransactions::class);
+
+/** Componente com $qtd em estoque e o mesmo lastro de compra (sem lastro o store recusa por PurchaseSellMismatch). */
+function kitvComponente(object $test, float $qtd): object
+{
+    $produto = EstoqueFixture::singleProduct($test->bizId);
+    EstoqueFixture::setStock($produto, 0, $test->locationId, $qtd);
+    $compraId = (int) DB::table('transactions')->insertGetId([
+        'business_id' => $test->bizId, 'type' => 'purchase', 'status' => 'received',
+        'location_id' => $test->locationId, 'payment_status' => 'paid',
+        'transaction_date' => now()->subDay(), 'total_before_tax' => 0, 'final_total' => 0,
+        'created_by' => $test->user->id, 'essentials_duration' => 0,
+        'created_at' => now()->subDay(), 'updated_at' => now()->subDay(),
+    ]);
+    DB::table('purchase_lines')->insert([
+        'transaction_id' => $compraId, 'product_id' => $produto->productId,
+        'variation_id' => $produto->variations[0]['variation_id'], 'quantity' => $qtd,
+        'quantity_sold' => 0, 'quantity_adjusted' => 0, 'quantity_returned' => 0,
+        'purchase_price' => 0, 'purchase_price_inc_tax' => 0, 'item_tax' => 0,
+        'created_at' => now()->subDay(), 'updated_at' => now()->subDay(),
+    ]);
+
+    return $produto;
+}
+
+/** Kit = 2 A + 1 B. `$controla` = "Controlar estoque" do próprio kit (o cadastro vem com ele ligado). */
+function kitvKit(object $test, object $a, object $b, bool $controla): object
+{
+    $kit = EstoqueFixture::singleProduct($test->bizId, $controla);
+    DB::table('products')->where('id', $kit->productId)->update(['type' => 'combo']);
+    DB::table('variations')->where('id', $kit->variationId())->update([
+        'combo_variations' => json_encode([
+            ['variation_id' => $a->variationId(), 'quantity' => 2, 'unit_id' => $a->unitId],
+            ['variation_id' => $b->variationId(), 'quantity' => 1, 'unit_id' => $b->unitId],
+        ]),
+    ]);
+
+    return $kit;
+}
+
+function kitvVenderSemEstoque(object $test, bool $liga): void
+{
+    $atual = json_decode((string) DB::table('business')->where('id', $test->bizId)->value('pos_settings'), true) ?: [];
+    $atual['allow_overselling'] = $liga ? 1 : 0;
+    DB::table('business')->where('id', $test->bizId)->update(['pos_settings' => json_encode($atual)]);
+}
+
+/**
+ * Posta a venda de $kits kits como a linha do Blade a monta. Devolve se gravou, a mensagem do store e os
+ * saldos de A e B depois.
+ *
+ * @return array{gravou: bool, msg: string, saldos: array{0: float, 1: float}}
+ */
+function kitvVender(object $test, object $kit, object $a, object $b, int $kits, bool $kitControla): array
+{
+    $total = 10.0 * $kits;
+    $pagamento = [['amount' => $total, 'method' => 'cash', 'paid_on' => '', 'account_id' => null, 'note' => '']];
+    $response = $test->post('/pos', [
+        'location_id' => $test->locationId, 'contact_id' => $test->contactId,
+        'transaction_date' => now()->format('d/m/Y H:i'), 'status' => 'final',
+        'invoice_no' => '', 'pay_term_number' => '', 'pay_term_type' => 'days',
+        'products' => [[
+            'product_id' => $kit->productId, 'variation_id' => $kit->variationId(),
+            'quantity' => $kits, 'unit_price' => 10, 'unit_price_inc_tax' => 10, 'item_tax' => 0, 'tax_id' => null,
+            'line_discount_type' => 'fixed', 'line_discount_amount' => 0,
+            'enable_stock' => $kitControla ? 1 : 0, 'product_type' => 'combo',
+            // A lista que o product_row.blade.php manda: a quantidade de cada componente já multiplicada pelos kits.
+            'combo' => [
+                ['product_id' => $a->productId, 'variation_id' => $a->variationId(), 'quantity' => 2 * $kits],
+                ['product_id' => $b->productId, 'variation_id' => $b->variationId(), 'quantity' => 1 * $kits],
+            ],
+        ]],
+        'payment' => $pagamento,
+        'discount_type' => 'fixed', 'discount_amount' => 0,
+        'is_direct_sale' => 1, 'final_total' => $total,
+    ]);
+
+    $gravou = DB::table('transaction_sell_lines')
+        ->join('transactions', 'transactions.id', '=', 'transaction_sell_lines.transaction_id')
+        ->where('transactions.business_id', $test->bizId)
+        ->where('transaction_sell_lines.product_id', $kit->productId)
+        ->exists();
+    $status = session('status');
+
+    return [
+        'gravou' => $gravou,
+        'msg' => is_array($status) ? (string) ($status['msg'] ?? '') : ('http ' . $response->status()),
+        'saldos' => [EstoqueFixture::currentStock($a, 0, $test->locationId), EstoqueFixture::currentStock($b, 0, $test->locationId)],
+    ];
+}
+
+beforeEach(function () {
+    if (! EstoqueFixture::schemaReady()) {
+        $this->markTestSkipped('Schema UltimatePOS/seed ausente (sqlite :memory: ou DB vazio) — roda na lane MySQL / CT 100.');
+    }
+
+    $this->bizId = EstoqueFixture::businessId(); // tenant 98 (ADR 0358 — nunca biz=4).
+    $this->locationId = EstoqueFixture::locationId($this->bizId);
+    $this->contactId = (int) DB::table('contacts')->where('business_id', $this->bizId)->orderBy('id')->value('id');
+    $this->user = User::where('business_id', $this->bizId)->orderBy('id')->first();
+    if (! $this->user || $this->contactId === 0) {
+        $this->markTestSkipped('Sem user ou contato no business seeded.');
+    }
+
+    $this->actingAs($this->user);
+    $business = \App\Business::findOrFail($this->bizId);
+    $business->date_format = 'd/m/Y';
+    $business->time_format = 24;
+    session(['user.business_id' => $this->bizId, 'user.id' => $this->user->id, 'business' => $business]);
+
+    $currency = DB::table('currencies')
+        ->where('id', DB::table('business')->where('id', $this->bizId)->value('currency_id'))
+        ->first();
+    session(['currency' => [
+        'id' => (int) ($currency->id ?? 1),
+        'code' => (string) ($currency->code ?? 'BRL'),
+        'symbol' => (string) ($currency->symbol ?? 'R$'),
+        'thousand_separator' => (string) ($currency->thousand_separator ?? '.'),
+        'decimal_separator' => (string) ($currency->decimal_separator ?? ','),
+    ]]);
+
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    Permission::findOrCreate('sell.create', 'web');
+    $this->user->givePermissionTo('sell.create');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $this->a = kitvComponente($this, 6);
+    $this->b = kitvComponente($this, 5);
+});
+
+it('UC-PIDX-50 · sem vender sem estoque: 3 kits gravam e baixam os componentes; 4 kits não gravam e o estoque fica como estava', function () {
+    kitvVenderSemEstoque($this, false);
+    $kit = kitvKit($this, $this->a, $this->b, false);
+
+    // Caminho 2 — a conta que a venda Blade usa para o saldo do kit, antes de vender.
+    $combo = json_decode((string) DB::table('variations')->where('id', $kit->variationId())->value('combo_variations'), true);
+    expect((int) app(\App\Utils\ProductUtil::class)->calculateComboQuantity($this->locationId, $combo))->toBe(3);
+
+    $quatro = kitvVender($this, $kit, $this->a, $this->b, 4, false);
+    expect($quatro['gravou'])->toBeFalse('o store gravou 4 kits sem vender sem estoque');
+    expect($quatro['saldos'])->toBe([6.0, 5.0]);
+
+    // Caminho 1 — à mão: 3 kits = 6 de A e 3 de B.
+    $tres = kitvVender($this, $kit, $this->a, $this->b, 3, false);
+    expect($tres['gravou'])->toBeTrue('o store recusou 3 kits: ' . $tres['msg']);
+    expect($tres['saldos'])->toBe([0.0, 2.0]);
+});
+
+it('UC-PIDX-50 · com vender sem estoque: 4 kits gravam e os componentes ficam negativos', function () {
+    kitvVenderSemEstoque($this, true);
+    $kit = kitvKit($this, $this->a, $this->b, false);
+
+    $quatro = kitvVender($this, $kit, $this->a, $this->b, 4, false);
+    expect($quatro['gravou'])->toBeTrue('o store recusou 4 kits com vender sem estoque: ' . $quatro['msg']);
+    // À mão: A 6 − 8 = −2; B 5 − 4 = 1.
+    expect($quatro['saldos'])->toBe([-2.0, 1.0]);
+});
+
+it('UC-PIDX-50 · o kit com "Controlar estoque" ligado (o padrão do cadastro) segue a mesma regra', function () {
+    kitvVenderSemEstoque($this, false);
+    $kit = kitvKit($this, $this->a, $this->b, true);
+
+    $quatro = kitvVender($this, $kit, $this->a, $this->b, 4, true);
+    expect($quatro['gravou'])->toBeFalse('o store gravou 4 kits sem vender sem estoque');
+    expect($quatro['saldos'])->toBe([6.0, 5.0]);
+
+    $tres = kitvVender($this, $kit, $this->a, $this->b, 3, true);
+    expect($tres['gravou'])->toBeTrue('o store recusou 3 kits: ' . $tres['msg']);
+    expect($tres['saldos'])->toBe([0.0, 2.0]);
+});
