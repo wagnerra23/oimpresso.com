@@ -137,6 +137,7 @@ class RecipeController extends Controller
                 'criar'  => auth()->user()->can('manufacturing.add_recipe'),
                 'editar' => auth()->user()->can('manufacturing.edit_recipe'),
                 'prod'   => auth()->user()->can('manufacturing.access_production'),
+                'receita' => true, // a rota já exige `access_recipe` (UC-RECIPE-24)
             ],
             'producao' => [
                 'total'       => (int) $ordens['total_count'],
@@ -183,6 +184,7 @@ class RecipeController extends Controller
             'metodo_custo' => $variationId ? $this->metodoCustoDoInsumo($business_id, $variationId) : null,
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
+                'receita' => true, // a rota já exige `access_recipe` (UC-RECIPE-24)
             ],
             'producao' => [
                 'total' => (int) $ordens['total_count'],

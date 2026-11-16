@@ -67,34 +67,51 @@ class DataController extends Controller
         $module_util = new ModuleUtil();
         $is_mfg_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'manufacturing_module', 'superadmin_package');
 
-        if ($is_mfg_enabled && (auth()->user()->can('manufacturing.access_recipe') || auth()->user()->can('manufacturing.access_production'))) {
-            Menu::modify('admin-sidebar-menu', function ($menu) {
+        $pode_receita = auth()->user()->can('manufacturing.access_recipe');
+        $pode_producao = auth()->user()->can('manufacturing.access_production');
+
+        if ($is_mfg_enabled && ($pode_receita || $pode_producao)) {
+            // UC-RECIPE-24 (lote 2.4 da auditoria): cada item leva a uma rota que o usuário abre.
+            // Receitas e Insumos pedem `access_recipe`; Ordens, Relatório e Configurações pedem
+            // `access_production` (decisão B3 de [W], 2026-11-09). Antes os cinco apareciam para
+            // quem tinha uma das duas, e o item principal ia a Receitas mesmo para quem só produz.
+            $ghosts = [];
+            if ($pode_receita) {
+                $ghosts[] = ['key' => 'recipe',   'label' => 'Receitas', 'href' => '/manufacturing/recipe'];
+                $ghosts[] = ['key' => 'insumos',  'label' => 'Insumos',  'href' => '/manufacturing/insumos'];
+            }
+            if ($pode_producao) {
+                $ghosts[] = ['key' => 'production', 'label' => 'Produções',     'href' => '/manufacturing/production'];
+                $ghosts[] = ['key' => 'report',     'label' => 'Relatório',     'href' => '/manufacturing/report'];
+                $ghosts[] = ['key' => 'settings',   'label' => 'Configurações', 'href' => '/manufacturing/settings'];
+            }
+            $principal = $pode_receita
+                ? action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index'])
+                : action([\Modules\Manufacturing\Http\Controllers\ProductionController::class, 'index']);
+
+            Menu::modify('admin-sidebar-menu', function ($menu) use ($ghosts, $principal, $pode_producao) {
                 // ADR 0180 Fase 4 Wave B (2026-05-21): entry principal declara
                 // atalho kbd + primary action + ghosts tabs.
                 //  - `shortcut` G P → atalho overlay (Produção)
                 //  - `primary`     → "Nova ordem de produção" via ProductionController@create
                 //  - `ghosts`      → Receitas, Produções, Relatório, Configurações
-                $menu->url(
-                    action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index']),
-                    __('manufacturing::lang.manufacturing'),
-                    [
-                        'icon'     => 'fa fas fa-industry',
-                        'style'    => config('app.env') == 'demo' ? 'background-color: #ff851b;' : '',
-                        'active'   => request()->segment(1) == 'manufacturing',
-                        'shortcut' => 'G P',
-                        'primary'  => [
-                            'label'    => 'Nova ordem de produção',
-                            'href'     => '/manufacturing/production/create',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'   => [
-                            ['key' => 'recipe',     'label' => 'Receitas',        'href' => '/manufacturing/recipe'],
-                            ['key' => 'production', 'label' => 'Produções',       'href' => '/manufacturing/production'],
-                            ['key' => 'report',     'label' => 'Relatório',       'href' => '/manufacturing/report'],
-                            ['key' => 'settings',   'label' => 'Configurações',   'href' => '/manufacturing/settings'],
-                        ],
-                    ]
-                )
+                $atributos = [
+                    'icon'     => 'fa fas fa-industry',
+                    'style'    => config('app.env') == 'demo' ? 'background-color: #ff851b;' : '',
+                    'active'   => request()->segment(1) == 'manufacturing',
+                    'shortcut' => 'G P',
+                    'ghosts'   => $ghosts,
+                ];
+                // "Nova ordem" abre o formulário de ordem, que pede `access_production`.
+                if ($pode_producao) {
+                    $atributos['primary'] = [
+                        'label'    => 'Nova ordem de produção',
+                        'href'     => '/manufacturing/production/create',
+                        'shortcut' => 'N',
+                    ];
+                }
+
+                $menu->url($principal, __('manufacturing::lang.manufacturing'), $atributos)
                 ->order(21);
             });
         }

@@ -129,6 +129,7 @@ class SettingsController extends Controller
             'version' => System::getProperty('manufacturing_version'),
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
             ],
             'producao' => [
                 'total' => (int) $ordens['total_count'],
