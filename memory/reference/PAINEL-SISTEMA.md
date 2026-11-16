@@ -24,7 +24,7 @@ lente: [construir]
 |---|---|---|
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-10-26 |
-| Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | — |
+| Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | 2026-11-15 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-11-10 |
 | Captacao | [BRIEFING](../requisitos/Captacao/BRIEFING.md) | 2026-11-14 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
@@ -35,7 +35,7 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-10-27 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-10-28 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-11-06 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-11-16 |
 | Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
@@ -433,14 +433,14 @@ lente: [construir]
 
 ## Rastro
 
-- **628** handoffs · **806** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **629** handoffs · **807** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-11-15-smoke-clientes-vivos`
   - `2026-11-14-runbook-deploy-producao`
   - `2026-11-14-captacao-onda1-adr-esqueleto`
   - `2026-11-05-refutacao-gt-g5-lote-10376-r1`
   - `2026-10-30-session-04`
   - `2026-10-30-session-02-venda-v3-edicao`
-  - `2026-10-26-fase0-nsu-dfe-seco-medicao`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-11-16 · deriva das fontes canônicas, não as substitui._
