@@ -810,3 +810,4 @@ tests/Feature/Site/UniafibroSiteTest.php
 tests/Feature/Security/UploadExtensaoExecutavelTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoModulosTest.php
+tests/Unit/Tenancy/ContextoEmpresaEscopoArquivoTest.php
