@@ -1,5 +1,9 @@
 ---
 id: requisitos-superadmin-briefing
+module: Superadmin
+status: producao
+status_nota: "legado UltimatePOS v6 em uso interno [W]"
+updated_at: "2026-11-16"
 ---
 
 # BRIEFING — Modules/Superadmin
@@ -51,6 +55,7 @@ Sem Superadmin Wagner precisaria SSH + tinker + SQL pra criar cliente novo, alte
 
 ## Gaps reconhecidos
 
+- ✅ (2026-11-16) Fechado: desativar e excluir empresa ou pacote saía por GET (um link bastava) — agora POST/DELETE com CSRF, `is_active` só 0/1 e as travas de `canDestroy` na exclusão (`SuperadminRotasDestrutivasContratoTest`). O que a exclusão apaga continua como antes (B5).
 - 🟡 PIX BR não nativo (gateways herdados são internacionais; Asaas/Inter integrados via `Modules/RecurringBilling`/`Modules/PaymentGateway`)
 - 🟡 Sem dashboard de receita consolidada por package/cohort (P2 backlog)
 - 🟡 Sem export CSV de audit do Communicator (LGPD opt-in)

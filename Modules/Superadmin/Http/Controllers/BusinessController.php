@@ -630,22 +630,22 @@ class BusinessController extends BaseController
 
             //Check if logged in busines id is same as deleted business then not allowed.
             $business_id = request()->session()->get('user.business_id');
-            if ($business_id == $id) {
-                $output = ['success' => 0, 'msg' => __('superadmin.lang.cannot_delete_current_business')];
+
+            // Pré-condições centralizadas (negócio 1 protegido, próprio negócio, último negócio).
+            // O que é apagado não muda aqui — isso é a decisão B5 pendente do [W]. A recusa sai
+            // pelo mesmo `return` de antes, para não abrir mais um retorno no método.
+            $pode = app(BusinessAuditService::class)->canDestroy((int) $id, (int) $business_id);
+            if ($business_id == $id || ! $pode['can_destroy']) {
+                $output = ['success' => 0, 'msg' => $business_id == $id
+                    ? __('superadmin.lang.cannot_delete_current_business')
+                    : $pode['reason']];
 
                 return back()->with('status', $output);
             }
 
-            // Pré-condições centralizadas (negócio 1 protegido, próprio negócio, último negócio).
-            // O que é apagado não muda aqui — isso é a decisão B5 pendente do [W].
-            $pode = app(BusinessAuditService::class)->canDestroy((int) $id, (int) $business_id);
-            if (! $pode['can_destroy']) {
-                return back()->with('status', ['success' => 0, 'msg' => $pode['reason']]);
-            }
-
             DB::beginTransaction();
 
-            // Trilha: quem excluiu qual negócio. Sem PII — só ids. `business_id` do registro é o
+            // Trilha: quem excluiu qual negócio (ids e o IP de quem excluiu). `business_id` do registro é o
             // negócio excluído, não o da sessão do superadmin.
             activity('superadmin_negocio')
                 ->causedBy(auth()->user())
