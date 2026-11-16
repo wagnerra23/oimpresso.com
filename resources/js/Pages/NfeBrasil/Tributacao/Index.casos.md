@@ -5,8 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-11-13"
+last_run: "2026-11-15"
 ---
+
+> ℹ️ **`last_run` 2026-11-13 → 2026-11-15 (G-6).** A tela ganhou a seção Naturezas de operação (PR #10896,
+> atrás da flag `useV2NfeNaturezas`) e a onda 4 (PR #10919) só troca dois rótulos de opção do editor ("Da regra do
+> NCM"). Re-executado nesta data: o Vitest da seção (UC-NFTR-51/52, `tests/js/nfe-naturezas-lista.test.tsx`, 2 de
+> 2). Os UCs de backend (UC-NFTR-44..50, 53..59) têm o veredito da lane `PHP / Pest (NfeBrasil · MySQL)`; os
+> Status seguem do manifesto G-7.
 
 > ℹ️ **`last_run` 2026-10-20 → 2026-11-13 (G-6), sem re-execução.** A mudança no `Index.tsx` é o R-NFE-025b
 > (PR #10879): a lista passa a mostrar o CST de PIS/COFINS embaixo do percentual, e o payload da listagem leva
@@ -678,6 +684,55 @@ last_run: "2026-11-13"
   salvar" e fica desabilitado, e a conferência foi pedida ao servidor.
 - **Teste:** [`nfe-naturezas-lista.test.tsx`](../../../../../tests/js/nfe-naturezas-lista.test.tsx) — `UC-NFTR-52 …` (mutação: sem a trava, reprova).
 - **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+
+## UC-NFTR-53 · O motor calcula pela natureza da tela: ICMS pela UF, PIS/COFINS do regime, IBS/CBS do ano · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza da tela (Presumido, ICMS pela UF, interna de SC 17%) **Quando** calculo um item de 1.000,00 de SC para SC em 2026 **Então** CFOP 5102, ICMS 170,00, PIS 6,50, COFINS 30,00, IBS 1,00, CBS 9,00.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-53 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-54 · Fora do estado: 12% da tabela, 4% para importado (Resolução SF 13/2012) · `must` `[fiscal]`
+
+- **Aceite:** **Dado** a mesma natureza e a interestadual SC→PR de 12% **Quando** o produto é nacional (origem 0) ou importado sem similar (6) **Então** ICMS 120,00; importado (1) ou nacional com conteúdo importado acima de 40% (3) **Então** 40,00; dentro do estado o importado segue com a interna.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-54 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-55 · Alíquota fixa, redução de base e CST sem ICMS próprio · `must` `[fiscal]`
+
+- **Aceite:** **Dado** ICMS fixo de 18% **Então** 180,00; CST 20 com 40% de redução **Então** base 600,00 e ICMS 102,00; CST 41 **Então** ICMS 0.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-55 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-56 · IPI e MVA "da regra do NCM"; PIS/COFINS do Lucro Real · `must` `[fiscal]`
+
+- **Aceite:** **Dado** a regra por NCM com IPI 5% e MVA 40% e a empresa no Lucro Real **Então** IPI 50,00, PIS 16,50, COFINS 76,00 e a MVA da ST é a da regra.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-56 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-57 · Sem fonte do número, o motor recusa com o motivo · `must` `[fiscal]`
+
+- **Aceite:** **Dado** interna da UF não cadastrada, IPI "da regra do NCM" sem regra, IBS/CBS pelo padrão num ano sem padrão, ou ICMS "da nota de origem" fora da devolução **Então** a nota é recusada com o motivo; nunca sai com zero.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-57 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-58 · Operação com regra geral segue a regra geral · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma operação com `regra_geral` (vinda do CSV) e também `config_tela` **Então** vale a regra geral, como antes da onda 4.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-58 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-59 · A natureza da tela não cai na venda padrão · `must` `[fiscal]`
+
+- **Aceite:** **Dado** `calcularNaOperacao` com uma natureza da tela **Então** vale o cálculo da natureza (ICMS 120,00, não os 170,00 da venda), e a recusa sobe em vez de virar cálculo de venda.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-59 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## Backlog — sem UC até ganhar teste
 
