@@ -10,7 +10,7 @@ last_run: "2026-10-01"
 # Casos de Uso & Aceite — Arquivos/Index
 
 > Nascido de `criar-tela.mjs`. **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
-> Regra G-2: UC declarado sem teste citando o id = órfão. O stub `e2e/arquivos-index.spec.ts` já cita `UC-INDEX-01`.
+> Regra G-2: UC declarado sem teste citando o id = órfão. O E2E de browser é `tests/Browser/Arquivos/ArquivosIndexRenderTest.php` (4 vistas, cita UC-INDEX-01..04); o stub `e2e/arquivos-index.spec.ts` (`test.fixme`, nunca executou) saiu em 2026-11-16.
 
 > **Por que poucos UC com id aqui.** A tela nasceu no PR-1 ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216),
 > 2026-08-24: rota `GET /arquivos` viva) só com a vista **Acervo**; o PR-2 acrescentou a
