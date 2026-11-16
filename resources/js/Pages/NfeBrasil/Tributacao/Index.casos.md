@@ -755,6 +755,20 @@ last_run: "2026-11-15"
 - **Contrato:** `NaturezaOperacaoController::paraLancamento`.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-63 · Sem a flag, o painel fiscal da venda segue como antes · `must` `[fiscal]`
+
+- **Aceite:** **Dado** a lista de naturezas do lançamento respondendo 404 (flag desligada) **Quando** abro o painel fiscal da venda e emito a NF-e **Então** o seletor de natureza não aparece e o POST sai só com `{ modelo: '55' }`.
+- **Teste:** [`nfe-natureza-lancamento.test.tsx`](../../../../../tests/js/nfe-natureza-lancamento.test.tsx) — `UC-NFTR-63 …`.
+- **Contrato:** `Sells/_components/FiscalSection` + `NaturezaLancamentoSelect`.
+- **Status: 🧪** — veredito do job `Frontend / Vite build` (passo de Vitest).
+
+## UC-NFTR-64 · A natureza escolhida vai só no POST da NF-e · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza disponível para o lançamento **Quando** escolho a natureza e emito a NF-e e depois a NFC-e **Então** a NF-e sai com `operacao_id` da natureza e a NFC-e sai sem ele.
+- **Teste:** [`nfe-natureza-lancamento.test.tsx`](../../../../../tests/js/nfe-natureza-lancamento.test.tsx) — `UC-NFTR-64 …`.
+- **Contrato:** `Sells/_components/FiscalSection` + `VdNfeEmitModal` (mesmo seletor no passo 3).
+- **Status: 🧪** — veredito do job `Frontend / Vite build` (passo de Vitest).
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
