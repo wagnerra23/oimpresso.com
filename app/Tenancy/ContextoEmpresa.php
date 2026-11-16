@@ -104,6 +104,34 @@ final class ContextoEmpresa
         }
     }
 
+    /**
+     * Empresa que um global scope de MÓDULO deve aplicar, ou null para não filtrar.
+     * - `aberto`: semântica legada desses scopes — só a sessão web.
+     * - `log`/`fechado`: contexto (explícito → sessão → usuário do token); sem empresa,
+     *   semEmpresa() registra (log) ou lança (fechado). Dentro de comoPlataforma(): null.
+     *
+     * @throws ContextoEmpresaAusente
+     */
+    public function empresaDoEscopo(string $model): ?int
+    {
+        if (self::modo() === self::ABERTO) {
+            $daSessao = (int) session('user.business_id');
+
+            return $daSessao > 0 ? $daSessao : null;
+        }
+
+        if ($this->emModoPlataforma()) {
+            return null;
+        }
+
+        $businessId = $this->atual();
+        if ($businessId === null) {
+            $this->semEmpresa($model);
+        }
+
+        return $businessId;
+    }
+
     public function emModoPlataforma(): bool
     {
         return $this->plataforma > 0;

@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 154 arquivos em 9 papéis.
+**Total mapeado:** 159 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -105,7 +105,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [StockHistory.tsx](../../../resources/js/Pages/Produto/StockHistory.tsx)
 - [Index.tsx](../../../resources/js/Pages/Produto/Unificado/Index.tsx)
 
-## Componentes / apoio de tela — 39
+## Componentes / apoio de tela — 41
 
 - [CadastroDrawer.tsx](../../../resources/js/Pages/Produto/Cadastros/_components/CadastroDrawer.tsx)
 - [BulkBar.tsx](../../../resources/js/Pages/Produto/Unificado/_components/BulkBar.tsx)
@@ -130,7 +130,9 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [BlocoLocais.tsx](../../../resources/js/Pages/Produto/_components/formulario/BlocoLocais.tsx)
 - [BlocoProducao.tsx](../../../resources/js/Pages/Produto/_components/formulario/BlocoProducao.tsx)
 - [BlocoSubcampos.tsx](../../../resources/js/Pages/Produto/_components/formulario/BlocoSubcampos.tsx)
+- [CadastroAuxiliar.tsx](../../../resources/js/Pages/Produto/_components/formulario/CadastroAuxiliar.tsx)
 - [CampoCest.tsx](../../../resources/js/Pages/Produto/_components/formulario/CampoCest.tsx)
+- [CampoMidia.tsx](../../../resources/js/Pages/Produto/_components/formulario/CampoMidia.tsx)
 - [CampoNcm.tsx](../../../resources/js/Pages/Produto/_components/formulario/CampoNcm.tsx)
 - [CamposPreco.tsx](../../../resources/js/Pages/Produto/_components/formulario/CamposPreco.tsx)
 - [NaturezaFiscal.tsx](../../../resources/js/Pages/Produto/_components/formulario/NaturezaFiscal.tsx)
@@ -177,17 +179,20 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [StockHistory.casos.md](../../../resources/js/Pages/Produto/StockHistory.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Produto/Unificado/Index.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 18
+## Demais arquivos (manifestos, docs, assets e misc) — 21
 
 - [catalogo.ts](../../../resources/js/Pages/Produto/Unificado/_components/catalogo.ts)
 - [armazenagem.ts](../../../resources/js/Pages/Produto/_components/formulario/armazenagem.ts)
 - [cest.ts](../../../resources/js/Pages/Produto/_components/formulario/cest.ts)
 - [ean.ts](../../../resources/js/Pages/Produto/_components/formulario/ean.ts)
 - [envio.ts](../../../resources/js/Pages/Produto/_components/formulario/envio.ts)
+- [envioCadastroAuxiliar.ts](../../../resources/js/Pages/Produto/_components/formulario/envioCadastroAuxiliar.ts)
+- [envioMidia.ts](../../../resources/js/Pages/Produto/_components/formulario/envioMidia.ts)
 - [metodoCusto.ts](../../../resources/js/Pages/Produto/_components/formulario/metodoCusto.ts)
 - [ncm.ts](../../../resources/js/Pages/Produto/_components/formulario/ncm.ts)
 - [politicaPreco.ts](../../../resources/js/Pages/Produto/_components/formulario/politicaPreco.ts)
 - [precos.ts](../../../resources/js/Pages/Produto/_components/formulario/precos.ts)
+- [rascunho.ts](../../../resources/js/Pages/Produto/_components/formulario/rascunho.ts)
 - [tipos.ts](../../../resources/js/Pages/Produto/_components/formulario/tipos.ts)
 - [cadastro-rapido-dominio.ts](../../../resources/js/Pages/Produto/_components/lista/cadastro-rapido-dominio.ts)
 - [encaixe.ts](../../../resources/js/Pages/Produto/_components/lista/encaixe.ts)

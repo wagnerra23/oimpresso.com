@@ -8,7 +8,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -25,6 +25,7 @@ import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCus
 import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
 import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
+import { apagarRascunho, gravarRascunho, lerRascunho, semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
 
 function localUnico(locais: OptionMap): number[] {
   const ids = opcoesDe(locais).map(([id]) => Number(id));
@@ -93,6 +94,8 @@ export interface ProdutoCreatePageProps {
   subcategoriasPorCategoria?: Record<string, Record<string, string>>;
   /** UC-PCAD-26: unidade => sub-unidades; vazio sem sub-unidades na empresa. */
   subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
+  /** UC-PCAD-30: a chave do rascunho no navegador, por empresa e usuário (o servidor manda). */
+  rascunho?: string;
 }
 
 function ProdutoCreate(props: ProdutoCreatePageProps) {
@@ -139,6 +142,9 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     expiry_period: validadeNaCompra ? '12' : '',
     expiry_period_type: 'months',
     enable_sr_no: dup?.enable_sr_no ? 1 : 0,
+    // UC-PCAD-29: imagem e folheto escolhidos. Com arquivo, o envio vira multipart sozinho.
+    image: null as File | null,
+    product_brochure: null as File | null,
     // UC-PCAD-24: os 20 campos personalizados; a tela mostra os que a empresa nomeou.
     ...camposPersonalizadosGravados(null),
   });
@@ -154,6 +160,55 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
   // CU-PROD-21: produto novo começa com Preço fixo (US-PROD-030, padrão do protótipo).
   const [politica, setPolitica] = useState(() => politicaInicial());
   const endereco: EnderecoNoEstoque = props.enderecoNoEstoque ?? { prateleira: props.enableRacks, fileira: false, posicao: false };
+
+  // UC-PCAD-30: rascunho automático e aviso ao sair. O retrato junta tudo que a pessoa preenche;
+  // diferente do retrato inicial, a tela tem alterações não salvas.
+  const chaveRascunho = dup ? undefined : props.rascunho;
+  const retrato = JSON.stringify({
+    form: semArquivos(data as unknown as Record<string, unknown>),
+    preco,
+    politica,
+    armazenagem,
+    metodoCusto,
+    arquivos: [data.image?.name ?? null, data.product_brochure?.name ?? null],
+  });
+  const inicial = useRef<{ retrato: string; form: Record<string, unknown>; preco: typeof preco; politica: typeof politica; armazenagem: typeof armazenagem; metodoCusto: typeof metodoCusto } | null>(null);
+  if (inicial.current === null) inicial.current = { retrato, form: { ...data }, preco, politica, armazenagem, metodoCusto };
+  const sujo = retrato !== inicial.current.retrato;
+  const aviso = useAvisoAoSair(sujo);
+  const [salvoAs, setSalvoAs] = useState<string | null>(null);
+  const [recuperado, setRecuperado] = useState<string | null>(null);
+  const restaurar = (r: { form: Record<string, unknown>; preco?: unknown; politica?: unknown; armazenagem?: unknown; metodoCusto?: unknown }) => {
+    for (const [k, v] of Object.entries(r.form)) setData(k as never, v as never);
+    if (r.preco !== undefined) setPreco(r.preco as typeof preco);
+    if (r.politica !== undefined) setPolitica(r.politica as typeof politica);
+    if (r.armazenagem !== undefined) setArmazenagem(r.armazenagem as typeof armazenagem);
+    if (r.metodoCusto !== undefined) setMetodoCusto(r.metodoCusto as typeof metodoCusto);
+  };
+  useEffect(() => {
+    const r = lerRascunho(chaveRascunho);
+    if (!r) return;
+    restaurar(r);
+    setRecuperado(String(r.form.name ?? '').trim() || 'produto sem nome');
+    // Só na abertura da tela.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!sujo) return;
+    const t = window.setTimeout(() => {
+      const hora = gravarRascunho(chaveRascunho, { form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto });
+      if (hora) setSalvoAs(hora);
+    }, 800);
+    return () => window.clearTimeout(t);
+    // O retrato já resume tudo que muda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retrato]);
+  const descartarRascunho = () => {
+    apagarRascunho(chaveRascunho);
+    if (inicial.current) restaurar(inicial.current);
+    setRecuperado(null);
+    setSalvoAs(null);
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -172,7 +227,11 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
       };
       return envio ? { ...comMetodo, submit_type: envio } : comMetodo;
     });
-    post('/products');
+    aviso.liberar();
+    post('/products', {
+      onSuccess: () => apagarRascunho(chaveRascunho),
+      onError: () => aviso.travar(),
+    });
   };
 
   return (
@@ -207,6 +266,15 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
         </header>
 
         <div className="pb-16 px-6 mt-4">
+          {recuperado && (
+            <div role="status" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-[13px]">
+              Rascunho recuperado: você parou em “{recuperado}”.{' '}
+              <button type="button" className="underline" onClick={descartarRascunho}>
+                Descartar rascunho
+              </button>
+            </div>
+          )}
+          {salvoAs && <p className="mb-2 text-[12px] text-muted-foreground">Rascunho salvo automaticamente às {salvoAs}</p>}
           <ProdutoFormulario
             id="produto-create-form"
             onSubmit={handleSubmit}
