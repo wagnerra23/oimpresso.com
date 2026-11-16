@@ -41,7 +41,7 @@ beforeEach(function () {
     app()->instance(ModuleUtil::class, $mu);
 });
 
-function mfgLocLocal(string $nome): int
+function mfgLpLocal(string $nome): int
 {
     mfgEmpNegocio(MFG_EMP_BIZ);
     $esquema = DB::table('invoice_schemes')->insertGetId(['business_id' => MFG_EMP_BIZ, 'name' => 'Esq '.uniqid(), 'scheme_type' => 'blank']);
@@ -54,7 +54,7 @@ function mfgLocLocal(string $nome): int
 }
 
 /** Usuário de produção, sem `access_all_locations`, com o local `$permitido` dado direto (é o que `permitted_locations()` lê). */
-function mfgLocUsuario($teste, int $permitido): \App\User
+function mfgLpUsuario($teste, int $permitido): \App\User
 {
     $user = $teste->usuarioComPermissoes(['manufacturing.access_production'], \App\Business::find(MFG_EMP_BIZ));
     $user->givePermissionTo(Permission::findOrCreate('location.'.$permitido, 'web'));
@@ -63,7 +63,7 @@ function mfgLocUsuario($teste, int $permitido): \App\User
     return \App\User::findOrFail($user->id);
 }
 
-function mfgLocPayload(int $variationId, int $localId, array $ingredientes): array
+function mfgLpPayload(int $variationId, int $localId, array $ingredientes): array
 {
     $empresa = DB::table('business')->where('id', MFG_EMP_BIZ)->first(['date_format', 'time_format']);
     $formato = $empresa->date_format.((string) $empresa->time_format === '12' ? ' h:i A' : ' H:i');
@@ -74,7 +74,7 @@ function mfgLocPayload(int $variationId, int $localId, array $ingredientes): arr
     ];
 }
 
-function mfgLocOrdemCrua(int $local, int $userId): int
+function mfgLpOrdemCrua(int $local, int $userId): int
 {
     return DB::table('transactions')->insertGetId([
         'business_id' => MFG_EMP_BIZ, 'location_id' => $local, 'type' => 'production_purchase', 'status' => 'pending',
@@ -83,54 +83,54 @@ function mfgLocOrdemCrua(int $local, int $userId): int
     ]);
 }
 
-function mfgLocUltimaOrdem(): int
+function mfgLpUltimaOrdem(): int
 {
     return (int) DB::table('transactions')->where('business_id', MFG_EMP_BIZ)->where('type', 'production_purchase')->orderByDesc('id')->value('id');
 }
 
 describe('UC-OP-22 — ordem só no local permitido', function () {
     it('UC-OP-22 gravar no local não permitido dá 403 e não grava; no permitido grava', function () {
-        $a = mfgLocLocal('Local A');
-        $b = mfgLocLocal('Local B');
-        $user = mfgLocUsuario($this, $a);
+        $a = mfgLpLocal('Local A');
+        $b = mfgLpLocal('Local B');
+        $user = mfgLpUsuario($this, $a);
         [, $acabado, $linha] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo local permitido');
         $antes = DB::table('transactions')->where('business_id', MFG_EMP_BIZ)->where('type', 'production_purchase')->count();
 
-        $this->actingAs($user)->post('/manufacturing/production', mfgLocPayload($acabado, $b, [$linha => ['quantity' => '2']]))
+        $this->actingAs($user)->post('/manufacturing/production', mfgLpPayload($acabado, $b, [$linha => ['quantity' => '2']]))
             ->assertForbidden();
         expect(DB::table('transactions')->where('business_id', MFG_EMP_BIZ)->where('type', 'production_purchase')->count())->toBe($antes);
 
-        $this->actingAs($user)->post('/manufacturing/production', mfgLocPayload($acabado, $a, [$linha => ['quantity' => '2']]))
+        $this->actingAs($user)->post('/manufacturing/production', mfgLpPayload($acabado, $a, [$linha => ['quantity' => '2']]))
             ->assertRedirect('/manufacturing/production');
-        expect((int) DB::table('transactions')->where('id', mfgLocUltimaOrdem())->value('location_id'))->toBe($a);
+        expect((int) DB::table('transactions')->where('id', mfgLpUltimaOrdem())->value('location_id'))->toBe($a);
     });
 
     it('UC-OP-22 editar o rascunho para o local não permitido dá 403 e o local não muda', function () {
-        $a = mfgLocLocal('Local A');
-        $b = mfgLocLocal('Local B');
-        $user = mfgLocUsuario($this, $a);
+        $a = mfgLpLocal('Local A');
+        $b = mfgLpLocal('Local B');
+        $user = mfgLpUsuario($this, $a);
         [, $acabado, $linha] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo rascunho local');
-        $this->actingAs($user)->post('/manufacturing/production', mfgLocPayload($acabado, $a, [$linha => ['quantity' => '2']]))
+        $this->actingAs($user)->post('/manufacturing/production', mfgLpPayload($acabado, $a, [$linha => ['quantity' => '2']]))
             ->assertRedirect('/manufacturing/production');
-        $ordem = mfgLocUltimaOrdem();
+        $ordem = mfgLpUltimaOrdem();
         $venda = DB::table('transactions')->where('mfg_parent_production_purchase_id', $ordem)->value('id');
         $linhaVenda = (int) DB::table('transaction_sell_lines')->where('transaction_id', $venda)->value('id');
 
-        $this->actingAs($user)->put('/manufacturing/production/'.$ordem, mfgLocPayload($acabado, $b, [$linhaVenda => ['quantity' => '2']]))
+        $this->actingAs($user)->put('/manufacturing/production/'.$ordem, mfgLpPayload($acabado, $b, [$linhaVenda => ['quantity' => '2']]))
             ->assertForbidden();
         expect((int) DB::table('transactions')->where('id', $ordem)->value('location_id'))->toBe($a);
 
         // Âncora: o mesmo PUT no local permitido passa.
-        $this->actingAs($user)->put('/manufacturing/production/'.$ordem, mfgLocPayload($acabado, $a, [$linhaVenda => ['quantity' => '3']]))
+        $this->actingAs($user)->put('/manufacturing/production/'.$ordem, mfgLpPayload($acabado, $a, [$linhaVenda => ['quantity' => '3']]))
             ->assertRedirect('/manufacturing/production');
     });
 
     it('UC-OP-22 a lista só traz ordem do local permitido', function () {
-        $a = mfgLocLocal('Local A');
-        $b = mfgLocLocal('Local B');
-        $user = mfgLocUsuario($this, $a);
-        $ordemA = mfgLocOrdemCrua($a, $user->id);
-        $ordemB = mfgLocOrdemCrua($b, $user->id);
+        $a = mfgLpLocal('Local A');
+        $b = mfgLpLocal('Local B');
+        $user = mfgLpUsuario($this, $a);
+        $ordemA = mfgLpOrdemCrua($a, $user->id);
+        $ordemB = mfgLpOrdemCrua($b, $user->id);
 
         $resp = $this->actingAs($user)->get('/manufacturing/production');
         $resp->assertOk();
@@ -141,14 +141,14 @@ describe('UC-OP-22 — ordem só no local permitido', function () {
     });
 
     it('UC-OP-22 o detalhe da ordem de local não permitido dá 403; o do permitido abre', function () {
-        $a = mfgLocLocal('Local A');
-        $b = mfgLocLocal('Local B');
-        $user = mfgLocUsuario($this, $a);
+        $a = mfgLpLocal('Local A');
+        $b = mfgLpLocal('Local B');
+        $user = mfgLpUsuario($this, $a);
         [, $acabado, $linha] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo detalhe local');
-        $this->actingAs($user)->post('/manufacturing/production', mfgLocPayload($acabado, $a, [$linha => ['quantity' => '2']]))
+        $this->actingAs($user)->post('/manufacturing/production', mfgLpPayload($acabado, $a, [$linha => ['quantity' => '2']]))
             ->assertRedirect('/manufacturing/production');
-        $ordemA = mfgLocUltimaOrdem();
-        $ordemB = mfgLocOrdemCrua($b, $user->id);
+        $ordemA = mfgLpUltimaOrdem();
+        $ordemB = mfgLpOrdemCrua($b, $user->id);
 
         $this->actingAs($user)->get('/manufacturing/production/'.$ordemB)->assertForbidden();
         $this->actingAs($user)->get('/manufacturing/production/'.$ordemA)->assertOk();
