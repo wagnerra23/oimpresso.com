@@ -26,7 +26,7 @@ class SuperadminServiceProvider extends ServiceProvider
      * Guard contra duplicação do listener — nWidart pode rodar boot() 2x.
      * Pattern documentado em memory/reference/project-officeimpresso-modulo.md.
      */
-    private static bool $paymentgatewayListenersRegistered = false;
+    private static ?\WeakMap $paymentgatewayListenersRegisteredOn = null;
 
     /**
      * Guard contra duplicação do Business observer (mesmo motivo nWidart).
@@ -191,19 +191,23 @@ class SuperadminServiceProvider extends ServiceProvider
      * pra renovar/bloquear Superadmin::Subscription do tenant. Cross-tenant
      * intencional Wagner-only (pattern Subscription.php:30).
      *
-     * Guard `$paymentgatewayListenersRegistered` evita registro duplicado em
-     * boot() chamado 2x (pegadinha nWidart catalogada).
+     * Guard `$paymentgatewayListenersRegisteredOn` evita registro duplicado em
+     * boot() chamado 2x (pegadinha nWidart catalogada). É por dispatcher, não
+     * global: mesmo motivo e mesmo desenho do FinanceiroServiceProvider (lá
+     * está explicado por que WeakMap e não spl_object_id).
      */
     protected function registerPaymentGatewayListeners(): void
     {
-        if (self::$paymentgatewayListenersRegistered) {
+        $events = $this->app['events'];
+        self::$paymentgatewayListenersRegisteredOn ??= new \WeakMap();
+        if (isset(self::$paymentgatewayListenersRegisteredOn[$events])) {
             return;
         }
 
-        Event::listen(CobrancaPaga::class, [OnCobrancaPagaUpdateSubscription::class, 'handle']);
-        Event::listen(CobrancaVencida::class, [OnCobrancaVencidaBloqueaSubscription::class, 'handle']);
+        $events->listen(CobrancaPaga::class, [OnCobrancaPagaUpdateSubscription::class, 'handle']);
+        $events->listen(CobrancaVencida::class, [OnCobrancaVencidaBloqueaSubscription::class, 'handle']);
 
-        self::$paymentgatewayListenersRegistered = true;
+        self::$paymentgatewayListenersRegisteredOn[$events] = true;
     }
 
     /**
