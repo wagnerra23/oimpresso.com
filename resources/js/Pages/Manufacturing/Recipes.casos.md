@@ -344,6 +344,10 @@ last_run: "2026-10-27"
 - **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
 - **Teste:** `CustoPorPermissaoTest.php`
 - **Regressão que defende:** custo entregue a quem só tem acesso ao módulo, escondido só no navegador.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-23 · A receita sempre tem forma de custo extra, e a lista mostra a forma que a conta usou
 - **Persona:** Wagner — lê "Custo extra (…)" no painel da receita.
 - **Aceite:** Dado o salvar sem `production_cost_type` (ausente ou vazio) · Então volta com erro no campo e a
