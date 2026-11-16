@@ -347,6 +347,10 @@ last_run: "2026-10-27"
   Manufacturing, lote 2.4 (item que dá 403 ao clicar).
 - **Teste:** `MenuPorPermissaoTest.php` (menu, pelo `shell.menu`) · `tests/js/manufacturing-abas.test.tsx` (abas).
 - **Regressão que defende:** item visível que dá 403 ao clicar, e Insumos só alcançável pela aba.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-23 · A receita sempre tem forma de custo extra, e a lista mostra a forma que a conta usou
 - **Persona:** Wagner — lê "Custo extra (…)" no painel da receita.
 - **Aceite:** Dado o salvar sem `production_cost_type` (ausente ou vazio) · Então volta com erro no campo e a
