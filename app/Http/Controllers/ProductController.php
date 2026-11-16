@@ -2065,6 +2065,9 @@ class ProductController extends Controller
             return Inertia::render('Produto/Create', [
                 // UC-PCAD-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PCAD-28: o "+" de unidade e de marca, com a permissão de cada cadastro (como o Blade).
+                'podeCriarUnidade' => auth()->user()->can('unit.create'),
+                'podeCriarMarca' => auth()->user()->can('brand.create'),
                 // UC-PCAD-25 · UC-PCAD-26: subcategorias e sub-unidades, só se a empresa as usa.
                 'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
                 'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
@@ -2902,6 +2905,9 @@ class ProductController extends Controller
                 ],
                 // UC-PEDIT-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PEDIT-28: o "+" de unidade e de marca, com a permissão de cada cadastro (como o Blade).
+                'podeCriarUnidade' => auth()->user()->can('unit.create'),
+                'podeCriarMarca' => auth()->user()->can('brand.create'),
                 // UC-PEDIT-25 · UC-PEDIT-26: subcategorias e sub-unidades, só se a empresa as usa.
                 'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
                 'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
