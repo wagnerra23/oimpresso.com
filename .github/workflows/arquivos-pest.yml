@@ -126,6 +126,11 @@ jobs:
         # eles dropam o schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
         # Os daqui usam DB::table()/factory + cleanup no afterEach (sem refresh).
         #
+        # +1 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.4b):
+        #   ArquivosTenantIsolationTest. Era esqueleto com 3 ->todo() (auditoria RBAC
+        #   2026-11-14); agora prova listagem, download assinado e exclusao 98 x 99
+        #   pelo HTTP, com controle positivo, dentro de DatabaseTransactions.
+        #
         # +3 em 2026-08-10 (eixo 2 do test-lane-coverage · `--mudos`): os 3 abaixo têm
         # guard `if sqlite → markTestSkipped` e a ÚNICA lane que os alcançava era o
         # modules-pest.yml, que roda sqlite :memory: ⇒ pulavam 100% das vezes, e skip
@@ -255,6 +260,7 @@ jobs:
             Modules/Arquivos/Tests/Feature/BackfillConsumersTest.php \
             Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php \
             Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
+            Modules/Arquivos/Tests/Feature/ArquivosTenantIsolationTest.php \
             Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php \
             Modules/Arquivos/Tests/Feature/CuradorEngineTest.php \
             Modules/Arquivos/Tests/Feature/CuradorParityTest.php
