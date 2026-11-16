@@ -1,0 +1,11 @@
+{
+    "name": "Captacao",
+    "alias": "captacao",
+    "description": "Captação — projetos de captação de recursos (edital, lei de incentivo, fundo, doação, parceria, voluntariado), aportes e comprovantes para prestação de contas (ADR 0452).",
+    "keywords": ["captacao", "projetos", "edital", "doacao", "prestacao-de-contas"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Captacao\\Providers\\CaptacaoServiceProvider"
+    ],
+    "files": []
+}

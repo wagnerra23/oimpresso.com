@@ -14,7 +14,7 @@ module: Associacoes
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Associacoes/**` + `resources/js/Pages/Associacoes/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 36 arquivos em 14 papéis.
+**Total mapeado:** 38 arquivos em 15 papéis.
 
 ## Controllers — 5
 
@@ -42,6 +42,10 @@ module: Associacoes
 - [ConsentimentoAssociada.php](../../../Modules/Associacoes/Entities/ConsentimentoAssociada.php)
 - [DocumentoAssociacao.php](../../../Modules/Associacoes/Entities/DocumentoAssociacao.php)
 - [Representante.php](../../../Modules/Associacoes/Entities/Representante.php)
+
+## Console / Commands — 1
+
+- [SemearRedeCommand.php](../../../Modules/Associacoes/Console/SemearRedeCommand.php)
 
 ## Providers — 2
 
@@ -79,9 +83,9 @@ module: Associacoes
 - [Associadas.casos.md](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Associadas.casos.md)
 - [Index.casos.md](../../../Modules/Associacoes/Resources/js/Pages/Associacoes/Index.casos.md)
 
-## Testes (Pest) — 4
+## Testes (Pest) — 5
 
-- 4 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
+- 5 em [Modules/Associacoes/Tests/Feature/](../../../Modules/Associacoes/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 5
