@@ -212,6 +212,6 @@ it('UC-AMB-07 · o link abre no site da Uniafibro, o PIN funciona lá, e o site 
     $this->postJson('https://uniafibro.com.br/associacoes/m/'.$g['token'].'/pin', ['pin' => $g['pin']])->assertOk();
 
     // Âncora negativa: a rota nova não abre o caminho genérico do site para o ERP.
-    $this->get('https://uniafibro.com.br/associacoes/lista')->assertRedirect('https://uniafibro.com.br/');
+    $this->get('https://uniafibro.com.br/associacoes/lista')->assertRedirect('https://uniafibro.com.br');
     $this->get('https://uniafibro.com.br/')->assertOk();
 });
