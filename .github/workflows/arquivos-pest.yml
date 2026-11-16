@@ -50,6 +50,8 @@ on:
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/arquivos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
+      - 'tests/Feature/ArquivosMinioDiskTest.php'
+      - 'tests/Feature/Console/ArquivosHealthCheckScheduleTest.php'
 
 concurrency:
   group: arquivos-pest-${{ github.ref }}
@@ -88,6 +90,8 @@ jobs:
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/arquivos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
+              - 'tests/Feature/ArquivosMinioDiskTest.php'
+              - 'tests/Feature/Console/ArquivosHealthCheckScheduleTest.php'
 
       - name: Skip-as-pass (nada do Arquivos mudou)
         if: steps.changes.outputs.arq == 'false'
@@ -128,6 +132,13 @@ jobs:
         # sai exit 0 (verde que não prova nada). Entram AQUI, que é o lar declarado do
         # ratchet MySQL-only do Arquivos. Nenhum usa RefreshDatabase/migrate:fresh/
         # dropIfExists; ConsumersTraitTest escreve 0 linhas (reflexão sobre models).
+        #
+        # +2 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.5):
+        #   tests/Feature/ArquivosMinioDiskTest.php e Console/ArquivosHealthCheck
+        #   ScheduleTest.php. Testam o Arquivos mas moram fora do modulo, e nenhuma
+        #   lane os executava. Sao puros (config e schedule, sem banco). Os paths
+        #   deles entram tambem no push.paths e no paths-filter, senao mexer neles
+        #   nao dispararia esta lane.
         #
         # ERAM 5 CANDIDATOS. Rodados de verdade pela 1ª vez (run 31411208410), 2 ficaram
         # VERMELHOS e por isso NÃO entram — a catraca é "allowlist VERDE", e ligar um
@@ -205,6 +216,8 @@ jobs:
             Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
             Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
             Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
+            tests/Feature/ArquivosMinioDiskTest.php \
+            tests/Feature/Console/ArquivosHealthCheckScheduleTest.php \
             Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
