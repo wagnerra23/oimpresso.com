@@ -7,7 +7,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -26,13 +26,17 @@ import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCus
 import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
 import type { EnderecoNoEstoque, SaldoPorLocal } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
+import { semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
+import type { Folheto } from './_components/formulario/envioMidia';
 import type {
   NaturezaFiscalProduto,
   NumeroCampoPersonalizado,
   OptionMap,
   OptionStringMap,
+  CampoDaEmpresa,
+  SubUnidade,
 } from './_components/formulario/tipos';
 
 
@@ -43,7 +47,10 @@ interface ProdutoEditModel {
   type: 'single' | 'variable' | 'combo';
   brandId: number | null;
   unitId: number | null;
-  subUnitIds: string | null;
+  /** As sub-unidades ligadas (o model faz o cast da coluna JSON para lista). */
+  subUnitIds: Array<number | string> | null;
+  /** UC-PEDIT-27: IMEI / nº de série. */
+  enableSrNo?: boolean;
   categoryId: number | null;
   subCategoryId: number | null;
   tax: number | null;
@@ -70,6 +77,8 @@ interface ProdutoEditModel {
   productDescription: string | null;
   productLocations: number[];
   image: string | null;
+  /** UC-PEDIT-29: o folheto gravado. */
+  folheto?: Folheto | null;
   warrantyId: number | null;
   /** O valor gravado dos 20 campos personalizados (1 → 20). */
   camposPersonalizados: Partial<Record<NumeroCampoPersonalizado, string | null>>;
@@ -113,6 +122,12 @@ export interface ProdutoEditPageProps {
    * o bloco de locais precisa, e a tela mostra só ele.
    */
   somenteArmazenagem?: boolean;
+  /** UC-PEDIT-24: os campos personalizados com o nome que a empresa deu. */
+  camposDaEmpresa?: CampoDaEmpresa[];
+  /** UC-PEDIT-25: categoria => {subcategoria => nome}; vazio sem subcategoria na empresa. */
+  subcategoriasPorCategoria?: Record<string, Record<string, string>>;
+  /** UC-PEDIT-26: unidade => sub-unidades; vazio sem sub-unidades na empresa. */
+  subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
@@ -160,6 +175,11 @@ function EditarCompleto(props: ProdutoEditPageProps) {
     unit_id: p.unitId ?? '',
     category_id: p.categoryId ?? '',
     sub_category_id: p.subCategoryId ?? '',
+    // UC-PEDIT-26: as sub-unidades gravadas voltam no envio. Sem elas o update() gravava nulo
+    // (`sub_unit_ids` ausente → null) e salvar pelo Editar React desligava as sub-unidades.
+    sub_unit_ids: (p.subUnitIds ?? []).map(Number),
+    // UC-PEDIT-27: o IMEI / nº de série gravado.
+    enable_sr_no: p.enableSrNo ? 1 : 0,
     tax: p.tax ?? '',
     tax_type: p.taxType,
     origem_mercadoria: p.origemMercadoria ?? 0,
@@ -183,6 +203,12 @@ function EditarCompleto(props: ProdutoEditPageProps) {
     expiry_period_type: p.expiryPeriodType ?? '',
   });
 
+  // UC-PEDIT-30: aviso ao sair com alterações não salvas (o Editar não guarda rascunho).
+  const retrato = JSON.stringify({ form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto });
+  const retratoInicial = useRef<string | null>(null);
+  if (retratoInicial.current === null) retratoInicial.current = retrato;
+  const aviso = useAvisoAoSair(retrato !== retratoInicial.current);
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // O botão do rodapé diz a tela seguinte (submit_type, o mesmo do Blade); sem ele, volta à lista.
@@ -200,7 +226,8 @@ function EditarCompleto(props: ProdutoEditPageProps) {
         ...camposDaPolitica(politica, politicaGravada),
       };
     });
-    put(`/products/${p.id}`);
+    aviso.liberar();
+    put(`/products/${p.id}`, { onError: () => aviso.travar() });
   };
 
   return (
@@ -254,6 +281,7 @@ function EditarCompleto(props: ProdutoEditPageProps) {
               p.enableStock ? { valor: armazenagem, mudar: setArmazenagem, endereco, saldos: props.saldoPorLocal ?? {} } : undefined
             }
             politica={{ valor: politica, mudar: setPolitica }}
+            midia={{ produtoId: p.id, imagem: p.image, folheto: p.folheto ?? null }}
           />
           {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o card aparece quando ela chega,
               sem esqueleto (é o último antes do rodapé). Null sem o módulo Produção, em composição e

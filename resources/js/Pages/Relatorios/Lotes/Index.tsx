@@ -14,7 +14,7 @@ import { Paginacao, type PaginacaoInfo } from '../_shared/Paginacao';
 import RastreioDoLoteSheet, { type AlvoRastreio } from './_components/RastreioDoLoteSheet';
 
 type Opcao = { id: number; nome: string };
-type Filtros = { location_id: string; category_id: string; brand_id: string; unit_id: string };
+type Filtros = { location_id: string; category_id: string; brand_id: string; unit_id: string; product_id?: string };
 type Linha = {
   lote_ids: number[]; sku: string; produto: string; lote: string; validade: string; vencido: boolean;
   estoque: number; vendido: number; ajustado: number; unidade: string;
@@ -27,6 +27,8 @@ type Props = {
   podeRastrear: boolean;
   paginacao: PaginacaoInfo;
   filtros: Filtros;
+  /** UC-RLT-07: nome do produto filtrado (vindo do painel da consulta de produto); null sem filtro. */
+  produto?: string | null;
   locais: Opcao[];
   categorias: Opcao[];
   marcas: Opcao[];
@@ -35,7 +37,7 @@ type Props = {
 
 const TODOS = 'todos';
 
-function LotesIndex({ linhas, rodape, podeRastrear, paginacao, filtros, locais, categorias, marcas, unidades }: Props) {
+function LotesIndex({ linhas, rodape, podeRastrear, paginacao, filtros, produto, locais, categorias, marcas, unidades }: Props) {
   const [rastreio, setRastreio] = useState<AlvoRastreio | null>(null);
   const qtd = (v: number, unidade: string) => `${formatDecimalPtBR(Number(v), 2)} ${unidade}`.trim();
   // Como o __sum_stock da Blade: "10,00 UN, 5,00 KG".
@@ -43,11 +45,11 @@ function LotesIndex({ linhas, rodape, podeRastrear, paginacao, filtros, locais, 
 
   const navegar = (mudanca: Partial<Filtros> & { page?: number }) =>
     router.get('/reports/lot-report', { tela: 'nova', ...filtros, page: 1, ...mudanca }, {
-      preserveState: true, preserveScroll: true, replace: true, only: ['linhas', 'rodape', 'paginacao', 'filtros'],
+      preserveState: true, preserveScroll: true, replace: true, only: ['linhas', 'rodape', 'paginacao', 'filtros', 'produto'],
     });
 
   /** '' = todos, como o select da Blade; o sentinela só existe porque o Radix não aceita value vazio. */
-  const filtro = (rotulo: string, todos: string, opcoes: Opcao[], campo: keyof Filtros) => (
+  const filtro = (rotulo: string, todos: string, opcoes: Opcao[], campo: Exclude<keyof Filtros, 'product_id'>) => (
     <div className="w-52">
       <Select value={filtros[campo] || TODOS} onValueChange={v => navegar({ [campo]: v === TODOS ? '' : v })}>
         <SelectTrigger aria-label={rotulo}><SelectValue /></SelectTrigger>
@@ -71,6 +73,18 @@ function LotesIndex({ linhas, rodape, podeRastrear, paginacao, filtros, locais, 
           {filtro('Categoria', 'Todas as categorias', categorias, 'category_id')}
           {filtro('Marca', 'Todas as marcas', marcas, 'brand_id')}
           {filtro('Unidade', 'Todas as unidades', unidades, 'unit_id')}
+          {/* UC-RLT-07: quem chega do painel do produto vê só os lotes dele, e pode tirar o filtro. */}
+          {filtros.product_id && (
+            <Button
+              variant="outline"
+              size="sm"
+              data-contract="filtro-produto"
+              aria-label={`Remover o filtro do produto ${produto ?? ''}`.trim()}
+              onClick={() => navegar({ product_id: '' })}
+            >
+              {`Produto: ${produto ?? 'não encontrado'}`} <span aria-hidden>✕</span>
+            </Button>
+          )}
         </Inline>
 
         <div data-contract="tabela" className="overflow-x-auto rounded-lg border bg-card">
