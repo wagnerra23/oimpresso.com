@@ -86,22 +86,22 @@ it('D7.a: ZERO ocorrência de \\Log::emergency direto em Controllers Superadmin 
     $controllers = glob(__DIR__.'/../../../Http/Controllers/*.php');
     expect($controllers)->not->toBeEmpty();
 
+    // Coleta TODAS as violações e asserta a lista vazia: a versão anterior lançava
+    // AssertionError na 1ª e terminava em `expect(true)->toBeTrue()`, então a única
+    // assertion contada era a constante (auditoria Superadmin 2026-11-05, eixo 1 §5.2).
+    $violacoes = [];
     foreach ($controllers as $file) {
-        $content = file_get_contents($file);
-        // Permite \Log::emergency em código comentado (// \Log::...) — só falha em código vivo
-        $lines = explode("\n", $content);
+        $lines = explode("\n", file_get_contents($file));
         foreach ($lines as $i => $line) {
             $trim = ltrim($line);
+            // Permite \Log::emergency em código comentado — só falha em código vivo
             if (str_starts_with($trim, '//') || str_starts_with($trim, '*')) continue;
             if (preg_match('/\\\\Log::emergency\(/', $line)) {
-                throw new \AssertionError(sprintf(
-                    'D7.a VIOLATION: %s linha %d ainda tem \\Log::emergency direto: %s',
-                    basename($file), $i + 1, trim($line)
-                ));
+                $violacoes[] = sprintf('%s:%d %s', basename($file), $i + 1, trim($line));
             }
         }
     }
-    expect(true)->toBeTrue(); // se chegou aqui, zero violations
+    expect($violacoes)->toBe([], 'D7.a: Log::emergency direto em Controller Superadmin');
 });
 
 // ============================================================================

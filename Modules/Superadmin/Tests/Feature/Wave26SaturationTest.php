@@ -18,7 +18,8 @@ uses(Tests\TestCase::class);
  * Eixos cobertos:
  *   - D1 (+20): cross-tenant scope EXPANDIDO (40 cenários) — services + helpers + drift guards
  *   - D2 (+13): contratos canon 4 Services + 14 Controllers smoke
- *   - D6: Controllers Superadmin Blade UltimatePOS preservados (NÃO migrar pra Inertia sem ADR)
+ *   - D6: cada tela do painel é uma Page Inertia servida pelo controller dono (era "Blade
+ *         preservado" até a migração das telas; reescrito em 2026-11-16)
  *   - D9 (=6): OtelHelper spans canon zero-cost + observability dashboards
  *
  * Tier 0 IRREVOGÁVEL:
@@ -254,18 +255,37 @@ it('D1 — BusinessAuditService spans canon (inactive_since/can_destroy)', funct
 
 // ---------- D6: Controllers preservação Blade UltimatePOS ----------
 
-it('D6 — Maioria Controllers Superadmin usam Blade view() (NÃO Inertia — herdado UltimatePOS)', function () {
-    // SubscriptionController + BusinessController = Blade legacy
-    $subSrc = file_get_contents(base_path('Modules/Superadmin/Http/Controllers/SubscriptionController.php'));
-    $bizSrc = file_get_contents(base_path('Modules/Superadmin/Http/Controllers/BusinessController.php'));
+// Contrato reescrito em 2026-11-16 (auditoria Superadmin, lote L1). A versão anterior
+// afirmava que BusinessController e SubscriptionController eram Blade (`->with(compact`)
+// e NÃO chamavam Inertia::render — falso desde a migração das telas do painel; o teste
+// só não avermelhava porque não estava em lane nenhuma. O contrato atual é o oposto:
+// cada tela do painel é servida por uma Page Inertia, e a Page tem de existir no disco.
+it('D6 — cada tela do painel Superadmin é renderizada pelo controller dono e a Page existe', function () {
+    $telas = [
+        'BusinessController'                => ['superadmin/Negocios/Index'],
+        'CommunicatorController'            => ['superadmin/Comunicador/Index'],
+        'PackagesController'                => ['superadmin/Pacotes/Index'],
+        'PageController'                    => ['superadmin/Paginas/Index'],
+        'SubscriptionController'            => ['superadmin/MinhaAssinatura/Index', 'superadmin/Pagar/Index'],
+        'SuperadminController'              => ['superadmin/Dashboard/Index'],
+        'SuperadminSettingsController'      => ['superadmin/Configuracoes/Index'],
+        'SuperadminSubscriptionsController' => ['superadmin/Assinaturas/Index'],
+        'Usuario360Controller'              => ['superadmin/Usuario360/Index', 'superadmin/Usuario360/Show'],
+    ];
 
-    // Pattern view()->with(compact(...)) é assinatura Blade clássica
-    expect($subSrc)->toContain('->with(compact');
-    expect($bizSrc)->toContain('->with(compact');
-
-    // Inertia::render é exceção (Pricing e Usuario360 apenas)
-    expect($subSrc)->not->toContain('Inertia::render');
-    expect($bizSrc)->not->toContain('Inertia::render');
+    foreach ($telas as $controller => $pages) {
+        $src = file_get_contents(base_path("Modules/Superadmin/Http/Controllers/{$controller}.php"));
+        foreach ($pages as $page) {
+            expect(str_contains($src, "Inertia::render('{$page}'"))->toBeTrue(
+                "{$controller} deveria renderizar {$page}"
+            );
+            // A Page mora no módulo (o app.tsx resolve o mesmo nome no núcleo ou em
+            // Modules/*/Resources/js/Pages — ver import.meta.glob de paginasDeModulos).
+            expect(file_exists(base_path("Modules/Superadmin/Resources/js/Pages/{$page}.tsx")))->toBeTrue(
+                "Page {$page}.tsx não existe — o render quebraria em runtime"
+            );
+        }
+    }
 });
 
 it('D6 — PricingController + Usuario360Controller usam Inertia (exceção moderna)', function () {
