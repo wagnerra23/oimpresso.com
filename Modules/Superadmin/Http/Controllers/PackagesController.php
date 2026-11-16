@@ -241,7 +241,7 @@ class PackagesController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  Request  $request
+     * @param  StorePackageRequest  $request
      * @return Response
      */
     public function store(StorePackageRequest $request)
@@ -315,7 +315,7 @@ class PackagesController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Request  $request
+     * @param  UpdatePackageRequest  $request
      * @return Response
      */
     public function update(UpdatePackageRequest $request, $id)

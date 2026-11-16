@@ -80,7 +80,7 @@ class PageController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  Request  $request
+     * @param  StoreFrontendPageRequest  $request
      * @return Response
      */
     public function store(StoreFrontendPageRequest $request)
@@ -142,7 +142,7 @@ class PageController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Request  $request
+     * @param  UpdateFrontendPageRequest  $request
      * @return Response
      */
     public function update(UpdateFrontendPageRequest $request, $id)
