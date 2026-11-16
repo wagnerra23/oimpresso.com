@@ -1,6 +1,6 @@
 ---
 owner: W
-last_validated: "2026-11-12"
+last_validated: "2026-11-15"
 slug: site-runbook-uniafibro
 title: "Site — Runbook da página da Uniafibro (uniafibro.com.br) servida pelo app do oimpresso"
 type: runbook
@@ -26,6 +26,9 @@ domínio novo.
 | Rota | Nome | O que faz |
 |---|---|---|
 | `GET uniafibro.com.br/` | `uniafibro.home` | página da associação (HTML estático `resources/uniafibro/home.html`) |
+| `GET uniafibro.com.br/direitos` | `uniafibro.direitos` | índice de Seus Direitos + Guias Práticos, com busca `?q=` (§6) |
+| `GET uniafibro.com.br/direitos/{slug}` | `uniafibro.direitos.pagina` | página gerada de `resources/uniafibro/direitos/{slug}.md` |
+| `GET uniafibro.com.br/direitos/{slug}.pdf` | `uniafibro.direitos.pdf` | a mesma página em PDF (dompdf), `throttle:10,1` |
 | `GET uniafibro.com.br/{caminho}` | `uniafibro.outros` | 302 para `https://uniafibro.com.br/` (não deixa abrir tela do ERP) |
 | `GET www.uniafibro.com.br/{caminho?}` | `uniafibro.www` | 301 para `https://uniafibro.com.br/` |
 
@@ -65,3 +68,35 @@ No próprio `resources/uniafibro/home.html`, marcado com `PREENCHER [W]`:
   - `curl -sI https://uniafibro.com.br/ | head -1` → `200`
   - `curl -sI https://www.uniafibro.com.br/ | grep -i '^location'` → `https://uniafibro.com.br/`
   - `curl -sI https://oimpresso.com/login | head -1` → igual a antes (regressão do domínio principal).
+
+## 6. Seus Direitos e Guias Práticos (`/direitos`)
+
+Decisão [W] 2026-11-14: conteúdo em Markdown versionado, renderizado no servidor, sem Blade, sem
+JavaScript e sem banco. A home continua estática; `/direitos` é o hub, a um clique dela (botão do
+topo e item destacado no menu).
+
+- **Onde fica o texto:** `resources/uniafibro/direitos/<slug>.md`. O frontmatter obrigatório está
+  em `resources/uniafibro/direitos/_LEIA-ME.md` (arquivo com `_` nunca vira página).
+- **Quem renderiza:** `App\Http\Controllers\UniafibroConteudoController` +
+  `App\Support\Uniafibro\Conteudo` (CommonMark com `html_input=strip`) +
+  `App\Support\Uniafibro\Layout` (moldura HTML, aviso legal, menu). CSS em
+  `public/uniafibro/direitos.css`.
+- **Aviso legal:** `Layout::AVISO`, versão `Layout::AVISO_VERSAO`. Cada `.md` declara a versão
+  com que foi revisado; o teste reprova página com versão diferente.
+- **Fonte ajustável:** rádio A / A+ / A++ com `:has()` (18, 20 e 23px). Sem cookie e sem
+  JavaScript, a escolha não fica salva entre páginas.
+- **Contatos (WhatsApp e e-mail):** `config('uniafibro.contatos')`, com dois slots, `wagner` e
+  `giselli`, lidos de `UNIAFIBRO_WAGNER_WHATSAPP`, `UNIAFIBRO_WAGNER_EMAIL`,
+  `UNIAFIBRO_GISELLI_WHATSAPP` e `UNIAFIBRO_GISELLI_EMAIL`. Decisão [W] 2026-11-15: *"preenche
+  depois"*, então ficam vazios. Slot vazio não aparece; com os dois vazios, nem o botão flutuante
+  nem o bloco "Contato" do rodapé são renderizados. A chave do slot é interna: o site não mostra
+  nome de pessoa. A home é arquivo estático e não lê config: quando houver contato, ele entra no
+  `home.html` à mão.
+- **Portal da Associada:** fora do menu até existir a onda 6 da ADR 0451.
+- **Revisão do texto:** escrito a partir de fonte oficial (Planalto, INSS, Alesc, FCEE, TJSC),
+  com link em cada ponto. Jurisprudência nova só com o [W]. Cada mudança de texto atualiza
+  `updated_at`.
+- **Teste:** `tests/Feature/Site/UniafibroDireitosTest.php` (lane sqlite), com páginas de exemplo
+  em `tests/fixtures/uniafibro-direitos/`.
+- **Smoke pós-deploy:** `curl -sI https://uniafibro.com.br/direitos | head -1` → `200`, e o mesmo
+  para cada `/direitos/<slug>` e `/direitos/<slug>.pdf`.
