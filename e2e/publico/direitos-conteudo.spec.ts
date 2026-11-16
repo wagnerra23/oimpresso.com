@@ -31,7 +31,8 @@ test('8 · aviso "não é consultoria jurídica" no hub e em cada página', asyn
     const aviso = page.getByRole('note');
     await expect(aviso).toHaveCount(1);
     await expect(aviso).toContainText('não é consultoria jurídica');
-    await expect(aviso).toContainText('Defensoria Pública de SC');
+    // O trecho da Defensoria muda entre os PRs da Onda A; fica só o que é estável.
+    await expect(aviso).toContainText('fale com um advogado ou com a Defensoria Pública');
   }
 });
 
