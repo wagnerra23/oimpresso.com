@@ -98,6 +98,10 @@ function arqAbrir(string $vista): object
  * As 4 vistas usam `<Deferred>`; ler no primeiro paint é medir o skeleton (§5 2026-08-24).
  * Devolve o ÚLTIMO valor lido, nunca o esperado — assim a asserção falha dizendo o que viu.
  *
+ * O texto volta em MINÚSCULAS, e os marcadores comparam em minúsculas. `innerText` devolve o
+ * texto já com `text-transform` aplicado: o cabeçalho "Base legal" chega como "BASE LEGAL".
+ * Medido no 1º run do CI (2026-11-16), em que o UC-INDEX-04 reprovou por isso com a tela certa.
+ *
  * @param  list<string>  $sequencias  sequências de âncoras aceitas
  * @param  list<string>  $marcadores  copy que prova que o Deferred resolveu
  * @return array{0: string, 1: string}  [sequência, texto da âncora]
@@ -109,9 +113,10 @@ function arqEstavel($page, string $ancoraTexto, array $sequencias, array $marcad
     $texto = '';
     for ($i = 0; $i < 40; $i++) {
         [$seq, $texto] = array_pad(explode('|', (string) $page->script($js), 2), 2, '');
+        $texto = mb_strtolower($texto);
         $temMarcador = false;
         foreach ($marcadores as $m) {
-            $temMarcador = $temMarcador || str_contains($texto, $m);
+            $temMarcador = $temMarcador || str_contains($texto, mb_strtolower($m));
         }
         if (in_array($seq, $sequencias, true) && $temMarcador) {
             break;
@@ -128,7 +133,7 @@ it('UC-INDEX-01 · Arquivos/Index ACERVO: filtros e lista chegam ao DOM, na orde
 
     expect($seq)->toBe('cabecalho,abas,acervo-filtros,acervo');
     // Tabela com as colunas do contrato OU o estado vazio declarado — nunca o skeleton.
-    expect(str_contains($texto, 'Vinculado a') || str_contains($texto, 'Nenhum arquivo guardado ainda.'))->toBeTrue();
+    expect(str_contains($texto, 'vinculado a') || str_contains($texto, 'nenhum arquivo guardado ainda.'))->toBeTrue();
     $page->assertSee('Sensível');
     $page->assertSee('Descartar');
 });
@@ -139,10 +144,10 @@ it('UC-INDEX-04 · Arquivos/Index RETENÇÃO: KPIs, política com base legal e r
     [$seq, $texto] = arqEstavel($page, 'retencao', [$esperado], ['Base legal']);
 
     expect($seq)->toBe($esperado);
-    expect($texto)->toContain('Vence em 30 dias');
-    expect($texto)->toContain('Base legal');
+    expect($texto)->toContain('vence em 30 dias');
+    expect($texto)->toContain('base legal');
     // Leitura pura: a vista não pode virar "não medido" em silêncio.
-    expect($texto)->not->toContain('Não foi possível medir a retenção.');
+    expect($texto)->not->toContain('não foi possível medir a retenção.');
 });
 
 it('UC-INDEX-03 · Arquivos/Index COFRE: espaço por disco e achados, ou o vazio declarado', function () {
@@ -152,11 +157,11 @@ it('UC-INDEX-03 · Arquivos/Index COFRE: espaço por disco e achados, ou o vazio
     [$seq, $texto] = arqEstavel($page, 'cofre', [$comDisco, $semDisco], ['Achados', 'Nenhum arquivo guardado ainda.']);
 
     expect([$comDisco, $semDisco])->toContain($seq);
-    expect($texto)->not->toContain('Não foi possível medir o cofre.');
+    expect($texto)->not->toContain('não foi possível medir o cofre.');
     if ($seq === $semDisco) {
-        expect($texto)->toContain('Nenhum arquivo guardado ainda.');
+        expect($texto)->toContain('nenhum arquivo guardado ainda.');
     } else {
-        expect($texto)->toContain('Achados');
+        expect($texto)->toContain('achados');
     }
 });
 
@@ -165,7 +170,7 @@ it('UC-INDEX-02 · Arquivos/Index TRILHA: filtro e trilha read-only chegam ao DO
     [$seq, $texto] = arqEstavel($page, 'trilha', ['cabecalho,abas,trilha-filtros,trilha'], ['Detalhe', 'Nenhum evento registrado ainda.']);
 
     expect($seq)->toBe('cabecalho,abas,trilha-filtros,trilha');
-    expect(str_contains($texto, 'Detalhe') || str_contains($texto, 'Nenhum evento registrado ainda.'))->toBeTrue();
+    expect(str_contains($texto, 'detalhe') || str_contains($texto, 'nenhum evento registrado ainda.'))->toBeTrue();
     // Append-only: nenhum controle de editar ou apagar linha dentro da trilha.
     $controles = (string) $page->script(
         '(() => Array.from(document.querySelectorAll(\'[data-contract="trilha"] button, [data-contract="trilha"] a\'))'
