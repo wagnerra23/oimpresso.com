@@ -68,5 +68,9 @@ final readonly class TributoCalculado
         // R-NFE-025b: CST de PIS/COFINS da regra. Null = a regra não diz; o XML segue com 07.
         public ?string $cst_pis = null,
         public ?string $cst_cofins = null,
+        // IPI no XML (RUNBOOK-tributacao §Naturezas, dependência 1): só a natureza da tela preenche.
+        // Null = o item sai sem o grupo IPI, como sempre saiu (regra por NCM e operação padrão).
+        public ?string $cst_ipi = null,
+        public ?string $c_enq_ipi = null,
     ) {}
 }

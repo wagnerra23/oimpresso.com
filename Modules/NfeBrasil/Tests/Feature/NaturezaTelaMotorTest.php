@@ -200,3 +200,25 @@ it('UC-NFTR-59 · calcularNaOperacao não troca a natureza da tela pela venda (n
     expect(fn () => $motor->calcularNaOperacao(new ProdutoFiscalContext(ncm: NTM_NCM, valor: 1000.0), ntmBiz(), 'SC', 'SC', $recusa))
         ->toThrow(TributacaoNaoConfiguradaException::class);
 });
+
+it('UC-NFTR-66 · IPI da natureza: CST tributado calcula e leva cEnq; CST isento não calcula; desligado não manda grupo', function () {
+    DB::table('nfe_fiscal_rules')->insert([
+        'business_id' => ntmBiz(), 'ncm' => NTM_NCM, 'uf_origem' => 'SC', 'uf_destino' => null, 'cfop' => '5102',
+        'cst' => '00', 'aliquota_icms' => 0.17, 'aliquota_pis' => 0, 'aliquota_cofins' => 0, 'aliquota_ipi' => 0.05,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $icms = ['origem' => 'fixa', 'p' => 17];
+
+    // CST 50 com a alíquota da regra do NCM — à mão: 1.000 × 5% = 50,00.
+    $t = ntmCalc(ntmNatureza(ntmTela(['icms' => $icms, 'ipi' => ['on' => true, 'cst' => '50', 'cEnq' => '999']])), 'SC');
+    expect($t->cst_ipi)->toBe('50')->and($t->c_enq_ipi)->toBe('999')->and($t->valor_ipi)->toBe(50.0);
+
+    // CST 52 (isenta): a regra do NCM tem 5%, mas o IPI não é calculado.
+    $isenta = ntmCalc(ntmNatureza(ntmTela(['icms' => $icms, 'ipi' => ['on' => true, 'cst' => '52', 'cEnq' => '']])), 'SC');
+    expect($isenta->cst_ipi)->toBe('52')->and($isenta->valor_ipi)->toBe(0.0)
+        ->and($isenta->c_enq_ipi)->toBe('999'); // cEnq vazio vira 999 (tributação normal)
+
+    // IPI desligado na natureza: sem CST, o item sai sem grupo IPI, como antes.
+    $sem = ntmCalc(ntmNatureza(ntmTela(['icms' => $icms])), 'SC');
+    expect($sem->cst_ipi)->toBeNull()->and($sem->valor_ipi)->toBe(0.0);
+});
