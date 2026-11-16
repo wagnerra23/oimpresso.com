@@ -338,6 +338,18 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-25 · A trilha da receita leva a empresa
+- **Persona:** quem consulta a auditoria (/auditoria) da empresa.
+- **Aceite:** Dado uma alteração na receita ou num ingrediente · Quando o registro da trilha é gravado · Então ele leva
+  a empresa da receita (pelo produto), e aparece na auditoria da empresa.
+- **Fonte:** trilha por empresa (`ActivityCauserKindObserver`, ADR 0127): a tela filtra por `business_id` ·
+  auditoria do Manufacturing, lote 2.7.
+- **Teste:** `ExcluirRascunhoTrilhaTest.php`
+- **Regressão que defende:** a receita não tem coluna de empresa, e o registro nascia sem ela — sumia da auditoria.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - ~~**[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** e uma requisição **ajax real** recebe o
