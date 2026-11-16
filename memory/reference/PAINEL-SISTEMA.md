@@ -22,10 +22,10 @@ lente: [construir]
 
 | Módulo | BRIEFING | Último toque |
 |---|---|---|
-| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
+| Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-11-16 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-10-26 |
 | Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | 2026-11-15 |
-| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-11-10 |
+| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-11-16 |
 | Captacao | [BRIEFING](../requisitos/Captacao/BRIEFING.md) | 2026-11-16 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-11-09 |
@@ -44,7 +44,7 @@ lente: [construir]
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-26 |
 | Marketplaces | [BRIEFING](../requisitos/Marketplaces/BRIEFING.md) | 2026-10-27 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-11-12 |
-| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-10-13 |
+| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-11-16 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-11-05 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
@@ -136,13 +136,13 @@ lente: [construir]
 - Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 157 workflows por classe
+### Censo — 158 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 119 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 120 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 27 | affects-clientes-label, agent-cost-per-pr, agent-pr-outcomes, baseline-folga, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
