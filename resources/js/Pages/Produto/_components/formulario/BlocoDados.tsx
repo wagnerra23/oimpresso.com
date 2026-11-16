@@ -167,6 +167,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               <Plus className="h-4 w-4" />
             </Button>
           </Inline>
+          {errors.unit_id && <p className="text-[12px] text-destructive mt-1">{errors.unit_id}</p>}
         </div>
         {temSubUnidades && (
           <CampoSubUnidades data={data} definir={definir} porUnidade={opcoes.subUnidadesPorUnidade ?? {}} />

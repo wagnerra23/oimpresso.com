@@ -2604,6 +2604,20 @@ class ProductController extends Controller
             throw \Illuminate\Validation\ValidationException::withMessages($fk_alheio);
         }
 
+        // UC-PCAD-31: nome e unidade são obrigatórios também aqui, como no cadastro rápido. O Blade
+        // barrava na tela; a tela React deixava passar e o produto nascia sem unidade, invisível na
+        // lista (a consulta faz `join units`). Medido no navegador em 2026-11-16.
+        $obrigatorios = [];
+        if (trim((string) $request->input('name')) === '') {
+            $obrigatorios['name'] = 'Informe o nome do produto.';
+        }
+        if (empty($request->input('unit_id'))) {
+            $obrigatorios['unit_id'] = 'Escolha a unidade.';
+        }
+        if (! empty($obrigatorios)) {
+            throw \Illuminate\Validation\ValidationException::withMessages($obrigatorios);
+        }
+
         $this->validarOrigemMercadoria($request);
         $this->validarNcm($request);
         $this->validarCest($request);
