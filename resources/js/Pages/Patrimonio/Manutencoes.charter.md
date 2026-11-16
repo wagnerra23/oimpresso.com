@@ -52,7 +52,8 @@ manutenção"), não aqui.
   vem **só da empresa** (Tier 0), e `?asset_id=` de outra empresa não pré-seleciona nada.
   Alvo de toque ≥44px nos controles (o técnico usa tablet). Contrato: UC-MANU-06.
 - **CTA "+ Enviar bem pra manutenção"** no rodapé, como a âncora (`patrimonio-page.jsx:536`).
-- **Ação de linha**: editar (abre o drawer) e excluir (com confirmação nomeando a manutenção).
+- **Ação de linha**: editar (abre o drawer) e excluir, que desde 2026-11-16 pede confirmação no
+  `AlertDialog` do DS nomeando a manutenção e avisa quando a exclusão falha (UC-MANU-08/09).
   O editar do Blade tinha saído em 2026-09-23 (o `edit` só respondia sob `ajax()` e abria
   página em branco) e **voltou em 2026-09-30** pelo drawer.
 - **Realce da linha em andamento** (`rowState: 'urgent'`), como o protótipo faz.
