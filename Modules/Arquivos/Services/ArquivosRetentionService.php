@@ -212,7 +212,10 @@ class ArquivosRetentionService
                 ->whereNull('deleted_at')
                 ->count();
 
+            // withTrashed: o SoftDeletes do model já filtra deleted_at IS NULL, e sem ele
+            // este número saía sempre 0 (Wave28ArquivosSaturationTest, 2026-11-16).
             $softDeleted = Arquivo::query()
+                ->withTrashed()
                 ->where('business_id', $businessId)
                 ->whereNotNull('deleted_at')
                 ->count();

@@ -26,28 +26,28 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1000,
-    "edges": 1342,
+    "nodes": 1004,
+    "edges": 1345,
     "by_node_type": {
       "module": 45,
       "table": 116,
-      "adr": 155,
-      "component": 588,
-      "api": 96
+      "adr": 157,
+      "component": 589,
+      "api": 97
     },
     "by_edge_type": {
       "ownsTable": 105,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 99,
+      "providesApi": 100,
       "charteredByAdr": 30,
       "governedByAdr": 81,
-      "hasComponent": 588,
+      "hasComponent": 589,
       "dependsOn": 148,
       "delegatesTo": 134,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 79,
+      "supersedesPartially": 80,
       "supersededBy": 31
     },
     "dangling": 0
@@ -1140,6 +1140,20 @@
       "exists": true
     },
     {
+      "id": "adr:0451",
+      "type": "adr",
+      "num": "0451",
+      "slug": "0451-associacoes-rede-uniafibro-area-de-membros",
+      "exists": true
+    },
+    {
+      "id": "adr:0454",
+      "type": "adr",
+      "num": "0454",
+      "slug": "0454-uniafibro-estatuto-tipos-de-membro-projetos-e-dinheiro",
+      "exists": true
+    },
+    {
       "id": "api:/.well-known/assetlinks.json",
       "type": "api",
       "prefix": "/.well-known/assetlinks.json",
@@ -1283,6 +1297,14 @@
       "prefix": "/asset/*",
       "providers": [
         "AssetManagement"
+      ]
+    },
+    {
+      "id": "api:/associacoes",
+      "type": "api",
+      "prefix": "/associacoes",
+      "providers": [
+        "Associacoes"
       ]
     },
     {
@@ -2107,6 +2129,13 @@
       "desc": ""
     },
     {
+      "id": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PainelDaRedeController + PendenciasDaRede",
+      "desc": "painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
+    },
+    {
       "id": "component:Associacoes/PendenciaDiretoria",
       "type": "component",
       "module": "Associacoes",
@@ -2139,7 +2168,7 @@
       "type": "component",
       "module": "Auditoria",
       "name": "AuditoriaLiberado",
-      "desc": "middleware das leituras: pacote auditoria_module + auditoria.view (superadmin passa)"
+      "desc": "middleware das leituras: auditoria.view (superadmin passa); o pacote auditoria_module vale só para o menu"
     },
     {
       "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
@@ -8726,6 +8755,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0454",
+      "to": "adr:0451",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -9065,6 +9100,12 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "component:Associacoes/PendenciaDiretoria",
       "type": "hasComponent",
       "source": "contains"
@@ -9084,6 +9125,12 @@
     {
       "from": "module:Associacoes",
       "to": "api:/associacoes/lista",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes",
       "type": "providesApi",
       "source": "url_prefixes"
     },
