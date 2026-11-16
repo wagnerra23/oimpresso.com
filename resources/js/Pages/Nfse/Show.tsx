@@ -88,6 +88,9 @@ export default function NfseShow({ nfse, venda, ambiente }: Props) {
   }, [podeCancelar]);
 
   function handleCancelar() {
+    // Charter Non-Goal "NÃO cancela sem motivo": além do botão desabilitado, a função não
+    // envia sem os 15 caracteres mínimos (o CancelarNfseRequest recusa de novo no servidor).
+    if (cancelForm.data.motivo.trim().length < 15) return;
     cancelForm.post(`/nfse/${nfse.id}/cancelar`, {
       preserveScroll: true,
       // Erro de validação (motivo) fica no diálogo; o erro do provedor volta no flash
@@ -104,7 +107,7 @@ export default function NfseShow({ nfse, venda, ambiente }: Props) {
   const urlNovaEmissao = nfse.transaction_id
     ? `/nfse/emitir?transaction_id=${nfse.transaction_id}`
     : '/nfse/emitir';
-  const motivoLen = cancelForm.data.motivo.length;
+  const motivoLen = cancelForm.data.motivo.trim().length;
 
   return (
     <AppShellV2 title={`NFSe ${nfse.numero ?? '#' + nfse.id}`}>
