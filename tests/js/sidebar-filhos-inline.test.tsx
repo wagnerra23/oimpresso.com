@@ -101,6 +101,8 @@ describe('Sidebar · item com filhos abre inline', () => {
     render(
       <SidebarMenu
         items={[
+          // Irmão com href, como em prod: grupo só de dropdown sem href não renderiza.
+          { label: 'CRM', href: '/crm' },
           {
             label: 'Vendas',
             // Pai de dropdown chega SEM href (LegacyMenuAdapter::convertItem).
@@ -122,6 +124,8 @@ describe('Sidebar · item com filhos abre inline', () => {
     render(
       <SidebarMenu
         items={[
+          // Irmão com href, como em prod: grupo só de dropdown sem href não renderiza.
+          { label: 'CRM', href: '/crm' },
           {
             label: 'Vendas',
             // Pai de dropdown chega SEM href (LegacyMenuAdapter::convertItem).
