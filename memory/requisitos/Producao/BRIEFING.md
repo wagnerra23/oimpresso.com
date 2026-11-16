@@ -18,7 +18,9 @@ donos da OS; as ordens deles aparecem no quadro da Produção.
 
 - **Por que nasceu:** [W] autorizou o PCP em 2026-10-15 ([ADR 0431](../../decisions/0431-pcp-sai-do-desejo-modules-producao.md)),
   substituindo o feature-wish da [ADR 0152](../../decisions/0152-modules-pcp-feature-wish.md) no ponto do PCP.
-- **Pasta:** era `memory/requisitos/## Estado atual (medido em 2026-11-16, `origin/main` `f20adefd1c`)
+- **Pasta:** era `memory/requisitos/Pcp/` até 2026-10-15.
+
+## Estado atual (medido em 2026-11-16, `origin/main` `f20adefd1c`)
 
 > A auditoria do módulo (lotes 0 a 8, aprovados por [W] em 2026-11-05) mudou boa parte do que a
 > versão de 2026-10-26 dizia. Aquela versão fica no histórico do git como fato datado.
@@ -55,8 +57,9 @@ donos da OS; as ordens deles aparecem no quadro da Produção.
   018, 019, 020, 026, 028 e 033.
 - **Filtro entre abas:** a aba da Produção abre a Linha sem a query, então o filtro do Quadro não
   passa pela aba (UC-PCV-06, item `[BACKLOG]` no casos do Quadro).
-- **Navegador e acessibilidade:** E2E com axe nas telas está em andamento (lote 5.3); a medição
-  contra o protótipo (lote 5.4) ainda não tem o lado da produção.
+- **Navegador e acessibilidade:** o E2E com axe das 7 telas existe desde o #11013 (lote 5.3,
+  `tests/Browser/Producao/ProducaoTelasBrowserTest.php`), que entrou em 2026-11-16 como step advisory do `visual-regression`.
+  A medição contra o protótipo (lote 5.4) ainda não tem o lado da produção.
 - **Protótipo:** os pedidos ao Cowork (lote 7) dependem de opt-in do [W] para escrever lá.
 - **Decisões [W] abertas da auditoria:** B1 a B13, entre elas B3 e B7 (movimento de estoque).
 - Controle de qualidade e não conformidade: hoje só existe o registro de refugo
