@@ -43,12 +43,14 @@ describe('Wave 26 NFSe SATURATION', function () {
         expect($src)->toContain('business_id');
     });
 
-    it('D1 — NfseBusinessScope respeita gate superadmin (cross-tenant intencional)', function () {
+    it('D1 — NfseBusinessScope NÃO tem exceção de superadmin (decisão [W] 2026-08-26)', function () {
         $src = file_get_contents(base_path('Modules/NFSe/Models/Concerns/NfseBusinessScope.php'));
 
-        // Gate: superadmin user.can('superadmin') → return; (skip scope)
-        expect($src)->toContain("can('superadmin')");
-        expect($src)->toContain('return;');  // early return path
+        // [W] 2026-08-26: "só da empresa selecionada" — o bypass de superadmin saiu do
+        // escopo; cross-tenant legítimo é por withoutGlobalScopes() explícito. Este caso
+        // afirmava o bypass removido (achado no 1º run da lane nfse-pest, 2026-11-16).
+        expect($src)->not->toContain("can('superadmin')");
+        expect($src)->toContain('return;');  // sem empresa no contexto: não filtra
     });
 
     it('D1 — NfseBusinessScope auto-set business_id em creating event', function () {

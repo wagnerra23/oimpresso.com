@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * arquivos:audit-log — Pest tests Sprint 2 ADR 0123 (compliance LGPD).
@@ -21,7 +22,7 @@ uses(Tests\TestCase::class);
  * 7. --suspicious flagra rapid-fire signed_url_consumed (scraping) — regressão 2026-07-02
  *
  * Setup: inserts diretos via DB::table() com payload JSON marcado com
- * test_marker='pr19-audit' pra cleanup isolado no afterEach.
+ * test_marker='pr19-audit' pra identificar as linhas do teste (o arquivo roda em DatabaseTransactions; nada é apagado).
  * Testes usam biz=1 (Wagner WR2) — nunca biz=4 (ROTA LIVRE — ADR 0101).
  *
  * Guard beforeEach: markTestSkipped se arquivos_audit_log ausente.
@@ -63,18 +64,8 @@ beforeEach(function () {
     }
 });
 
-afterEach(function () {
-    // afterEach roda mesmo em tests pulados (PHPUnit tearDown). Em SQLite CI
-    // sem migrate, DELETE estoura — bail antes.
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        return;
-    }
-
-    // Deleta apenas rows com o marcador de teste — nunca afeta dados reais.
-    DB::table('arquivos_audit_log')
-        ->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(payload, '$.test_marker')) = 'pr19-audit'")
-        ->delete();
-});
+// A trilha (`arquivos_audit_log`) não é limpa por DELETE: ela ganha trigger append-only
+// (lote L2) e o arquivo roda em DatabaseTransactions, que desfaz o que o teste gravou.
 
 // ---------------------------------------------------------------------------
 // 1. Command registrado

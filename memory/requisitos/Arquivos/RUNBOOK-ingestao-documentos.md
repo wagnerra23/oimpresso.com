@@ -62,22 +62,22 @@ $arquivo = $arquivos->attach(
 
 Quem usa: Controllers (com `$request->file('foto')`), Services (NfeService::writeArquivoXml), Jobs assíncronos (passar `$businessId` no constructor).
 
-### B) UI Inertia upload (futuro — Sprint 2+)
+### B) Upload por tela ou API do módulo dono
 
-Endpoint REST POST com middleware multi-tenant. Validação Laravel Form Request + chamada `ArquivosService::attach`.
-
-```
-POST /admin/arquivos/upload
-  multipart/form-data:
-    file: <UploadedFile>
-    arquivable_type: "Modules\\Repair\\Entities\\JobSheet"
-    arquivable_id: 42
-    context: "repair-foto"
-```
+Não existe rota de upload no `Modules/Arquivos` — a tela `/arquivos` não faz upload, por desenho.
+O upload mora na rota do módulo dono, que valida com Form Request e chama o trait/serviço. Exemplos
+no `main`: fotos da OS em `Modules/OficinaAuto` (`ServiceOrderPhotoController`) e anexos da OS no
+app em `GET/POST /api/app/os/{id}/arquivos` (`app/Http/Controllers/Api/App/OsArquivosController.php`,
+pelo contrato `AnexosDoApp`). _(Até 2026-11-16 este passo prometia um `POST /admin/arquivos/upload`
+"futuro"; ele não existe e o Admin Center foi deprecado pela ADR 0360.)_
 
 ### C) CLI batch (cenário migração ou import inicial)
 
-Use `php artisan arquivos:import-batch` (futuro — gap Sprint 2). Hoje, fazer via `php artisan tinker` com loop chamando `ArquivosService::attach` per-file.
+Não existe comando de import em lote (`arquivos:import-batch` não existe). **Não rode loop no
+`tinker` em produção** — escrita ad-hoc no banco é proibida pela regra "Mexeu, registra"
+(`memory/proibicoes.md`). Import em lote vira comando artisan idempotente versionado (ou migration
+de backfill, caminho D), que chama `ArquivosService::attach` por arquivo, passa no PR e roda pelo
+deploy. _(Até 2026-11-16 este passo mandava usar um loop no `tinker`.)_
 
 ### D) Migration backfill (apenas DEV/staging)
 
@@ -176,8 +176,7 @@ Logs em `storage/logs/laravel.log` channel `arquivos` com prefix `arquivos.attac
 
 ## Próximos gaps (Sprint 2+)
 
-- [ ] `arquivos:import-batch` command pra ingestão CLI batch (caminho C atual usa `tinker`)
-- [ ] UI Inertia upload `/admin/arquivos/upload` (caminho B — depende charter MWART)
+- [ ] Comando de import em lote (caminho C) — não existe; nasce quando houver lote real para importar
 - [ ] Chunked encryption pra files >50MB (ADR 0126 aceitação Wagner)
 - [ ] Hook UltimatePOS upload (substituir `BusinessUtil::uploadFile` legacy → `ArquivosService::attach`)
 - [ ] OCR opcional pós-ingestão pra PDFs (sub_destination=contrato → extrai texto pra Jana RAG)

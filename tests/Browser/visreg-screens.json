@@ -259,6 +259,7 @@
   {
     "screen": "Arquivos",
     "source": "Arquivos",
+    "a11y": true,
     "component": "Arquivos/Index",
     "route": "/arquivos",
     "anchor": "Arquivos",

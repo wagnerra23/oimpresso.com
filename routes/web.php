@@ -470,6 +470,17 @@ Route::domain('www.uniafibro.com.br')->group(function () {
 Route::domain('uniafibro.com.br')->middleware('throttle:60,1')->group(function () {
     Route::get('/', [\App\Http\Controllers\UniafibroSiteController::class, 'home'])
         ->name('uniafibro.home');
+    // Seus Direitos + Guias Práticos: páginas geradas de resources/uniafibro/direitos/*.md.
+    // O slug só aceita [a-z0-9-]; slug sem arquivo volta para /direitos (RUNBOOK §6).
+    Route::get('/direitos', [\App\Http\Controllers\UniafibroConteudoController::class, 'indice'])
+        ->name('uniafibro.direitos');
+    Route::get('/direitos/{slug}.pdf', [\App\Http\Controllers\UniafibroConteudoController::class, 'pdf'])
+        ->where('slug', \App\Support\Uniafibro\Conteudo::SLUG)
+        ->middleware('throttle:10,1')
+        ->name('uniafibro.direitos.pdf');
+    Route::get('/direitos/{slug}', [\App\Http\Controllers\UniafibroConteudoController::class, 'pagina'])
+        ->where('slug', \App\Support\Uniafibro\Conteudo::SLUG)
+        ->name('uniafibro.direitos.pagina');
     // Qualquer outro caminho no domínio da associação volta para a página inicial, em vez de
     // cair numa tela do ERP.
     Route::redirect('/{caminho}', 'https://uniafibro.com.br/')
