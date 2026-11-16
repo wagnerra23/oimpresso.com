@@ -7,7 +7,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Download, XCircle, AlertTriangle, RefreshCw, ShoppingCart, User, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, Download, FileText, XCircle, AlertTriangle, RefreshCw, ShoppingCart, User, Calendar, DollarSign } from 'lucide-react';
 
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/Components/ui/alert-dialog';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import StatusBadge from '@/Components/shared/StatusBadge';
 
 interface NfseDetail {
@@ -112,10 +112,10 @@ export default function NfseShow({ nfse, venda, ambiente }: Props) {
       <div className="p-6 space-y-5">
 
         <PageHeader
-          icon="file-text"
+          leading={<FileText size={18} aria-hidden="true" />}
           title={`NFSe ${nfse.numero ? '#' + nfse.numero : 'em processamento'}`}
-          description={`Criada em ${nfse.created_at} · Competência ${nfse.competencia ?? '—'}`}
-          action={
+          subtitle={`Criada em ${nfse.created_at} · Competência ${nfse.competencia ?? '—'}`}
+          actions={
             <Button variant="outline" size="sm" onClick={() => router.visit('/nfse')}>
               <ArrowLeft size={14} className="mr-1" />
               Listagem
