@@ -37,7 +37,7 @@ related_adrs:
 | Jaeger all-in-one | ✅ in-memory | ✅ CT 100 | ❌ | `memory/reference/observability-jaeger-ct100.md:12-17` |
 | `observability:aggregate-daily` | ✅ agendado 02:00 | ⚠️ lê `mcp_observability_spans`, que **não tem escritor** | — | `Kernel.php:520` |
 | Langfuse (IA) | ✅ `langfuse.oimpresso.com` | ? `LANGFUSE_ENABLED` default false; job vai pra fila `default` | 🟡 health-check `langfuse_trace_uptime_24h` → log | `RUNBOOK-langfuse-operacional.md`, `LangfuseClient.php:377-424` |
-| Custo IA | 🟡 `mcp_audit_log.custo_brl` + quota por usuário + alerta Jana > R$5/dia | 🟡 `mcp_usage_diaria` **sem escritor**; `ai_usage_log` só no OCR de boleto | log / `mcp_alertas_eventos` | `McpAuthMiddleware.php:115-140`, `HealthCheckCommand.php:505-547` |
+| Custo IA | 🟡 `mcp_audit_log.custo_brl` + quota por usuário + alerta de teto diário do chat Jana | 🟡 `mcp_usage_diaria` **sem escritor**; `ai_usage_log` só no OCR de boleto | log / `mcp_alertas_eventos` | `McpAuthMiddleware.php:115-140`, `HealthCheckCommand.php:505-547` |
 | Latência por rota | 🟡 `ContadorHitsRota` conta hits, **sem duração** | ✅ | ❌ | `app/Http/Middleware/ContadorHitsRota.php:47-68` |
 | Slow query log | ❌ (app e MySQL) | — | — | grep vazio; `Infra/SPEC.md:123,131` (US-INFRA-003 todo) |
 | Detector de vazamento multi-tenant | 🟡 batch: `business_id IS NULL` em 3 tabelas Jana | ✅ 06:00 + hora em hora | ❌ log | `HealthCheckCommand.php:352-379` |
@@ -78,11 +78,11 @@ Princípio: **reaproveitar o que já está de pé** (GlitchTip, Langfuse, `jana:
 
 | Peça | Onde | Cobre | Custo |
 |---|---|---|---|
-| **Uptime Kuma** | CT 100 (container, ~100 MB) | G2 ping 60s de todas as URLs + G10 SSL + *push monitors* p/ G3 (scheduler) e G5 (backup) + status page `status.oimpresso.com` (dashboard Health) | R$ 0 |
-| **Olho externo** (UptimeRobot free ou Healthchecks.io free) | SaaS | Vigia o próprio Kuma + `oimpresso.com` a cada 5 min — cobre "CT 100/link caiu e ninguém avisou" | R$ 0 |
-| **GlitchTip** (já existe) | CT 100 `apm.` | G4 exceções + alerta de taxa de erro; G8 performance com `traces_sample_rate` baixo (0,05; 1,0 nas 3 rotas críticas) | R$ 0 |
-| **Langfuse** (já existe) | CT 100 | custo/tokens por trace IA (G11 parcial) | R$ 0 |
-| **Canal de alerta único** | **Telegram bot** — decidido por [W] em 2026-11-14 ("1 ok") | G1: Kuma, GlitchTip, `ERROR_S0_WEBHOOK`, `jana:health-check --notify`, `backup` | R$ 0 |
+| **Uptime Kuma** | CT 100 (container, ~100 MB) | G2 ping 60s de todas as URLs + G10 SSL + *push monitors* p/ G3 (scheduler) e G5 (backup) + status page `status.oimpresso.com` (dashboard Health) | grátis |
+| **Olho externo** (UptimeRobot free ou Healthchecks.io free) | SaaS | Vigia o próprio Kuma + `oimpresso.com` a cada 5 min — cobre "CT 100/link caiu e ninguém avisou" | grátis |
+| **GlitchTip** (já existe) | CT 100 `apm.` | G4 exceções + alerta de taxa de erro; G8 performance com `traces_sample_rate` baixo (0,05; 1,0 nas 3 rotas críticas) | grátis |
+| **Langfuse** (já existe) | CT 100 | custo/tokens por trace IA (G11 parcial) | grátis |
+| **Canal de alerta único** | **Telegram bot** — decidido por [W] em 2026-11-14 ("1 ok") | G1: Kuma, GlitchTip, `ERROR_S0_WEBHOOK`, `jana:health-check --notify`, `backup` | grátis |
 
 > **Não usar o WhatsApp do próprio sistema como canal de alerta** — dependência circular (o daemon é uma das coisas que precisa ser vigiada).
 
@@ -137,7 +137,7 @@ G12 (LGPD Fisio/Associações) e G13 (multi-tenant runtime) ficam **fora** deste
 
 - **Health:** status page do Uptime Kuma (`status.oimpresso.com`) + painel GlitchTip (erros 24h, P95 das 3 rotas) + bloco do `jana:health-check` (25 checks). O `Modules/Governance` DashboardController já lê `failed_jobs` — reaproveitar em vez de dashboard novo.
 - **Negócio:** métricas por cliente ainda a definir com [W]. Ponto de partida: biz=4 ROTA LIVRE — vendas/dia, ticket médio, títulos vencidos; Fisio — atendimentos/semana.
-- **Uniafibro:** deixa de ser só site estático e vira a primeira empresa do `Modules/Associacoes` ([ADR 0451](../../decisions/0451-associacoes-rede-uniafibro-area-de-membros.md), proposta; ondas 2–6 em PR aberto). As métricas de negócio dela já nascem no **Painel da rede** (`/associacoes`, onda 5): associações ativas, associadas ativas e novas por mês por associação, consentimentos revogados, pendências de ata atrasadas (D7, 30 dias) e acessos à área da associada no app (D6). **Não** criar dashboard paralelo — reaproveitar esse painel.
+- **Uniafibro:** deixa de ser só site estático e vira a primeira empresa do `Modules/Associacoes` (ADR 0451, proposta e ainda fora do main; ondas 2–6 em PR aberto). As métricas de negócio dela já nascem no **Painel da rede** (`/associacoes`, onda 5): associações ativas, associadas ativas e novas por mês por associação, consentimentos revogados, pendências de ata atrasadas (D7, 30 dias) e acessos à área da associada no app (D6). **Não** criar dashboard paralelo — reaproveitar esse painel.
 - **Observabilidade que o módulo de Associações precisa** (para entrar no plano depois da onda 6): monitor de uptime da rota pública da área da associada; contador de PIN errado / tokens travados (abuso); e **log de leitura** de dado da associada (quem viu o cadastro e quando — dado de saúde, LGPD art. 11/37), que nas ondas 2–6 ainda não existe (só há filtro de alcance e rastro de revogação do token).
 
 ## 8. Referências
