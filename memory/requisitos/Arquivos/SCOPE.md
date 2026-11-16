@@ -40,6 +40,9 @@ drift_alerts: []
 - **Download** por signed URL (`arquivos.download`).
 - **Comandos** `arquivos:*` registrados no `ArquivosServiceProvider`. Agendados no
   `app/Console/Kernel.php`: `arquivos:health-check` e `arquivos:avisar-titulares`.
+- **Storage** em `arquivos.disk_default`, que hoje cai em `local`. O disk `local-ct100` nunca
+  foi criado; a troca para `arquivos-minio` ([ADR 0214](../../decisions/0214-arquivos-storage-s3-minio-ct100.md))
+  está pendente da decisão B4 do [W].
 
 Quem consome o trait é derivado, não listado aqui:
 

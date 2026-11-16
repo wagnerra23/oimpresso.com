@@ -128,7 +128,7 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 **Implementado em:** `Modules/Arquivos/Database/Migrations/2026_05_10_000010_backfill_nfe_xml_arquivos.php` · `Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php` · verificado@dad0b11 (2026-07-02)
 
 ### US-ARQ-021 · Smoke: novo NFe import → XML em `/var/lib/oimpresso-arquivos/biz-1/...` + audit log linha `p0`
-**Implementado em:** _parcial_ · `Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php` · verificado@dad0b11 (2026-07-02) — ingest+audit validados em teste de backfill; falta o smoke de novo import NFe ao vivo depositando no mount CT 100
+**Implementado em:** _parcial_ · `Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php` · verificado@dad0b11 (2026-07-02) — o teste de backfill cobre o ingest (linha em `arquivos` na empresa da NFe); a linha de audit log NÃO é testada lá (corrigido em 2026-11-16: antes dizia "ingest+audit validados", e o teste pulava em toda run por falta de dados); falta o smoke de novo import NFe ao vivo depositando no mount CT 100
 
 ### US-ARQ-022 · Officeimpresso UI lê NFe XML via `arquivable->arquivos()` (não path direto) — backward compat preservada `p1`
 **Implementado em:** _parcial_ · `Modules/NfeBrasil/Models/NfeEmissao.php` · `Modules/NfeBrasil/Services/DanfeService.php` · `Modules/NfeBrasil/Tests/Feature/DanfeServicePrefersArquivosTest.php` · verificado@dad0b11 (2026-07-02) — accessor `xml_arquivo` via `arquivos()` existe em NfeEmissao e `DanfeService` (L85) já PREFERE o accessor com fallback legacy `xml_path`; falta só a UI Officeimpresso consumir pela relação
