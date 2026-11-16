@@ -17,8 +17,8 @@ use App\Support\Privacy\PiiRedactor;
  *
  * Wrap idiomático: `$this->logSafeEmergency('contexto', $e)`.
  *
- * Defesa em profundidade (ADR 0094 §6) — complementa PiiRedactor já aplicado em
- * `ProductionService::logProductionEvent()` (Wave 14).
+ * Defesa em profundidade (ADR 0094 §6). É o único caminho de log com redação do módulo desde o lote
+ * 2.8 da auditoria (o `ProductionService::logProductionEvent()` da Wave 14 saiu sem nunca ter chamador).
  *
  * Reaproveitado em todos os Controllers Manufacturing que tratam exception em CRUD
  * de produção/receita/settings.

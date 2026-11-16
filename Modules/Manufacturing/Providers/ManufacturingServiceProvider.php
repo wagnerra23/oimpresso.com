@@ -4,8 +4,6 @@ namespace Modules\Manufacturing\Providers;
 
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View;
-use App\Utils\ModuleUtil;
 use App\Utils\Util;
 
 class ManufacturingServiceProvider extends ServiceProvider
@@ -23,19 +21,6 @@ class ManufacturingServiceProvider extends ServiceProvider
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->registerScheduleCommands();
-
-        //TODO:Remove
-        View::composer('manufacturing::layouts.partials.sidebar', function ($view) {
-            if (auth()->user()->can('superadmin')) {
-                $__is_mfg_enabled = true;
-            } else {
-                $business_id = session()->get('user.business_id');
-                $module_util = new ModuleUtil();
-                $__is_mfg_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'manufacturing_module', 'superadmin_package');
-            }
-
-            $view->with(compact('__is_mfg_enabled'));
-        });
     }
 
     /**
@@ -46,7 +31,6 @@ class ManufacturingServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
-        $this->registerCommands();
 
         // US-PCP-031 · UC-FLX-14: a receita é a fonte do material reservado na venda sob encomenda.
         $this->app->bind(\App\Contracts\Fabricacao\InsumosDaReceita::class, \Modules\Manufacturing\Services\InsumosDaReceitaService::class);
@@ -127,20 +111,6 @@ class ManufacturingServiceProvider extends ServiceProvider
     public function provides()
     {
         return [];
-    }
-
-    /**
-     * Register commands.
-     *
-     * @return void
-     */
-    protected function registerCommands()
-    {
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                \Modules\Manufacturing\Console\Commands\ManufacturingHealthCommand::class,
-            ]);
-        }
     }
 
     public function registerScheduleCommands()
