@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: OS em duas colunas ou na coluna errada engana o PCP; OS de outra empresa no quadro é vazamento Tier 0.
 owner: wagner
-last_run: "2026-11-06"
-last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoQuadroContratoTest."
+last_run: "2026-11-16"
+last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
 # Casos de Uso & Aceite — Produção · Quadro (`/producao/quadro`)
@@ -22,17 +22,21 @@ last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o Produc
 nº, cliente, etapa atual + máquina, progresso, prazo e responsável · OS da empresa 99 nunca aparece para a 98.
 Ver o quadro pede `producao.access`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-06 · Filtro igual no quadro e na linha · `must`
 
 **Dado** o filtro "Travadas por arte" + responsável "Marcos" **Quando** troco do Quadro para a Linha **Então** o
 filtro continua e os blocos visíveis são os das mesmas OS · "Limpar" volta tudo. O filtro inteiro (busca,
 situação, responsável, setor) mora na URL e o servidor o devolve normalizado em `filtro`; a regra de passar é
-uma só, `Pages/Producao/_lib/filtro.ts` (teste `tests/js/producao-filtro.test.ts`). A metade "na Linha" vale
-quando a Linha do tempo existir (thread 07), importando o mesmo módulo.
+uma só, `Pages/Producao/_lib/filtro.ts` (teste `tests/js/producao-filtro.test.ts`). A Linha do tempo existe e
+importa o mesmo módulo, então a mesma URL dá o mesmo filtro nas duas telas.
 
-Status: 🧪
+Status: 🧪 — os testes provam a regra única e o filtro vindo da URL. A troca pela aba não leva o filtro:
+`_components/ProducaoAbas.tsx` abre `/producao/linha` sem a query. O "Quando troco do Quadro para a Linha"
+não vale pela aba e não tem teste.
+
+- [BACKLOG] A aba da Produção leva a query do filtro ao trocar entre Quadro e Linha (UC-PCV-06).
 
 ## UC-PCV-07 · O PCP move a OS de coluna à mão · `should`
 
@@ -46,7 +50,7 @@ inicia ou conclui uma etapa depois do movimento. Pede `producao.etapa.mover`; OS
 fechado com motivo "movida pelo PCP". Não entra: o protótipo não fecha apontamento, e a coordenação escolheu
 seguir o protótipo (UI-0029). Fica registrado no `_saida-06.md`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-FLX-10 · Alocar quem e quando começa, pelo cartão · `must`
 
@@ -54,7 +58,7 @@ Status: 🧪
 responsável e outro início **Então** o cartão passa a mostrar a pessoa e o horário novos, e o fim previsto mantém
 a duração da etapa · Sem a permissão, o botão não aparece e a lista de pessoas vem vazia.
 
-Status: 🧪
+Status: ✅
 
 ## UC-FLX-13 · Simular a bobina com as OS marcadas · `must`
 
@@ -62,7 +66,7 @@ Status: 🧪
 bobina" **Então** escolhe a mídia, cadastra a largura útil se faltar, e vê as faixas desenhadas com os metros e a
 perda do arranjo contra imprimir uma a uma · OS sem peça medida não pode ser marcada.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCISO-04 · Coluna manual de outra empresa não move o cartão · `must`
 
@@ -70,7 +74,7 @@ Status: 🧪
 **Então** o cartão fica na coluna da etapa atual · **Controle:** o movimento feito pela 98 muda o cartão e a linha da
 99 não é tocada. Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
-Status: 🧪
+Status: ✅
 
 ## Trilha do tempo
 - 2026-11-06 · [W+C] Auditoria lote 3.5: o número do cartão de uma OS por item é link para a Ficha. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.

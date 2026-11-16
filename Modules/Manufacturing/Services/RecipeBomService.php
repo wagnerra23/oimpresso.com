@@ -734,7 +734,9 @@ class RecipeBomService implements ReceitaDoProduto
             'un'             => $recipe->getAttribute('unit_name') ?: '',
             'waste'          => $waste,
             'extra'          => (float) ($recipe->extra_cost ?? 0),
-            'custo_tipo'     => $recipe->production_cost_type ?: 'percentage',
+            // Receita antiga gravada sem a forma: `calculateCost` soma o extra como valor fixo e o editor abre
+            // em "fixo"; o rótulo tem de dizer a mesma coisa (UC-RECIPE-23). Era 'percentage'.
+            'custo_tipo'     => $recipe->production_cost_type ?: 'fixed',
             'venda'          => $finalPrice,
             'atualizado'     => optional($recipe->updated_at)->format('d/m/Y H:i'),
             'sub_un'         => $subUnit ? $subUnit->short_name : null,
