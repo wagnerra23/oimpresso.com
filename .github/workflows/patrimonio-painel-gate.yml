@@ -63,6 +63,7 @@ on:
       - 'resources/js/Pages/Patrimonio/_shared/ConfirmarExclusao.tsx'
       - 'resources/js/Pages/Patrimonio/_shared/excluir.ts'
       - 'tests/js/patrimonio-bens-excluir.test.tsx'
+      - 'tests/js/patrimonio-manutencoes-excluir.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/patrimonio-painel-gate.yml'
   push:
@@ -84,6 +85,7 @@ on:
       - 'resources/js/Pages/Patrimonio/_shared/ConfirmarExclusao.tsx'
       - 'resources/js/Pages/Patrimonio/_shared/excluir.ts'
       - 'tests/js/patrimonio-bens-excluir.test.tsx'
+      - 'tests/js/patrimonio-manutencoes-excluir.test.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher
       # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
@@ -122,6 +124,7 @@ jobs:
             tests/js/patrimonio-painel-forma.test.tsx \
             tests/js/patrimonio-estado-erro.test.tsx \
             tests/js/patrimonio-bens-excluir.test.tsx \
+            tests/js/patrimonio-manutencoes-excluir.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-patrimonio-painel-junit.xml

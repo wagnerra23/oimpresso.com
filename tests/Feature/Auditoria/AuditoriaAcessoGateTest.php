@@ -19,8 +19,9 @@ use Spatie\Activitylog\Models\Activity;
  * do menu em DataController::modifyAdminMenu. Camadas 1 e 3 de proibicoes.md §Multi-tenant.
  *
  * O pacote é fixado por mock do ModuleUtil: no CI a tabela `system` não tem `superadmin_version`,
- * e o ModuleUtil real liberaria qualquer pacote. O 403 traz a mensagem da camada que recusou, e
- * cada recusa tem o par que passa com a mesma requisição.
+ * e o ModuleUtil real liberaria qualquer pacote. Desde 2026-11-16 a leitura não exige o pacote
+ * (ver AuditoriaLiberado); o mock com o pacote ausente prova que ele não é consultado. O 403 traz
+ * a mensagem da permissão, e cada recusa tem o par que passa com a mesma requisição.
  *
  * `Inertia::defer`: visita normal devolve só o shell e nem executa a consulta. O que carrega
  * dado é a visita parcial, então os casos de leitura mandam os headers reais do cliente Inertia,
@@ -49,7 +50,7 @@ function audGatePacote(bool $tem): void
 {
     $util = \Mockery::mock(ModuleUtil::class)->makePartial();
     $util->shouldReceive('hasThePermissionInSubscription')->andReturnUsing(
-        fn ($biz, $perm = null, $cb = null) => $perm === AuditoriaLiberado::PACOTE ? $tem : true
+        fn ($biz, $perm = null, $cb = null) => $perm === 'auditoria_module' ? $tem : true
     );
     app()->instance(ModuleUtil::class, $util);
 }
@@ -124,13 +125,27 @@ it('UC-AUDI-04 · com o pacote e auditoria.view, /auditoria abre e a lista carre
     expect(collect($parcial->json('props.activities.data'))->pluck('id')->all())->toContain($linha->id);
 });
 
-it('UC-AUDI-04 · empresa sem o pacote recebe 403 mesmo com auditoria.view', function () {
+it('UC-AUDI-04 · empresa sem o pacote abre /auditoria com auditoria.view, e a lista carrega', function () {
     audGatePacote(false);
+    $linha = audGateLinha((int) $this->b98->id);
     $comPerm = $this->usuarioComPermissoes([AuditoriaLiberado::PERMISSAO], $this->b98);
 
-    $tela = audGateGet($comPerm, (int) $this->b98->id, '/auditoria');
+    audGateGet($comPerm, (int) $this->b98->id, '/auditoria')
+        ->assertStatus(200)
+        ->assertInertia(fn (AssertableInertia $page) => $page->component('Auditoria/Index'));
+
+    $parcial = audGateParcial($comPerm, (int) $this->b98->id, '/auditoria', 'Auditoria/Index', 'activities');
+    $parcial->assertStatus(200);
+    expect(collect($parcial->json('props.activities.data'))->pluck('id')->all())->toContain($linha->id);
+});
+
+it('UC-AUDI-04 · empresa sem o pacote e usuário sem auditoria.view recebe 403 pela permissão', function () {
+    audGatePacote(false);
+    $semPerm = $this->usuarioComPermissoes([], $this->b98);
+
+    $tela = audGateGet($semPerm, (int) $this->b98->id, '/auditoria');
     $tela->assertStatus(403);
-    expect(audGateMotivo($tela))->toBe(AuditoriaLiberado::SEM_PACOTE);
+    expect(audGateMotivo($tela))->toBe(AuditoriaLiberado::SEM_PERMISSAO);
 });
 
 it('UC-AUDI-04 · superadmin abre sem o pacote e sem auditoria.view', function () {
