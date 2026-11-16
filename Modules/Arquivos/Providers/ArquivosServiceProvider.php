@@ -59,7 +59,7 @@ class ArquivosServiceProvider extends ServiceProvider
         // LEGAL por contexto. Todo modulo irmao (Auditoria, Cms, Compras...) ja fazia isto.
         //
         // Neutro em comportamento, medido antes de aplicar: nenhuma env ARQUIVOS_* existe
-        // no repo (logo os valores == os defaults inline) e `arquivos:retention:cleanup`
+        // no repo (logo os valores == os defaults inline) e `arquivos:retention-cleanup`
         // nao tem schedule — nada apaga sozinho por causa deste registro.
         $this->mergeConfigFrom(__DIR__ . '/../Config/config.php', 'arquivos');
 

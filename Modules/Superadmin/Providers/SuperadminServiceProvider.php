@@ -17,6 +17,7 @@ use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Entities\SuperadminFrontendPage;
 use Modules\Superadmin\Listeners\OnCobrancaPagaUpdateSubscription;
 use Modules\Superadmin\Listeners\OnCobrancaVencidaBloqueaSubscription;
+use Modules\Superadmin\Notifications\SuperadminCommunicator;
 use Modules\Superadmin\Observers\BusinessAutoSubscriptionObserver;
 
 class SuperadminServiceProvider extends ServiceProvider
@@ -122,6 +123,30 @@ class SuperadminServiceProvider extends ServiceProvider
                 // ADR 0170 Onda 5.B — emite cobrança PIX Automático pra Subscriptions
                 // waiting com trial expirado (auto-onboarding).
                 $schedule->command('paymentgateway:emit-trial-expired')->dailyAt('08:00');
+
+                // Worker da fila `superadmin-mail`: drena as 7 notificações do Superadmin
+                // (Comunicador, boas-vindas, nova assinatura, troca de senha, alerta de
+                // expiração...), que saíram do request HTTP em 2026-11-16 (lote L4).
+                //
+                // POR QUE FILA PRÓPRIA, e não `default`: quem drena `default` em produção é
+                // o worker de backlog do app/Console/Kernel.php, atrás de
+                // `queue.backlog_worker_enabled` (default false). E-mail mandado pra `default`
+                // ficaria parado na tabela `jobs`, em silêncio — mesmo motivo de `backups`,
+                // `attendance-import` e `sales-import`. Não gated: a fila só recebe e-mail
+                // recém-disparado por ação humana ou pelo cron do alerta de expiração.
+                //
+                // --tries=3: a fila tem um job por destinatário, então o retry de uma falha
+                // de SMTP reenvia só para quem falhou. Hostinger é shared hosting sem
+                // supervisor — cron everyMinute + --max-time=55 é o padrão dos outros workers.
+                $schedule->command('queue:work database --queue='.SuperadminCommunicator::FILA.' --max-time=55 --tries=3')
+                    ->everyMinute()
+                    ->withoutOverlapping(1)
+                    ->runInBackground()
+                    ->onFailure(function () {
+                        \Illuminate\Support\Facades\Log::channel('single')->error(
+                            'Schedule queue:work superadmin-mail FALHOU — e-mails do Superadmin podem ficar parados na jobs table'
+                        );
+                    });
             });
         }
     }

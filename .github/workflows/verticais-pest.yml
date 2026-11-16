@@ -830,6 +830,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminPagarContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionConfirmContratoTest.php \
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
