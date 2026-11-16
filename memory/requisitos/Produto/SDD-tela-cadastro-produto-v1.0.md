@@ -1302,6 +1302,13 @@ volta para uma margem alvo.
   ele: o padrão da regra da compra em Fluxos já é `regraEm = produto`, então, quando o recebimento
   passar a ler a política, as empresas no padrão deixam de receber proposta de preço para todo produto
   que estiver em Preço fixo, que é o que todo produto existente tem hoje.
+- **Decisão do [F] (2026-11-16) sobre o passo seguinte:** a compra segue o que o administrador
+  escolheu na regra da compra em Fluxos ("Quais produtos seguem", parâmetro `regraEm`). Os produtos
+  que já existem **não** são migrados: com "Política de preço do produto", o produto em Preço fixo
+  deixa de receber proposta de preço, porque foi isso que o administrador escolheu. Quem quiser outro
+  comportamento muda a regra em Fluxos ou a política do produto. Continua valendo a REGRA MESTRE: o
+  recebimento só passa a ler a política depois do antes e depois de uma compra de exemplo, conferido
+  por dois caminhos e aprovado pelo [W].
 
 #### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1536,6 +1543,14 @@ de produção ele segue, e um link para a tela de Roteiros.
 
 **Gate de entrada de cada item:** US no SPEC → CU/`casos.md` → Pest failing-first (`[V0]` onde toca valor) → implementação → gates visuais → smoke biz=1 → (se V0) dupla-confirmação + aprovação → canary.
 
+### 10.6 Pendências de decisão
+
+> 🖐 **curado** — foto datada; sai daqui quando a decisão entrar no caso de uso.
+
+| Desde | O quê | Quem decide | Estado hoje |
+|---|---|---|---|
+| 2026-11-16 | Editores de **variação** (grade) e de **composição** (kit) no Novo e no Editar React | [F], combinado para 2026-11-17 | O Novo React não salva produto variável nem composto e manda para o formulário clássico (`tipoSemEditor` em `_components/formulario/tipos.ts`); o protótipo `produto-blade-forms.jsx` tem os dois editores |
+
 ---
 
 ## 11. Referências
@@ -1556,6 +1571,7 @@ de produção ele segue, e um link para a tela de Roteiros.
 
 **Histórico:**
 
+- 2026-11-16 — **`CU-PROD-21`: a compra segue a regra do administrador em Fluxos** (`regraEm`), sem migrar os produtos existentes; ligar ainda depende do antes e depois aprovado pelo [W]. Pendência registrada em §10.6: editores de variação e composição, a decidir pelo [F] em 2026-11-17. [F+C]
 - 2026-11-11 — **`CU-PROD-20`: proposta de quem edita os locais de armazenagem** (v1.0.18): permissão nova `product.armazenagem` só para os locais, sem dar acesso a preço e imposto; `product.update` continua bastando; rota própria que grava só os locais; histórico de quem mudou. Vale se o [W] mergear o PR. Pergunta do [F]. [F+C]
 - 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.17): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]
 - 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. Na mesma versão, revisão da [M] a partir de um caso do [L]: o **estoque máximo volta, opcional por produto**, como teto da compra (barra de pouco giro enferruja parada); substitui a decisão de 2026-10-22 de não ter máximo. [F+C] [M+C]

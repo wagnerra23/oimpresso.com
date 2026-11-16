@@ -1,0 +1,1673 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Configuração de Tributos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<script>
+/* Mesmo contrato do DS usado em sells/create-v3: tema em html.cockpit[data-theme],
+   seguindo o sistema até o visualizador escolher. */
+(function () {
+  var d = document.documentElement;
+  d.classList.add('cockpit');
+  d.lang = 'pt-BR';
+  var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  var auto = !d.hasAttribute('data-theme');
+  var proprio = false;
+  function aplicar() {
+    if (!auto) return;
+    proprio = true;
+    d.setAttribute('data-theme', mq && mq.matches ? 'dark' : 'light');
+  }
+  aplicar();
+  if (mq && mq.addEventListener) mq.addEventListener('change', aplicar);
+  new MutationObserver(function () {
+    if (proprio) { proprio = false; return; }
+    if (!d.hasAttribute('data-theme')) { auto = true; aplicar(); } else { auto = false; }
+    window.dispatchEvent(new Event('dv-tema'));
+  }).observe(d, { attributes: true, attributeFilter: ['data-theme'] });
+  window.__dvTema = function (t) { auto = false; d.setAttribute('data-theme', t); };
+})();
+</script>
+<style id="ds-tokens">
+/* =============================================================================
+   Office Impresso / Ponto WR2 — DESIGN SYSTEM v6 — design tokens
+   -----------------------------------------------------------------------------
+   "DS v6" = the git source-of-truth design system (ADR 0239 DS git SSOT,
+   ADR 0249 DS v6 naming, ADR 0300 token errata). Tokens are authored as
+   DTCG JSON (resources/css/tokens/*.tokens.json in the source repo) and compiled
+   by Style Dictionary into CSS. The values below are copied verbatim from that
+   generated output — do not invent values.
+
+   THREE token layers, mirrored from the repo:
+     1. @theme  (inertia)     — Tailwind v4 color/radius/motion utilities
+     2. foundations :root      — the Type RAMP (--fs-1..9), shadows, motion, atmo
+     3. .cockpit scope         — the operational shell's own palette
+                                 (--bg / --surface / --text / --accent / …),
+                                 IBM Plex Sans/Mono, plus dozens of domain hues
+
+   KEY FACTS
+     · PRIMARY IS PURPLE — `oklch(0.55 0.15 295)` (ADR 0190 "roxo médio
+       universal", ADR 0235). It is NOT the shadcn blue. Accent hue 295 is the
+       canon default; the cockpit Tweaks panel lets users re-hue it live.
+     · Operational shell font is **IBM Plex Sans** (mono: **IBM Plex Mono**).
+       The marketing/Tailwind layer falls back to the system sans stack.
+     · Color space is OKLCH throughout. Status semantics: success(green 162) /
+       warning(amber 70-75) / destructive(red 18-25) / info(blue 244), each with
+       a `-soft` (tinted bg) and `-fg` (readable text) companion.
+     · Everything has a dark counterpart, keyed by BOTH `.dark` and
+       `[data-theme="dark"]` (the cockpit sets data-theme on the shell root).
+     ============================================================================ */
+
+/* IBM Plex — the operational typeface. Marketing may stay on system sans.
+   SELF-HOSTED (DS v6): woff2 in assets/fonts/, latin subset (cobre PT-BR).
+   No CDN dependency — funciona offline e em print, sem FOUT do Google. */
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url(../../design-system/assets/fonts/ibm-plex-sans-400.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url(../../design-system/assets/fonts/ibm-plex-sans-500.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url(../../design-system/assets/fonts/ibm-plex-sans-600.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url(../../design-system/assets/fonts/ibm-plex-sans-700.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url(../../design-system/assets/fonts/ibm-plex-mono-400.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url(../../design-system/assets/fonts/ibm-plex-mono-500.woff2) format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url(../../design-system/assets/fonts/ibm-plex-mono-600.woff2) format('woff2'); }
+
+/* =============================================================================
+   LAYER 1 — @theme (Tailwind utilities). Light.  [_generated-inertia-theme.css]
+   ============================================================================ */
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+  --font-plex: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+
+  --duration-fast: 120ms;   /* @kind other */
+  --duration-base: 150ms;   /* @kind other */
+  --duration-slow: 240ms;   /* @kind other */
+  --duration-slower: 360ms; /* @kind other */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);  /* @kind other */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);       /* @kind other */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);        /* @kind other */
+
+  --color-border: oklch(0.92 0.006 90);
+  --color-input: oklch(0.92 0.006 90);
+  --color-ring: oklch(0.137 0.036 258.5);
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.137 0.036 258.5);
+  --color-page-cream: oklch(0.985 0.003 90);
+  --color-page: oklch(0.985 0.003 90);
+
+  --color-primary: oklch(0.55 0.15 295);            /* ROXO — brand primary */
+  --color-primary-foreground: oklch(0.984 0.003 247.9);
+  --color-secondary: oklch(0.968 0.007 247.9);
+  --color-secondary-foreground: oklch(0.208 0.04 265.7);
+  --color-muted: oklch(0.97 0.004 90);
+  --color-muted-foreground: oklch(0.55 0.012 90);
+  --color-accent: oklch(0.968 0.007 247.9);
+  --color-accent-foreground: oklch(0.208 0.04 265.7);
+
+  --color-destructive: oklch(0.58 0.20 18);
+  --color-destructive-foreground: oklch(0.984 0.003 247.9);
+  --color-destructive-soft: oklch(0.97 0.02 18);
+  --color-destructive-fg: oklch(0.51 0.19 18);
+  --color-success: oklch(0.62 0.13 162);
+  --color-success-foreground: oklch(0.20 0.02 162);
+  --color-success-soft: oklch(0.97 0.02 162);
+  --color-success-fg: oklch(0.51 0.12 162);
+  --color-warning: oklch(0.70 0.13 75);
+  --color-warning-foreground: oklch(0.20 0.02 75);
+  --color-warning-soft: oklch(0.97 0.03 75);
+  --color-warning-fg: oklch(0.55 0.12 75);
+  --color-info: oklch(0.58 0.13 244);
+  --color-info-foreground: oklch(0.98 0 0);
+  --color-info-soft: oklch(0.97 0.02 244);
+  --color-info-fg: oklch(0.50 0.13 244);
+
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.137 0.036 258.5);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.137 0.036 258.5);
+
+  --color-brand-meta: hsl(215 89% 53%);
+  --color-brand-meta-hover: hsl(215 89% 48%);
+
+  /* Feature/Hero KPI plate (dark navy) — Vendas/Financeiro hero cards. */
+  --color-kpi-feature-bg: oklch(0.21 0.03 264);
+  --color-kpi-feature-bg-hi: oklch(0.23 0.03 264);
+  --color-kpi-feature-line: oklch(0.31 0.04 264);
+  --color-kpi-feature-fg: oklch(0.98 0 0);
+  --color-kpi-feature-fg-2: oklch(0.72 0.02 250);
+  --color-kpi-spark: oklch(0.80 0.10 295);
+
+  /* Avatar — deterministic 8-color palette (DS v4 canon · hash → c1..c8). */
+  --av-c1: oklch(0.62 0.13 255);
+  --av-c2: oklch(0.65 0.14 145);
+  --av-c3: oklch(0.68 0.13 60);
+  --av-c4: oklch(0.62 0.14 25);
+  --av-c5: oklch(0.60 0.10 280);
+  --av-c6: oklch(0.58 0.12 165);
+  --av-c7: oklch(0.62 0.13 320);
+  --av-c8: oklch(0.55 0.08 200);
+
+  /* Tipo de cadastro (PJ violeta · PF esmeralda). */
+  --color-tipo-pj: oklch(0.55 0.18 295);  --color-tipo-pj-soft: oklch(0.96 0.03 295);
+  --color-tipo-pf: oklch(0.55 0.14 155);  --color-tipo-pf-soft: oklch(0.96 0.03 155);
+
+  /* SLA freshness (atendimento / cobrança) — soft bg + readable fg. */
+  --color-sla-fresh: oklch(0.36 0.13 145);   --color-sla-fresh-soft: oklch(0.95 0.05 145);
+  --color-sla-aging: oklch(0.42 0.13 60);    --color-sla-aging-soft: oklch(0.96 0.05 60);
+  --color-sla-late: oklch(0.45 0.16 30);     --color-sla-late-soft: oklch(0.94 0.07 30);
+  --color-sla-expired: oklch(0.46 0.18 25);  --color-sla-expired-soft: oklch(0.94 0.06 25);
+
+  /* Atendimento channels (omnichannel inbox). */
+  --color-canal-email: oklch(0.20 0.10 280); --color-canal-email-soft: oklch(0.97 0.012 280);
+  --color-canal-ig: oklch(0.22 0.10 30);     --color-canal-ig-soft: oklch(0.97 0.012 30);
+  --color-canal-fb: oklch(0.20 0.10 250);    --color-canal-fb-soft: oklch(0.97 0.012 250);
+  --color-canal-ml: oklch(0.22 0.10 95);     --color-canal-ml-soft: oklch(0.97 0.012 95);
+
+  /* VIP accent (atendimento / cadastro) */
+  --vip: oklch(0.42 0.13 75);  --vip-soft: oklch(0.92 0.07 80);
+
+  /* ---- LAYER 2 — foundations :root  [_generated-foundations-light.css] ----
+     Type RAMP: the single source of font sizes. 9 steps. */
+  --fs-1: 10.5px;  /* caption / eyebrow uppercase */
+  --fs-2: 11.5px;  /* label · chip · hint */
+  --fs-3: 12.5px;  /* dense body (cells, drawer) */
+  --fs-4: 13.5px;  /* default body (= body) */
+  --fs-5: 15px;    /* section / card title */
+  --fs-6: 18px;    /* page subtitle */
+  --fs-7: 22px;    /* page h1 · medium KPI */
+  --fs-8: 28px;    /* large number */
+  --fs-9: 38px;    /* hero number */
+
+  --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);
+  --sh-2: 0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16);
+  --ease: cubic-bezier(.22, 1, .36, 1);  /* @kind other */
+  --t-1: .15s;  /* @kind other */
+  --t-2: .3s;   /* @kind other */
+  /* atmosphere: the ERP's faint background bloom — purple top-right + blue bottom-left */
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%);  /* @kind other */
+
+  /* ---- Convenience + back-compat aliases (so the UI kits/previews that use
+     short token names keep working; all resolve to DS v6 --color-* tokens
+     and therefore flip correctly in dark mode). ---- */
+  --bg-page: var(--color-page);
+  --fg-1: var(--color-foreground);
+  --fg-2: var(--color-muted-foreground);
+  --fg-3: oklch(0.555 0.01 80);
+  --surface-1: var(--color-card);
+  --surface-2: var(--color-page);
+  --surface-3: var(--color-muted);
+  --border-1: var(--color-border);
+  --primary: var(--color-primary);
+  --primary-fg: var(--color-primary-foreground);
+
+  --bg: var(--color-background);
+  --fg: var(--color-foreground);
+  --card: var(--color-card);
+  --card-fg: var(--color-card-foreground);
+  --popover: var(--color-popover);
+  --popover-fg: var(--color-popover-foreground);
+  --secondary: var(--color-secondary);
+  --secondary-fg: var(--color-secondary-foreground);
+  --muted: var(--color-muted);
+  --muted-fg: var(--color-muted-foreground);
+  --accent: var(--color-accent);
+  --accent-fg: var(--color-accent-foreground);
+  --destructive: var(--color-destructive);
+  --destructive-fg: var(--color-destructive-foreground);
+  --border: var(--color-border);
+  --input: var(--color-input);
+  --ring: var(--color-ring);
+}
+
+/* =============================================================================
+   LAYER 1+2 — DARK  [_generated-inertia-dark.css + _generated-foundations-dark.css]
+   ============================================================================ */
+.dark,
+[data-theme="dark"] {
+  --color-border: oklch(0.34 0.008 240);
+  --color-input: oklch(0.34 0.008 240);
+  --color-ring: oklch(0.87 0.012 240);
+  --color-background: oklch(0.26 0.006 240);
+  --color-foreground: oklch(0.965 0.004 240);
+  --color-page-cream: oklch(0.26 0.006 240);
+  --color-page: oklch(0.137 0.036 258.5);
+
+  --color-primary: oklch(0.7 0.15 295);
+  --color-primary-foreground: oklch(0.205 0.009 240);
+  --color-secondary: oklch(0.235 0.010 240);
+  --color-secondary-foreground: oklch(0.965 0.004 240);
+  --color-muted: oklch(0.235 0.010 240);
+  --color-muted-foreground: oklch(0.74 0.008 240);
+  --color-accent: oklch(0.235 0.010 240);
+  --color-accent-foreground: oklch(0.965 0.004 240);
+
+  --color-destructive: oklch(0.55 0.17 18);
+  --color-destructive-foreground: oklch(0.965 0.004 240);
+  --color-destructive-soft: oklch(0.26 0.07 18);
+  --color-destructive-fg: oklch(0.74 0.13 18);
+  --color-success: oklch(0.68 0.13 162);
+  --color-success-foreground: oklch(0.20 0.02 162);
+  --color-success-soft: oklch(0.27 0.06 162);
+  --color-success-fg: oklch(0.78 0.11 162);
+  --color-warning: oklch(0.74 0.13 75);
+  --color-warning-foreground: oklch(0.20 0.02 75);
+  --color-warning-soft: oklch(0.27 0.06 75);
+  --color-warning-fg: oklch(0.80 0.10 75);
+  --color-info: oklch(0.66 0.13 244);
+  --color-info-foreground: oklch(0.20 0.02 244);
+  --color-info-soft: oklch(0.27 0.05 244);
+  --color-info-fg: oklch(0.78 0.11 244);
+
+  --color-kpi-feature-bg: oklch(0.238 0.02 264);
+  --color-kpi-feature-bg-hi: oklch(0.27 0.025 264);
+  --color-kpi-feature-line: oklch(0.34 0.03 264);
+  --color-kpi-feature-fg: oklch(0.98 0 0);
+  --color-kpi-feature-fg-2: oklch(0.70 0.02 250);
+  --color-kpi-spark: oklch(0.82 0.10 295);
+
+  --color-sla-fresh: oklch(0.84 0.13 145);   --color-sla-fresh-soft: oklch(0.275 0.05 145);
+  --color-sla-aging: oklch(0.84 0.13 60);    --color-sla-aging-soft: oklch(0.275 0.05 60);
+  --color-sla-late: oklch(0.84 0.16 30);     --color-sla-late-soft: oklch(0.30 0.07 30);
+  --color-sla-expired: oklch(0.72 0.17 22);  --color-sla-expired-soft: oklch(0.31 0.11 22);
+  --color-canal-email: oklch(0.92 0.06 280); --color-canal-email-soft: oklch(0.26 0.04 280);
+  --color-canal-ig: oklch(0.92 0.07 30);     --color-canal-ig-soft: oklch(0.26 0.04 30);
+  --color-canal-fb: oklch(0.92 0.06 250);    --color-canal-fb-soft: oklch(0.26 0.04 250);
+  --color-canal-ml: oklch(0.92 0.08 95);     --color-canal-ml-soft: oklch(0.26 0.05 95);
+
+  /* Tipo — dark (brighter fg + soft dark bg) */
+  --color-tipo-pj: oklch(0.82 0.12 295);  --color-tipo-pj-soft: oklch(0.30 0.06 295);
+  --color-tipo-pf: oklch(0.82 0.12 155);  --color-tipo-pf-soft: oklch(0.30 0.05 155);
+
+  --vip: oklch(0.84 0.13 75);  --vip-soft: oklch(0.275 0.07 80);
+
+  --color-card: oklch(0.30 0.008 240);
+  --color-card-foreground: oklch(0.965 0.004 240);
+  --color-popover: oklch(0.30 0.008 240);
+  --color-popover-foreground: oklch(0.965 0.004 240);
+
+  --sh-1: 0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+  --sh-2: 0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4);
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%);  /* @kind other */
+
+  --fg-3: oklch(0.67 0.005 90);
+}
+
+/* =============================================================================
+   LAYER 3 — .cockpit scope  [_generated-cockpit-light.css]
+   The operational shell's own palette. Telas pintam com estes tokens (--bg,
+   --surface, --text, --accent, …) + IBM Plex. Reproduced here so a standalone
+   page wrapped in <div class="cockpit"> renders exactly like the real app.
+   ============================================================================ */
+.cockpit {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --bg: oklch(0.985 0.003 90);
+  --bg-2: oklch(0.965 0.004 90);
+  --surface: #ffffff;
+  --border: oklch(0.90 0.004 90);
+  --border-2: oklch(0.93 0.004 90);
+  --text: oklch(0.22 0.01 80);
+  --text-dim: oklch(0.50 0.01 80);
+  --text-mute: oklch(0.555 0.01 80);
+
+  --accent: oklch(0.55 0.15 295);
+  --accent-2: oklch(0.62 0.15 295);
+  --accent-soft: oklch(0.95 0.04 295);
+  --accent-fg: #ffffff;
+
+  --pos: oklch(0.50 0.12 150);
+  --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);
+  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.56 0.12 70);
+  --warn-soft: oklch(0.955 0.072 75);
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --row-h: 30px;  /* @kind spacing */
+  --shadow-pop: 0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.04);
+
+  /* Sidebar is DARK-FIXED in the real cockpit (Wagner: "menu fundo black").
+     Light-mode sidebar tokens shown; dark shell keeps a near-identical dark sidebar. */
+  --sb-bg: oklch(0.18 0.006 240);
+  --sb-bg-2: oklch(0.16 0.006 240);
+  --sb-border: oklch(0.28 0.008 240);
+  --sb-text: oklch(0.78 0.005 90);
+  --sb-text-dim: oklch(0.58 0.005 90);
+  --sb-text-hi: oklch(0.96 0.005 90);
+  --sb-hover: oklch(0.27 0.008 240);
+  --sb-active: oklch(0.32 0.008 240);
+
+  /* Domain hues (origin chips / SLA / kind / canal) — full set lives in
+     _generated-cockpit-light.css; the four most common kept here. */
+  --kind-customer: oklch(0.40 0.11 145);
+  --kind-supplier: oklch(0.42 0.12 60);
+  --kind-employee: oklch(0.40 0.08 250);
+  --kind-representative: oklch(0.40 0.12 290);
+
+  font-family: var(--font-sans);
+  color: var(--text);
+}
+
+.cockpit[data-theme="dark"] {
+  --bg: oklch(0.26 0.006 240);
+  --bg-2: oklch(0.23 0.006 240);
+  --surface: oklch(0.30 0.008 240);
+  --border: oklch(0.34 0.008 240);
+  --border-2: oklch(0.31 0.008 240);
+  --text: oklch(0.94 0.005 90);
+  --text-dim: oklch(0.72 0.005 90);
+  --text-mute: oklch(0.67 0.005 90);
+  --accent-soft: oklch(0.33 0.09 295);
+  --pos: oklch(0.76 0.18 150);
+  --neg: oklch(0.74 0.19 25);
+  --warn: oklch(0.82 0.16 75);
+}
+
+/* =============================================================================
+   SEMANTIC ELEMENT STYLES
+   Mirrors the look of pages built with AppShellV2 + the Type RAMP. Marketing
+   pages use the system sans; operational pages get IBM Plex via .cockpit.
+   ============================================================================ */
+html {
+  font-family: var(--font-sans);
+  color: var(--color-foreground);
+  background: var(--color-background);
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+body {
+  margin: 0;
+  font-size: var(--fs-4);
+  line-height: 1.45;
+  color: var(--color-foreground);
+  background: var(--color-background);
+}
+
+/* Display — marketing hero only. */
+.display, h1.display {
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+h1 { font-size: var(--fs-7); line-height: 1.2; letter-spacing: -0.02em; font-weight: 600; color: var(--fg-1); margin: 0; }
+h2 { font-size: var(--fs-6); line-height: 1.2; font-weight: 600; color: var(--fg-1); margin: 0; }
+h3 { font-size: var(--fs-5); line-height: 1.2; font-weight: 600; color: var(--fg-1); margin: 0; }
+h4, h5, h6 { font-size: var(--fs-4); font-weight: 600; color: var(--fg-1); margin: 0; }
+
+p { margin: 0 0 0.75em 0; color: var(--fg-1); font-size: var(--fs-4); line-height: 1.45; }
+p.muted, .text-muted { color: var(--fg-2); }
+
+/* eyebrow / KPI label — uppercase tracked, fs-1 */
+.eyebrow, .kpi-label {
+  font-size: var(--fs-1);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-2);
+}
+
+/* tabular numerics for time/money — REP-P timestamps, KPI values, espelho */
+.tabular, .num, time, .kpi-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+a { color: var(--color-primary); text-decoration: none; transition: color var(--duration-base) var(--ease-standard); }
+a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+code, kbd, samp, pre, .mono { font-family: var(--font-mono); font-size: 0.92em; }
+code:not(pre code) {
+  background: var(--color-muted);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  color: var(--fg-1);
+}
+
+hr { border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0; }
+::selection { background: var(--color-primary); color: var(--color-primary-foreground); }
+
+/* =============================================================================
+   UNIVERSAL KEYBOARD FOCUS (ADR canon: "Focus ring is universal").
+   The pure inline-styled components don't draw their own keyboard ring (only
+   form fields do), so this fulfils the documented contract for every focusable
+   control. Low specificity via :where() so consumers can override.
+   Form fields opt out — they paint their own accent halo on focus.
+   ============================================================================ */
+:where(button, a[href], [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.cockpit :where(button, a[href], [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline-color: var(--accent);
+}
+
+/* =============================================================================
+   Office Impresso / Ponto WR2 — DS v6 — root stylesheet
+   Single entry point for consumers: link THIS file and you get every token
+   (Tailwind @theme + foundations Type RAMP + .cockpit shell palette, light+dark).
+   ============================================================================ */
+
+
+/* TabBar — sub-abas roláveis sem barra nativa (espelha o style injetado por TabBar.jsx) */
+.ds-tabbar{scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth}
+.ds-tabbar::-webkit-scrollbar{display:none;width:0;height:0}
+.ds-tabbar[data-overflow="both"]{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%)}
+.ds-tabbar[data-overflow="end"]{-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 12px),transparent 100%);mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 12px),transparent 100%)}
+.ds-tabbar[data-overflow="start"]{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 100%);mask-image:linear-gradient(to right,transparent 0,#000 12px,#000 100%)}
+@media (prefers-reduced-motion: reduce){.ds-tabbar{scroll-behavior:auto}}
+
+</style>
+<style id="ds-cockpit">
+/* cockpit_domains.css — CAMADA DE DOMÍNIO do DS pro espelho Cowork.
+ * GERADO por scripts/design-sync/ds-domains-companion.mjs — NÃO EDITAR À MÃO.
+ * Fonte: resources/css/tokens/_generated-cockpit-{light,dark}.css (gerado do SSOT
+ * semantic.tokens.json · ADR 0310/0311). Valores VERBATIM do canon.
+ *
+ * O Cowork faz <link> deste arquivo AO LADO do colors_and_type.css: aquele traz as
+ * fundações legíveis, este traz os domínios (origin/stage/sla/canal/kpi-feature/kind-soft/vip)
+ * ao vivo do canon — daí o ds-v6/tokens.css do Cowork perde a razão de existir (literais
+ * redundantes) e pode ser deletado. Camada UI-0013 respeitada: domínio = shell/.cockpit.
+ *
+ * 62 tokens light + 60 dark.
+ */
+.cockpit {
+  --canal-email-bg: oklch(0.85 0.07 280);
+  --canal-email-fg: oklch(0.20 0.10 280);
+  --canal-email-tint: oklch(0.97 0.012 280);
+  --canal-fb-bg: oklch(0.85 0.07 250);
+  --canal-fb-fg: oklch(0.20 0.10 250);
+  --canal-fb-tint: oklch(0.97 0.012 250);
+  --canal-ig-bg: oklch(0.85 0.08 30);
+  --canal-ig-fg: oklch(0.22 0.10 30);
+  --canal-ig-tint: oklch(0.97 0.012 30);
+  --canal-ml-bg: oklch(0.85 0.10 95);
+  --canal-ml-fg: oklch(0.22 0.10 95);
+  --canal-ml-tint: oklch(0.97 0.012 95);
+  --kind-customer: oklch(0.40 0.11 145);
+  --kind-customer-soft: oklch(0.94 0.04 145);
+  --kind-employee: oklch(0.40 0.08 250);
+  --kind-employee-soft: oklch(0.94 0.03 250);
+  --kind-representative: oklch(0.40 0.12 290);
+  --kind-representative-soft: oklch(0.93 0.06 290);
+  --kind-supplier: oklch(0.42 0.12 60);
+  --kind-supplier-soft: oklch(0.94 0.05 60);
+  --kpi-feature-bg: oklch(0.21 0.03 264);
+  --kpi-feature-bg-hi: oklch(0.23 0.03 264);
+  --kpi-feature-fg: oklch(0.98 0 0);
+  --kpi-feature-fg-2: oklch(0.72 0.02 250);
+  --kpi-feature-line: oklch(0.31 0.04 264);
+  --origin-CRM-bg: oklch(0.92 0.06 220);
+  --origin-CRM-fg: oklch(0.40 0.10 220);
+  --origin-FIN-bg: oklch(0.93 0.07 145);
+  --origin-FIN-fg: oklch(0.36 0.10 145);
+  --origin-MFG-bg: oklch(0.93 0.05 30);
+  --origin-MFG-fg: oklch(0.40 0.10 30);
+  --origin-OS-bg: oklch(0.93 0.07 70);
+  --origin-OS-fg: oklch(0.40 0.10 60);
+  --origin-PNT-bg: oklch(0.93 0.06 295);
+  --origin-PNT-fg: oklch(0.40 0.10 295);
+  --sla-aging: oklch(0.42 0.13 60);
+  --sla-aging-dot: oklch(0.62 0.13 60);
+  --sla-aging-line: oklch(0.80 0.10 60);
+  --sla-aging-soft: oklch(0.96 0.05 60);
+  --sla-expired: oklch(0.46 0.18 25);
+  --sla-expired-dot: oklch(0.50 0.18 25);
+  --sla-expired-line: oklch(0.80 0.12 25);
+  --sla-expired-soft: oklch(0.94 0.06 25);
+  --sla-fresh: oklch(0.36 0.13 145);
+  --sla-fresh-dot: oklch(0.52 0.13 145);
+  --sla-fresh-line: oklch(0.80 0.10 145);
+  --sla-fresh-soft: oklch(0.95 0.05 145);
+  --sla-late: oklch(0.45 0.16 30);
+  --sla-late-dot: oklch(0.62 0.18 30);
+  --sla-late-line: oklch(0.80 0.12 30);
+  --sla-late-soft: oklch(0.94 0.07 30);
+  --sla-paid: var(--text-mute);
+  --sla-paid-soft: var(--bg-2);
+  --stage-blue: oklch(0.58 0.13 252);
+  --stage-emerald: oklch(0.60 0.13 155);
+  --stage-green: oklch(0.66 0.15 145);
+  --stage-indigo: oklch(0.55 0.16 270);
+  --stage-rose: oklch(0.62 0.16 20);
+  --stage-slate: oklch(0.58 0.025 250);
+  --stage-violet: oklch(0.54 0.15 288);
+  --vip: oklch(0.42 0.13 75);
+  --vip-soft: oklch(0.92 0.07 80);
+}
+.cockpit[data-theme="dark"] {
+  --canal-email-bg: oklch(0.40 0.10 280);
+  --canal-email-fg: oklch(0.92 0.06 280);
+  --canal-email-tint: oklch(0.26 0.04 280);
+  --canal-fb-bg: oklch(0.40 0.10 250);
+  --canal-fb-fg: oklch(0.92 0.06 250);
+  --canal-fb-tint: oklch(0.26 0.04 250);
+  --canal-ig-bg: oklch(0.42 0.11 30);
+  --canal-ig-fg: oklch(0.92 0.07 30);
+  --canal-ig-tint: oklch(0.26 0.04 30);
+  --canal-ml-bg: oklch(0.42 0.12 95);
+  --canal-ml-fg: oklch(0.92 0.08 95);
+  --canal-ml-tint: oklch(0.26 0.05 95);
+  --kind-customer: oklch(0.84 0.11 145);
+  --kind-customer-soft: oklch(0.275 0.05 145);
+  --kind-employee: oklch(0.84 0.08 250);
+  --kind-employee-soft: oklch(0.275 0.05 250);
+  --kind-representative: oklch(0.84 0.12 290);
+  --kind-representative-soft: oklch(0.275 0.06 290);
+  --kind-supplier: oklch(0.84 0.12 60);
+  --kind-supplier-soft: oklch(0.275 0.05 60);
+  --kpi-feature-bg: oklch(0.238 0.02 264);
+  --kpi-feature-bg-hi: oklch(0.27 0.025 264);
+  --kpi-feature-fg: oklch(0.98 0 0);
+  --kpi-feature-fg-2: oklch(0.70 0.02 250);
+  --kpi-feature-line: oklch(0.34 0.03 264);
+  --origin-CRM-bg: oklch(0.30 0.07 220);
+  --origin-CRM-fg: oklch(0.85 0.07 220);
+  --origin-FIN-bg: oklch(0.30 0.07 145);
+  --origin-FIN-fg: oklch(0.85 0.07 145);
+  --origin-MFG-bg: oklch(0.30 0.07 30);
+  --origin-MFG-fg: oklch(0.85 0.07 30);
+  --origin-OS-bg: oklch(0.30 0.07 60);
+  --origin-OS-fg: oklch(0.85 0.07 60);
+  --origin-PNT-bg: oklch(0.30 0.07 295);
+  --origin-PNT-fg: oklch(0.85 0.07 295);
+  --sla-aging: oklch(0.84 0.13 60);
+  --sla-aging-dot: oklch(0.72 0.14 60);
+  --sla-aging-line: oklch(0.42 0.08 60);
+  --sla-aging-soft: oklch(0.275 0.05 60);
+  --sla-expired: oklch(0.72 0.17 22);
+  --sla-expired-dot: oklch(0.64 0.18 22);
+  --sla-expired-line: oklch(0.42 0.12 22);
+  --sla-expired-soft: oklch(0.31 0.11 22);
+  --sla-fresh: oklch(0.84 0.13 145);
+  --sla-fresh-dot: oklch(0.70 0.14 145);
+  --sla-fresh-line: oklch(0.42 0.08 145);
+  --sla-fresh-soft: oklch(0.275 0.05 145);
+  --sla-late: oklch(0.84 0.16 30);
+  --sla-late-dot: oklch(0.72 0.18 30);
+  --sla-late-line: oklch(0.45 0.10 30);
+  --sla-late-soft: oklch(0.30 0.07 30);
+  --stage-blue: oklch(0.68 0.13 252);
+  --stage-emerald: oklch(0.68 0.14 155);
+  --stage-green: oklch(0.74 0.15 145);
+  --stage-indigo: oklch(0.66 0.16 270);
+  --stage-rose: oklch(0.68 0.16 20);
+  --stage-slate: oklch(0.66 0.03 250);
+  --stage-violet: oklch(0.66 0.15 288);
+  --vip: oklch(0.84 0.13 75);
+  --vip-soft: oklch(0.275 0.07 80);
+}
+
+</style>
+<style id="devolucao-v3">
+/* Layout: mesma grade de sells/create-v3 — trabalho à esquerda (nota → regime → itens → texto),
+   fechamento fiscal à direita com o finalizador sempre visível. Nenhuma cor nova:
+   tudo vem dos tokens .cockpit do DS v6. Cores de tributo usam os matizes de domínio. */
+:root {
+  --dv-icms: var(--origin-CRM-fg);
+  --dv-st: var(--origin-OS-fg);
+  --dv-ipi: var(--origin-MFG-fg);
+  --dv-pis: var(--origin-FIN-fg);
+  --dv-difal: var(--origin-PNT-fg);
+}
+html, body { height: auto; }
+body { background-color: var(--bg); color: var(--text); overflow-x: hidden; font-family: var(--font-sans); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 70; background: var(--surface); }
+button, input, select, textarea { font-family: inherit; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Barra do protótipo (copiada da moldura do create-v3) */
+.dv-bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 60;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px;
+  min-height: 44px; padding-block: 6px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  font: 400 12.5px/1.3 var(--font-sans); color: var(--text-dim);
+}
+.dv-id { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 320px; }
+.dv-pill { flex: none; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--text); font: 600 11px/1 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; }
+.dv-rota { font: 500 12.5px/1 var(--font-mono); color: var(--text); white-space: nowrap; }
+.dv-nota { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); flex-wrap: wrap; }
+.seg button { appearance: none; border: 0; background: transparent; cursor: pointer; padding: 6px 10px; border-radius: 6px; font: 500 12px/1 var(--font-sans); color: var(--text-dim); }
+.seg button:hover { color: var(--text); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
+
+.palco {
+  padding-block: 24px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  max-width: 1480px; margin: 0 auto;
+}
+@media (min-width: 900px) {
+  .palco { padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); }
+}
+
+/* Cabeçalho da página */
+.pg-h { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 24px; margin-bottom: 16px; }
+.pg-h h1 { font: 600 22px/1.2 var(--font-sans); letter-spacing: -.02em; color: var(--text); margin: 0; text-wrap: balance; }
+.pg-h p { margin: 4px 0 0; font: 12.5px/1.45 var(--font-sans); color: var(--text-dim); max-width: 70ch; }
+.trilha { display: flex; gap: 6px; margin-bottom: 6px; font: 12px/1.3 var(--font-sans); color: var(--text-dim); }
+.trilha span + span::before { content: "/"; margin-right: 6px; color: var(--text-mute); }
+.busca { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+.busca .fld { flex: 1 1 320px; min-width: 0; }
+.busca .ou { font: 12px/32px var(--font-sans); color: var(--text-dim); }
+.pg-h .dir { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 336px; gap: 16px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+aside.col { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); }
+
+/* Seção (mesmo desenho do Sec do create-v3) */
+.sec { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-soft); overflow: hidden; min-width: 0; }
+.sec > header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--hue, var(--accent)) 5%, var(--surface)); flex-wrap: wrap; }
+.sec > header .ico { width: 30px; height: 30px; flex: none; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in oklch, var(--hue, var(--accent)) 14%, transparent); color: color-mix(in oklch, var(--hue, var(--accent)) 62%, var(--text)); }
+.sec > header h3 { margin: 0; font: 600 15px/1.3 var(--font-sans); color: var(--text); }
+.sec > header p { margin: 2px 0 0; font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); }
+.sec > header .dir { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sec > .bd { padding: 16px; }
+.passo { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 999px; margin-right: 8px; background: var(--accent); color: var(--accent-fg); font: 600 11.5px/1 var(--font-mono); vertical-align: 1px; }
+
+.lbl { display: block; font: 600 10.5px/1.5 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+.fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; }
+.fld input[type="text"], .fld select, .fld textarea, .inp {
+  font: 13px/1.4 var(--font-sans); color: var(--text); width: 100%; box-sizing: border-box;
+  padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.fld select { padding-right: 28px; }
+.fld input:focus, .fld select:focus, .fld textarea:focus, .inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fld .help { display: block; margin-top: 4px; font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); }
+.chk { display: flex; align-items: flex-start; gap: 8px; font: 12.5px/1.4 var(--font-sans); color: var(--text); cursor: pointer; }
+.chk input { margin: 2px 0 0; width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
+.chk small { display: block; color: var(--text-dim); font-size: 11.5px; }
+.chk[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+
+.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: 600 12.5px/1 var(--font-sans); cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--bg-2); }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.pri:hover { background: var(--accent-2); }
+.btn.lg { height: 42px; font-size: 13.5px; width: 100%; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text-dim); }
+.btn.ghost:hover { color: var(--text); background: var(--bg-2); }
+.btn svg, .ico svg { width: 15px; height: 15px; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 20px; color: color-mix(in oklch, var(--c, var(--text-dim)) 62%, var(--text)); font: 600 10.5px/1 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--c, var(--text-mute)); flex: none; }
+.tag { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 5px; font: 600 10.5px/1 var(--font-mono); white-space: nowrap; background: color-mix(in oklch, var(--c, var(--text-dim)) 12%, var(--surface)); color: color-mix(in oklch, var(--c, var(--text-dim)) 62%, var(--text)); border: 1px solid color-mix(in oklch, var(--c, var(--text-dim)) 26%, transparent); }
+a.tag { text-decoration: none; }
+a.tag:hover { text-decoration: none; background: color-mix(in oklch, var(--c, var(--text-dim)) 20%, var(--surface)); }
+
+/* Nota de origem: cartões de dado */
+.dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 1px; background: var(--border-2); border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
+.dados > div { background: var(--surface); padding: 10px 12px; min-width: 0; }
+.dados b { display: block; font: 600 13px/1.35 var(--font-sans); color: var(--text); overflow-wrap: anywhere; }
+.dados b.num { font-size: 12.5px; }
+.dados span.sub { display: block; font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); margin-top: 2px; }
+.chave { font: 500 12px/1.5 var(--font-mono); letter-spacing: .02em; color: var(--text); overflow-wrap: anywhere; }
+.fluxo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--border); font: 12.5px/1.4 var(--font-sans); }
+.fluxo .ator { display: flex; flex-direction: column; min-width: 0; }
+.fluxo .ator b { font-weight: 600; color: var(--text); }
+.fluxo .ator span { color: var(--text-dim); font-size: 11.5px; }
+.fluxo .seta { color: var(--text-mute); flex: none; }
+
+.import { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px; border: 1px dashed var(--border); border-radius: 8px; background: var(--bg-2); }
+.import p { margin: 0; font: 12px/1.4 var(--font-sans); color: var(--text-dim); flex: 1 1 220px; }
+.modos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 8px; }
+.modos .cen b { display: flex; align-items: center; gap: 8px; }
+.modos .cen b i { width: 8px; height: 8px; border-radius: 999px; background: var(--c); flex: none; }
+.lista-h { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.lista-h .lbl { margin: 0; }
+.lista-h .fld { margin-left: auto; flex: 0 1 300px; min-width: 0; }
+.lista { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.lista table.tb tr:last-child td { border-bottom: 0; }
+.lista table.tb tbody tr:hover td { background: color-mix(in oklch, var(--accent) 4%, var(--surface)); }
+.vazio { padding: 18px; text-align: center; font: 12.5px/1.5 var(--font-sans); color: var(--text-dim); }
+.trocar { display: flex; justify-content: flex-end; }
+.areas { flex: 1 1 100%; display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.areas button { appearance: none; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 8px 16px 10px 0; margin-right: 16px; border-bottom: 2px solid transparent; display: flex; flex-direction: column; gap: 2px; flex: none; }
+.areas button b { font: 600 13px/1.3 var(--font-sans); color: var(--text-dim); }
+.areas button span { font: 11.5px/1.3 var(--font-sans); color: var(--text-mute); white-space: nowrap; }
+.areas button[aria-selected="true"] { border-bottom-color: var(--accent); }
+.areas button[aria-selected="true"] b { color: var(--text); }
+.areas button:hover b { color: var(--text); }
+.lista-v { display: flex; flex-direction: column; gap: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; }
+.kpis > div { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; box-shadow: var(--shadow-soft); }
+.kpis b { display: block; font: 600 22px/1.2 var(--font-mono); color: var(--text); margin: 2px 0; }
+.kpis .sub { font: 11.5px/1.3 var(--font-sans); color: var(--text-dim); }
+.chips button .num { color: var(--text-mute); margin-left: 4px; }
+tr[data-reg] { cursor: pointer; }
+tr[data-reg]:hover td { background: color-mix(in oklch, var(--accent) 4%, var(--surface)); }
+.tb td small { display: block; font: 11px/1.3 var(--font-sans); color: var(--text-dim); }
+.desvio { display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; font: 12px/1.3 var(--font-sans); color: var(--text-dim); padding-top: 10px; border-top: 1px dashed var(--border); }
+.desvio .btn { height: 28px; padding: 0 8px; font-size: 12px; color: color-mix(in oklch, var(--accent) 62%, var(--text)); }
+.mot select { font: 12px/1.3 var(--font-sans); padding: 5px 24px 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); max-width: 190px; }
+.mot span { display: block; margin-top: 3px; font: 11px/1.3 var(--font-sans); color: var(--text-dim); white-space: nowrap; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cen { appearance: none; text-align: left; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 8px 10px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; flex: 1 1 200px; min-width: 0; }
+.cen:hover { border-color: color-mix(in oklch, var(--accent) 40%, var(--border)); }
+.cen[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.cen b { font: 600 12.5px/1.3 var(--font-sans); color: var(--text); }
+.cen span { font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); }
+.cen code { font: 600 10.5px/1 var(--font-mono); color: color-mix(in oklch, var(--accent) 62%, var(--text)); }
+
+/* Tabela de itens */
+.tscroll { overflow-x: auto; }
+table.tb { width: 100%; border-collapse: collapse; font: 12.5px/1.35 var(--font-sans); }
+.tb th { text-align: left; padding: 8px 10px; background: var(--bg-2); border-bottom: 1px solid var(--border); font: 600 10.5px/1.3 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
+.tb th.r, .tb td.r { text-align: right; }
+.tb td { padding: 9px 10px; border-bottom: 1px solid var(--border-2); vertical-align: top; color: var(--text); }
+.tb tr.off > td:not(.acoes) { color: var(--text-mute); }
+.tb tr.off .prod b { color: var(--text-dim); }
+.tb .prod { min-width: 200px; }
+.tb .prod b { display: block; font-weight: 600; }
+.tb .prod span { display: block; font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); }
+.tb .cf { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font: 600 11px/1 var(--font-mono); color: var(--text-dim); }
+.tb .cf b { display: inline; color: color-mix(in oklch, var(--accent) 62%, var(--text)); font-weight: 600; }
+.tb .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tb .v small { display: block; font: 10.5px/1.3 var(--font-mono); color: var(--text-dim); }
+.tb .cst { display: block; font: 600 10.5px/1.3 var(--font-mono); color: var(--text-dim); white-space: nowrap; }
+.tb .t-icms .cst { color: color-mix(in oklch, var(--dv-icms) 80%, var(--text-dim)); }
+.tb .t-st .cst { color: color-mix(in oklch, var(--dv-st) 80%, var(--text-dim)); }
+.tb .t-ipi .cst { color: color-mix(in oklch, var(--dv-ipi) 80%, var(--text-dim)); }
+.tb .qtd { width: 84px; text-align: right; font-family: var(--font-mono); }
+.tb .saldo { font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); white-space: nowrap; }
+.tb td.acoes, .tb th.acoes { position: sticky; right: 0; z-index: 2; background: var(--surface); box-shadow: -8px 0 12px -8px color-mix(in oklch, var(--text) 26%, transparent); }
+.tb th.acoes { background: var(--bg-2); }
+.tb tr.det > td { background: var(--bg-2); padding: 0; }
+.tb tfoot td { background: var(--bg-2); font-weight: 600; border-bottom: 0; }
+.ib { appearance: none; width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.ib:hover { color: var(--text); }
+.ib[aria-expanded="true"] svg { transform: rotate(180deg); }
+.ib svg { width: 15px; height: 15px; transition: transform .15s; }
+.erro-q { display: block; margin-top: 4px; font: 600 11px/1.3 var(--font-sans); color: color-mix(in oklch, var(--neg) 62%, var(--text)); white-space: nowrap; }
+
+/* Detalhe tributário do item */
+.detw { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+.detw .obs { margin: 0; font: 11.5px/1.5 var(--font-sans); color: var(--text-dim); }
+.detw .obs b { color: var(--text); }
+table.imp { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font: 12px/1.35 var(--font-sans); }
+.imp th { text-align: left; padding: 6px 10px; font: 600 10px/1.3 var(--font-sans); letter-spacing: .05em; text-transform: uppercase; color: var(--text-dim); border-bottom: 1px solid var(--border); white-space: nowrap; }
+.imp th.grp { text-align: center; border-left: 1px solid var(--border); }
+.imp td { padding: 6px 10px; border-bottom: 1px solid var(--border-2); white-space: nowrap; color: var(--text); }
+.imp tr:last-child td { border-bottom: 0; }
+.imp td.r, .imp th.r { text-align: right; }
+.imp td.v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.imp td.bl { border-left: 1px solid var(--border); }
+.imp td.trib { font-weight: 600; }
+.imp td.trib i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; background: var(--c); vertical-align: 0; }
+.imp td.xml { font: 11px/1.3 var(--font-mono); color: var(--text-dim); }
+.imp td.dim { color: var(--text-mute); }
+.vnf-s { color: color-mix(in oklch, var(--pos) 62%, var(--text)); font-weight: 600; }
+.vnf-n { color: var(--text-dim); }
+
+/* Alertas */
+.alertas { display: flex; flex-direction: column; gap: 8px; }
+.al { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 8px; background: color-mix(in oklch, var(--c) 9%, var(--surface)); border: 1px solid color-mix(in oklch, var(--c) 26%, transparent); font: 12.5px/1.45 var(--font-sans); color: var(--text); }
+.al svg { width: 15px; height: 15px; flex: none; margin-top: 2px; color: color-mix(in oklch, var(--c) 62%, var(--text)); }
+.al b { color: color-mix(in oklch, var(--c) 62%, var(--text)); }
+.al .uc { margin-left: auto; flex: none; }
+.al > div { min-width: 0; }
+
+/* Texto complementar */
+textarea.infcpl { font: 12px/1.6 var(--font-mono); min-height: 150px; resize: vertical; background: var(--bg-2); }
+.cont { font: 11.5px/1 var(--font-mono); color: var(--text-dim); }
+
+/* Coluna direita */
+.plate { padding: 14px 16px; border-radius: 12px; background: var(--text); color: var(--bg); }
+.plate span { display: block; font: 600 10.5px/1 var(--font-sans); letter-spacing: .06em; text-transform: uppercase; opacity: .72; margin-bottom: 8px; }
+.plate b { font: 600 28px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.plate small { display: block; margin-top: 8px; font: 11.5px/1.3 var(--font-sans); opacity: .72; }
+[data-theme="dark"] .plate { background: color-mix(in oklch, var(--accent) 14%, var(--surface)); color: var(--text); border: 1px solid color-mix(in oklch, var(--accent) 35%, var(--border)); }
+.res { display: flex; align-items: baseline; gap: 12px; padding: 5px 0; }
+.res > span:first-child { font: 12.5px/1.3 var(--font-sans); color: var(--text-dim); }
+.res > span:nth-child(2) { flex: 1; border-bottom: 1px dotted var(--border); transform: translateY(-3px); min-width: 12px; }
+.res b { font: 600 13px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+.res.zero b { color: var(--text-mute); font-weight: 500; }
+.res.forte > span:first-child { font-weight: 600; color: var(--text); }
+.grp-t { display: flex; align-items: center; gap: 8px; margin: 12px 0 2px; }
+.grp-t .lbl { margin: 0; }
+.grp-t em { font: 11px/1 var(--font-sans); font-style: normal; color: var(--text-mute); margin-left: auto; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; font: 12.5px/1.4 var(--font-sans); }
+.kv dt { color: var(--text-dim); }
+.kv dd { margin: 0; text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--text); overflow-wrap: anywhere; }
+.kv dd.txt { font-family: var(--font-sans); font-size: 12px; }
+.ucs { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.fin { position: sticky; bottom: 12px; z-index: 30; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--surface); border: 1px solid color-mix(in oklch, var(--accent) 22%, var(--border)); box-shadow: 0 -2px 10px color-mix(in oklch, var(--text) 7%, transparent), 0 10px 28px color-mix(in oklch, var(--text) 12%, transparent); }
+.fin .lin { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.fin .lin b { font: 600 20px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.fin .lin em { margin-left: auto; font: 11.5px/1.3 var(--font-sans); font-style: normal; color: var(--text-dim); }
+.fin .msg { font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); text-align: center; }
+.fin .msg.neg { color: color-mix(in oklch, var(--neg) 62%, var(--text)); }
+.fin .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* Prévia do XML */
+.ovl { position: fixed; inset: 0; z-index: 80; background: color-mix(in oklch, var(--text) 40%, transparent); display: flex; align-items: center; justify-content: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.dlg { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-pop); width: min(920px, 100%); max-height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.dlg > header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.dlg > header h3 { margin: 0; font: 600 15px/1.3 var(--font-sans); }
+.dlg > header p { margin: 2px 0 0; font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); }
+.dlg > header .dir { margin-left: auto; display: flex; gap: 8px; }
+.dlg pre { margin: 0; padding: 14px 16px; overflow: auto; flex: 1; min-height: 0; font: 11.5px/1.55 var(--font-mono); color: var(--text); background: var(--bg-2); }
+.dlg pre .tg { color: color-mix(in oklch, var(--accent) 70%, var(--text)); }
+.dlg pre .cm { color: var(--text-mute); }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 90; padding: 10px 16px; border-radius: 10px; background: var(--text); color: var(--bg); font: 12.5px/1.3 var(--font-sans); box-shadow: var(--shadow-pop); max-width: calc(100% - 32px); }
+
+:where(button, a[href], input, select, textarea):focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+@media (max-width: 1080px) {
+  .grid { grid-template-columns: minmax(0, 1fr); padding-bottom: 150px; }
+  aside.col { position: static; }
+  .fin { position: fixed; left: 0; right: 0; bottom: 0; border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0; padding: 10px max(14px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .fin .lin { flex: 1 1 200px; }
+  .fin .acao { flex: 1 1 220px; }
+  .fin .duas, .fin .msg { flex-basis: 100%; }
+}
+@media (max-width: 640px) {
+  .pg-h .dir { margin-left: 0; }
+  .fin .duas { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+[hidden] { display: none !important; }
+.docs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+.doc { border: 1px solid var(--border-2); border-top: 3px solid var(--c); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; background: var(--surface); }
+.doc-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.doc-h b { font: 600 13px/1.3 var(--font-sans); color: var(--text); }
+.doc-s { font: 11.5px/1.4 var(--font-sans); color: var(--text-dim); }
+.doc ul { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.doc li { display: flex; justify-content: space-between; gap: 8px; font: 12px/1.35 var(--font-sans); color: var(--text); }
+.doc li span { min-width: 0; overflow-wrap: anywhere; }
+.doc li b { font: 500 12px/1.35 var(--font-mono); white-space: nowrap; }
+.doc-f { display: flex; flex-direction: column; gap: 2px; border-top: 1px dashed var(--border-2); padding-top: 6px; margin-top: auto; font: 11.5px/1.4 var(--font-sans); color: var(--text-dim); }
+.doc-f span:first-child { font-weight: 600; color: var(--text); }
+.doc-v { margin: 4px 0 0; font: 12px/1.4 var(--font-sans); color: var(--text-mute); }
+.doc-seq { margin: 0; font: 12px/1.45 var(--font-sans); color: var(--text-dim); }
+.parc { border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
+.parc-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; background: var(--surface-2, var(--surface)); font: 12px/1.35 var(--font-sans); color: var(--text-dim); border-bottom: 1px solid var(--border-2); }
+.parc-l { display: grid; grid-template-columns: 34px 1fr auto 62px; gap: 8px; align-items: baseline; padding: 6px 10px; font: 12px/1.3 var(--font-sans); color: var(--text); }
+.parc-l + .parc-l { border-top: 1px solid var(--border-2); }
+.parc-l b { font: 500 12px/1.3 var(--font-mono); font-variant-numeric: tabular-nums; }
+.parc-l em { font-style: normal; font-size: 11px; color: var(--warn); text-align: right; }
+.parc-l.pg { color: var(--text-dim); } .parc-l.pg em { color: var(--pos); }
+.efeito { border-left: 3px solid var(--accent); padding: 6px 10px; background: color-mix(in oklch, var(--accent) 7%, transparent); border-radius: 0 6px 6px 0; }
+.efeito b { display: block; font: 600 12.5px/1.4 var(--font-sans); color: var(--text); overflow-wrap: anywhere; }
+.efeito span { display: block; font: 11.5px/1.4 var(--font-sans); color: var(--text-dim); margin-top: 2px; }
+</style>
+<style id="tributos">
+/* Tributação padrão por natureza de operação. Mesma grade e componentes da Devolução V3.
+   Cadastro em passo a passo: natureza → (em branco | importar XML) → CFOP → ICMS → IPI → PIS/COFINS → IBS/CBS → revisão.
+   Sem valores: a tela guarda códigos e a origem de cada alíquota; o cálculo acontece no lançamento. */
+:root {
+  --tx-icms: var(--origin-CRM-fg);
+  --tx-ipi: var(--origin-MFG-fg);
+  --tx-pis: var(--origin-FIN-fg);
+  --tx-cofins: var(--stage-blue);
+  --tx-ibs: var(--stage-violet);
+}
+.txs { display: flex; flex-wrap: wrap; gap: 4px; }
+.sufx { position: relative; }
+.sufx input { padding-right: 34px !important; }
+.sufx span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 500 12px/1 var(--font-mono); color: var(--text-mute); pointer-events: none; }
+.fld input.num-in { font-family: var(--font-mono); text-align: right; }
+.grupo { display: flex; flex-direction: column; gap: 10px; }
+.grupo + .grupo { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
+.grupo > .lbl { margin: 0; }
+.grupo h4 { margin: 0; font: 600 13px/1.3 var(--font-sans); color: var(--text); display: flex; align-items: center; gap: 8px; }
+.grupo h4 i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+.chks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 8px 16px; }
+.desl { padding: 14px; border: 1px dashed var(--border); border-radius: 8px; font: 12.5px/1.5 var(--font-sans); color: var(--text-dim); background: var(--bg-2); }
+.intro-p { margin: 0 0 14px; font: 12.5px/1.5 var(--font-sans); color: var(--text-dim); max-width: 75ch; }
+.intro-p b { color: var(--text); font-weight: 600; }
+
+/* passo a passo */
+.steps { list-style: none; margin: 0; padding: 0 8px; display: flex; overflow-x: auto; background: var(--surface); }
+.steps li { flex: 1 0 auto; display: flex; }
+.steps button { appearance: none; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 10px; border-bottom: 2px solid transparent; width: 100%; text-align: left; }
+.steps button:disabled { cursor: default; }
+.steps .n { width: 22px; height: 22px; border-radius: 999px; flex: none; display: inline-flex; align-items: center; justify-content: center; font: 600 11.5px/1 var(--font-mono); background: var(--bg-2); color: var(--text-dim); border: 1px solid var(--border); }
+.steps .n svg { width: 13px; height: 13px; }
+.steps b { display: block; font: 600 12.5px/1.25 var(--font-sans); color: var(--text-dim); white-space: nowrap; }
+.steps small { display: block; font: 11px/1.25 var(--font-sans); color: var(--text-mute); white-space: nowrap; }
+.steps [aria-current="step"] { border-bottom-color: var(--accent); }
+.steps [aria-current="step"] .n { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.steps [aria-current="step"] b { color: var(--text); }
+.steps .ok .n { background: color-mix(in oklch, var(--pos) 14%, var(--surface)); border-color: color-mix(in oklch, var(--pos) 40%, var(--border)); color: color-mix(in oklch, var(--pos) 70%, var(--text)); }
+.steps .ok b { color: var(--text); }
+.steps .erro .n { background: color-mix(in oklch, var(--neg) 12%, var(--surface)); border-color: color-mix(in oklch, var(--neg) 45%, var(--border)); color: color-mix(in oklch, var(--neg) 70%, var(--text)); }
+.steps .erro small { color: color-mix(in oklch, var(--neg) 62%, var(--text)); }
+.steps .imp small { color: color-mix(in oklch, var(--accent) 62%, var(--text)); }
+.steps button:not(:disabled):hover b { color: var(--text); }
+.navp { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-2); }
+.navp .dir { margin-left: auto; display: flex; gap: 8px; }
+
+/* escolha inicial e importação */
+.escolha { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.escolha .cen { padding: 14px; gap: 6px; }
+.escolha .cen b { font-size: 13.5px; display: flex; align-items: center; gap: 8px; }
+.escolha .cen b svg { width: 16px; height: 16px; color: color-mix(in oklch, var(--accent) 62%, var(--text)); }
+.drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 16px; border: 1.5px dashed var(--border); border-radius: 10px; background: var(--bg-2); text-align: center; }
+.drop.sobre { border-color: var(--accent); background: color-mix(in oklch, var(--accent) 6%, var(--bg-2)); }
+.drop p { margin: 0; font: 12.5px/1.5 var(--font-sans); color: var(--text-dim); max-width: 52ch; }
+.drop p b { color: var(--text); }
+.drop .acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.drop input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.rep-h { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.rep-h > div { min-width: 0; flex: 1 1 260px; }
+.rep-h b { display: block; font: 600 13px/1.35 var(--font-sans); color: var(--text); }
+.rep-h span { display: block; font: 11.5px/1.4 var(--font-sans); color: var(--text-dim); }
+.tb td.tagx { font: 500 11.5px/1.35 var(--font-mono); color: var(--text-dim); white-space: nowrap; }
+.tb td.vl { font: 600 12px/1.35 var(--font-mono); white-space: nowrap; }
+
+/* prévia do lançamento */
+.lanc-h { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.lanc-h .fld { flex: 1 1 280px; min-width: 0; max-width: 420px; }
+.lanc { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 1px; background: var(--border-2); border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
+.lanc > div { background: var(--surface); padding: 10px 12px; min-width: 0; border-top: 3px solid var(--c, transparent); }
+.lanc b { display: block; font: 600 13px/1.35 var(--font-sans); color: var(--text); overflow-wrap: anywhere; }
+.lanc span.sub { display: block; font: 11.5px/1.4 var(--font-sans); color: var(--text-dim); margin-top: 2px; }
+.lanc code, .lanc-a code { font: 600 12px/1 var(--font-mono); background: none; padding: 0; color: color-mix(in oklch, var(--c, var(--accent)) 62%, var(--text)); }
+.pe { margin: 10px 0 0; font: 11.5px/1.45 var(--font-sans); color: var(--text-dim); }
+
+/* lista */
+.toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.toolbar .fld { flex: 0 1 300px; min-width: 0; margin-left: auto; }
+.toolbar .dica { font: 11.5px/1.3 var(--font-sans); color: var(--text-dim); }
+.lista-tb tr[data-id] { cursor: pointer; }
+.lista-tb tr[data-id]:hover td { background: color-mix(in oklch, var(--accent) 4%, var(--surface)); }
+.lista-tb tr.inativa td { color: var(--text-mute); }
+.lista-tb tr.inativa .prod b { color: var(--text-dim); }
+.cfops { font: 500 12px/1.5 var(--font-mono); white-space: nowrap; color: var(--text); }
+.cfops span { color: var(--text-mute); font-family: var(--font-sans); font-size: 11px; margin-right: 4px; }
+
+/* aside */
+.lanc-a { display: flex; flex-direction: column; }
+.lanc-a > div { padding: 9px 0; border-top: 1px solid var(--border-2); display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 0 8px; }
+.lanc-a > div:first-child { border-top: 0; padding-top: 0; }
+.lanc-a i { width: 8px; height: 8px; border-radius: 2px; background: var(--c, var(--text-mute)); margin-top: 5px; }
+.lanc-a .lbl { margin: 0 0 2px; }
+.lanc-a b { font: 600 12.5px/1.4 var(--font-sans); color: var(--text); overflow-wrap: anywhere; }
+.lanc-a span.sub { display: block; font: 11.5px/1.4 var(--font-sans); color: var(--text-dim); }
+.aviso-v { font: 11.5px/1.45 var(--font-sans); color: var(--text-dim); padding: 8px 10px; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--border); }
+.voltar { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; font: 600 12px/1.3 var(--font-sans); color: var(--text-dim); background: none; border: 0; padding: 0; cursor: pointer; }
+.voltar:hover { color: var(--text); }
+.voltar svg { width: 14px; height: 14px; }
+.al .ir { margin-left: auto; flex: none; height: 26px; padding: 0 8px; font-size: 11.5px; }
+.dv-bar .seg { flex: none; }
+.dv-bar .reg-l { font: 600 11px/1 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--text-dim); }
+</style>
+
+<div class="dv-bar">
+  <div class="dv-id"><span class="dv-pill">Protótipo</span><span class="dv-rota">/configuracoes/fiscal/naturezas</span><span class="dv-nota">Tributação padrão por natureza de operação · mesmo DS da Devolução V3</span></div>
+  <span class="reg-l" id="regL">Regime da empresa</span>
+  <div class="seg" id="segReg" role="group" aria-labelledby="regL"></div>
+</div>
+
+<main class="palco">
+  <div class="pg-h" id="pgH"></div>
+  <div id="vLista" class="lista-v"></div>
+  <div id="vEd" hidden>
+    <div class="grid">
+      <div class="col">
+        <section class="sec" id="secPasso"></section>
+      </div>
+      <aside class="col" id="aside"></aside>
+    </div>
+  </div>
+</main>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------- utilitários (mesmos da Devolução V3) ---------- */
+function pc(v) { return (v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 4 }) + '%'; }
+function nIn(v) { return (v == null || v === '' || v === 0) ? '' : Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 4, useGrouping: false }); }
+function parseBR(s) { s = String(s == null ? '' : s).trim(); if (!s) return 0; s = s.replace(/\./g, '').replace(',', '.'); var n = parseFloat(s); return isNaN(n) ? 0 : n; }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function $(id) { return document.getElementById(id); }
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function getK(o, k) { return k.split('.').reduce(function (a, p) { return a == null ? a : a[p]; }, o); }
+function setK(o, k, v) { var ps = k.split('.'), x = o; for (var i = 0; i < ps.length - 1; i++) x = x[ps[i]]; x[ps[ps.length - 1]] = v; }
+function soDig(s) { return String(s || '').replace(/\D/g, ''); }
+
+var SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+var ICO = {
+  tag: SVG + '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/></svg>',
+  route: SVG + '<circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/></svg>',
+  layers: SVG + '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>',
+  alert: SVG + '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>',
+  info: SVG + '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  ok: SVG + '<circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg>',
+  check: SVG + '<path d="M20 6 9 17l-5-5"/></svg>',
+  cursor: SVG + '<path d="M3 3h18v14H3zM8 21h8M12 17v4"/><path d="m7 8 3 3-3 3M13 14h4"/></svg>',
+  plus: SVG + '<path d="M12 5v14M5 12h14"/></svg>',
+  back: SVG + '<path d="M19 12H5M11 18l-6-6 6-6"/></svg>',
+  next: SVG + '<path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  copy: SVG + '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  chev: SVG + '<path d="m9 18 6-6-6-6"/></svg>',
+  pencil: SVG + '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  up: SVG + '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>',
+  file: SVG + '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>'
+};
+
+/* ---------- empresa e tabelas ---------- */
+var EMPRESA = { nome: 'Oimpresso Comunicação Visual Ltda', cnpj: '12.345.678/0001-90', uf: 'SC', mun: 'Tubarão', reg: 'LP' };
+var REGS = [['LP', 'Lucro Presumido'], ['LR', 'Lucro Real'], ['SN', 'Simples Nacional']];
+function ehSN() { return EMPRESA.reg === 'SN'; }
+function regNome() { return REGS.filter(function (r) { return r[0] === EMPRESA.reg; })[0][1]; }
+var TIPOS = [['S', 'Saída'], ['E', 'Entrada']];
+var FINS = [['1', '1 · Normal'], ['2', '2 · Complementar'], ['3', '3 · Ajuste'], ['4', '4 · Devolução']];
+var DESTS = [['in', 'Dentro do estado'], ['out', 'Outro estado'], ['ext', 'Exterior']];
+var CST_ICMS = [['00', '00 · Tributada integralmente'], ['10', '10 · Tributada e com ICMS-ST'], ['20', '20 · Com redução de base'], ['30', '30 · Isenta ou não tributada, com ST'], ['40', '40 · Isenta'], ['41', '41 · Não tributada'], ['50', '50 · Suspensão'], ['51', '51 · Diferimento'], ['60', '60 · ICMS cobrado antes por ST'], ['70', '70 · Redução de base e ST'], ['90', '90 · Outras']];
+var CSOSN = [['101', '101 · Com permissão de crédito'], ['102', '102 · Sem permissão de crédito'], ['103', '103 · Isenção por faixa de receita'], ['201', '201 · Com crédito e com ST'], ['202', '202 · Sem crédito e com ST'], ['203', '203 · Isenção por faixa e com ST'], ['300', '300 · Imune'], ['400', '400 · Não tributada'], ['500', '500 · ICMS cobrado antes por ST'], ['900', '900 · Outros']];
+var MODBC = [['3', '3 · Valor da operação'], ['0', '0 · Margem de valor agregado'], ['1', '1 · Pauta'], ['2', '2 · Preço tabelado máximo']];
+var MODBCST = [['4', '4 · MVA (margem)'], ['0', '0 · Preço tabelado ou máximo sugerido'], ['1', '1 · Lista negativa'], ['2', '2 · Lista positiva'], ['3', '3 · Lista neutra'], ['5', '5 · Pauta'], ['6', '6 · Valor da operação']];
+var CST_IPI_S = [['50', '50 · Saída tributada'], ['51', '51 · Tributada com alíquota zero'], ['52', '52 · Isenta'], ['53', '53 · Não tributada'], ['54', '54 · Imune'], ['55', '55 · Com suspensão'], ['99', '99 · Outras saídas']];
+var CST_IPI_E = [['00', '00 · Entrada com crédito'], ['01', '01 · Entrada com alíquota zero'], ['02', '02 · Entrada isenta'], ['03', '03 · Entrada não tributada'], ['04', '04 · Entrada imune'], ['05', '05 · Entrada com suspensão'], ['49', '49 · Outras entradas']];
+var CST_PC_S = [['01', '01 · Alíquota básica'], ['02', '02 · Alíquota diferenciada'], ['04', '04 · Monofásica, revenda a alíquota zero'], ['06', '06 · Alíquota zero'], ['07', '07 · Isenta'], ['08', '08 · Sem incidência'], ['09', '09 · Com suspensão'], ['49', '49 · Outras saídas']];
+var CST_PC_E = [['50', '50 · Com direito a crédito'], ['70', '70 · Aquisição sem direito a crédito'], ['98', '98 · Outras entradas'], ['99', '99 · Outras operações']];
+var CST_IBS = [['000', '000 · Tributação integral'], ['200', '200 · Alíquota reduzida'], ['410', '410 · Imunidade e não incidência']];
+var ORIG_ICMS = [['uf', 'Pela UF (interna ou interestadual)'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
+var ORIG_MVA = [['produto', 'Do cadastro do produto (NCM/CEST)'], ['fixa', 'Fixa nesta natureza']];
+var ORIG_IPI = [['produto', 'Da TIPI, pelo NCM do produto'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
+var ORIG_PC = [['regime', 'Padrão do regime da empresa'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
+var ORIG_IBS = [['padrao', 'Padrão do ano (teste em 2026)'], ['fixa', 'Fixa nesta natureza']];
+var CFOP_NOME = {
+  '5101': 'Venda de produção do estabelecimento', '6101': 'Venda de produção do estabelecimento', '7101': 'Venda de produção para o exterior',
+  '5102': 'Venda de mercadoria de terceiros', '6102': 'Venda de mercadoria de terceiros', '7102': 'Venda de mercadoria para o exterior',
+  '5401': 'Venda de produção com ST (substituto)', '6401': 'Venda de produção com ST (substituto)',
+  '5403': 'Venda de mercadoria de terceiros com ST (substituto)', '6403': 'Venda de mercadoria de terceiros com ST (substituto)',
+  '5405': 'Venda de mercadoria com ST já retido', '6404': 'Venda de mercadoria com ST já retido',
+  '5201': 'Devolução de compra para industrialização', '6201': 'Devolução de compra para industrialização',
+  '5202': 'Devolução de compra para comercialização', '6202': 'Devolução de compra para comercialização',
+  '5411': 'Devolução de compra com ST', '6411': 'Devolução de compra com ST',
+  '1201': 'Devolução de venda de produção', '2201': 'Devolução de venda de produção',
+  '1202': 'Devolução de venda de mercadoria de terceiros', '2202': 'Devolução de venda de mercadoria de terceiros',
+  '1411': 'Devolução de venda com ST', '2411': 'Devolução de venda com ST',
+  '5910': 'Remessa em bonificação, doação ou brinde', '6910': 'Remessa em bonificação, doação ou brinde',
+  '5915': 'Remessa para conserto ou reparo', '6915': 'Remessa para conserto ou reparo',
+  '5916': 'Retorno de mercadoria recebida para conserto', '6916': 'Retorno de mercadoria recebida para conserto',
+  '5949': 'Outra saída não especificada', '6949': 'Outra saída não especificada', '1949': 'Outra entrada não especificada', '2949': 'Outra entrada não especificada'
+};
+var CFOP_DEV = ['201', '202', '410', '411', '553', '556', '660', '661', '662'];
+var PC_PADRAO = { LP: { pis: 0.65, cofins: 3, t: 'cumulativo' }, LR: { pis: 1.65, cofins: 7.6, t: 'não cumulativo' } };
+
+/* ---------- naturezas ---------- */
+function vazia() {
+  return {
+    id: 0, nome: '', tipo: 'S', fin: '1', ativo: true, ref: false,
+    cfop: { in: '', out: '', ext: '' },
+    icms: { cst: '00', csosn: '102', origem: 'uf', p: 0, modbc: '3', red: 0, pDif: 0, pCredSN: 0, bFrete: true, bIPI: false, bDesc: true,
+      st: { modbcst: '4', mvaOrig: 'produto', mva: 0, redB: 0 }, difal: true, fcp: true },
+    ipi: { on: false, cst: '53', cEnq: '999', origem: 'produto', p: 0 },
+    pis: { cst: '01', cstSN: '49', origem: 'regime', p: 0, exclICMS: true },
+    cofins: { cst: '01', cstSN: '49', origem: 'regime', p: 0, exclICMS: true },
+    ibs: { on: true, cst: '000', cClass: '000001', origem: 'padrao', pUF: 0.1, pMun: 0, pCBS: 0.9, pRed: 0 }
+  };
+}
+function nat(id, nome, base, mod) {
+  var N = vazia(); N.id = id; N.nome = nome;
+  Object.keys(base).forEach(function (k) { N[k] = base[k]; });
+  Object.keys(mod || {}).forEach(function (k) { Object.keys(mod[k]).forEach(function (j) { if (j === 'st') Object.assign(N[k].st, mod[k].st); else N[k][j] = mod[k][j]; }); });
+  return N;
+}
+var SEM_RECEITA = { pis: { cst: '49', cstSN: '49', origem: 'fixa', p: 0 }, cofins: { cst: '49', cstSN: '49', origem: 'fixa', p: 0 } };
+function m() { var o = {}; Array.prototype.forEach.call(arguments, function (src) { Object.keys(src).forEach(function (k) { o[k] = Object.assign({}, o[k] || {}, src[k]); }); }); return o; }
+var NATS = [
+  nat(1, 'Venda de produção do estabelecimento', { cfop: { in: '5101', out: '6101', ext: '7101' } }, { icms: { cst: '00', csosn: '101' } }),
+  nat(2, 'Venda de mercadoria de terceiros (revenda)', { cfop: { in: '5102', out: '6102', ext: '7102' } }, { icms: { cst: '00', csosn: '102' } }),
+  nat(3, 'Venda com ST como substituto', { cfop: { in: '5401', out: '6401', ext: '' } }, { icms: { cst: '10', csosn: '201' } }),
+  nat(4, 'Venda de mercadoria com ST já retido', { cfop: { in: '5405', out: '6404', ext: '' } }, { icms: { cst: '60', csosn: '500', difal: false } }),
+  nat(5, 'Remessa em garantia', { ref: true, cfop: { in: '5949', out: '6949', ext: '' } }, m(SEM_RECEITA, { icms: { cst: '90', csosn: '900', difal: false, fcp: false }, ibs: { cst: '410', cClass: '' } })),
+  nat(6, 'Remessa para conserto', { cfop: { in: '5915', out: '6915', ext: '' } }, m(SEM_RECEITA, { icms: { cst: '50', csosn: '400', difal: false, fcp: false }, ipi: { on: true, cst: '55', origem: 'fixa', p: 0 }, ibs: { cst: '410', cClass: '' } })),
+  nat(7, 'Devolução de compra para comercialização', { fin: '4', ref: true, cfop: { in: '5202', out: '6202', ext: '' } }, m(SEM_RECEITA, { icms: { cst: '00', csosn: '900', origem: 'origem', difal: false, fcp: false }, ipi: { on: true, cst: '50', origem: 'origem' } })),
+  nat(8, 'Devolução de compra para industrialização', { fin: '4', ref: true, cfop: { in: '5201', out: '6201', ext: '' } }, m(SEM_RECEITA, { icms: { cst: '00', csosn: '900', origem: 'origem', difal: false, fcp: false }, ipi: { on: true, cst: '50', origem: 'origem' } })),
+  nat(9, 'Devolução de venda (entrada)', { tipo: 'E', fin: '4', ref: true, cfop: { in: '1201', out: '2201', ext: '' } }, { icms: { cst: '00', csosn: '900', origem: 'origem', difal: false, fcp: false }, ipi: { on: false, cst: '49' }, pis: { cst: '98', cstSN: '98', origem: 'origem' }, cofins: { cst: '98', cstSN: '98', origem: 'origem' } }),
+  nat(10, 'Bonificação e brinde', { ativo: false, cfop: { in: '5910', out: '6910', ext: '' } }, m(SEM_RECEITA, { icms: { cst: '00', csosn: '900', difal: false, fcp: false } }))
+];
+var proxId = 11;
+
+/* ---------- leitura ---------- */
+function cstAtual(N) { return ehSN() ? N.icms.csosn : N.icms.cst; }
+function temST(N) { return ['10', '30', '70', '201', '202', '203'].indexOf(cstAtual(N)) >= 0; }
+function semIcmsProprio(N) { return ['30', '40', '41', '50', '60', '102', '103', '202', '203', '300', '400', '500'].indexOf(cstAtual(N)) >= 0; }
+function pcCst(N, k) { return ehSN() ? N[k].cstSN : N[k].cst; }
+function cstLista(N, tipoPC) { return N.tipo === 'E' ? (tipoPC ? CST_PC_E : CST_IPI_E) : (tipoPC ? CST_PC_S : CST_IPI_S); }
+function nomeCfop(c) { return CFOP_NOME[c] || ''; }
+function optL(o, v) { var x = o.filter(function (p) { return p[0] === v; })[0]; return x ? x[1] : v; }
+
+function lancamento(N, d) {
+  var L = [], c = N.cfop[d] || '', cst = cstAtual(N), sn = ehSN();
+  function add(cor, l, b, sub) { L.push({ c: cor, l: l, b: b, sub: sub || '' }); }
+  add('var(--accent)', 'Natureza e finalidade', esc(N.nome || 'Sem nome'), optL(FINS, N.fin).replace(/^\d · /, 'Finalidade ') + (N.ref ? ' · pede a chave da nota referenciada' : ''));
+  add('var(--accent)', 'CFOP', c ? '<code>' + esc(c) + '</code> ' + esc(nomeCfop(c)) : '<span style="color:var(--text-mute)">Sem CFOP para ' + optL(DESTS, d).toLowerCase() + '</span>', c ? '' : 'A natureza não pode ser usada para esse destino.');
+  var aliq;
+  if (N.icms.origem === 'origem') aliq = 'Alíquota e base copiadas da nota de origem';
+  else if (sn && ['101', '201', '900'].indexOf(cst) < 0) aliq = 'Sem destaque de ICMS próprio; recolhido no DAS';
+  else if (semIcmsProprio(N)) aliq = 'Sem ICMS próprio destacado';
+  else if (N.icms.origem === 'fixa') aliq = 'Alíquota fixa de ' + pc(N.icms.p);
+  else aliq = d === 'in' ? 'Alíquota interna de ' + EMPRESA.uf : d === 'out' ? 'Alíquota interestadual pela UF do cliente (4%, 7% ou 12%)' : 'Exportação: ICMS não incide';
+  if (N.icms.red && !sn) aliq += ' · base reduzida em ' + pc(N.icms.red);
+  if (N.icms.pDif && !sn) aliq += ' · ' + pc(N.icms.pDif) + ' diferido';
+  if (sn && (cst === '101' || cst === '201')) aliq += ' · crédito do Simples ' + (N.icms.pCredSN ? pc(N.icms.pCredSN) : 'do cadastro da empresa');
+  add('var(--tx-icms)', 'ICMS', (sn ? 'CSOSN ' : 'CST ') + '<code>' + esc(cst || '—') + '</code> · ' + esc(optL(MODBC, N.icms.modbc).replace(/^\d · /, 'base: ').toLowerCase()), aliq);
+  if (temST(N)) add('var(--tx-icms)', 'ICMS-ST', esc(optL(MODBCST, N.icms.st.modbcst)), (N.icms.st.mvaOrig === 'fixa' ? 'MVA fixa de ' + pc(N.icms.st.mva) : 'MVA do cadastro do produto') + ' · alíquota interna da UF de destino');
+  if (N.tipo === 'S' && N.fin !== '4' && d === 'out' && (N.icms.difal || N.icms.fcp)) add('var(--tx-icms)', 'DIFAL e FCP', 'Calcula se o cliente for consumidor final não contribuinte', [N.icms.difal ? 'DIFAL para a UF do cliente' : '', N.icms.fcp ? 'FCP quando a UF cobrar' : ''].filter(Boolean).join(' · '));
+  if (N.ipi.on) add('var(--tx-ipi)', 'IPI', 'CST <code>' + esc(N.ipi.cst) + '</code> · enquadramento ' + esc(N.ipi.cEnq || '—'), N.ipi.origem === 'produto' ? 'Alíquota da TIPI pelo NCM do produto' : N.ipi.origem === 'origem' ? 'Alíquota da nota de origem' : 'Alíquota fixa de ' + pc(N.ipi.p));
+  else add('var(--tx-ipi)', 'IPI', 'Não destaca', '');
+  ['pis', 'cofins'].forEach(function (k) {
+    var x = N[k], t;
+    if (x.origem === 'origem') t = 'Alíquota da nota de origem';
+    else if (x.origem === 'fixa') t = x.p ? 'Alíquota fixa de ' + pc(x.p) : 'Sem valor (alíquota zero)';
+    else t = sn ? 'Recolhido no DAS, sem destaque' : pc(PC_PADRAO[EMPRESA.reg][k]) + ' do ' + regNome() + ' (' + PC_PADRAO[EMPRESA.reg].t + ')';
+    if (!sn && x.exclICMS && x.origem !== 'fixa') t += ' · sem o ICMS na base';
+    add(k === 'pis' ? 'var(--tx-pis)' : 'var(--tx-cofins)', k.toUpperCase(), 'CST <code>' + esc(pcCst(N, k)) + '</code>', t);
+  });
+  if (N.ibs.on) add('var(--tx-ibs)', 'IBS e CBS', 'CST <code>' + esc(N.ibs.cst) + '</code> · cClassTrib <code>' + esc(N.ibs.cClass || '—') + '</code>', N.ibs.origem === 'padrao' ? 'IBS 0,1% e CBS 0,9% (ano de teste)' : 'IBS ' + pc((N.ibs.pUF || 0) + (N.ibs.pMun || 0)) + ' e CBS ' + pc(N.ibs.pCBS));
+  else add('var(--tx-ibs)', 'IBS e CBS', 'Não informa', '');
+  return L;
+}
+
+/* ---------- conferência (cada alerta aponta o passo) ---------- */
+function validar(N) {
+  var A = [], sn = ehSN(), cst = cstAtual(N), e = N.tipo === 'E';
+  function al(c, st, t) { A.push({ c: c, st: st, t: t }); }
+  if (!String(N.nome || '').trim()) al('neg', 'nat', '<b>Dê um nome à natureza.</b> É o nome que aparece no lançamento e vai no campo natOp da nota.');
+  var dup = NATS.filter(function (o) { return o.id !== N.id && o.ativo && N.ativo && N.nome && o.nome.trim().toLowerCase() === String(N.nome).trim().toLowerCase(); })[0];
+  if (dup) al('neg', 'nat', '<b>Já existe uma natureza ativa com este nome.</b>');
+  if (N.fin === '4' && !N.ref) al('neg', 'nat', '<b>Devolução exige nota referenciada.</b> Marque “Pede a chave da nota de origem”.');
+  var esp = e ? { in: '1', out: '2', ext: '3' } : { in: '5', out: '6', ext: '7' };
+  if (!N.cfop.in && !N.cfop.out) al('neg', 'cfop', '<b>Informe ao menos um CFOP</b>, dentro ou fora do estado.');
+  DESTS.forEach(function (d) {
+    var c = N.cfop[d[0]]; if (!c) return;
+    if (soDig(c).length !== 4) al('neg', 'cfop', '<b>CFOP ' + esc(c) + ' precisa de 4 dígitos.</b>');
+    else if (c[0] !== esp[d[0]]) al('neg', 'cfop', '<b>CFOP ' + esc(c) + ' não serve para “' + d[1].toLowerCase() + '”.</b> Em ' + (e ? 'entrada' : 'saída') + ' para esse destino o CFOP começa com ' + esp[d[0]] + ' (ex.: ' + esp[d[0]] + c.slice(1) + ').');
+  });
+  var ehDev = ['in', 'out'].some(function (d) { var c = N.cfop[d]; return c && CFOP_DEV.indexOf(c.slice(1)) >= 0; });
+  if (N.fin === '4' && (N.cfop.in || N.cfop.out) && !ehDev) al('neg', 'cfop', '<b>Finalidade devolução pede CFOP de devolução</b> (x201, x202, x411…).');
+  if (N.fin !== '4' && ehDev) al('neg', 'cfop', '<b>CFOP de devolução com finalidade ' + optL(FINS, N.fin).replace(/^\d · /, '').toLowerCase() + '.</b> Use a finalidade 4 · Devolução no passo 1.');
+  var cs = [N.cfop.in, N.cfop.out];
+  if (!cst) al('neg', 'icms', sn ? '<b>Informe o CSOSN.</b>' : '<b>Informe o CST do ICMS.</b>');
+  if (cs.some(function (c) { return c === '5405' || c === '6404'; }) && ['60', '500'].indexOf(cst) < 0) al('neg', 'icms', '<b>CFOP de ST já retido pede ' + (sn ? 'CSOSN 500' : 'CST 60') + '.</b>');
+  if (cs.some(function (c) { return /^[56]40[13]$/.test(c || ''); }) && !temST(N)) al('neg', 'icms', '<b>CFOP de venda como substituto pede ' + (sn ? 'CSOSN 201, 202 ou 203' : 'CST 10, 30 ou 70') + '.</b>');
+  if (temST(N) && N.icms.st.mvaOrig === 'fixa' && !N.icms.st.mva && N.icms.st.modbcst === '4') al('neg', 'icms', '<b>MVA fixa sem percentual.</b>');
+  if (!sn && ['20', '70'].indexOf(cst) >= 0 && !N.icms.red) al('neg', 'icms', '<b>CST ' + cst + ' é com redução de base.</b> Informe o percentual.');
+  if (!sn && cst === '51' && !N.icms.pDif) al('warn', 'icms', '<b>CST 51 sem percentual de diferimento.</b>');
+  if (N.icms.origem === 'fixa' && !semIcmsProprio(N) && !N.icms.p && !(sn && ['101', '201', '900'].indexOf(cst) < 0)) al('neg', 'icms', '<b>Alíquota fixa de ICMS sem percentual.</b>');
+  if (N.icms.origem === 'fixa' && N.cfop.out && !semIcmsProprio(N)) al('warn', 'icms', '<b>Alíquota de ICMS fixa numa natureza com CFOP interestadual.</b> Fora do estado a alíquota muda pela UF; “Pela UF” evita erro.');
+  if (N.fin === '4' && N.icms.origem !== 'origem') al('info', 'icms', '<b>Na devolução, o comum é repetir o ICMS da nota de origem.</b>');
+  if (N.icms.origem === 'origem' && !N.ref) al('warn', 'icms', '<b>Alíquota “da nota de origem” sem nota referenciada.</b> No lançamento não haverá nota para copiar.');
+  if (N.ipi.on && N.ipi.origem === 'fixa' && ['50', '00'].indexOf(N.ipi.cst) >= 0 && !N.ipi.p) al('neg', 'ipi', '<b>IPI tributado com alíquota fixa zerada.</b>');
+  if (N.ipi.on && cstLista(N, false).every(function (o) { return o[0] !== N.ipi.cst; })) al('neg', 'ipi', '<b>CST do IPI ' + esc(N.ipi.cst) + ' não é de ' + (e ? 'entrada' : 'saída') + '.</b>');
+  ['pis', 'cofins'].forEach(function (k) {
+    var x = N[k], c = pcCst(N, k), nm = k.toUpperCase();
+    if (cstLista(N, true).every(function (o) { return o[0] !== c; })) al('neg', 'pc', '<b>CST do ' + nm + ' ' + esc(c) + ' não é de ' + (e ? 'entrada (50 a 99)' : 'saída (01 a 49)') + '.</b>');
+    if (!e && (c === '01' || c === '02') && x.origem === 'fixa' && !x.p) al('neg', 'pc', '<b>' + nm + ' com CST ' + c + ' e alíquota fixa zerada.</b>');
+    if (!sn && x.origem === 'fixa' && x.p && PC_PADRAO[EMPRESA.reg] && x.p !== PC_PADRAO[EMPRESA.reg][k]) al('warn', 'pc', '<b>' + nm + ' fixo em ' + pc(x.p) + '.</b> O padrão do ' + regNome() + ' é ' + pc(PC_PADRAO[EMPRESA.reg][k]) + '.');
+  });
+  var remessa = cs.some(function (c) { return /^[56]9(10|15|49)$/.test(c || ''); });
+  if (remessa && ['pis', 'cofins'].some(function (k) { return ['01', '02'].indexOf(pcCst(N, k)) >= 0; })) al('warn', 'pc', '<b>Remessa com PIS/COFINS de receita.</b> Remessa sem venda costuma usar CST 49.');
+  if (N.ibs.on && soDig(N.ibs.cClass).length !== 6) al('neg', 'ibs', '<b>Informe o cClassTrib do IBS/CBS</b> com 6 dígitos.');
+  if (!sn && !N.ibs.on) al('info', 'ibs', '<b>IBS e CBS desligados.</b> Em 2026 os grupos já vão no XML do regime normal.');
+  return A;
+}
+function pendencias(N) { return validar(N).filter(function (a) { return a.c === 'neg'; }).length; }
+
+/* ---------- importação do XML de referência ---------- */
+var XML_EXEMPLO = '<?xml version="1.0" encoding="UTF-8"?><nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00"><NFe><infNFe Id="NFe42261112345678000190550010000048211000048217" versao="4.00">' +
+  '<ide><cUF>42</cUF><natOp>Venda de produção para revenda</natOp><mod>55</mod><serie>1</serie><nNF>4821</nNF><tpNF>1</tpNF><idDest>2</idDest><finNFe>1</finNFe></ide>' +
+  '<emit><CNPJ>12345678000190</CNPJ><xNome>Oimpresso Comunicacao Visual Ltda</xNome><enderEmit><UF>SC</UF></enderEmit><CRT>3</CRT></emit>' +
+  '<dest><xNome>Grafica Exemplo Ltda</xNome><enderDest><UF>PR</UF></enderDest><indIEDest>1</indIEDest></dest>' +
+  '<det nItem="1"><prod><cProd>BN440</cProd><xProd>Banner lona 440g</xProd><NCM>39219090</NCM><CFOP>6101</CFOP><vProd>1250.00</vProd></prod><imposto>' +
+  '<ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>1250.00</vBC><pICMS>12.0000</pICMS><vICMS>150.00</vICMS></ICMS00></ICMS>' +
+  '<IPI><cEnq>999</cEnq><IPINT><CST>53</CST></IPINT></IPI>' +
+  '<PIS><PISAliq><CST>01</CST><vBC>1100.00</vBC><pPIS>0.6500</pPIS><vPIS>7.15</vPIS></PISAliq></PIS>' +
+  '<COFINS><COFINSAliq><CST>01</CST><vBC>1100.00</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>33.00</vCOFINS></COFINSAliq></COFINS>' +
+  '<IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>1250.00</vBC><gIBSUF><pIBSUF>0.1000</pIBSUF><vIBSUF>1.25</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.0000</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><gCBS><pCBS>0.9000</pCBS><vCBS>11.25</vCBS></gCBS></gIBSCBS></IBSCBS>' +
+  '</imposto></det>' +
+  '<det nItem="2"><prod><cProd>AD01</cProd><xProd>Adesivo vinil impresso</xProd><NCM>39199000</NCM><CFOP>6101</CFOP><vProd>480.00</vProd></prod><imposto>' +
+  '<ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>480.00</vBC><pICMS>12.0000</pICMS><vICMS>57.60</vICMS></ICMS00></ICMS>' +
+  '<IPI><cEnq>999</cEnq><IPINT><CST>53</CST></IPINT></IPI><PIS><PISAliq><CST>01</CST><pPIS>0.6500</pPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><pCOFINS>3.0000</pCOFINS></COFINSAliq></COFINS>' +
+  '</imposto></det></infNFe></NFe></nfeProc>';
+
+function lerXml(txt, N) {
+  var doc;
+  try { doc = new DOMParser().parseFromString(txt, 'application/xml'); } catch (er) { return { erro: 'Não foi possível ler o arquivo como XML.' }; }
+  if (doc.getElementsByTagName('parsererror').length) return { erro: 'O arquivo não é um XML válido. Confira se é o XML da nota (não o PDF do DANFE).' };
+  function q(ctx, tag) { if (!ctx) return null; var l = ctx.getElementsByTagNameNS('*', tag); if (!l.length) l = ctx.getElementsByTagName(tag); return l[0] || null; }
+  function v(ctx, tag) { var x = q(ctx, tag); return x ? x.textContent.trim() : ''; }
+  function num(s) { var n = parseFloat(s); return isNaN(n) ? null : Math.round(n * 10000) / 10000; }
+  var ide = q(doc, 'ide'), dets = doc.getElementsByTagNameNS('*', 'det');
+  if (!ide || !dets.length) return { erro: 'Não encontrei as tags ide e det. O arquivo precisa ser o XML de uma NF-e ou NFC-e.' };
+  var det = dets[0], R = [], passos = {};
+  function rep(passo, campo, tag, valor, sit, obs) { R.push({ passo: passo, campo: campo, tag: tag, valor: valor, sit: sit, obs: obs || '' }); if (sit !== 'nao') passos[passo] = true; }
+
+  var info = { natOp: v(ide, 'natOp'), nNF: v(ide, 'nNF'), emit: v(q(doc, 'emit'), 'xNome'), crt: v(q(doc, 'emit'), 'CRT'), itens: dets.length };
+  var finAntes = N.fin;
+  if (info.natOp) {
+    if (String(N.nome || '').trim()) rep('nat', 'Nome', 'natOp', info.natOp, 'ajuste', 'Mantido o nome digitado no passo 1.');
+    else { N.nome = info.natOp; rep('nat', 'Nome', 'natOp', info.natOp, 'ok'); }
+  }
+  var tp = v(ide, 'tpNF');
+  if (tp) {
+    if (finAntes === '4') rep('nat', 'Tipo da nota', 'tpNF', tp + ' · ' + (tp === '0' ? 'entrada' : 'saída'), 'ajuste', 'Mantido o tipo escolhido no passo 1; a nota importada é a original.');
+    else { N.tipo = tp === '0' ? 'E' : 'S'; rep('nat', 'Tipo da nota', 'tpNF', tp + ' · ' + (tp === '0' ? 'entrada' : 'saída'), 'ok'); }
+  }
+  var fin = v(ide, 'finNFe');
+  if (fin) {
+    if (finAntes === '4' && fin !== '4') rep('nat', 'Finalidade', 'finNFe', fin, 'ajuste', 'Mantida a devolução escolhida no passo 1; a nota importada é a original.');
+    else { N.fin = fin; rep('nat', 'Finalidade', 'finNFe', optL(FINS, fin), 'ok'); }
+  }
+  if (q(ide, 'refNFe')) { N.ref = true; rep('nat', 'Nota referenciada', 'NFref', 'presente', 'ok'); }
+  if (N.fin === '4') N.ref = true;
+
+  var cf = v(det, 'CFOP');
+  if (cf && cf.length === 4) {
+    var orig = cf;
+    if (N.fin === '4' && fin !== '4') {
+      var fim = cf.slice(1), mapa = { '101': '201', '102': '202', '401': '411', '403': '411', '405': '411' };
+      if (mapa[fim]) cf = cf[0] + mapa[fim];
+    }
+    var dig = cf[0], dest = { '5': 'in', '1': 'in', '6': 'out', '2': 'out', '7': 'ext', '3': 'ext' }[dig] || 'in';
+    if (N.tipo === 'E' && '567'.indexOf(dig) >= 0) { cf = String(+dig - 4) + cf.slice(1); dig = cf[0]; }
+    N.cfop[dest] = cf;
+    rep('cfop', optL(DESTS, dest), 'CFOP', orig, orig === cf ? 'ok' : 'ajuste', orig === cf ? '' : 'Convertido para ' + cf + ' (devolução da operação lida).');
+    var outro = dest === 'in' ? 'out' : 'in', dOut = { '5': '6', '6': '5', '1': '2', '2': '1' }[cf[0]];
+    if (dOut && !N.cfop[outro]) { N.cfop[outro] = dOut + cf.slice(1); rep('cfop', optL(DESTS, outro), '—', N.cfop[outro], 'ajuste', 'Deduzido do CFOP lido; confira.'); }
+    var difCf = []; for (var i = 1; i < dets.length; i++) { var c2 = v(dets[i], 'CFOP'); if (c2 && c2 !== orig && difCf.indexOf(c2) < 0) difCf.push(c2); }
+    if (difCf.length) rep('cfop', 'Outros itens', 'CFOP', difCf.join(', '), 'ajuste', 'Itens com CFOP diferente do primeiro; usei o do item 1.');
+  } else rep('cfop', 'CFOP', 'CFOP', '', 'nao', 'Tag não encontrada.');
+
+  var icms = q(det, 'ICMS'), g = icms && icms.firstElementChild;
+  if (g) {
+    var cst = v(g, 'CST'), csosn = v(g, 'CSOSN');
+    if (cst) { N.icms.cst = cst; rep('icms', 'CST do ICMS', g.localName + '/CST', cst, ehSN() ? 'ajuste' : 'ok', ehSN() ? 'A empresa está no Simples; guardado no CST, preencha o CSOSN.' : ''); }
+    if (csosn) { N.icms.csosn = csosn; rep('icms', 'CSOSN', g.localName + '/CSOSN', csosn, ehSN() ? 'ok' : 'ajuste', ehSN() ? '' : 'Nota de empresa do Simples; guardado no CSOSN, preencha o CST.'); }
+    var mbc = v(g, 'modBC'); if (mbc) { N.icms.modbc = mbc; rep('icms', 'Base de cálculo', 'modBC', optL(MODBC, mbc), 'ok'); }
+    var pI = num(v(g, 'pICMS'));
+    if (pI != null) {
+      if (N.fin === '4') { N.icms.origem = 'origem'; rep('icms', 'Alíquota do ICMS', 'pICMS', pc(pI), 'ajuste', 'Devolução: guardado como “da nota de origem”.'); }
+      else { N.icms.origem = 'uf'; rep('icms', 'Alíquota do ICMS', 'pICMS', pc(pI), 'ajuste', 'Guardado como “pela UF”: a alíquota muda com o destino do cliente.'); }
+    }
+    var red = num(v(g, 'pRedBC')); if (red) { N.icms.red = red; rep('icms', 'Redução da base', 'pRedBC', pc(red), 'ok'); }
+    var dif = num(v(g, 'pDif')); if (dif) { N.icms.pDif = dif; rep('icms', 'Diferimento', 'pDif', pc(dif), 'ok'); }
+    var cr = num(v(g, 'pCredSN')); if (cr) { N.icms.pCredSN = cr; rep('icms', 'Crédito do Simples', 'pCredSN', pc(cr), 'ok'); }
+    var mst = v(g, 'modBCST'); if (mst) { N.icms.st.modbcst = mst; rep('icms', 'Base do ST', 'modBCST', optL(MODBCST, mst), 'ok'); }
+    var mva = num(v(g, 'pMVAST')); if (mva) { N.icms.st.mvaOrig = 'fixa'; N.icms.st.mva = mva; rep('icms', 'MVA', 'pMVAST', pc(mva), 'ok', 'Guardada como fixa; se varia por produto, troque para “do cadastro do produto”.'); }
+    var rst = num(v(g, 'pRedBCST')); if (rst) { N.icms.st.redB = rst; rep('icms', 'Redução da base do ST', 'pRedBCST', pc(rst), 'ok'); }
+  } else rep('icms', 'ICMS', 'ICMS', '', 'nao', 'Grupo não encontrado.');
+
+  var ipi = q(det, 'IPI');
+  if (ipi) {
+    N.ipi.on = true; var ce = v(ipi, 'cEnq'); if (ce) N.ipi.cEnq = ce;
+    var ic = v(ipi, 'CST'); if (ic) N.ipi.cst = ic;
+    rep('ipi', 'IPI', 'IPI/CST', ic + (ce ? ' · cEnq ' + ce : ''), 'ok');
+    var pIp = num(v(ipi, 'pIPI'));
+    if (pIp != null) { N.ipi.origem = N.fin === '4' ? 'origem' : 'produto'; rep('ipi', 'Alíquota do IPI', 'pIPI', pc(pIp), 'ajuste', N.fin === '4' ? 'Guardado como “da nota de origem”.' : 'Guardado como “da TIPI”: muda com o NCM do produto.'); }
+  } else { N.ipi.on = false; rep('ipi', 'IPI', 'IPI', '', 'nao', 'A nota não tem IPI; o passo fica desligado.'); }
+
+  ['PIS', 'COFINS'].forEach(function (T) {
+    var el = q(det, T), k = T.toLowerCase();
+    if (!el) { rep('pc', T, T, '', 'nao', 'Grupo não encontrado.'); return; }
+    var c = v(el, 'CST'); if (c) { if (ehSN()) N[k].cstSN = c; else N[k].cst = c; }
+    var p = num(v(el, 'p' + T)), pad = PC_PADRAO[EMPRESA.reg];
+    if (N.fin === '4' && p) { N[k].origem = 'origem'; rep('pc', T, T + '/CST · p' + T, c + ' · ' + pc(p), 'ajuste', 'Devolução: guardado como “da nota de origem”.'); }
+    else if (p && pad && p === pad[k]) { N[k].origem = 'regime'; rep('pc', T, T + '/CST · p' + T, c + ' · ' + pc(p), 'ok', 'Igual ao padrão do ' + regNome() + '.'); }
+    else if (p) { N[k].origem = 'fixa'; N[k].p = p; rep('pc', T, T + '/CST · p' + T, c + ' · ' + pc(p), 'ok', 'Guardado como alíquota fixa.'); }
+    else { N[k].origem = 'fixa'; N[k].p = 0; rep('pc', T, T + '/CST', c, 'ok', 'Sem alíquota na nota.'); }
+  });
+
+  var ib = q(det, 'IBSCBS');
+  if (ib) {
+    N.ibs.on = true; N.ibs.cst = v(ib, 'CST') || N.ibs.cst; N.ibs.cClass = v(ib, 'cClassTrib') || '';
+    rep('ibs', 'CST e cClassTrib', 'IBSCBS/CST · cClassTrib', N.ibs.cst + ' · ' + (N.ibs.cClass || '—'), 'ok');
+    var u = num(v(ib, 'pIBSUF')), mu = num(v(ib, 'pIBSMun')), cb = num(v(ib, 'pCBS'));
+    if (u === 0.1 && (mu || 0) === 0 && cb === 0.9) { N.ibs.origem = 'padrao'; rep('ibs', 'Alíquotas', 'pIBSUF · pIBSMun · pCBS', '0,1% · 0% · 0,9%', 'ok', 'Iguais ao padrão do ano de teste.'); }
+    else if (u != null || cb != null) { N.ibs.origem = 'fixa'; N.ibs.pUF = u || 0; N.ibs.pMun = mu || 0; N.ibs.pCBS = cb || 0; rep('ibs', 'Alíquotas', 'pIBSUF · pIBSMun · pCBS', pc(u) + ' · ' + pc(mu) + ' · ' + pc(cb), 'ok', 'Guardadas como fixas.'); }
+  } else { N.ibs.on = false; rep('ibs', 'IBS e CBS', 'IBSCBS', '', 'nao', 'A nota não tem os grupos da reforma; o passo fica desligado.'); }
+
+  var csts = []; for (var j = 0; j < dets.length; j++) { var gg = q(dets[j], 'ICMS'); var cc = gg && gg.firstElementChild ? (v(gg.firstElementChild, 'CST') || v(gg.firstElementChild, 'CSOSN')) : ''; if (cc && csts.indexOf(cc) < 0) csts.push(cc); }
+  if (csts.length > 1) rep('icms', 'Outros itens', 'CST', csts.join(', '), 'ajuste', 'A nota tem itens com CST diferente; usei o do item 1.');
+  return { ok: true, info: info, rep: R, passos: passos };
+}
+
+/* ---------- estado ---------- */
+var STEPS = [
+  { k: 'nat', l: 'Natureza', ico: ICO.tag },
+  { k: 'cfop', l: 'CFOP', ico: ICO.route },
+  { k: 'icms', l: 'ICMS', ico: ICO.layers, c: 'var(--tx-icms)' },
+  { k: 'ipi', l: 'IPI', ico: ICO.layers, c: 'var(--tx-ipi)' },
+  { k: 'pc', l: 'PIS e COFINS', ico: ICO.layers, c: 'var(--tx-pis)' },
+  { k: 'ibs', l: 'IBS e CBS', ico: ICO.layers, c: 'var(--tx-ibs)' },
+  { k: 'rev', l: 'Revisão', ico: ICO.ok }
+];
+var S = { view: 'lista', area: 'todas', busca: '', prev: 1, dest: 'in', ed: null, edNovo: false, dirty: false, step: 0, modo: null, visto: {}, imp: null };
+
+/* ---------- controles ---------- */
+function opts(o, v) { return o.map(function (p) { return '<option value="' + esc(p[0]) + '"' + (p[0] === v ? ' selected' : '') + '>' + esc(p[1]) + '</option>'; }).join(''); }
+function idDe(s, k) { return 'f_' + s + '_' + k.replace(/\./g, '_'); }
+function fld(lbl, ctrl, help, id) { return '<div class="fld"><label class="lbl"' + (id ? ' for="' + id + '"' : '') + '>' + lbl + '</label>' + ctrl + (help ? '<span class="help">' + help + '</span>' : '') + '</div>'; }
+function fSel(s, k, lbl, o, help, obj) { var id = idDe(s, k); return fld(lbl, '<select id="' + id + '" data-s="' + s + '" data-k="' + k + '">' + opts(o, getK(obj, k)) + '</select>', help, id); }
+function fTxt(s, k, lbl, ph, help, obj, extra) { var id = idDe(s, k); return fld(lbl, '<input type="text" id="' + id + '" data-s="' + s + '" data-k="' + k + '" value="' + esc(getK(obj, k) || '') + '" placeholder="' + esc(ph || '') + '"' + (extra || '') + '>', help, id); }
+function fNum(s, k, lbl, suf, help, obj) { var id = idDe(s, k); return fld(lbl, '<div class="sufx"><input type="text" class="num-in" inputmode="decimal" id="' + id + '" data-s="' + s + '" data-k="' + k + '" data-t="num" value="' + esc(nIn(getK(obj, k))) + '" placeholder="0">' + (suf ? '<span>' + suf + '</span>' : '') + '</div>', help, id); }
+function fChk(s, k, lbl, sub, obj) { var id = idDe(s, k); return '<label class="chk" for="' + id + '"><input type="checkbox" id="' + id + '" data-s="' + s + '" data-k="' + k + '" data-t="bool"' + (getK(obj, k) ? ' checked' : '') + '><span>' + lbl + (sub ? '<small>' + sub + '</small>' : '') + '</span></label>'; }
+function secHead(ico, tit, sub, dir, n) { return '<header><span class="ico">' + ico + '</span><div style="min-width:0"><h3>' + (n ? '<span class="passo">' + n + '</span>' : '') + tit + '</h3>' + (sub ? '<p>' + sub + '</p>' : '') + '</div>' + (dir ? '<div class="dir">' + dir + '</div>' : '') + '</header>'; }
+function tagC(txt, cor) { return '<span class="tag" style="--c: ' + cor + '">' + esc(txt) + '</span>'; }
+function pill(t, c) { return '<span class="pill" style="--c: ' + c + '">' + esc(t) + '</span>'; }
+function segDest() { return '<div class="seg" role="group" aria-label="Destino do cliente">' + DESTS.map(function (d) { return '<button type="button" data-dest="' + d[0] + '" aria-pressed="' + (S.dest === d[0]) + '">' + d[1] + '</button>'; }).join('') + '</div>'; }
+function situacao(N) {
+  if (!N.ativo) return { t: 'Inativa', c: 'var(--text-mute)' };
+  var p = pendencias(N);
+  return p ? { t: p + (p > 1 ? ' pendências' : ' pendência'), c: 'var(--neg)' } : { t: 'Em uso', c: 'var(--pos)' };
+}
+function renderReg() { $('segReg').innerHTML = REGS.map(function (r) { return '<button type="button" data-reg="' + r[0] + '" aria-pressed="' + (EMPRESA.reg === r[0]) + '">' + r[1].replace('Lucro ', '') + '</button>'; }).join(''); }
+function lancHtml(N, cls) {
+  return '<div class="' + cls + '">' + lancamento(N, S.dest).map(function (x) {
+    return '<div style="--c: ' + x.c + '">' + (cls === 'lanc-a' ? '<i></i><div style="min-width:0">' : '') + '<span class="lbl">' + x.l + '</span><b>' + x.b + '</b>' + (x.sub ? '<span class="sub">' + esc(x.sub) + '</span>' : '') + (cls === 'lanc-a' ? '</div>' : '') + '</div>';
+  }).join('') + '</div>';
+}
+
+/* ---------- LISTA ---------- */
+var AREAS = [
+  { v: 'todas', l: 'Todas', f: function () { return true; } },
+  { v: 'S', l: 'Saídas', f: function (N) { return N.tipo === 'S' && N.fin !== '4'; } },
+  { v: 'dev', l: 'Devoluções', f: function (N) { return N.fin === '4'; } },
+  { v: 'E', l: 'Entradas', f: function (N) { return N.tipo === 'E'; } },
+  { v: 'off', l: 'Inativas', f: function (N) { return !N.ativo; } }
+];
+function renderLista() {
+  $('pgH').innerHTML = '<div style="min-width:0"><div class="trilha"><span>Configurações</span><span>Fiscal</span><span>Naturezas de operação</span></div>' +
+    '<h1>Tributação padrão</h1><p>Cada natureza de operação guarda o CFOP, o CST/CSOSN e de onde vem cada alíquota. No lançamento da nota, ao escolher a natureza, esses padrões preenchem os itens; os valores são calculados ali, com os produtos e preços da nota.</p></div>' +
+    '<div class="dir"><button class="btn pri" data-act="nova">' + ICO.plus + 'Nova natureza</button></div>';
+  var area = AREAS.filter(function (a) { return a.v === S.area; })[0], q = S.busca.trim().toLowerCase();
+  var linhas = NATS.filter(area.f).filter(function (N) { return !q || (N.nome + ' ' + N.cfop.in + ' ' + N.cfop.out).toLowerCase().indexOf(q) >= 0; });
+  var ativas = NATS.filter(function (N) { return N.ativo; });
+  if (!ativas.some(function (N) { return N.id === S.prev; })) S.prev = ativas[0] ? ativas[0].id : 0;
+  var P = NATS.filter(function (N) { return N.id === S.prev; })[0];
+  var h = '<div class="dados"><div><span class="lbl">Empresa emitente</span><b>' + esc(EMPRESA.nome) + '</b><span class="sub num">' + EMPRESA.cnpj + '</span></div>' +
+    '<div><span class="lbl">Regime tributário</span><b>' + regNome() + '</b><span class="sub">' + (ehSN() ? 'CRT 1 · usa CSOSN' : 'CRT 3 · usa CST') + '</span></div>' +
+    '<div><span class="lbl">Origem das notas</span><b>' + EMPRESA.mun + ' · ' + EMPRESA.uf + '</b><span class="sub">define dentro e fora do estado</span></div>' +
+    '<div><span class="lbl">Reforma tributária</span><b>IBS e CBS em teste</b><span class="sub">0,1% IBS · 0,9% CBS em 2026</span></div></div>';
+  h += '<section class="sec" style="--hue: var(--stage-blue)">' + secHead(ICO.cursor, 'Como fica no lançamento', 'Escolha a natureza e o destino do cliente para ver o que cai nos itens da nota.') +
+    '<div class="bd"><div class="lanc-h">' + (P ? fSel('prev', 'id', 'Natureza da operação', ativas.map(function (N) { return [String(N.id), N.nome]; }), '', { id: String(S.prev) }) : '') +
+    '<div class="fld"><span class="lbl">Cliente</span>' + segDest() + '</div></div>' +
+    (P ? lancHtml(P, 'lanc') : '<div class="vazio">Nenhuma natureza ativa.</div>') +
+    '<p class="pe">Sem valores aqui: base, imposto e totais são calculados no lançamento. O produto completa o que é dele (NCM, origem, alíquota da TIPI, MVA).</p></div></section>';
+  h += '<section class="sec"><div class="areas" role="tablist" style="padding: 0 16px; flex: none">' + AREAS.map(function (a) {
+    return '<button role="tab" data-area="' + a.v + '" aria-selected="' + (a.v === S.area) + '"><b>' + a.l + ' <span class="num" style="color:var(--text-mute);font-weight:500">' + NATS.filter(a.f).length + '</span></b><span>&nbsp;</span></button>';
+  }).join('') + '</div>' +
+    '<div class="toolbar"><span class="dica">Clique numa natureza para revisar os passos.</span><div class="fld"><label class="sr" for="fBusca">Buscar natureza</label><input type="text" id="fBusca" data-s="busca" value="' + esc(S.busca) + '" placeholder="Buscar por nome ou CFOP"></div></div>' +
+    '<div class="tscroll"><table class="tb lista-tb"><thead><tr><th>Natureza</th><th>CFOP</th><th>ICMS</th><th>Tributos</th><th>Situação</th><th></th></tr></thead><tbody>' +
+    (linhas.length ? linhas.map(function (N) {
+      var s = situacao(N);
+      return '<tr data-id="' + N.id + '" class="' + (N.ativo ? '' : 'inativa') + '">' +
+        '<td class="prod"><b>' + esc(N.nome) + '</b><span>' + optL(TIPOS, N.tipo) + ' · finalidade ' + optL(FINS, N.fin).replace(/^\d · /, '').toLowerCase() + (N.ref ? ' · com nota referenciada' : '') + '</span></td>' +
+        '<td><div class="cfops"><span>dentro</span>' + esc(N.cfop.in || '—') + '</div><div class="cfops"><span>fora</span>' + esc(N.cfop.out || '—') + '</div></td>' +
+        '<td class="v">' + (ehSN() ? 'CSOSN ' : 'CST ') + esc(cstAtual(N)) + '<small style="font-family:var(--font-sans)">' + esc(N.icms.origem === 'origem' ? 'da nota de origem' : N.icms.origem === 'fixa' ? 'alíquota fixa' : 'alíquota pela UF') + '</small></td>' +
+        '<td><div class="txs">' + tagC('ICMS', 'var(--tx-icms)') + (temST(N) ? tagC('ST', 'var(--tx-icms)') : '') + (N.ipi.on ? tagC('IPI ' + N.ipi.cst, 'var(--tx-ipi)') : '') +
+          tagC('PIS/COFINS ' + pcCst(N, 'pis'), 'var(--tx-pis)') + (N.ibs.on ? tagC('IBS/CBS ' + N.ibs.cst, 'var(--tx-ibs)') : '') + '</div></td>' +
+        '<td>' + pill(s.t, s.c) + '</td><td class="r"><span class="ib" aria-hidden="true">' + ICO.chev + '</span></td></tr>';
+    }).join('') : '<tr><td colspan="6"><div class="vazio">Nenhuma natureza nesta visão' + (q ? ' para “' + esc(S.busca) + '”' : '') + '.</div></td></tr>') +
+    '</tbody></table></div></section>';
+  $('vLista').innerHTML = h;
+}
+
+/* ---------- PASSO A PASSO ---------- */
+function travado() { return S.edNovo && !S.modo; }
+function estadoPasso(i, A) {
+  var k = STEPS[i].k, errs = A.filter(function (a) { return a.st === k && a.c === 'neg'; }).length;
+  if (k === 'rev') errs = A.filter(function (a) { return a.c === 'neg'; }).length;
+  return { atual: i === S.step, visto: !!S.visto[k], errs: errs, imp: !!(S.imp && S.imp.ok && S.imp.passos[k]) };
+}
+function stepsHtml(A) {
+  return '<ol class="steps" id="steps">' + STEPS.map(function (st, i) {
+    var e = estadoPasso(i, A), cls = e.atual ? '' : (e.visto && e.errs ? 'erro' : e.visto ? 'ok' : e.imp ? 'imp' : '');
+    var sub = e.atual ? 'agora' : e.visto && e.errs ? e.errs + (e.errs > 1 ? ' pendências' : ' pendência') : e.imp && !e.visto ? 'do XML, revisar' : e.visto ? (st.k === 'rev' ? 'pronta' : 'conferido') : 'a fazer';
+    var n = (!e.atual && e.visto && !e.errs) ? ICO.check : String(i + 1);
+    return '<li><button type="button" data-step="' + i + '" class="' + cls + '"' + (e.atual ? ' aria-current="step"' : '') + (travado() && i > 0 ? ' disabled' : '') + '><span class="n">' + n + '</span><span><b>' + st.l + '</b><small>' + sub + '</small></span></button></li>';
+  }).join('') + '</ol>';
+}
+function painel(k) {
+  var N = S.ed, sn = ehSN(), e = N.tipo === 'E', p = '';
+  if (k === 'icms') {
+    var cst = cstAtual(N);
+    p += '<div class="grupo"><div class="fgrid">' +
+      (sn ? fSel('ed', 'icms.csosn', 'CSOSN', CSOSN, 'Simples Nacional usa CSOSN.', N) : fSel('ed', 'icms.cst', 'CST do ICMS', CST_ICMS, regNome() + ' usa CST.', N)) +
+      fSel('ed', 'icms.modbc', 'Base de cálculo', MODBC, '', N) +
+      fSel('ed', 'icms.origem', 'Alíquota', ORIG_ICMS, N.icms.origem === 'uf' ? 'Interna de ' + EMPRESA.uf + ' ou 4%, 7%, 12% conforme a UF.' : '', N) +
+      (N.icms.origem === 'fixa' ? fNum('ed', 'icms.p', 'Alíquota fixa', '%', '', N) : '') +
+      (!sn && ['20', '70'].indexOf(cst) >= 0 ? fNum('ed', 'icms.red', 'Redução da base', '%', '', N) : '') +
+      (!sn && cst === '51' ? fNum('ed', 'icms.pDif', 'Diferimento', '%', '', N) : '') +
+      (sn && (cst === '101' || cst === '201') ? fNum('ed', 'icms.pCredSN', 'Crédito do Simples', '%', 'Vazio = usa o do cadastro da empresa.', N) : '') + '</div></div>';
+    if (!semIcmsProprio(N)) p += '<div class="grupo"><span class="lbl">Entra na base do ICMS</span><div class="chks">' +
+      fChk('ed', 'icms.bFrete', 'Frete, seguro e outras despesas', '', N) + fChk('ed', 'icms.bIPI', 'Valor do IPI', 'Quando o cliente usa ou consome o produto.', N) + fChk('ed', 'icms.bDesc', 'Desconto reduz a base', '', N) + '</div></div>';
+    if (temST(N)) p += '<div class="grupo"><span class="lbl">Substituição tributária</span><div class="fgrid">' +
+      fSel('ed', 'icms.st.modbcst', 'Base do ST', MODBCST, '', N) + fSel('ed', 'icms.st.mvaOrig', 'MVA', ORIG_MVA, '', N) +
+      (N.icms.st.mvaOrig === 'fixa' ? fNum('ed', 'icms.st.mva', 'MVA fixa', '%', '', N) : '') + fNum('ed', 'icms.st.redB', 'Redução da base do ST', '%', 'Opcional.', N) + '</div></div>';
+    if (!e && N.fin !== '4') p += '<div class="grupo"><span class="lbl">Venda a consumidor final de outro estado</span><div class="chks">' +
+      fChk('ed', 'icms.difal', 'Calcular DIFAL', 'Quando o cliente não é contribuinte do ICMS (EC 87/2015).', N) + fChk('ed', 'icms.fcp', 'Calcular FCP', 'Quando a UF cobra fundo de combate à pobreza.', N) + '</div></div>';
+  }
+  if (k === 'ipi') {
+    p += '<div class="grupo">' + fChk('ed', 'ipi.on', '<b>Destacar IPI nesta natureza</b>', 'Só para quem é contribuinte do IPI (industrializa ou importa).', N) + '</div>';
+    if (N.ipi.on) p += '<div class="grupo"><div class="fgrid">' + fSel('ed', 'ipi.cst', 'CST do IPI', cstLista(N, false), '', N) +
+      fTxt('ed', 'ipi.cEnq', 'Enquadramento (cEnq)', '999', '999 quando não há enquadramento específico.', N, ' inputmode="numeric" maxlength="3"') +
+      fSel('ed', 'ipi.origem', 'Alíquota', ORIG_IPI, '', N) + (N.ipi.origem === 'fixa' ? fNum('ed', 'ipi.p', 'Alíquota fixa', '%', '', N) : '') + '</div></div>';
+    else p += '<div class="grupo"><div class="desl">A nota sai sem o grupo de IPI tributado. Pode seguir para o próximo passo.</div></div>';
+  }
+  if (k === 'pc') {
+    ['pis', 'cofins'].forEach(function (t) {
+      var nm = t.toUpperCase(), pad = PC_PADRAO[EMPRESA.reg];
+      p += '<div class="grupo" style="--c: var(--tx-' + t + ')"><h4><i></i>' + nm + '</h4><div class="fgrid">' +
+        fSel('ed', t + (sn ? '.cstSN' : '.cst'), 'CST do ' + nm, cstLista(N, true), sn ? 'CST usado quando a empresa está no Simples.' : '', N) +
+        fSel('ed', t + '.origem', 'Alíquota', ORIG_PC, N[t].origem === 'regime' ? (sn ? 'No Simples o ' + nm + ' vai no DAS.' : regNome() + ': ' + pc(pad[t]) + '.') : '', N) +
+        (N[t].origem === 'fixa' ? fNum('ed', t + '.p', 'Alíquota fixa', '%', 'Zero para operações sem receita.', N) : '') + '</div>' +
+        (sn ? '' : fChk('ed', t + '.exclICMS', 'Tirar o ICMS da base', 'Exclusão do ICMS da base (Tema 69 do STF).', N)) + '</div>';
+    });
+  }
+  if (k === 'ibs') {
+    p += '<div class="grupo">' + fChk('ed', 'ibs.on', '<b>Informar IBS e CBS</b>', 'Grupos da reforma tributária; em 2026 os valores são de teste.', N) + '</div>';
+    if (N.ibs.on) p += '<div class="grupo"><div class="fgrid">' + fSel('ed', 'ibs.cst', 'CST do IBS/CBS', CST_IBS, '', N) +
+      fTxt('ed', 'ibs.cClass', 'Classificação (cClassTrib)', '000001', 'Seis dígitos, da tabela oficial.', N, ' inputmode="numeric" maxlength="6"') +
+      fSel('ed', 'ibs.origem', 'Alíquotas', ORIG_IBS, '', N) +
+      (N.ibs.origem === 'fixa' ? fNum('ed', 'ibs.pUF', 'IBS estadual', '%', '', N) + fNum('ed', 'ibs.pMun', 'IBS municipal', '%', '', N) + fNum('ed', 'ibs.pCBS', 'CBS', '%', '', N) : '') +
+      (N.ibs.cst === '200' ? fNum('ed', 'ibs.pRed', 'Redução de alíquota', '%', '', N) : '') + '</div></div>';
+    else p += '<div class="grupo"><div class="desl">A nota sai sem os grupos IBS/CBS.</div></div>';
+  }
+  return p;
+}
+var COR = { neg: 'var(--neg)', warn: 'var(--warn)', info: 'var(--accent)', pos: 'var(--pos)' }, ICA = { neg: ICO.alert, warn: ICO.alert, info: ICO.info, pos: ICO.ok };
+function alertasHtml(A, comIr) {
+  if (!A.length) return '';
+  return '<div class="alertas">' + A.map(function (a) {
+    var i = STEPS.map(function (s) { return s.k; }).indexOf(a.st);
+    return '<div class="al" style="--c: ' + COR[a.c] + '">' + ICA[a.c] + '<div>' + a.t + '</div>' + (comIr && i >= 0 ? '<button class="btn ghost ir" data-step="' + i + '">Passo ' + (i + 1) + ' · ' + STEPS[i].l + '</button>' : '') + '</div>';
+  }).join('') + '</div>';
+}
+function passoNat() {
+  var N = S.ed, h = '<div class="fgrid">' + fTxt('ed', 'nome', 'Nome da natureza', 'Ex.: Remessa em garantia', 'Aparece no lançamento e vai no campo natOp.', N) +
+    fSel('ed', 'tipo', 'Tipo da nota', TIPOS, '', N) + fSel('ed', 'fin', 'Finalidade', FINS, N.fin === '4' ? 'Devolução: a nota referencia a original.' : '', N) + '</div>' +
+    '<div class="chks" style="margin-top:12px">' + fChk('ed', 'ref', 'Pede a chave da nota de origem', 'Obrigatório em devolução; útil em garantia e retorno.', N) +
+    fChk('ed', 'ativo', 'Natureza ativa', 'Inativa fica guardada e some do lançamento.', N) + '</div>';
+  if (!S.edNovo) return h;
+  h += '<div class="grupo" style="margin-top:16px"><span class="lbl">Como você quer preencher os tributos?</span><div class="escolha">' +
+    '<button type="button" class="cen" data-act="branco" aria-pressed="' + (S.modo === 'branco') + '"><b>' + ICO.pencil + 'Iniciar em branco</b><span>Você preenche CFOP, ICMS, IPI, PIS, COFINS, IBS e CBS, um passo de cada vez.</span></button>' +
+    '<button type="button" class="cen" data-act="importar" aria-pressed="' + (S.modo === 'import') + '"><b>' + ICO.up + 'Importar nota de referência</b><span>O sistema lê o XML de uma nota já emitida e preenche os passos com as tags encontradas. Você revisa cada um.</span></button>' +
+    '</div></div>';
+  if (S.modo === 'import') h += '<div class="grupo">' + painelImport() + '</div>';
+  return h;
+}
+function painelImport() {
+  var I = S.imp;
+  if (I && I.ok) {
+    var sit = { ok: ['Copiado', 'var(--pos)'], ajuste: ['Ajustado', 'var(--warn)'], nao: ['Não encontrado', 'var(--text-mute)'] };
+    var nOk = I.rep.filter(function (r) { return r.sit === 'ok'; }).length, nAj = I.rep.filter(function (r) { return r.sit === 'ajuste'; }).length;
+    return '<div class="rep-h"><div><b>' + esc(I.arquivo) + '</b><span>Nota ' + esc(I.info.nNF || '—') + ' · ' + esc(I.info.emit || 'emitente não identificado') + ' · ' + I.info.itens + (I.info.itens > 1 ? ' itens' : ' item') + ' · ' + nOk + ' campos copiados, ' + nAj + ' ajustados</span></div>' +
+      '<button class="btn ghost" data-act="outro-xml">Importar outro XML</button></div>' +
+      '<div class="lista"><div class="tscroll"><table class="tb"><thead><tr><th>Passo</th><th>Campo</th><th>Tag no XML</th><th>Valor lido</th><th>Situação</th></tr></thead><tbody>' +
+      I.rep.map(function (r) {
+        var st = STEPS.filter(function (s) { return s.k === r.passo; })[0];
+        return '<tr><td>' + esc(st.l) + '</td><td>' + esc(r.campo) + (r.obs ? '<small>' + esc(r.obs) + '</small>' : '') + '</td><td class="tagx">' + esc(r.tag) + '</td><td class="vl">' + esc(r.valor || '—') + '</td><td>' + pill(sit[r.sit][0], sit[r.sit][1]) + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>' +
+      '<p class="pe">Valores da nota (vProd, vBC, vICMS e totais) não são guardados: a natureza só leva códigos e a origem das alíquotas.</p>';
+  }
+  return '<div class="drop" id="drop"><p><b>Arraste o XML de uma NF-e ou NFC-e já emitida</b> com a mesma operação. O sistema lê natOp, finalidade, CFOP e os grupos ICMS, IPI, PIS, COFINS e IBSCBS do primeiro item.</p>' +
+    '<div class="acts"><label class="btn pri" for="fXml">' + ICO.file + 'Escolher arquivo XML</label><input type="file" id="fXml" accept=".xml,text/xml,application/xml"><button class="btn" data-act="exemplo">Usar XML de exemplo</button></div>' +
+    (I && I.erro ? '<p style="color:color-mix(in oklch, var(--neg) 62%, var(--text))"><b style="color:inherit">' + esc(I.erro) + '</b></p>' : '') + '</div>';
+}
+function renderEditor() {
+  var N = S.ed, A = validar(N), st = STEPS[S.step], i = S.step;
+  S.visto[st.k] = true;
+  $('pgH').innerHTML = '<div style="min-width:0"><button class="voltar" data-act="voltar">' + ICO.back + (S.dirty ? 'Voltar sem salvar' : 'Naturezas de operação') + '</button>' +
+    '<h1 id="edTit">' + esc(N.nome || 'Nova natureza') + '</h1><p id="edSub">' + subTitulo() + '</p></div>' +
+    '<div class="dir">' + (S.edNovo ? '' : pill(situacao(N).t, situacao(N).c)) + '</div>';
+  var sub = {
+    nat: S.edNovo ? 'Nome, tipo e finalidade. Depois escolha começar em branco ou importar uma nota de referência.' : 'Nome, tipo e finalidade da natureza.',
+    cfop: 'O lançamento escolhe o CFOP pela UF do ' + (N.tipo === 'E' ? 'remetente' : 'cliente') + '.',
+    icms: (ehSN() ? 'CSOSN' : 'CST') + ', base, origem da alíquota, ST e DIFAL.',
+    ipi: 'Só para quem destaca IPI.',
+    pc: 'CST e alíquota do PIS e da COFINS.',
+    ibs: 'Grupos da reforma tributária (ano de teste em 2026).',
+    rev: 'Confira o que a natureza preenche no lançamento e salve.'
+  }[st.k];
+  var corpo = '';
+  if (st.k === 'nat') corpo = passoNat();
+  else if (st.k === 'cfop') {
+    var e = N.tipo === 'E', pfx = e ? ['1', '2', '3'] : ['5', '6', '7'];
+    corpo = '<div class="fgrid">' + DESTS.map(function (d, j) {
+      var c = N.cfop[d[0]];
+      return fTxt('ed', 'cfop.' + d[0], d[1], 'Ex.: ' + pfx[j] + (N.cfop.in ? N.cfop.in.slice(1) : '102'), c ? (nomeCfop(c) ? esc(nomeCfop(c)) : 'Fora da lista comum; confira na tabela.') : (d[0] === 'ext' ? 'Opcional.' : 'Começa com ' + pfx[j] + '.'), N, ' inputmode="numeric" maxlength="4"');
+    }).join('') + '</div>';
+  } else if (st.k === 'rev') {
+    corpo = '<div class="lanc-h"><div class="fld"><span class="lbl">Cliente</span>' + segDest() + '</div></div>' + lancHtml(N, 'lanc') +
+      '<div class="grupo"><span class="lbl">Conferência</span>' + (alertasHtml(A, true) || alertasHtml([{ c: 'pos', st: '', t: '<b>Natureza consistente.</b> Pode ser usada no lançamento.' }], false)) + '</div>';
+  } else corpo = painel(st.k);
+  var doPasso = st.k === 'rev' ? '' : alertasHtml(A.filter(function (a) { return a.st === st.k; }), false);
+  var prox = STEPS[i + 1], ant = STEPS[i - 1];
+  var podeProx = prox && !(st.k === 'nat' && travado()) && !(st.k === 'nat' && S.modo === 'import' && !(S.imp && S.imp.ok));
+  var nav = '<div class="navp">' + (ant ? '<button class="btn" data-act="ant">' + ICO.back + ant.l + '</button>' : '') +
+    '<div class="dir">' + (prox ? '<button class="btn pri" data-act="prox"' + (podeProx ? '' : ' disabled') + '>' + (st.k === 'nat' && S.modo === 'import' ? 'Revisar passo a passo' : 'Próximo: ' + prox.l) + ICO.next + '</button>' : '<button class="btn pri" data-act="salvar"' + (A.some(function (a) { return a.c === 'neg'; }) ? ' disabled' : '') + '>' + (S.edNovo ? 'Criar natureza' : 'Salvar natureza') + '</button>') + '</div></div>';
+  $('secPasso').style.setProperty('--hue', st.c || 'var(--accent)');
+  $('secPasso').innerHTML = stepsHtml(A) + secHead(st.ico, st.l, sub, '', i + 1) + '<div class="bd" id="corpo">' + corpo + (doPasso ? '<div class="grupo">' + doPasso + '</div>' : '') + '</div>' + nav;
+  renderAside(A);
+}
+function subTitulo() { return 'Passo ' + (S.step + 1) + ' de ' + STEPS.length + ' · ' + STEPS[S.step].l + ' · ' + (S.edNovo ? 'natureza nova, ainda não salva' : S.dirty ? 'alterações não salvas' : 'sem alterações') + ' · ' + regNome(); }
+function renderAside(A) {
+  var N = S.ed, bloq = A.some(function (a) { return a.c === 'neg'; }), nE = A.filter(function (a) { return a.c === 'neg'; }).length;
+  $('aside').innerHTML = '<section class="sec"><header><span class="ico">' + ICO.cursor + '</span><div style="min-width:0"><h3>No lançamento</h3><p>O que esta natureza preenche nos itens.</p></div></header>' +
+    '<div class="bd" style="display:flex;flex-direction:column;gap:12px"><div class="fld"><span class="lbl">Cliente</span>' + segDest() + '</div>' + lancHtml(N, 'lanc-a') +
+    '<div class="aviso-v">Sem valores: base, imposto e totais são calculados no lançamento, com os produtos e preços da nota.</div></div></section>' +
+    '<div class="fin"><button class="btn pri lg acao" data-act="salvar"' + (bloq || travado() ? ' disabled' : '') + '>' + (S.edNovo ? 'Criar natureza' : 'Salvar natureza') + '</button>' +
+    '<div class="duas"><button class="btn" data-act="duplicar"' + (S.edNovo ? ' disabled' : '') + '>' + ICO.copy + 'Duplicar</button><button class="btn" data-act="voltar">Cancelar</button></div>' +
+    '<div class="msg' + (bloq ? ' neg' : '') + '">' + (travado() ? 'Escolha começar em branco ou importar uma nota.' : bloq ? nE + (nE > 1 ? ' pendências' : ' pendência') + ' nos passos marcados em vermelho.' : 'Vale para as próximas notas lançadas com esta natureza.') + '</div></div>';
+}
+function renderLive() {
+  var N = S.ed, A = validar(N);
+  var t = $('edTit'); if (t) t.textContent = N.nome || 'Nova natureza';
+  var sb = $('edSub'); if (sb) sb.textContent = subTitulo();
+  var sp = $('steps'); if (sp) sp.outerHTML = stepsHtml(A);
+  var vb = document.querySelector('.voltar'); if (vb && S.dirty) vb.innerHTML = ICO.back + 'Voltar sem salvar';
+  renderAside(A);
+}
+
+/* ---------- navegação ---------- */
+function abrirEditor(N, novo) {
+  S.ed = clone(N); S.edNovo = !!novo; S.dirty = false; S.step = 0; S.modo = novo ? null : 'editar'; S.imp = null;
+  S.visto = {}; if (!novo) STEPS.forEach(function (s) { S.visto[s.k] = true; });
+  S.view = 'ed'; location.hash = novo ? 'nova' : 'natureza-' + N.id; render(); window.scrollTo(0, 0);
+}
+function irPasso(i) { if (i < 0 || i >= STEPS.length) return; S.step = i; renderEditor(); var c = $('secPasso'); if (c && c.getBoundingClientRect().top < 0) c.scrollIntoView({ block: 'start' }); var b = document.querySelector('#steps [aria-current="step"]'); if (b) b.focus(); }
+function voltar() { S.view = 'lista'; S.ed = null; location.hash = 'lista'; render(); window.scrollTo(0, 0); }
+function render() { var ed = S.view === 'ed' && S.ed; renderReg(); $('vLista').hidden = !!ed; $('vEd').hidden = !ed; if (ed) renderEditor(); else renderLista(); }
+function toast(msg) { var t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(function () { t.hidden = true; }, 2800); }
+function rotear() {
+  var h = location.hash.replace('#', ''), m1 = /^natureza-(\d+)$/.exec(h);
+  if (m1) { var N = NATS.filter(function (x) { return x.id === +m1[1]; })[0]; if (N) { if (!S.ed || S.ed.id !== N.id) { S.ed = clone(N); S.edNovo = false; S.dirty = false; S.step = 0; S.modo = 'editar'; S.imp = null; S.visto = {}; STEPS.forEach(function (s) { S.visto[s.k] = true; }); } S.view = 'ed'; return render(); } }
+  if (h === 'nova' && S.ed) { S.view = 'ed'; return render(); }
+  S.view = 'lista'; S.ed = null; render();
+}
+function refoca(fn) { var a = document.activeElement, id = a && a.id; fn(); if (id && $(id)) $(id).focus(); }
+function importar(txt, nome) {
+  var N = S.ed, finEscolhida = N.fin, tipoEscolhido = N.tipo, R = lerXml(txt, N);
+  if (R.erro) { S.imp = { erro: R.erro }; } else { R.arquivo = nome; S.imp = R; S.dirty = true; toast('XML lido: ' + R.rep.filter(function (r) { return r.sit !== 'nao'; }).length + ' campos preenchidos. Revise os passos.'); }
+  if (R.erro) { N.fin = finEscolhida; N.tipo = tipoEscolhido; }
+  renderEditor();
+}
+
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-act],[data-area],[data-step],[data-dest],[data-reg],tr[data-id]');
+  if (!el) return;
+  if (el.hasAttribute('data-reg')) { EMPRESA.reg = el.getAttribute('data-reg'); render(); toast('Regime: ' + regNome() + (ehSN() ? ' · campos de CSOSN' : ' · campos de CST')); return; }
+  if (el.hasAttribute('data-area')) { S.area = el.getAttribute('data-area'); renderLista(); return; }
+  if (el.hasAttribute('data-dest')) { S.dest = el.getAttribute('data-dest'); if (S.view === 'ed' && S.ed) renderEditor(); else renderLista(); var b = document.querySelector('[data-dest="' + S.dest + '"]'); if (b) b.focus(); return; }
+  if (el.hasAttribute('data-step')) { irPasso(+el.getAttribute('data-step')); return; }
+  if (el.matches('tr[data-id]')) { abrirEditor(NATS.filter(function (x) { return x.id === +el.getAttribute('data-id'); })[0]); return; }
+  var a = el.getAttribute('data-act');
+  if (a === 'nova') { var N = vazia(); N.id = proxId; abrirEditor(N, true); }
+  else if (a === 'branco') { S.modo = 'branco'; irPasso(1); }
+  else if (a === 'importar') { S.modo = 'import'; renderEditor(); }
+  else if (a === 'exemplo') importar(XML_EXEMPLO, 'NFe 4821 · exemplo.xml');
+  else if (a === 'outro-xml') { S.imp = null; renderEditor(); }
+  else if (a === 'prox') irPasso(S.step + 1);
+  else if (a === 'ant') irPasso(S.step - 1);
+  else if (a === 'voltar') voltar();
+  else if (a === 'salvar') {
+    var R = clone(S.ed);
+    if (S.edNovo) { NATS.push(R); proxId++; } else NATS = NATS.map(function (x) { return x.id === R.id ? R : x; });
+    toast((S.edNovo ? 'Natureza criada: ' : 'Natureza salva: ') + R.nome); voltar();
+  }
+  else if (a === 'duplicar') { var D = clone(S.ed); D.id = proxId; D.nome = D.nome + ' (cópia)'; abrirEditor(D, true); S.modo = 'branco'; renderEditor(); toast('Cópia criada. Ajuste o nome e revise os passos.'); }
+});
+function lerValor(el) { var t = el.getAttribute('data-t'); return t === 'bool' ? el.checked : t === 'num' ? parseBR(el.value) : el.value; }
+document.addEventListener('input', function (e) {
+  var el = e.target, s = el.getAttribute('data-s'); if (!s) return;
+  if (s === 'busca') { S.busca = el.value; refoca(renderLista); var b = $('fBusca'); if (b) { var n = b.value.length; b.setSelectionRange(n, n); } return; }
+  if (el.tagName === 'SELECT' || el.type === 'checkbox' || s !== 'ed') return;
+  var k = el.getAttribute('data-k'), v = lerValor(el);
+  if (k.indexOf('cfop.') === 0 || k === 'ibs.cClass' || k === 'ipi.cEnq') v = String(v).trim();
+  setK(S.ed, k, v); S.dirty = true; renderLive();
+  if (k.indexOf('cfop.') === 0) { var hp = el.closest('.fld').querySelector('.help'); if (hp) hp.textContent = v ? (nomeCfop(v) || 'Fora da lista comum; confira na tabela.') : ''; }
+});
+document.addEventListener('change', function (e) {
+  var el = e.target;
+  if (el.id === 'fXml' && el.files && el.files[0]) { var f = el.files[0], r = new FileReader(); r.onload = function () { importar(String(r.result), f.name); }; r.onerror = function () { S.imp = { erro: 'Não foi possível abrir o arquivo.' }; renderEditor(); }; r.readAsText(f); return; }
+  var s = el.getAttribute('data-s'); if (!s || s === 'busca') return;
+  if (el.tagName !== 'SELECT' && el.type !== 'checkbox') return;
+  var k = el.getAttribute('data-k'), v = lerValor(el);
+  if (s === 'prev') { S.prev = +v; refoca(renderLista); return; }
+  if (s === 'ed') {
+    setK(S.ed, k, v); S.dirty = true;
+    if (k === 'tipo') { var N = S.ed; if (v === 'E') { N.ipi.cst = '49'; N.pis.cst = N.pis.cstSN = N.cofins.cst = N.cofins.cstSN = '98'; } else { N.ipi.cst = '53'; N.pis.cst = N.cofins.cst = '01'; N.pis.cstSN = N.cofins.cstSN = '49'; } }
+    if (k === 'fin' && v === '4') S.ed.ref = true;
+    refoca(renderEditor);
+  }
+});
+['dragover', 'dragenter'].forEach(function (t) { document.addEventListener(t, function (e) { var d = e.target.closest && e.target.closest('#drop'); if (d) { e.preventDefault(); d.classList.add('sobre'); } }); });
+document.addEventListener('dragleave', function (e) { var d = e.target.closest && e.target.closest('#drop'); if (d) d.classList.remove('sobre'); });
+document.addEventListener('drop', function (e) {
+  var d = e.target.closest && e.target.closest('#drop'); if (!d) return; e.preventDefault(); d.classList.remove('sobre');
+  var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return;
+  var r = new FileReader(); r.onload = function () { importar(String(r.result), f.name); }; r.readAsText(f);
+});
+window.addEventListener('hashchange', rotear);
+rotear();
+})();
+</script>
+
+</body></html>

@@ -68,6 +68,18 @@ last_run: "2026-10-07"
   Teste: `tests/Feature/Relatorios/LotesReportPageTest.php`.
 - **Status: 🧪**
 
+## UC-RLT-07 · Os lotes de um produto, vindo da consulta de produto · `should` `[T0]`
+- **Aceite:** Dado dois produtos com lotes no mesmo local · Quando abro a tela com `?product_id=` de um deles (o atalho do
+  painel da consulta de produto, CV3) · Então só os lotes dele aparecem · E uma etiqueta "Produto: <nome>" mostra o filtro;
+  ao clicar, o filtro de produto sai e os outros ficam · Dado o id de um produto de outra empresa · Então a lista vem
+  vazia e o nome não vem.
+- **Teste:** `tests/Feature/Relatorios/LotesReportPageTest.php` (UC-RLT-07, lane `acessos-pest.yml`) e
+  [`lotes-filtro-produto.test.tsx`](../../../../../tests/js/lotes-filtro-produto.test.tsx) (a etiqueta e o clique;
+  Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-16: sem a etiqueta, o caso de tela cai.
+- **Contrato:** backlog CV3 do `Produto/Index.casos.md` — a consulta de produto é a porta de entrada para os lotes do
+  produto. O filtro passa pela mesma `consultaLotes`, já restrita ao `products.business_id` da empresa.
+- **Status: 🧪**
+
 ## Backlog
 - [BACKLOG] Filtros de subcategoria e "só produtos fabricados" (Manufacturing), como a Blade.
 - [BACKLOG] Tempo relativo até o vencimento, como a Blade.
