@@ -301,9 +301,9 @@ export default function NfseIndex({ notas, filters }: Props) {
           onReset={resetFilters}
         >
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Status</label>
+            <label htmlFor="nfse-filtro-status" className="text-xs text-[color:var(--text-mute)]">Status</label>
             <Select value={status || STATUS_ALL} onValueChange={(v) => setStatus(v === STATUS_ALL ? '' : v)}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger id="nfse-filtro-status" aria-label="Status" className="h-9">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -316,18 +316,19 @@ export default function NfseIndex({ notas, filters }: Props) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Competência de</label>
-            <Input type="month" value={de} onChange={(e) => setDe(e.target.value)} className="h-9" />
+            <label htmlFor="nfse-filtro-de" className="text-xs text-[color:var(--text-mute)]">Competência de</label>
+            <Input id="nfse-filtro-de" type="month" value={de} onChange={(e) => setDe(e.target.value)} className="h-9" />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Competência até</label>
-            <Input type="month" value={ate} onChange={(e) => setAte(e.target.value)} className="h-9" />
+            <label htmlFor="nfse-filtro-ate" className="text-xs text-[color:var(--text-mute)]">Competência até</label>
+            <Input id="nfse-filtro-ate" type="month" value={ate} onChange={(e) => setAte(e.target.value)} className="h-9" />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Tomador / Nº</label>
+            <label htmlFor="nfse-filtro-q" className="text-xs text-[color:var(--text-mute)]">Tomador / Nº</label>
             <Input
+              id="nfse-filtro-q"
               ref={searchRef}
               placeholder="Buscar... (/)"
               value={q}
