@@ -28,7 +28,7 @@ Sistema canônico de arquivos do oimpresso — **cofre criptografado** + **pipel
 | Dedupe por MD5 dentro da empresa | ✅ `ArquivosService` + tabela `arquivos_dedupe` + `arquivos:dedupe-stats` | ❌ | 🟡 (block-level, opaco) |
 | Audit log append-only LGPD | ✅ `arquivos_audit_log` + `arquivos:audit-log` + vista Trilha | ❌ | 🟡 (event log enterprise only) |
 | Multi-tenant Tier 0 (`business_id` global scope) | ✅ Pest `MultiTenantTest.php` + `ArquivosTenantIsolationTest.php` | n/a | ❌ |
-| Retenção LGPD configurável | ✅ `arquivos:retention-cleanup` + simulação na tela (dry-run) | ❌ | 🟡 (manual) |
+| Retenção LGPD | 🟡 só a purga manual da lixeira (`arquivos:retention-cleanup`, prazo único em `--days`) + simulação na tela (dry-run). Prazo por categoria pendente da decisão B1 do [W] | ❌ | 🟡 (manual) |
 | Aviso ao titular antes do vencimento | ✅ `arquivos:avisar-titulares` (e-mail e WhatsApp) | ❌ | ❌ |
 | Backfill legado idempotente | ✅ migrations `backfill_nfe_xml`, `backfill_consumers` | n/a | n/a |
 
@@ -41,7 +41,7 @@ Sistema canônico de arquivos do oimpresso — **cofre criptografado** + **pipel
   - `Curador/CuradorEngine` — port PHP das regras do curador JS (`scripts/curador/`)
   - `ArquivosRetentionService`, `AvisoTitularService` + `AvisoTitularCanais`, `AnexosDoAppService`, leitores de stats (`CofreStatsReader`, `RetencaoStatsReader`, `Curador/CuradorStatsReader`)
 - **Controllers:** `ArquivosAdminController` (tela `/arquivos`), `RetencaoSimulacaoController`, `DataController` (sidebar + permissões), `DownloadController` (signed URL), `InstallController`
-- **Trait reuse:** `Concerns/HasArquivos` — `$model->attachArquivo($file)`, `$model->arquivos`. Quem usa é derivado: `git grep -l "use HasArquivos" -- '*.php'`
+- **Trait reuse:** `Concerns/HasArquivos` — dá `$model->arquivos` (11 models em 7 módulos em 2026-11-16). O atalho `$model->attachArquivo($file)` existe, mas o código de produção anexa chamando `ArquivosService::attach` direto. Quem usa o trait é derivado: `git grep -l "use HasArquivos" -- '*.php'`
 - **API do app:** anexos da OS em `GET/POST /api/app/os/{id}/arquivos` (`app/Http/Controllers/Api/App/OsArquivosController.php`, via contrato `AnexosDoApp`)
 - **Comandos artisan** (`ArquivosServiceProvider`): audit-log, avisar-titulares, dedupe-stats, export-zip, health-check, recalcular-metadata, reencrypt-vault, retention-cleanup, revogar-permissoes-superadmin
 - **Agendados** (`app/Console/Kernel.php`, só em `live`): `arquivos:health-check --alert` 06:30 e `arquivos:avisar-titulares --todos` 10:00 (BRT). Nenhum outro comando do módulo roda sozinho — o `retention-cleanup` é manual.
