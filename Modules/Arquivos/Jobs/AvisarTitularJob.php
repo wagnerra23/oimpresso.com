@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Arquivos\Jobs;
 
+use App\Tenancy\ContextoEmpresa;
 use App\Contact;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -62,6 +63,9 @@ class AvisarTitularJob implements ShouldQueue
      */
     public function handle(AvisoTitularService $avisos, AvisoTitularCanais $config): array
     {
+        // ADR 0453: job sem sessão — a empresa do escopo do Arquivo vem do contexto.
+        app(ContextoEmpresa::class)->definir($this->businessId);
+
         $ctx = ['business_id' => $this->businessId, 'arquivo_id' => $this->arquivoId];
 
         $canaisLigados = array_keys(array_filter($config->ativos($this->businessId)));
