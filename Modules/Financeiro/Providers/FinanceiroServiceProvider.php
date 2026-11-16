@@ -16,8 +16,20 @@ class FinanceiroServiceProvider extends ServiceProvider
 {
     /**
      * Guard contra duplicação do listener — nWidart pode rodar boot() 2x.
+     *
+     * Por DISPATCHER, não global: a chave é o objeto `events` em que o listener foi
+     * registrado. Em produção há um dispatcher por request, então o 2º boot() acha a
+     * chave e sai (igual à flag estática que existia aqui). Na suíte Pest cada teste
+     * recria a app e o dispatcher; a flag estática sobrevivia entre testes e deixava
+     * `CobrancaPaga` sem listener do 2º teste em diante.
+     *
+     * WeakMap e não `spl_object_id`: o id de um dispatcher já coletado pode ser
+     * reaproveitado pelo próximo, e a guarda pularia o registro. A entrada do WeakMap
+     * some junto com o dispatcher.
+     *
+     * @var \WeakMap<object, true>|null
      */
-    private static bool $paymentgatewayListenersRegistered = false;
+    private static ?\WeakMap $paymentgatewayListenersRegisteredOn = null;
 
     protected string $moduleName = 'Financeiro';
 
@@ -45,21 +57,23 @@ class FinanceiroServiceProvider extends ServiceProvider
      */
     protected function registerPaymentGatewayListeners(): void
     {
-        if (self::$paymentgatewayListenersRegistered) {
+        $events = $this->app['events'];
+        self::$paymentgatewayListenersRegisteredOn ??= new \WeakMap();
+        if (isset(self::$paymentgatewayListenersRegisteredOn[$events])) {
             return;
         }
 
-        Event::listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
+        $events->listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
 
         // ADR 0183 — Ponte cash_registers → fin_titulos (multi-caixa canon)
-        Event::listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
+        $events->listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
 
         // PR F (2026-05-25) G9 — Event TituloCriado dispatched no store() manual
         // (UnificadoController). Listener stub log INFO + abre caminho extensão
         // (notify, cache, accounting). Não dispara em auto-criação observers.
-        Event::listen(TituloCriado::class, [OnTituloCriadoLog::class, 'handle']);
+        $events->listen(TituloCriado::class, [OnTituloCriadoLog::class, 'handle']);
 
-        self::$paymentgatewayListenersRegistered = true;
+        self::$paymentgatewayListenersRegisteredOn[$events] = true;
     }
 
     /**
