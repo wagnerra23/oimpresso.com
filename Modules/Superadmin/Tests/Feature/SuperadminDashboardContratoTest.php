@@ -234,3 +234,22 @@ it('UC-SADASH-07 · a série de tendência cobre os meses sem assinatura', funct
         $cursor->addMonth();
     }
 });
+
+// ── UC-SADASH-08 · painel e Páginas na navegação do módulo ──────────────────
+
+it('UC-SADASH-08 · a topnav do Superadmin leva ao painel e às Páginas do site', function () {
+    $this->actingAs(dashSuperadmin())
+        ->get('/superadmin')
+        ->assertOk()
+        ->assertInertia(function (AssertableInertia $page) {
+            $topnav = $page->toArray()['props']['shell']['topnavs']['Superadmin'] ?? null;
+            expect($topnav)->toBeArray();
+            $hrefs = array_column($topnav['items'], 'href');
+            expect($hrefs)->toContain('/superadmin');
+            expect($hrefs)->toContain('/superadmin/frontend-pages');
+            // Os que já existiam continuam: a mudança soma, não troca.
+            expect($hrefs)->toContain('/superadmin/usuarios');
+            // Endpoint DataTables não é tela.
+            expect($hrefs)->not->toContain('/all-subscriptions');
+        });
+});
