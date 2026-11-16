@@ -293,13 +293,15 @@ class NfseController extends Controller
             ];
         }
 
+        // Ambiente do provedor da empresa da nota. A nota não grava o ambiente em que saiu
+        // (xml_envio nunca é preenchido), então a tela mostra o configurado HOJE e diz isso.
+        $ambiente = NfseProviderConfig::where('business_id', $nfse->business_id)->value('ambiente');
+
         return Inertia::render('Nfse/Show', [
             'nfse' => [
                 'id'             => $nfse->id,
                 'numero'         => $nfse->numero,
                 'status'         => $nfse->status,
-                'status_label'   => $nfse->statusLabel(),
-                'status_color'   => $nfse->statusColor(),
                 'tomador_nome'   => $nfse->tomador_nome,
                 'tomador_cnpj'   => $nfse->tomador_cnpj,
                 'tomador_cpf'    => $nfse->tomador_cpf,
@@ -312,10 +314,16 @@ class NfseController extends Controller
                 'pdf_url'        => $nfse->pdf_url,
                 'erro_mensagem'  => $nfse->erro_mensagem,
                 'created_at'     => $nfse->created_at?->format('d/m/Y H:i'),
+                // Cancelada é terminal: depois da troca de status nada mais grava na linha, então
+                // o updated_at é o momento do cancelamento. O MOTIVO não é guardado em coluna
+                // nenhuma (só no log do canal nfse) — fica para o evento de cancelamento (lote 2.4).
+                'cancelada_em'   => $nfse->isCancelada() ? $nfse->updated_at?->format('d/m/Y H:i') : null,
                 'transaction_id' => $nfse->transaction_id,
             ],
-            'venda' => $vendaData,
-            'flash' => session('status'),
+            'venda'    => $vendaData,
+            'ambiente' => $ambiente,
+            // Sem 'flash' próprio: o aviso de sucesso/erro do cancelamento sai pelo flash
+            // compartilhado (HandleInertiaRequests) e vira toast no app.tsx, como nas outras telas.
         ]);
     }
 
