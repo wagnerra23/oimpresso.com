@@ -81,6 +81,15 @@ abre a Ficha · a OS da Comunicação Visual (`comvis_os`) não tem Ficha e não
 
 Status: 🧪
 
+## UC-PCOSF-07 · O Quadro entrega a Ficha para o painel lateral · `must` `[T0]`
+
+**Dado** o Quadro aberto com `?os={id}` de uma OS por item da empresa **Então** ele entrega a Ficha (`ficha`: OS, etapas e
+botões), a mesma da página, para o painel lateral do protótipo (decisão [W] no #10850) · as abas (`ficha_custo`,
+`ficha_materiais`, `ficha_artes`, `ficha_pessoas`) só são montadas quando a tela pede a aba · **Dado** `?os=` de outra
+empresa, inexistente ou ausente **Então** `ficha` vem nula e o Quadro abre normalmente.
+
+Status: 🧪
+
 ## UC-PCESC-01 · A empresa que vem do registro não depende da sessão · `must`
 
 **Dado** uma OS da empresa A e a sessão logada na empresa B **Quando** a rota pública, o gancho do núcleo ou o job consulta a
@@ -115,6 +124,7 @@ Status: 🧪
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-16 · [M+C] O Quadro entrega a Ficha com `?os=` para o painel lateral (UC-PCOSF-07, decisão [W] no #10850).
 - 2026-11-09 · [W+C] Dispensas de escopo revistas (lote 8.1): 21 removidas, 12 comentadas (UC-PCESC-01..04).
 - 2026-11-06 · [M+C] Aba Arte lê a versão gravada (UC-PCART-09) em vez de contar os envios.
 - 2026-11-06 · [W+C] Quadro e Linha abrem a Ficha (lote 3.5).
