@@ -43,13 +43,14 @@ class UploadArquivoRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // Mesma regra do upload compartilhado (ValidacaoUpload / config arquivos.*): uma
+            // fonte só, para o form e o serviço não divergirem. Ainda não há rota de upload
+            // genérica no módulo; cada consumidor valida na tela dele e o serviço revalida.
             'file' => [
                 'required',
                 'file',
-                // 50 MB default (em KB). Override em config se precisar maior.
-                'max:51200',
-                // MIMEs whitelist — bloqueia .php/.exe/.sh/.bat por extensao implicita.
-                'mimes:jpg,jpeg,png,gif,webp,pdf,xml,zip,csv,xlsx,xls,docx,doc,txt',
+                'max:' . ((int) config('arquivos.upload_max_mb', 50) * 1024),
+                'mimetypes:' . implode(',', (array) config('arquivos.upload_mimes', [])),
             ],
             'bucket' => [
                 'nullable',
@@ -64,8 +65,8 @@ class UploadArquivoRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.mimes' => 'Tipo de arquivo nao permitido. Aceitos: imagens, PDF, ZIP, planilhas, documentos Office.',
-            'file.max' => 'Arquivo excede 50 MB.',
+            'file.mimetypes' => 'Tipo de arquivo nao permitido. Aceitos: imagens, PDF, video MP4, XML, ZIP, planilhas, documentos Office.',
+            'file.max' => 'Arquivo acima do limite.',
             'bucket.in' => 'Bucket invalido. Use: public, internal, sensitive ou vault.',
         ];
     }
