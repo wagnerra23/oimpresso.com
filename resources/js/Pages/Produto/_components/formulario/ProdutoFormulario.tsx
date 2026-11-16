@@ -13,6 +13,7 @@ import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
 import type { PrecoSimples } from './precos';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
 import type { EstadoPolitica } from './politicaPreco';
+import type { Folheto } from './envioMidia';
 import type {
   CamposProduto,
   DefinirCampo,
@@ -45,6 +46,8 @@ interface Props {
   armazenagem?: { valor: EstadoArmazenagem; mudar: (e: EstadoArmazenagem) => void; endereco: EnderecoNoEstoque; saldos?: SaldoPorLocal };
   /** Política de preço (CU-PROD-21), no card "Impostos e preços". */
   politica?: { valor: EstadoPolitica; mudar: (e: EstadoPolitica) => void };
+  /** UC-PEDIT-29: Editar — a imagem e o folheto gravados, trocados na hora. */
+  midia?: { produtoId: number; imagem: string | null; folheto: Folheto | null };
 }
 
 export function ProdutoFormulario({
@@ -62,16 +65,18 @@ export function ProdutoFormulario({
   metodoCusto,
   armazenagem,
   politica,
+  midia,
 }: Props) {
   return (
     <form id={id} onSubmit={onSubmit} className="space-y-6">
-      <BlocoDados modo={modo} data={data} definir={definir} errors={errors} opcoes={opcoes} />
+      <BlocoDados modo={modo} data={data} definir={definir} errors={errors} opcoes={opcoes} midia={midia} />
       <BlocoConfiguracoes
         modo={modo}
         data={data}
         definir={definir}
         errors={errors}
         mostrarValidade={mostrarValidade}
+        campos={opcoes.camposDaEmpresa}
         armazenagem={
           armazenagem && opcoes.businessLocations ? (
             <BlocoArmazenagem

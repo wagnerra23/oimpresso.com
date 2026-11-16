@@ -134,6 +134,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // Naturezas de operação (RUNBOOK-tributacao §Naturezas · onda 3a) — atrás da flag
         // useV2NfeNaturezas; com ela desligada o controller responde 404.
+        // Onda 5: naturezas para escolher ao emitir — permissão de emitir, não de configurar.
+        Route::get('naturezas/lancamento', [NaturezaOperacaoController::class, 'paraLancamento'])
+            ->middleware(PermissaoNfe::class.':nfebrasil.emit.manage')
+            ->name('naturezas.lancamento');
         Route::middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)->group(function () {
             Route::get('naturezas', [NaturezaOperacaoController::class, 'index'])->name('naturezas.index');
             Route::post('naturezas', [NaturezaOperacaoController::class, 'store'])->name('naturezas.store');
