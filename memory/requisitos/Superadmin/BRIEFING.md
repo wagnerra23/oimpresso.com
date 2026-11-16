@@ -68,6 +68,7 @@ A tela Pagar nova oferece **só PIX Automático e offline** (UC-SAPG-03). A Blad
 
 ## Gaps reconhecidos
 
+- ✅ (2026-11-16) Fechado: `confirm` aprovava pacote pago com gateway inventado e por GET sem CSRF — agora só gateway configurado, POST, travas de pacote privado/uso único (`SubscriptionConfirmContratoTest`, #10974)
 - US-SUPER-006 (respeitar `requires` do `module.json`) e US-SUPER-007 (versão PHP/MySQL, disco, jobs com falha): parciais
 - US-SUPER-011: o MRR entrou na SA-O1b (#5955, delegado ao RecurringBilling no #5981; `SuperadminDashboardService::calcularMrr`); funil trial→pago e receita por pacote seguem sem query. O comentário em `SuperadminController.php:41-43` ainda diz que o MRR não tem query (é anterior ao #5955)
 - US-SUPER-012 (Primeiros passos): atrás de flag desligada
@@ -82,7 +83,7 @@ A tela Pagar nova oferece **só PIX Automático e offline** (UC-SAPG-03). A Blad
 
 ## Próximo passo sugerido
 
-Ondas em curso da auditoria de 2026-11-05: L0 (confirm de pagamento só com gateway configurado e por POST, #10974), L1 (testes em lane), L2 (cobrança), L3 (validação), L7 (medição das telas). B1/B2/B3 dependem de decisão [W].
+Ondas da auditoria de 2026-11-05: L0 mergeado em 2026-11-16 (#10974 — ver Gaps); em curso L1 (testes em lane), L2 (cobrança), L3 (validação), L7 (medição das telas). B1/B2/B3 dependem de decisão [W].
 
 ---
 **Atualizado:** 2026-11-16 pelo lote L6 PR 2 (auditoria Superadmin) · **Mantenedor:** Claude (skill `brief-update`) + [W]
