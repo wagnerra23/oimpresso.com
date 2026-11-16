@@ -27,6 +27,10 @@ use Modules\NFSe\Services\NfseEmissaoService;
 // Só DatabaseTransactions precisa ser anexado (RC-27 corrige RC-16).
 uses(Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
+// Empresa fictícia canônica de teste (ADR 0358). Nunca biz=4 (cliente real) nem biz=1
+// (WR2, empresa real: no CT 100 a base é clone de produção).
+const NFSE_SVC_TENANT = 98;
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function mockProvider(): NfseProviderInterface
@@ -37,13 +41,13 @@ function mockProvider(): NfseProviderInterface
 function payload(array $overrides = []): NfseEmissaoPayload
 {
     return new NfseEmissaoPayload(
-        businessId: 1,
+        businessId: NFSE_SVC_TENANT,
         rpsNumero: $overrides['rpsNumero'] ?? '000001',
         competencia: $overrides['competencia'] ?? Carbon::create(2026, 5, 1),
-        tomadorNome: 'ROTA LIVRE LTDA',
+        tomadorNome: 'TOMADOR FICTICIO LTDA',
         tomadorCnpj: '12.345.678/0001-90', // pii-allowlist: fake CNPJ fixture de teste NFSe
         tomadorCpf: null,
-        tomadorEmail: 'fiscal@rotalivrepress.com.br',
+        tomadorEmail: 'fiscal@tomador-ficticio.example',
         descricao: 'Licença mensal sistema ERP',
         lc116Codigo: '1.05',
         valorServicos: 1500.00,
@@ -52,7 +56,7 @@ function payload(array $overrides = []): NfseEmissaoPayload
     );
 }
 
-function seedConfig(int $businessId = 1, ?int $certId = null): NfseProviderConfig
+function seedConfig(int $businessId = NFSE_SVC_TENANT, ?int $certId = null): NfseProviderConfig
 {
     return NfseProviderConfig::withoutGlobalScopes()->create([
         'business_id'          => $businessId,
@@ -67,7 +71,7 @@ function seedConfig(int $businessId = 1, ?int $certId = null): NfseProviderConfi
     ]);
 }
 
-function seedCert(int $businessId = 1, bool $expirado = false): NfseCertificado
+function seedCert(int $businessId = NFSE_SVC_TENANT, bool $expirado = false): NfseCertificado
 {
     return NfseCertificado::withoutGlobalScopes()->create([
         'business_id'        => $businessId,
@@ -107,13 +111,13 @@ it('retorna nota existente quando idempotency_key já existe com status emitida'
     $p = payload();
 
     NfseEmissao::withoutGlobalScopes()->create([
-        'business_id'     => 1,
+        'business_id'     => NFSE_SVC_TENANT,
         'status'          => 'emitida',
         'numero'          => '999',
         'rps_numero'      => '000001',
         'serie'           => 'RPS',
         'competencia'     => '2026-05-01',
-        'tomador_nome'    => 'ROTA LIVRE LTDA',
+        'tomador_nome'    => 'TOMADOR FICTICIO LTDA',
         'tomador_cnpj'    => '12.345.678/0001-90', // pii-allowlist: fake CNPJ fixture de teste NFSe
         'descricao'       => 'Licença mensal sistema ERP',
         'valor_servicos'  => 1500.00,
@@ -165,7 +169,7 @@ it('lança RpsDuplicadoException e marca status emitida na nota local', function
     expect(fn () => $service->emitir(payload()))
         ->toThrow(RpsDuplicadoException::class, '000001');
 
-    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', 1)->latest('id')->first()->status)->toBe('emitida');
+    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', NFSE_SVC_TENANT)->latest('id')->first()->status)->toBe('emitida');
 });
 
 // ── ISS inválido ──────────────────────────────────────────────────────────────
@@ -182,7 +186,7 @@ it('lança IssInvalidoException (E501) e marca status erro', function () {
     expect(fn () => $service->emitir(payload()))
         ->toThrow(IssInvalidoException::class);
 
-    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', 1)->latest('id')->first()->status)->toBe('erro');
+    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', NFSE_SVC_TENANT)->latest('id')->first()->status)->toBe('erro');
 });
 
 // ── código serviço inválido ────────────────────────────────────────────────────
@@ -247,7 +251,7 @@ it('retenta 3 vezes em ProviderTimeoutException e lança após esgotar', functio
     expect(fn () => $service->emitir(payload()))
         ->toThrow(ProviderTimeoutException::class);
 
-    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', 1)->latest('id')->first()->status)->toBe('erro');
+    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', NFSE_SVC_TENANT)->latest('id')->first()->status)->toBe('erro');
 })->skip('sleep(backoff) torna o teste lento — rodar só em CI fora do watch');
 
 // ── cancelamento ──────────────────────────────────────────────────────────────
@@ -257,13 +261,13 @@ it('provedor sem ambiente e certificado da empresa nao cancela a nota', function
     seedConfig(certId: $cert->id);
 
     $emissao = NfseEmissao::withoutGlobalScopes()->create([
-        'business_id'     => 1,
+        'business_id'     => NFSE_SVC_TENANT,
         'status'          => 'emitida',
         'numero'          => '123456',
         'rps_numero'      => '000001',
         'serie'           => 'RPS',
         'competencia'     => '2026-05-01',
-        'tomador_nome'    => 'ROTA LIVRE',
+        'tomador_nome'    => 'TOMADOR FICTICIO',
         'descricao'       => 'ERP',
         'valor_servicos'  => 1500,
         'valor_iss'       => 30,
@@ -284,13 +288,13 @@ it('provedor sem ambiente e certificado da empresa nao cancela a nota', function
 
 it('lança NfseJaCanceladaException ao cancelar nota já cancelada', function () {
     $emissao = NfseEmissao::withoutGlobalScopes()->create([
-        'business_id'     => 1,
+        'business_id'     => NFSE_SVC_TENANT,
         'status'          => 'cancelada',
         'numero'          => '123456',
         'rps_numero'      => '000001',
         'serie'           => 'RPS',
         'competencia'     => '2026-05-01',
-        'tomador_nome'    => 'ROTA LIVRE',
+        'tomador_nome'    => 'TOMADOR FICTICIO',
         'descricao'       => 'ERP',
         'valor_servicos'  => 1500,
         'valor_iss'       => 30,
@@ -321,7 +325,7 @@ it('calcula valor ISS corretamente com aliquota 2%', function () {
 
 it('retorna ISS zero quando iss_retido=true', function () {
     $p = new NfseEmissaoPayload(
-        businessId: 1, rpsNumero: '1', competencia: Carbon::now(),
+        businessId: NFSE_SVC_TENANT, rpsNumero: '1', competencia: Carbon::now(),
         tomadorNome: 'X', tomadorCnpj: null, tomadorCpf: '123',
         tomadorEmail: null, descricao: 'Y', lc116Codigo: '1.05',
         valorServicos: 1000, aliquotaIss: 0.02, issRetido: true,
