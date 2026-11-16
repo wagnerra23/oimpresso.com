@@ -159,6 +159,13 @@ jobs:
         #
         # Os dois seguem mudos até serem tratados — dívida agora VISÍVEL e datada, em
         # vez de verde-fantasma.
+        #
+        # +3 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.2):
+        #   ReencryptVaultCommandTest + RecalcularMetadataCommand{,V2}Test. Antes so a
+        #   lane sqlite os alcancava e o guard de tabela os pulava sempre; e mesmo no
+        #   MySQL teriam caido: o INSERT usava a coluna `filename`, que a tabela nao
+        #   tem (e `original_name`). Agora semeiam no tenant 98 com marcador em
+        #   classified_by e limpam no afterEach de arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -212,6 +219,9 @@ jobs:
             Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
             Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php \
             Modules/Arquivos/Tests/Feature/MultiTenantTest.php \
+            Modules/Arquivos/Tests/Feature/ReencryptVaultCommandTest.php \
+            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandTest.php \
+            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandV2Test.php \
             Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php \
             Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
             Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php \
