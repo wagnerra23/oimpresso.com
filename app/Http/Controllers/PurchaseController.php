@@ -824,7 +824,8 @@ class PurchaseController extends Controller
                 // Supplier
                 'supplier_name' => (string) ($purchase->contact->name ?? ''),
                 'supplier_business_name' => $purchase->contact->supplier_business_name ?? null,
-                'supplier_address' => $purchase->contact->contact_address ?? null,
+                // Texto puro (a tela renderiza como texto); nome e razão social já vão em campos próprios.
+                'supplier_address' => $purchase->contact ? (implode(', ', $purchase->contact->contact_address_array) ?: null) : null,
                 'supplier_tax_number' => $purchase->contact->tax_number ?? null,
                 'supplier_mobile' => $purchase->contact->mobile ?? null,
                 'supplier_email' => $purchase->contact->email ?? null,
