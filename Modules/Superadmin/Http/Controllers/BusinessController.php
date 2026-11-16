@@ -21,6 +21,7 @@ use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Http\Requests\StoreBusinessRequest;
 use Modules\Superadmin\Http\Requests\UpdateBusinessPasswordRequest;
 use Modules\Superadmin\Notifications\PasswordUpdateNotification;
+use Modules\Superadmin\Services\BusinessAuditService;
 use Modules\Superadmin\Support\RotuloAssinatura;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
@@ -635,7 +636,25 @@ class BusinessController extends BaseController
                 return back()->with('status', $output);
             }
 
+            // Pré-condições centralizadas (negócio 1 protegido, próprio negócio, último negócio).
+            // O que é apagado não muda aqui — isso é a decisão B5 pendente do [W].
+            $pode = app(BusinessAuditService::class)->canDestroy((int) $id, (int) $business_id);
+            if (! $pode['can_destroy']) {
+                return back()->with('status', ['success' => 0, 'msg' => $pode['reason']]);
+            }
+
             DB::beginTransaction();
+
+            // Trilha: quem excluiu qual negócio. Sem PII — só ids. `business_id` do registro é o
+            // negócio excluído, não o da sessão do superadmin.
+            activity('superadmin_negocio')
+                ->causedBy(auth()->user())
+                ->event('negocio_excluido')
+                ->withProperties(['negocio_id' => (int) $id, 'ip' => request()->ip()])
+                ->tap(function ($activity) use ($id) {
+                    $activity->business_id = (int) $id;
+                })
+                ->log('negocio_excluido');
 
             //Delete related products & transactions.
             $products_id = Product::where('business_id', $id)->pluck('id')->toArray();
@@ -683,8 +702,13 @@ class BusinessController extends BaseController
             return $notAllowed;
         }
 
+        // A rota já restringe a 0/1; a checagem fica aqui também para quem chamar o método direto.
+        if (! in_array((string) $is_active, ['0', '1'], true)) {
+            abort(422);
+        }
+
         Business::where('id', $business_id)
-            ->update(['is_active' => $is_active]);
+            ->update(['is_active' => (int) $is_active]);
 
         $output = ['success' => 1,
             'msg' => __('lang_v1.success'),
