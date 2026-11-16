@@ -944,6 +944,7 @@ class NfeService
                 // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
                 fiscal_rule_override_id: null,
                 description: (string) $it['xprod'],
+                origem_mercadoria: isset($it['origem']) ? (int) $it['origem'] : null,
             );
             // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
             // P-155: local com regime próprio usa o cálculo com o CRT dele; sem CRT, como antes.

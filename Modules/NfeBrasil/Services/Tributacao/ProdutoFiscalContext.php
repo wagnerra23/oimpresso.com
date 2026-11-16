@@ -21,5 +21,8 @@ final readonly class ProdutoFiscalContext
         public ?int    $fiscal_rule_override_id = null,
         public ?string $cest = null,
         public ?string $description = null,
+        // Origem da mercadoria (tabela A do CST, `products.origem_mercadoria`). Só a natureza da
+        // tela lê (4% interestadual — Resolução SF 13/2012); null = nacional, como antes.
+        public ?int    $origem_mercadoria = null,
     ) {}
 }

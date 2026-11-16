@@ -399,6 +399,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoCamposTelaTest.php \
             Modules/NfeBrasil/Tests/Feature/ConferenciaNaturezaServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php \
+            Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
             Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
             Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php \
