@@ -165,7 +165,7 @@ module: Producao
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 8
 
 - [AcaoDaProva.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/_components/AcaoDaProva.tsx)
 - [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
@@ -173,6 +173,7 @@ module: Producao
 - [SimuladorBobina.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx)
 - [EditorRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/EditorRoteiro.tsx)
 - [ProdutosDoRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/ProdutosDoRoteiro.tsx)
+- [FichaDaOs.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.tsx)
 - [ProducaoAbas.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas.tsx)
 
 ## Charters (lei da tela) — 7
