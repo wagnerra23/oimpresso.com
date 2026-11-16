@@ -13,7 +13,7 @@ import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
 import type { PrecoSimples } from './precos';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
 import type { EstadoPolitica } from './politicaPreco';
-import type { Folheto } from './CampoMidia';
+import type { Folheto } from './envioMidia';
 import type {
   CamposProduto,
   DefinirCampo,
