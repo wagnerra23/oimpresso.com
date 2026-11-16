@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -10,7 +11,7 @@ use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\ArquivosService;
 use Modules\Repair\Entities\JobSheet;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Isolamento multi-tenant Tier 0 do Modules/Arquivos.
@@ -24,8 +25,9 @@ uses(Tests\TestCase::class);
  * TENANT: 98 canônico × 99 vizinho (ADR 0358). NUNCA biz=4, NUNCA biz=1.
  * Era 1×99 até 2026-11-16, com a limpeza DEPOIS do assert (vazava linha quando o assert
  * caía) e por `$arquivo->delete()`, que é soft-delete: deixava linha com deleted_at no
- * CT 100 a cada run. Agora toda fixture carrega md5 marcador e o afterEach de arquivo
- * apaga de verdade (DB::table, não o model).
+ * CT 100 a cada run. Agora o arquivo roda em DatabaseTransactions: nada é commitado e
+ * não há DELETE nenhum — a trilha (`arquivos_audit_log`) ganha trigger append-only no
+ * lote L2, e um DELETE de limpeza nela passaria a falhar.
  * NÃO RODADO LOCAL: Pest é CT 100/CI only (proibicoes.md §Ambiente).
  */
 const MT_MD5_98   = '98989898989898989898989898989898';
@@ -67,19 +69,6 @@ beforeEach(function () {
 
 afterEach(function () {
     session()->forget(['user', 'business']);
-
-    if (! Schema::hasTable('arquivos')) {
-        return;
-    }
-    $md5s = [MT_MD5_98, MT_MD5_99, MT_MD5_AUTO, MT_MD5_SO99, md5(MT_CONTEUDO)];
-    $ids = DB::table('arquivos')->whereIn('md5', $md5s)->pluck('id');
-    if ($ids->isNotEmpty() && Schema::hasTable('arquivos_audit_log')) {
-        DB::table('arquivos_audit_log')->whereIn('arquivo_id', $ids)->delete();
-    }
-    DB::table('arquivos')->whereIn('md5', $md5s)->delete();
-    if (Schema::hasTable('arquivos_dedupe')) {
-        DB::table('arquivos_dedupe')->where('md5', md5(MT_CONTEUDO))->delete();
-    }
 });
 
 it('global scope: sessão da 98 vê o arquivo da 98 e não vê o da 99 (e vice-versa)', function () {
