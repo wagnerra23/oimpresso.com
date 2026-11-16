@@ -22,7 +22,7 @@ import { Grid, Inline } from '@/Components/layout';
 import { CampoLocais } from './BlocoLocais';
 import { CampoSubcategoria, CampoSubUnidades } from './BlocoSubcampos';
 import { CadastroAuxiliar } from './CadastroAuxiliar';
-import type { TipoAuxiliar } from './CadastroAuxiliar';
+import type { TipoAuxiliar } from './envioCadastroAuxiliar';
 import { avisoCodigoBarras } from './ean';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
