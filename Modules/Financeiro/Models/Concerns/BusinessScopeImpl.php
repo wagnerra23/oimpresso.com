@@ -2,6 +2,7 @@
 
 namespace Modules\Financeiro\Models\Concerns;
 
+use App\Tenancy\ContextoEmpresa;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -14,8 +15,10 @@ class BusinessScopeImpl implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        // Sem sessão (CLI/job): não aplica scope. Caller responsável por filtrar.
-        if (! session()->has('user.business_id')) {
+        // Empresa vem do ContextoEmpresa (ADR 0453). No modo `aberto` (padrão) é só a sessão,
+        // como sempre foi; em `log`/`fechado`, também job/API, e sem empresa registra ou lança.
+        $businessId = app(ContextoEmpresa::class)->empresaDoEscopo($model::class);
+        if ($businessId === null) {
             return;
         }
 
@@ -36,7 +39,6 @@ class BusinessScopeImpl implements Scope
         // atalho implicito do superadmin, e os 3 controllers que citam `superadmin` usam
         // pra PERMISSAO (menu, autorizacao de acao), nunca pra escopo de dado.
 
-        $businessId = (int) session('user.business_id');
         $builder->where($model->getTable() . '.business_id', $businessId);
     }
 }

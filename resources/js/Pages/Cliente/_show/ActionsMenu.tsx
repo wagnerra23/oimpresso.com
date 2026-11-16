@@ -99,11 +99,17 @@ export default function ActionsMenu({
           Accept: 'application/json',
         },
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // O servidor responde 200 com {success: false, msg} quando recusa (cadastro com vendas,
+      // OS, assinaturas…, ou o cliente padrão). Antes a tela tratava isso como exclusão feita.
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        alert(json?.msg ?? 'Não foi possível excluir este cliente.');
+        return;
+      }
       if (onAfterDestroy) onAfterDestroy();
       else window.location.href = '/contacts/customer';
     } catch {
-      alert('Erro ao excluir cliente. Verifique se há transações vinculadas.');
+      alert('Erro ao excluir cliente. Verifique a conexão e tente de novo.');
     } finally {
       setBusy(false);
     }

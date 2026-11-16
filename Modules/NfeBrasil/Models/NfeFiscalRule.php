@@ -30,6 +30,8 @@ use Modules\NfeBrasil\Services\Tributacao\RevisaoContadorService;
  * @property \Illuminate\Support\Carbon|null $valida_de
  * @property \Illuminate\Support\Carbon|null $valida_ate
  * @property int|null $versao_origem_id
+ * @property string|null $cst_pis    R-NFE-025b · CST de saída do PIS (nulo = a nota sai com 07)
+ * @property string|null $cst_cofins R-NFE-025b · CST de saída da COFINS (nulo = a nota sai com 07)
  */
 class NfeFiscalRule extends Model
 {
@@ -44,6 +46,8 @@ class NfeFiscalRule extends Model
         'ncm', 'uf_origem', 'uf_destino',
         'cfop', 'csosn', 'cst',
         'aliquota_icms', 'aliquota_pis', 'aliquota_cofins', 'aliquota_ipi',
+        // R-NFE-025b · CST de PIS/COFINS da regra (nulo = 07, como antes)
+        'cst_pis', 'cst_cofins',
         'mva', 'fcp',
         'metadata',
         // GAP-FISCAL-004 / US-FISCAL-021 — Reforma Tributária NT 2025.002

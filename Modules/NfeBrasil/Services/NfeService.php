@@ -21,6 +21,7 @@ use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeIcmsUf;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
+use Modules\NfeBrasil\Exceptions\NaturezaDoLancamentoInvalidaException;
 use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
@@ -159,6 +160,8 @@ class NfeService
             ufOrigem:   $ufOrigem,
             ufDestino:  $ufDestino,
         );
+        $pisInv    = $this->pisCofinsDoItem($tributo->cst_pis, (float) $invoice->valor, $tributo->aliquota_pis, $tributo->valor_pis);
+        $cofinsInv = $this->pisCofinsDoItem($tributo->cst_cofins, (float) $invoice->valor, $tributo->aliquota_cofins, $tributo->valor_cofins);
 
         $dadosNfe = [
             'transaction_id' => $invoice->id,
@@ -201,17 +204,18 @@ class NfeService
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
+                // R-NFE-025b: CST da regra; sem ele, '07' (isenta) como antes.
                 'pis'     => [
-                    'cst'   => '07', // 07 = isenta — default seguro Simples Nacional
-                    'vbc'   => 0,
-                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
-                    'vpis'  => $tributo->valor_pis,
+                    'cst'   => $pisInv['cst'],
+                    'vbc'   => $pisInv['vbc'],
+                    'ppis'  => $pisInv['p'],
+                    'vpis'  => $pisInv['v'],
                 ],
                 'cofins'  => [
-                    'cst'      => '07',
-                    'vbc'      => 0,
-                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
-                    'vcofins'  => $tributo->valor_cofins,
+                    'cst'      => $cofinsInv['cst'],
+                    'vbc'      => $cofinsInv['vbc'],
+                    'pcofins'  => $cofinsInv['p'],
+                    'vcofins'  => $cofinsInv['v'],
                 ],
                 // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
                 // está em modo full/hybrid (schema PL_010); Simples/legado → alíquota 0 +
@@ -231,8 +235,8 @@ class NfeService
                 'v_prod'    => (float) $invoice->valor,
                 'v_bc_icms' => $this->baseIcmsDoItem($tributo, (float) $invoice->valor), // R-NFE-040
                 'v_icms'    => $tributo->valor_icms,
-                'v_pis'     => $tributo->valor_pis,
-                'v_cofins'  => $tributo->valor_cofins,
+                'v_pis'     => $pisInv['v'],
+                'v_cofins'  => $cofinsInv['v'],
                 'v_nf'      => (float) $invoice->valor,
                 'v_desc'    => 0,
                 'v_frete'   => 0,
@@ -288,6 +292,8 @@ class NfeService
      *        pedido de marketplace), com as chaves de `contacts`; vence o cliente da venda. Só NF-e (55).
      * @param string|null $cfop R-NFE-046 · CFOP de 4 dígitos que vence o da regra em todos os itens (ex. o do pedido
      *        de marketplace, configurável lá). Null = o CFOP da regra, como antes.
+     * @param int|null $operacaoId Onda 5 das naturezas (RUNBOOK-tributacao §Naturezas): natureza de operação escolhida
+     *        no lançamento. Dá a tributação (motor) e o natOp, e fica na metadata para a retransmissão. Null = como antes.
      */
     public function emitirParaTransaction(
         Transaction $tx,
@@ -295,6 +301,7 @@ class NfeService
         bool $separada = false,
         ?array $destinatarioExterno = null,
         ?string $cfop = null,
+        ?int $operacaoId = null,
     ): NfeEmissao
     {
         $businessId = (int) $tx->business_id;
@@ -390,6 +397,9 @@ class NfeService
         // cadastrada a nota é recusada com a saída — nunca sai com DIFAL zero por falta de dado.
         $this->garantirInternaDoDifal($destReal !== null, $ufOrigem, $ufDestino, $contribuinte, $interna);
 
+        // Onda 5: natureza escolhida no lançamento — só as criadas pela tela, de saída normal (ver o método).
+        $natureza = $operacaoId === null ? null : $this->naturezaDoLancamento($businessId, $operacaoId, (string) $modelo, $bonificacao);
+
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
@@ -402,7 +412,7 @@ class NfeService
             internaDestino: $interna,
             destinatarioContribuinte: $contribuinte,
             crtEmitente:    $emitente['crt'] ?? null,
-            operacaoId:     $bonificacao ? $this->operacaoDaBonificacao($businessId) : null,
+            operacaoId:     $natureza?->id ?? ($bonificacao ? $this->operacaoDaBonificacao($businessId) : null),
         );
         if ($cfop !== null) {
             $itens['dets'] = self::comCfop($itens['dets'], $cfop);
@@ -411,7 +421,9 @@ class NfeService
         $dadosNfe = [
             'transaction_id' => $tx->id,
             'modelo'         => $modelo,
-            'nat_op'         => $destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA',
+            'nat_op'         => $natureza !== null
+                ? mb_substr(trim((string) $natureza->nome), 0, 60)
+                : ($destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA'),
             'dest' => $destReal ?? [
                 // NFC-e B2C anônimo: doc é opcional. Se Transaction tiver contact_id
                 // com CPF, fase 2B preenche. Por ora, default anônimo.
@@ -450,6 +462,10 @@ class NfeService
             $dadosNfe['emit']        = $emitente['emit'];
             $dadosNfe['serie']       = $emitente['serie'];
             $dadosNfe['location_id'] = $emitente['location_id'];
+        }
+
+        if ($natureza !== null) {
+            $dadosNfe['metadata'] = array_merge((array) $dadosNfe['metadata'], ['operacao_id' => $natureza->id]);
         }
 
         // Sabor Brasil 2026-11-04: CST/CFOP incoerente não impede a nota — fica registrado nela
@@ -519,6 +535,41 @@ class NfeService
      * Item 2 Sabor Brasil · a operação fiscal "bonificacao" da empresa, se ela cadastrou. Sem ela a
      * bonificação tributa como a venda (o P-154 de antes, byte a byte).
      */
+    /**
+     * Onda 5 das naturezas: a natureza escolhida no lançamento, validada.
+     *
+     * Aceita só a natureza criada pela tela da Tributação (`config_tela`), ativa, de SAÍDA e finalidade
+     * normal, na NF-e (55), numa venda que não é bonificação. Devolução e nota referenciada têm fluxo
+     * próprio (DevolucaoService); complementar/ajuste e entrada não saem de uma venda.
+     *
+     * @throws NaturezaDoLancamentoInvalidaException com o motivo, que o controller devolve como 422
+     */
+    public function naturezaDoLancamento(int $businessId, int $operacaoId, string $modelo, bool $bonificacao): NfeOperacaoFiscal
+    {
+        $n = NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: emissão roda também em fila; o escopo é o where explícito
+            ->where('business_id', $businessId)
+            ->where('id', $operacaoId)
+            ->whereNull('deleted_at')
+            ->first();
+
+        $motivo = match (true) {
+            $n === null                                  => 'Natureza de operação não encontrada nesta empresa.',
+            $modelo !== '55'                             => 'Natureza de operação só se escolhe na NF-e (modelo 55).',
+            $bonificacao                                 => 'Venda marcada como bonificação já usa a natureza da bonificação.',
+            empty($n->config_tela)                       => 'Esta natureza não foi configurada na tela de naturezas.',
+            ! (bool) ($n->ativa ?? true)                 => "A natureza \"{$n->nome}\" está inativa.",
+            ($n->tipo ?? 'saida') === 'entrada'          => "A natureza \"{$n->nome}\" é de entrada e não sai de uma venda.",
+            (int) $n->finalidade !== 1                   => "A natureza \"{$n->nome}\" não é de finalidade normal; devolução, complemento e ajuste têm fluxo próprio.",
+            (bool) ($n->pede_nota_referenciada ?? false) => "A natureza \"{$n->nome}\" pede nota referenciada, que a emissão da venda não informa.",
+            default                                      => null,
+        };
+        if ($motivo !== null) {
+            throw new NaturezaDoLancamentoInvalidaException($motivo);
+        }
+
+        return $n;
+    }
+
     private function operacaoDaBonificacao(int $businessId): ?int
     {
         if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_operacoes_fiscais')) {
@@ -663,6 +714,35 @@ class NfeService
             'cep'           => preg_replace('/\D/', '', (string) ($c->zip_code ?? '')),
             'email'         => ($c->email ?? '') ?: null,
         ], fn ($v) => $v !== null);
+    }
+
+    /** R-NFE-025b · CST de PIS/COFINS que não tributam: o grupo PISNT/COFINSNT não leva base nem valor. */
+    private const CST_PIS_COFINS_SEM_TRIBUTO = ['04', '05', '06', '07', '08', '09'];
+
+    /**
+     * R-NFE-025b · PIS (ou COFINS) do item com o CST da regra.
+     *
+     * Leiaute NF-e 4.00 (MOC, grupos Q e S): CST 01 e 02 vão no grupo de alíquota, com
+     * vBC × pPIS; 04 a 09 vão no grupo "não tributado", sem base nem valor; 49 e 99 vão no
+     * grupo "outras", aqui também por alíquota. O valor do item é o do motor (base × alíquota),
+     * e o total da nota soma esse mesmo valor, para o ICMSTot bater com os itens.
+     *
+     * Regra sem CST: '07' com os números de antes (fallback, logado por quem chama). O XML de
+     * quem nunca cadastrou CST não muda.
+     *
+     * @return array{cst:string, vbc:float, p:float, v:float, fallback:bool}
+     */
+    private function pisCofinsDoItem(?string $cst, float $base, float $aliquota, float $valor): array
+    {
+        $cst = trim((string) $cst);
+        if ($cst === '') {
+            return ['cst' => '07', 'vbc' => 0.0, 'p' => round($aliquota * 100, 4), 'v' => $valor, 'fallback' => true];
+        }
+        if (in_array($cst, self::CST_PIS_COFINS_SEM_TRIBUTO, true)) {
+            return ['cst' => $cst, 'vbc' => 0.0, 'p' => 0.0, 'v' => 0.0, 'fallback' => false];
+        }
+
+        return ['cst' => $cst, 'vbc' => round($base, 2), 'p' => round($aliquota * 100, 4), 'v' => $valor, 'fallback' => false];
     }
 
     /** R-NFE-043 · grava no grupo ICMS do item os campos do ST (modBCST, pMVAST, vBCST, pICMSST, vICMSST). */
@@ -893,6 +973,7 @@ class NfeService
         // 2. motor por item
         $dets = [];
         $ncmPadraoUsado = [];
+        $itensFallback = 0; // R-NFE-025b
         $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0,
             'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0, 'v_bc_st' => 0.0, 'v_st' => 0.0];
         $temDifal = $internaDestino !== null && $destinatarioContribuinte === false && $ufOrigem !== $ufDestino;
@@ -911,6 +992,7 @@ class NfeService
                 // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
                 fiscal_rule_override_id: null,
                 description: (string) $it['xprod'],
+                origem_mercadoria: isset($it['origem']) ? (int) $it['origem'] : null,
             );
             // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
             // P-155: local com regime próprio usa o cálculo com o CRT dele; sem CRT, como antes.
@@ -952,6 +1034,10 @@ class NfeService
             $codigoIcms = $crtEmitente === 3
                 ? ($tributo->cst ?? $tributo->csosn ?? '102')
                 : ($tributo->csosn ?? $tributo->cst ?? '102');
+            // R-NFE-025b: PIS/COFINS do item com o CST da regra (helper pisCofinsDoItem).
+            $pis    = $this->pisCofinsDoItem($tributo->cst_pis, $base, $tributo->aliquota_pis, $tributo->valor_pis);
+            $cofins = $this->pisCofinsDoItem($tributo->cst_cofins, $base, $tributo->aliquota_cofins, $tributo->valor_cofins);
+            $itensFallback += ($pis['fallback'] || $cofins['fallback']) ? 1 : 0;
             $dets[] = [
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
                 'xprod'   => substr((string) $it['xprod'], 0, 120),
@@ -991,19 +1077,18 @@ class NfeService
                     // R-NFE-043: ICMS-ST do motor (R-NFE-015) no grupo do CST/CSOSN com ST.
                     'st'        => $this->stDoItem($tributo, $internaDestino, $codigoIcms),
                 ],
-                // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
-                // motor não devolve. '07' segue como fallback, logado abaixo.
+                // R-NFE-025b: CST de PIS/COFINS da regra; sem ele, '07' como antes (logado abaixo).
                 'pis'     => [
-                    'cst'   => '07',
-                    'vbc'   => 0,
-                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
-                    'vpis'  => $tributo->valor_pis,
+                    'cst'   => $pis['cst'],
+                    'vbc'   => $pis['vbc'],
+                    'ppis'  => $pis['p'],
+                    'vpis'  => $pis['v'],
                 ],
                 'cofins'  => [
-                    'cst'      => '07',
-                    'vbc'      => 0,
-                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
-                    'vcofins'  => $tributo->valor_cofins,
+                    'cst'      => $cofins['cst'],
+                    'vbc'      => $cofins['vbc'],
+                    'pcofins'  => $cofins['p'],
+                    'vcofins'  => $cofins['v'],
                 ],
                 'ibscbs'  => [
                     'cst'          => $tributo->cst_ibs,
@@ -1038,17 +1123,19 @@ class NfeService
 
             $tot['v_bc_icms'] += $this->baseIcmsDoItem($tributo, $base, $crtEmitente); // R-NFE-040 (thread 25: benefício)
             $tot['v_icms']   += $tributo->valor_icms;
-            $tot['v_pis']    += $tributo->valor_pis;
-            $tot['v_cofins'] += $tributo->valor_cofins;
+            $tot['v_pis']    += $pis['v'];
+            $tot['v_cofins'] += $cofins['v'];
             $tot['v_ibs']    += $tributo->valor_ibs;
             $tot['v_cbs']    += $tributo->valor_cbs;
         }
 
-        Log::info('pis_cofins_cst_fallback', [
-            'business_id' => $businessId,
-            'itens'       => count($dets),
-            'cst'         => '07',
-        ]);
+        if ($itensFallback > 0) {
+            Log::info('pis_cofins_cst_fallback', [
+                'business_id' => $businessId,
+                'itens'       => $itensFallback,
+                'cst'         => '07',
+            ]);
+        }
 
         return [
             'dets'  => $dets,
@@ -1901,7 +1988,9 @@ class NfeService
         // ── 6. Re-emite via fluxo canon emitirParaTransaction ──────────────
         // Cria NfeEmissao NOVA com próximo número (proximoNumeroLocked
         // withTrashed = sequencial monotônico — não reusa numero antigo).
-        $nova = $this->emitirParaTransaction($tx, $modelo, $separada);
+        // Onda 5: a natureza escolhida no lançamento vale também na retransmissão (senão sairia como venda).
+        $operacaoDaNota = ((array) ($emissao->metadata ?? []))['operacao_id'] ?? null;
+        $nova = $this->emitirParaTransaction($tx, $modelo, $separada, operacaoId: $operacaoDaNota !== null ? (int) $operacaoDaNota : null);
 
         Log::info('NfeService.retransmitir: retransmissão concluída', [
             'business_id'    => $businessId,

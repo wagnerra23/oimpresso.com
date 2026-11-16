@@ -1,5 +1,6 @@
 # 08 — Handoff (índice)
 
+- [2026-11-15 21:30 BRT — **Smoke dos clientes vivos (ROTA LIVRE + WR2)**](handoffs/2026-11-15-2130-smoke-clientes-vivos.md) (#10925 job pós-deploy só-leitura · #10926 sinal diário 5 dias · #10927 label affects/<cliente> · biz=1 = WR2 real, zero marcações em 365d · pendente [W]: login da conta biz=99 do smoke falha em produção)
 - [2026-10-30 — Venda V3: fechamento da onda 2 preparado](handoffs/2026-10-30-1655-venda-v3-fechamento-onda2.md) (domínio isolado de imposto/despesas/ST/sinal/adiantamento/parcelas · 55 testes verdes · sem integração da Page · dependências da onda 1 e persistência do plano no Financeiro no RUNBOOK)
 - [2026-10-30 — Venda V3: preparação da edição, onda 1](handoffs/2026-10-30-1700-venda-v3-edicao-onda1.md) (guards por empresa antes do prazo · base preservada · adaptador sem alteração da Page · 19 testes JS · CT100 56 pass/2 falhas de reparo reproduzidas no main · PHPStan verde; integração e homologação pendentes)
 

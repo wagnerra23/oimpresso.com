@@ -1,0 +1,66 @@
+name: Load test (k6, manual)
+
+# Teste de carga com k6 contra o STAGING (CT 100). Só roda por disparo manual:
+# nunca em push, PR ou agenda — carga sem janela combinada pode derrubar o CT 100,
+# que também hospeda Vaultwarden e o MCP. Runbook: memory/requisitos/Infra/RUNBOOK-load-test.md
+# A trava de produção mora em tests/load/lib/common.js (recusa oimpresso.com e uniafibro.com.br).
+
+on:
+  workflow_dispatch:
+    inputs:
+      cenario:
+        description: 'Cenário (arquivo em tests/load/)'
+        required: true
+        type: choice
+        options:
+          - portal-associada
+          - site-uniafibro
+          - login-financeiro
+          - jana-chat
+          - ponto-marcacao
+      carga:
+        description: 'calibrar = ~10% da carga (primeira passada); cheia = carga do cenário'
+        required: true
+        type: choice
+        default: calibrar
+        options: [calibrar, cheia]
+      base_url:
+        description: 'Alvo (só staging)'
+        required: true
+        default: 'https://staging.oimpresso.com'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: load-test
+  cancel-in-progress: false
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: grafana/setup-k6-action@v1
+      - name: Rodar k6
+        shell: bash
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+          CARGA: ${{ inputs.carga }}
+          PORTAL_TOKENS: ${{ secrets.LOAD_PORTAL_TOKENS }}
+          PORTAL_PIN: ${{ secrets.LOAD_PORTAL_PIN }}
+          LOGIN_USUARIOS: ${{ secrets.LOAD_LOGIN_USUARIOS }}
+          PONTO_TOKENS: ${{ secrets.LOAD_PONTO_TOKENS }}
+          PAGINAS: ${{ vars.LOAD_SITE_PAGINAS }}
+          PDF: ${{ vars.LOAD_SITE_PDF }}
+        run: |
+          set -euo pipefail
+          k6 run --summary-trend-stats="avg,min,med,p(90),p(95),p(99),max" --summary-export=summary.json "tests/load/${{ inputs.cenario }}.js"
+      - name: Guardar resumo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-${{ inputs.cenario }}-${{ inputs.carga }}
+          path: summary.json
+          if-no-files-found: ignore

@@ -18,7 +18,8 @@ Uniafibro-SC, em formação. A rede inteira é uma empresa no oimpresso.
 
 - **Decisão:** [ADR 0451](../../decisions/0451-associacoes-rede-uniafibro-area-de-membros.md), D1–D7.
 - **Código:** `Modules/Associacoes` com instalação 1-clique, pacote `associacoes_module` (desligado
-  por padrão) e as quatro tabelas `assoc_*` (US-ASSOC-001). Sem tela ainda.
+  por padrão) e as tabelas `assoc_*` (US-ASSOC-001). Tela `/associacoes/lista` com a lista, a ficha, os
+  documentos e a pendência de ata da diretoria (US-ASSOC-002).
 - **Próximas ondas:** associações e documentos (US-ASSOC-002) → associadas (003) → painel (004) →
   área no app (005). Ordem e escopo no [SPEC](SPEC.md).
 

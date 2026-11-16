@@ -775,7 +775,10 @@ class Util
      */
     public function generateToken()
     {
-        return md5(rand(1, 10).microtime());
+        // Token do link público da venda (/invoice, /quote, /pay): é a única credencial do link,
+        // então vem de fonte criptográfica (random_bytes via Str::random). Comprimento 64 ≠ 32 dos
+        // tokens antigos, que a migration 2026_11_15_120000 invalida.
+        return \Illuminate\Support\Str::random(64);
     }
 
     /**
@@ -853,8 +856,14 @@ class Util
                 }
             }
 
+            // O MIME acima vem do navegador e é escolhido por quem envia: a extensão é que decide.
+            $nome_seguro = \App\Media::nomeDeArquivoSeguro($request->$file_name->getClientOriginalName());
+            if ($nome_seguro === null) {
+                throw new \Exception('Invalid file');
+            }
+
             if ($request->$file_name->getSize() <= config('constants.document_size_limit')) {
-                $new_file_name = time().'_'.$request->$file_name->getClientOriginalName();
+                $new_file_name = time().'_'.$nome_seguro;
                 if ($request->$file_name->storeAs($dir_name, $new_file_name)) {
                     $uploaded_file_name = $new_file_name;
                 }

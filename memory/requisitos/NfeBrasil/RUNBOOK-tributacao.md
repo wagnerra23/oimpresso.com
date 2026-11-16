@@ -53,3 +53,70 @@ related_adrs:
 | Backend | Pest no CT 100: `TributacaoTemplateAplicarTest`, `EmpresaFiscalLookupTest`, `TributacaoIndexContratoTest` |
 | Tela | e2e `e2e/nfe-tributacao-onboarding.spec.ts` (lane `e2e-gate.yml`, leitura mockada) |
 | Pós-merge | smoke em biz=1 (nunca biz=4): abrir o drawer, ir até o passo 4, fechar sem aplicar |
+
+## Naturezas de operação (tela aprovada por [W], 2026-11-13)
+
+**Fonte de forma:** [`prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`](../../../prototipo-ui/cowork/Felipe/Configuracao%20de%20Tributos.html)
+(rota do protótipo `/configuracoes/fiscal/naturezas`). Veio do Artefato publicado em 2026-11-13; as 7 fontes
+embutidas foram trocadas pelos arquivos de `prototipo-ui/design-system/assets/fonts/` depois de conferido que
+os bytes são iguais (sha256), e o arquivo volta byte a byte ao do Artefato quando a troca é revertida.
+
+**Um lugar só.** A tela entra como seção de `/nfe-brasil/tributacao`, não como rota nova em `/configuracoes`.
+O backend já existe: `nfe_operacoes_fiscais` + `NfeOperacaoFiscal` + `MotorTributarioService::calcularNaOperacao`
+(thread 07 do playbook Fiscal, que deixou registrado: *"Sem tela. Cadastro de operações … são das threads de UI"*).
+Criar outra tabela de naturezas faria dois lugares decidirem CFOP e CST.
+
+### O que a tela pede × o que o `main` tem (medido 2026-11-15)
+
+| Protótipo | No `main` | Falta |
+|---|---|---|
+| nome, finalidade (finNFe 1–4) | `nome`, `finalidade` | — |
+| ativa / inativa (fica guardada) | só `softDeletes` | coluna `ativa` |
+| tipo da nota (saída · entrada) | — | coluna `tipo` |
+| pede nota referenciada | — | coluna `pede_nota_referenciada` |
+| CFOP dentro / outro estado / exterior | um `cfop` com `?` no 1º dígito | 3 CFOPs (5405/6404 têm sufixos diferentes; o `?` não cobre) |
+| tributos por **origem** da alíquota (pela UF, TIPI, regime, fixa, da nota de origem) | `regra_geral` com **números** fixos | formato de `regra_geral` com origem, lido pelo motor |
+| modBC, redução de base, diferimento, crédito do Simples, cEnq e CST de IPI, ICMS fora da base do PIS/COFINS, origem da MVA, DIFAL ligado | — | campos na `regra_geral` + motor |
+| escolher a natureza no lançamento da nota | `NfeService` só passa `operacaoId` na bonificação | seletor no lançamento |
+| conferência (erros bloqueiam o salvar) | — | validação no servidor, com a mesma lista da tela |
+
+### Ondas (cada uma um PR, flag desligada até a última)
+
+1. **Protótipo no git + este plano** — #10887 (no main).
+2. **Schema aditivo** em `nfe_operacoes_fiscais` (`tipo`, `ativa`, `pede_nota_referenciada`, `cfop_interestadual`,
+   `cfop_exterior`) — nada existente muda; o `cfop` atual segue sendo o de dentro do estado. Entrou no #10896.
+3. **Seção Naturezas na Tributação** atrás de flag: lista, editor em 4 passos e a conferência validada no servidor.
+   Entrou no #10896 (3a backend, 3b tela).
+4. **Motor lê a origem das alíquotas.** Mexe em valor de imposto: regra mestre de cálculo — prova por dois
+   caminhos + tabela antes→depois em dry-run + aprovação [W] **antes** do merge. #10919 (no main, aprovação [W]
+   relatada por [F] em 2026-11-16).
+5. **Natureza escolhida no lançamento da NF-e.** 5a servidor #10934 · 5b seletor no painel fiscal e no modal da venda
+   #10938 · atalho no topo do `/fiscal` #10942.
+6. **Ligar a flag** por empresa, depois do aceite do contador (UC-NFTR-19 — aceite por versão, permissão própria).
+   _Corrigido em 2026-11-16: esta linha citava o UC-NFTR-12, que é o 404 da sugestão de outra empresa._
+
+#### Onda 6 — checklist para ligar (por empresa, nunca para todas de uma vez)
+
+1. **#10934 e #10938 no `main`** — sem eles a empresa cadastra a natureza, mas não consegue escolhê-la ao emitir.
+2. **Empresa escolhida pelo [W]** e conferida: certificado A1 válido e regime certo na configuração fiscal. O motor
+   escolhe PIS/COFINS por ele: Simples se a empresa é do Simples; fora dele, Lucro Real só com `regime = lucro_real`
+   e, em qualquer outro valor, Lucro Presumido (`MotorTributarioService::aplicarNaturezaTela`).
+3. **Aceite do contador** daquela empresa (UC-NFTR-19). A revisão fiscal geral segue NÃO feita (seção abaixo);
+   o aceite do contador da empresa não a substitui.
+4. **Ligar só aquela empresa:** tool MCP `flag-set` com `feature=useV2NfeNaturezas`, `business_id=<N>`,
+   `value=true` (cria a regra `biz-<N>` no GrowthBook e grava em `feature_flag_audits`). **Não** pôr a flag em
+   `FeatureFlagService::$fallbackDefaults`, que liga para todas.
+5. **Conferir na tela**, logado na empresa: a seção Naturezas aparece em `/nfe-brasil/tributacao`, o atalho
+   aparece no topo do `/fiscal` e o seletor de natureza aparece no painel fiscal da venda.
+6. **Primeira nota** com uma natureza da tela emitida em homologação antes de produção, com o XML conferido pelo
+   contador.
+7. **Desligar** (se precisar): `flag-set` com `remove=true` — a empresa volta ao padrão (desligada) e as naturezas
+   cadastradas ficam guardadas.
+
+### Revisão fiscal — NÃO feita (verificado 2026-11-15)
+
+O guia de revisão (Claude Docs, 2026-11-13) tem 0 comentários; o Artefato do protótipo tem 0; nenhum PR, handoff
+ou decisão do playbook responde os 9 pontos (garantia, conserto, IBS/CBS nas remessas, devolução de compra no Lucro
+Real, devolução de venda CST 98, 4/7/12% e importados, DIFAL/FCP, padrão PIS/COFINS, campos que faltam).
+Consequência: **as 10 naturezas de exemplo do protótipo NÃO viram seed.** Em produção cada empresa cadastra as suas
+e o contador aceita pelo fluxo que já existe (thread 15). Só a "Venda" padrão continua como hoje.
