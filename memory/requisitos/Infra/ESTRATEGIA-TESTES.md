@@ -18,8 +18,8 @@ related:
 ## 1️⃣ Dev local (antes do commit)
 
 - Linter + typecheck — `npm run lint` (ESLint) + `npm run typecheck` (TS strict). Zero erro novo além do baseline.
-- Pest unit do arquivo tocado — `vendor/bin/pest Modules/<Mod>/Tests/Unit/`. Rápido (<10s).
-- PHPStan nível 5 do arquivo tocado — `vendor/bin/phpstan analyse <file>`.
+- Pest do arquivo tocado — no CT 100, nunca na máquina local: `tailscale ssh root@ct100-mcp "docker exec oimpresso-staging php artisan test --filter=<Teste>"`.
+- PHPStan nível 5 do arquivo tocado — no mesmo container do CT 100: `vendor/bin/phpstan analyse <file> --memory-limit=1G`. O hook `block-test-fora-ct100` bloqueia a execução local.
 - Diff review próprio — ler o próprio PR antes de empurrar.
 
 Dono: dev (humano ou agente). Gate: pre-commit hook recomendado.
@@ -73,17 +73,17 @@ Dono: agente Deploy Pipeline + Wagner clica. Gate: smoke canary verde, zero 500 
 
 ## 6️⃣ Pós-deploy produção (contínuo, 24/7)
 
-- Smoke Eliana (WR2) + Larissa (ROTA LIVRE) a cada deploy + a cada hora
+- Smoke na empresa 1 (oimpresso) a cada deploy + a cada hora. Nunca na empresa 4 (ROTA LIVRE) nem em empresa de cliente: a R6 proíbe smoke e teste nelas
 - Uptime monitor 1min (5xx alerta Slack/email)
 - Latência P95 por rota crítica
 - Erro 5xx por severidade e volume
 - Multi-tenant leak (query sem business_id = alarme vermelho)
 - LGPD audit log (leitura de dado sensível registrada)
-- IA custo (tokens OpenAI por módulo diário)
+- IA custo (tokens Anthropic por módulo, diário; stack da ADR 0035)
 - Fila/queue (jobs atrasados)
 - Backup diário + restore test semanal
 
-Dono: agente Monitoramento + agente Onboarding Eliana/Larissa. Gate: incidente em prod → alerta + rollback automático se >10 5xx/min.
+Dono: agente Monitoramento + agente de Onboarding. Gate: incidente em prod → alerta + rollback automático se >10 5xx/min.
 
 ## 🎯 Testes específicos por risco
 
@@ -94,9 +94,9 @@ Dono: agente Monitoramento + agente Onboarding Eliana/Larissa. Gate: incidente e
 
 ### 🔴 LGPD
 - Dado sensível nunca em log/commit/PR
-- Direito de portabilidade/exclusão testado
+- Direito de portabilidade testado; pedido de exclusão vai para decisão humana, sem rotina automática (§5 2026-07-27)
 - Consentimento por finalidade com data + versão
-- Retenção automática (append-only + anonimização)
+- Append-only, sem retenção nem anonimização por prazo (§5 2026-07-27)
 
 ### 🔴 Conteúdo jurídico Uniafibro
 - Toda afirmação legal com fonte oficial (Planalto, INSS, FCEE)
@@ -112,7 +112,7 @@ Dono: agente Monitoramento + agente Onboarding Eliana/Larissa. Gate: incidente e
 
 ### 🟡 Boletos/NFe/Fiscal
 - Teste contra homologação SEFAZ antes de prod
-- Valores em centavos (int), nunca float
+- Valores em `decimal` no banco, nunca float na aritmética
 - CNAB 240 contra retorno real do banco
 
 ## 🧮 Checklist "pronto pra produção"
@@ -121,7 +121,7 @@ Dono: agente Monitoramento + agente Onboarding Eliana/Larissa. Gate: incidente e
 - [ ] Noturno rodando (hoje: ❌ parado 39d)
 - [ ] 6 vazamentos Tier 0 corrigidos
 - [ ] Casos-gate verde no main
-- [ ] Smoke Eliana+Larissa configurado e verde
+- [ ] Smoke na empresa 1 configurado e verde
 - [ ] Rollback testado
 - [ ] Backup diário verificado
 - [ ] Monitoramento + alertas ligados
@@ -145,7 +145,7 @@ Hoje: ~30% do checklist. As 17 sessões rodando cobrem exatamente esses itens.
 | Acessibilidade WCAG 2.1 AA | #16 A11y Lighthouse |
 | Performance Core Web Vitals | #16 A11y Lighthouse |
 | Carga / stress | #17 Load k6 |
-| Smoke contínuo pós-deploy | #13 Onboarding Eliana/Larissa |
+| Smoke contínuo pós-deploy | #13 Onboarding |
 | LGPD + Security SAST | #9 Security review |
 | Teste real em prod (canary) | #7 Deploy pipeline |
 | Monitor 24/7 pós-deploy | #8 Monitoramento |
