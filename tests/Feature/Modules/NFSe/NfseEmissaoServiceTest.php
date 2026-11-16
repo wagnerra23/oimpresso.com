@@ -165,7 +165,7 @@ it('lança RpsDuplicadoException e marca status emitida na nota local', function
     expect(fn () => $service->emitir(payload()))
         ->toThrow(RpsDuplicadoException::class, '000001');
 
-    expect(NfseEmissao::withoutGlobalScopes()->first()->status)->toBe('emitida');
+    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', 1)->where('rps_numero', '000001')->latest('id')->first()->status)->toBe('emitida');
 });
 
 // ── ISS inválido ──────────────────────────────────────────────────────────────
@@ -182,7 +182,7 @@ it('lança IssInvalidoException (E501) e marca status erro', function () {
     expect(fn () => $service->emitir(payload()))
         ->toThrow(IssInvalidoException::class);
 
-    expect(NfseEmissao::withoutGlobalScopes()->first()->status)->toBe('erro');
+    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', 1)->where('rps_numero', '000001')->latest('id')->first()->status)->toBe('erro');
 });
 
 // ── código serviço inválido ────────────────────────────────────────────────────
@@ -247,7 +247,7 @@ it('retenta 3 vezes em ProviderTimeoutException e lança após esgotar', functio
     expect(fn () => $service->emitir(payload()))
         ->toThrow(ProviderTimeoutException::class);
 
-    expect(NfseEmissao::withoutGlobalScopes()->first()->status)->toBe('erro');
+    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', 1)->where('rps_numero', '000001')->latest('id')->first()->status)->toBe('erro');
 })->skip('sleep(backoff) torna o teste lento — rodar só em CI fora do watch');
 
 // ── cancelamento ──────────────────────────────────────────────────────────────
