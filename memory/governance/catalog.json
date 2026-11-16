@@ -2131,7 +2131,7 @@
       "type": "component",
       "module": "Auditoria",
       "name": "AuditoriaLiberado",
-      "desc": "middleware das leituras: pacote auditoria_module + auditoria.view (superadmin passa)"
+      "desc": "middleware das leituras: auditoria.view (superadmin passa); o pacote auditoria_module vale só para o menu"
     },
     {
       "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
