@@ -127,6 +127,18 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-SADASH-08 · O painel e as Páginas do site estão na navegação do módulo · `should`
+
+**Dado** que sou superadmin autenticado
+**Quando** abro qualquer tela do Superadmin
+**Então** a navegação do módulo (topnav `Superadmin`) leva ao painel (`/superadmin`) e às Páginas do
+site (`/superadmin/frontend-pages`), além das telas que já tinha.
+
+> Auditoria do Superadmin (2026-11-05, eixo 5 §5): as duas eram telas do grupo sem item de menu —
+> só se chegava digitando a URL. `/all-subscriptions` não entra: é endpoint DataTables, não tela.
+
+Status: 🧪
+
 ---
 
 ## Testes mínimos

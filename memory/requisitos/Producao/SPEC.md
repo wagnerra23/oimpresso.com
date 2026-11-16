@@ -246,7 +246,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 **Testado em:** `Modules/Producao/Tests/Feature/ProducaoModuloAtivacaoTest.php` (lane `verticais-pest.yml`).
 
 > owner: [W] · priority: p0 · estimate: 1h · status: done · type: decision
-> Resolvida pela ADR 0431 (2026-10-15): módulo novo `Modules/Producao`, prefixo `/producao`, permissões `producao.*`; `Modules/IProduction` já tinha sido removido no PR #842.
+> Resolvida pela ADR 0431 (2026-10-15): módulo novo `Modules/Producao`, prefixo `/producao`, permissões `producao.*`; o antigo módulo IProduction já tinha sido removido no PR #842.
 
 **Aceite:**
 - [x] D1 decidida por [W] e registrada na ADR 0431.

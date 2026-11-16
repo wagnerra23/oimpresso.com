@@ -176,6 +176,15 @@ beforeEach(function () {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
     pgEnsureSchema();
+
+    // Os ouvintes de CobrancaPaga (Financeiro/Superadmin) são registrados atrás de uma flag
+    // ESTÁTICA no provider: na suíte só o 1º teste que boota a app os recebe. Com a ordem
+    // aleatória do phpunit.xml, quando um teste daqui era o 1º, o listener do Financeiro
+    // rodava e caía em `no such table: users` (o schema sintético não tem users) — falha
+    // intermitente na lane "PHP / Pest (Unit)" (runs 43758393324 e 43759180443, 2026-11-15).
+    // Este arquivo testa o COMANDO; o listener tem teste próprio (Onda26InterWebhookIntegrationTest).
+    // Fake aqui torna todos os testes independentes da posição na suíte.
+    Event::fake([CobrancaPaga::class]);
 });
 
 it('marca cobrança PIX paga quando Inter retorna CONCLUIDA + dispara CobrancaPaga', function () {
