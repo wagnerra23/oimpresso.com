@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **457** arquivos · **442** números únicos · máx **0453**
-- **ADRs ATIVOS (lifecycle ativo): 409** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 391 · superseded 28 · proposto 24 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 409 · substituido 28 · arquivado 20
+- **458** arquivos · **443** números únicos · máx **0454**
+- **ADRs ATIVOS (lifecycle ativo): 410** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 391 · superseded 28 · proposto 25 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 410 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (457)
+## Todas as ADRs (458)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -496,3 +496,4 @@ _(nenhuma)_
 | 0450 | proposto | ativo | decision | Fisio: notificar à Anvisa um componente clínico separado como SaMD classe II, e  |
 | 0451 | aceito | ativo | decision | Associações: área de membros da rede Uniafibro — uma empresa só, associações e a |
 | 0453 | aceito | ativo | decision | Escopo de empresa fecha quando não há contexto: consulta sem empresa definida la |
+| 0454 | proposto | ativo | decision | Uniafibro conforme o estatuto: tipos de membro, quem é associado, controle de pa |
