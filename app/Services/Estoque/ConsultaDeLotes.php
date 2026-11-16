@@ -44,11 +44,12 @@ final class ConsultaDeLotes
         $permitted_locations = auth()->user()->permitted_locations();
         $location_filter = 'WHERE ';
 
-        // `permitted_locations()` devolve 'all' ou a lista de ids: lista = restringe.
-        if (is_array($permitted_locations)) {
+        if ($permitted_locations != 'all') {
             $query->whereIn('t.location_id', $permitted_locations);
 
-            $locations_imploded = implode(', ', $permitted_locations);
+            // `permitted_locations()` devolve 'all' ou a lista de ids, mas o docblock dela diz só string:
+            // o (array) não muda a lista e deixa o PHPStan ver o tipo.
+            $locations_imploded = implode(', ', (array) $permitted_locations);
             $location_filter = " LEFT JOIN transactions as t2 on pls.transaction_id=t2.id WHERE t2.location_id IN ($locations_imploded) AND ";
         }
 
