@@ -13,7 +13,15 @@ const FIXTURE = 'storage/app/e2e/portal-associada.json';
 test.use({ storageState: { cookies: [], origins: [] } });
 test.skip(!existsSync(FIXTURE), 'aguardando PR #10880 (área da associada) — sem link de teste semeado');
 
-test('19 · rajada de pedidos do mesmo IP recebe 429', async ({ request }) => {
+// FIXME até duas coisas mudarem (medido em 2026-11-16, runs 43979249077 e 43981023244):
+//  1. O e2e-gate usa CACHE_DRIVER=array. O `artisan serve` atende cada pedido num processo novo, o
+//     contador do throttle zera a cada um e a rajada inteira volta 200 (70 de 70).
+//  2. Trocar para cache em arquivo faz o throttle valer, mas derruba o item 3 (PDF da Uniafibro):
+//     o grupo do domínio tem throttle:60,1 e a rota do PDF throttle:10,1, e para visitante os dois
+//     contam na MESMA chave (domínio + IP, ThrottleRequests::resolveRequestSignature). Toda página
+//     vista gasta do limite do PDF. Conserto no app, fora deste PR: dar prefixo próprio à rota do
+//     PDF (`throttle:10,1,pdf`). Depois dele, trocar o cache do e2e-gate e tirar este fixme.
+test.fixme('19 · rajada de pedidos do mesmo IP recebe 429', async ({ request }) => {
   const status: number[] = [];
   for (let i = 0; i < 70; i++) {
     status.push((await request.get('/associacoes/m/qualquer-coisa', { maxRedirects: 0 })).status());
