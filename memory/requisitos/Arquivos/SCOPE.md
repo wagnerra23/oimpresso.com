@@ -1,7 +1,7 @@
 ---
 module: Arquivos
-purpose: "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe sha256, signed URL e soft-delete. Não tem tela própria: a UI é do módulo dono. Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação."
-migracao_ui: "nao-aplica — modulo sem UI propria"
+purpose: "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe md5, signed URL e soft-delete. O anexo aparece na tela do módulo dono; o acervo inteiro da empresa tem tela própria em /arquivos (Arquivos/Index, 4 vistas: Acervo, Retenção, Cofre, Trilha). Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, aviso ao titular, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação."
+migracao_ui: "n/a — 0 Blade; a única tela (Arquivos/Index) nasceu Inertia em 2026-08-24"
 contains:
   - "ArquivosAdminController"
   - "DataController"
@@ -9,7 +9,6 @@ contains:
   - "InstallController"
   - "RetencaoSimulacaoController"
 not_contains:
-  - "MemCofre senhas/segredos → Modules/SRS — módulo REMOVIDO em 2026-07-29 (ADR 0357); fronteira a revisar"
   - "Memoria RAG semântico Jana → Modules/Jana"
   - "OCR/transcrição/antivirus → fora de MVP"
 trust_required: L2
@@ -30,52 +29,35 @@ drift_alerts: []
 > SPEC: [memory/requisitos/Arquivos/SPEC.md](../../requisitos/Arquivos/SPEC.md)
 > Princípio: **todo arquivo anexado deve cair lá**
 
-## Status Sprint 1
+## Superfície
 
-| US | Status | Notas |
-|---|---|---|
-| US-ARQ-001 scaffold | ✅ Sprint 1 (este PR) | módulo nWidart 8 peças |
-| US-ARQ-002 migrations | ✅ Sprint 1 (este PR) | arquivos + arquivos_audit_log + arquivos_dedupe |
-| US-ARQ-003 trait HasArquivos | ✅ Sprint 1 (este PR) | morphMany + attachArquivo + arquivosClassificados |
-| US-ARQ-004 ArquivosService | ✅ Sprint 1 (este PR) | attach/classify/signedUrl/softDelete/restore/dedupe |
-| US-ARQ-005 CuradorEngine PHP | 🟡 parcial (este PR) | 6 regras críticas portadas; demais Sprint 1 dia 3 |
-| US-ARQ-006 Storage disks config | ⏳ Sprint 1 dia 4 | precisa US-PRE-ARQ mount CT 100 |
-| US-ARQ-007 ParityTest | 🟡 placeholder | precisa fixtures comuns Sprint 1 dia 3 |
-| US-ARQ-008 Signed URL controller | ⏳ Sprint 1 dia 4 | route placeholder em web.php |
-| US-ARQ-009 Pest multi-tenant | 🟡 placeholder | scaffold + 2 smoke; matriz completa Sprint 1 dia 5 |
-| US-ARQ-010 backfill smoke | ⏳ Sprint 3 (NFe XML primeiro consumer) | depende US-PRE-ARQ |
+- **Trait `HasArquivos`** (`Modules/Arquivos/Concerns/HasArquivos.php`) — o módulo dono
+  anexa pelo trait e mostra o anexo na própria tela.
+- **Tela `/arquivos`** (`resources/js/Pages/Arquivos/Index.tsx`, charter ao lado) — o acervo
+  da empresa em 4 vistas: Acervo, Retenção, Cofre, Trilha. Ações na tela: classificar e excluir
+  (`arquivos.access`), restaurar e simular a retenção (só superadmin). A tela nunca apaga de
+  vez: o purge segue só no comando `arquivos:retention-cleanup`.
+- **Download** por signed URL (`arquivos.download`).
+- **Comandos** `arquivos:*` registrados no `ArquivosServiceProvider`. Agendados no
+  `app/Console/Kernel.php`: `arquivos:health-check` e `arquivos:avisar-titulares`.
 
-## US-PRE pendentes (Wagner faz)
+Quem consome o trait é derivado, não listado aqui:
 
-1. **Mount `/var/lib/oimpresso-arquivos`** no CT 100 (volume Docker bind)
-2. **Mount `/var/lib/oimpresso-vault`** separado pra disk encrypted-at-rest
-3. **Decisão TLS encryption-at-rest**: Agent C 2026-05-10 sinalizou que Laravel Filesystem **NÃO suporta nativamente**. Decidir entre:
-   - `league/flysystem-encrypted` middleware (compatível com qualquer disk)
-   - `Crypt::encrypt($contents)` antes de `Storage::put()` (mais explícito, mais código)
-4. **Pinar commit JS de referência** pro ParityTest (sem isso, paridade fica circular)
-5. **Gerar `tests/Fixtures/CuradorParity/*.jsonl`** com 100 paths sintéticos via `discover.mjs --output fixtures-jsonl` (Sprint 1 dia 3)
-
-## Riscos transversais (Agent C 2026-05-10)
-
-- Storage `local-ct100` mount + `.env` ARQUIVOS_DISK_DEFAULT precisam ser configurados em ambos Hostinger e CT 100 — testes integration passam local mas quebram em prod sem isso
-- Encryption-at-rest do disk `vault` exige decisão tech (middleware vs explicit encrypt)
-- Drift JS↔PHP timezone — Date.now() vs time(). Forçar UTC em ambos
-- ParityTest sem fixtures = paridade circular
+```bash
+git grep -l "use HasArquivos" -- '*.php' | grep -v "^Modules/Arquivos/"
+```
 
 ## Não-goals
 
-❌ NÃO substitui MemCofre (anotações ≠ binary)
-❌ NÃO replica Copiloto/Memoria (RAG semântico ≠ DMS)
-❌ NÃO indexa full-text MVP (Meilisearch entra Sprint 4+)
-❌ NÃO faz OCR/transcrição MVP
-❌ NÃO antivirus scan MVP
+❌ NÃO guarda anotação nem segredo: anotação é texto, não binário, e segredo vai no Vaultwarden
+❌ NÃO replica a memória da Jana (RAG semântico ≠ DMS)
+❌ NÃO indexa full-text
+❌ NÃO faz OCR/transcrição
+❌ NÃO faz antivirus scan
 ❌ NÃO substitui storage existente automaticamente — opt-in via trait
 
-## Sprint 3+ (consumers planejados)
-
-Agent F 2026-05-10 mapeou 10 consumers em Modules/*. Ordem prioridade:
-1. **NfeBrasil** — xml_path + danfe_path + certificados encrypted (Sprint 3 ✅ já planejado)
-2. **Financeiro Boleto PDFs**
-3. **Ponto Importação eSocial**
-4. **Jana TaskAttachment** (consolida sha256 dedup)
-5. **SRS DocSource**
+> **Histórico (removido em 2026-11-16).** Até esta data o arquivo carregava as seções
+> "Status Sprint 1", "US-PRE pendentes", "Riscos transversais" e "Sprint 3+ (consumers
+> planejados)", escritas em 2026-05-10, e um `not_contains` apontando para o `Modules/SRS`,
+> removido em 2026-07-29 ([ADR 0357](../../decisions/0357-deprecar-srs-sucessor-kb-jana-governance.md)).
+> O estado de cada US mora no [SPEC](SPEC.md); o texto antigo está no `git log` deste arquivo.
