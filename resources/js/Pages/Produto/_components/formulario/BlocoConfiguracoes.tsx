@@ -19,7 +19,7 @@ import {
 } from '@/Components/ui/select';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import type { ReactNode } from 'react';
-import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario } from './tipos';
+import type { CampoDaEmpresa, CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario } from './tipos';
 
 /** O Select do Radix não aceita item com valor vazio: "não aplicável" é `''` no envio. */
 const NAO_APLICAVEL = 'nao-aplicavel';
@@ -37,9 +37,14 @@ interface Props {
   mostrarValidade?: boolean;
   /** "Locais de armazenagem" (CU-PROD-20), entre as medidas e os campos personalizados, como no protótipo. */
   armazenagem?: ReactNode;
+  /**
+   * UC-PCAD-24 · UC-PEDIT-24: os campos personalizados com o nome que a empresa deu. Sem nenhum
+   * nomeado, a linha não aparece. O valor dos outros segue no envio, sem aparecer.
+   */
+  campos?: CampoDaEmpresa[];
 }
 
-export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarValidade, armazenagem }: Props) {
+export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarValidade, armazenagem, campos = [] }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -145,24 +150,13 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
         />
         </Grid>
         {armazenagem}
-        <Grid cols={4} gap={4}>
-        <div>
-          <Label htmlFor="product_custom_field1">Campo personalizado 1</Label>
-          <Input
-            id="product_custom_field1"
-            value={data.product_custom_field1}
-            onChange={(e) => definir('product_custom_field1', e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="product_custom_field2">Campo personalizado 2</Label>
-          <Input
-            id="product_custom_field2"
-            value={data.product_custom_field2}
-            onChange={(e) => definir('product_custom_field2', e.target.value)}
-          />
-        </div>
-        </Grid>
+        {campos.length > 0 && (
+          <Grid cols={4} gap={4}>
+            {campos.map((c) => (
+              <CampoPersonalizadoDaEmpresa key={c.numero} campo={c} data={data} definir={definir} />
+            ))}
+          </Grid>
+        )}
         </Stack>
       </CardContent>
     </Card>
@@ -199,6 +193,55 @@ function CampoMedida({
         className="tabular-nums"
       />
       {erro && <p className="text-[12px] text-destructive mt-1">{erro}</p>}
+    </div>
+  );
+}
+
+/**
+ * Um campo personalizado com o nome e o tipo que a empresa deu: texto, data ou lista. Na lista, um
+ * valor gravado fora das opções (opção apagada depois, ou o número que o Blade gravava) continua
+ * aparecendo e vai como estava, até alguém escolher outro.
+ */
+function CampoPersonalizadoDaEmpresa({
+  campo,
+  data,
+  definir,
+}: {
+  campo: CampoDaEmpresa;
+  data: CamposProduto;
+  definir: DefinirCampo;
+}) {
+  const nome = `product_custom_field${campo.numero}` as const;
+  const valor = data[nome] ?? '';
+  if (campo.tipo === 'dropdown') {
+    const opcoes = valor !== '' && !campo.opcoes.includes(valor) ? [valor, ...campo.opcoes] : campo.opcoes;
+    return (
+      <div>
+        <Label htmlFor={nome}>{campo.rotulo}</Label>
+        <Select value={valor === '' ? undefined : valor} onValueChange={(v) => definir(nome, v)}>
+          <SelectTrigger id={nome}>
+            <SelectValue placeholder="Selecione…" />
+          </SelectTrigger>
+          <SelectContent>
+            {opcoes.map((o) => (
+              <SelectItem key={o} value={o}>
+                {o}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <Label htmlFor={nome}>{campo.rotulo}</Label>
+      <Input
+        id={nome}
+        type={campo.tipo === 'date' ? 'date' : 'text'}
+        value={valor}
+        onChange={(e) => definir(nome, e.target.value)}
+      />
     </div>
   );
 }
