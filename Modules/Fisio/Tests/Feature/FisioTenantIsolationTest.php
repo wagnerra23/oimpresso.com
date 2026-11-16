@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * ESQUELETO — isolamento multi-tenant Tier 0 do módulo Fisio (ADR 0093, Garantia 4).
+ * Nasceu da auditoria RBAC de 2026-11-14. Nenhum caso roda ainda: todos são ->todo().
+ *
+ * Models com business_id a cobrir (34):
+ *   Appointment, AppointmentType, BookingSettings, Checkin, Consent, Desafio, DocumentoPaciente,
+ *   Exercise, ExerciseFavorite, GameLedger, LaudoBiopsicossocial, LaudoBiopsicossocialEquipe,
+ *   MedicamentoPaciente, Pacote, PacoteLancamento, Patient, PatientSocial, PortalDevice,
+ *   PortalToken, PreAnamnese, Program, ProgramItem, Protocol, Questionnaire, ReciboSaude, Record,
+ *   ScheduleBlock, Study, StudyAdverseEvent, StudyAiSuggestion, StudyMoment, StudyParticipant,
+ *   TranscricaoDocumento, WaitlistEntry
+ *
+ * Para ativar um caso: troque ->todo() por it(..., function () {...}) usando as empresas semeadas
+ * 98 e 99 (`$this->seededTenant()` / `$this->seededSupportClientTenant()`) e mantenha SEMPRE o par
+ * controle negativo (99 não vê / recebe 404) + controle positivo (98 vê / recebe 200). Teste só com
+ * asserts negativos passa verde mesmo se a sessão der 403 em tudo.
+ * Modelo: Modules/KB/Tests/Feature/CrossTenantIsolationTest.php.
+ */
+
+it('Fisio · listagem da empresa 98 não traz registro da 99 (com controle positivo)')->todo();
+
+it('Fisio · leitura por id de registro da 99 com sessão da 98 dá 404 (com controle positivo)')->todo();
+
+it('Fisio · escrita com id da 99 vindo do request não altera nada na 99 (com controle positivo)')->todo();
