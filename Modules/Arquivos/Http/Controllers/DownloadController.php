@@ -4,10 +4,12 @@ namespace Modules\Arquivos\Http\Controllers;
 
 use App\Tenancy\ContextoEmpresa;
 use App\Util\OtelHelper;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\VaultEncryptionService;
@@ -29,6 +31,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *    "lembrar de mim" chegava aqui sem empresa e o `find` não filtrava nada).
  * 3. Audit log (`signed_url_consumed`) — toda download registra
  * 4. Disk routing: lê do disk `arquivos` ou `vault` baseado em `$arquivo->disk`
+ * 5. Vault que não decifra (APP_KEY rotacionada sem a antiga em APP_PREVIOUS_KEYS e sem
+ *    `arquivos:reencrypt-vault`, ou arquivo adulterado): 409 com mensagem clara, em vez
+ *    de deixar a DecryptException virar 500. Log sem nome do arquivo (auditoria L2 2.6).
  *
  * @see memory/decisions/0123-modules-arquivos-backbone.md §6+§8
  */
@@ -69,7 +74,16 @@ class DownloadController extends Controller
             // Bucket=sensitive em disk=vault: encrypted-at-rest, decrypt antes de servir
             // (ADR 0123 §3). Storage::download serviria ciphertext direto pro cliente.
             if ($row->encrypted) {
-                $plain = $vault->getDecrypted($diskName, $row->storage_path);
+                try {
+                    $plain = $vault->getDecrypted($diskName, $row->storage_path);
+                } catch (DecryptException) {
+                    Log::error('arquivos.download.decrypt_failed', [
+                        'arquivo_id'  => $row->id,
+                        'business_id' => $row->business_id,
+                        'disk'        => $diskName,
+                    ]);
+                    abort(409, 'Não foi possível abrir este arquivo: ele foi cifrado com uma chave que o servidor não tem mais. Avise o administrador do sistema.');
+                }
                 if ($plain === null) {
                     abort(404, 'Arquivo não encontrado no storage (decrypt).');
                 }
