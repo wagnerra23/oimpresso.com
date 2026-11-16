@@ -769,6 +769,13 @@ last_run: "2026-11-15"
 - **Contrato:** `Sells/_components/FiscalSection` + `VdNfeEmitModal` (mesmo seletor no passo 3).
 - **Status: 🧪** — veredito do job `Frontend / Vite build` (passo de Vitest).
 
+## UC-NFTR-65 · IBS/CBS "pelo padrão do ano" vêm da configuração, e 2027 recusa até a CBS ter alíquota · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza com IBS/CBS pelo padrão do ano **Quando** a nota é de 2027 e a CBS de 2027 ainda não tem alíquota **Então** o motor recusa citando a resolução do Senado; **Dado** um ano fora da tabela **Então** recusa dizendo que o ano não tem padrão; **Dado** a CBS cadastrada **Então** calcula IBS 0,1% e a CBS da tabela; 2026 segue 0,1% e 0,9%.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-65 …`.
+- **Contrato:** `config('nfebrasil.ibs_cbs_por_ano')` + `MotorTributarioService::ibsCbsDoAno` (LC 214/2025, transição).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
