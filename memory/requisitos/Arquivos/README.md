@@ -13,7 +13,7 @@ Sem um backbone DMS, cada módulo (Repair, NfeBrasil, Financeiro, Ticket, Jana) 
 `Modules/Arquivos` centraliza:
 
 - **Storage isolado por bucket** (`public`, `internal`, `sensitive`, `vault`) com policy uniforme
-- **Dedupe SHA256** cross-modulo dentro do mesmo `business_id` (cap de custo)
+- **Dedupe MD5** cross-módulo dentro do mesmo `business_id` (cap de custo)
 - **Signed URLs** com expiração curta (default 1h)
 - **Encryption-at-rest** automática pra bucket `sensitive`/`vault`
 - **Audit log append-only** (`arquivos_audit_log`) — quem fez upload/download/reclassify/purge
@@ -26,7 +26,7 @@ arquivos              ← metadados (1 row por upload distinto)
 arquivos_dedupe       ← lookup MD5 → primeira ocorrência
 arquivos_audit_log    ← append-only (upload, signed_url_issued, soft_delete, retention.expired, retention.purged)
 
-App\Concerns\HasArquivos  ← trait morphMany pra opt-in por entidade
+Modules\Arquivos\Concerns\HasArquivos  ← trait morphMany pra opt-in por entidade
 
 Modules\Arquivos\Services\
 ├── ArquivosService              ← attach/classify/signedUrl/softDelete/restore (5 spans OTel)
@@ -44,11 +44,17 @@ Total: **3 Services, 13 spans OTel canônicos** (D9.a saturated — Wave 18 base
 | Anexar foto entrada OS oficina | UI upload → `ServiceOrder->attachArquivo($foto, ['context'=>'repair-foto'])` | Sheet OS, seção "Fotos" |
 | Anexar contrato a cliente | Drag-and-drop em `/contatos/{id}` → `Contact->attachArquivo($pdf, ['context'=>'contratos'])` | Aba "Contratos" do contato |
 | Baixar arquivo sensível (RG cliente) | Clique no link → `arquivos.download` rota signed (60min validade) | Modal preview + botão baixar |
-| Auditar quem baixou arquivo X | `arquivos_audit_log` tem entrada per `signed_url_issued` + `download` | Tela admin Memória (futura) |
+| Auditar quem baixou arquivo X | `arquivos_audit_log` tem entrada per `signed_url_issued` + `download` | Vista Trilha em `/arquivos?tab=trilha` |
 | Excluir arquivo (LGPD direito eliminação) | Soft-delete em 1 clique. Hard-delete batch via `arquivos:retention-cleanup --purge` | Botão "Excluir" lista |
-| Esquecer arquivo de cliente removido | `Contact` deletado → arquivos cascade soft-delete por polimorphic chain | Automático |
-| Compliance prazo legal (NFe 5 anos) | `config/retention.php` declara `nfe-xml=1825d`; cron mensal expira | Health check `arquivos:health` |
+| Esquecer arquivo de cliente removido | **Não é automático hoje:** o trait `HasArquivos` não tem hook de deleção, então apagar o dono não apaga os arquivos (medido 2026-11-16) | Excluir pela vista Acervo |
+| Compliance prazo legal (NFe 5 anos) | `Config/retention.php` declara `nfe-xml=1825d`; o `arquivos:retention-cleanup` expira e purga quando alguém roda — **não há agendamento** | Vista Retenção + `arquivos:health-check` (agendado 06:30) |
 | Economizar storage com dedupe MD5 | Mesmo arquivo (MD5 igual) no mesmo business reusa storage; counter sobe | Automático no `attach()` |
+
+## Agendamento
+
+Do módulo, só dois comandos rodam sozinhos (`app/Console/Kernel.php`, ambiente `live`):
+`arquivos:health-check --alert` às 06:30 e `arquivos:avisar-titulares --todos` às 10:00 (BRT).
+Não há cron de expiração: até 2026-11-16 este README prometia um "cron mensal" que nunca existiu.
 
 ## Garantias
 
@@ -114,7 +120,7 @@ Pessoa externa (DPO, advogado LGPD, auditor regulador ANPD), ou interna senior (
 | 3. Subir RG do motorista locatário | Form upload `["context"=>"contratos","sensitive"=>true]` → CuradorEngine classifica `bucket=sensitive` | Storage=`vault` disk, encrypted=true, retention=1825d |
 | 4. Cliente pede link download de NFe | Backend gera `URL::temporarySignedRoute('arquivos.download', $arquivo, 60min)` | Audit log `signed_url_issued`, link válido 1h |
 | 5. Cliente abre link, baixa XML | `DownloadController` valida signature + audita `download`, stream do disk | XML descriptografado se vault, raw se public |
-| 6. Após 5 anos, cron expira XML NFe | `arquivos:retention-cleanup` lê `Config/retention.php`, scan + expire + purge batch | Soft-delete + remove storage após `grace_period_days=30` |
+| 6. Após 5 anos, o XML NFe vence | `arquivos:retention-cleanup` (manual — não agendado) lê `Config/retention.php`, scan + expire + purge batch | Soft-delete + remove storage após `grace_period_days=30` |
 | 7. Auditar "quem baixou esse RG?" | Query em `arquivos_audit_log` filtrando `action=signed_url_issued OR download` | Lista user_id + created_at, PII redactada em payload |
 
 ## Estrutura

@@ -176,7 +176,7 @@ class CuradorEngine
         }
 
         // Regra 11: atas antigas (mtime > 12 meses)
-        if (preg_match('/\b(ata|pauta)[ _]?(de[ _]?)?(reuni[aã]o)?\b/i', $basename)) {
+        if (preg_match('/\b(ata|pauta)[ _]?(de[ _]?)?(reuni[aã]o)?\b/iu', $basename)) {
             $mtime = $arquivo->updated_at ?? $arquivo->created_at;
             if ($mtime && $mtime->diffInSeconds(now()) > self::TWELVE_MONTHS_SECS) {
                 return $this->result('discard', '_DESCARTADO/atas-antigas/', [], 'old_meeting_notes', 0.85);
@@ -201,12 +201,12 @@ class CuradorEngine
         }
 
         // (Agent A R5) Infraestrutura/Portainer Docker stacks
-        if (preg_match('#[\\\\/]Infraestrutura[ _&-]+Opera[cç][oõ]es[\\\\/]Portainer[\\\\/]Docker[\\\\/].*\.ya?ml$#i', $path)) {
+        if (preg_match('#[\\\\/]Infraestrutura[ _&-]+Opera[cç][oõ]es[\\\\/]Portainer[\\\\/]Docker[\\\\/].*\.ya?ml$#iu', $path)) {
             return $this->result('memory', 'memory/requisitos/Infra/portainer-stacks/', [], 'infra_portainer_stack', 0.95);
         }
 
         // (Agent A R6) Infraestrutura/Evolution API yamls
-        if (preg_match('#[\\\\/]Infraestrutura[ _&-]+Opera[cç][oõ]es[\\\\/]Evolution[ _]?API#i', $path)) {
+        if (preg_match('#[\\\\/]Infraestrutura[ _&-]+Opera[cç][oõ]es[\\\\/]Evolution[ _]?API#iu', $path)) {
             return $this->result('memory', 'memory/requisitos/Infra/evolution-api/', [], 'infra_evolution_api', 0.95);
         }
 
@@ -242,9 +242,9 @@ class CuradorEngine
 
         // Regra 8: Office Comercial Delphi legacy
         if (
-            preg_match('#[\\\\/]Manuais[ _]T[eé]cnicos[\\\\/]#', $path) ||
+            preg_match('#[\\\\/]Manuais[ _]T[eé]cnicos[\\\\/]#u', $path) ||
             preg_match('#[\\\\/]TelasDoSistema[\\\\/]#', $path) ||
-            preg_match('#[\\\\/]Manuais_de_Usu[aá]rio[\\\\/]#', $path)
+            preg_match('#[\\\\/]Manuais_de_Usu[aá]rio[\\\\/]#u', $path)
         ) {
             $mod = $this->inferModule($path . ' ' . $basename);
             return $this->result(

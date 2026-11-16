@@ -1,7 +1,7 @@
 // Ficha do cliente (`Pages/Cliente/_show/*`, também na gaveta da lista de clientes): o desconto no
 // extrato e a anotação da aba Documentos passam a conferir a recusa do servidor.
 //
-// Cobre UC-CIDX-13, UC-CIDX-14 e UC-CIDX-15 (resources/js/Pages/Cliente/Index.casos.md). Os dois endpoints
+// Cobre UC-CIDX-13, UC-CIDX-14, UC-CIDX-15 e UC-CIDX-17 (resources/js/Pages/Cliente/Index.casos.md). Os dois endpoints
 // (LedgerDiscountController@store e DocumentAndNoteController@store) respondem 200 com
 // {success: false|0, msg} quando não gravam; a tela olhava só o status HTTP.
 //
@@ -13,6 +13,7 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import AddDiscountModal from '@/Pages/Cliente/_show/AddDiscountModal';
 import DocumentsTab from '@/Pages/Cliente/_show/DocumentsTab';
 import ActionsMenu from '@/Pages/Cliente/_show/ActionsMenu';
+import { router } from '@inertiajs/react';
 
 function responderEmOrdem(...corpos: unknown[]) {
   const fetchFalso = vi.fn();
@@ -123,5 +124,38 @@ describe('UC-CIDX-15 · excluir pela ficha completa', () => {
 
     await waitFor(() => expect(onAfterDestroy).toHaveBeenCalledTimes(1));
     expect(alerta).not.toHaveBeenCalled();
+  });
+});
+
+describe('UC-CIDX-17 · ativar/desativar manda o estado confirmado', () => {
+  async function alternar(isActive: boolean) {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.spyOn(router, 'reload').mockImplementation(() => {});
+    const fetchFalso = responderEmOrdem({ success: true, msg: 'Atualizado' });
+    render(
+      <ActionsMenu
+        contactId={7}
+        contactName="Cliente Teste"
+        contactType="customer"
+        isActive={isActive}
+        permissions={{ pay_due: false, delete: false, toggle_status: true, add_discount: false }}
+      />,
+    );
+    fireEvent.keyDown(screen.getByRole('button', { name: /ações/i }), { key: 'Enter' });
+    fireEvent.click(await screen.findByTestId('actions-toggle-status'));
+    await waitFor(() => expect(fetchFalso).toHaveBeenCalledTimes(1));
+    return fetchFalso.mock.calls[0];
+  }
+
+  it('UC-CIDX-17 "Desativar" manda POST com status=inactive', async () => {
+    const [url, init] = await alternar(true);
+    expect(url).toBe('/contacts/update-status/7');
+    expect((init as RequestInit).method).toBe('POST');
+    expect(((init as RequestInit).body as FormData).get('status')).toBe('inactive');
+  });
+
+  it('UC-CIDX-17 "Reativar" manda status=active', async () => {
+    const [, init] = await alternar(false);
+    expect(((init as RequestInit).body as FormData).get('status')).toBe('active');
   });
 });

@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * arquivos:retention-cleanup — Pest tests Sprint 7 ADR 0123 (LGPD hard-delete pós-retention).
@@ -57,14 +58,8 @@ afterEach(function () {
         return;
     }
 
-    // Limpa apenas rows de teste — não afeta dados de outros suites
-    DB::table('arquivos_audit_log')
-        ->whereIn('arquivo_id', function ($q) {
-            $q->select('id')
-              ->from('arquivos')
-              ->where('classified_by', 'test-pr24-retention-cleanup');
-        })
-        ->delete();
+    // A trilha (`arquivos_audit_log`) não é limpa por DELETE: ela ganha trigger append-only
+    // (lote L2) e o arquivo roda em DatabaseTransactions, que desfaz o que o teste gravou.
 
     // Hard-deleted rows não existem mais em arquivos — limpa por business_id=1 e path prefix
     // (rows deletadas já foram removidas pelo command; limpa as remanescentes de testes)

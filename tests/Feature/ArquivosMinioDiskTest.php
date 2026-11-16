@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Storage;
  *
  * NOTA: smoke E2E REAL (com MinIO live) precisa env vars setadas em prod
  * (`MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_ENDPOINT`) — esse smoke roda
- * via cmd artisan `arquivos:health-check-minio` (criado em Sprint 1+).
+ * via cmd artisan `arquivos:health-check-minio`. PENDENTE (2026-11-16): esse comando NÃO
+ * existe; depende da decisão B4 do [W] sobre o MinIO. O `arquivos:health-check` que existe
+ * não fala com o MinIO.
  */
 
 /**

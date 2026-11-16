@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Http\Controllers\ArquivosAdminController;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * O CODIGO do controller, sem comentario nenhum.
@@ -997,7 +998,6 @@ it('UC-INDEX-05 · montar o link NAO escreve na trilha — a tela segue leitura 
 
     expect(DB::table('arquivos_audit_log')->count())->toBe($antes + 1);
 
-    DB::table('arquivos_audit_log')->where('arquivo_id', $persistido->id)->delete();
 })->group('arquivos');
 
 it('UC-INDEX-06 · "Vinculado a" mostra o nome de NEGOCIO e leva a tela do dono quando ela existe', function () {
@@ -1056,14 +1056,8 @@ it('UC-INDEX-06 · tipo SEM rota provada vira texto, nunca link morto', function
 afterEach(function () {
     // Cleanup por id sentinela — sem RefreshDatabase, que dropa o schema e limparia o
     // seed compartilhado da lane (o próprio workflow veta arquivos que fazem isso).
-    if (Schema::hasTable('arquivos_audit_log')) {
-        DB::table('arquivos_audit_log')
-            ->whereIn('arquivo_id', [
-                arquivosTrilhaFixtureId(Tests\TestCase::SEEDED_TENANT_ID),
-                arquivosTrilhaFixtureId(Tests\TestCase::SUPPORT_CLIENT_TENANT_ID),
-            ])
-            ->delete();
-    }
+    // A trilha (`arquivos_audit_log`) não é limpa por DELETE: ela ganha trigger append-only
+    // (lote L2) e o arquivo roda em DatabaseTransactions, que desfaz o que o teste gravou.
 
     // Fixtures do cofre — a âncora é o `disk`, NÃO o `sub_destination`.
     //
@@ -1084,14 +1078,6 @@ afterEach(function () {
     // `delete()` direto na tabela porque o model tem SoftDeletes: um soft-delete deixaria
     // a linha lá, e o próximo teste contaria o lixo do anterior.
     if (Schema::hasTable('arquivos')) {
-        // UC-INDEX-07 escreve na trilha pelo id REAL da fixture (não pelo sentinela de
-        // `arquivosTrilhaFixtureId`). Sai antes da linha-mãe, senão o id se perde.
-        if (Schema::hasTable('arquivos_audit_log')) {
-            DB::table('arquivos_audit_log')
-                ->whereIn('arquivo_id', DB::table('arquivos')->where('disk', arquivosCofreDisco())->pluck('id'))
-                ->delete();
-        }
-
         DB::table('arquivos')->where('disk', arquivosCofreDisco())->delete();
     }
 });

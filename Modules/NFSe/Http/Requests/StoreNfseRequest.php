@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\NFSe\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * D8.c Security Wave S — FormRequest extraído de NfseController::store (US-NFSE-006).
@@ -40,7 +41,15 @@ class StoreNfseRequest extends FormRequest
             'iss_retido'      => ['boolean'],
             // R-NFSE-003: quem emite declara que o serviço é do art. 30 da Lei 10.833/2003.
             'retencao_federal_sujeito' => ['boolean'],
-            'transaction_id'  => ['nullable', 'integer'],
+            // Tier 0: a venda tem de ser da empresa da sessão. Sem o where, o id de uma
+            // venda de outra empresa passava e a tela da nota mostrava número, data, total
+            // e cliente dela (auditoria NFSe 2026-11-05, lote 0).
+            'transaction_id'  => [
+                'nullable',
+                'integer',
+                Rule::exists('transactions', 'id')
+                    ->where('business_id', (int) session('user.business_id')),
+            ],
             // R-NFSE-006: desdobro nacional escolhido quando o subitem tem mais de um.
             'ctrib_nac'       => ['nullable', 'digits:6'],
         ];
