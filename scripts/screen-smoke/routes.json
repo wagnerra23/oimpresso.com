@@ -1,5 +1,5 @@
 {
-  "_comment": "Rotas curadas pro smoke visual pós-deploy (ADR 0164 fase C). auth=true exige SMOKE_PROD_USER/SMOKE_PROD_PASS = conta biz=99 FAKE read-only (Tier 0 — senão screenshots com PII/BRL vazam pro artifact E pra OpenAi). nav_critical=true → sempre smoka (defende o gap #3945: mudança de menu). source = o .tsx que, se mudar no deploy, prioriza esta rota (e onde o <Tela>.review.md é escrito). Expandir esta lista conforme telas críticas — é dado, não código.",
+  "_comment": "Rotas curadas pro smoke visual pós-deploy (ADR 0164 fase C). auth=true exige SMOKE_PROD_USER/SMOKE_PROD_PASS = conta biz=99 FAKE read-only (Tier 0 — senão screenshots com PII/BRL vazam pro artifact E pra OpenAi). nav_critical=true → sempre smoka (defende o gap #3945: mudança de menu). source = o .tsx que, se mudar no deploy, prioriza esta rota (e onde o <Tela>.review.md é escrito). Expandir esta lista conforme telas críticas — é dado, não código. clientes=[\"rota-livre\"|\"wr2\"] → rota que um cliente vivo usa: o job smoke-clientes abre TODAS elas em todo deploy (mexa ou não em tela) e o label affects/<cliente> do PR sai do `source` delas. Fonte do que cada cliente usa: memory/clientes/<slug>/.",
   "base_url": "https://oimpresso.com",
   "viewports": [
     { "tag": "1440", "width": 1440, "height": 900 },
@@ -8,11 +8,13 @@
   "routes": [
     { "label": "login", "path": "/login", "auth": false, "nav_critical": true },
     { "label": "dashboard", "path": "/home", "auth": true, "nav_critical": true },
-    { "label": "sells-index", "path": "/sells", "auth": true, "nav_critical": true, "source": "resources/js/Pages/Sells/Index.tsx" },
-    { "label": "sells-create", "path": "/sells/create", "auth": true, "source": "resources/js/Pages/Sells/Create.tsx" },
-    { "label": "financeiro-unificado", "path": "/financeiro/unificado", "auth": true, "source": "resources/js/Pages/Financeiro/Unificado/Index.tsx" },
+    { "label": "sells-index", "path": "/sells", "auth": true, "nav_critical": true, "source": "resources/js/Pages/Sells/Index.tsx", "clientes": ["rota-livre"] },
+    { "label": "sells-create", "path": "/sells/create", "auth": true, "source": "resources/js/Pages/Sells/Create.tsx", "clientes": ["rota-livre"] },
+    { "label": "financeiro-unificado", "path": "/financeiro/unificado", "auth": true, "source": "resources/js/Pages/Financeiro/Unificado/Index.tsx", "clientes": ["rota-livre"] },
     { "label": "financeiro-cobranca", "path": "/financeiro/cobranca", "auth": true, "source": "resources/js/Pages/Financeiro/Cobranca/Index.tsx" },
-    { "label": "financeiro-caixa", "path": "/financeiro/caixa", "auth": true, "source": "resources/js/Pages/Financeiro/Caixa/Index.tsx" },
+    { "label": "financeiro-caixa", "path": "/financeiro/caixa", "auth": true, "source": "resources/js/Pages/Financeiro/Caixa/Index.tsx", "clientes": ["rota-livre"] },
+    { "label": "financeiro-contas-receber", "path": "/financeiro/contas-receber", "auth": true, "source": "resources/js/Pages/Financeiro/ContasReceber/Index.tsx", "clientes": ["rota-livre"] },
+    { "label": "cliente-index", "path": "/cliente", "auth": true, "source": "resources/js/Pages/Cliente/Index.tsx", "clientes": ["rota-livre"] },
     { "label": "financeiro-fluxo", "path": "/financeiro/fluxo", "auth": true, "source": "resources/js/Pages/Financeiro/Fluxo/Index.tsx" },
     { "label": "financeiro-conciliacao", "path": "/financeiro/conciliacao", "auth": true, "source": "resources/js/Pages/Financeiro/Conciliacao/Index.tsx" },
     { "label": "financeiro-dre", "path": "/financeiro/dre", "auth": true, "source": "resources/js/Pages/Financeiro/Dre/Index.tsx" },
@@ -24,6 +26,14 @@
     {"label":"configuracoes-impressoras","path":"/printers","auth":true,"source":"resources/js/Pages/Configuracoes/Impressoras/Index.tsx"},
     {"label":"configuracoes-codigo-barras","path":"/barcodes","auth":true,"source":"resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx"},
     {"label":"produto-index","path":"/products","auth":true,"source":"resources/js/Pages/Produto/Index.tsx"},
-    {"label":"produto-index-filtros","path":"/products?active_state=excluido&uso=material&falta_ncm=1","auth":true,"source":"resources/js/Pages/Produto/Index.tsx"}
+    {"label":"produto-index-filtros","path":"/products?active_state=excluido&uso=material&falta_ncm=1","auth":true,"source":"resources/js/Pages/Produto/Index.tsx"},
+    { "label": "ponto-painel", "path": "/ponto", "auth": true, "source": "resources/js/Pages/Ponto/Dashboard/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-espelho", "path": "/ponto/espelho", "auth": true, "source": "resources/js/Pages/Ponto/Espelho/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-aprovacoes", "path": "/ponto/aprovacoes", "auth": true, "source": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-intercorrencias", "path": "/ponto/intercorrencias", "auth": true, "source": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-banco-horas", "path": "/ponto/banco-horas", "auth": true, "source": "resources/js/Pages/Ponto/BancoHoras/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-importacoes", "path": "/ponto/importacoes", "auth": true, "source": "resources/js/Pages/Ponto/Importacoes/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-relatorios", "path": "/ponto/relatorios", "auth": true, "source": "resources/js/Pages/Ponto/Relatorios/Index.tsx", "clientes": ["wr2"] },
+    { "label": "ponto-marcacao", "path": "/ponto/mobile", "auth": true, "source": "resources/js/Pages/Ponto/Mobile/Index.tsx", "clientes": ["wr2"] }
   ]
 }

@@ -65,8 +65,19 @@ it('Page NÃO usa sessionStorage', function () {
 // (chave `oimpresso.produto.advanced_open`). Na forma do protótipo (#10380, UI-0029) ela virou
 // "Configurações" e fica sempre aberta: a tela não guarda mais estado no navegador. O teste antigo
 // procurava o texto "Mais opções", que só sobrevivia num comentário.
-it('Page não guarda estado no navegador (sem localStorage)', function () {
-    expect(readProdutoCreate())->not->toContain('localStorage');
+// 2026-11-16 (UC-PCAD-30, pedido do [F]): o rascunho automático do Novo produto guarda o que a pessoa
+// digita no navegador, de propósito, e só em `_components/formulario/rascunho.ts`. O que segue proibido
+// é a tela guardar estado de layout (a seção aberta/fechada de antes) ou usar o navegador fora do rascunho.
+it('Page não guarda estado de tela no navegador; só o rascunho (rascunho.ts) usa localStorage', function () {
+    expect(readProdutoCreate())->not->toContain('oimpresso.produto.advanced_open');
+    $pasta = repo_path('resources/js/Pages/Produto/_components/formulario');
+    $comLocalStorage = [];
+    foreach (array_merge([repo_path(CREATE_PAGE_PATH)], glob($pasta . '/*.ts*') ?: []) as $arquivo) {
+        if (str_contains((string) file_get_contents($arquivo), 'localStorage')) {
+            $comLocalStorage[] = basename($arquivo);
+        }
+    }
+    expect($comLocalStorage)->toBe(['rascunho.ts']);
 });
 
 it('Page tem a seção "Configurações" aberta, sem bloco recolhível', function () {

@@ -1,10 +1,10 @@
 @extends('cms::frontend.layouts.app')
-@section('title', 'Contact us')
+@section('title', 'Fale conosco')
 @php
-    $navbar_btn['text'] = 'Try For Free';
+    $navbar_btn['text'] = 'Começar grátis';
     $navbar_btn['link'] = route('business.getRegister');
     if(isset($__site_details['btns']) && isset($__site_details['btns']['navbar']) && !empty($__site_details['btns']['navbar']['text'])) {
-        $navbar_btn['text'] = $__site_details['btns']['navbar']['text'] ?? 'Try For Free';
+        $navbar_btn['text'] = $__site_details['btns']['navbar']['text'] ?? 'Começar grátis';
     }
     if(isset($__site_details['btns']) && isset($__site_details['btns']['navbar']) && !empty($__site_details['btns']['navbar']['link'])) {
         $navbar_btn['link'] = $__site_details['btns']['navbar']['link'] ?? route('business.getRegister');
@@ -49,23 +49,23 @@
                 <form class="contact-form text-center" id="contact_form">
                     <div class="contact-form__header mb-5">
                         <h6 class="contact-form__title mb-3">
-                            {{$page->title ?? 'Contact Us'}}
+                            {{$page->title ?? 'Fale conosco'}}
                         </h6>
                         <p class="contact-form__paragraph mb-0 mx-auto">
                             {!!
-                                $page->content ?? "We're happy to receive your message. Ask us anything, we'll respond as soon as possible."
+                                $page->content ?? 'Mande sua mensagem e responderemos o quanto antes.'
                             !!}
                         </p>
                     </div>
                     <div class="alert mt-4 alert-primary enquire_response_alert" role="alert" style="display:none;">
                         <span class="enquire_response"></span>
                     </div>
-                    <input type="text" name="name" class="contact-form__input" placeholder="Full Name" required>
-                    <input type="number" name="mobile" class="contact-form__input" placeholder="Mobile" required>
-                    <input type="email" name="email" class="contact-form__input" placeholder="Email" required>
-                    <textarea class="contact-form__input" name="message" placeholder="Message" required></textarea>
+                    <input type="text" name="name" class="contact-form__input" placeholder="Nome completo" required>
+                    <input type="number" name="mobile" class="contact-form__input" placeholder="Celular" required>
+                    <input type="email" name="email" class="contact-form__input" placeholder="E-mail" required>
+                    <textarea class="contact-form__input" name="message" placeholder="Mensagem" required></textarea>
                     <button id="submit-btn" class="btn btn-primary w-100">
-                        SEND MESSAGE
+                        Enviar mensagem
                     </button>
                 </form>
             </div>
@@ -74,21 +74,25 @@
             $mail_us = (isset($__site_details['mail_us']) && !empty($__site_details['mail_us'])) ? $__site_details['mail_us'] : [];
             $mail_us_collection = collect($mail_us);
             $filtered_mail_us = $mail_us_collection->filter(function ($value, $key) {
-                return !empty($value['label']) && !empty($value['email']);
+                // Placeholder do instalador (*@example.com) nao aparece como contato real.
+                return !empty($value['label']) && !empty($value['email'])
+                    && ! str_ends_with(strtolower(trim($value['email'])), '@example.com');
             });
 
             $contact_us = (isset($__site_details['contact_us']) && !empty($__site_details['contact_us'])) ? $__site_details['contact_us'] : [];
             $contact_us_collection = collect($contact_us);
             $filtered_contact_us = $contact_us_collection->filter(function ($value, $key) {
-                return !empty($value['label']) && !empty($value['num']);
+                // Placeholder do instalador (0000000000) nao aparece como telefone real.
+                return !empty($value['label']) && !empty($value['num'])
+                    && preg_match('/[1-9]/', (string) $value['num']) === 1;
             });
         @endphp
-        @if(!empty($filtered_contact_us) || !empty($filtered_mail_us))
+        @if($filtered_contact_us->isNotEmpty() || $filtered_mail_us->isNotEmpty())
             <div class="row flex-row-reverse">
                 <div class="col-lg-6 px-4 px-xl-5 py-3">
-                    @if(!empty($filtered_contact_us))
+                    @if($filtered_contact_us->isNotEmpty())
                         <h4 class="pt-3">
-                            Call <strong>Us</strong>
+                            <strong>Telefone</strong>
                         </h4>
                         <ul class="non-bullet-list mt-2">
                             @foreach($filtered_contact_us as $filtered_contact)
@@ -104,9 +108,9 @@
                             @endforeach
                         </ul>
                     @endif
-                    @if(!empty($filtered_mail_us))
+                    @if($filtered_mail_us->isNotEmpty())
                         <h4 class="pt-3">
-                            Mail <strong>Us</strong>
+                            <strong>E-mail</strong>
                         </h4>
                         <ul class="non-bullet-list mt-2">
                             @foreach($filtered_mail_us as $filtered_mail)

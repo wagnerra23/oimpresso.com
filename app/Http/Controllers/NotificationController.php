@@ -51,7 +51,8 @@ class NotificationController extends Controller
 
             $contact = $transaction->customer;
         } elseif ($template_for == 'send_ledger') {
-            $contact = Contact::find($id);
+            // Só contato da empresa da sessão (Tier 0, ADR 0093).
+            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
         } else {
             $transaction = Transaction::where('business_id', $business_id)
                             ->with(['contact'])
@@ -115,7 +116,7 @@ class NotificationController extends Controller
             $transaction_id = $request->input('transaction_id');
             $business_id = request()->session()->get('business.id');
 
-            $transaction = ! empty($transaction_id) ? Transaction::find($transaction_id) : null;
+            $transaction = ! empty($transaction_id) ? Transaction::where('business_id', $business_id)->find($transaction_id) : null;
 
             $orig_data = [
                 'email_body' => $data['email_body'],

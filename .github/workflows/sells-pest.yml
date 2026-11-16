@@ -135,6 +135,8 @@ on:
       - 'app/Services/Sells/QuoteAccessRecorder.php'
       - 'app/Jobs/QuoteFollowUpJob.php'
       - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+      - 'app/Console/Commands/Sells/SmokeDailyCommand.php'
+      - 'Modules/Ponto/Config/config.php'
       - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
       # Sob teste em OrcamentoAceiteLinkContratoTest (US-SELL-074).
       - 'app/Services/Sells/AceiteDoOrcamentoVenda.php'
@@ -259,6 +261,8 @@ jobs:
               - 'app/Services/Sells/QuoteAccessRecorder.php'
               - 'app/Jobs/QuoteFollowUpJob.php'
               - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+              - 'app/Console/Commands/Sells/SmokeDailyCommand.php'
+              - 'Modules/Ponto/Config/config.php'
               - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Http/Controllers/SalesOrderController.php'
@@ -570,6 +574,7 @@ jobs:
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php             tests/Feature/Sells/SellsPrazoEntregaContratoTest.php \
             tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
+            tests/Feature/Sells/SmokeDailyClientesVivosTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
             tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php \
@@ -666,6 +671,7 @@ jobs:
             Modules/ProductCatalogue/Tests/Feature \
             tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \
             tests/Feature/Sells/CatalogoPublicoDescontoCriterioContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoFormatoContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 

@@ -2,7 +2,7 @@
 id: requisitos-cliente-briefing
 module: Cliente
 status: producao
-updated_at: "2026-09-06"
+updated_at: "2026-11-16"
 distilled_at: "2026-09-06"
 distilled_by: jana:distill-module-truth
 ---
@@ -19,6 +19,8 @@ Cadastro de clientes (pessoas físicas e jurídicas) com validações brasileira
 - Auditoria LGPD por cliente (o cadastro não dispara hook WhatsApp/e-mail — Non-Goal LGPD; a única menção a canal no `ClienteAutosaveController` é o enum `CANAIS` de preferência de contato; export CSV que nunca leva `tax_number` em claro; o activity log exclui PII — `Contact::logOnly` sem `tax_number_1`, guard `ContactPiiLogsActivityTest`; o export PDF do ledger, ao contrário, sai com PII completa). `cpf_cnpj`/`ie_rg` são formatados, não redigidos — censura real é decisão pendente de [W]; só `bank_account_number` tem redação real (`UC-CSHW-03`).
 - Multi-tenant Tier 0 por `where('business_id')` manual (cross-tenant → 404, ADR 0093); `App\Contact` não usa global scope — US-CRM-080 aberta.
 - Múltiplos endereços por contato (`ContactAddress`, US-CRM-078 PR1/PR2, com Pest cross-tenant) e aba IA com score de risco determinístico no mesmo drawer.
+- Excluir cadastro não apaga a linha: marca como excluído (`deleted_at`) e o cadastro fica para consulta. Só com a permissão "Remover cliente"; o cliente padrão e qualquer cadastro com registro de negócio (venda, OS, assinatura, cobrança, veículo, crédito, proposta, lançamento) são recusados com mensagem que diz o motivo (`ContactController::destroy` + `vinculosDoContato`, UC-CIDX-15). A lista tem o filtro Status › Excluídos e o botão Restaurar (`POST /contacts/{id}/restore`, UC-CIDX-16).
+- Ficha do cliente confere a resposta do servidor: extrato por e-mail (modelo "Enviar razão" da empresa), desconto no extrato, anotação da aba Documentos e excluir mostram a recusa em vez de fingir sucesso (UC-CIDX-12 a 15).
 - Mapa de clientes em OpenStreetMap (US-CRM-091, Onda 3 da paridade — o SPEC ainda marca `_pendente_`; SPEC atrás do código).
 
 ## Gaps
@@ -28,7 +30,9 @@ Cadastro de clientes (pessoas físicas e jurídicas) com validações brasileira
 - Fidelidade visual prod×protótipo: a última medição (2026-08-26) não cobriu listagem, Import e Map — donos datados do veredito: `Cliente/clientes-gap.md`, `Crm/clientes-gap.md` (#6294) e `memory/reference/prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md`. Há baseline de pixel para `Cliente/Import` (#5937) e `Cliente/Map` (#6303), mas baseline não é fidelidade ao protótipo (âncora do Map = `prototipo-ui/cowork/Wagner/cliente-mapa.jsx`, `Show` declara `n/a` e herda PT-03; resolver por `node scripts/design/ancora.mjs Cliente/<Tela>`; ondas em `PARIDADE-area-cliente-diagnostico-e-ondas.md`). O veredito "tela viva à frente" de 2026-08-26 vale só pro drawer 760, não pra listagem, Import e Map.
 
 ## Última mudança
-2026-09-06 (#6910) — `data-contract` inerte no Index e o sha do protótipo atualizado; antes, sai a copy visível "Copiloto" da aba IA e do rail (#6344, 2026-08-27). Mudança de capacidade mais recente: o Mapa sai do Google e vai pro OSM (#6303, 2026-08-26, US-CRM-091 Onda 3, 1ª mudança visível ao cliente); antes, Import com drag-and-drop (#5937, 2026-08-20) e a âncora do protótipo do `Map` religada (#5938, 2026-08-18).
+2026-11-16 (#10933, #10945) — excluir passa a exigir "Remover cliente" e a contar todos os vínculos; lista ganha o filtro Excluídos com Restaurar. Antes, #10854 (2026-11-12): extrato por e-mail envia de fato, desconto e anotação conferem a resposta do servidor.
+
+Anterior: 2026-09-06 (#6910) — `data-contract` inerte no Index e o sha do protótipo atualizado; antes, sai a copy visível "Copiloto" da aba IA e do rail (#6344, 2026-08-27). Mudança de capacidade mais recente até então: o Mapa sai do Google e vai pro OSM (#6303, 2026-08-26, US-CRM-091 Onda 3, 1ª mudança visível ao cliente); antes, Import com drag-and-drop (#5937, 2026-08-20) e a âncora do protótipo do `Map` religada (#5938, 2026-08-18).
 
 ## Proveniência (destilado de)
 
