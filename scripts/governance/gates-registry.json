@@ -63,6 +63,12 @@
       "anchor": "Wagner 2026-07-11: 'fazer na mão é sorteio e não garante funcionamento'. Máquina de nascimento de tela (ADR proposta 2026-07-11-maquina-nascimento-tela): toda tela nasce carimbada do PT (criar-tela.mjs) + este gate garante o ciclo obrigatório. Estado @seed: 3/279 completas (276 débito legado absorvido). Advisory por ADR 0314 (cobertura de ciclo é quality, não Tier-0); promote_by força a decisão em 14d.",
       "promote_by_razao": "0 falhas em >=100 runs (medido 2026-08-05) — catraca do ciclo-de-tela, não Tier-0. (prazo anterior: 2026-07-25; decisão [W] 2026-08-05, ADR 0369 §Decisão)"
     },
+    "affects-clientes-label.yml": {
+      "nome": "Label affects/<cliente> — rotula o PR com affects/rota-livre e/ou affects/wr2 quando ele altera o source de uma tela marcada com `clientes` em scripts/screen-smoke/routes.json; remove quando deixa de tocar",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "decisão [W] 2026-11-15 (sessão guardião dos clientes vivos ROTA LIVRE + WR2): cruzar cada PR com impacto nesses 2 clientes por label automático, sem comentário em PR. Fonte = mesmo campo `clientes` que o job smoke-clientes do screen-smoke-after-merge abre em todo deploy. Nunca reprova PR (automação, não gate); NÃO MEDIDO não mexe em label."
+    },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
       "classe": "automacao",
@@ -852,6 +858,14 @@
       "anchor": "Modules/OficinaAuto/Tests tinha 44 de 49 arquivos fora de qualquer lane de PR (test-lane-coverage --modulo OficinaAuto, main 9b9e3ea44b, 2026-10-28); os 5 cobertos rodam na sells-pest.yml. O resto so rodava na nightly do CT 100, e a modules-pest.yml roda em sqlite sem migrate, onde teste de schema MySQL sai skip, exit 0 (LC-13). Modulo e piloto em producao (Martinho, biz=164). Arvore-menos-quarentena (.github/oficinaauto-pest-quarantine.list), mesmo desenho da jana-pest.yml.",
       "promote_by_razao": "Nasce advisory (ADR 0275): os 44 arquivos nunca rodaram em PR, promocao so com mordida provada (ADR 0336), flip de [W]. Na promocao: reinserir synchronize nos types antes do flip (lapide 2026-08-08) e re-postar branch protection so via gh api --input com arquivo UTF-8 sem BOM (o nome tem U+00B7)."
     },
+    "nfse-pest.yml": {
+      "nome": "NFSe · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2027-02-16",
+      "anchor": "Modules/NFSe/Tests tinha 10 de 10 arquivos fora de qualquer lane de PR (test-lane-coverage --modulo NFSe, main de6bd2b5df, 2026-11-16), e tests/Feature/Modules/NFSe/NfseEmissaoServiceTest.php tambem; so NfseTelasContratoTest rodava (ci-sqlite-pest.list). Os testes com banco pulam em sqlite (skip sai exit 0, LC-13), por isso MySQL. Lane propria: o nfebrasil-pest.yml tem outro dono (Fiscal). Arvore-menos-quarentena (.github/nfse-pest-quarantine.list), mesmo desenho da oficinaauto-pest.yml. Auditoria NFSe 2026-11-05, lote 0.",
+      "promote_by_razao": "Nasce advisory (ADR 0275): os arquivos nunca rodaram em PR, promocao so com mordida provada (ADR 0336), flip de [W]. Na promocao: reinserir synchronize nos types antes do flip (lapide 2026-08-08) e re-postar branch protection so via gh api --input com arquivo UTF-8 sem BOM (o nome tem U+00B7)."
+    },
     "paymentgateway-pest.yml": {
       "nome": "PaymentGateway · Pest (MySQL)",
       "classe": "gate",
@@ -881,6 +895,12 @@
       "classe": "automacao",
       "terminal": "cron",
       "anchor": "RUNBOOK-route-hits passo 3 · custo medido: export manual parou 2x (2026-07-25 religado #6155; 2026-08-22 religado #9765) e nas duas o eixo entrega do cron-watchdog (G6, 60d) avermelhou todo PR — a coleta (tabela route_hits) nunca parou"
+    },
+    "load-test.yml": {
+      "nome": "Load test k6 (manual, só staging)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "pedido [W] 2026-11-15 (teste de carga antes da Uniafibro em produção); workflow_dispatch apenas, nunca required; RUNBOOK memory/requisitos/Infra/RUNBOOK-load-test.md."
     }
   }
 }

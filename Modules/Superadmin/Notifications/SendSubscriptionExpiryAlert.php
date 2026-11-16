@@ -3,12 +3,15 @@
 namespace Modules\Superadmin\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SendSubscriptionExpiryAlert extends Notification
+class SendSubscriptionExpiryAlert extends Notification implements ShouldQueue, ShouldBeEncrypted
 {
+    use NaFilaDoSuperadmin;
     use Queueable;
 
     protected $subscription;
@@ -22,6 +25,7 @@ class SendSubscriptionExpiryAlert extends Notification
      */
     public function __construct($subscription)
     {
+        $this->irParaFilaDoSuperadmin();
         $this->subscription = $subscription;
         $this->days_left = \Carbon::now()->diffInDays($this->subscription->end_date) + 1;
     }

@@ -113,8 +113,7 @@ class CrmMarketplaceController extends Controller
                 }
 
                 //check if email exists
-                $lead = CrmContact::where('email', $user_data['email'])
-                                ->first();
+                $lead = $this->buscarLeadPorEmail((int) $business_id, $user_data['email']);
 
                 //if lead don't exist create one
                 if (empty($lead)) {
@@ -200,5 +199,16 @@ class CrmMarketplaceController extends Controller
         }
 
         return redirect()->back()->with(['status' => $output]);
+    }
+
+    /**
+     * Lead já existente com este e-mail NESTA empresa (Tier 0, ADR 0093): o mesmo e-mail pode
+     * existir em outra empresa e não pode ser reaproveitado aqui.
+     */
+    protected function buscarLeadPorEmail(int $business_id, string $email): ?CrmContact
+    {
+        return CrmContact::where('business_id', $business_id)
+            ->where('email', $email)
+            ->first();
     }
 }

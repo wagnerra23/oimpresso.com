@@ -56,6 +56,8 @@ class CatalogueService
                 'business_location' => $this->repository->findLocationForBusiness($businessId, $locationId),
                 'discounts' => $discounts,
                 'categories' => $this->repository->categoriesDropdown($businessId),
+                // A rota é anônima (sem SetSessionData): número sai pela moeda da empresa.
+                'formato' => new FormatoVitrine($business),
             ];
         }, [
             'business_id'  => $businessId,

@@ -14,6 +14,8 @@
 //   3. Transmissão (POST real → autorizada/pendente/rejeitada conforme SEFAZ)
 
 import { useState } from 'react';
+import NaturezaLancamentoSelect from './NaturezaLancamentoSelect';
+import { NATUREZA_PADRAO, operacaoIdDaEscolha, useNaturezasLancamento } from './naturezaLancamento';
 import { X, AlertCircle, CheckCircle2, FileText, Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -128,6 +130,8 @@ export default function VdNfeEmitModal({ open, venda, onClose, onSuccess }: Prop
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [status, setStatus] = useState<EmitStatus>('idle');
   const [protocolo, setProtocolo] = useState<string | null>(null);
+  const naturezas = useNaturezasLancamento(open);
+  const [natureza, setNatureza] = useState(NATUREZA_PADRAO);
 
   if (!open || !venda) return null;
 
@@ -161,7 +165,12 @@ export default function VdNfeEmitModal({ open, venda, onClose, onSuccess }: Prop
           'X-CSRF-TOKEN': csrf,
           'X-Requested-With': 'XMLHttpRequest',
         },
-        body: JSON.stringify({ modelo: '55' }), // NF-e B2B (produto); NFC-e 65 fora do núcleo
+        // NF-e B2B (produto); NFC-e 65 fora do núcleo. Natureza padrão = sem operacao_id.
+        body: JSON.stringify(
+          operacaoIdDaEscolha(natureza) !== null
+            ? { modelo: '55', operacao_id: operacaoIdDaEscolha(natureza) }
+            : { modelo: '55' },
+        ),
       });
       const json = await res.json().catch(() => ({}));
       const em = json?.emissao;
@@ -190,6 +199,7 @@ export default function VdNfeEmitModal({ open, venda, onClose, onSuccess }: Prop
     setStep(1);
     setStatus('idle');
     setProtocolo(null);
+    setNatureza(NATUREZA_PADRAO);
     onClose();
   };
 
@@ -312,6 +322,7 @@ export default function VdNfeEmitModal({ open, venda, onClose, onSuccess }: Prop
                   <h3>Pronto pra transmitir</h3>
                   <p>Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(venda.total)}</p>
                   <p className="vd-emit-hint">A NF será enviada à SEFAZ. Após autorização, título entra no contas a receber.</p>
+                  <NaturezaLancamentoSelect naturezas={naturezas} value={natureza} onChange={setNatureza} />
                 </div>
               )}
               {status === 'transmitting' && (

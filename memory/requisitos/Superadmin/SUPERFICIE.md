@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 204 arquivos em 19 papéis.
+**Total mapeado:** 188 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -106,19 +106,12 @@ module: Superadmin
 - [config.php](../../../Modules/Superadmin/Config/config.php)
 - [retention.php](../../../Modules/Superadmin/Config/retention.php)
 
-## Views (Blade) — 35
+## Views (Blade) — 17
 
-- [index.blade.php](../../../Modules/Superadmin/Resources/views/business/index.blade.php)
-- [index.blade.php](../../../Modules/Superadmin/Resources/views/communicator/index.blade.php)
-- [nav.blade.php](../../../Modules/Superadmin/Resources/views/layouts/nav.blade.php)
 - [active_subscription.blade.php](../../../Modules/Superadmin/Resources/views/layouts/partials/active_subscription.blade.php)
 - [currency.blade.php](../../../Modules/Superadmin/Resources/views/layouts/partials/currency.blade.php)
-- [sidebar.blade.php](../../../Modules/Superadmin/Resources/views/layouts/partials/sidebar.blade.php)
-- [subscription.blade.php](../../../Modules/Superadmin/Resources/views/layouts/partials/subscription.blade.php)
-- [index.blade.php](../../../Modules/Superadmin/Resources/views/packages/index.blade.php)
 - [show.blade.php](../../../Modules/Superadmin/Resources/views/pages/show.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/pricing/index.blade.php)
-- [index.blade.php](../../../Modules/Superadmin/Resources/views/subscription/index.blade.php)
 - [max_location_modal.blade.php](../../../Modules/Superadmin/Resources/views/subscription/max_location_modal.blade.php)
 - [packages.blade.php](../../../Modules/Superadmin/Resources/views/subscription/partials/packages.blade.php)
 - [pay_flutterwave.blade.php](../../../Modules/Superadmin/Resources/views/subscription/partials/pay_flutterwave.blade.php)
@@ -132,17 +125,6 @@ module: Superadmin
 - [pay.blade.php](../../../Modules/Superadmin/Resources/views/subscription/pay.blade.php)
 - [show_subscription_modal.blade.php](../../../Modules/Superadmin/Resources/views/subscription/show_subscription_modal.blade.php)
 - [subscription_expired_modal.blade.php](../../../Modules/Superadmin/Resources/views/subscription/subscription_expired_modal.blade.php)
-- [index.blade.php](../../../Modules/Superadmin/Resources/views/superadmin/index.blade.php)
-- [edit.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/edit.blade.php)
-- [additional_js_css.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/additional_js_css.blade.php)
-- [application_settings.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/application_settings.blade.php)
-- [backup.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/backup.blade.php)
-- [cron.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/cron.blade.php)
-- [email_smtp_settings.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/email_smtp_settings.blade.php)
-- [payment_gateways.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/payment_gateways.blade.php)
-- [pusher_setting.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/pusher_setting.blade.php)
-- [super_admin_settings.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/super_admin_settings.blade.php)
-- [index.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/index.blade.php)
 
 ## Telas (Inertia/React) — 12
 
@@ -198,13 +180,13 @@ module: Superadmin
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.casos.md)
 - [Show.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.casos.md)
 
-## Testes (Pest) — 27
+## Testes (Pest) — 28
 
-- 26 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
+- 27 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
 - 1 em [Modules/Superadmin/Tests/Feature/Lgpd/](../../../Modules/Superadmin/Tests/Feature/Lgpd)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 46
+## Demais arquivos (manifestos, docs, assets e misc) — 47
 
 - [.gitkeep](../../../Modules/Superadmin/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Console/.gitkeep)
@@ -215,6 +197,7 @@ module: Superadmin
 - [.gitkeep](../../../Modules/Superadmin/Http/Controllers/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Http/Middleware/.gitkeep)
 - [.gitkeep](../../../Modules/Superadmin/Http/Requests/.gitkeep)
+- [NaFilaDoSuperadmin.php](../../../Modules/Superadmin/Notifications/NaFilaDoSuperadmin.php)
 - [NewBusinessNotification.php](../../../Modules/Superadmin/Notifications/NewBusinessNotification.php)
 - [NewBusinessWelcomNotification.php](../../../Modules/Superadmin/Notifications/NewBusinessWelcomNotification.php)
 - [NewSubscriptionNotification.php](../../../Modules/Superadmin/Notifications/NewSubscriptionNotification.php)

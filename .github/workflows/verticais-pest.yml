@@ -174,6 +174,12 @@ on:
       - 'Modules/Fisio/**'
       # US-MKT-001 — fundo do Marketplaces (FK, escopo 98×99 e trigger append-only exigem MySQL).
       - 'Modules/Marketplaces/**'
+      # US-ASSOC-001 — fundo do Associacoes (FK, escopo 98×99 e trigger de consentimento exigem MySQL).
+      - 'Modules/Associacoes/**'
+      # US-ASSOC-004 — painel da rede (a tela mora no núcleo).
+      - 'resources/js/Pages/Associacoes/**'
+      # US-CAPT-001 — fundo do Captacao (FK e escopo 98×99 exigem MySQL).
+      - 'Modules/Captacao/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
       - 'public/sw-fisio-portal.js'
       # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -331,6 +337,12 @@ jobs:
               - 'Modules/Fisio/**'
               # US-MKT-001 — fundo do Marketplaces.
               - 'Modules/Marketplaces/**'
+              # US-ASSOC-001 — fundo do Associacoes.
+              - 'Modules/Associacoes/**'
+              # US-ASSOC-004 — painel da rede.
+              - 'resources/js/Pages/Associacoes/**'
+              # US-CAPT-001 — fundo do Captacao.
+              - 'Modules/Captacao/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
               - 'public/sw-fisio-portal.js'
               # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -813,10 +825,12 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminMinhaAssinaturaContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPagarContratoTest.php \
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Cms/Tests/Feature/SitePublicoContratoTest.php \
+            Modules/Cms/Tests/Feature/ContatoPublicoTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php \
@@ -921,6 +935,13 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesEsquemaContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesAcessoContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php \
+            Modules/Associacoes/Tests/Feature/SemearRedeCommandTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php \
+            Modules/Captacao/Tests/Feature/CaptacaoEsquemaContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php \

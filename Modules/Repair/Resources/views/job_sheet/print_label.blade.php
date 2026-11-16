@@ -159,7 +159,7 @@ $jobsheet_settings['contact_custom_fields'] : [];
 
             @if(!empty($jobsheet_settings['show_customer_address_in_label']))
                 <span class="font-12">
-                    {!!implode(', ', $job_sheet->customer->contact_address_array) !!}<br>
+                    {{ implode(', ', $job_sheet->customer->contact_address_array) }}<br>
                 </span>
             @endif
             @if(!empty($jobsheet_settings['show_customer_phone_in_label']))

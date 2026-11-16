@@ -1,7 +1,7 @@
 // Wave E — US-CRM-067 Menu Ações dropdown + atalhos (MWART F3 paridade /contacts/{id} header actions)
 // Restrições Tier 0 (ADR 0093): backend endpoints filtram business_id global scope.
 // Backend endpoints existentes:
-//   GET /contacts/update-status/{id} (toggle is_active, ContactController::updateStatus linha 1960)
+//   POST /contacts/update-status/{id} com status=active|inactive (ContactController::updateStatus)
 //   DELETE /contacts/{id} (ContactController::destroy linha 1190)
 //   POST /payments/pay-contact-due/{contact_id} (TransactionPaymentController::getPayContactDue linha 447 routes)
 //   POST /ledger-discount (LedgerDiscountController::store)
@@ -66,7 +66,13 @@ export default function ActionsMenu({
     if (!confirm(isActive ? `Desativar ${contactName}?` : `Reativar ${contactName}?`)) return;
     setBusy(true);
     try {
+      // Manda o estado confirmado: se outra pessoa já tiver mudado, o servidor aplica o
+      // pedido em vez de inverter de novo. POST porque muda dado (o GET é do botão Blade).
+      const fd = new FormData();
+      fd.append('status', isActive ? 'inactive' : 'active');
       const res = await fetch(`/contacts/update-status/${contactId}`, {
+        method: 'POST',
+        body: fd,
         credentials: 'same-origin',
         headers: {
           'X-CSRF-TOKEN': getCsrf(),
@@ -99,11 +105,17 @@ export default function ActionsMenu({
           Accept: 'application/json',
         },
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // O servidor responde 200 com {success: false, msg} quando recusa (cadastro com vendas,
+      // OS, assinaturas…, ou o cliente padrão). Antes a tela tratava isso como exclusão feita.
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        alert(json?.msg ?? 'Não foi possível excluir este cliente.');
+        return;
+      }
       if (onAfterDestroy) onAfterDestroy();
       else window.location.href = '/contacts/customer';
     } catch {
-      alert('Erro ao excluir cliente. Verifique se há transações vinculadas.');
+      alert('Erro ao excluir cliente. Verifique a conexão e tente de novo.');
     } finally {
       setBusy(false);
     }

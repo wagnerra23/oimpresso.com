@@ -20,6 +20,8 @@ import { Grid, Inline } from '@/Components/layout';
 import { FiscalStatusBadge } from '@/Components/NfeBrasil/FiscalStatusBadge';
 import { useEmissoesPorTransaction, type Emissao } from '@/Hooks/useEmissoesPorTransaction';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
+import NaturezaLancamentoSelect from './NaturezaLancamentoSelect';
+import { NATUREZA_PADRAO, operacaoIdDaEscolha, useNaturezasLancamento } from './naturezaLancamento';
 
 interface Props {
   saleId: number;
@@ -55,6 +57,8 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
   const [emitting, setEmitting] = useState<'55' | '65' | 'duas' | null>(null);
   const [separacao, setSeparacao] = useState<Separacao | null>(null);
   const [confirmarDuas, setConfirmarDuas] = useState(false);
+  const naturezas = useNaturezasLancamento(enabled);
+  const [natureza, setNatureza] = useState(NATUREZA_PADRAO);
 
   // Só pergunta a separação; sem permissão de NFS-e (403) ou venda de uma natureza só, o botão não aparece.
   useEffect(() => {
@@ -94,7 +98,12 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
           'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
         },
         credentials: 'same-origin',
-        body: JSON.stringify({ modelo }),
+        // A natureza escolhida só vale para a NF-e (modelo 55); padrão = sem operacao_id.
+        body: JSON.stringify(
+          modelo === '55' && operacaoIdDaEscolha(natureza) !== null
+            ? { modelo, operacao_id: operacaoIdDaEscolha(natureza) }
+            : { modelo },
+        ),
       });
       const json = await res.json();
       if (!res.ok && json?.acao?.url) {
@@ -222,6 +231,17 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
       )}
 
       {/* Botões emitir manual — só mostra se ainda não tem emissão autorizada do modelo */}
+      {!loading && !hasNfe && (
+        <div className="mb-2">
+          <NaturezaLancamentoSelect
+            naturezas={naturezas}
+            value={natureza}
+            onChange={setNatureza}
+            disabled={emitting !== null}
+          />
+        </div>
+      )}
+
       {!loading && (
         <div className="flex flex-wrap gap-2">
           {!hasNfce && (

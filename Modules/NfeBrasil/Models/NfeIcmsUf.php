@@ -78,6 +78,14 @@ class NfeIcmsUf extends Model
         return $linha?->aliquota_interestadual;
     }
 
+    /** FCP (decimal) da linha origem→destino vigente, ou null. */
+    public static function fcp(int $businessId, string $ufOrigem, string $ufDestino, ?string $data = null): ?float
+    {
+        $linha = self::linhaVigente($businessId, $ufOrigem, $ufDestino, $data ?? now()->toDateString());
+
+        return $linha?->fcp;
+    }
+
     private static function linhaVigente(int $businessId, string $ufOrigem, string $ufDestino, string $data): ?self
     {
         return static::withoutGlobalScopes() // SUPERADMIN: lido por serviço/fila; o escopo é o where explícito abaixo

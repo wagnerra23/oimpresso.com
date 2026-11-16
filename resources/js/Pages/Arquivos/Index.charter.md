@@ -98,8 +98,14 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - ❌ NÃO edita o conteúdo do arquivo nem gera pré-visualização de documento sensível.
 - ❌ NÃO serve arquivo do vault por `Storage::url` — sempre `DownloadController`, signed URL
   de 60 min (ADR 0123 §6).
-- ❌ NÃO renderiza filename/storage_path/MD5 em vista de governança (PII fica só em
-  `arquivos_audit_log` — LGPD Art. 37).
+- ❌ NÃO renderiza `storage_path` nem MD5 em vista nenhuma (LGPD Art. 37); o filename não
+  aparece na Trilha (lá a linha mostra só o `#id`).
+  _Errata 2026-11-16 (auditoria do módulo, lote L4): a redação anterior dizia "NÃO renderiza
+  filename/storage_path/MD5 em vista de governança (PII fica só em `arquivos_audit_log`)". Ela
+  contradizia o código e o teste verde: o Acervo manda `original_name`
+  (`ArquivosAdminController` chave `nome`), o Cofre também (`CofreStatsReader`, achados), e o
+  UC-INDEX-03 exige o nome no payload como controle positivo. O filename só é vedado na Trilha
+  (UC-INDEX-02). Pela regra de precedência (teste verde > casos > charter), o charter perdeu._
 - ❌ NÃO cruza tenants, em nenhuma vista nem em nenhum job disparado daqui (ADR 0093, Tier 0).
 - ❌ NÃO edita, apaga nem corrige linha de `arquivos_audit_log` — append-only, nunca purgado,
   mesmo quando o arquivo é.

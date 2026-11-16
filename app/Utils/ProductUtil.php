@@ -93,7 +93,7 @@ class ProductUtil extends Util
             if (empty($variation_template_id)) {
                 if ($variation_template_name != 'DUMMY') {
                     $variation_template = VariationTemplate::where('business_id', $business_id)
-                                                        ->whereRaw('LOWER(name)="'.strtolower($variation_template_name).'"')
+                                                        ->whereRaw('LOWER(name) = ?', [strtolower($variation_template_name)])
                                                         ->with(['values'])
                                                         ->first();
                     if (empty($variation_template)) {
@@ -144,7 +144,7 @@ class ProductUtil extends Util
                     } else {
                         if (! empty($variation_template)) {
                             $variation_value = VariationValueTemplate::where('variation_template_id', $variation_template->id)
-                                ->whereRaw('LOWER(name)="'.$variation_value_name.'"')
+                                ->whereRaw('LOWER(name) = ?', [$variation_value_name])
                                 ->first();
                             if (empty($variation_value)) {
                                 $variation_value = VariationValueTemplate::create([
@@ -248,7 +248,7 @@ class ProductUtil extends Util
 
                     if (! empty($product_variation->variation_template_id)) {
                         $variation_value = VariationValueTemplate::where('variation_template_id', $product_variation->variation_template_id)
-                                ->whereRaw('LOWER(name)="'.$v['value'].'"')
+                                ->whereRaw('LOWER(name) = ?', [$v['value']])
                                 ->first();
                         if (empty($variation_value)) {
                             $variation_value = VariationValueTemplate::create([

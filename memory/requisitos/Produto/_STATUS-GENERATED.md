@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 21 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
-| UC declarados | 232 |
-| UC com teste que os cita | 215 |
+| UC declarados | 253 |
+| UC com teste que os cita | 236 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -128,6 +128,13 @@ authority: generated
 | UC-PCAD-21 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-22 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-23 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-24 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-25 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-26 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-27 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-28 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-29 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-30 | Create | 🧪 aguarda veredito da lane |
 | UC-PCADAP-01 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-02 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-03 | Cadastros/Index | 🧪 aguarda veredito da lane |
@@ -176,6 +183,13 @@ authority: generated
 | UC-PEDIT-21 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-22 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-23 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-24 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-25 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-26 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-27 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-28 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-29 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-30 | Edit | 🧪 aguarda veredito da lane |
 | UC-PETQ-01 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
@@ -230,6 +244,10 @@ authority: generated
 | UC-PIDX-43 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-44 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-45 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-46 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-47 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-48 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-49 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
@@ -257,6 +275,7 @@ authority: generated
 | UC-PSHOW-05 | Show | 🧪 stub (não executa) |
 | UC-PSHOW-06 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-07 | Show | 🧪 stub (não executa) |
+| UC-PSHOW-08 | Show | 🧪 aguarda veredito da lane |
 | UC-PSTK-01 | StockHistory | 🧪 aguarda veredito da lane |
 | UC-PSTK-02 | StockHistory | 🧪 aguarda veredito da lane |
 | UC-PSTK-03 | StockHistory | 🧪 aguarda veredito da lane |
@@ -287,6 +306,8 @@ authority: generated
 | UC-PUNI-16 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-PUNI-17 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-PURCRE-09 | Index | 🧪 aguarda veredito da lane |
+| UC-RLT-06 | Index | 🧪 aguarda veredito da lane |
+| UC-RLT-07 | Index | 🧪 aguarda veredito da lane |
 
 ---
 

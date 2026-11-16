@@ -55,7 +55,8 @@ class LedgerDiscountController extends Controller
             $business_id = $request->session()->get('user.business_id');
             $input = $request->only(['date', 'amount', 'note', 'contact_id']);
 
-            $contact = Contact::find($input['contact_id']);
+            // Contato tem que ser da empresa da sessão (Tier 0, ADR 0093).
+            $contact = Contact::where('business_id', $business_id)->findOrFail($input['contact_id']);
 
             $sub_type = 'sell_discount';
             if ($contact->type == 'customer') {
@@ -123,7 +124,7 @@ class LedgerDiscountController extends Controller
                     ->where('type', 'ledger_discount')
                     ->find($id);
 
-        $contact = Contact::find($discount->contact_id);
+        $contact = Contact::where('business_id', $business_id)->find($discount->contact_id);
 
         return view('ledger_discount.edit')->with(compact('discount', 'contact'));
     }
