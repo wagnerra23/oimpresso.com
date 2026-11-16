@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Http\Controllers;
 
+use App\Tenancy\ContextoEmpresa;
 use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,8 +21,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *
  * 1. URL temporária (Laravel temporarySignedRoute) com expiração 60min default
  * 2. Multi-tenant Tier 0 ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
- *    Arquivo::find aplica global scope `business_id` automaticamente — usuário
- *    autenticado biz=1 NUNCA acessa arquivo biz=4 mesmo com URL signed válida
+ *    a empresa vem de `ContextoEmpresa::atual()` (ADR 0453: sessão, depois usuário autenticado)
+ *    e a busca filtra por ela de forma explícita. Arquivo de outra empresa → 404, mesmo
+ *    com URL signed válida. Sem empresa no contexto → 404, nada é servido.
+ *    O global scope de `Arquivo` sozinho não bastava: ele só filtra quando a sessão tem
+ *    `user.business_id`, e esta rota não roda `SetSessionData` (sessão restaurada por
+ *    "lembrar de mim" chegava aqui sem empresa e o `find` não filtrava nada).
  * 3. Audit log (`signed_url_consumed`) — toda download registra
  * 4. Disk routing: lê do disk `arquivos` ou `vault` baseado em `$arquivo->disk`
  *
@@ -35,9 +40,18 @@ class DownloadController extends Controller
         // Atributos sem PII: arquivo_id + bucket + encrypted flag.
         return OtelHelper::spanBiz('arquivos.download', function () use ($request, $arquivo, $vault) {
             // Signed URL middleware (Laravel) já valida expiração + assinatura HMAC.
-            // Aqui foco em business_id scope + audit + stream.
+            // Aqui foco em business_id + audit + stream.
 
-            $row = Arquivo::find($arquivo);
+            // Empresa pelo contexto (ADR 0453), não pela sessão: a rota não tem
+            // SetSessionData. Sem empresa, não serve nada.
+            $businessId = app(ContextoEmpresa::class)->atual();
+            if ($businessId === null) {
+                abort(404);
+            }
+
+            // Filtro explícito: o global scope de Arquivo não filtra quando a sessão
+            // não tem empresa, então a checagem não pode depender só dele.
+            $row = Arquivo::where('arquivos.business_id', $businessId)->find($arquivo);
 
             if (! $row) {
                 abort(404);
