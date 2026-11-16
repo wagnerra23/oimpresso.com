@@ -139,6 +139,9 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     expiry_period: validadeNaCompra ? '12' : '',
     expiry_period_type: 'months',
     enable_sr_no: dup?.enable_sr_no ? 1 : 0,
+    // UC-PCAD-29: imagem e folheto escolhidos. Com arquivo, o envio vira multipart sozinho.
+    image: null as File | null,
+    product_brochure: null as File | null,
     // UC-PCAD-24: os 20 campos personalizados; a tela mostra os que a empresa nomeou.
     ...camposPersonalizadosGravados(null),
   });

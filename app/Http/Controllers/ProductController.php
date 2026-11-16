@@ -2105,6 +2105,9 @@ class ProductController extends Controller
             return Inertia::render('Produto/Create', [
                 // UC-PCAD-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PCAD-28: o "+" de unidade e de marca, com a permissão de cada cadastro (como o Blade).
+                'podeCriarUnidade' => auth()->user()->can('unit.create'),
+                'podeCriarMarca' => auth()->user()->can('brand.create'),
                 // UC-PCAD-25 · UC-PCAD-26: subcategorias e sub-unidades, só se a empresa as usa.
                 'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
                 'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
@@ -2385,6 +2388,70 @@ class ProductController extends Controller
             return;
         }
         $this->productUtil->activityLog($product, 'armazenagem_alterada', null, ['old' => $antes, 'attributes' => $depois], false, (int) $product->business_id);
+    }
+
+    /**
+     * UC-PEDIT-29: troca a imagem e o folheto do produto pelo Editar React, na hora em que a pessoa
+     * escolhe o arquivo. Rota própria para o resto do formulário continuar indo como JSON: mandar o
+     * Editar inteiro como multipart muda como listas vazias chegam ao update() (somem do pedido).
+     * O que grava é o mesmo trecho do update(): `uploadFile` da imagem (apaga a anterior e zera a
+     * mídia do WooCommerce) e `Media::uploadMedia` do folheto, que substitui o anterior.
+     */
+    public function atualizarMidia(Request $request, $id)
+    {
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        $product = Product::where('business_id', $business_id)->findOrFail($id);
+
+        $limiteKb = (int) floor(((int) config('constants.document_size_limit')) / 1024);
+        $request->validate([
+            'image' => ['nullable', 'file', 'image', 'max:' . $limiteKb],
+            'product_brochure' => ['nullable', 'file', 'max:' . $limiteKb],
+        ], [
+            'image.image' => 'A imagem precisa ser um arquivo de imagem (JPG, PNG, WEBP).',
+            'image.max' => 'A imagem passa do limite de 5 MB.',
+            'product_brochure.max' => 'O folheto passa do limite de 5 MB.',
+        ]);
+        if (! $request->hasFile('image') && ! $request->hasFile('product_brochure')) {
+            return response()->json(['success' => false, 'msg' => 'Escolha uma imagem ou um folheto.'], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+            $file_name = $this->productUtil->uploadFile($request, 'image', config('constants.product_img_path'), 'image');
+            if (! empty($file_name)) {
+                if (! empty($product->image_path) && file_exists($product->image_path)) {
+                    unlink($product->image_path);
+                }
+                $product->image = $file_name;
+                if (! empty($product->woocommerce_media_id)) {
+                    $product->woocommerce_media_id = null;
+                }
+                $product->save();
+            }
+            Media::uploadMedia($product->business_id, $product, $request, 'product_brochure', true);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::warning('Produto: falha ao gravar imagem/folheto', ['product_id' => $product->id, 'erro' => $e->getMessage()]);
+
+            return response()->json(['success' => false, 'msg' => 'Não foi possível gravar o arquivo. Confira o tipo e o tamanho.'], 422);
+        }
+
+        event(new ProductsCreatedOrModified($product, 'updated'));
+        $product->refresh();
+
+        return response()->json(['success' => true, 'imagem' => $product->image_url, 'folheto' => $this->folhetoDoProduto($product)]);
+    }
+
+    /** UC-PEDIT-29: o folheto gravado do produto (nome e link), ou null. */
+    protected function folhetoDoProduto(Product $product): ?array
+    {
+        $m = $product->media()->first();
+
+        return $m ? ['nome' => (string) $m->display_name, 'url' => (string) $m->display_url] : null;
     }
 
     /**
@@ -2929,6 +2996,8 @@ class ProductController extends Controller
                     'productDescription' => $product->product_description,
                     'productLocations' => $product->product_locations->pluck('id')->all(),
                     'image' => $product->image_url,
+                    // UC-PEDIT-29: o folheto gravado, para a tela mostrar e trocar.
+                    'folheto' => $this->folhetoDoProduto($product),
                     'warrantyId' => $product->warranty_id,
                     // UC-PEDIT-10: o update() grava '' em todo campo personalizado que não vem no
                     // request e, com a empresa usando validade, zera a validade que não vem. A tela
@@ -2942,6 +3011,9 @@ class ProductController extends Controller
                 ],
                 // UC-PEDIT-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PEDIT-28: o "+" de unidade e de marca, com a permissão de cada cadastro (como o Blade).
+                'podeCriarUnidade' => auth()->user()->can('unit.create'),
+                'podeCriarMarca' => auth()->user()->can('brand.create'),
                 // UC-PEDIT-25 · UC-PEDIT-26: subcategorias e sub-unidades, só se a empresa as usa.
                 'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
                 'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),

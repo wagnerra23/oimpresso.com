@@ -2,6 +2,10 @@
 // (produto-blade-forms.jsx, FormProduto): três colunas, com o código de barras, os locais do
 // negócio, o controle de estoque, a garantia e a descrição junto da identificação.
 
+import { useLayoutEffect, useRef, useState } from 'react';
+import { router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -17,6 +21,10 @@ import {
 import { Grid, Inline } from '@/Components/layout';
 import { CampoLocais } from './BlocoLocais';
 import { CampoSubcategoria, CampoSubUnidades } from './BlocoSubcampos';
+import { CadastroAuxiliar } from './CadastroAuxiliar';
+import { CampoMidia } from './CampoMidia';
+import type { Folheto } from './envioMidia';
+import type { TipoAuxiliar } from './envioCadastroAuxiliar';
 import { avisoCodigoBarras } from './ean';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
@@ -27,14 +35,35 @@ interface Props {
   definir: DefinirCampo;
   errors: ErrosProduto;
   opcoes: OpcoesProduto;
+  /** UC-PEDIT-29: o produto do Editar, com a imagem e o folheto gravados. */
+  midia?: { produtoId: number; imagem: string | null; folheto: Folheto | null };
 }
 
-export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
+export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props) {
   const novo = modo === 'novo';
   const avisoEan = avisoCodigoBarras(data.sku, data.barcode_type);
   // UC-PCAD-25/26 · UC-PEDIT-25/26: o servidor manda as listas vazias quando a empresa não usa.
   const temSubcategoria = Object.keys(opcoes.subcategoriasPorCategoria ?? {}).length > 0;
   const temSubUnidades = Object.keys(opcoes.subUnidadesPorUnidade ?? {}).length > 0;
+  // UC-PCAD-28 · UC-PEDIT-28: "Bipar" põe o cursor no SKU, onde o leitor de código de barras digita.
+  const skuRef = useRef<HTMLInputElement>(null);
+  const [leitorPronto, setLeitorPronto] = useState(false);
+  // UC-PCAD-28 · UC-PEDIT-28: "+" de unidade e de marca. O diálogo monta dentro do .cockpit para
+  // herdar o tema (§5 2026-10-19).
+  const [auxiliar, setAuxiliar] = useState<TipoAuxiliar | null>(null);
+  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
+  const criado = (tipo: TipoAuxiliar, id: number) => {
+    setAuxiliar(null);
+    // Recarrega só a lista que ganhou o item; o resto do formulário fica como está.
+    router.reload({ only: [tipo === 'unidade' ? 'units' : 'brands'] });
+    if (tipo === 'unidade') {
+      definir('unit_id', id);
+      if (temSubUnidades) definir('sub_unit_ids', []);
+    } else {
+      definir('brand_id', id);
+    }
+  };
 
   return (
     <Card>
@@ -55,12 +84,34 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
         </div>
         <div>
           <Label htmlFor="sku">{novo ? 'SKU (deixe em branco pra gerar automático)' : 'SKU'}</Label>
-          <Input
-            id="sku"
-            value={data.sku}
-            onChange={(e) => definir('sku', e.target.value)}
-            className="font-mono"
-          />
+          <Inline gap={2}>
+            <Input
+              id="sku"
+              ref={skuRef}
+              value={data.sku}
+              onChange={(e) => definir('sku', e.target.value)}
+              onBlur={() => setLeitorPronto(false)}
+              className="font-mono"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              title="Ler código de barras (o leitor digita no campo)"
+              onClick={() => {
+                skuRef.current?.focus();
+                skuRef.current?.select();
+                setLeitorPronto(true);
+              }}
+            >
+              Bipar
+            </Button>
+          </Inline>
+          {leitorPronto && (
+            <p role="status" className="text-[12px] text-muted-foreground mt-1">
+              Leitor pronto: bipe o produto e o código cai no SKU.
+            </p>
+          )}
         </div>
         <div>
           <Label htmlFor="barcode_type">Tipo de código de barras</Label>
@@ -84,46 +135,72 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
         </div>
         <div>
           <Label htmlFor="unit_id">{novo ? 'Unidade *' : 'Unidade'}</Label>
-          <Select
-            value={String(data.unit_id ?? '')}
-            onValueChange={(v) => {
-              definir('unit_id', Number(v));
-              // As sub-unidades são da unidade: trocar a unidade desmarca as da anterior.
-              if (temSubUnidades && Number(v) !== Number(data.unit_id)) definir('sub_unit_ids', []);
-            }}
-          >
-            <SelectTrigger id="unit_id">
-              <SelectValue placeholder="Selecione" />
-            </SelectTrigger>
-            <SelectContent>
-              {opcoesDe(opcoes.units).map(([k, v]) => (
-                <SelectItem key={k} value={k}>
-                  {v}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Inline gap={2}>
+            <Select
+              value={String(data.unit_id ?? '')}
+              onValueChange={(v) => {
+                definir('unit_id', Number(v));
+                // As sub-unidades são da unidade: trocar a unidade desmarca as da anterior.
+                if (temSubUnidades && Number(v) !== Number(data.unit_id)) definir('sub_unit_ids', []);
+              }}
+            >
+              <SelectTrigger id="unit_id">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {opcoesDe(opcoes.units).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-label="Cadastrar unidade"
+              title={opcoes.podeCriarUnidade ? 'Cadastrar unidade' : 'Sem permissão para cadastrar unidade'}
+              disabled={!opcoes.podeCriarUnidade}
+              onClick={() => setAuxiliar('unidade')}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </Inline>
         </div>
         {temSubUnidades && (
           <CampoSubUnidades data={data} definir={definir} porUnidade={opcoes.subUnidadesPorUnidade ?? {}} />
         )}
         <div>
           <Label htmlFor="brand_id">Marca</Label>
-          <Select
-            value={String(data.brand_id ?? '')}
-            onValueChange={(v) => definir('brand_id', Number(v))}
-          >
-            <SelectTrigger id="brand_id">
-              <SelectValue placeholder="Selecione" />
-            </SelectTrigger>
-            <SelectContent>
-              {opcoesDe(opcoes.brands).map(([k, v]) => (
-                <SelectItem key={k} value={k}>
-                  {v}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Inline gap={2}>
+            <Select
+              value={String(data.brand_id ?? '')}
+              onValueChange={(v) => definir('brand_id', Number(v))}
+            >
+              <SelectTrigger id="brand_id">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {opcoesDe(opcoes.brands).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>
+                    {v}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-label="Cadastrar marca"
+              title={opcoes.podeCriarMarca ? 'Cadastrar marca' : 'Sem permissão para cadastrar marca'}
+              disabled={!opcoes.podeCriarMarca}
+              onClick={() => setAuxiliar('marca')}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </Inline>
         </div>
         <div>
           <Label htmlFor="category_id">Categoria</Label>
@@ -204,7 +281,16 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
             onChange={(e) => definir('product_description', e.target.value)}
           />
         </div>
+        <CampoMidia
+          modo={novo ? 'novo' : 'editar'}
+          data={data}
+          definir={definir}
+          produtoId={midia?.produtoId}
+          imagemGravada={midia?.imagem}
+          folhetoGravado={midia?.folheto}
+        />
         </Grid>
+        <CadastroAuxiliar tipo={auxiliar} aoFechar={() => setAuxiliar(null)} aoCriar={criado} container={cockpit} />
       </CardContent>
     </Card>
   );
