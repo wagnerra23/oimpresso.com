@@ -176,6 +176,10 @@ on:
       - 'Modules/Marketplaces/**'
       # US-ASSOC-001 — fundo do Associacoes (FK, escopo 98×99 e trigger de consentimento exigem MySQL).
       - 'Modules/Associacoes/**'
+      # US-ASSOC-004 — painel da rede (a tela mora no núcleo).
+      - 'resources/js/Pages/Associacoes/**'
+      # US-CAPT-001 — fundo do Captacao (FK e escopo 98×99 exigem MySQL).
+      - 'Modules/Captacao/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
       - 'public/sw-fisio-portal.js'
       # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -335,6 +339,10 @@ jobs:
               - 'Modules/Marketplaces/**'
               # US-ASSOC-001 — fundo do Associacoes.
               - 'Modules/Associacoes/**'
+              # US-ASSOC-004 — painel da rede.
+              - 'resources/js/Pages/Associacoes/**'
+              # US-CAPT-001 — fundo do Captacao.
+              - 'Modules/Captacao/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
               - 'public/sw-fisio-portal.js'
               # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -930,6 +938,8 @@ jobs:
             Modules/Associacoes/Tests/Feature/AssociacoesAcessoContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesTelaContratoTest.php \
             Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php \
+            Modules/Captacao/Tests/Feature/CaptacaoEsquemaContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php \

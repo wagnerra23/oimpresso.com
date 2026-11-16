@@ -13,6 +13,7 @@ contains:
   - "Associadas como contacts do núcleo, sem CPF (assoc_associadas) e consentimento LGPD por finalidade que o banco não deixa apagar (assoc_consentimentos) — US-ASSOC-001"
   - "AssociadasController — lista de associadas com celular mascarado, cadastro pelo contato do núcleo e desligamento (onda 4) — US-ASSOC-003"
   - "Consentimentos — conceder, revogar e vigente por finalidade e versão da config; usado pelo cadastro e pelo app da onda 6 — US-ASSOC-003"
+  - "PainelDaRedeController + PendenciasDaRede — painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
 not_contains:
   - "Prontuário, laudo e programa de exercícios → Modules/Fisio (outra empresa: a clínica; sem ligação entre empresas)"
   - "Site público uniafibro.com.br → resources/uniafibro + routes/web.php (HTML estático, sem banco)"
@@ -26,6 +27,7 @@ url_prefixes:
   - /associacoes/install (instalação 1-clique)
   - /associacoes/lista (lista e ficha das associações, documentos — US-ASSOC-002)
   - /associacoes/associadas (associadas e consentimentos — US-ASSOC-003)
+  - /associacoes (painel da rede — onda 5, US-ASSOC-004)
 ---
 
 # Modules/Associacoes

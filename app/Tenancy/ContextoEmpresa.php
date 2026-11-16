@@ -59,6 +59,26 @@ final class ContextoEmpresa
         return $doUsuario > 0 ? $doUsuario : null;
     }
 
+    /**
+     * Roda $fn com $businessId como empresa do contexto e restaura o valor anterior no fim
+     * (usado pelo pipe dos jobs, DefinirContextoEmpresaDoJob).
+     *
+     * @template T
+     *
+     * @param  callable(): T  $fn
+     * @return T
+     */
+    public function comEmpresa(int $businessId, callable $fn): mixed
+    {
+        $anterior = $this->definido;
+        $this->definir($businessId);
+        try {
+            return $fn();
+        } finally {
+            $this->definido = $anterior;
+        }
+    }
+
     /** @throws ContextoEmpresaAusente */
     public function exigir(): int
     {
