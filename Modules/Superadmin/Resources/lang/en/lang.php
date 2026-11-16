@@ -210,4 +210,6 @@ return [
     'new_message_from_superadmin' => 'New message from superadmin',
     'registered_on' => 'Registered on',
     'map_box_access_token' => 'Mapbox access token',
+    'forma_pagamento_indisponivel' => 'This payment method is not available for this package.',
+    'package_not_found' => 'Package not found.',
 ];
