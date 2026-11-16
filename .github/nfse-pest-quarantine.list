@@ -20,8 +20,8 @@
 # Insere em nfe_certificados colunas que não existem mais (nome_titular, validade_inicio,
 # validade_fim, tipo — QueryException 1054, :88-109) e faz SHOW COLUMNS ... LIKE com binding
 # (erro 1064, 3º caso). Fixture inteira desatualizada do schema; usa biz=1 (empresa real).
-Modules/NFSe/Tests/Feature/NfseCertificadoMultiTenantIsolationTest.php
+Modules/NFSe/Tests/Feature/NfseCertificadoMultiTenantIsolationTest.php  # fixture com colunas inexistentes em nfe_certificados (run 43865896173) — lote 1
 # :154 — com sessão biz=99 a consulta devolve 0 linhas onde espera 1 (a nota da 99 foi
 # criada sem erro). Causa não medida ainda (contexto de empresa × sessão no teste); usa
 # biz=1 (empresa real) como lado A. Reescrever em 98×99 no lote 1.
-Modules/NFSe/Tests/Feature/MultiTenantIsolationTest.php
+Modules/NFSe/Tests/Feature/MultiTenantIsolationTest.php  # :154 sessão 99 devolve 0 linhas (run 43865896173) — lote 1
