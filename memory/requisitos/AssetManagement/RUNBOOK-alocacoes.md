@@ -5,7 +5,7 @@ module: AssetManagement
 tela: Patrimonio/Alocacoes
 owner: W
 status: rascunho
-last_validated: "2026-09-08"
+last_validated: "2026-11-16"
 preconditions:
   - "Usuário autenticado; a tela exige hoje só a assinatura do módulo — `asset.*` NÃO guarda este controller (ver §9, assimetria declarada)"
   - "`business_id` na sessão — `AssetTransaction` NÃO tem global scope; o isolamento é filtro manual (ADR 0093, Tier 0)"
@@ -116,13 +116,17 @@ falsa — mesma postura da Bens.
 `AssetTransaction` **não tem global scope** — o isolamento é o filtro explícito por
 `business_id` na tabela base (`:72`), preservado.
 
-⚠️ **RESÍDUO Tier 0 herdado — declarado, NÃO consertado nesta onda.** O `leftJoin` de
-`asset_transactions as PT` por `parent_id` (`:70`), que alimenta `revoked_quantity`, **não
-filtra `PT.business_id`**. É o mesmo padrão do gêmeo já catalogado em `_saida-01.md §9(a)` e
-confirmado pela Bens (`_saida-06-bens.md §5`), com **thread dona**. Corrigir aqui esbarraria
-em duas leis que caem juntas: mexer em quantidade é REGRA MESTRE (prova dupla + antes→depois
-+ [W]) e 1 PR = 1 intent. A expressão é preservada byte-a-byte; o antes→depois medido está em
-`_saida-06-alocacoes.md`.
+✅ **Resíduo Tier 0 FECHADO em 2026-11-06 ([PR #10516](https://github.com/wagnerra23/oimpresso.com/pull/10516), lote 0.4).**
+O `leftJoin` de `asset_transactions as PT` por `parent_id`, que alimenta `revoked_quantity`, passou
+a exigir `PT.business_id = asset_transactions.business_id` (`AssetAllocationController::index()`,
+ver o docblock do método). Defesa: o caso "lista: devolvido conta so as devolucoes da propria empresa" de
+`Modules/AssetManagement/Tests/Feature/AlocacoesTenantEscritaTest.php`,
+com a mordida provada no PR (join revertido → a devolução de outra empresa entra na conta). A
+tabela antes→depois foi aprovada por [W]; a simulação em produção não mudou nenhum registro.
+
+> Registro histórico (até 2026-11-06): o join não filtrava `PT.business_id` e ficou declarado
+> como resíduo, preservado byte-a-byte por REGRA MESTRE (quantidade) e 1 PR = 1 intent, com o
+> antes→depois medido em `_saida-06-alocacoes.md`.
 
 ⚠️ **Assimetria de permissão, declarada.** A thread 03 pôs `asset.view` no `index()` **de
 Bens**. Este controller **não tem** guarda `asset.*` em método nenhum — só a assinatura do

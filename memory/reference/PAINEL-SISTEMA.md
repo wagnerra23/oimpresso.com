@@ -26,7 +26,7 @@ lente: [construir]
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-10-26 |
 | Associacoes | [BRIEFING](../requisitos/Associacoes/BRIEFING.md) | 2026-11-15 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-11-10 |
-| Captacao | [BRIEFING](../requisitos/Captacao/BRIEFING.md) | 2026-11-14 |
+| Captacao | [BRIEFING](../requisitos/Captacao/BRIEFING.md) | — |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-11-09 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-11-11 |
@@ -35,7 +35,7 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-10-27 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-10-28 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-11-16 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-11-06 |
 | Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |

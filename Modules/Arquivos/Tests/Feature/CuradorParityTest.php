@@ -21,7 +21,7 @@ beforeEach(function () {
  * ParityTest JS×PHP — US-ARQ-007.
  *
  * Lê fixtures geradas por `node scripts/curador/parity-fixtures.mjs` em
- * `tests/Fixtures/CuradorParity/fixtures.json` (output do classifyFile JS)
+ * `tests/fixtures/CuradorParity/fixtures.json` (output do classifyFile JS)
  * e compara com CuradorEngine PHP.
  *
  * Regras:
@@ -36,14 +36,16 @@ beforeEach(function () {
  * @see Modules/Arquivos/Services/Curador/CuradorEngine.php (port PHP)
  */
 
-const FIXTURES_PATH = __DIR__ . '/../../../../tests/Fixtures/CuradorParity/fixtures.json';
+// `fixtures` minúsculo: é o nome versionado no git. Era `Fixtures`, que só resolvia em
+// filesystem case-insensitive (Windows); no CI Linux o arquivo "não existia".
+const FIXTURES_PATH = __DIR__ . '/../../../../tests/fixtures/CuradorParity/fixtures.json';
 
 function loadParityFixtures(): array
 {
     $path = realpath(FIXTURES_PATH);
     if (! $path || ! is_file($path)) {
         throw new RuntimeException(
-            'fixtures.json ausente em tests/Fixtures/CuradorParity/. ' .
+            'fixtures.json ausente em tests/fixtures/CuradorParity/. ' .
             'Rode: node scripts/curador/parity-fixtures.mjs'
         );
     }

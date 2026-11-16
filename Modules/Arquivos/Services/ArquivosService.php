@@ -2,6 +2,7 @@
 
 namespace Modules\Arquivos\Services;
 
+use App\Tenancy\ContextoEmpresa;
 use App\Util\OtelHelper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -70,6 +71,12 @@ class ArquivosService
      */
     public function attachNoNegocio(Model $owner, UploadedFile $file, int $businessId): Arquivo
     {
+        // ADR 0453: sem sessão (token/portal), o escopo do Arquivo usa esta empresa.
+        $contexto = app(ContextoEmpresa::class);
+        if ($contexto->atual() === null) {
+            $contexto->definir($businessId);
+        }
+
         return OtelHelper::spanBiz('arquivos.attach', function () use ($owner, $file, $businessId) {
             return $this->attachInternal($owner, $file, [], $businessId);
         }, [
