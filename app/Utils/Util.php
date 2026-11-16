@@ -775,7 +775,10 @@ class Util
      */
     public function generateToken()
     {
-        return md5(rand(1, 10).microtime());
+        // Token do link público da venda (/invoice, /quote, /pay): é a única credencial do link,
+        // então vem de fonte criptográfica (random_bytes via Str::random). Comprimento 64 ≠ 32 dos
+        // tokens antigos, que a migration 2026_11_15_120000 invalida.
+        return \Illuminate\Support\Str::random(64);
     }
 
     /**

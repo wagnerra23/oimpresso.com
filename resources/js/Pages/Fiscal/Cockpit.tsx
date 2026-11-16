@@ -16,7 +16,7 @@ import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
 import {
-  Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw,
+  Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw, Scale,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -131,6 +131,8 @@ interface CockpitProps {
   contabilData?: SendToContabilData | null;
   // CU-FISC-16 — procedência por superfície, declarada em CockpitController::procedencia().
   procedencia?: MapaProcedencia;
+  // Atalho para a seção Naturezas de operação da Tributação; null = sem flag ou sem permissão.
+  naturezasUrl?: string | null;
 }
 
 type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
@@ -225,6 +227,7 @@ export default function Cockpit({
   kpis, sparklines, alerts, notas, savedViewCounts, sefazStatus,
   eventosMock = [], contabilData = null,
   procedencia,
+  naturezasUrl = null,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
 
@@ -379,6 +382,16 @@ export default function Cockpit({
                 <span className="ml-1 text-[10px] font-bold text-muted-foreground">{eventosMock.length}</span>
               )}
             </Button>
+            {naturezasUrl && (
+              <Button
+                type="button"
+                variant="cowork-ghost"
+                onClick={() => goto(naturezasUrl)}
+                data-acao="naturezas-operacao"
+              >
+                <Scale size={12} /> Naturezas de operação
+              </Button>
+            )}
             <Button
               type="button"
               variant="cowork-ghost"

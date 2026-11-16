@@ -21,6 +21,7 @@ use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeIcmsUf;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
+use Modules\NfeBrasil\Exceptions\NaturezaDoLancamentoInvalidaException;
 use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
@@ -291,6 +292,8 @@ class NfeService
      *        pedido de marketplace), com as chaves de `contacts`; vence o cliente da venda. Só NF-e (55).
      * @param string|null $cfop R-NFE-046 · CFOP de 4 dígitos que vence o da regra em todos os itens (ex. o do pedido
      *        de marketplace, configurável lá). Null = o CFOP da regra, como antes.
+     * @param int|null $operacaoId Onda 5 das naturezas (RUNBOOK-tributacao §Naturezas): natureza de operação escolhida
+     *        no lançamento. Dá a tributação (motor) e o natOp, e fica na metadata para a retransmissão. Null = como antes.
      */
     public function emitirParaTransaction(
         Transaction $tx,
@@ -298,6 +301,7 @@ class NfeService
         bool $separada = false,
         ?array $destinatarioExterno = null,
         ?string $cfop = null,
+        ?int $operacaoId = null,
     ): NfeEmissao
     {
         $businessId = (int) $tx->business_id;
@@ -393,6 +397,9 @@ class NfeService
         // cadastrada a nota é recusada com a saída — nunca sai com DIFAL zero por falta de dado.
         $this->garantirInternaDoDifal($destReal !== null, $ufOrigem, $ufDestino, $contribuinte, $interna);
 
+        // Onda 5: natureza escolhida no lançamento — só as criadas pela tela, de saída normal (ver o método).
+        $natureza = $operacaoId === null ? null : $this->naturezaDoLancamento($businessId, $operacaoId, (string) $modelo, $bonificacao);
+
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
@@ -405,7 +412,7 @@ class NfeService
             internaDestino: $interna,
             destinatarioContribuinte: $contribuinte,
             crtEmitente:    $emitente['crt'] ?? null,
-            operacaoId:     $bonificacao ? $this->operacaoDaBonificacao($businessId) : null,
+            operacaoId:     $natureza?->id ?? ($bonificacao ? $this->operacaoDaBonificacao($businessId) : null),
         );
         if ($cfop !== null) {
             $itens['dets'] = self::comCfop($itens['dets'], $cfop);
@@ -414,7 +421,9 @@ class NfeService
         $dadosNfe = [
             'transaction_id' => $tx->id,
             'modelo'         => $modelo,
-            'nat_op'         => $destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA',
+            'nat_op'         => $natureza !== null
+                ? mb_substr(trim((string) $natureza->nome), 0, 60)
+                : ($destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA'),
             'dest' => $destReal ?? [
                 // NFC-e B2C anônimo: doc é opcional. Se Transaction tiver contact_id
                 // com CPF, fase 2B preenche. Por ora, default anônimo.
@@ -453,6 +462,10 @@ class NfeService
             $dadosNfe['emit']        = $emitente['emit'];
             $dadosNfe['serie']       = $emitente['serie'];
             $dadosNfe['location_id'] = $emitente['location_id'];
+        }
+
+        if ($natureza !== null) {
+            $dadosNfe['metadata'] = array_merge((array) $dadosNfe['metadata'], ['operacao_id' => $natureza->id]);
         }
 
         // Sabor Brasil 2026-11-04: CST/CFOP incoerente não impede a nota — fica registrado nela
@@ -522,6 +535,41 @@ class NfeService
      * Item 2 Sabor Brasil · a operação fiscal "bonificacao" da empresa, se ela cadastrou. Sem ela a
      * bonificação tributa como a venda (o P-154 de antes, byte a byte).
      */
+    /**
+     * Onda 5 das naturezas: a natureza escolhida no lançamento, validada.
+     *
+     * Aceita só a natureza criada pela tela da Tributação (`config_tela`), ativa, de SAÍDA e finalidade
+     * normal, na NF-e (55), numa venda que não é bonificação. Devolução e nota referenciada têm fluxo
+     * próprio (DevolucaoService); complementar/ajuste e entrada não saem de uma venda.
+     *
+     * @throws NaturezaDoLancamentoInvalidaException com o motivo, que o controller devolve como 422
+     */
+    public function naturezaDoLancamento(int $businessId, int $operacaoId, string $modelo, bool $bonificacao): NfeOperacaoFiscal
+    {
+        $n = NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: emissão roda também em fila; o escopo é o where explícito
+            ->where('business_id', $businessId)
+            ->where('id', $operacaoId)
+            ->whereNull('deleted_at')
+            ->first();
+
+        $motivo = match (true) {
+            $n === null                                  => 'Natureza de operação não encontrada nesta empresa.',
+            $modelo !== '55'                             => 'Natureza de operação só se escolhe na NF-e (modelo 55).',
+            $bonificacao                                 => 'Venda marcada como bonificação já usa a natureza da bonificação.',
+            empty($n->config_tela)                       => 'Esta natureza não foi configurada na tela de naturezas.',
+            ! (bool) ($n->ativa ?? true)                 => "A natureza \"{$n->nome}\" está inativa.",
+            ($n->tipo ?? 'saida') === 'entrada'          => "A natureza \"{$n->nome}\" é de entrada e não sai de uma venda.",
+            (int) $n->finalidade !== 1                   => "A natureza \"{$n->nome}\" não é de finalidade normal; devolução, complemento e ajuste têm fluxo próprio.",
+            (bool) ($n->pede_nota_referenciada ?? false) => "A natureza \"{$n->nome}\" pede nota referenciada, que a emissão da venda não informa.",
+            default                                      => null,
+        };
+        if ($motivo !== null) {
+            throw new NaturezaDoLancamentoInvalidaException($motivo);
+        }
+
+        return $n;
+    }
+
     private function operacaoDaBonificacao(int $businessId): ?int
     {
         if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_operacoes_fiscais')) {
@@ -944,6 +992,7 @@ class NfeService
                 // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
                 fiscal_rule_override_id: null,
                 description: (string) $it['xprod'],
+                origem_mercadoria: isset($it['origem']) ? (int) $it['origem'] : null,
             );
             // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
             // P-155: local com regime próprio usa o cálculo com o CRT dele; sem CRT, como antes.
@@ -1939,7 +1988,9 @@ class NfeService
         // ── 6. Re-emite via fluxo canon emitirParaTransaction ──────────────
         // Cria NfeEmissao NOVA com próximo número (proximoNumeroLocked
         // withTrashed = sequencial monotônico — não reusa numero antigo).
-        $nova = $this->emitirParaTransaction($tx, $modelo, $separada);
+        // Onda 5: a natureza escolhida no lançamento vale também na retransmissão (senão sairia como venda).
+        $operacaoDaNota = ((array) ($emissao->metadata ?? []))['operacao_id'] ?? null;
+        $nova = $this->emitirParaTransaction($tx, $modelo, $separada, operacaoId: $operacaoDaNota !== null ? (int) $operacaoDaNota : null);
 
         Log::info('NfeService.retransmitir: retransmissão concluída', [
             'business_id'    => $businessId,

@@ -2,6 +2,7 @@
 
 namespace App\Scopes;
 
+use App\Tenancy\ContextoEmpresa;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -22,15 +23,31 @@ class ScopeByBusiness implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        // Sessão sem user_id → sem filtro (CLI/jobs resolvem manualmente)
-        if (! auth()->check()) {
-            return;
-        }
+        if (ContextoEmpresa::modo() === ContextoEmpresa::ABERTO) {
+            // Legado (padrão até o rollout da ADR 0453): sem sessão web → sem filtro.
+            if (! auth()->check()) {
+                return;
+            }
 
-        $businessId = session('user.business_id');
+            $businessId = session('user.business_id');
 
-        if (! $businessId) {
-            return;
+            if (! $businessId) {
+                return;
+            }
+        } else {
+            // ADR 0453: empresa vem do contexto (explícito → sessão → usuário do token).
+            $contexto = app(ContextoEmpresa::class);
+            if ($contexto->emModoPlataforma()) {
+                return;
+            }
+
+            $businessId = $contexto->atual();
+
+            if (! $businessId) {
+                $contexto->semEmpresa($model::class); // log ou exceção, conforme o modo
+
+                return;
+            }
         }
 
         $user = auth()->user();

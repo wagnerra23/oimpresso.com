@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import ConfigurarPeloCertificado from './_components/ConfigurarPeloCertificado';
 import SimuladorNota from './_components/SimuladorNota';
+import NaturezasSecao from './_components/Naturezas/NaturezasSecao';
 import type { ProductSearchResult } from '@/Pages/Sells/_components/ProductSearchAutocomplete';
 import SaudeFiscal, { type SaudePayload } from './_components/SaudeFiscal';
 import { Inline } from '@/Components/layout';
@@ -33,6 +34,8 @@ interface Regra {
   aliquota_pis: number;
   aliquota_cofins: number;
   aliquota_ipi: number;
+  cst_pis?: string | null;
+  cst_cofins?: string | null;
   mva: number | null;
   fcp: number | null;
 }
@@ -68,6 +71,8 @@ interface Props {
   produtoInicial?: ProductSearchResult | null;
   // Saúde fiscal (thread 14) — deferida.
   saude?: SaudePayload;
+  // Seção Naturezas de operação (RUNBOOK-tributacao §Naturezas) — flag useV2NfeNaturezas por empresa. Eager.
+  naturezasLiberado?: boolean;
 }
 
 interface FlashProps {
@@ -96,7 +101,7 @@ function formatNcm(ncm: string): string {
   return `${ncm.slice(0, 4)}.${ncm.slice(4, 6)}.${ncm.slice(6)}`;
 }
 
-function Index({ regras, config, templates, localPadrao, produtoInicial, saude }: Props) {
+function Index({ regras, config, templates, localPadrao, produtoInicial, saude, naturezasLiberado }: Props) {
   const { props } = usePage<FlashProps>();
   const success = props.flash?.success;
   const error = props.flash?.error;
@@ -313,6 +318,8 @@ function Index({ regras, config, templates, localPadrao, produtoInicial, saude }
         {/* Simulador read-only (thread 08 · D-SIM) — o cálculo é o da emissão, no backend. */}
         <SimuladorNota localPadrao={localPadrao ?? null} produtoInicial={produtoInicial ?? null} />
 
+        {naturezasLiberado ? <NaturezasSecao /> : null}
+
         {/* Regras NCM (Níveis 2 e 3) */}
         <Deferred data="regras" fallback={<Skeleton className="h-64 w-full" />}>
         <Card>
@@ -374,8 +381,14 @@ function Index({ regras, config, templates, localPadrao, produtoInicial, saude }
                         <td className="px-3 py-2 font-mono">{r.cfop}</td>
                         <td className="px-3 py-2 font-mono">{r.csosn ?? r.cst}</td>
                         <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_icms)}</td>
-                        <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_pis)}</td>
-                        <td className="px-3 py-2 text-right font-mono">{pct(r.aliquota_cofins)}</td>
+                        <td className="px-3 py-2 text-right font-mono">
+                          {pct(r.aliquota_pis)}
+                          <CstPisCofins cst={r.cst_pis} />
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono">
+                          {pct(r.aliquota_cofins)}
+                          <CstPisCofins cst={r.cst_cofins} />
+                        </td>
                         <td className="px-6 py-2 text-right whitespace-nowrap">
                           <Button asChild size="sm" variant="ghost">
                             <Link href={`/nfe-brasil/tributacao/regras/${r.id}/edit`}>
@@ -420,5 +433,14 @@ Index.layout = (page: React.ReactNode) => (
     {page}
   </AppShellV2>
 );
+
+/** R-NFE-025b: CST de PIS/COFINS da regra; sem ele, a nota sai com 07 (isento). */
+function CstPisCofins({ cst }: { cst?: string | null }) {
+  return (
+    <span className="block text-[11px] text-muted-foreground">
+      {cst ? `CST ${cst}` : 'CST 07 (padrão)'}
+    </span>
+  );
+}
 
 export default Index;
