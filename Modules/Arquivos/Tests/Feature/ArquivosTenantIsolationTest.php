@@ -66,22 +66,35 @@ function atiArquivo(int $businessId, string $nome): int
     ]);
 }
 
-/** @return list<int> ids da prop deferida `acervo` vista pela sessão atual. */
+/**
+ * @return list<int> ids da prop deferida `acervo` vista pela sessão atual.
+ *
+ * O 2º request (o que resolve a prop deferida) é feito por ESTE caso de teste, com os
+ * headers que o cliente Inertia manda de fato. Não usa `loadDeferredProps`: ele dispara
+ * o reload por um objeto próprio (`Inertia\Testing\ReloadRequest`), fora do caso de
+ * teste, e por isso sem o `withoutMiddleware` daqui. Medido na lane em 2026-11-16 (run
+ * 43885940773): por aquele caminho o acervo voltava com 0 linhas, inclusive a da 98.
+ */
 function atiIdsDoAcervo($t): array
 {
-    $ids = [];
-    $t->withoutMiddleware(atiSemStackDeSessao())
+    $url = '/arquivos?per_page=100';
+    $req = fn () => $t->withoutMiddleware(atiSemStackDeSessao())
         ->actingAs($t->user)
-        ->withSession($t->sessao)
-        ->get('/arquivos?per_page=100')
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $p) => $p
-            ->component('Arquivos/Index')
-            ->loadDeferredProps(function (AssertableInertia $r) use (&$ids) {
-                $ids = array_map(fn ($l) => (int) $l['id'], $r->toArray()['props']['acervo']['data']);
-            }));
+        ->withSession($t->sessao);
 
-    return $ids;
+    $primeira = $req()->get($url)->assertOk();
+    $primeira->assertInertia(fn (AssertableInertia $p) => $p->component('Arquivos/Index'));
+    $versao = (string) ($primeira->viewData('page')['version'] ?? '');
+
+    $parcial = $req()->get($url, [
+        'X-Inertia'                   => 'true',
+        'X-Requested-With'            => 'XMLHttpRequest',
+        'X-Inertia-Version'           => $versao,
+        'X-Inertia-Partial-Component' => 'Arquivos/Index',
+        'X-Inertia-Partial-Data'      => 'acervo',
+    ])->assertOk();
+
+    return array_map(fn ($l) => (int) $l['id'], $parcial->json('props.acervo.data') ?? []);
 }
 
 beforeEach(function () {
