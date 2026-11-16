@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -10,7 +11,8 @@ use Illuminate\Support\Facades\DB;
  * Só MySQL (trigger e FK não existem no sqlite): roda na lane arquivos-pest.
  * Tenant fictício 98 (ADR 0358); a empresa inexistente é um id muito alto, nunca criado.
  */
-uses(Tests\TestCase::class);
+// Limpeza por rollback: a trilha não pode ser apagada (o BEFORE DELETE vem em seguida).
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 const AAO_BIZ = 98;
 const AAO_BIZ_INEXISTENTE = 987654321;
@@ -20,16 +22,6 @@ beforeEach(function () {
     if (DB::getDriverName() !== 'mysql') {
         $this->markTestSkipped('trigger e FK só existem no MySQL — lane arquivos-pest.');
     }
-});
-
-afterEach(function () {
-    if (DB::getDriverName() !== 'mysql') {
-        return;
-    }
-    $ids = DB::table('arquivos')->where('md5', AAO_MD5)->pluck('id');
-    // DELETE na trilha ainda é permitido (o BEFORE DELETE está pendente); UPDATE não.
-    DB::table('arquivos_audit_log')->whereIn('arquivo_id', $ids)->delete();
-    DB::table('arquivos')->where('md5', AAO_MD5)->delete();
 });
 
 function aaoArquivo(int $businessId): int
