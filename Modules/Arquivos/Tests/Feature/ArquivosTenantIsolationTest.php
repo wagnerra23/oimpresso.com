@@ -16,6 +16,8 @@ declare(strict_types=1);
  * Modelo: Modules/KB/Tests/Feature/CrossTenantIsolationTest.php.
  */
 
+uses(Tests\TestCase::class);
+
 it('Arquivos · listagem da empresa 98 não traz registro da 99 (com controle positivo)')->todo();
 
 it('Arquivos · leitura por id de registro da 99 com sessão da 98 dá 404 (com controle positivo)')->todo();
