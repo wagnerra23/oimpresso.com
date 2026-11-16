@@ -3,11 +3,14 @@
 namespace Modules\Superadmin\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewSubscriptionNotification extends Notification
+class NewSubscriptionNotification extends Notification implements ShouldQueue, ShouldBeEncrypted
 {
+    use NaFilaDoSuperadmin;
     use Queueable;
 
     /**
@@ -17,6 +20,7 @@ class NewSubscriptionNotification extends Notification
      */
     public function __construct($subscription)
     {
+        $this->irParaFilaDoSuperadmin();
         $this->subscription = $subscription;
     }
 
