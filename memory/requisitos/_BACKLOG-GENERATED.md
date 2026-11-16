@@ -678,7 +678,7 @@
 - **US-ARQ-027** — Classificar um arquivo pela tela `/arquivos`, com motivo na trilha `p1`
 - **US-ARQ-028** — Excluir (soft-delete) e restaurar dentro do grace pela tela `/arquivos` `p1`
 - **US-ARQ-029** — Simular a retenção em dry-run, só superadmin `p1`
-- **US-ARQ-030** — Aviso ao titular antes do vencimento, por e-mail e WhatsApp ([ADR 0421](../../decisions/0421-arquivos-aviso-ao-titular-registro-e-janela.md) e [ADR 0422](../../decisions/0422-arquivos-aviso-titular-canal-email-whatsapp.md)) `p1`
+- **US-ARQ-030** — Aviso ao titular antes do vencimento, por e-mail e WhatsApp `p1`
 - **US-ARQ-031** — API de anexos da OS para o app (`/api/app/os/{id}/arquivos`) `p1`
 - **US-ARQ-032** — Exportar o acervo de uma empresa em ZIP (`arquivos:export-zip`) `p2`
 - **US-ARQ-033** — Re-cifrar o cofre após trocar a `APP_KEY` (`arquivos:reencrypt-vault`) `p1`

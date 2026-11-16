@@ -216,10 +216,12 @@ Backbone único que armazena, classifica, audit-loga e serve qualquer arquivo da
 **Aceite:** a rota exige `can:superadmin`; o controller força `dry_run=true`, usa a empresa da sessão e recusa `purge`; a simulação lista só arquivos da própria empresa, com id, data e motivo, e não escreve em `arquivos` nem na trilha.
 **Testado em:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php`
 
-### US-ARQ-030 · Aviso ao titular antes do vencimento, por e-mail e WhatsApp ([ADR 0421](../../decisions/0421-arquivos-aviso-ao-titular-registro-e-janela.md) e [ADR 0422](../../decisions/0422-arquivos-aviso-titular-canal-email-whatsapp.md)) `p1`
+### US-ARQ-030 · Aviso ao titular antes do vencimento, por e-mail e WhatsApp `p1`
 **Implementado em:** `Modules/Arquivos/Services/AvisoTitularService.php` · `Modules/Arquivos/Jobs/AvisarTitularJob.php` · `Modules/Arquivos/Console/Commands/AvisarTitularesCommand.php` · verificado@580be57 (2026-11-16)
 **Aceite:** entra na janela quem vence em até 30 dias e é sensível com titular; o aviso grava `titular_avisado_at` e uma linha `notice` na trilha, sem PII, e não reenvia; avisar não apaga nem expira; os canais nascem desligados e respeitam o opt-out de cada um; uma empresa não avisa nem marca arquivo de outra.
 **Testado em:** `Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php` · `Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php`
+
+Decisões: [ADR 0421](../../decisions/0421-arquivos-aviso-ao-titular-registro-e-janela.md) (registro e janela) e [ADR 0422](../../decisions/0422-arquivos-aviso-titular-canal-email-whatsapp.md) (canais e-mail e WhatsApp).
 
 ### US-ARQ-031 · API de anexos da OS para o app (`/api/app/os/{id}/arquivos`) `p1`
 **Implementado em:** `app/Http/Controllers/Api/App/OsArquivosController.php` · `Modules/Arquivos/Services/AnexosDoAppService.php` · verificado@580be57 (2026-11-16)
