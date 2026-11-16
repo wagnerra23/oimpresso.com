@@ -1,0 +1,97 @@
+{
+  "url": "https://staging.oimpresso.com/ponto",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Dashboard · Ponto eletrônico 18 de setembro de 2026 · atualizado 09:41 Bater ponto O que trava o fechamento de setembro 15 intercorrências esperam decisão e 0 dias estão em DIVERGENCIA na apuração. Enquanto isso, o espelho do mês não consolida — e o AFD gerado sai com a jornada errada. Colaboradores ativos 0 com controle de ponto Presentes agora 0 nenhuma marcação hoje Atrasos hoje 0 além da tolerância de 10 min Faltas hoje 0 sem marcação e sem intercorrência HE do mês 00:00 limite 2h/dia (Art. 59) Aprovações pendentes 15 nada urgente Últimos 7 dias Minutos trabalhados + horas extras por dia 00:00 sáb 12 00:00 dom 13 00:00 seg 14 00:00 ter 15 00:00 qua 16 00:00 qui 17 00:00 sex 18 Fila de aprovações ( 15 pendentes) Ver fila completa — Normal Pendente · 2026-08-24 · dia todo há 3 semanas — Normal Pendente · 2026-08-24 · dia todo há 3 semanas — Normal Pendente · 2026-08-24 · dia todo há 3 semanas — Normal Pendente · 2026-08-24 · dia todo há 3 semanas — Normal Pendente · 2026-08-24 · dia todo há 3 semanas Atividade recente Nenhuma marcação ainda hoje. O que precisa da sua atenção 5 Aprovação parada há há 3sem Colaborador Aprovar Aprovação parada há há 3sem Colaborador Aprovar Aprovação parada há há 3sem Colaborador Aprovar Aprovação parada há há 3sem Colaborador Aprovar Aprovação parada há há 3sem Colaborador Aprovar Registros protegidos pela Portaria MTP 671/2021 — marcações são imutáveis (append-only). Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 14,
+      "weight": "400",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "painel-nota-fechamento",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-fila-aprovacoes",
+        "classes": {
+          "dataIso": 5,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataIso": [
+            "2026-08-24"
+          ]
+        }
+      },
+      {
+        "nome": "painel-atividade",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR OFFICEIMPRESSO · todos os locais · 11 bens Patrimônio Gestor do patrimônio Atualizado 09:42 ⌕ Alocar recurso Adicionar recurso Painel Bens 11 Alocações 3 Manutenções 2 Garantias 5 Auditoria 5 Configurações Resumo de hoje · 21/08, 09:42 11 bens cadastrados, 21 unidades e R$ 305.230,00 de patrimônio bruto — R$ 166.139,92 de valor residual depois da depreciação. O que pesa hoje é a cobertura : 5 bens com garantia vencida ou vencendo — sem cobertura há mais tempo, Laminadora a frio 1,60m (vencida em 04/11/2024) . Mais caro, porém, é o risco da HP Latex: R$ 4.200,00 por cabeça de impressão. E a VS-640 está fora de operação em manutenção preventiva. Comece pela garantia da HP Latex: sem contrato, cada conserto sai inteiro do caixa. Garantia crítica Em manutenção Alocados Auditoria PATRIMÔNIO BRUTO R$ 305.230,00 21 unidades em 11 bens VALOR RESIDUAL R$ 166.139,92 depreciação linear · 46% depreciado ALOCADOS 4 de 13 9 unidades livres pra alocar GARANTIA VENCIDA OU VENCENDO 5 R$ 143.750,00 sem cobertura ANÁLISES DO MÓDULO clique num card pra ver de onde vem o número Patrimônio por categoria R$ 305.230,00 · 6 categorias 40% em impressão Impressão R$ 123,4k Veículos R$ 78,0k Corte e acabamento R$ 61,6k Informática R$ 32,9k Ferramentas R$ 5,0k Mobiliário R$ 4,3k Metade do patrimônio está em duas máquinas de impressão — parada de uma delas para a produção. Situação da garantia 11 bens cadastrados Na garantia 4 · R$ 86,3k Vence em 30 dias 1 · R$ 68,5k Vencida 4 · R$ 143,8k Sem garantia 2 · R$ 6,6k R$ 143.750,00 em equipamento sem cobertura — conserto sai integral do caixa. Manutenção em aberto o que está fora de operação ou agendado 14/08/2026 · Roland VersaCAMM VS-640 R$ 1.850,00 28/08/2026 · Fiat Fiorino Endurance R$ 890,00 custo de manutenção no ano R$ 7.360,00 Custo adicional vira título a pagar no Financeiro quando a manutenção fecha. O QUE FAZER PRIMEIRO Equipamento sem cobertura de garantia 5 bens vencidos ou vencendo. A troca de cabeça da HP Latex em julho saiu R$ 4.200,00 integral — cotar contrato antes da próxima. Ver bens críticos 2 manutenções em aberto Enquanto a VS-640 não volta, a fila de lona depende só da Latex. Ver manutenções 9 unidades alocáveis paradas Equipamento sem alocação não aparece em ficha de colaborador nenhuma — alocar é o que dá rastro de responsabilidade. Ver alocações",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "PATRIMÔNIO BRU",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "VALOR RESIDUAL",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "ALOCADOS4 de 1",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "GARANTIA VENCI",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 28
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

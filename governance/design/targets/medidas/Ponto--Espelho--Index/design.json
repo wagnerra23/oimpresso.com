@@ -1,0 +1,204 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR ROTA LIVRE · matriz · Agosto/2026 · 7 colaboradores no ponto Ponto Ponto eletrônico · Portaria MTP 671/2021 Atualizado 09:18 Fechamento Importar AFD Nova intercorrência Painel Espelho de Ponto Aprovações 2 Intercorrências 8 Banco de Horas Fechamento Conformidade 22 Escalas Colaboradores 9 REP-P (celular) Importações Relatórios Configurações O que trava o fechamento de agosto 2 intercorrências esperam decisão e 9 dias estão em divergência na apuração. Enquanto isso, o espelho do mês não consolida — e o AFD gerado sai com a jornada errada. Colaboradores ativos 7 com controle de ponto Presentes agora 5 última marcação 13:02 Atrasos hoje 2 além da tolerância de 5 min Faltas hoje 1 sem marcação e sem intercorrência HE do mês 35:57 limite 2h/dia (Art. 59) Aprovações pendentes 2 1 urgente Fila de aprovações (2 pendentes) Ver fila completa Colaborador Tipo Data / intervalo Estado Prioridade Larissa Bueno 0007 · Atendimento balcão Esquecimento de marcação 18/08/2026 13:00 – 14:00 Pendente Urgente Felipe Andrade 0014 · Acabamento Hora extra autorizada 17/08/2026 18:00 – 21:30 Pendente Normal Atividade recente marcações de hoje Renata Coelho 13:02 Retorno do almoço · NSR 102918 · REP-C (relógio) Diego Salles 12:58 Retorno do almoço · NSR 102917 · REP-C (relógio) Larissa Bueno 12:04 Saída para almoço · NSR 102916 · REP-C (relógio) Felipe Andrade 11:31 Saída para almoço · NSR 102915 · REP-A (terminal) Marcos Teixeira 09:12 Entrada · NSR 102914 · REP-P (equipamento) Eliana Prado 08:47 Entrada · NSR 102913 · REP-C (relógio) Larissa Bueno 08:03 Entrada · NSR 102912 · REP-C (relógio) Registros protegidos pela Portaria MTP 671/2021 — marcações são imutáveis (append-only).",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "painel-nota-fechamento",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "painel-fila-aprovacoes",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 2,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "18/08/2026",
+            "17/08/2026"
+          ]
+        }
+      },
+      {
+        "nome": "painel-atividade",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 23.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 27.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 20.1,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.235 0.01 240)",
+          "dot": false
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.55 0.17 18)",
+          "dot": false
+        }
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 2,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR Forja Cockpit do cowork loop — aprovações da equipe, backlog, pipeline de telas F0→F3.5, tarefas de todas as frentes, changelog e atores (humano vs agente). 8 Buscar Trabalho Aprovações 9 Trabalho Esteira Saúde MCP Histórico Changelog Integrador Novo issue 7 esperando o seu aval Sua equipe trabalha no Claude Code conectada ao MCP; nada aplica sem você. Mais antigo primeiro — aprova · devolve · rejeita. 2 handoff s com problema → Ao vivo no MCP F Felipe sênior Plano PJBank pronto — espera seu aval espera você R$ 14,20 hoje · agora M Maiara júnior Corrigindo dark do drawer (3 arquivos) executando R$ 6,75 hoje · há 2 min L Luiz artista Screenshot da Oficina pronto pro F2 espera você R$ 2,10 hoje · há 9 min E Eliana júnior — offline R$ 0,00 hoje · ontem 17:40 E Eliana júnior Modificação NF-e: tratar rejeição 539 (duplicidade) no reenvio há 3 h M Maiara júnior Modificação Fix: drawer financeiro corta o valor no dark há 1 h F Felipe sênior Plano Plano — migrar boletos pro gateway PJBank há 25 min L Luiz artista Design F2 — fila de box da Oficina (re-skin DS v6) há 9 min CA Claude Analista agente Proposta Busca semântica no KB (Meilisearch) agora CA Claude Analista agente Proposta Bug: drawer financeiro corta o valor no dark agora CA Claude Analista agente Proposta Rename inbox → Atendimento na topnav agora Modificação NF-e: tratar rejeição 539 (duplicidade) no reenvio Eliana · júnior · Fiscal · esperando há 3 h AP-306 Reenvio com mesmo nNF gerava 539 em loop. Passa a consultar situação antes e reaproveitar autorização quando a SEFAZ já tem a nota. Diff · 1 arquivos + 6 − 2 Modules/Fiscal/Services/NfeReenvioService.php + 6 − 2 Gates ui:lint conformance e2e sessão cc-8790 issue FORJA-136 júnior entrega o diff pronto — você aprova a aplicação; merge continua do gate . Aprovar aplicação Devolver c/ comentário Rejeitar Equipe de agentes · placar 1 sem sinal cc_sessions + handoffs + gates — medido, nada auto-relatado Agente Sinal Sessões hoje Custo hoje / quota Critique F1.5 Retrabalho Entregas 7d [ CC ] Claude Cowork há 2 min 4 R$ 38,20 / R$ 120,00 87 1 · 11 % 9 [ CD ] Claude Design há 3 h 1 R$ 6,10 / R$ 40,00 84 0 5 [ CL ] Claude Code há 1 h 2 R$ 22,75 / R$ 100,00 89 1 · 14 % 7 [ CA ] Claude A11y sem sinal 2 d 0 R$ 0,00 / R$ 30,00 80 0 2 verificar [ AN ] Claude Analista há 8 min 3 R$ 4,90 / R$ 20,00 85 0 12 Critique = score do gate F1.5 por handoff · retrabalho = handoff devolvido ao autor · quota BRL = a mesma da tela Equipe (reset 00:00 BRT).",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 17.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10.9,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.8,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10.3,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "url": "https://staging.oimpresso.com/recurring-billing/faturas",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Faturas · cobrança recorrente 0 FATURAS · ATRASADAS 0 Nova fatura em breve Pago este mês R$ 0,00 faturas liquidadas no mês corrente Pendente R$ 0,00 abertas com vencimento futuro Atrasado R$ 0,00 0 faturas vencidas Total de faturas 0 histórico completo Todas Pagas Pendentes Atrasadas Canceladas Todos gateways Qualquer período 0 / 0 Nenhuma fatura encontrada. Ajuste os filtros ou crie uma nova fatura. Cancelar dispara (US-RB-042). Cancelamento propagado ao gateway + audit log Spatie. 1 / 4 Tour rápido 3 colunas canônicas Filtros · Lista · Drawer detalhe — tudo cabe na tela sem scroll horizontal. Não mostrar mais Anterior Próximo Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}
