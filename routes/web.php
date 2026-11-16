@@ -661,6 +661,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/contacts/payments/{contact_id}', [ContactController::class, 'getContactPayments']);
     Route::get('/contacts/map', [ContactController::class, 'contactMap']);
     Route::get('/contacts/update-status/{id}', [ContactController::class, 'updateStatus']);
+    // A ficha React ativa/desativa por POST (com CSRF) mandando o estado pedido; o GET fica
+    // para o botão da lista Blade antiga, que só inverte.
+    Route::post('/contacts/update-status/{id}', [ContactController::class, 'updateStatus'])->whereNumber('id');
     // UC-CIDX-16 — restaura cadastro excluído (filtro "Excluídos" da lista de clientes).
     Route::post('/contacts/{id}/restore', [ContactController::class, 'restore'])->whereNumber('id');
     Route::get('/contacts/stock-report/{supplier_id}', [ContactController::class, 'getSupplierStockReport']);

@@ -1858,6 +1858,8 @@ class ContactController extends Controller
      */
     public function anexos($id)
     {
+        $this->exigirPermissaoDeVerContato();
+
         $business_id = request()->session()->get('user.business_id');
 
         // 404 cross-tenant: o contato precisa existir DENTRO do business.
@@ -1909,6 +1911,8 @@ class ContactController extends Controller
      */
     public function storeAnexo(Request $request, $id)
     {
+        $this->exigirPermissaoDeVerContato();
+
         $request->validate([
             'file' => 'required|file|max:25600', // 25 MB
         ]);
@@ -1972,6 +1976,8 @@ class ContactController extends Controller
      */
     public function destroyAnexo($id, $mediaId)
     {
+        $this->exigirPermissaoDeVerContato();
+
         $business_id = request()->session()->get('user.business_id');
 
         \App\Contact::where('business_id', $business_id)->findOrFail($id);
@@ -2703,6 +2709,20 @@ class ContactController extends Controller
     }
 
     /**
+     * Ver cliente ou fornecedor (todos ou só os próprios) — a mesma regra do getLedger e das
+     * abas JSON da ficha. Anexos e anotações do contato seguem quem o vê (legado:
+     * DocumentAndNoteController::__getPermission dá view/create/delete para App\Contact).
+     */
+    private function exigirPermissaoDeVerContato(): void
+    {
+        $user = auth()->user();
+        if (! $user->can('customer.view') && ! $user->can('customer.view_own')
+            && ! $user->can('supplier.view') && ! $user->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
      * O que impede excluir o cadastro: registros de negócio ou financeiros que apontam para ele.
      * Antes só se contavam os lançamentos (`transactions`); OS, assinatura, cobrança, veículo e
      * crédito do cliente ficavam apontando para um cadastro excluído. Tabela de módulo que não
@@ -3346,6 +3366,10 @@ class ContactController extends Controller
             return $notAllowed;
         }
 
+        // Mesma permissão do getLedger: sem ela, quem não vê clientes mandava o extrato
+        // de qualquer cadastro da empresa para qualquer e-mail.
+        $this->exigirPermissaoDeVerContato();
+
         // Mesma trava do getLedger, fora do try (o catch genérico engoliria o 404):
         // sem ela o e-mail levava nome e tags do contato de outra empresa.
         $contact = Contact::where('business_id', request()->session()->get('business.id'))
@@ -3544,8 +3568,18 @@ class ContactController extends Controller
 
         if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
-            $contact = Contact::where('business_id', $business_id)->find($id);
-            $contact->contact_status = $contact->contact_status == 'active' ? 'inactive' : 'active';
+            // Outra empresa (ou id inexistente) é 404; antes o null virava erro 500.
+            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+
+            // A ficha React manda o estado que o usuário confirmou ("Desativar" → inactive).
+            // Sem ele, inverter o estado atual reativava um cadastro que outra pessoa já
+            // tinha desativado. O botão Blade antigo não manda nada e segue invertendo.
+            $pedido = request()->input('status');
+            if (in_array($pedido, ['active', 'inactive'], true)) {
+                $contact->contact_status = $pedido;
+            } else {
+                $contact->contact_status = $contact->contact_status == 'active' ? 'inactive' : 'active';
+            }
             $contact->save();
 
             $output = ['success' => true,
