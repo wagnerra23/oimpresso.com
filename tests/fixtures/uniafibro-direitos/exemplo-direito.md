@@ -4,7 +4,7 @@ resumo: "Página de exemplo usada só nos testes."
 secao: direitos
 ordem: 1
 updated_at: "2026-11-15"
-disclaimer_version: 1
+disclaimer_version: 2
 fontes:
   - titulo: "Lei de exemplo (Planalto)"
     url: "https://www.planalto.gov.br/exemplo"

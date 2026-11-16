@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: indicador que diverge do quadro engana o PCP; alerta decorativo ensina a ignorar alerta; evento de outra empresa no feed é vazamento Tier 0.
 owner: wagner
-last_run: "2026-11-10"
-last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoQuadroContratoTest."
+last_run: "2026-11-16"
+last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
 # Casos de Uso & Aceite — Produção · Painel (`/producao/painel`)
@@ -22,14 +22,14 @@ o dia dela **Quando** abro o Painel **Então** vejo os 4 indicadores e um alerta
 ação (abrir o Quadro filtrado ou agrupado por máquina) · Dia limpo devolve nenhum alerta · A carga de uma
 empresa não aparece na outra · Ver o Painel pede `producao.access`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-02 · Os indicadores levam ao quadro já filtrado · `should`
 
 **Quando** clico em "Atrasadas ou vencendo" ou "Arte travando" **Então** abre o Quadro com esse filtro ligado
 (`?so=atrasadas`, `?so=arte`) · Valor fora da lista volta a "todas". "Refugo" ainda não leva ao Custo (thread 08).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-03 · Um número só para atrasadas · `must`
 
@@ -37,7 +37,7 @@ Status: 🧪
 Painel e o filtro do Quadro mostram as mesmas 2 · A OS pronta não conta. Regra: prazo ≤ hoje e etapa aberta, em
 uma função só no servidor (`QuadroDaProducao::cartoes`), que as duas telas leem.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-04 · Fila de aprovação de arte · `must`
 
@@ -45,7 +45,7 @@ Status: 🧪
 ajuste primeiro · Vale o pedido mais recente da OS: recusada e depois aprovada não trava · O cartão do Quadro
 leva a mesma situação. Reenviar o link e "Enviar nova prova" vieram depois (UC-PCART-07).
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCART-07 · Reenviar o link ou enviar a nova prova pela fila · `must`
 
@@ -58,7 +58,7 @@ arquivo **Então** sai um link novo com o arquivo novo e a OS volta a "aguardand
 mesmo, é recusado (422) e nada muda · Arte aprovada não reenvia (o caminho é trocar o arquivo) · OS de outra
 empresa: 404. Com o WhatsApp ligado o cliente recebe o link; senão o link aparece para mandar à mão.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-29 · Uma fonte de eventos para todas as telas · `must`
 
@@ -66,7 +66,7 @@ Status: 🧪
 mostra os mais recentes da empresa, com a etapa, quem fez e a OS · Evento sobre uma pessoa (apontado × presença)
 não entra · Evento da empresa 99 nunca aparece para a 98.
 
-Status: 🧪
+Status: ✅
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
@@ -92,5 +92,5 @@ Status: 🧪
 refugo da semana não muda · **Controle:** o da 99 sobe 1 ocorrência e 7 peças; refugo da 98 sobe só o da 98.
 Prova: `ProducaoIsolamentoEmpresasContratoTest`.
 
-Status: 🧪
+Status: ✅
 
