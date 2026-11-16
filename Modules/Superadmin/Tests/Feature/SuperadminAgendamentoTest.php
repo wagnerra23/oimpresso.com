@@ -6,6 +6,8 @@ use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Modules\Superadmin\Providers\SuperadminServiceProvider;
 
+uses(Tests\TestCase::class);
+
 /**
  * Trava o agendamento do Superadmin (lote L4, 2026-11-16).
  *
