@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\NfeService;
@@ -23,6 +24,15 @@ uses(Tests\TestCase::class);
  * Empresa 98, tenant fictício (ADR 0358). Usa só `buildXml` por reflection, sem SEFAZ nem certificado;
  * a única leitura de banco é a configuração da reforma (sem linha = legado).
  */
+
+beforeEach(function () {
+    // Mesmo corte do SerializacaoIbsCbsTest: buildXml lê `cidades` e `nfe_business_configs`, que só
+    // existem no schema MySQL (ADR 0101). Roda na lane `nfebrasil-pest` (MySQL).
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        test()->markTestSkipped('SQLite-incompatível: buildXml lê cidades e nfe_business_configs (schema MySQL, ADR 0101)');
+    }
+    session(['business.id' => 98]);
+});
 
 function ipiXml(?array $ipi, float $vIpi = 0.0, float $vProd = 1000.00): string
 {
