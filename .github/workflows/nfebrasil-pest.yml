@@ -380,6 +380,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php \
             Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitAtalhoNaturezasTest.php \
             Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
             Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
             Modules/Fiscal/Tests/Feature/MenuPermissaoTest.php \
@@ -400,6 +401,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ConferenciaNaturezaServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php \
             Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php \
+            Modules/NfeBrasil/Tests/Feature/NaturezaLancamentoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
             Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
             Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php \

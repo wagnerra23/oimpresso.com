@@ -199,7 +199,7 @@ jobs:
   smoke:
     name: Smoke visual real (Playwright + OpenAI)
     needs: detect
-    if: needs.detect.outputs.should_smoke == 'true' && needs.detect.outputs.infra_ready == 'true'
+    if: needs.detect.outputs.should_smoke == 'true' && needs.detect.outputs.infra_ready == 'true' && needs.detect.outputs.screens != '__CLIENTES__'
     # ubuntu-24.04 fixo: em 2026-11-04 o ubuntu-latest passou a cair no 26.04, que o Playwright do lock (1.60) não suporta (só 1.64+). Subir o Playwright troca o Chromium e mexe na rasterização do visual-regression.
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -294,6 +294,113 @@ jobs:
             resources/js/Pages/**/*.review.md
             Modules/*/Resources/js/Pages/**/*.review.md
             Modules/*/resources/js/Pages/**/*.review.md
+          if-no-files-found: ignore
+          retention-days: 30
+
+  # ── JOB 2b: SMOKE CLIENTES VIVOS — as telas que a Larissa (ROTA LIVRE) e a WR2 usam ────────
+  # Roda em TODO deploy bem-sucedido, mexa ou não em tela (o job `smoke` só roda quando o diff
+  # toca Page/navegação, e reprova por NÃO MEDIDO quando a Page não tem rota — fail-closed do
+  # #7648, que fica intacto). Aqui a pergunta é outra: o que esses dois clientes abrem amanhã
+  # ainda abre? Conjunto = rotas com `clientes` em routes.json (SCREENS=__CLIENTES__).
+  # Mesma conta biz=99 FAKE do `smoke` (R6: biz=4 nunca em smoke). Não escreve review.md.
+  # Falha = linha `ALERT smoke-clientes cliente=<x>` no log + job vermelho (decisão [W]
+  # 2026-11-15). Advisory: vira required só após 2 semanas sem falso positivo (ADR 0336).
+  # Dispatch manual: rodar com rota=__CLIENTES__.
+  smoke-clientes:
+    name: Smoke clientes vivos (ROTA LIVRE + WR2)
+    needs: detect
+    if: >-
+      needs.detect.outputs.infra_ready == 'true' && (
+        github.event_name == 'workflow_run' ||
+        needs.detect.outputs.screens == '__CLIENTES__'
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout do SHA deployado
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          fetch-depth: 2
+
+      - name: Health gate — prod respondendo antes do smoke
+        run: |
+          set -uo pipefail
+          OK=""
+          for i in 1 2 3 4 5 6; do
+            CODE="$(curl -4 -sL -o /dev/null -w '%{http_code}' --max-time 20 https://oimpresso.com/login || echo 000)"
+            echo "tentativa $i: HTTP $CODE"
+            if [ "$CODE" = "200" ] || [ "$CODE" = "302" ]; then OK=1; break; fi
+            sleep 10
+          done
+          # `if` e não `[ -z ] && {…}`: como última linha, o `&&` devolve 1 quando OK=1 e
+          # reprovava o passo com produção respondendo 200 (pego no dispatch run 43777006880).
+          if [ -z "$OK" ]; then
+            echo "::error::ALERT smoke-clientes cliente=todos prod não respondeu 200/302 em /login."
+            exit 1
+          fi
+          echo "→ prod alcançável."
+
+      - name: Baixar o build deste deploy (manifest)
+        if: github.event_name == 'workflow_run'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: vite-build
+          path: _deploy_build
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Aguardar produção servir o build deste deploy
+        run: |
+          set -uo pipefail
+          if [ "$GITHUB_EVENT_NAME" != "workflow_run" ]; then
+            echo "→ dispatch manual: não há deploy associado, sem espera de bundle."
+            exit 0
+          fi
+          node scripts/screen-smoke/aguardar-bundle-live.mjs --manifest-dir _deploy_build --tentativas 20 --intervalo 15
+          RC=$?
+          case "$RC" in
+            0) ;;
+            1) echo "::error title=Bundle antigo em produção::após ~5 min produção ainda serve outro app-*.js. O smoke fotografaria a tela anterior ao deploy, então não roda."; exit 1 ;;
+            *) echo "::error title=NÃO MEDIDO::não foi possível confirmar qual bundle produção serve. Isto não é verde nem regressão."; exit 1 ;;
+          esac
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar deps + Chromium do Playwright
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Self-test — seleção e ALERT por cliente
+        run: node scripts/screen-smoke/select-routes.test.mjs
+
+      - name: Smoke das telas dos clientes vivos
+        env:
+          SMOKE_BASE_URL: https://oimpresso.com
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SMOKE_VISION_MODEL: ${{ vars.SCREEN_SMOKE_MODEL || 'gpt-4o-mini' }}
+          SMOKE_PROD_USER: ${{ secrets.SMOKE_PROD_USER }}
+          SMOKE_PROD_PASS: ${{ secrets.SMOKE_PROD_PASS }}
+          SCREENS: __CLIENTES__
+          SMOKE_OUT_DIR: storage/screen-smoke-clientes
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: node scripts/screen-smoke/smoke.mjs
+
+      - name: Preservar evidência (screenshots + resumo)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-smoke-clientes-${{ github.run_id }}
+          path: storage/screen-smoke-clientes/**
           if-no-files-found: ignore
           retention-days: 30
 
