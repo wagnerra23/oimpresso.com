@@ -1883,7 +1883,7 @@ class ProductController extends Controller
      * lista quando a categoria muda (o Blade pede uma a uma em `/products/get_sub_categories`). Vazio
      * quando a empresa não usa categoria ou subcategoria, como o Blade esconde o campo.
      *
-     * @return object<int, object<int, string>>  categoria => [subcategoria => nome]
+     * @return object  categoria => {subcategoria => nome}
      */
     protected function subcategoriasPorCategoria(int $business_id): object
     {
@@ -1906,7 +1906,7 @@ class ProductController extends Controller
      * cadastro de unidades, como o Blade lista em `/products/get_sub_units` (a unidade principal e as
      * que derivam dela). Vazio quando a empresa não usa sub-unidades (`enable_sub_units`).
      *
-     * @return object<int, list<array{id:int, nome:string, multiplicador:float}>>
+     * @return object  unidade => list<{id, nome, multiplicador}>
      */
     protected function subUnidadesPorUnidade(int $business_id): object
     {
@@ -1914,13 +1914,17 @@ class ProductController extends Controller
             return (object) [];
         }
         $mapa = [];
-        $principais = Unit::where('business_id', $business_id)->whereNull('base_unit_id')->with('sub_units')->get();
-        foreach ($principais as $u) {
-            $lista = [['id' => (int) $u->id, 'nome' => (string) $u->actual_name, 'multiplicador' => 1.0]];
-            foreach ($u->sub_units as $sub) {
-                $lista[] = ['id' => (int) $sub->id, 'nome' => (string) $sub->actual_name, 'multiplicador' => (float) $sub->base_unit_multiplier];
+        $unidades = Unit::where('business_id', $business_id)->orderBy('id')->get(['id', 'actual_name', 'base_unit_id', 'base_unit_multiplier']);
+        foreach ($unidades as $u) {
+            if ($u->base_unit_id === null) {
+                $mapa[(int) $u->id] = [['id' => (int) $u->id, 'nome' => (string) $u->actual_name, 'multiplicador' => 1.0]];
             }
-            $mapa[(int) $u->id] = $lista;
+        }
+        foreach ($unidades as $u) {
+            // Só a derivada de uma principal desta empresa entra (a principal veio do mesmo filtro).
+            if ($u->base_unit_id !== null && isset($mapa[(int) $u->base_unit_id])) {
+                $mapa[(int) $u->base_unit_id][] = ['id' => (int) $u->id, 'nome' => (string) $u->actual_name, 'multiplicador' => (float) $u->base_unit_multiplier];
+            }
         }
 
         return (object) $mapa;
