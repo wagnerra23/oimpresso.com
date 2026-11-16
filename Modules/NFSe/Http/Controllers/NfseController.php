@@ -271,17 +271,25 @@ class NfseController extends Controller
     {
         $this->authorize('nfse.view');
 
-        $nfse->load('transaction.contact');
+        // Tier 0: Transaction não tem escopo de empresa. A venda só entra na tela se for da
+        // mesma empresa da nota — nota antiga gravada com venda alheia não a expõe.
+        $tx = $nfse->transaction_id
+            ? Transaction::query()
+                ->where('business_id', $nfse->business_id)
+                ->find($nfse->transaction_id)
+            : null;
 
         $vendaData = null;
-        if ($nfse->transaction) {
-            $tx = $nfse->transaction;
+        if ($tx) {
+            $contato = $tx->contact_id
+                ? \App\Contact::where('business_id', $nfse->business_id)->find($tx->contact_id)
+                : null;
             $vendaData = [
                 'id'              => $tx->id,
                 'invoice_no'      => $tx->invoice_no,
                 'transaction_date'=> optional($tx->transaction_date)->format('d/m/Y'),
                 'final_total'     => (float) $tx->final_total,
-                'contact_nome'    => $tx->contact?->name ?? $tx->contact?->supplier_business_name ?? null,
+                'contact_nome'    => $contato?->name ?? $contato?->supplier_business_name ?? null,
             ];
         }
 

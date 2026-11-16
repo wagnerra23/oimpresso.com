@@ -896,8 +896,10 @@ class TransactionUtil extends Util
 
         $payment['amount'] = $uf_data ? $this->num_uf($payment['amount']) : $payment['amount'];
 
+        // A linha editada tem que ser desta venda (Tier 0, ADR 0093): o payment_id vem do request.
         $tp = TransactionPayment::where('id', $payment_id)
-                            ->first();
+                            ->where('transaction_id', $transaction->id)
+                            ->firstOrFail();
 
         $transaction_type = ! empty($transaction->type) ? $transaction->type : null;
 

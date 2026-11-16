@@ -119,7 +119,6 @@ ssh -4 -o ConnectTimeout=900 -o ServerAliveInterval=3 \
 ## Refs
 
 - INFRA.md (mapa de ambientes)
-- [reference_vaultwarden_credenciais.md](../../claude/reference_vaultwarden_credenciais.md) (auto-mem)
-- [reference_hostinger_ssh_credenciais.md](../../claude/reference_hostinger_ssh_credenciais.md)
+- [_INDEX-SECRETS.md](../../_INDEX-SECRETS.md) — índice de onde cada segredo mora (Vaultwarden, CT 100). _Em 2026-11-16 substitui dois links para `memory/claude/`, pasta purgada na auditoria de 2026-06-07._
 - TEAM.md → Eliana[E]
 - [SPEC.md](SPEC.md) §"Pré-requisitos fora do código"

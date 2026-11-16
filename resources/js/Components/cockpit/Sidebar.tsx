@@ -693,6 +693,57 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
   const href = item.href ?? '#';
   const Icon = findMenuIcon(item.label);
 
+  // Sub-telas (ghosts) sob o item ATIVO, com teto + "⋯ mais N". Usado pelos
+  // DOIS ramos: item com filhos também recebe ghosts do `AdminSidebarMenu`
+  // (Vendas, Conector, Jana, Atendimento — medido em prod 2026-11-16, 16
+  // atalhos que nunca chegavam ao DOM). Protótipo `sidebar.jsx` (MenuGroup):
+  // a `GhostList` vem depois da cascata quando o item está ativo. Pai de
+  // dropdown chega SEM href (`LegacyMenuAdapter::convertItem`), então `ativo`
+  // é sempre falso nele: no ramo com filhos a condição é a cascata aberta —
+  // que já abre sozinha quando a rota é de um filho.
+  const linhasGhost = (mostrar: boolean) => mostrar && (
+    <>
+      {ghostsVisiveis.map((g) => {
+        const GhostIcon = findGhostIcon(g.icon);
+        return (
+          <a
+            key={g.key ?? g.href}
+            href={g.href}
+            className="sb-item sb-sub sb-ghost"
+            aria-current={g.href === ghostMarcado ? 'page' : undefined}
+          >
+            {GhostIcon && <GhostIcon size={14} strokeWidth={1.6} className="ic" aria-hidden="true" />}
+            <span className="label">{g.label}</span>
+          </a>
+        );
+      })}
+      {ghostsOcultos > 0 && (
+        <button
+          type="button"
+          className="sb-ghost-more"
+          onClick={() => setGhostsAbertos(true)}
+          aria-expanded="false"
+          aria-label={`Mostrar mais ${ghostsOcultos} tela(s) de ${item.label}`}
+        >
+          <span className="sb-ghost-more-d" aria-hidden="true">⋯</span>
+          <span>mais {ghostsOcultos}</span>
+        </button>
+      )}
+      {ghostsAbertos && ghosts.length > GHOST_TETO && (
+        <button
+          type="button"
+          className="sb-ghost-more"
+          onClick={() => setGhostsAbertos(false)}
+          aria-expanded="true"
+          aria-label={`Mostrar menos telas de ${item.label}`}
+        >
+          <span className="sb-ghost-more-d" aria-hidden="true">⌃</span>
+          <span>mostrar menos</span>
+        </button>
+      )}
+    </>
+  );
+
   if (hasChildren) {
     return (
       <>
@@ -722,6 +773,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
             <span className="label">{c.label}</span>
           </a>
         ))}
+        {linhasGhost(isOpen)}
       </>
     );
   }
@@ -738,44 +790,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
         <span className="label">{item.label}</span>
         <ItemEnd atalho={atalho} telas={ghosts.length} />
       </a>
-      {ativo && ghostsVisiveis.map((g) => {
-        const GhostIcon = findGhostIcon(g.icon);
-        return (
-          <a
-            key={g.key ?? g.href}
-            href={g.href}
-            className="sb-item sb-sub sb-ghost"
-            aria-current={g.href === ghostMarcado ? 'page' : undefined}
-          >
-            {GhostIcon && <GhostIcon size={14} strokeWidth={1.6} className="ic" aria-hidden="true" />}
-            <span className="label">{g.label}</span>
-          </a>
-        );
-      })}
-      {ativo && ghostsOcultos > 0 && (
-        <button
-          type="button"
-          className="sb-ghost-more"
-          onClick={() => setGhostsAbertos(true)}
-          aria-expanded="false"
-          aria-label={`Mostrar mais ${ghostsOcultos} tela(s) de ${item.label}`}
-        >
-          <span className="sb-ghost-more-d" aria-hidden="true">⋯</span>
-          <span>mais {ghostsOcultos}</span>
-        </button>
-      )}
-      {ativo && ghostsAbertos && ghosts.length > GHOST_TETO && (
-        <button
-          type="button"
-          className="sb-ghost-more"
-          onClick={() => setGhostsAbertos(false)}
-          aria-expanded="true"
-          aria-label={`Mostrar menos telas de ${item.label}`}
-        >
-          <span className="sb-ghost-more-d" aria-hidden="true">⌃</span>
-          <span>mostrar menos</span>
-        </button>
-      )}
+      {linhasGhost(ativo)}
     </>
   );
 }

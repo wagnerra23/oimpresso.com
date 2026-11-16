@@ -497,6 +497,9 @@ Route::middleware(['web', 'throttle:60,1'])->group(function () {
     // Portal do Paciente do Fisio + app Uniafibro (com.oimpresso.fisio): dado de saúde, política própria.
     Route::get('/fisio/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'fisio'])
         ->name('publico.privacidade.fisio');
+    // "Ajuda" do topo e do rodapé do site: ainda não há central de ajuda pública, então leva ao
+    // Fale conosco. 302 (temporário) porque a central vai existir — decisão [W] 2026-11-14.
+    Route::redirect('/ajuda', '/c/contact-us', 302)->name('publico.ajuda');
 });
 
 Route::middleware(['setData'])->group(function () {
@@ -669,6 +672,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/contacts/payments/{contact_id}', [ContactController::class, 'getContactPayments']);
     Route::get('/contacts/map', [ContactController::class, 'contactMap']);
     Route::get('/contacts/update-status/{id}', [ContactController::class, 'updateStatus']);
+    // A ficha React ativa/desativa por POST (com CSRF) mandando o estado pedido; o GET fica
+    // para o botão da lista Blade antiga, que só inverte.
+    Route::post('/contacts/update-status/{id}', [ContactController::class, 'updateStatus'])->whereNumber('id');
+    // UC-CIDX-16 — restaura cadastro excluído (filtro "Excluídos" da lista de clientes).
+    Route::post('/contacts/{id}/restore', [ContactController::class, 'restore'])->whereNumber('id');
     Route::get('/contacts/stock-report/{supplier_id}', [ContactController::class, 'getSupplierStockReport']);
     Route::get('/contacts/ledger', [ContactController::class, 'getLedger']);
     Route::post('/contacts/send-ledger', [ContactController::class, 'sendLedger']);
@@ -786,6 +794,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/products/stock-history/{id}', [ProductController::class, 'productStockHistory']);
     // CU-PROD-20 (#10765): só os locais de armazenagem; product.update ou product.armazenagem.
     Route::patch('/products/{id}/armazenagem', [ProductController::class, 'atualizarArmazenagem'])->whereNumber('id');
+    // UC-PEDIT-29: imagem e folheto do produto, gravados na hora pelo Editar React.
+    Route::post('/products/{id}/midia', [ProductController::class, 'atualizarMidia'])->whereNumber('id');
     Route::get('/delete-media/{media_id}', [ProductController::class, 'deleteMedia']);
     Route::post('/products/mass-deactivate', [ProductController::class, 'massDeactivate']);
     Route::get('/products/activate/{id}', [ProductController::class, 'activate']);

@@ -14,7 +14,7 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 87 arquivos em 16 papéis.
+**Total mapeado:** 92 arquivos em 16 papéis.
 
 ## Controllers — 5
 
@@ -34,7 +34,7 @@ module: Arquivos
 - [RetentionRunRequest.php](../../../Modules/Arquivos/Http/Requests/RetentionRunRequest.php)
 - [UploadArquivoRequest.php](../../../Modules/Arquivos/Http/Requests/UploadArquivoRequest.php)
 
-## Services — 10
+## Services — 11
 
 - [AnexosDoAppService.php](../../../Modules/Arquivos/Services/AnexosDoAppService.php)
 - [ArquivosRetentionService.php](../../../Modules/Arquivos/Services/ArquivosRetentionService.php)
@@ -45,11 +45,13 @@ module: Arquivos
 - [CuradorEngine.php](../../../Modules/Arquivos/Services/Curador/CuradorEngine.php)
 - [CuradorStatsReader.php](../../../Modules/Arquivos/Services/Curador/CuradorStatsReader.php)
 - [RetencaoStatsReader.php](../../../Modules/Arquivos/Services/RetencaoStatsReader.php)
+- [ValidacaoUpload.php](../../../Modules/Arquivos/Services/ValidacaoUpload.php)
 - [VaultEncryptionService.php](../../../Modules/Arquivos/Services/VaultEncryptionService.php)
 
-## Models / Entities — 1
+## Models / Entities — 2
 
 - [Arquivo.php](../../../Modules/Arquivos/Entities/Arquivo.php)
+- [EscopoDeEmpresa.php](../../../Modules/Arquivos/Entities/Concerns/EscopoDeEmpresa.php)
 
 ## Jobs — 2
 
@@ -76,7 +78,7 @@ module: Arquivos
 
 - [web.php](../../../Modules/Arquivos/Routes/web.php)
 
-## Migrations (schema) — 10
+## Migrations (schema) — 11
 
 - [2026_05_10_000001_create_arquivos_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000001_create_arquivos_table.php)
 - [2026_05_10_000002_create_arquivos_audit_log_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000002_create_arquivos_audit_log_table.php)
@@ -88,6 +90,7 @@ module: Arquivos
 - [2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php](../../../Modules/Arquivos/Database/Migrations/2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php)
 - [2026_10_01_000001_add_titular_avisado_at_and_notice_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_10_01_000001_add_titular_avisado_at_and_notice_to_arquivos.php)
 - [2026_10_15_000001_add_legenda_etapa_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php)
+- [2026_11_16_000001_audit_log_append_only_e_fk_business.php](../../../Modules/Arquivos/Database/Migrations/2026_11_16_000001_audit_log_append_only_e_fk_business.php)
 
 ## Config — 2
 
@@ -111,9 +114,9 @@ module: Arquivos
 
 - [Index.casos.md](../../../resources/js/Pages/Arquivos/Index.casos.md)
 
-## Testes (Pest) — 30
+## Testes (Pest) — 33
 
-- 30 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
+- 33 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4

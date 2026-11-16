@@ -3208,7 +3208,9 @@ class SellPosController extends Controller
 
     public function getFeaturedProducts($id)
     {
-        $location = BusinessLocation::findOrFail($id);
+        // Só local da empresa da sessão (Tier 0, ADR 0093).
+        $location = BusinessLocation::where('business_id', request()->session()->get('user.business_id'))
+            ->findOrFail($id);
         $featured_products = $location->getFeaturedProducts();
 
         if (!empty($featured_products)) {

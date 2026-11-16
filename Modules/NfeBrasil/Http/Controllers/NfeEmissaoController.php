@@ -103,8 +103,19 @@ class NfeEmissaoController extends Controller
             }
         }
 
+        // Onda 5 das naturezas (RUNBOOK-tributacao §Naturezas): a natureza do lançamento só vale com a
+        // flag da empresa ligada. Desligada, o campo é ignorado e a emissão segue como antes.
+        $operacaoId = $request->integer('operacao_id') ?: null;
+        if ($operacaoId !== null && ! app(\App\Services\FeatureFlagService::class)
+            ->isOn(\Modules\NfeBrasil\Http\Controllers\NaturezaOperacaoController::FLAG, ['business_id' => $businessId])) {
+            $operacaoId = null;
+        }
+
         try {
-            $emissao = $this->nfeService->emitirParaTransaction($transaction, $modelo, $separada);
+            $emissao = $this->nfeService->emitirParaTransaction($transaction, $modelo, $separada, operacaoId: $operacaoId);
+        } catch (\Modules\NfeBrasil\Exceptions\NaturezaDoLancamentoInvalidaException $e) {
+            // Onda 5: natureza que não serve para esta emissão — recusa explicada, não falha do servidor.
+            return response()->json(['error' => 'natureza_invalida', 'message' => $e->getMessage()], 422);
         } catch (NcmPadraoAusenteException $e) {
             // R-NFE-022: bloqueio de configuração, não falha do servidor. Devolve a saída de 1 clique.
             return response()->json([

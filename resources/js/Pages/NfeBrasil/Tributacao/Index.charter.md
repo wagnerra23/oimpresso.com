@@ -42,6 +42,7 @@ Configurar **tributação default + regras NCM específicas** do business — ú
 - Multi-tenant Tier 0: query usa `business_id` em todas operações + HasBusinessScope no `NfeFiscalRule` e `NfeBusinessConfig`
 - AuditLog em mutações sensíveis: `activity('nfe.tributacao')->log(...)` em `toggleAutoEmission` (`auto_emission.toggled`), `store` (`regra.created`), `update` (`regra.updated`) e `destroy` (`regra.deleted`) — ⚠️ v1 citava `linha 105-112 do Controller`; referência de linha apodrece no primeiro refactor (hoje já são 123-130), então a âncora passa a ser o **símbolo** + o log-name
 - Cascade defaults NCM→produto (ADR satélite arq/0006)
+- Seção **Naturezas de operação** atrás da flag `useV2NfeNaturezas` (por empresa, desligada): lista com filtros e editor em 4 passos; a conferência é do servidor; natureza que o cálculo usa abre só para leitura (RUNBOOK-tributacao §Naturezas · UC-NFTR-44..52)
 
 ---
 
@@ -98,6 +99,7 @@ Configurar **tributação default + regras NCM específicas** do business — ú
 - `POST /nfe-brasil/tributacao/import/preview` → preview CSV
 - `POST /nfe-brasil/tributacao/import/aplicar` → aplicar CSV em batch
 - Cascade NCM→produto: ao salvar config default, listeners propagam pra cálculos posteriores (ADR satélite arq/0006)
+- `GET/POST /nfe-brasil/tributacao/naturezas`, `POST …/naturezas/conferir`, `PUT …/naturezas/{id}` → `NaturezaOperacaoController` (404 com a flag desligada)
 - Multi-tenant: HasBusinessScope no `NfeFiscalRule` + `NfeBusinessConfig`
 - Audit: ⚠️ **v1 desatualizada** — dizia que só o `toggleAutoEmission` logava e que store/update/destroy viriam pela US-NFE-062 P1. Verificado 2026-07-27: `store`/`update`/`destroy` **já logam** (`regra.created`/`regra.updated`/`regra.deleted`). O único caminho de mutação **sem** `activity()` é o **`aplicarTemplate`** — que é a ação mais destrutiva da tela (substitui regime + tributação default inteira) e segue no escopo da US-NFE-062
 

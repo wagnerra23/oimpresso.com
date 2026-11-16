@@ -145,6 +145,16 @@ beforeEach(function () {
         test()->markTestSkipped('era-sqlite: schema sintético manual incompatível com MySQL persistente — quarentena Onda 2 SDD floor; burn-down converte depois.');
     }
     pgEnsureSchema();
+
+    // Este arquivo testa o SERVICE, não o listener do Financeiro. Sem o fake, o
+    // listener OnCobrancaPagaCreateFinanceiroTitulo só roda no teste que for o
+    // PRIMEIRO a bootar o app no processo: FinanceiroServiceProvider guarda o
+    // registro atrás de uma flag estática (ver Onda26InterWebhookIntegrationTest).
+    // Nesse teste o listener consulta `users`, que o schema sintético não tem →
+    // `no such table: users`. Com --order-by=random isso caía no caso que a
+    // semente pusesse em 1º (CI 2026-11-16, seed 1794796266). O listener tem
+    // cobertura própria; aqui o evento só precisa ser despachado.
+    Event::fake([CobrancaPaga::class]);
 });
 
 it('marca cobrança paga: status + valor_pago + paga_em + forma', function () {
