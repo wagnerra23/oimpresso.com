@@ -15,8 +15,8 @@ import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
 import { tipoDeEnvio } from './_components/formulario/envio';
-import { definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
-import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
+import { camposPersonalizadosGravados, definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
+import type { CampoDaEmpresa, OptionMap, OptionStringMap } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
@@ -85,6 +85,8 @@ export interface ProdutoCreatePageProps {
   margemMinima?: number | null;
   /** `product.opening_stock`: mostra "Salvar e adicionar estoque inicial", como o Blade. */
   podeEstoqueInicial?: boolean;
+  /** UC-PCAD-24: os campos personalizados com o nome que a empresa deu. */
+  camposDaEmpresa?: CampoDaEmpresa[];
 }
 
 function ProdutoCreate(props: ProdutoCreatePageProps) {
@@ -131,10 +133,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     expiry_period: validadeNaCompra ? '12' : '',
     expiry_period_type: 'months',
     enable_sr_no: 0,
-    product_custom_field1: '',
-    product_custom_field2: '',
-    product_custom_field3: '',
-    product_custom_field4: '',
+    // UC-PCAD-24: os 20 campos personalizados; a tela mostra os que a empresa nomeou.
+    ...camposPersonalizadosGravados(null),
   });
 
   // CU-PROD-20: locais de armazenagem. Começa no local único (ou no primeiro), que é o padrão;

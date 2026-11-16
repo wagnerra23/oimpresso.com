@@ -33,6 +33,7 @@ import type {
   NumeroCampoPersonalizado,
   OptionMap,
   OptionStringMap,
+  CampoDaEmpresa,
 } from './_components/formulario/tipos';
 
 
@@ -113,6 +114,8 @@ export interface ProdutoEditPageProps {
    * o bloco de locais precisa, e a tela mostra só ele.
    */
   somenteArmazenagem?: boolean;
+  /** UC-PEDIT-24: os campos personalizados com o nome que a empresa deu. */
+  camposDaEmpresa?: CampoDaEmpresa[];
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
