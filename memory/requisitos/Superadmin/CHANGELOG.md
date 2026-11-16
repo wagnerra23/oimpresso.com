@@ -2,6 +2,10 @@
 
 Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 linha na entrada do Wave/data.
 
+## 2026-11-16 — Lote 0 da auditoria (pagamento)
+
+- `SubscriptionController::confirm` só cria assinatura com gateway configurado em `_payment_gateways()` que tenha `pay_<gateway>`; recusa pacote privado, de uso único já assinado e inexistente; rota passa a POST (PayPal/Pesapal voltam por `confirm/retorno`, GET que só aceita os dois); exceção vai ao log redigido, não à tela. Teste: `SubscriptionConfirmContratoTest` (UC-SACF-01..07).
+
 ## Wave 27 polish final — 2026-05-17 (target cross_cutting ≥92)
 
 - `Tests/Feature/Wave27CrossTenantSaturationTest.php` (NOVO) — **50 cenários

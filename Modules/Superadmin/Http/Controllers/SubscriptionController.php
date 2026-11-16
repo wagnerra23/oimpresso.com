@@ -381,42 +381,107 @@ class SubscriptionController extends BaseController
                 return $this->confirm_paymentgateway($package_id, $request);
             }
 
-            DB::beginTransaction();
-
             $business_id = request()->session()->get('user.business_id');
             $business_name = request()->session()->get('business.name');
             $user_id = request()->session()->get('user.id');
+            $gateway = (string) $request->input('gateway', '');
+
+            // A assinatura só nasce se o gateway for um dos configurados E tiver o método que cobra.
+            // Antes, `gateway` desconhecido pulava o pagamento e `_add_subscription` aprovava o pacote
+            // pago (só `offline`/`pesapal` ficam `waiting`). Paystack/Flutterwave não passam por aqui:
+            // têm callbacks próprios, então também ficam de fora.
+            $recusa = $this->motivoRecusaConfirm($business_id, $package_id, $gateway, $request);
+            if ($recusa !== null) {
+                return redirect()
+                    ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
+                    ->with('status', ['success' => 0, 'msg' => $recusa]);
+            }
+
             $package = Package::active()->find($package_id);
 
+            DB::beginTransaction();
+
             //Call the payment method
-            $pay_function = 'pay_'.request()->gateway;
-            $payment_transaction_id = null;
-            if (method_exists($this, $pay_function)) {
-                $payment_transaction_id = $this->$pay_function($business_id, $business_name, $package, $request);
+            $pay_function = 'pay_'.$gateway;
+            $payment_transaction_id = $this->$pay_function($business_id, $business_name, $package, $request);
+
+            // `pay_paypal` (ACK recusado) e `pay_offline` (demo) devolvem um redirect em vez do id da
+            // transação. Antes o redirect seguia como "id" e a assinatura nascia aprovada mesmo assim.
+            if ($payment_transaction_id instanceof \Symfony\Component\HttpFoundation\Response) {
+                DB::rollBack();
+
+                return $payment_transaction_id;
             }
 
             //Add subscription details after payment is succesful
-            $this->_add_subscription($business_id, $package_id, request()->gateway, $payment_transaction_id, $user_id);
+            $this->_add_subscription($business_id, $package, $gateway, $payment_transaction_id, $user_id);
             DB::commit();
 
             $msg = __('lang_v1.success');
-            if (request()->gateway == 'offline') {
+            if ($gateway == 'offline') {
                 $msg = __('superadmin::lang.notification_sent_for_approval');
             }
             $output = ['success' => 1, 'msg' => $msg];
         } catch (\Exception $e) {
-            DB::rollBack();
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
 
-            // LGPD D7.a — exception->getMessage() pode conter PII cross-tenant
-            $this->_log_emergency_redacted($e, 'SubscriptionController');
-            echo 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage();
-            exit;
-            $output = ['success' => 0, 'msg' => $e->getMessage()];
+            // LGPD D7.a — a mensagem da exceção pode ter PII ou SQL: vai redigida ao log, nunca à tela.
+            $this->_log_emergency_redacted($e, 'SubscriptionController.confirm');
+            $output = ['success' => 0, 'msg' => __('messages.something_went_wrong')];
         }
 
         return redirect()
             ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
             ->with('status', $output);
+    }
+
+    /**
+     * Retorno GET dos gateways que redirecionam o navegador de volta (PayPal, Pesapal).
+     * Só esses dois passam por aqui: os dois conferem o pagamento no provedor (token PayPal,
+     * referência Pesapal guardada na sessão). Qualquer outro gateway exige o POST com CSRF.
+     */
+    public function confirmRetorno($package_id, Request $request)
+    {
+        $ehPesapal = strpos((string) $request->merchant_reference, 'PESAPAL') !== false;
+        if (! $ehPesapal && $request->input('gateway') !== 'paypal') {
+            abort(405);
+        }
+
+        return $this->confirm($package_id, $request);
+    }
+
+    /**
+     * Por que o `confirm` não pode criar a assinatura, ou null se pode.
+     */
+    protected function motivoRecusaConfirm($business_id, $package_id, string $gateway, Request $request): ?string
+    {
+        if ($gateway === '' || ! array_key_exists($gateway, $this->_payment_gateways())
+            || ! method_exists($this, 'pay_'.$gateway)) {
+            return __('superadmin::lang.forma_pagamento_indisponivel');
+        }
+
+        // GET só chega pelo retorno (`confirmRetorno`), e lá só o PayPal confere no provedor.
+        if ($request->isMethod('get') && $gateway !== 'paypal') {
+            return __('superadmin::lang.forma_pagamento_indisponivel');
+        }
+
+        $package = Package::active()->find($package_id);
+        if ($package === null) {
+            return __('superadmin::lang.package_not_found');
+        }
+
+        // As mesmas duas travas do `pay()`: pacote só de superadmin e pacote de uso único.
+        if ($package->is_private == 1 && ! auth()->user()->can('superadmin')) {
+            return __('superadmin::lang.not_allowed_for_package');
+        }
+        if ($package->is_one_time && Subscription::where('business_id', $business_id)
+            ->where('package_id', $package->id)->exists()) {
+            return __('superadmin::lang.maximum_subscription_limit_exceed');
+        }
+
+        return null;
     }
 
     /**
@@ -686,7 +751,7 @@ class SubscriptionController extends BaseController
         ];
         $data['invoice_id'] = $invoice_id;
         $data['invoice_description'] = "Order #{$data['invoice_id']} Invoice";
-        $data['return_url'] = action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirm'], [$package->id]);
+        $data['return_url'] = action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirmRetorno'], [$package->id]).'?gateway=paypal';
         $data['cancel_url'] = action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'pay'], [$package->id]);
         $data['total'] = (float) $package->price;
 
@@ -732,7 +797,7 @@ class SubscriptionController extends BaseController
         ];
         $data['invoice_id'] = Str::random(5);
         $data['invoice_description'] = "Order #{$data['invoice_id']} Invoice";
-        $data['return_url'] = action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirm'], [$package_id]).'?gateway=paypal';
+        $data['return_url'] = action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirmRetorno'], [$package_id]).'?gateway=paypal';
         $data['cancel_url'] = action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'pay'], [$package_id]);
         $data['total'] = (float) $package->price;
 
