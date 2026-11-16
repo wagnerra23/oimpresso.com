@@ -62,6 +62,12 @@ export interface CamposProduto extends Record<CampoPersonalizado, string> {
   unit_id: number | string;
   brand_id: number | string;
   category_id: number | string;
+  /** UC-PCAD-25 · UC-PEDIT-25: '' = sem subcategoria. */
+  sub_category_id?: number | string;
+  /** UC-PCAD-26 · UC-PEDIT-26: as sub-unidades ligadas ao produto. */
+  sub_unit_ids?: number[];
+  /** UC-PCAD-27 · UC-PEDIT-27: IMEI / nº de série (1 liga). */
+  enable_sr_no?: number;
   tax: number | string;
   tax_type: 'inclusive' | 'exclusive';
   origem_mercadoria: number;
@@ -143,6 +149,17 @@ export interface OpcoesProduto {
   businessLocations?: OptionMap;
   /** Os campos personalizados com o nome que a empresa deu (UC-PCAD-24 · UC-PEDIT-24). */
   camposDaEmpresa?: CampoDaEmpresa[];
+  /** UC-PCAD-25 · UC-PEDIT-25: categoria => {subcategoria => nome}. Vazio: a empresa não usa subcategoria. */
+  subcategoriasPorCategoria?: Record<string, Record<string, string>>;
+  /** UC-PCAD-26 · UC-PEDIT-26: unidade => sub-unidades. Vazio: a empresa não usa sub-unidades. */
+  subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
+}
+
+/** Uma unidade da lista de sub-unidades: `multiplicador` em unidades da principal (a principal tem 1). */
+export interface SubUnidade {
+  id: number;
+  nome: string;
+  multiplicador: number;
 }
 
 /**
