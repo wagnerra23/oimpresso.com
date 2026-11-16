@@ -1035,8 +1035,9 @@ class NfeService
                 ? ($tributo->cst ?? $tributo->csosn ?? '102')
                 : ($tributo->csosn ?? $tributo->cst ?? '102');
             // R-NFE-025b: PIS/COFINS do item com o CST da regra (helper pisCofinsDoItem).
-            $pis    = $this->pisCofinsDoItem($tributo->cst_pis, $base, $tributo->aliquota_pis, $tributo->valor_pis);
-            $cofins = $this->pisCofinsDoItem($tributo->cst_cofins, $base, $tributo->aliquota_cofins, $tributo->valor_cofins);
+            // Natureza da tela com "tirar o ICMS da base": a base do PIS/COFINS vem do motor.
+            $pis    = $this->pisCofinsDoItem($tributo->cst_pis, $tributo->base_pis ?? $base, $tributo->aliquota_pis, $tributo->valor_pis);
+            $cofins = $this->pisCofinsDoItem($tributo->cst_cofins, $tributo->base_cofins ?? $base, $tributo->aliquota_cofins, $tributo->valor_cofins);
             $itensFallback += ($pis['fallback'] || $cofins['fallback']) ? 1 : 0;
             $dets[] = [
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
