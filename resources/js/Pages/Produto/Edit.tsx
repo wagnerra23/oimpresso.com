@@ -28,6 +28,7 @@ import type { EnderecoNoEstoque, SaldoPorLocal } from './_components/formulario/
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
+import type { Folheto } from './_components/formulario/CampoMidia';
 import type {
   NaturezaFiscalProduto,
   NumeroCampoPersonalizado,
@@ -75,6 +76,8 @@ interface ProdutoEditModel {
   productDescription: string | null;
   productLocations: number[];
   image: string | null;
+  /** UC-PEDIT-29: o folheto gravado. */
+  folheto?: Folheto | null;
   warrantyId: number | null;
   /** O valor gravado dos 20 campos personalizados (1 → 20). */
   camposPersonalizados: Partial<Record<NumeroCampoPersonalizado, string | null>>;
@@ -270,6 +273,7 @@ function EditarCompleto(props: ProdutoEditPageProps) {
               p.enableStock ? { valor: armazenagem, mudar: setArmazenagem, endereco, saldos: props.saldoPorLocal ?? {} } : undefined
             }
             politica={{ valor: politica, mudar: setPolitica }}
+            midia={{ produtoId: p.id, imagem: p.image, folheto: p.folheto ?? null }}
           />
           {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o card aparece quando ela chega,
               sem esqueleto (é o último antes do rodapé). Null sem o módulo Produção, em composição e

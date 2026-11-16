@@ -778,6 +778,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/products/stock-history/{id}', [ProductController::class, 'productStockHistory']);
     // CU-PROD-20 (#10765): só os locais de armazenagem; product.update ou product.armazenagem.
     Route::patch('/products/{id}/armazenagem', [ProductController::class, 'atualizarArmazenagem'])->whereNumber('id');
+    // UC-PEDIT-29: imagem e folheto do produto, gravados na hora pelo Editar React.
+    Route::post('/products/{id}/midia', [ProductController::class, 'atualizarMidia'])->whereNumber('id');
     Route::get('/delete-media/{media_id}', [ProductController::class, 'deleteMedia']);
     Route::post('/products/mass-deactivate', [ProductController::class, 'massDeactivate']);
     Route::get('/products/activate/{id}', [ProductController::class, 'activate']);

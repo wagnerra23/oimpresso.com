@@ -68,6 +68,9 @@ export interface CamposProduto extends Record<CampoPersonalizado, string> {
   sub_unit_ids?: number[];
   /** UC-PCAD-27 · UC-PEDIT-27: IMEI / nº de série (1 liga). */
   enable_sr_no?: number;
+  /** UC-PCAD-29: a imagem e o folheto escolhidos no Novo (vão com o produto ao salvar). */
+  image?: File | null;
+  product_brochure?: File | null;
   tax: number | string;
   tax_type: 'inclusive' | 'exclusive';
   origem_mercadoria: number;

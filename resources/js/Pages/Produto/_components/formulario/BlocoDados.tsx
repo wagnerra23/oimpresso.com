@@ -22,6 +22,8 @@ import { Grid, Inline } from '@/Components/layout';
 import { CampoLocais } from './BlocoLocais';
 import { CampoSubcategoria, CampoSubUnidades } from './BlocoSubcampos';
 import { CadastroAuxiliar } from './CadastroAuxiliar';
+import { CampoMidia } from './CampoMidia';
+import type { Folheto } from './CampoMidia';
 import type { TipoAuxiliar } from './CadastroAuxiliar';
 import { avisoCodigoBarras } from './ean';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
@@ -33,9 +35,11 @@ interface Props {
   definir: DefinirCampo;
   errors: ErrosProduto;
   opcoes: OpcoesProduto;
+  /** UC-PEDIT-29: o produto do Editar, com a imagem e o folheto gravados. */
+  midia?: { produtoId: number; imagem: string | null; folheto: Folheto | null };
 }
 
-export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
+export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props) {
   const novo = modo === 'novo';
   const avisoEan = avisoCodigoBarras(data.sku, data.barcode_type);
   // UC-PCAD-25/26 · UC-PEDIT-25/26: o servidor manda as listas vazias quando a empresa não usa.
@@ -277,6 +281,14 @@ export function BlocoDados({ modo, data, definir, errors, opcoes }: Props) {
             onChange={(e) => definir('product_description', e.target.value)}
           />
         </div>
+        <CampoMidia
+          modo={novo ? 'novo' : 'editar'}
+          data={data}
+          definir={definir}
+          produtoId={midia?.produtoId}
+          imagemGravada={midia?.imagem}
+          folhetoGravado={midia?.folheto}
+        />
         </Grid>
         <CadastroAuxiliar tipo={auxiliar} aoFechar={() => setAuxiliar(null)} aoCriar={criado} container={cockpit} />
       </CardContent>
