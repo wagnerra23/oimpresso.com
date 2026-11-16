@@ -29,8 +29,9 @@ declare(strict_types=1);
  * ── DADO ──────────────────────────────────────────────────────────────────────
  * O harness do visreg não semeia NFS-e. Cada caso grava as próprias notas com `DB::table`
  * (a transação do teste não atravessa o processo do servidor do browser) e apaga **pelo id**
- * no `->after()`. A nota "de outra empresa" usa um business_id que não existe no banco de
- * CI (nfse_emissoes não tem FK para business). Nunca biz=4. Tomador e números fictícios.
+ * no `->after()`. A nota "de outra empresa" vai no biz=99 do VisregTenantBLeakSeeder
+ * (nfse_emissoes TEM FK para business; ver nfseBrowserOutraEmpresa). Nunca biz=4. Tomador e
+ * números fictícios.
  *
  * ── ONDE RODA ─────────────────────────────────────────────────────────────────
  * CI / CT 100 apenas (memory/proibicoes.md §Ambiente). Step "E2E de render + axe · NFSe
@@ -39,6 +40,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Database\Seeders\VisregTenantBLeakSeeder;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
@@ -116,10 +118,22 @@ function nfseBrowserLimpar(): void
     }
 }
 
-/** business_id de uma empresa que não existe no banco do CI — a "outra empresa". */
+/**
+ * A "outra empresa": o biz=99 que o VisregTenantBLeakSeeder cria no setup do job (o mesmo
+ * do Tier0RenderIsolationTest). Precisa EXISTIR: nfse_emissoes.business_id tem FK para
+ * business, e um id inventado (max+9000, a 1ª versão) fazia o insert cair com 1452 antes de
+ * o caso testar qualquer coisa (run 43932187285). Se o seed sumir, o caso FALHA — nunca pula.
+ */
 function nfseBrowserOutraEmpresa(): int
 {
-    return (int) DB::table('business')->max('id') + 9000;
+    $outra = VisregTenantBLeakSeeder::BIZ_B;
+    $harness = (int) nfseBrowserAdmin()->business_id;
+
+    if (! DB::table('business')->where('id', $outra)->exists() || $outra === $harness) {
+        throw new \RuntimeException("biz={$outra} (VisregTenantBLeakSeeder) ausente ou igual à empresa do harness ({$harness}).");
+    }
+
+    return $outra;
 }
 
 /**
