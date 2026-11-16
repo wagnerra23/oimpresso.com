@@ -422,6 +422,8 @@ class ProductionController extends Controller
                                     ->with(['purchase_lines', 'purchase_lines.variations', 'purchase_lines.variations.product_variation', 'purchase_lines.variations.product',
                                         'purchase_lines.sub_unit', 'purchase_lines.variations.product.unit', 'media', ])
                                     ->findOrFail($id);
+        // UC-OP-22 (lote 2.5 da auditoria): ordem de local que o usuário não pode é 403.
+        $this->exigirLocalPermitido($production_purchase->location_id);
 
         $production_sell = Transaction::where('business_id', $business_id)
                                     ->where('type', 'production_sell')
@@ -545,6 +547,8 @@ class ProductionController extends Controller
                                     ->where('type', 'production_purchase')
                                     ->with(['purchase_lines', 'purchase_lines.variations', 'purchase_lines.variations.product_variation', 'purchase_lines.variations.product', 'media'])
                                     ->findOrFail($id);
+        // UC-OP-22 (lote 2.5 da auditoria): ordem de local que o usuário não pode é 403.
+        $this->exigirLocalPermitido($production_purchase->location_id);
 
         //Finalized production should not be editable
         if ($production_purchase->mfg_is_final == 1) {
@@ -705,6 +709,8 @@ class ProductionController extends Controller
             $transaction = Transaction::where('business_id', $business_id)
                                     ->where('type', 'production_purchase')
                                     ->findOrFail($id);
+            // UC-OP-22: a ordem gravada também tem de estar num local permitido (o novo é conferido antes do `try`).
+            $this->exigirLocalPermitido($transaction->location_id);
 
             //Finalized production should not be editable
             if ($transaction->mfg_is_final == 1) {
@@ -984,6 +990,8 @@ class ProductionController extends Controller
             'start_date' => request()->get('start_date'),
             'end_date' => request()->get('end_date'),
             'is_final' => request()->has('is_final'),
+            // UC-OP-22 (lote 2.5 da auditoria): a lista só traz ordem de local que o usuário pode.
+            'locais_permitidos' => $this->locaisPermitidos(),
         ];
         $ordemId = (int) request()->get('ordem');
 
@@ -1025,7 +1033,9 @@ class ProductionController extends Controller
             ],
             // Painel lateral da ordem (`?ordem=ID`). Optional: só calcula no partial reload que
             // o pede — a carga da lista não paga o detalhe. Ordem de outra empresa vem null.
-            'ordem_detalhe' => Inertia::optional(fn () => $ordemId > 0 ? $productionService->detalheOrdem($business_id, $ordemId) : null),
+            'ordem_detalhe' => Inertia::optional(fn () => $ordemId > 0 && $this->ordemEmLocalPermitido($business_id, $ordemId)
+                ? $productionService->detalheOrdem($business_id, $ordemId)
+                : null),
         ]);
     }
 
@@ -1037,6 +1047,13 @@ class ProductionController extends Controller
     public function getManufacturingReport(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
+
+        // Gate ANTES dos três ramos (lote 2.1 da auditoria, UC-REPORT-06): o JSON de totais e o
+        // `?legacy=1` não passavam por gate nenhum. Decisão B3 de [W] (2026-11-09): o relatório usa
+        // `access_production`, sem permissão nova.
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
         // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
@@ -1077,15 +1094,14 @@ class ProductionController extends Controller
      * `indexV2`), não o cutover-no-mesmo-endereço que a tela de Receitas usou (aquele foi
      * decisão [W] explícita — {@see RUNBOOK-report.md}).
      *
-     * Mesmo gate do Blade legado acima: só o pacote `manufacturing_module`, sem permissão
-     * Spatie granular própria (o legado nunca teve uma pra "relatório" — não inauguro
-     * restrição nova que o usuário de hoje não tem em `/manufacturing/report`).
+     * Gate: pacote `manufacturing_module` + `manufacturing.access_production` desde o lote 2.1 da
+     * auditoria (decisão B3 de [W], 2026-11-09; UC-REPORT-06). Até ali era só o pacote.
      */
     public function reportV2(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -1145,5 +1161,47 @@ class ProductionController extends Controller
             && ! BusinessLocation::where('business_id', $business_id)->where('id', $request->input('location_id'))->exists()) {
             abort(404);
         }
+
+        // UC-OP-22 (lote 2.5 da auditoria): o local tem de ser um que o usuário pode. O dropdown já escondia
+        // os outros; o servidor não conferia.
+        if ($request->filled('location_id')) {
+            $this->exigirLocalPermitido($request->input('location_id'));
+        }
+    }
+
+    /**
+     * UC-OP-22: regra de local do sistema (`User::permitted_locations()`), a mesma do dropdown de local e do
+     * total de produção do módulo (`ManufacturingUtil::getProductionTotals`). Fora dela, 403.
+     */
+    private function exigirLocalPermitido($locationId): void
+    {
+        $permitidos = $this->locaisPermitidos();
+        if ($permitidos !== 'all' && ! in_array((int) $locationId, array_map('intval', (array) $permitidos), true)) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * `User::permitted_locations()`, com uma exceção: o superadmin da plataforma alcança todos os locais,
+     * como o papel `Admin#` da empresa já alcança pelo `Gate::before` (e como ele vê custo, lote 2.6).
+     * Devolve 'all' ou a lista de ids, como o `permitted_locations()` do núcleo.
+     */
+    private function locaisPermitidos()
+    {
+        $user = auth()->user();
+
+        return $user->can('superadmin') ? 'all' : $user->permitted_locations();
+    }
+
+    /** O painel lateral (`?ordem=`) não mostra ordem de local que o usuário não pode (UC-OP-22). */
+    private function ordemEmLocalPermitido(int $businessId, int $ordemId): bool
+    {
+        $permitidos = $this->locaisPermitidos();
+        if ($permitidos === 'all') {
+            return true;
+        }
+        $local = Transaction::where('business_id', $businessId)->where('id', $ordemId)->value('location_id');
+
+        return $local !== null && in_array((int) $local, array_map('intval', (array) $permitidos), true);
     }
 }

@@ -64,7 +64,7 @@ class ProductionService
      * do usuário) é feito em LOTE por {@see enrichProductionRows()} — nunca por linha.
      *
      * @param  int  $businessId  Tier 0 — NUNCA omitir, NUNCA usar session() em Job.
-     * @param  array{location_id?: int|null, start_date?: string|null, end_date?: string|null, is_final?: bool} $filters
+     * @param  array{location_id?: int|null, start_date?: string|null, end_date?: string|null, is_final?: bool, locais_permitidos?: 'all'|array<int, int>|null} $filters
      */
     public function listProductions(int $businessId, array $filters = [], int $perPage = 25): Collection
     {
@@ -99,6 +99,12 @@ class ProductionService
 
             if (! empty($filters['location_id'])) {
                 $query->where('location_id', $filters['location_id']);
+            }
+
+            // UC-OP-22: `permitted_locations()` do usuário — 'all' (ou ausente) não filtra; lista filtra,
+            // inclusive vazia (usuário sem local nenhum não vê ordem).
+            if (array_key_exists('locais_permitidos', $filters) && $filters['locais_permitidos'] !== 'all' && $filters['locais_permitidos'] !== null) {
+                $query->whereIn('location_id', (array) $filters['locais_permitidos']);
             }
 
             if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {

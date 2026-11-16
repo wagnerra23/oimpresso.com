@@ -157,19 +157,21 @@ it('lança CertificadoInvalidoException quando cert expirado', function () {
 
 // ── RPS duplicado ─────────────────────────────────────────────────────────────
 
-it('lança RpsDuplicadoException e marca status emitida na nota local', function () {
+// Lote 2 PR 2.2: duplicado não vira mais `emitida` sem número — a linha fica `processando`
+// com o aviso (sem chave para consultar). Cenários completos em NfseEmissaoSemNotaEmDobroTest.
+it('RPS duplicado sem chave deixa a nota processando, sem número', function () {
     $cert = seedCert();
     seedConfig(certId: $cert->id);
 
     $provider = mockProvider();
-    $provider->shouldReceive('emitir')->andThrow(new RpsDuplicadoException('000001'));
+    $provider->shouldReceive('emitir')->once()->andThrow(new RpsDuplicadoException('000001'));
+    $provider->shouldNotReceive('consultar');
 
     $service = new NfseEmissaoService($provider);
+    $emissao = $service->emitir(payload());
 
-    expect(fn () => $service->emitir(payload()))
-        ->toThrow(RpsDuplicadoException::class, '000001');
-
-    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', NFSE_SVC_TENANT)->latest('id')->first()->status)->toBe('emitida');
+    expect($emissao->status)->toBe('processando')
+        ->and($emissao->numero)->toBeNull();
 });
 
 // ── ISS inválido ──────────────────────────────────────────────────────────────
@@ -251,7 +253,8 @@ it('retenta 3 vezes em ProviderTimeoutException e lança após esgotar', functio
     expect(fn () => $service->emitir(payload()))
         ->toThrow(ProviderTimeoutException::class);
 
-    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', NFSE_SVC_TENANT)->latest('id')->first()->status)->toBe('erro');
+    // Lote 2 PR 2.2: timeout esgotado fica `processando` (a nota pode ter sido aceita).
+    expect(NfseEmissao::withoutGlobalScopes()->where('business_id', NFSE_SVC_TENANT)->latest('id')->first()->status)->toBe('processando');
 })->skip('sleep(backoff) torna o teste lento — rodar só em CI fora do watch');
 
 // ── cancelamento ──────────────────────────────────────────────────────────────

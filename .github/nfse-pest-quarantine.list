@@ -15,12 +15,19 @@
 # ── Medido no 1º run da lane (43865896173, 2026-11-16): 121 passed, 8 failed, 1 skipped,
 # 281 assertions. Consertados no mesmo PR (defeito de teste óbvio): Wave26/Wave27 afirmavam
 # o bypass de superadmin que [W] removeu em 2026-08-26; NfseEmissaoServiceTest lia
-# `first()` da tabela inteira. Ficam aqui (saída: lote 1 da auditoria NFSe):
+# `first()` da tabela inteira.
 #
-# Saíram no lote 1 PR 1.1 (2026-11-16), causa medida e consertada no teste:
+# Saíram no lote 1 PR 1.1 (#11024, 2026-11-16), causa medida e consertada no teste:
 #  - MultiTenantIsolationTest: rps_numero é varchar(20) e o teste gravava 22 caracteres
 #    ('RPS-TESTE-ISOL-CROSS-F'); o valor era truncado e a busca exata devolvia 0 linhas (:154).
 #  - NfseCertificadoMultiTenantIsolationTest: colunas antigas de nfe_certificados (1054) e
 #    SHOW COLUMNS ... LIKE com binding (1064); além disso, sem login o ScopeByBusiness não
 #    filtra no modo aberto, então o "não vaza" nunca tinha sido exercitado.
-# Os dois foram reescritos em 98×99. Nenhum arquivo em quarentena agora.
+# Os dois foram reescritos em 98×99 (run 43930096009: 135 passed, 344 assertions).
+#
+# Entrou no lote 1 PR 1.2 (2026-11-16) — DEFEITO DE PRODUTO, não do teste. Run 43931224157:
+# "forceDelete() apagou fisicamente uma NFS-e cancelada/emitida" (:66 e :80, 2 failed).
+# O model Modules/NFSe/Models/NfseEmissao.php não tem trava (sem deleting/forceDeleting nem
+# observer); contrato em resources/js/Pages/Nfse/Show.charter.md:73. Saída: trava no Model
+# (lote 4 da auditoria) e tirar esta linha no MESMO PR.
+tests/Feature/Modules/NFSe/NfseCanceladaNaoSomeDoBancoTest.php  # forceDelete apaga nota fiscal (run 43931224157) — lote 4
