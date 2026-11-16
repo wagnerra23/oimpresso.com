@@ -84,7 +84,7 @@
                                 </li>
                             @endif
                             <li class="hero-nav__item">
-                                <a href="{{route('cms.contact.us')}}" class="hero-nav__link">Contact us</a>
+                                <a href="{{route('cms.contact.us')}}" class="hero-nav__link">Fale conosco</a>
                             </li>
                             @if(Route::has('pricing') && config('app.env') != 'demo')
                                 <li class="hero-nav__item">
@@ -95,7 +95,7 @@
                             @endif
                             <li class="hero-nav__item">
                                 <a href="{{ url('/') }}" class="hero-nav__link">
-                                   Home
+                                   Início
                                 </a>
                             </li>
                         </ul>

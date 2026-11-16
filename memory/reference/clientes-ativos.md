@@ -29,6 +29,13 @@ Snapshot em 2026-04-24:
 - ROTA LIVRE é o único "cliente real" — nenhum teste de feature em outro business vai cobrir cenário de produção.
 - ROTA LIVRE pode estar operando variantes de comportamento que WR2 Sistemas (teste) não tem.
 
+> ⚠️ **Correção de 2026-11-15 ([W]):** o biz=1 (WR2 Sistemas) é a **conta real da WR2 em
+> produção**, cliente pagante — não demo. A linha e as implicações acima são o retrato de
+> 2026-04-24 e ficam como fato datado. Daqui para frente, "só a ROTA LIVRE é cliente real" não
+> vale: são dois. Smoke que grava em biz=1 deixa de ser aceitável sem decisão do [W]. Smoke dos
+> dois: [`memory/clientes/wr2-sistemas/SMOKE.md`](../clientes/wr2-sistemas/SMOKE.md) e
+> [`memory/clientes/rota-livre/SMOKE.md`](../clientes/rota-livre/SMOKE.md).
+
 **How to update:** regerar com query em hostinger.md (template SSH + mysql CLI). Se um business dormente começar a vender, atualizar esta lista.
 
 ---

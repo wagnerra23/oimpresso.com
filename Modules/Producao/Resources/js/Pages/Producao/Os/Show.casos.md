@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do PCP + critério de aceite verificável (Dado/Quando/Então)
 por_que: a OS por item só tinha rota JSON para Liberar, Refazer e Cancelar; sem tela, a OS de empresa sem sinal mínimo ficava parada em Aguardando liberação.
 owner: wagner
-last_run: "2026-11-09"
+last_run: "2026-11-16"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoFichaOsContratoTest."
 ---
 
@@ -115,6 +115,7 @@ Status: 🧪
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-16 · [M+C] O conteúdo da Ficha vira o componente `_components/FichaDaOs.tsx`, para o painel lateral do Quadro usar o mesmo (decisão [W] no #10850). A página não muda.
 - 2026-11-09 · [W+C] Dispensas de escopo revistas (lote 8.1): 21 removidas, 12 comentadas (UC-PCESC-01..04).
 - 2026-11-06 · [M+C] Aba Arte lê a versão gravada (UC-PCART-09) em vez de contar os envios.
 - 2026-11-06 · [W+C] Quadro e Linha abrem a Ficha (lote 3.5).

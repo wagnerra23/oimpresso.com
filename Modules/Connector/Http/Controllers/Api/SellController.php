@@ -1569,7 +1569,9 @@ class SellController extends ApiController
             foreach ($data['payments'] as $payment_data) {
                 $transaction_payment = null;
                 if (! empty($payment_data['payment_id'])) {
-                    $transaction_payment = TransactionPayment::findOrFail($payment_data['payment_id']);
+                    // Só pagamento desta venda, que já foi carregada pela empresa do usuário (Tier 0, ADR 0093).
+                    $transaction_payment = TransactionPayment::where('transaction_id', optional($transaction)->id)
+                        ->findOrFail($payment_data['payment_id']);
                 }
                 $payment = [
                     'amount' => $this->__getValue('amount', $payment_data, $transaction_payment),
