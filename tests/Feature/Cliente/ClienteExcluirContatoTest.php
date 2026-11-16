@@ -52,13 +52,13 @@ test('GUARD 3 — destroy() preserva travas (business_id + transação + is_defa
         // permissão exigida
         ->toContain("'supplier.delete'")
         ->toContain("'customer.delete'")
-        // bloqueio por transação (venda/compra/OS)
-        ->toContain("Transaction::where('business_id', \$business_id)")
-        ->toContain("->where('contact_id', \$id)")
-        ->toContain('if ($count == 0)')
+        // bloqueio por vínculo (vendas e demais registros) — comportamento provado em
+        // ClienteExcluirRegrasTest (UC-CIDX-15); aqui só a âncora estrutural
+        ->toContain('vinculosDoContato(')
+        ->toContain("'transactions' =>")
         // escopo Tier 0 + proteção walk-in
         ->toContain("Contact::where('business_id', \$business_id)->findOrFail(\$id)")
-        ->toContain('if (! $contact->is_default)')
+        ->toContain('if ($contact->is_default)')
         // auditoria LGPD + corte de login
         ->toContain("'contact_deleted'")
         ->toContain("->update(['allow_login' => 0])")
