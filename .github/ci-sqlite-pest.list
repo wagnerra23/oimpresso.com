@@ -809,3 +809,4 @@ Modules/Whatsapp/Tests/Feature/ConversationTagsTest.php
 tests/Feature/Site/UniafibroSiteTest.php
 tests/Feature/Security/UploadExtensaoExecutavelTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoTest.php
+tests/Unit/Tenancy/ContextoEmpresaJobTest.php
