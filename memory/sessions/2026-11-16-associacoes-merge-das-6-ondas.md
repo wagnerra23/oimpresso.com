@@ -13,6 +13,12 @@ related_adrs:
 
 # Associações: merge das 6 ondas no main
 
+## TL;DR
+
+As 6 ondas do `Modules/Associacoes` (ADR 0451) estão no main, na ordem 1→6, e a onda 6 está em
+produção. O smoke de depois saiu igual ao de antes e não houve revert. O módulo segue desligado
+até o [W] criar a empresa Uniafibro e o pacote `associacoes_module`.
+
 ## O que foi pedido
 
 Mergear as 6 ondas do `Modules/Associacoes` (ADR 0451, rede Uniafibro) na ordem 1→6, uma por PR,
