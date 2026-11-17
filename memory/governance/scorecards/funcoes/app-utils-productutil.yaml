@@ -58,6 +58,15 @@
 #   `totals` recontado dos vereditos: estava 80/32/21/237, atrasado desde o #10843 (o C2 de
 #   calculateComboQuantity saiu de incerto para concordo e o total não acompanhou); agora 83/30/20/237.
 #
+# Rejulgamento parcial 2026-11-17 [F+C] (PR #10953, D-30): a fonte mudou em 4 linhas, 360-361 em
+#   updateProductQuantity e 405-406 em decreaseProductQuantity. A condição `$product->enable_stock == 1`
+#   virou `$this->temSaldoProprio($product)`, que também deixa de fora o kit (type combo), porque o kit
+#   não tem saldo próprio. `git diff --numstat` = 4/4, sem linha deslocada. Rejulgados os 11 vereditos
+#   dessas duas funções: C1 a C7 seguem iguais (temSaldoProprio só lê o produto já carregado, sem query,
+#   escrita, laço ou SQL cru; com produto ausente o resultado é o mesmo de antes). O C2 ganhou nota sobre
+#   o kit. O C8 foi recontado no main de 2026-11-17 e cresceu por outros PRs, não pelo #10953. As demais
+#   funções NÃO foram revistas. `totals` não muda (nenhum status mudou).
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -67,7 +76,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "0c1487e73f248ddc5117bf1035bb8f30657a6845"
+source_blob_sha: "8842132d3e6017fc2705d81eee0d93f51290db6b"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21
@@ -140,7 +149,7 @@ functions:
     line: 350
     vereditos:
       C1: { status: concordo, evidencia: { quote: "VariationLocationDetails::where('variation_id', $variation->id)->where('product_id', $product_id)->where('product_variation_id', $variation->product_variation_id)->where('location_id', $location_id)", linhas: "367-371" }, ancora: "INV6", nota: "VLD sem business_id É o contrato transitivo TESTADO (UC-INV-06 invoca o sibling e prova isolamento); caller endereça IDs próprios" }
-      C2: { status: concordo, evidencia: { quote: "$qty_difference = $this->num_uf($new_quantity, $number_format) - $this->num_uf($old_quantity, $number_format)", linhas: "353" }, ancora: "num_uf suite + goldens Estoque (Movimentacao/Ajuste/Transferencia)", nota: "delta via num_uf; goldens invocam DIRETO e conferem saldo resultante" }
+      C2: { status: concordo, evidencia: { quote: "$qty_difference = $this->num_uf($new_quantity, $number_format) - $this->num_uf($old_quantity, $number_format)", linhas: "353" }, ancora: "num_uf suite + goldens Estoque (Movimentacao/Ajuste/Transferencia)", nota: "delta via num_uf; goldens invocam DIRETO e conferem saldo resultante · desde o #10953 (2026-11-17) o kit (type combo) não mexe no saldo próprio (Util::temSaldoProprio); nenhum teste direto desta função tem kit; o kit é provado na venda pelo SellsKitEstoqueContratoTest (UC-PIDX-50), que não chama esta função" }
       C3: { status: n/a, motivo: "retorna true sempre" }
       C4: { status: n/a, motivo: "1 escrita (save); atomicidade do fluxo delegada ao caller (INV3)" }
       C5: { status: n/a, motivo: "sem loop" }
@@ -149,12 +158,12 @@ functions:
       C7b: { status: n/a, motivo: "sem retorno polimórfico" }
       C7c: { status: n/a, motivo: "sem nullabilidade" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
-      C8: { consumidores: 16, testes_diretos: 5, nota: "16 call sites prod (StockTransferController×4, PurchaseReturn×2, OpeningStock×2, ImportProducts×2, DevolucaoService, CombinedPurchaseReturn, ImportOpeningStock, SellReturn, StockAdjustment, TransactionUtil:6189); 5 testes diretos (EstoqueMovimentacaoCompra/Ajuste/InvarianteEnableStock/Transferencia/Fabricacao)" }
+      C8: { consumidores: 18, testes_diretos: 6, nota: "recontado em 2026-11-17 (#10953): 18 chamadas fora do ProductUtil (StockTransferController×4, ImportProductsController×2, OpeningStockController×2, PurchaseReturnController×2, CancelamentoDaVenda, CombinedPurchaseReturnController, ContagemInventarioService, DevolucaoService, ImportOpeningStockController, SellReturnController, StockAdjustmentController, TransactionUtil) e 6 dentro do próprio ProductUtil; 6 testes diretos (EstoqueAjuste, EstoqueFabricacao, EstoqueFixMismatchNumUf, EstoqueInvarianteEnableStock, EstoqueMovimentacaoCompra, EstoqueTransferencia); antes 16/5, o crescimento veio de outros PRs" }
   - function: decreaseProductQuantity
     line: 399
     vereditos:
       C1: { status: concordo, evidencia: { quote: "VariationLocationDetails::where('variation_id', $variation_id)->where('product_id', $product_id)->where('location_id', $location_id)", linhas: "408-410" }, ancora: "INV6", nota: "transitivo por IDs globais; UC-INV-06 invoca ESTA função e prova biz=1 não toca biz=2" }
-      C2: { status: concordo, evidencia: { quote: "$details->decrement('qty_available', $qty_difference)", linhas: "425" }, ancora: "goldens Estoque (InvarianteTransacao/Tenant/Transferencia)", nota: "delta numérico direto; decrement coberto por goldens" }
+      C2: { status: concordo, evidencia: { quote: "$details->decrement('qty_available', $qty_difference)", linhas: "425" }, ancora: "goldens Estoque (InvarianteTransacao/Tenant/Transferencia)", nota: "delta numérico direto; decrement coberto por goldens · desde o #10953 (2026-11-17) o kit (type combo) não mexe no saldo próprio (Util::temSaldoProprio); nenhum teste direto desta função tem kit; o kit é provado na venda pelo SellsKitEstoqueContratoTest (UC-PIDX-50), que não chama esta função" }
       C3: { status: n/a, motivo: "retorna true sempre" }
       C4: { status: n/a, motivo: "1 escrita (decrement) OU create+decrement; atomicidade delegada ao caller (INV3 — EstoqueInvarianteTransacaoTest prova rollback)" }
       C5: { status: n/a, motivo: "sem loop" }
@@ -163,7 +172,7 @@ functions:
       C7b: { status: n/a, motivo: "sem retorno polimórfico" }
       C7c: { status: n/a, motivo: "sem nullabilidade" }
       C7d: { status: n/a, motivo: "sem captura/supressão de falha" }
-      C8: { consumidores: 22, testes_diretos: 5, nota: "22 call sites (SellPosController×3, StockTransfer×4, CombinedPurchaseReturn×3, Manufacturing×2, OpeningStock×2, StockAdjustment×2, Connector, Woocommerce, RecurringInvoice, ImportSales, Purchase, PurchaseReturn); 5 testes diretos incl. EstoqueInvarianteTenantTest (C1) + EstoqueInvarianteTransacaoTest (C4)" }
+      C8: { consumidores: 27, testes_diretos: 5, nota: "recontado em 2026-11-17 (#10953): 27 chamadas fora do ProductUtil (StockTransferController×4, CombinedPurchaseReturnController×3, SellPosController×3, OpeningStockController×2, ProductionController×2, StockAdjustmentController×2, ConsumoMaterialService, ContagemInventarioService, ImportSalesService, InspecaoDoRecebimento, PedidoParaVenda, PurchaseController, PurchaseReturnController, RecurringInvoice, RegistrarVendaRapida, SellController, WoocommerceUtil) e 5 dentro do próprio ProductUtil; 5 testes diretos (EstoqueAjuste, EstoqueInvarianteEnableStock, EstoqueInvarianteTenant, EstoqueInvarianteTransacao, EstoqueTransferencia); antes 22/5, o crescimento veio de outros PRs" }
   - function: decreaseProductQuantityCombo
     line: 438
     vereditos:
