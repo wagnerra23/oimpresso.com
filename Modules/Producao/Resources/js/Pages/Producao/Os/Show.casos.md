@@ -1,7 +1,7 @@
 ---
 id: modules-producao-pages-producao-os-show-casos
 casos: Produção · Ficha da OS · /producao/ordens/{id}
-irmaos: Show.charter.md (lei) · Show.tsx (tela)
+irmaos: Show.charter.md (lei) · ../_components/FichaDaOs.tsx (conteúdo, no painel do Quadro e da Linha)
 tecnica: Caso de uso = narrativa do PCP + critério de aceite verificável (Dado/Quando/Então)
 por_que: a OS por item só tinha rota JSON para Liberar, Refazer e Cancelar; sem tela, a OS de empresa sem sinal mínimo ficava parada em Aguardando liberação.
 owner: wagner
