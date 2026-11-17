@@ -2,7 +2,7 @@
 // e centralizado para o cliente final acompanhar o status do reparo.
 // US-CONSULTA-001: dados reais das folhas de OS do Repair (/repair-status redireciona pra ca).
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react'
 import { ArrowLeft, AlertCircle, FileSearch } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
@@ -28,6 +28,20 @@ export default function ConsultaOsIndex({ buscaPorCelular = false, empresa = nul
   const [ordens, setOrdens] = useState<OrdemServico[]>([])
   const [ultimoNumero, setUltimoNumero] = useState('')
   const [erro, setErro] = useState<string | null>(null)
+  // Leva o foco ao resultado depois da busca, para teclado e leitor de tela.
+  const resultadoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (estado !== 'busca') resultadoRef.current?.focus()
+  }, [estado])
+
+  const aviso = loading
+    ? 'Buscando...'
+    : estado === 'resultado'
+      ? `${ordens.length === 1 ? '1 OS encontrada' : `${ordens.length} OS encontradas`}.`
+      : estado === 'nao-encontrado'
+        ? 'OS não encontrada.'
+        : ''
 
   async function handleBuscar(tipo: TipoBusca, numero: string, serie: string) {
     setLoading(true)
@@ -47,7 +61,15 @@ export default function ConsultaOsIndex({ buscaPorCelular = false, empresa = nul
         return
       }
 
-      if (!res.ok) throw new Error(`Erro ${res.status}`)
+      if (res.status === 429) {
+        setErro('Muitas buscas em pouco tempo. Aguarde um minuto e tente de novo.')
+        return
+      }
+
+      if (!res.ok) {
+        setErro('O servidor não conseguiu fazer a busca agora. Tente de novo em alguns instantes.')
+        return
+      }
 
       const data: BuscarResponse = await res.json()
 
@@ -85,6 +107,19 @@ export default function ConsultaOsIndex({ buscaPorCelular = false, empresa = nul
           </span>
         </div>
 
+        <p className="sr-only" role="status" aria-live="polite">
+          {aviso}
+        </p>
+
+        <Stack
+          ref={resultadoRef}
+          gap={0}
+          align="center"
+          tabIndex={-1}
+          aria-busy={loading}
+          aria-label="Consulta de OS"
+          className="w-full outline-none"
+        >
         {estado === 'busca' && (
           <Card className="w-full max-w-md shadow-md">
             <CardHeader className="text-center pb-2 pt-7">
@@ -173,6 +208,7 @@ export default function ConsultaOsIndex({ buscaPorCelular = false, empresa = nul
             </Card>
           </div>
         )}
+        </Stack>
       </div>
     </>
   )
