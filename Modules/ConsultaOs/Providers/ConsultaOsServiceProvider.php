@@ -4,6 +4,7 @@ namespace Modules\ConsultaOs\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Modules\ConsultaOs\Console\Commands\ConsultaOsHealthCommand;
+use Modules\ConsultaOs\Console\Commands\ConsultaOsLinkCommand;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
 use Modules\ConsultaOs\Repositories\RepairConsultaOsRepository;
 
@@ -13,6 +14,8 @@ class ConsultaOsServiceProvider extends ServiceProvider
     {
         $this->registerConfig();
         $this->registerCommands();
+        // consulta_os_empresas — código público da empresa na URL do portal ([W] 2026-11-17).
+        $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
     }
 
     /**
@@ -23,6 +26,7 @@ class ConsultaOsServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ConsultaOsHealthCommand::class,
+                ConsultaOsLinkCommand::class,
             ]);
         }
     }
