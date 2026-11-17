@@ -561,11 +561,6 @@ class MotorTributarioService
         'LR' => ['pis' => 0.0165, 'cofins' => 0.076],
     ];
 
-    /** IBS e CBS do período de teste — Lei Complementar 214/2025 (2026: IBS 0,1%, CBS 0,9%). Ano sem linha = sem padrão. */
-    private const IBS_CBS_DO_ANO = [
-        2026 => ['ibs' => 0.001, 'cbs' => 0.009],
-    ];
-
     /** CST do IPI que levam alíquota e valor (grupo IPITrib); os demais vão no IPINT, sem valor. */
     private const CST_IPI_TRIBUTADO = ['00', '49', '50', '99'];
 
@@ -744,10 +739,28 @@ class MotorTributarioService
         $ano = (int) substr($data, 0, 4);
         [$aliqIbs, $aliqCbs] = ($ibs['origem'] ?? 'padrao') === 'fixa'
             ? [((float) ($ibs['pUF'] ?? 0) + (float) ($ibs['pMun'] ?? 0)) / 100, (float) ($ibs['pCBS'] ?? 0) / 100]
-            : array_values(self::IBS_CBS_DO_ANO[$ano] ?? throw $recusa("IBS/CBS pelo padrão do ano, mas {$ano} não tem padrão cadastrado."));
+            : $this->ibsCbsDoAno($ano, $recusa);
         $fator = ($ibs['cst'] ?? '') === '200' ? 1 - (float) ($ibs['pRed'] ?? 0) / 100 : 1.0;
 
         return [(float) $aliqIbs * $fator, (float) $aliqCbs * $fator];
+    }
+
+    /**
+     * IBS e CBS "pelo padrão do ano", de `nfebrasil.ibs_cbs_por_ano`. Ano fora da tabela, ou com a CBS
+     * ainda sem alíquota (null, até a resolução do Senado), recusa com o motivo — nunca calcula com zero.
+     *
+     * @return array{0:float,1:float}
+     */
+    private function ibsCbsDoAno(int $ano, \Closure $recusa): array
+    {
+        $linha = config('nfebrasil.ibs_cbs_por_ano', [])[$ano]
+            ?? throw $recusa("IBS/CBS pelo padrão do ano, mas {$ano} não tem padrão cadastrado.");
+        $cbs = $linha['cbs'] ?? throw $recusa(
+            "a CBS de {$ano} ainda não tem alíquota: ela depende da resolução do Senado. Até ser cadastrada, "
+            . 'use IBS/CBS com alíquota fixa nesta natureza.'
+        );
+
+        return [(float) ($linha['ibs'] ?? 0), (float) $cbs];
     }
 
     /** ICMS "pela UF": interna da origem dentro do estado; interestadual (ou 4% de importado) fora. */

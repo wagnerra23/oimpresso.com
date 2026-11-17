@@ -105,6 +105,35 @@ describe('UC-PCAD-30 · rascunho automático do Novo produto', () => {
     expect((document.querySelector('#name') as HTMLInputElement).value).toBe('Original')
   })
 
+  // Teste no Chrome em 2026-11-16 (WR2, biz=1): depois do F5 o nome e o SKU voltavam, mas Unidade,
+  // sub-unidade, Marca, Categoria, Garantia e Origem da mercadoria voltavam vazios, e o rascunho era
+  // regravado com 0 nesses campos. O Select do Radix, dentro de <form>, tem um <select> nativo
+  // escondido; quando o rascunho muda o valor logo depois de abrir a tela, as opções desse <select>
+  // ainda não existem, ele fica vazio e o Radix chama onValueChange('') — que virava Number('') = 0.
+  it('o rascunho volta com os campos de lista e não os apaga ao regravar', async () => {
+    const props = {
+      ...base,
+      units: { 4: 'Unidade (UN)' },
+      subUnidadesPorUnidade: { 4: [{ id: 4, nome: 'Unidade', multiplicador: 1 }, { id: 9, nome: 'cx', multiplicador: 12 }] },
+      brands: { 2: 'Imprimax' },
+      categories: { 1: 'Banner' },
+      warranties: { 5: 'Um ano' },
+    }
+    const gravado = { name: 'Lona 440g', unit_id: 4, sub_unit_ids: [9], brand_id: 2, category_id: 1, warranty_id: 5, origem_mercadoria: 3 }
+    window.localStorage.setItem(CHAVE, JSON.stringify({ em: '2026-11-16T12:00:00Z', form: gravado }))
+    render(<ProdutoCreate {...props} />)
+
+    // A tela regrava o rascunho logo depois de recuperar: é essa regravação que perdia os campos.
+    await waitFor(() => expect(JSON.parse(window.localStorage.getItem(CHAVE) as string).em).not.toBe('2026-11-16T12:00:00Z'), { timeout: 2000 })
+    const regravado = JSON.parse(window.localStorage.getItem(CHAVE) as string).form
+    expect({
+      unit_id: regravado.unit_id, sub_unit_ids: regravado.sub_unit_ids, brand_id: regravado.brand_id,
+      category_id: regravado.category_id, warranty_id: regravado.warranty_id, origem_mercadoria: regravado.origem_mercadoria,
+    }).toEqual({ unit_id: 4, sub_unit_ids: [9], brand_id: 2, category_id: 1, warranty_id: 5, origem_mercadoria: 3 })
+    expect(document.getElementById('unit_id')?.textContent).toContain('Unidade (UN)')
+    expect(document.getElementById('brand_id')?.textContent).toContain('Imprimax')
+  })
+
   it('salvo com sucesso, o rascunho some', () => {
     window.localStorage.setItem(CHAVE, JSON.stringify({ form: { name: 'Banner 2x1' } }))
     render(<ProdutoCreate {...base} />)

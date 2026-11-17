@@ -98,6 +98,9 @@ Criar outra tabela de naturezas faria dois lugares decidirem CFOP e CST.
 #### Onda 6 — checklist para ligar (por empresa, nunca para todas de uma vez)
 
 1. **#10934 e #10938 no `main`** — sem eles a empresa cadastra a natureza, mas não consegue escolhê-la ao emitir.
+   **Dependências achadas na auditoria de 2026-11-16** (uma por PR, todas antes de ligar): IPI no XML (#11001),
+   IBS/CBS de 2027 e 2028 na configuração (#11000 — a CBS de 2027 fica pendente da resolução do Senado) e
+   PIS/COFINS sem o ICMS na base (#11002). As de valor (#11001 e #11002) precisam da aprovação [W].
 2. **Empresa escolhida pelo [W]** e conferida: certificado A1 válido e regime certo na configuração fiscal. O motor
    escolhe PIS/COFINS por ele: Simples se a empresa é do Simples; fora dele, Lucro Real só com `regime = lucro_real`
    e, em qualquer outro valor, Lucro Presumido (`MotorTributarioService::aplicarNaturezaTela`).

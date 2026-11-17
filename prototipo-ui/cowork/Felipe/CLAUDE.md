@@ -1,5 +1,7 @@
 # Contexto do projeto — Protótipo oficial, Produto unificado (Office Impresso / oimpresso)
 
+> 🗄️ **HISTÓRICO — anterior à [ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** Esta pasta foi **aposentada em 2026-09-28** por [W] (registro em `scripts/design/protocolo.config.mjs`): é histórico. Trabalho novo de protótipo entra em `prototipo-ui/cowork/Wagner/`. **Exceção que ainda vale:** a tela que se ancora num arquivo daqui continua com essa âncora até ser migrada (em 2026-11-05: `Produto/Index` → `produto-blade.jsx`; confira com `node scripts/design/ancora.mjs <Mod/Tela>`). Arquivo daqui com o mesmo nome de um do Wagner **não** é a fonte daquela tela. Desde a 0438 a fonte do protótipo é o **arquivo em `prototipo-ui/`, editado por PR**; o Artefato serve só para ver e comentar; o Cowork não é fonte nem rota de entrada ou saída. Não siga as instruções de zip, bundle, export, handoff, `DesignSync` ou `COWORK_NOTES` abaixo. Processo vigente: `memory/reference/prototipo-ui/PROTOCOL.md`.
+
 ## Onde este protótipo é editado e de onde vem (Felipe, 25/09/2026)
 
 **A fonte é o protótipo do Wagner** (`prototipo-ui/cowork/Wagner/`, que desce do projeto Cowork

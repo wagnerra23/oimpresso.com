@@ -1371,6 +1371,26 @@ class Util
     }
 
     /**
+     * D-30 (UC-PIDX-50): o produto tem saldo próprio em variation_location_details?
+     *
+     * Só quando controla estoque e NÃO é kit. O kit (type = combo) não tem estoque próprio: quem tem
+     * são os componentes, que a venda baixa pela lista `combo` (decreaseProductQuantityCombo). Sem esta
+     * regra, o kit com "Controlar estoque" ligado (o padrão do cadastro) era casado com compras que ele
+     * não tem (a venda era recusada com os componentes em estoque) e, com "Vender sem estoque", ganhava
+     * saldo próprio negativo. Uma regra só, lida por updateProductQuantity, decreaseProductQuantity,
+     * TransactionUtil::adjustQuantity e TransactionUtil::mapPurchaseSell. Fora dela: a importação do XML
+     * de compra (PurchaseXmlController) grava o saldo direto.
+     *
+     * `type` por getAttribute: o Larastan deduz o enum da migration original, sem 'combo'.
+     *
+     * @param  \App\Product  $product
+     */
+    public function temSaldoProprio($product): bool
+    {
+        return $product->enable_stock == 1 && (string) $product->getAttribute('type') !== 'combo';
+    }
+
+    /**
      * Generates string to calculate sum of purchase line quantity used
      */
     public function get_pl_quantity_sum_string($table_name = '')

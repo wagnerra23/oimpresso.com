@@ -3,6 +3,8 @@
 > **LER no início de todo chat, junto com STATUS.md.** Este arquivo define COMO a memória de design evolui sem regredir. Ele é a raiz: o Charter, o Register e a ponte pro git são instâncias deste processo.
 >
 > **Lei suprema deste arquivo:** _REGRESSÃO É INACEITÁVEL._ Nada que foi testado e reprovado volta sem passar pelo registro abaixo. Nada que foi aprovado é desfeito por esquecimento.
+>
+> ⚠️ **Leia com a [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** Este método foi escrito para o papel de designer no Cowork ([CC]). Desde a 0438 **a fonte do protótipo é o arquivo em `prototipo-ui/`, editado por PR**, o Artefato serve só para ver e comentar, e o Cowork não é fonte nem rota. Continua valendo: o NÚCLEO (anéis, casos como contrato, defesa que dispara, DS como piso, medir, soberania [W]), o registro de regressões (§5) e os testes de integridade. **Não vale mais** onde o texto diz que o Cowork é autoritativo, que o repo é snapshot read-only, que o DS é espelho de um projeto Cowork, ou que o caminho passa por zip, bundle, `COWORK_NOTES` ou `DesignSync`. Na dúvida entre este arquivo e a 0438, vale a 0438.
 
 ---
 
@@ -68,8 +70,8 @@
 
 | Camada | Papel | Velocidade | Mora | Soberano? |
 |---|---|---|---|---|
-| **Register** (`*.decisoes.md`) | chão de debate (opções vivas) | rápida | Cowork (autoritativo) | não |
-| **Charter** (`*.charter.md`) | constituição da tela (o que fechou) | lenta | Cowork → espelho git | não |
+| **Register** (`*.decisoes.md`) | chão de debate (opções vivas) | rápida | git, por PR _(até 2026-10-23: Cowork autoritativo)_ | não |
+| **Charter** (`*.charter.md`) | constituição da tela (o que fechou) | lenta | git, ao lado do `.tsx` _(até 2026-10-23: Cowork → espelho git)_ | não |
 | **ADR** (`memory/decisions/`) | lei (decisão estrutural) | definitiva | git | **SIM — só [W]** |
 
 **Gatilho de git = transição de anel do Register.** Avaliar→Testar fica local. **Testar→Adotar/Descartar** dispara a ponte zero-toque. Fim de chat = snapshot. (Detalhe da ponte no charter da tela.)
@@ -129,6 +131,7 @@ Um item existe em UM lugar autoritativo por vez:
 ### TESTE-03 · Conflito de dois escritores ([W] edita Cowork × snapshot velho no git)
 - **o que testei:** [W] vota no Register no Cowork enquanto existe cópia no repo.
 - **resultado:** resolvido pela regra **Cowork-autoritativo / repo é snapshot read-only**. Ninguém edita os dois lados.
+- ⚠️ **Superado pela [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23):** agora há um lado só, o git. O conflito de dois escritores deixou de existir porque o Cowork não escreve mais no protótipo.
 - **Protocolo explicitado por [W] em 2026-09-16:** a **última importação válida e aceita prevalece**, mesmo que o Git anterior seja mais extenso. Não fundir nem restaurar versões antigas no espelho; corrigir a origem e importar novamente. Histórico serve para comparação. Gates e escopo de delta permanecem obrigatórios — [ADR 0404](../../decisions/0404-ultimo-importado-e-autoridade-do-espelho.md).
 - ⚠️ **Dois eixos, duas respostas — não confundir** ([ADR 0406](../../decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md)). Este "Cowork-autoritativo / repo é snapshot read-only" fala do **conteúdo da conta** dentro de `prototipo-ui/cowork/<dono>/`: ali o pacote vence os bytes, e o que a §14 (emenda Onda A, mais abaixo) chama de *"divergiu do git → o git vence"* **não se aplica** — aquela frase é sobre **canon e lei** (ADR, DS, token, decisão), onde o git é soberano e o Cowork é cache. Um eixo trata de bytes importados; o outro, de autoridade normativa. Ler a frase do eixo errado é o que faz alguém "restaurar do git" um arquivo que a conta acabou de mandar.
 - **nota:** **9/10** (simples e robusto; só falha se alguém editar direto no repo — proibido por convenção).
@@ -277,6 +280,8 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 
 ## 14. Arquitetura de pastas e arquivos (Cowork ↔ git)
 
+> ⚠️ **Coluna "Cowork" é histórica** ([ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md)): todo artefato abaixo vive e se edita na coluna "Alvo no git". O DS vive no git (0438 D6); `prototipo-ui/design-system/` não é mais espelho de projeto Cowork.
+
 > Nomes iguais nos dois lados (convenção `ARQUITETURA.md`). Tier: **1**=working (só Cowork) · **2**=canon (git `main`) · **DS**=design system.
 
 | Artefato | Cowork | Alvo no git | Tier | Ler quando |
@@ -309,7 +314,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | IT3 | `STATUS` aponta pra `PROCESSO_MEMORIA_CC` (ponteiro vivo) | always-read quebrado |
 | IT4 | `LICOES_CC`: L-NN contíguo, sem buraco/duplicata | lição perdida |
 | IT5 | Benchmark (§11) tem linha **recente** — não só presente (janela no script, tunável por `OIMPRESSO_BENCHMARK_STALE_DIAS`) | sem medição (Sobrevivência #1) |
-| IT6 | O DS canônico (`prototipo-ui/design-system/`, espelho do projeto `019dd02f`) tem os CSS de token **legíveis** — a paleta quem mede é `ds-guard.mjs --all` | DS ilegível/ausente |
+| IT6 | O DS canônico (`prototipo-ui/design-system/`, no git — ADR 0438 D6; até 2026-10-23 era espelho do projeto Cowork `019dd02f`) tem os CSS de token **legíveis** — a paleta quem mede é `ds-guard.mjs --all` | DS ilegível/ausente |
 | IT7 | Os **alvos-git do espinha** (§14, coluna "alvo no git") existem — refs Cowork-only não contam | rastro quebrado |
 | IT8 | Fila ativa ↔ prompts de handoff consistentes (§16 · gate `handoff:check`) | tarefa invisível / PR errado |
 

@@ -10,6 +10,20 @@ return [
     'ambiente_default' => 'homologacao',
 
     /**
+     * IBS e CBS "pelo padrão do ano" das naturezas da tela (RUNBOOK-tributacao §Naturezas).
+     * Frações (0,001 = 0,1%). LC 214/2025, transição: 2026 é o ano de teste (IBS 0,1% e CBS 0,9%);
+     * em 2027 e 2028 o IBS fica em 0,05% estadual + 0,05% municipal e a CBS é a alíquota de
+     * referência menos 0,1 ponto. A referência da CBS sai por resolução do Senado (prazo 15/12/2026,
+     * a partir do cálculo do TCU): enquanto ela não estiver aqui, `cbs` fica null e o motor recusa a
+     * natureza com o motivo, em vez de calcular com zero. Cadastrar o ano é um PR de uma linha.
+     */
+    'ibs_cbs_por_ano' => [
+        2026 => ['ibs' => 0.001, 'cbs' => 0.009],
+        2027 => ['ibs' => 0.001, 'cbs' => null],
+        2028 => ['ibs' => 0.001, 'cbs' => null],
+    ],
+
+    /**
      * US-RB-044 — listener EmitirNFeAoReceberPagamento.
      *
      * Quando true, listener tenta autorizar NFe55 via SEFAZ ao receber

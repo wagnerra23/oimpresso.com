@@ -357,8 +357,8 @@ class ProductUtil extends Util
 
         $product = Product::find($product_id);
 
-        //Check if stock is enabled or not.
-        if ($product->enable_stock == 1 && $qty_difference != 0) {
+        //Check if stock is enabled or not. Kit não tem saldo próprio (D-30, Util::temSaldoProprio).
+        if ($this->temSaldoProprio($product) && $qty_difference != 0) {
             $variation = Variation::where('id', $variation_id)
                             ->where('product_id', $product_id)
                             ->first();
@@ -402,8 +402,8 @@ class ProductUtil extends Util
 
         $product = Product::find($product_id);
 
-        //Check if stock is enabled or not.
-        if ($product->enable_stock == 1) {
+        //Check if stock is enabled or not. Kit não tem saldo próprio (D-30, Util::temSaldoProprio).
+        if ($this->temSaldoProprio($product)) {
             //Decrement Quantity in variations location table
             $details = VariationLocationDetails::where('variation_id', $variation_id)
                 ->where('product_id', $product_id)

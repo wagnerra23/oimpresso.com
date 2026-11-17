@@ -201,6 +201,32 @@ it('UC-NFTR-59 · calcularNaOperacao não troca a natureza da tela pela venda (n
         ->toThrow(TributacaoNaoConfiguradaException::class);
 });
 
+it('UC-NFTR-65 · IBS/CBS por ano vêm da configuração: 2027 recusa até a CBS ter alíquota, e calcula quando ela é cadastrada', function () {
+    $natureza = ntmNatureza(ntmTela(['icms' => ['origem' => 'fixa', 'p' => 17]]));
+
+    // Como vem no main: 2027 tem o IBS de 0,1% e a CBS null (aguarda a resolução do Senado).
+    expect(config('nfebrasil.ibs_cbs_por_ano.2027.ibs'))->toBe(0.001)
+        ->and(config('nfebrasil.ibs_cbs_por_ano.2027.cbs'))->toBeNull();
+    expect(fn () => ntmCalc($natureza, 'SC', null, '2027-01-10'))
+        ->toThrow(TributacaoNaoConfiguradaException::class, 'resolução do Senado');
+
+    // Ano fora da tabela: o motivo diz que o ano não tem padrão.
+    expect(fn () => ntmCalc($natureza, 'SC', null, '2029-01-10'))
+        ->toThrow(TributacaoNaoConfiguradaException::class, '2029 não tem padrão cadastrado');
+
+    // Cadastrada a CBS (valor de TESTE, não a alíquota real), 2027 calcula pela tabela.
+    config(['nfebrasil.ibs_cbs_por_ano.2027.cbs' => 0.05]);
+    $t = ntmCalc($natureza, 'SC', null, '2027-01-10');
+    // À mão: IBS 1.000 × 0,1% = 1,00 · CBS 1.000 × 5% = 50,00
+    expect($t->valor_ibs)->toBe(1.0)
+        ->and($t->valor_cbs)->toBe(50.0);
+
+    // 2026 segue igual ao UC-NFTR-53.
+    $t26 = ntmCalc($natureza, 'SC');
+    expect($t26->valor_ibs)->toBe(1.0)
+        ->and($t26->valor_cbs)->toBe(9.0);
+});
+
 it('UC-NFTR-66 · IPI da natureza: CST tributado calcula e leva cEnq; CST isento não calcula; desligado não manda grupo', function () {
     DB::table('nfe_fiscal_rules')->insert([
         'business_id' => ntmBiz(), 'ncm' => NTM_NCM, 'uf_origem' => 'SC', 'uf_destino' => null, 'cfop' => '5102',

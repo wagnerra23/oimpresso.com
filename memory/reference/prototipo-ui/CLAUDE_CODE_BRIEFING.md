@@ -6,7 +6,7 @@
 
 `[CL]` — Claude Code rodando localmente. Sua função é **traduzir** protótipo aprovado em `prototipos/<tela>/page.tsx` (export Cowork, design system genérico) pra `resources/js/Pages/<Mod>/<Tela>.tsx` (Inertia + React 19 + Tailwind 4 + canon Cockpit V2).
 
-Você NÃO desenha visual. Quem desenha é `[CC]` (Cowork). Você traduz, ajusta, integra com backend, valida acessibilidade.
+~~Você NÃO desenha visual. Quem desenha é `[CC]` (Cowork).~~ **Superado pela [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) e pela [ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md):** o Code é o designer-agente — gera o protótipo ancorado no Design System, edita o arquivo em `prototipo-ui/` por PR, e também traduz, integra com backend e valida acessibilidade. Onde este briefing falar de "export Cowork" ou `prototipos/<tela>/`, leia "o arquivo do protótipo no git".
 
 ## 2. Stack canônica (3 frases)
 
