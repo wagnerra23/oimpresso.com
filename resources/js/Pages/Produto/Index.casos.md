@@ -104,7 +104,7 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
 | UC-PIDX-47 | "Locais de armazenagem" para quem só pode mexer nos locais | should | `CU-PROD-20` (proposta #10765, autorizada pelo [F] em 2026-11-12) · `ProductController::index` (`permissions.armazenagem`) + `AcoesProduto.tsx` + `PainelDetalhe.tsx`: com `product.armazenagem` sem `product.update`, o menu da linha e o rodapé do painel trazem "Locais de armazenagem" (abre o Editar só com os locais) no lugar de "Editar"; com `product.update` segue "Editar"; produto sem estoque controlado ou excluído não tem o item | `ProdutoArmazenagemPermissaoTest` (Pest) + `produto-locais-armazenagem-acesso.test.tsx` (Vitest) | ✅ verde no CI (job 131372610661 Pest + Frontend / Vite build) |
 | UC-PIDX-48 | Receita da Fabricação no painel, só leitura (D-29) | should | `ProductController::receitasDoProduto` + `App\Contracts\Fabricacao\ReceitaDoProduto` (`RecipeBomService::fichasDoProduto`) + `PainelDetalhe.tsx` | `ProdutoReceitaNoPainelTest` (lane Estoque · MySQL) + `produto-receita-no-painel.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
 | UC-PIDX-49 | Lotes com saldo no painel, com o relatório de Lotes filtrado (CV3) | should | `ProductController::lotesDoProduto` + `App\Services\Estoque\ConsultaDeLotes` (a consulta do relatório de Lotes) + `PainelDetalhe.tsx` | `ProdutoLotesNoPainelTest` (lane Estoque · MySQL) + `produto-lotes-no-painel.test.tsx` (Vitest, Frontend / Vite build) | ⬜ nasce neste PR |
-| UC-PIDX-50 | A venda segura a quantidade de kits, ou deixa passar com "Vender sem estoque" (D-30) | must | `SellPosController@store` (linha `product_type=combo` + `combo` do `sale_pos/product_row.blade.php`) + `ProductUtil::decreaseProductQuantityCombo` + `Util::temSaldoProprio` (o kit sem saldo próprio, lido por `ProductUtil::updateProductQuantity`/`decreaseProductQuantity` e `TransactionUtil::adjustQuantity`/`mapPurchaseSell`) | `SellsKitEstoqueContratoTest` (lane Sells · MySQL) | ⬜ nasce neste PR |
+| UC-PIDX-50 | A venda segura a quantidade de kits, ou deixa passar com "Vender sem estoque" (D-30) | must | `SellPosController@store` (linha `product_type=combo` + `combo` do `sale_pos/product_row.blade.php`) + `ProductUtil::decreaseProductQuantityCombo` + `Util::temSaldoProprio` (o kit sem saldo próprio, lido por `ProductUtil::updateProductQuantity`/`decreaseProductQuantity` e `TransactionUtil::adjustQuantity`/`mapPurchaseSell`) | `SellsKitEstoqueContratoTest` (lane Sells · MySQL) | ⬜ verde no CI (run 44074565455, `main`), fora do manifesto |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -567,7 +567,7 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
 - **Teste:** [`ProdutoKitsDisponiveisTest`](../../../../tests/Feature/Produto/ProdutoKitsDisponiveisTest.php) — `UC-PIDX-40` (prova dupla: à mão e pela conta do núcleo `ProductUtil::calculateComboQuantity`, nos dois locais e com subunidade; componente sem saldo; componente sem controle de estoque; usuário de um local só — lane Estoque · MySQL) e [`produto-painel-kits.test.tsx`](../../../../tests/js/produto-painel-kits.test.tsx) — `UC-PIDX-40` (a tabela por local, o destaque do zero, o singular, nada sem `kits_por_local` — Vitest do `Frontend / Vite build`).
 - **Contrato:** pedido de 2026-10-23 (comparação com concorrentes: Base e Mercado Livre — o estoque do kit sai do componente mais escasso; Omie — o kit só agrupa). A conta é a que o núcleo usa para o combo na venda (`calculateComboQuantity`: saldo no local ÷ (quantidade × multiplicador da unidade), o menor, para baixo), sobre os mesmos itens da tabela Composição (`combo_variations`, `__getComboProductDetails`). Mexe em estoque só para mostrar (Regra Mestre: prova dupla no teste do servidor).
 - **Diferença do núcleo, corrigida em 2026-11-12 (D-30):** até essa data, no `calculateComboQuantity`, um componente com saldo zero não zerava o resultado (o `0` servia de "ainda não calculado" e o componente seguinte tomava o lugar: kit de 2 A e 1 B, com A = 0 e B = 5, dava 5 kits). Agora zero é zero em qualquer ordem, e a conta da venda e a do painel dão o mesmo — provado nos dois caminhos pelo caso "D-30" do `ProdutoKitsDisponiveisTest`.
-- **Fora daqui:** impedir a venda de mais kits do que o estoque permite (segue no backlog); kit pelo `product_bom` (BOM V2), que a tabela Composição também não lê.
+- **Fora daqui:** impedir a venda de mais kits do que o estoque permite (UC-PIDX-50, D-30); kit pelo `product_bom` (BOM V2), que a tabela Composição também não lê.
 - **Status: ⬜** — nasce neste PR.
 
 ## UC-PIDX-41 · Giro de 90 dias e últimas compras no painel · `should`
@@ -647,7 +647,7 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
 - **Contrato:** D-30 (decisão [F] 2026-11-12) — o kit segue "Permitir vender sem estoque" (`pos_settings.allow_overselling`), como qualquer produto. A conta dos kits possíveis foi corrigida no #10843 (componente zerado zera os kits). O kit sem estoque próprio foi aprovado pelo [F] em 2026-11-16, depois de medir a produção: 1 kit em todas as empresas, com "Controlar estoque" desligado e nunca vendido, logo nenhuma empresa muda de comportamento.
 - **Gates:** `sell.create`. Tier 0: venda, compras e saldos só da empresa do usuário.
 - **Fora daqui:** a venda React (Create e CreateV3) ainda não monta o kit, pedido P-066 em `Sells/Create.casos.md`.
-- **Status: ⬜** — nasce neste PR.
+- **Status: ⬜** — os 4 casos verdes no CI, no PR #10953 (run 43879324257) e no `main` depois do merge (run 44074565455). Fica ⬜ até entrar no manifesto de resultados (`scripts/casos-test-results.json`), que é o que o G-7 lê.
 
 ## Achados de governança (o trio prometia o que não tinha)
 
@@ -850,7 +850,6 @@ last_run_ci: "PR de 2026-11-12 (Locais de armazenagem no menu da linha e no pain
   abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
   pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
   pedido).
-- **[BACKLOG] A venda não deixa vender mais kits do que os componentes permitem** `[V0]` — a parte do painel ("3 kits disponíveis" e quem limita) saiu deste backlog em 2026-11-04 e virou UC-PIDX-40. Fica a venda. O PDV Blade já usa `ProductUtil::calculateComboQuantity` para o saldo do combo (`SellPosController`, `getDetailsFromVariation`), mas essa conta tem um defeito, descrito no UC-PIDX-40: componente com saldo zero que vem primeiro na lista não zera o resultado (kit de 2 A e 1 B, com A = 0 e B = 5, dá 5 kits). Consertar mexe no que a venda deixa vender: Regra Mestre (dupla prova e antes e depois), decisão [W]. A venda React (Sells/CreateV3) não foi conferida. Decidido em 2026-11-12 (D-30): corrigir a conta e seguir "Permitir vender sem estoque".
 - **[BACKLOG] Saldo fiscal no painel do produto** `[E0]` (pedido de 2026-10-27) — Aceite: Dado um
   produto com 5 un. no estoque, das quais 3 entraram com nota, Quando abro a aba Fiscal do painel,
   Então ela mostra "Saldo fiscal 3 un. · Estoque real 5 un." e de onde vem a diferença (compras sem
@@ -947,6 +946,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
   - Opção: Campo "Compra com nota" no lançamento — Sai antes, mas é um campo novo na compra, e o saldo fica tão certo quanto quem marca o campo.
 
 ## Trilha do tempo
+- 2026-11-17 · [F+C] **UC-PIDX-50** (#10953): a venda de kit segue "Vender sem estoque" (D-30) e o kit não tem estoque próprio: a linha do kit deixa de ser casada com compra e o saldo do kit não muda na venda nem na exclusão (`Util::temSaldoProprio`). Sai do backlog o item "A venda não deixa vender mais kits do que os componentes permitem": a conta foi corrigida no #10843 e a venda no #10953.
 - 2026-11-16 · [F+C] **UC-PIDX-49**: a aba Lotes no painel mostra os lotes com saldo, pela consulta do relatório de Lotes, com o botão que abre o relatório filtrado no produto (CV3).
 - 2026-11-12 · [F+C] **UC-PIDX-48**: a aba Receita no painel mostra a receita da Fabricação, só leitura (insumos, custo e margem da tela de Receitas), com "Abrir receita" (D-29).
 - 2026-11-12 · [F+C] **UC-PIDX-46**: o painel diz "O que é" o produto (Para vender, Material ou Serviço, pela regra do filtro "Uso") e a coluna Tipo deixa de vir ligada (resto da CV1).
