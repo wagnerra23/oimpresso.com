@@ -1,10 +1,9 @@
 // Tipo do produto na tela Novo produto (BlocoImpostosPrecos.tsx + Create.tsx + tipos.ts).
 //
-// A tela React oferece "Variável" e "Composto", mas não tem o editor da grade nem da composição.
-// Sem `product_variation`, o ProductController@store cria o variável SEM variação nenhuma; sem
-// `composition_variation_id`, o composto nasce sem itens e com preço zero. Nos dois casos o produto
-// não entra em venda, compra, OS nem fabricação. Até o editor existir, a tela só salva o simples e
-// manda os outros para o cadastro clássico.
+// A tela React oferece "Composto", mas não tem o editor da composição: sem `composition_variation_id`
+// o composto nasce sem itens e com preço zero, e não entra em venda, compra, OS nem fabricação. A tela
+// manda o composto para o cadastro clássico. O editor espera a D2 (SDD §10.6, decisão do [F] em
+// 2026-11-17). O variável tem a grade desde então (UC-PCAD-32, produto-grade.test.tsx).
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 
@@ -82,20 +81,27 @@ function enviar(container: HTMLElement) {
   return enviado.payload
 }
 
-describe('UC-PCAD-11 · Novo produto — variável e composto vão para o cadastro clássico', () => {
-  it.each(['variable', 'combo'] as const)('%s: avisa, leva ao clássico e não salva', (tipo) => {
+describe('UC-PCAD-11 · Novo produto — composto vai para o cadastro clássico', () => {
+  it.each(['combo'] as const)('%s: avisa, leva ao clássico e não salva', (tipo) => {
     const { container } = render(
       <ProdutoCreate {...base} businessLocations={{ 3: 'Loja' }} duplicateProduct={duplicado(tipo)} />,
     )
 
     const aviso = screen.getByRole('alert')
-    expect(aviso.textContent).toContain(tipo === 'variable' ? 'variável' : 'composto')
+    expect(aviso.textContent).toContain('composto')
     expect(screen.getByText('Cadastrar no formulário clássico').getAttribute('href')).toBe('/products/create?classico=1')
     // Todos os botões que salvam (o Salvar e os "Salvar e …" do rodapé) ficam desligados.
     const salvar = Array.from(screen.getByTestId('acoes-cadastro').querySelectorAll('button[type="submit"]'))
     expect(salvar.length).toBeGreaterThan(0)
     for (const b of salvar) expect((b as HTMLButtonElement).disabled).toBe(true)
     expect(enviar(container)).toBeNull()
+  })
+
+  it('variável: tem a grade (UC-PCAD-32), sem aviso nem link para o clássico', () => {
+    render(<ProdutoCreate {...base} businessLocations={{ 3: 'Loja' }} duplicateProduct={duplicado('variable')} modelosVariacao={[]} />)
+
+    expect(screen.queryByText('Cadastrar no formulário clássico')).toBeNull()
+    expect(screen.getByRole('group', { name: 'Grade da variação' })).toBeTruthy()
   })
 
   it('simples: sem aviso e salva', () => {
