@@ -6,9 +6,11 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §5 e §9 (prototipo-ui/cowork/Felipe/handoff_fabricacao/README.md) — os UC DERIVAM dele
 related_us: [US-MANU-006]
 owner: wagner
-last_run: "2026-11-16"
+last_run: "2026-11-17"
 ---
 
+> ℹ️ **`last_run` 2026-11-16 → 2026-11-17 (G-6): sem mudança de comportamento.** O último commit no `.tsx` é o do lote 2.6 (#11011), descrito na nota abaixo; ele entrou no main às 01:58 UTC de 2026-11-17, um dia depois da data que a nota registrou. Revalidado no lote 4.1: UC-INGRED-01..16 seguem como estavam.
+>
 > ℹ️ **`last_run` 2026-10-27 → 2026-11-16 (G-6): lote 2.6 da auditoria.** O editor passou a esconder o custo dos insumos e o cartão "Custo ao vivo" quando a tela não recebe `perms.custo` (sem `view_purchase_price`, UC-INGRED-16). Com a permissão o editor é o mesmo: UC-INGRED-01..15 seguem como estavam.
 
 > ℹ️ **`last_run` 2026-10-09 → 2026-10-27 (G-6): cutover da Blade.** Pedido [W] 2026-10-27, *"1 PR por tela,

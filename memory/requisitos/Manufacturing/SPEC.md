@@ -19,7 +19,8 @@ na_justified:
 > `origin/main` `18fd05d4bf`, depois dos lotes 0 a 3 da auditoria. Lane `PHP / Pest
 > (Manufacturing · MySQL)` no main: run 44074565768, **281 passed, 0 skipped (1223 assertions)**.
 > Os itens "Pest pendente" abaixo foram fechados por essa run; o smoke em produção das telas
-> continua pendente onde estava. A linha `> owner: … status: …` de cada US é o formato que o
+> continua pendente onde estava. US com âncora viva fica `done` (ADR 0302, `doneness-lint`); o
+> smoke que falta segue como item aberto do DoD de 002, 003 e 005. A linha `> owner: … status: …` de cada US é o formato que o
 > parser do MCP lê (`TaskParserService`); o estado vivo segue no MCP (ADR 0144).
 
 ### US-MANU-001 · Quanto custa produzir, com o preço de insumo de hoje
@@ -82,7 +83,7 @@ depois que um insumo subiu
 
 ### US-MANU-002 · Relatório de produção do período
 
-> owner: — · priority: p2 · status: review
+> owner: — · priority: p2 · status: done
 
 **Como** Wagner
 **Quero** ver quanto custou produzir no período, agrupado por produto
@@ -116,11 +117,11 @@ em `GateDoModuloTest.php` (lote 2.1).
 - [x] Divisão por zero no `% do período` devolve 0 (§7.3)
 - [x] Pest verde — lane `PHP / Pest (Manufacturing · MySQL)`, run 44074565768
 - [ ] Smoke real em prod (`curl` + screenshot) — pendente, receita em `RUNBOOK-report.md §3`.
-      É o único item aberto, e por isso o status é `review`, não `done`
+      É o único item aberto do DoD
 
 ### US-MANU-003 · Configurações do módulo
 
-> owner: — · priority: p2 · status: review
+> owner: — · priority: p2 · status: done
 
 **Como** Wagner
 **Quero** ajustar prefixo da referência e as duas travas de produção sem abrir a tela antiga
@@ -157,7 +158,7 @@ reusado sem alteração) — endereço canônico `/manufacturing/settings` desde
 - [x] Pest verde na lane de CI — run 44074565768
 - [x] Gravar exige permissão do módulo (`access_production`, B3) — UC-MCFG-05
 - [ ] Smoke real em prod (`curl` + screenshot + **submit de verdade**) — pendente, receita em
-      `RUNBOOK-settings.md §3`. Único item aberto: status `review`
+      `RUNBOOK-settings.md §3`. Único item aberto do DoD
 
 ### US-MANU-004 · Ordens de produção — as 8 colunas e as duas marcas do §4.5
 
@@ -219,7 +220,7 @@ em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao
 
 ### US-MANU-005 · Insumos — impacto reverso e simulador de preço
 
-> owner: — · priority: p2 · status: review
+> owner: — · priority: p2 · status: done
 
 **Como** Wagner
 **Quero** ver quais receitas usam um insumo e quanto o custo delas sobe se ele reajustar
@@ -261,8 +262,8 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
 - [x] Nota verbatim sobre o consumo convertido à unidade base
 - [x] A aba só aparece quando o backend existir — nada de aba vazia
 - [x] Pest verde na lane de CI — run 44074565768
-- [ ] Smoke real em prod (`curl` + screenshot + mexer no slider) — pendente. Único item aberto:
-      status `review`
+- [ ] Smoke real em prod (`curl` + screenshot + mexer no slider) — pendente. Único item aberto
+      do DoD
 
 ### US-MANU-006 · Editor de ingredientes
 
