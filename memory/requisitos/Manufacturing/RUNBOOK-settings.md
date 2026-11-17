@@ -1,5 +1,5 @@
 ---
-last_validated: "2026-09-03"
+last_validated: "2026-11-17"
 slug: runbook-manufacturing-settings
 title: "RUNBOOK — /manufacturing/settings (Fabricação · Configurações)"
 type: runbook
@@ -52,7 +52,7 @@ owner: F
 | Charter | `resources/js/Pages/Manufacturing/Settings.charter.md` |
 | Casos | `resources/js/Pages/Manufacturing/Settings.casos.md` |
 | Controller (GET novo) | `Modules/Manufacturing/Http/Controllers/SettingsController@indexV2` |
-| Controller (POST reusado) | `Modules/Manufacturing/Http/Controllers/SettingsController@store` (sem mudança) |
+| Controller (POST reusado) | `Modules/Manufacturing/Http/Controllers/SettingsController@store` — desde o lote 2.1 (2026-11-16) exige `manufacturing.access_production` (B3, UC-MCFG-05) |
 | Fonte de design | `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgConfig` |
 | Teste | `Modules/Manufacturing/Tests/Feature/Wave31SettingsInertiaTest.php` |
 
@@ -62,10 +62,10 @@ owner: F
 curl -sv https://oimpresso.com/manufacturing/settings 2>&1 | grep '^< HTTP'
 ```
 
-Regressão adjacente:
+Regressão adjacente — a tela antiga no mesmo endereço:
 
 ```bash
-curl -sv https://oimpresso.com/manufacturing/settings 2>&1 | grep '^< HTTP'
+curl -sv 'https://oimpresso.com/manufacturing/settings?legacy=1' 2>&1 | grep '^< HTTP'
 ```
 
 Depois do 200, screenshot obrigatório + **testar o submit de verdade** (mudar o prefixo,
@@ -73,7 +73,7 @@ clicar Atualizar, confirmar que persistiu) — é a primeira tela da família qu
 
 ## 4. Rollback
 
-Rota aditiva — reverter o PR remove só a rota nova; `/manufacturing/settings` nunca saiu do ar.
-Sem migration. `store()` não foi alterado, então não há risco de regressão na escrita mesmo
+Sem deploy: `?legacy=1` devolve a tela Blade antiga no mesmo endereço. Com deploy: reverter o PR
+do cutover de 2026-09-04. Sem migration. O `store()` só ganhou a checagem de permissão, então não há risco de regressão na escrita mesmo
 que o front novo tenha bug — o pior caso é o formulário novo não funcionar, não gravar errado
 (o controller ignora qualquer campo que não seja um dos 3 esperados).

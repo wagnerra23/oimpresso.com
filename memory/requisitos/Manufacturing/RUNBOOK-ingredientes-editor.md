@@ -1,7 +1,7 @@
 ---
-last_validated: "2026-10-08"
+last_validated: "2026-11-17"
 slug: runbook-manufacturing-ingredientes-editor
-title: "RUNBOOK — /manufacturing/add-ingredient?tela=nova (Fabricação · Editor de ingredientes)"
+title: "RUNBOOK — /manufacturing/add-ingredient (Fabricação · Editor de ingredientes)"
 type: runbook
 module: Manufacturing
 page: /manufacturing/add-ingredient
@@ -12,7 +12,7 @@ version: 0.1
 owner: M
 ---
 
-# RUNBOOK — `/manufacturing/add-ingredient?tela=nova` (Fabricação · Editor de ingredientes)
+# RUNBOOK — `/manufacturing/add-ingredient` (Fabricação · Editor de ingredientes)
 
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > US-MANU-006 — o editor da ficha técnica: grupos, ingredientes, sub-unidades e o custo ao vivo.
@@ -59,7 +59,7 @@ o mesmo endereço sem `?tela=nova` servia a janela Blade até 2026-10-26.
 | `resources/js/Pages/Manufacturing/_lib/custo.ts` | custo ao vivo — mesma conta do `calculateCost` · `montarEnvio`/`paraNumUf`: o formato do salvar |
 | `resources/js/Pages/Manufacturing/_components/BuscaInsumo.tsx` | busca de insumo do "Ingrediente em <grupo>" |
 | `resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx` | confirmação da regra 6 · `DELETE /manufacturing/recipe/{id}` (`RecipeController::destroy`) |
-| `Modules/Manufacturing/Http/Controllers/RecipeController.php` | `addIngredients` (ramo `?tela=nova` → `telaEditor`) · `insumosParaReceita` |
+| `Modules/Manufacturing/Http/Controllers/RecipeController.php` | `addIngredients` → `telaEditor` (desde 2026-10-27 sem ramo; `?tela=nova` é aceito e ignorado) · `insumosParaReceita` |
 | `Modules/Manufacturing/Services/RecipeBomService.php` | `editorDaReceita` · `buscarInsumos` |
 | `Modules/Manufacturing/Tests/Feature/EditorIngredientesTest.php` | UC-INGRED-* |
 
@@ -75,10 +75,12 @@ o mesmo endereço sem `?tela=nova` servia a janela Blade até 2026-10-26.
 
 ## 6. Smoke prod (R1)
 
-Empresa 1, uma receita existente: abrir `/manufacturing/add-ingredient?variation_id=<id>&tela=nova`,
+Empresa 1, uma receita existente: abrir `/manufacturing/add-ingredient?variation_id=<id>`,
 conferir grupos, linhas e o "Custo por <unidade>" contra a lista de Receitas da mesma receita.
 Sem cookie: `curl -sv` deve devolver `302` para `/login`.
 
 ## 7. Rollback
 
-Revert do PR. Nada grava nesta etapa; a janela Blade nunca deixou de ser a padrão.
+Revert do PR do cutover (2026-10-27) devolve a janela Blade e as partials. O editor grava a
+receita pelo `RecipeController::store`, que o revert não muda. Desde o cutover não há rollback
+sem deploy.
