@@ -134,5 +134,9 @@ last_run: "2026-09-29"
   DOM. A condição é a cascata aberta, não `item.href`: pai de dropdown chega sem `href`
   (`LegacyMenuAdapter::convertItem`). Protótipo: `MenuGroup` em `sidebar.jsx` põe a `GhostList`
   depois da cascata.
-- **Teste:** `tests/js/sidebar-filhos-inline.test.tsx` (render, 6 casos, lane
+- **Rota de um atalho:** na rota de um ghost a cascata também abre sozinha, e filhos e ghosts
+  dividem um único `aria-current` (o de caminho mais longo; empate com um filho fica no filho).
+  Medido em produção (biz=1) em 2026-11-17: em `/product-catalogue/catalogue-qr` o Vendas ficava
+  fechado e nada levava `aria-current`, porque a cascata só abria por filho.
+- **Teste:** `tests/js/sidebar-filhos-inline.test.tsx` (render, 8 casos, lane
   `cockpit-sidebar-jsdom-gate`).
