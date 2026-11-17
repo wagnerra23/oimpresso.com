@@ -3,6 +3,8 @@
 > Escopo: design/[CC]. Subordinado a `memory/proibicoes.md` (canônico no git).
 > Lido no **início** de todo chat (junto com STATUS + PROTOCOL + BRIEFING). Append-only.
 > Formato por entrada: **Erro · Sintoma · Regra · Ref.**
+>
+> ⚠️ **Leia com a [ADR 0438](decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** As lições foram escritas no papel de designer no Cowork ([CC]) e ficam como estão (append-only). O **erro** de cada uma continua valendo; a **regra** vale quando não depende do Cowork. Onde uma regra manda pôr trabalho no `COWORK_NOTES.md`, no bundle, no zip ou deixar rascunho "no Cowork", o caminho hoje é o arquivo em `prototipo-ui/` editado por PR, e o Artefato só para ver e comentar.
 
 ---
 

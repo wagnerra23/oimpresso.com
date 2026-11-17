@@ -8,6 +8,8 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — superadmin/Negocios/Index
 
+> ⚠️ **Datado (anotado em 2026-11-16, lote L6 da auditoria):** este GAP-SPEC é **leitura de código de 2026-09-06**, não medição de render. "PARIDADE" e "VIVO-À-FRENTE" abaixo são juízo daquela leitura, não prova de igualdade. Depois desta data parte da ESCRITA entrou: drawer Novo negócio (#8714) e Adicionar assinatura (#8733), em 2026-10-05; o resto do veredito não foi re-lido. A comparação medida (mesma sonda nos dois lados) é o `*-visual-comparison.md` do lote L7, que ainda não existe nesta data.
+
 > Protótipo = porte do Blade legado (superadmin-page.jsx:1-9), anterior às telas React (SA-O1..O3, 2026-08). Charter: `Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.charter.md` (Non-Goals/Anti-hooks respeitados, nunca reabertos).
 
 **Veredito:** PARIDADE na leitura (busca, 4 filtros, tabela, paginação, drawer PT-02 com 4 seções) e VIVO-À-FRENTE em URL/partial reload/vazio/skeleton/drawer; toda a ESCRITA do mockup (form, kebab, confirmações, BulkBar) já está decidida como SA-O3 / D1; valor recorrente já decidido (sem vínculo no dado) — **4 itens a decidir** (contagens no subtítulo; botão Exportar; ordenação por coluna; "cadastro por <criador>" no drawer).

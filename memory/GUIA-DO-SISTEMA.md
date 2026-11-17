@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.7.0"
+version: "1.8.0"
 maintained_by: wagner
-last_updated: "2026-09-04"
+last_updated: "2026-11-05"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -180,10 +180,12 @@ O efeito colateral é o mais valioso do projeto: **existe um registro datado do 
 
 Todos passam pelo mesmo portão — e é isso que os torna auditáveis.
 
-- **Uma venda** — nasce rascunho de orçamento e caminha até concluída. Não muda de estágio por atribuição: cada passo é uma **ação nomeada**, com papel autorizado por empresa. Dispara efeitos isolados (`ReservarEstoque`, `ConsumirEstoque`, `LiberarReserva`). A emissão fiscal está amarrada ao estágio, não a um botão avulso.
-- **Uma ordem de serviço** — mesma mecânica, vocabulário de oficina: recebido para diagnóstico → orçamento → aprovação → execução → entrega. O Kanban é a projeção visual desses estágios; mover o cartão **é** executar a ação.
+- **Uma venda** — nasce rascunho de orçamento e caminha até concluída. Não muda de estágio por atribuição: cada passo é uma **ação nomeada**, com papel autorizado por empresa. Dispara efeitos isolados (`ReservarEstoque`, `ConsumirEstoque`, `LiberarReserva`). A emissão fiscal está amarrada ao estágio, não a um botão avulso. **Pago não é etapa obrigatória:** a venda vai de Faturada para Entregue, e se o cliente pagou é a situação do título no Financeiro ([ADR 0434](decisions/0434-fsm-pedido-retomar-pagamento-fora-das-etapas.md)).
+- **Uma ordem de serviço** — mesma mecânica, vocabulário de oficina: recebido para diagnóstico → orçamento → aprovação → execução → entrega. O Kanban é a projeção visual desses estágios; mover o cartão **é** executar a ação. Nos modelos de fluxo, a OS que nasce do pedido é outra: uma por item da venda, no módulo Produção ([ADR 0436](decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md), proposta).
 - **Um cancelamento** — o caso difícil, porque não é um `DELETE`: cancela a nota na SEFAZ **preservando o número sequencial** (a lei o considera usado), estorna no gateway, devolve o estoque, e avisa o cliente **só se ele consentiu** (LGPD).
 - **Um deploy** ([ADR 0269](decisions/0269-deploy-automatico-build-no-runner.md)) — merge em `main` que toque código dispara build no runner, manutenção, migrations, reset de opcode e **smoke em `/login`**; se o boot falhar, um failsafe segura um 503 gracioso. Mudança só em documentação **não** dispara deploy (`paths-ignore: memory/** · **.md`) — o que economiza minutos de pipeline e tem um efeito que vale saber: **markdown novo só chega ao servidor no deploy seguinte**.
+
+**As etapas de cada empresa vêm do modelo de fluxo que ela escolhe** em Sistema › Fluxos e regras (`/fluxos`): um processo por assunto (venda, produção, compra, entrega, financeiro), com regras do tipo "ao entrar em X, faz Y". Quem não escolheu segue no processo de sempre ([ADR 0435](decisions/0435-fluxos-por-modelo-porte-atividade.md), proposta). Para ver as etapas, abra a tela; nenhum texto deste guia as lista. Leitura mais longa em [Domínio — Estágio](reference/DOMINIO-ESTAGIO.md).
 
 **O fio que une os quatro:** um portão único, efeitos com nome próprio, histórico que não se reescreve, permissão checada por empresa. Quando algo dá errado, *"o que aconteceu aqui?"* tem resposta — e essa é a diferença entre um ERP que se opera e um que se adivinha.
 

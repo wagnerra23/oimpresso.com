@@ -12,6 +12,7 @@ related_adrs: [104, 93]
 tier: B
 charter_version: 1
 runbook: memory/requisitos/Superadmin/RUNBOOK-configuracoes.md
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-configuracoes.md
 ---
 
 # Page Charter — /superadmin/settings

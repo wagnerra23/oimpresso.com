@@ -1,5 +1,7 @@
 # FRESCOR — Produção (`resources/js/Pages/**`) vs Protótipo (Cowork export)
 
+> ⚠️ **Em parte superado pela [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** Quadro escrito para o Cowork ler; a regra-mãe "Cowork manda" vale hoje como "o protótipo no git manda na forma" (UI-0029). Desde a 0438 a fonte do protótipo é o **arquivo em `prototipo-ui/`, editado por PR**; o Artefato serve só para ver e comentar; o Cowork não é fonte nem rota de entrada ou saída. Não siga as instruções de zip, bundle, export, handoff, `DesignSync` ou `COWORK_NOTES` abaixo. Processo vigente: `memory/reference/prototipo-ui/PROTOCOL.md`.
+
 > **Canal reverso Code → Design.** Onde a **produção passou** o protótipo, o design deve **puxar o estado vivo** (parar de tratar o export como fonte). Onde a **produção está atrás**, é catch-up real (build).
 > Mantido pelo **Claude Code** ao fim de cada sync/Fase 1. Lido pelo **Cowork** no início da sessão (junto de `CODE_NOTES.md`).
 > Regra-mãe: **camada de design** = Cowork manda; **memory/ADR/resources/** = repo manda, design só lê (ver ADR-proposta `2026-06-23-prototipo-ssot-unico-com-historico`).

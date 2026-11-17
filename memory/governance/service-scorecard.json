@@ -5,7 +5,7 @@
   "generated_from": {
     "catalog": {
       "path": "memory/governance/catalog.json",
-      "stats": 38
+      "stats": 40
     },
     "grades": {
       "path": null,
@@ -15,11 +15,11 @@
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-11-15"
+      "generated_at": "2026-11-16"
     }
   },
   "stats": {
-    "services": 43,
+    "services": 45,
     "with_grade": 0,
     "unmatched_screen_dirs": [],
     "orphan_screen_ns": [
@@ -54,7 +54,7 @@
     ],
     "maturity_levels": {
       "ouro": 4,
-      "prata": 31,
+      "prata": 33,
       "bronze": 8
     }
   },
@@ -81,7 +81,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 0,
@@ -382,11 +382,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 53
+          "idade_max_dias": 54
         },
         "graph": {
           "depends_on": 2,
-          "dependents": 1,
+          "dependents": 3,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -398,7 +398,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-25",
+          "last_commit": "2026-11-16",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -484,7 +484,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 53
+          "idade_max_dias": 54
         },
         "graph": {
           "depends_on": 3,
@@ -565,6 +565,108 @@
       }
     },
     {
+      "id": "Associacoes",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "memory/requisitos/Associacoes/SCOPE.md",
+      "purpose": "Rede de associações (primeira: Uniafibro-SC, associações de pessoas com fibromialgia de SC): cadastro das associações-membro e da documentação delas, das associadas com consentimento LGPD por finalidade, e visão consolidada da rede. A rede inteira é uma empresa. Decidido pela ADR 0451 em 2026-11-13.",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": true,
+          "ns": "Associacoes",
+          "via": "direto",
+          "telas": 3,
+          "com_scorecard": 0,
+          "nota_media": null,
+          "nota_min": null,
+          "pior_tela": null,
+          "charter_pct": 100,
+          "casos_pct": 100,
+          "stale": true,
+          "idade_max_dias": null
+        },
+        "graph": {
+          "depends_on": 2,
+          "dependents": 1,
+          "provides_api": 4,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 11,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-11-15",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 8,
+        "ratio": 0.75,
+        "level": "prata"
+      }
+    },
+    {
       "id": "Auditoria",
       "trust": "L3",
       "owner": "wagner",
@@ -586,7 +688,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 4,
@@ -602,7 +704,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-11-10",
+          "last_commit": "2026-11-16",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -667,6 +769,103 @@
       }
     },
     {
+      "id": "Captacao",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "memory/requisitos/Captacao/SCOPE.md",
+      "purpose": "Projetos de captação de recursos de ONGs e associações (primeira: Uniafibro-SC e associações-membro): fontes (edital, lei de incentivo, fundo, doação, parceria, voluntariado), projetos com proponente, aportes recebidos e comprovantes de despesa para prestação de contas. Decidido pela ADR 0452 em 2026-11-14.",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": false,
+          "ns": "Captacao",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 5,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-11-16",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente (rubrica aposentada — ADR 0399)",
+          "na": true
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 4,
+        "applicable": 5,
+        "ratio": 0.8,
+        "level": "prata"
+      }
+    },
+    {
       "id": "Cliente",
       "trust": "",
       "owner": "",
@@ -688,7 +887,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 0,
@@ -704,7 +903,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-09-11",
+          "last_commit": "2026-11-15",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -892,7 +1091,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 4,
@@ -994,7 +1193,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 4
+          "idade_max_dias": 5
         },
         "graph": {
           "depends_on": 4,
@@ -1198,7 +1397,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 4,
@@ -1402,7 +1601,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 0,
@@ -1504,11 +1703,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 4,
-          "dependents": 5,
+          "dependents": 7,
           "provides_api": 3,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1606,11 +1805,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 6,
-          "dependents": 2,
+          "dependents": 3,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1622,7 +1821,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-11-06",
+          "last_commit": "2026-11-16",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1712,7 +1911,7 @@
         },
         "graph": {
           "depends_on": 5,
-          "dependents": 0,
+          "dependents": 1,
           "provides_api": 5,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1810,11 +2009,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 4,
-          "dependents": 43,
+          "dependents": 41,
           "provides_api": 7,
           "owns_tables": 52,
           "owns_legacy_views": 0,
@@ -1912,7 +2111,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 5,
@@ -2014,7 +2213,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 8,
@@ -2116,11 +2315,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 7,
-          "dependents": 24,
+          "dependents": 23,
           "provides_api": 4,
           "owns_tables": 14,
           "owns_legacy_views": 0,
@@ -2218,7 +2417,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 3,
@@ -2422,17 +2621,17 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 7,
-          "dependents": 10,
+          "dependents": 12,
           "provides_api": 5,
           "owns_tables": 22,
           "owns_legacy_views": 0,
           "consumes_tables": 0,
           "governed_by_adr": 3,
-          "components": 19,
+          "components": 20,
           "dangling_edges": 0,
           "connected": true
         },
@@ -2509,7 +2708,7 @@
       "permission_prefix": "nfse.*",
       "charter_adr": "0080",
       "scope": "memory/requisitos/NFSe/SCOPE.md",
-      "purpose": "Emissão, consulta e cancelamento de NFS-e pelo Sistema Nacional (sefin.nfse.gov.br) com certificado A1 e ambiente por business. Dono do schema nfse_emissoes em produção; serve as telas /nfse e é consumido pela tela de venda e pelo cockpit Fiscal.",
+      "purpose": "Emite, consulta e cancela NFS-e pelo Sistema Nacional (Sefin Nacional) com certificado A1 e ambiente por empresa; serve as telas /nfse e a emissão a partir da venda. Divide a tabela nfse_emissoes com o Modules/NfeBrasil, que também a cria e altera. A decisão [W] de 2026-10-13 de consolidar a NFS-e no NfeBrasil (D-NFSE-CONSOLIDA) ainda não tem ADR.",
       "signals": {
         "grade": null,
         "screens": {
@@ -2524,23 +2723,23 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
-          "depends_on": 3,
+          "depends_on": 4,
           "dependents": 5,
           "provides_api": 1,
-          "owns_tables": 0,
+          "owns_tables": 2,
           "owns_legacy_views": 0,
-          "consumes_tables": 0,
+          "consumes_tables": 1,
           "governed_by_adr": 3,
-          "components": 3,
+          "components": 9,
           "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-10-13",
+          "last_commit": "2026-11-16",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2626,7 +2825,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 53
+          "idade_max_dias": 54
         },
         "graph": {
           "depends_on": 3,
@@ -2728,7 +2927,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 135
+          "idade_max_dias": 136
         },
         "graph": {
           "depends_on": 3,
@@ -2830,7 +3029,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 135
+          "idade_max_dias": 136
         },
         "graph": {
           "depends_on": 5,
@@ -2932,7 +3131,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 4,
@@ -3136,7 +3335,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 3
+          "idade_max_dias": 4
         },
         "graph": {
           "depends_on": 0,
@@ -3238,7 +3437,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 0,
@@ -3437,7 +3636,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 4,
@@ -3539,7 +3738,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 3,
@@ -3641,7 +3840,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 0,
@@ -3942,7 +4141,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 53
+          "idade_max_dias": 54
         },
         "graph": {
           "depends_on": 4,
@@ -4044,7 +4243,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 3,
@@ -4248,7 +4447,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 133
+          "idade_max_dias": 134
         },
         "graph": {
           "depends_on": 8,

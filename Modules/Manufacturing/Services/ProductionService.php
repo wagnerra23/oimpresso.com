@@ -9,8 +9,6 @@ use App\Variation;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Support\Privacy\PiiRedactor;
 use Modules\Manufacturing\Entities\MfgRecipe;
 
 /**
@@ -22,37 +20,16 @@ use Modules\Manufacturing\Entities\MfgRecipe;
  *
  * Wave J — Manufacturing boost 59 -> meta 70 (Capterra D4.a 2/6 -> 3/6).
  *
- * Wave 14 D7.a (LGPD) — método `logProductionEvent()` aplica PiiRedactor
- * em strings antes de logar (defesa em profundidade: ref_no/lot_number/notas
- * podem conter PII de cliente em casos extremos).
+ * O `logProductionEvent()` (Wave 14) saiu no lote 2.8 da auditoria: 0 chamadores. O log de erro dos
+ * controllers passa pelo `LogsWithPiiRedactor::logSafeEmergency`, que já redige.
  */
 class ProductionService
 {
     public function __construct(
-        private ?PiiRedactor $piiRedactor = null,
         private ?RecipeBomService $bomService = null,
     ) {
         // Resolve do container se não injetado (Manufacturing legacy usa instanciação direta)
-        $this->piiRedactor = $piiRedactor ?? app(PiiRedactor::class);
         $this->bomService = $bomService ?? app(RecipeBomService::class);
-    }
-
-    /**
-     * Log estruturado de eventos de produção com PII redactada (D7.a LGPD).
-     *
-     * Use SEMPRE pra logar contexto operacional de produção em vez de Log::xxx
-     * direto. Redaciona CPF/CNPJ/email/telefone/CEP no contexto antes de gravar.
-     *
-     * @param  string  $level  emergency|error|warning|info
-     * @param  string  $message  Mensagem livre (será redactada)
-     * @param  array<string,mixed>  $context  Contexto adicional (strings serão redactadas)
-     */
-    public function logProductionEvent(string $level, string $message, array $context = []): void
-    {
-        $safeMessage = $this->piiRedactor->redact($message);
-        $safeContext = $this->piiRedactor->redactArray($context);
-
-        Log::log($level, '[manufacturing.production] '.$safeMessage, $safeContext);
     }
 
     /**
@@ -64,7 +41,7 @@ class ProductionService
      * do usuário) é feito em LOTE por {@see enrichProductionRows()} — nunca por linha.
      *
      * @param  int  $businessId  Tier 0 — NUNCA omitir, NUNCA usar session() em Job.
-     * @param  array{location_id?: int|null, start_date?: string|null, end_date?: string|null, is_final?: bool} $filters
+     * @param  array{location_id?: int|null, start_date?: string|null, end_date?: string|null, is_final?: bool, locais_permitidos?: 'all'|array<int, int>|null} $filters
      */
     public function listProductions(int $businessId, array $filters = [], int $perPage = 25): Collection
     {
@@ -99,6 +76,12 @@ class ProductionService
 
             if (! empty($filters['location_id'])) {
                 $query->where('location_id', $filters['location_id']);
+            }
+
+            // UC-OP-22: `permitted_locations()` do usuário — 'all' (ou ausente) não filtra; lista filtra,
+            // inclusive vazia (usuário sem local nenhum não vê ordem).
+            if (array_key_exists('locais_permitidos', $filters) && $filters['locais_permitidos'] !== 'all' && $filters['locais_permitidos'] !== null) {
+                $query->whereIn('location_id', (array) $filters['locais_permitidos']);
             }
 
             if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {

@@ -10,7 +10,7 @@ preconditions:
   - "Usuário autenticado com a permission `arquivos.access` (declarada em `DataController::user_permissions`, default `false`)"
   - "`business_id` na sessão — o `Arquivo` aplica global scope por business (ADR 0093, Tier 0)"
   - "Módulo `arquivos_module` habilitado no pacote do business (Camada 1 — superadmin/packages)"
-  - "Tabela `arquivos` migrada (8 migrations do módulo, Sprint 1)"
+  - "Tabela `arquivos` migrada (migrations de `Modules/Arquivos/Database/Migrations/`)"
 preconditions_short: permission arquivos.access, business_id na sessão, módulo habilitado
 ---
 
@@ -105,7 +105,7 @@ ele existe pra quando *alguém pede* um link. A tela renderiza 25 linhas por pá
 cada abertura do acervo escrever 25 linhas de auditoria, o que quebra a leitura pura e afoga a
 própria vista Trilha em ruído de renderização. Quem baixa de fato continua auditado: o
 `DownloadController` grava `signed_url_consumed` **no consumo**, que é o evento que responde
-"quem baixou". Há teste comportamental com controle positivo pra isso (UC-INDEX-05).
+"quem baixou". Há teste comportamental com controle positivo pra isso (UC-ARQIDX-05).
 
 **Quem NÃO oferece download:** arquivo soft-deleted (o `DownloadController` faz `Arquivo::find()`
 sem `withTrashed` → 404) e arquivo sem conteúdo no storage (a estratégia `anonymize` da retenção
@@ -132,6 +132,13 @@ no CT 100** (o runtime é o oráculo; o `Routes/web.php` de um app modular tem v
 A segunda perna é o `Route::has()` em runtime: o mapa é do repo, o roteador é do boot, e o módulo
 dono pode estar **desinstalado para este business**. Sem a checagem, um módulo desligado derrubaria
 a tela inteira com `RouteNotFoundException` no meio do `paginate`.
+
+> **Estado em 2026-11-16 — o parágrafo abaixo é de 2026-08-25 e caducou.** Hoje classificar,
+> excluir e restaurar têm endpoint (`POST arquivos/{arquivo}/classificar|excluir|restaurar`,
+> restaurar só superadmin) e botão na tela; simular a retenção tem endpoint
+> (`POST arquivos/retencao/simular`, só superadmin, dry-run forçado) e **não** tem botão; avisar o
+> titular é o comando agendado `arquivos:avisar-titulares`; purgar segue só no
+> `arquivos:retention-cleanup`, manual. Contrato de cada um no `Index.casos.md`.
 
 **O que este refino NÃO fez, e por qual pendência está parado:** classificar, excluir, restaurar,
 avisar titular e purgar. Não é escolha de escopo — **não existe endpoint** pra nenhum deles, e o
@@ -323,8 +330,9 @@ cofre só ampliou o vocabulário de `tab` com um valor.
 9. `/arquivos?tab=cofre` → **200**, aba Cofre ativa, cards por disco e os 3 achados contados.
    Conferir na tela: **nenhum hash**, **nenhum caminho de storage** e **nenhum botão** — nem o
    "Rodar dry-run" que o protótipo desenha (é onda 3).
-10. `?tab=retencao` → **422** pela validação (`Rule::in`), não um acervo silencioso. A aba não
-    existe ainda, e uma URL que devolve 200 mostrando outra coisa mente.
+10. `?tab=retencao` → **200**, aba Retenção ativa. Um `tab` fora da lista (`?tab=xyz`) → **422**
+    pela validação (`Rule::in` em `ListArquivosRequest`), não um acervo silencioso. _(Até a vista
+    Retenção existir, este passo esperava 422 para `retencao`.)_
 11. No acervo: cada linha com conteúdo tem **um** botão só-ícone de baixar, e o `aria-label`
     diz qual arquivo. Clicar baixa; a URL do `href` tem `signature=` e `expires=` ~60 min à
     frente. Linha soft-deleted (`?with_trashed=1`) mostra `—`, **não** um botão desabilitado.
@@ -377,8 +385,8 @@ cofre só ampliou o vocabulário de `tab` com um valor.
   denominador ela inventa um teto. A do protótipo é `bytes / 5 GB`, número do mock.
 - ❌ Não afirmar economia de disco a partir do duplicado sem olhar `caminhos`: o caminho é derivado
   do hash, então cópia do mesmo mês é o **mesmo** arquivo físico.
-- ❌ Não declarar `retencao` no `Rule::in` do `tab` antes de a vista existir — a URL passaria a
-  responder 200 caindo no acervo em silêncio.
+- ❌ Não declarar um `tab` no `Rule::in` antes de a vista existir — a URL passaria a responder 200
+  caindo no acervo em silêncio. (`retencao` entrou junto com a vista, como esta regra pedia.)
 
 ## 12. Diagnóstico/Troubleshoot
 

@@ -39,7 +39,8 @@ final class BusinessAutoSubscriptionObserver
 {
     public function created(Business $business): void
     {
-        if ($business->id === 1) {
+        // A empresa operadora do SaaS não cobra a si mesma.
+        if ((int) $business->id === (int) config('app.saas_owner_business_id')) {
             return;
         }
 
@@ -102,7 +103,7 @@ final class BusinessAutoSubscriptionObserver
             Log::error('[onda5b] auto-subscription falhou (Business permanece criado)', [
                 'business_id' => $business->id,
                 'package_id'  => $package->id,
-                'exception'   => $e->getMessage(),
+                'exception'   => app(\App\Support\Privacy\PiiRedactor::class)->redact((string) $e->getMessage()),
             ]);
         }
     }

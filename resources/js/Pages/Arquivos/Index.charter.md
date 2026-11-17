@@ -48,10 +48,10 @@ charter_version: 2
 > **Em 2026-08-25 o PR-2 acrescentou a vista Trilha** (`arquivos_audit_log`, read-only) e,
 > com ela, **a barra de abas** — que era o combinado: ela nasce com a segunda vista, não
 > antes. Navega por rota (`?tab=`), sem rota nova no backend. O contrato de teste da trilha é
-> o **UC-INDEX-02** do `casos.md`.
+> o **UC-ARQIDX-02** do `casos.md`.
 >
 > **O PR-4 acrescentou a vista Cofre** — espaço por disco + os 3 achados —, também sem rota
-> nova: só um valor a mais no vocabulário de `tab`. Contrato: **UC-INDEX-03**. Duas coisas que valem ler antes de mexer: a agregação mora
+> nova: só um valor a mais no vocabulário de `tab`. Contrato: **UC-ARQIDX-03**. Duas coisas que valem ler antes de mexer: a agregação mora
 > num leitor próprio ([`CofreStatsReader`](../../../../Modules/Arquivos/Services/CofreStatsReader.php))
 > porque o assert de LGPD do controller proíbe hash em qualquer método dele — e o que o gate
 > protege passou a ser cobrado por assert comportamental sobre o payload; e o Tier 0 aqui é o
@@ -98,8 +98,14 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - ❌ NÃO edita o conteúdo do arquivo nem gera pré-visualização de documento sensível.
 - ❌ NÃO serve arquivo do vault por `Storage::url` — sempre `DownloadController`, signed URL
   de 60 min (ADR 0123 §6).
-- ❌ NÃO renderiza filename/storage_path/MD5 em vista de governança (PII fica só em
-  `arquivos_audit_log` — LGPD Art. 37).
+- ❌ NÃO renderiza `storage_path` nem MD5 em vista nenhuma (LGPD Art. 37); o filename não
+  aparece na Trilha (lá a linha mostra só o `#id`).
+  _Errata 2026-11-16 (auditoria do módulo, lote L4): a redação anterior dizia "NÃO renderiza
+  filename/storage_path/MD5 em vista de governança (PII fica só em `arquivos_audit_log`)". Ela
+  contradizia o código e o teste verde: o Acervo manda `original_name`
+  (`ArquivosAdminController` chave `nome`), o Cofre também (`CofreStatsReader`, achados), e o
+  UC-ARQIDX-03 exige o nome no payload como controle positivo. O filename só é vedado na Trilha
+  (UC-ARQIDX-02). Pela regra de precedência (teste verde > casos > charter), o charter perdeu._
 - ❌ NÃO cruza tenants, em nenhuma vista nem em nenhum job disparado daqui (ADR 0093, Tier 0).
 - ❌ NÃO edita, apaga nem corrige linha de `arquivos_audit_log` — append-only, nunca purgado,
   mesmo quando o arquivo é.
@@ -127,8 +133,8 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - [ ] [W] aprova Non-Goals + Anti-hooks acima.
 - [x] **PR-1 (acervo) mergeado** — rota `GET /arquivos` viva, `.tsx` real ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216), 2026-08-24).
 - [x] **PR-2 (trilha) + barra de abas** — 2026-08-25. `?tab=trilha`, leitura pura de
-      `arquivos_audit_log`, UC-INDEX-02 com 6 asserções.
-- [x] **PR-4 (cofre)** — 2026-08-25. `?tab=cofre`, espaço por disco + 3 achados, UC-INDEX-03
+      `arquivos_audit_log`, UC-ARQIDX-02 com 6 asserções.
+- [x] **PR-4 (cofre)** — 2026-08-25. `?tab=cofre`, espaço por disco + 3 achados, UC-ARQIDX-03
       com 8 asserções (contadas com `grep -c`, não de memória).
 - [x] **PR-3 (retenção)** — 2026-08-25. `?tab=retencao`: KPIs (vence 30/90 · no grace ·
       passou do prazo), a política com a base legal por contexto e a contagem de arquivos,
@@ -142,7 +148,7 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       negócio do dono com o tipo técnico em mono embaixo, virando link só pros 2 tipos cuja
       rota foi provada em `route:list` (`ServiceOrder`, `JobSheet`). Buraco medido com a mesma
       sonda em produção e no protótipo: 6 colunas × 7, 0 botões × 3, `mono` em 0 de 6 × 5 de 7.
-      UC-INDEX-05 e UC-INDEX-06 no [casos.md](Index.casos.md); detalhe no
+      UC-ARQIDX-05 e UC-ARQIDX-06 no [casos.md](Index.casos.md); detalhe no
       [RUNBOOK §5.4](../../../../memory/requisitos/Arquivos/RUNBOOK-index.md).
       **Segue leitura pura:** classificar e excluir NÃO entraram — não existe endpoint pra
       nenhum dos dois, e a decisão de onde a reclassificação mora é a pendência aberta abaixo.
@@ -175,7 +181,7 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
       (a onda 2 esbarra nisso — ver PR-6). **2026-09-30:** o playbook do Cowork (thread 02)
       pôs o PR-6 nesta tela, e ele entrou só como **re-aplicar as regras do curador + motivo
-      na trilha** (UC-INDEX-07) — escolher bucket à mão (`force_bucket`) segue recusado. A
+      na trilha** (UC-ARQIDX-07) — escolher bucket à mão (`force_bucket`) segue recusado. A
       confirmação de [W] sobre o lugar continua aberta.
 - [x] **[W] decide a permissão de restaurar.** **Decidido 2026-10-01: *"Superadmin"*** —
       restaurar e simular são só superadmin; as duas permissões saíram do catálogo (histórico
@@ -190,7 +196,7 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
 - [x] **PR-8 (simular retenção)** — 2026-10-01, thread 04. `POST arquivos/retencao/simular`
       atrás de `arquivos.governanca` (declarada no mesmo PR): dry-run **forçado** no
       controller, `purge` recusado, job depois da resposta que só LISTA (id · data · motivo).
-      Sem botão na tela ainda — a vista de retenção segue leitura pura (UC-INDEX-04).
+      Sem botão na tela ainda — a vista de retenção segue leitura pura (UC-ARQIDX-04).
 - [ ] Reconciliar `DataController`: docblock L15 e o `label` de `arquivos.access` (L37) ainda
       dizem "Admin Center" (deprecado pela ADR 0360) e `modifyAdminMenu()` ainda afirma que o
       módulo "não tem tela própria". É mudança de texto de UI — decisão [W], não faxina de doc.

@@ -108,9 +108,9 @@ class VaultEncryptionService
         $fileSize = $file->getSize();
         if ($fileSize !== false && $fileSize > $cap) {
             throw new \RuntimeException(sprintf(
-                'Vault: arquivo "%s" excede cap %dMB (%dMB recebido). ' .
+                // Sem o nome do arquivo: a mensagem vai para log, e o nome pode trazer CPF/CNPJ.
+                'Vault: arquivo excede cap %dMB (%dMB recebido). ' .
                 'Sprint 2 implementará chunked encryption — ver ADR 0126.',
-                $file->getClientOriginalName(),
                 intdiv($cap, 1024 * 1024),
                 intdiv((int) $fileSize, 1024 * 1024)
             ));
@@ -118,7 +118,8 @@ class VaultEncryptionService
 
         $contents = file_get_contents($file->getRealPath());
         if ($contents === false) {
-            throw new \RuntimeException("vault: falha ao ler UploadedFile {$file->getClientOriginalName()}");
+            // Sem o nome do arquivo (pode trazer CPF/CNPJ e a exceção vai para log).
+            throw new \RuntimeException('vault: falha ao ler o arquivo enviado.');
         }
         return $this->putEncrypted($disk, $path, $contents);
     }

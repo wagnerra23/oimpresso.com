@@ -7,9 +7,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Support\Privacy\PiiRedactor;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\Exceptions\NfseException;
+use Modules\NFSe\Exceptions\ProviderTimeoutException;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Services\NfseEmissaoService;
 
@@ -20,16 +22,37 @@ class EmitirNfseJob implements ShouldQueue
     public int $tries = 3;
     public int $backoff = 60; // segundos entre tentativas
 
+    /**
+     * Recebe o payload SEM certificado (NfseEmissaoService::despacharEmissaoAsync): o job é
+     * serializado na fila. O business_id vem no payload e o serviço resolve o certificado.
+     */
     public function __construct(public readonly NfseEmissaoPayload $payload) {}
 
     public function handle(NfseProviderInterface $provider): void
     {
         $service = new NfseEmissaoService($provider);
-        $service->emitir($this->payload);
+
+        try {
+            // Da 2ª tentativa em diante a linha `processando` deixada pelo timeout é reenviada
+            // com o mesmo nº de DPS, em vez de virar nota nova.
+            $service->emitir($this->payload, retomarPendente: $this->attempts() > 1);
+        } catch (ProviderTimeoutException $e) {
+            throw $e; // a nota pode ter sido aceita: o job retenta com o mesmo nº de DPS
+        } catch (NfseException $e) {
+            // Erro terminal (certificado, ISS, tomador...): retentar não muda a resposta.
+            $this->fail($e);
+        }
     }
 
     public function failed(\Throwable $exception): void
     {
+        // Timeout esgotado: a nota pode ter sido aceita pela Sefin. A linha fica `processando`
+        // com o aviso do serviço — virar `erro` deixaria um reenvio do usuário criar outra
+        // linha com outro nº de DPS (nota em dobro).
+        if ($exception instanceof ProviderTimeoutException) {
+            return;
+        }
+
         // SUPERADMIN: job failed handler sem session — business_id no payload do constructor
         // Marca nota como erro se o job esgotar todas as tentativas
         NfseEmissao::withoutGlobalScopes()
@@ -38,7 +61,8 @@ class EmitirNfseJob implements ShouldQueue
             ->where('status', 'processando')
             ->update([
                 'status'        => 'erro',
-                'erro_mensagem' => $exception->getMessage(),
+                // A mensagem pode ecoar CPF/CNPJ do tomador (resposta da Sefin).
+                'erro_mensagem' => app(PiiRedactor::class)->redact($exception->getMessage()),
             ]);
     }
 }

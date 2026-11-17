@@ -15,8 +15,16 @@ spec_ref: memory/requisitos/Superadmin/SPEC.md
 
 # RUNBOOK — `/superadmin` (visão geral, Inertia/React)
 
-F1 do MWART (ADR 0104) para a onda **SA-O1**. A tela hoje é Blade/AdminLTE
-(`superadmin::superadmin.index`) e passa a `Inertia::render`.
+F1 do MWART (ADR 0104) para a onda **SA-O1**. Quando este F1 foi escrito (2026-08-19), a tela
+era Blade/AdminLTE (`superadmin::superadmin.index`) e passaria a `Inertia::render`.
+
+> **Estado em 2026-11-16 (lote L6):** a migração aconteceu na SA-O1
+> ([#5948](https://github.com/wagnerra23/oimpresso.com/pull/5948)) e o MRR entrou na SA-O1b
+> ([#5955](https://github.com/wagnerra23/oimpresso.com/pull/5955), calculado pelo RecurringBilling
+> desde o [#5981](https://github.com/wagnerra23/oimpresso.com/pull/5981)). A Blade
+> `superadmin/index.blade.php` foi apagada no
+> [#10967](https://github.com/wagnerra23/oimpresso.com/pull/10967). Funil trial→pago e receita
+> por pacote seguem sem query (SPEC US-SUPER-011).
 
 - **Fonte de design:** `prototipo-ui/cowork/Wagner/superadmin-page.jsx` → `ViewVisao()` (L599-757).
   Desceu ao espelho em 19/08 por `--export-from` (fiel por construção); antes disso era

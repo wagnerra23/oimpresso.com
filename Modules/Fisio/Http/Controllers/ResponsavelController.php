@@ -26,7 +26,7 @@ class ResponsavelController extends Controller
     public function store(Request $request, int $id): RedirectResponse
     {
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
-        $paciente = Patient::query()->findOrFail($id);
+        $paciente = Patient::daSessaoOuFalha($id);
         $biz = (int) $request->session()->get('user.business_id');
 
         $dados = $request->validate([

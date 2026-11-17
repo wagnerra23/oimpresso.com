@@ -92,6 +92,58 @@ describe('Sidebar · item com filhos abre inline', () => {
     expect(atuais[0].textContent).toBe('Agenda');
   });
 
+  // Medido em prod 2026-11-16 (biz=1, /sells): Vendas, Conector, Jana e Atendimento
+  // têm `children` E `ghosts` no shell.menu, e os 16 atalhos não chegavam ao DOM.
+  // Protótipo (`sidebar.jsx`, MenuGroup): o item com filhos desenha a cascata e,
+  // logo depois, a `GhostList` quando o item está ativo.
+  it('item com filhos E ghosts mostra os ghosts quando está ativo', () => {
+    irPara('/sells');
+    render(
+      <SidebarMenu
+        items={[
+          // Irmão com href, como em prod: grupo só de dropdown sem href não renderiza.
+          { label: 'CRM', href: '/crm' },
+          {
+            label: 'Vendas',
+            // Pai de dropdown chega SEM href (LegacyMenuAdapter::convertItem).
+            children: [{ label: 'Todas as vendas', href: '/sells' }],
+            ghosts: [{ key: 'catalogue-qr', label: 'Catálogo QR', href: '/product-catalogue/qr' }],
+          },
+          { label: 'Auditoria', href: '/auditoria' },
+        ]}
+      />,
+    );
+
+    const qr = screen.getByRole('link', { name: 'Catálogo QR' });
+    expect(qr.classList.contains('sb-ghost')).toBe(true);
+    expect(qr.getAttribute('href')).toBe('/product-catalogue/qr');
+  });
+
+  it('item com filhos E ghosts: fora da rota, ghosts só com a cascata aberta', () => {
+    irPara('/auditoria');
+    render(
+      <SidebarMenu
+        items={[
+          // Irmão com href, como em prod: grupo só de dropdown sem href não renderiza.
+          { label: 'CRM', href: '/crm' },
+          {
+            label: 'Vendas',
+            // Pai de dropdown chega SEM href (LegacyMenuAdapter::convertItem).
+            children: [{ label: 'Todas as vendas', href: '/sells' }],
+            ghosts: [{ key: 'catalogue-qr', label: 'Catálogo QR', href: '/product-catalogue/qr' }],
+          },
+          { label: 'Auditoria', href: '/auditoria' },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Catálogo QR' })).toBeNull();
+
+    // Abrir a cascata à mão também mostra os atalhos.
+    fireEvent.click(screen.getByRole('button', { name: /Vendas/ }));
+    expect(screen.getByRole('link', { name: 'Catálogo QR' })).not.toBeNull();
+  });
+
   it('ghost que é prefixo de outro não divide o aria-current com ele', () => {
     irPara('/financeiro/contas-receber');
     render(

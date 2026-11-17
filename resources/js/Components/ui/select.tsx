@@ -5,9 +5,20 @@ import { Select as SelectPrimitive } from "radix-ui"
 import { cn } from "@/Lib/utils"
 
 function Select({
+  onValueChange,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+  // O Radix dispara onValueChange("") quando o valor controlado muda por código (rascunho
+  // restaurado, item recém-criado): o <select> nativo escondido ainda não tem a opção e
+  // devolve vazio. Medido em 2026-11-16 no cadastro de produto: unidade, marca e categoria
+  // viravam 0. Nenhum <SelectItem> pode ter valor "" (o Radix recusa), então "" nunca é
+  // escolha da pessoa e é ignorado.
+  const aoMudar = onValueChange
+    ? (valor: string) => {
+        if (valor !== "") onValueChange(valor)
+      }
+    : undefined
+  return <SelectPrimitive.Root data-slot="select" {...props} onValueChange={aoMudar} />
 }
 
 function SelectGroup({

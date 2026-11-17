@@ -86,8 +86,15 @@ curl -sv https://oimpresso.com/superadmin/usuarios 2>&1 | grep '^< HTTP'
 
 - **Cross-tenant é intencional** (ADR 0093 §exceções Superadmin): a lista mostra TODOS os
   negócios por desenho. Nenhuma onda adiciona escopo de tenant aqui.
-- A tela é **leitura**. Criar/editar/desativar é a SA-O3; mudar assinatura passa pelo
-  `SubscriptionLifecycleService`, nunca por `update(['status' => …])`.
+- ~~A tela é **leitura**. Criar/editar/desativar é a SA-O3~~ — **caducou em 2026-10-05**
+  (anotado em 2026-11-16, lote L6 da auditoria). A tela ganhou o drawer **Novo negócio**
+  ([#8714](https://github.com/wagnerra23/oimpresso.com/pull/8714), UC-SANEG-11..13), o drawer
+  **Adicionar assinatura** ([#8733](https://github.com/wagnerra23/oimpresso.com/pull/8733),
+  UC-SANEG-14) e o diálogo **Definir senha**. Desativar e excluir **não** estão na tela
+  (`grep -i "desativar\|excluir" Negocios/` sem resultado em 2026-11-16); seguem nas rotas GET
+  `toggle-active`/`destroy`, que o lote L0 trata.
+- Mudar status de assinatura existente passa pelo `SubscriptionLifecycleService`, nunca por
+  `update(['status' => …])`. Adicionar assinatura cria uma nova linha já `approved`.
 - Nenhum valor em R$ entra em log, PR ou commit.
 - O enum de `subscriptions.status` **nunca** aparece cru — o mapa PT-BR é o mesmo do
   [RUNBOOK-dashboard §2](RUNBOOK-dashboard.md).

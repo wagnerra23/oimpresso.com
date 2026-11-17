@@ -91,8 +91,8 @@ it('usuário COM a permissão recebe 200 na mesma rota', function (string $permi
 
 // R-MANU-004 · manufacturing.edit_recipe — achado, não suposição: Routes/web.php faz
 // `Route::resource('/recipe', ...)->except('edit', 'update')`, e nenhuma outra rota do módulo
-// referencia UpdateRecipeRequest. O gate em UpdateRecipeRequest::authorize() é código real — só
-// não tem porta HTTP que o alcance hoje. Testar via rota seria inventar um caminho que não existe
+// usa a permissão para gravar (o UpdateRecipeRequest, que a exigia sem rota nenhuma, saiu no lote 2.8
+// da auditoria). Testar via rota seria inventar um caminho que não existe
 // (§5 2026-06-05, teste tautológico); o teste honesto é o par permission+can(), mais uma trava
 // que avisa se a rota reaparecer.
 it('R-MANU-004 manufacturing.edit_recipe é permissão Spatie real, hoje sem rota que a alcance', function () {

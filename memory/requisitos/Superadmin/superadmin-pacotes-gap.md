@@ -8,6 +8,8 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — superadmin/Pacotes/Index
 
+> ⚠️ **Datado (anotado em 2026-11-16, lote L6 da auditoria):** este GAP-SPEC é **leitura de código de 2026-09-06**, não medição de render. "PARIDADE" e "VIVO-À-FRENTE" abaixo são juízo daquela leitura, não prova de igualdade. Depois desta data o drawer de criar e editar entrou (#8725, 2026-10-05); duplicar, kebab e exclusão não. A comparação medida (mesma sonda nos dois lados) é o `*-visual-comparison.md` do lote L7, que ainda não existe nesta data.
+
 > Protótipo = porte do Blade legado (superadmin-page.jsx:1-9), anterior às telas React (SA-O1..O3, 2026-08). Charter: `Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.charter.md` (Non-Goals/Anti-hooks respeitados, nunca reabertos).
 
 **Veredito:** PARIDADE na leitura (grid de cards, card inteiro, "0 = ilimitado", tags) · toda a ESCRITA do mockup (form, kebab, aviso de exclusão) já está decidida como SA-O4d · vivo à frente em skeleton/vazio · **1 item a decidir** (contagens no subtítulo do header).

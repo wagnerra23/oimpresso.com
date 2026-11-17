@@ -42,7 +42,7 @@ deixou de **absolver** e passou a **registrar dívida**.
 
 | Você quer... | O que fazer (e o que a M1 aceita) |
 |---|---|
-| **Que a tela fique diferente do protótipo** | O caminho é **mudar o protótipo** no Cowork vivo e descer — não desviar dele no código. O protótipo é soberano na FORMA ([UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)); quem discorda dele discute com ele, não contorna. |
+| **Que a tela fique diferente do protótipo** | O caminho é **mudar o protótipo** — o arquivo em `prototipo-ui/`, por PR ([ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md)) — não desviar dele no código. O protótipo é soberano na FORMA ([UI-0029](adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)); quem discorda dele discute com ele, não contorna. |
 | **Aplicar/seguir o design** (fazer o código convergir pro protótipo aprovado) | (a) mude o `related_prototype` do charter pra apontar pro protótipo real, **OU** (b) registre a aplicação no `memory/reference/prototipo-ui/SYNC_LOG.md` citando a tela (o registro que o loop Cowork↔Code já usa). |
 | **Não consegue fechar agora** (custo, raio, dependência) | `divergence_from_blueprint: "<razão real>"` no charter irmão, **neste PR** — mas leia o que ele significa hoje: **DÍVIDA A FECHAR registrada**, com a razão de ainda não ter fechado. Não é autorização, não prescreve, e não protege a tela numa leitura futura. |
 

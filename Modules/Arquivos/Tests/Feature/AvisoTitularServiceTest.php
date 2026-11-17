@@ -3,13 +3,14 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Modules\Arquivos\Services\AvisoTitularService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Aviso ao titular — ADR 0421 ([W] 2026-10-01, D5), thread 05 / PR-9 do playbook Arquivos.
@@ -42,7 +43,6 @@ afterEach(function () {
         return;
     }
     $ids = DB::table('arquivos')->where('classified_by', AVISO_TITULAR_MARCA)->pluck('id');
-    DB::table('arquivos_audit_log')->whereIn('arquivo_id', $ids)->delete();
     DB::table('arquivos')->whereIn('id', $ids)->delete();
 });
 
@@ -85,6 +85,7 @@ it('aviso-titular 1 · janela: entra quem vence em ≤30d; fica fora vencido, lo
     expect($ids)->toBe([$dentro, $limite]);
 });
 
+// @covers-us US-ARQ-030
 it('aviso-titular 2 · registrar grava titular_avisado_at + notice na trilha, sem PII e idempotente', function () {
     $id = avisoTitularArquivo(98, 15);
     $svc = app(AvisoTitularService::class);

@@ -81,6 +81,7 @@ RUNBOOK + SPEC → BASELINE      → INCREMENTAL     → HARDENING        → + 
 - [ ] Rollback plan documentado (comando exato + tempo de rollback)
 
 ### F5 — CUTOVER + SUNSET
+- [ ] **Auditoria de dependências antes de ligar a flag** — seguir o caminho que a tela liga até o fim (tela → controller → serviço → cálculo → XML/integração → config por data/ano) e, para cada elo, citar onde ele está no `main` (`arquivo:linha`) ou registrar o que falta. Cada lacuna vira PR próprio ou é declarada como fora do escopo **antes** de ligar; "os testes passaram" não cobre elo que nenhum teste exercita. Origem: [F] 2026-11-16, onda 6 das naturezas de operação — a auditoria feita só na hora de ligar achou o IPI fora do XML, IBS/CBS de 2027 sem alíquota e PIS/COFINS com o ICMS na base ([RUNBOOK-tributacao §Naturezas](../../memory/requisitos/NfeBrasil/RUNBOOK-tributacao.md)).
 - [ ] Aviso prévio cliente (humano-no-loop)
 - [ ] Flag ON em `business_id` cliente
 - [ ] Monitorar 30d em `storage/logs/laravel.log`

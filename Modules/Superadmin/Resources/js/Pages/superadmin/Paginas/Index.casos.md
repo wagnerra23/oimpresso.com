@@ -63,6 +63,24 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-SAPAG-07 · Página sem título é recusada, e o slug segue aceitando texto livre
+- **Persona:** [W] criando uma página nova.
+- **Aceite:** Dado uma página sem título · Quando salvo · Então volta erro de validação em `title` (422 em JSON) e nada é gravado. **E dado** o slug digitado "UC SAPAG Sobre Nós" · Então grava `uc-sapag-sobre-nos`, como o controller sempre fez.
+- **Teste:** `Modules/Superadmin/Tests/Feature/SuperadminPaginasContratoTest.php` — `UC-SAPAG-07`.
+- **Regressão que defende:** auditoria do Superadmin (2026-11-05, eixo 5 §6) — os FormRequests de página existiam e não eram usados. O slug é normalizado ANTES de validar, para a tela não passar a recusar o que aceitava.
+- **Status: 🧪**
+
+---
+
+## UC-SAPAG-08 · Página oculta não abre no site, nem por URL direta · `[T0]`
+- **Persona:** visitante do site com o endereço de uma página marcada como oculta.
+- **Aceite:** Dado uma página com "Visível no site" desligado · Quando alguém abre `/page/{slug}` · Então a resposta é 404. Dado a mesma página visível · Então abre (200).
+- **Teste:** `Modules/Superadmin/Tests/Feature/SuperadminPaginasContratoTest.php` — `UC-SAPAG-08`.
+- **Regressão que defende:** auditoria do Superadmin (2026-11-05, eixo 5 §1) — `/page/{slug}` é público e ignorava `is_shown`: rascunho abria para quem soubesse o slug.
+- **Status: 🧪**
+
+---
+
 ## UC-SAPAG-05 · Editar pela tela grava e volta para a lista
 - **Persona:** [W] corrigindo o texto ou a visibilidade de uma página.
 - **Aceite:** Dado uma página · Quando salvo título, ordem e visibilidade novos · Então o banco guarda os valores e o redirect volta para `/superadmin/frontend-pages`.
