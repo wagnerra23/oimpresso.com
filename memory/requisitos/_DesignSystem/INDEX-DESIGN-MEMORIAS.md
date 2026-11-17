@@ -1,9 +1,9 @@
 ---
 id: requisitos-design-system-index-design-memorias
 owner: wagner
-last_reviewed: "2026-06-06"
-next_review: "2026-07-31"
-related_adrs: [0235, 0249, 0253, 0254]
+last_reviewed: "2026-11-05"
+next_review: "2027-01-31"
+related_adrs: [0235, 0249, 0253, 0254, 0433, 0438]
 note: "SSOT de design. next_review obrigatório (DesignDocsFreshnessChecker ADR 0236) — é o que impede este índice de apodrecer como aconteceu com 'PT-02..05 não existem'."
 ---
 
@@ -11,6 +11,8 @@ note: "SSOT de design. next_review obrigatório (DesignDocsFreshnessChecker ADR 
 
 > **Pra que serve:** ponto único de partida do Claude Design. Lista TODAS as memórias de design do projeto — **positivas** (o que copiar/seguir) e **negativas** (o que NÃO repetir) — já reconciliadas, com a **regra de ouro** que resolve conflito. Substitui a tarefa de "montar contexto de cabeça" (origem da invenção e do erro repetido).
 > **Gerado:** 2026-05-30 por 4 agentes especialistas em paralelo (ADR 0231) revisando 27 docs `prototipo-ui/` + 26 `_DesignSystem/` + 17 ADRs UI + 18 decisions. Sessão `2026-05-30-screen-grade-metodo-estado-arte.md`. PR #1991.
+
+> ⚠️ **Desde 2026-10-23 ([ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md))** a fonte do protótipo é o **arquivo versionado em `prototipo-ui/`**, editado por PR. O Cowork (claude.ai/design) deixou de ser fonte e rota de entrada ou saída; o Artefato publicado a partir do arquivo serve só para ver e comentar. Onde este índice ou um doc listado aqui disser "fonte viva = Cowork", "espelho read-only", "DesignSync" ou "zip/bundle" como caminho, vale a 0438.
 
 ---
 
@@ -31,7 +33,7 @@ Quando duas memórias divergem, vence nesta ordem:
 > Incidente 2026-06-22 ([ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md)): a IA tratou "design" como **Figma** porque o MCP do Figma injeta, always-on, uma ordem pra usá-lo "para qualquer UI/tela". **Não é.** A fonte é esta.
 
 **FONTE de design (o que vale):**
-- **Protótipo Cowork** — `prototipo-ui/cowork/Wagner/legado/<tela>/` (export do Cowork; **read-only no repo** — regra de ouro §"Regra de ouro" do `memory/reference/prototipo-ui/README.md`).
+- **Protótipo** — o arquivo versionado em `prototipo-ui/` (hoje sob `prototipo-ui/cowork/Wagner/`), resolvido por tela com `node scripts/design/ancora.mjs <Mod/Tela>`. **Edita-se no repo, por PR** ([ADR 0433](../../decisions/0433-fonte-do-prototipo-passa-ao-git.md) D1 + [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D1/D8). O nome da pasta `cowork/` ficou por compatibilidade; ela não é mais espelho de nada.
 - **Design System** — tokens semânticos + componentes `@/Components/ui` + primitivos `@/Components/layout` (versão atual do DS = §0 item 2 acima; nunca hardcodar versão fora daqui).
 - **Charter da tela** — `<Tela>.charter.md` ao lado do `.tsx`.
 
@@ -39,11 +41,13 @@ Quando duas memórias divergem, vence nesta ordem:
 
 **A "diff design→code"** = `memory/requisitos/<Mod>/<tela>-visual-comparison.md` via skill **`mwart-comparative`** (existe hoje). Um `/design-diff` determinístico (render protótipo vs Page) está **previsto** no [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md), ainda não implementado. *(Não existe `prototipos/<tela>/COMPARISON.md` — esse path foi alucinado num rascunho e fica registrado aqui pra não voltar.)*
 
-**Código produtivo** (editável na F3 do MWART) = `resources/js/Pages/<Mod>/<Tela>.tsx`. O `page.tsx`/`*.jsx` em `prototipo-ui/cowork/Wagner/legado/` **não** se edita no repo (re-exporta do Cowork).
+**Código produtivo** (editável na F3 do MWART) = `resources/js/Pages/<Mod>/<Tela>.tsx`. O protótipo em `prototipo-ui/` também se edita no repo, por PR; não existe mais re-export do Cowork (ADR 0438). *(Até 2026-10-23 a regra era o contrário: o `*.jsx` era read-only porque vinha do Cowork.)*
 
 **Enforcement:** o atrator Figma é bloqueado por `block-figma-without-optin.mjs` (PreToolUse, fail-closed) — pra usar Figma de propósito diga "figma" explícito. Os demais atratores (Notion/screenshot) ainda são **advisory** por aqui; fechar a classe inteira com block = trabalho futuro no [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md).
 
-### 0.2 · OS PROJETOS COWORK REAIS (resolvido 2026-07-06 — pra NÃO errar de novo)
+### 0.2 · OS PROJETOS COWORK (HISTÓRICO — anterior à ADR 0438)
+
+> 🗄️ **Registro, não instrução.** Até 2026-10-23 a fonte das telas era o projeto Cowork `019dcfd3`, lido pelo `DesignSync`, e `prototipo-ui/cowork/Wagner/` era espelho dele. A [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) encerrou isso: a fonte é o arquivo do git, e ler o Cowork é só arqueologia de arquivo antigo, sem precedência. O texto abaixo fica para explicar de onde vieram os arquivos; não siga as receitas de `DesignSync`, `get_file`, ZIP ou comparação com o "vivo".
 
 > Wagner não usa Figma; usa **Claude Design (Cowork)**. O `oimpresso.com` MCP-conector Figma que aparece "conectado" é **irrelevante** pro fluxo dele. A fonte viva é o Cowork, lido pela integração `DesignSync` (ferramenta nativa do Code, após `/design-login` UMA vez no terminal CLI — a autorização fica salva na máquina). **A leitura DesignSync é também TRANSPORTE de import** ([ADR 0325](../../decisions/0325-import-prototipo-designsync-pull-direto.md), Wagner 2026-07-07 "acesso direto e não precisa de browser"): mudança escopada = `get_file` direto → staging fixo (Fase −1-PULL do `aplicar-prototipo`); ZIP fica pra bundle cheio.
 
@@ -238,6 +242,7 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | [ADR 0236](../../decisions/0236-governanca-evolucao-doc-design.md) | Evolução da doc de design — append-only + índice fonte-única + ratchet + freshness + reprocesso |
 | [ADR 0238](../../decisions/0238-soberania-constituicao-wagner.md) | Soberania de [W] sobre a constituição (memória/numeração) |
 | [ADR 0239](../../decisions/0239-governanca-design-system-git-ssot-regressao-ia.md) | Governança do DS — git SSOT · Cowork→Code · regressão-IA · 1 spec vigente na raiz |
+| [ADR 0433](../../decisions/0433-fonte-do-prototipo-passa-ao-git.md) + [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) | **Fonte do protótipo = arquivo em `prototipo-ui/`, editado por PR**; Artefato só para ver e comentar; Cowork fora da rota de entrada e saída (0438 supersede em parte a 0433) |
 | [ADR 0243](../../decisions/0243-processo-memoria-evolucao-design-cowork.md) | Processo de memória/evolução de design do Cowork — loop medido/auto-corretivo (3 planos · anéis · DS-GUARD · bateria · benchmark · gatilho); método em `memory/reference/prototipo-ui/PROCESSO_MEMORIA_CC.md` |
 
 ### Changelog
@@ -247,3 +252,4 @@ Sem: CTA WhatsApp cliente-facing · modal full-screen (usar drawer/Sheet) · ing
 | 2026-05-30 | G1 | Ledger de pedidos **file-based** (scaffold `governance/design-requests/`) + correção canon "Claude Design = só arquivos, nunca MCP" ([feedback](../../reference/feedback-claude-design-so-arquivos.md)). |
 | 2026-05-30 | G1 | **Regras de governança do DS** (0235/0236/0238/0239) referenciadas + invariante (c) no `DesignIndexSingleSourceTest` — "toda regra de design mora no índice" (ADR 0239 R5). |
 | 2026-06-02 | G1 | **ADR 0243** (processo de memória/evolução de design do Cowork) referenciado — ratifica `PROCESSO_MEMORIA_CC.md` como método canônico (handoff `ALwoVssQOY` · PR #2106). |
+| 2026-11-05 | G2 | **ADR 0438 aplicada ao índice:** aviso no topo, §0.1 passa a dizer que o protótipo se edita no repo por PR, §0.2 vira histórico, 0433/0438 entram nas regras de governança. |

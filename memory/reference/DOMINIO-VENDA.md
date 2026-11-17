@@ -5,7 +5,7 @@ description: Como uma venda atravessa o oimpresso, do balcão ao estoque, ao tí
 type: reference
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-08-03"
+updated_at: "2026-11-05"
 nav_group: dominio
 nav_order: 10
 lente: [operar, construir]
@@ -29,7 +29,8 @@ Pergunte primeiro, leia depois. Cada linha aponta pro dono; nenhuma repete o con
 | Se a pergunta é… | O dono é | Onde |
 |---|---|---|
 | *"que valores `transactions.type`/`status`/`payment_status` aceitam?"* | dicionário de domínio | [`memory/dominio/vendas.md`](../dominio/vendas.md) |
-| *"por que a venda não sai deste estágio?"* | máquina de estados (FSM) | [ADR 0143](../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) + [`app/Domain/Fsm/`](../../app/Domain/Fsm) |
+| *"por que a venda não sai deste estágio?"* | máquina de estados (FSM) | [ADR 0143](../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) + [`app/Domain/Fsm/`](../../app/Domain/Fsm) · [Domínio — Estágio](DOMINIO-ESTAGIO.md) |
+| *"quais são as etapas da venda nesta empresa?"* | o modelo de fluxo da empresa | tela Sistema › Fluxos e regras (`/fluxos`) + [ADR 0435](../decisions/0435-fluxos-por-modelo-porte-atividade.md) (proposta) |
 | *"quando o estoque baixa de verdade?"* | dicionário de estoque + os side-effects da FSM | [`memory/dominio/estoque.md`](../dominio/estoque.md) |
 | *"onde nasce o que o cliente deve?"* | dicionário do financeiro | [`memory/dominio/financeiro.md`](../dominio/financeiro.md) |
 | *"a nota é obrigatória? quando?"* | dicionário fiscal | [`memory/dominio/fiscal-faturamento.md`](../dominio/fiscal-faturamento.md) |
@@ -66,6 +67,16 @@ e o código é [`app/Domain/Fsm/`](../../app/Domain/Fsm). A UI que expõe as aç
 painel do drawer de venda — [`FsmActionPanel.tsx`](../../resources/js/Pages/Sells/_components/FsmActionPanel.tsx) —
 e ele **desenha o que a máquina permite**, em vez de decidir por conta própria.
 
+Duas coisas mudaram em outubro de 2026 e valem para quem lê documento mais antigo:
+
+- **As etapas dependem do modelo de fluxo da empresa.** Quem ainda não escolheu um modelo segue
+  no processo `venda_com_producao`; quem escolheu tem a venda do modelo, mais curta, com a
+  produção num processo à parte ([ADR 0435](../decisions/0435-fluxos-por-modelo-porte-atividade.md)
+  e [ADR 0436](../decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md), propostas).
+- **Pago não é passo do pedido.** A venda pode ir de Faturada para Entregue; se o cliente pagou
+  é a situação do título no Financeiro
+  ([ADR 0434](../decisions/0434-fsm-pedido-retomar-pagamento-fora-das-etapas.md), item 2).
+
 ## Quem escreve o quê
 
 Regra que evita a maior parte dos bugs desta área: **a UI nunca inventa estado.**
@@ -96,4 +107,6 @@ estoque*). Leia antes, não depois.
 Compra, devolução de compra e transferência também vivem na mesma espinha de `transactions`,
 mas têm dicionário próprio — [`compras.md`](../dominio/compras.md) e
 [`estoque.md`](../dominio/estoque.md). Ordem de serviço da oficina deriva venda, e não o
-contrário; quando precisar desse recorte, o dono é o módulo, não este texto.
+contrário; quando precisar desse recorte, o dono é o módulo, não este texto. A OS **por item** que
+nasce da venda nos modelos de fluxo é outra coisa: mora na Produção — ver
+[Domínio — OS](DOMINIO-OS.md#a-outra-os-a-que-nasce-do-pedido).

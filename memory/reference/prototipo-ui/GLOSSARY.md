@@ -1,5 +1,7 @@
 # GLOSSARY.md — termos do loop Cowork ↔ Code
 
+> ⚠️ **Em parte superado pela [ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) (2026-10-23).** Os verbetes F0/F1 e "Cowork Export" descrevem o fluxo antigo; o resto do glossário continua valendo. Desde a 0438 a fonte do protótipo é o **arquivo em `prototipo-ui/`, editado por PR**; o Artefato serve só para ver e comentar; o Cowork não é fonte nem rota de entrada ou saída. Não siga as instruções de zip, bundle, export, handoff, `DesignSync` ou `COWORK_NOTES` abaixo. Processo vigente: `memory/reference/prototipo-ui/PROTOCOL.md`.
+
 > Termos curtos referenciados em `PROTOCOL.md`, `COWORK_NOTES.md`, ADRs.
 
 ## Pessoas / sistemas

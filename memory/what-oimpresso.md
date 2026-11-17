@@ -30,13 +30,13 @@
 
 ## FSM Pipeline Canônico ([ADR 0143](decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — LIVE prod biz=1 desde 2026-05-12)
 
-Toda mudança de estado em **Sells** (vendas) e **Repair** (OS) passa pelo `ExecuteStageActionService` ([app/Domain/Fsm/](../app/Domain/Fsm/)):
+Toda mudança de estado de documento com etapa (venda, OS de Reparo, Oficina, Comunicação Visual e Produção) passa pelo `ExecuteStageActionService` ([app/Domain/Fsm/](../app/Domain/Fsm/)):
 
 - **5 tabelas FSM** canônicas: `sale_processes`, `sale_process_stages`, `sale_stage_actions`, `sale_stage_action_roles`, `sale_stage_history` (audit append-only)
-- **Trait `GuardsFsmTransitions`** em Transaction + JobSheet bloqueia UPDATE direto em `current_stage_id` — gateway obrigatório
+- **Trait `GuardsFsmTransitions`** bloqueia UPDATE direto em `current_stage_id` — gateway obrigatório. Quem usa: `grep -rl GuardsFsmTransitions app Modules`
 - **Singleton `FsmAuthorizationFlag`** autoriza save (per-request, consume-once)
-- **Pipeline Sells**: 11 stages (`quote_draft` → ... → `completed` + `cancelled`/`on_hold`) × 21 actions × 10 roles per-business
-- **Pipeline Repair**: 13 stages (`recebido_para_diagnostico` → ... → `entregue_completo` + terminais) × ~15 actions × 6 roles per-business
+- **Etapas vêm do modelo de fluxo da empresa** ([ADR 0435](decisions/0435-fluxos-por-modelo-porte-atividade.md), proposta): um processo por assunto (venda, produção, compra, entrega, financeiro), escolhido e visto em Sistema › Fluxos e regras (`/fluxos`). Quem não escolheu segue no legado `venda_com_producao`. Catálogo em [app/Domain/Fsm/Modelos/](../app/Domain/Fsm/Modelos/), exportado do protótipo `fluxos-data.jsx`/`fluxos-processos.jsx`; etapas e ações do legado nos seeders `database/seeders/FsmProcesso*Seeder.php`. Não contar etapas aqui: abra a tela ou o seeder
+- **Pago não é etapa obrigatória** ([ADR 0434](decisions/0434-fsm-pedido-retomar-pagamento-fora-das-etapas.md)): Faturada → Entregue; pago é situação do título no Financeiro. A OS do pedido nos modelos é por item, no módulo Produção ([ADR 0436](decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md), proposta)
 - **Side-effects** isolados: `ReservarEstoque`, `ConsumirEstoque`, `LiberarReserva`, `CancelarVendaCascade` (orquestra cancel NFe SEFAZ + Asaas/Inter refund/cancel + Whatsapp/email)
 - **UI drawer SaleSheet** ([resources/js/Pages/Sells/_components/FsmActionPanel.tsx](../resources/js/Pages/Sells/_components/FsmActionPanel.tsx)): botões dinâmicos por stage + RBAC + timeline auditável
 - **Comandos artisan**: `fsm:bulk-start-pipeline {biz} [--dry-run]` (migrar vendas legadas), `fsm:scan-drift transactions` (cron daily 03:00 BRT, alerta mass-update bypass)
