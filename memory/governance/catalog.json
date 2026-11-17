@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1025,
-    "edges": 1380,
+    "nodes": 1045,
+    "edges": 1403,
     "by_node_type": {
       "module": 45,
-      "table": 122,
+      "table": 136,
       "adr": 157,
-      "component": 601,
+      "component": 607,
       "api": 100
     },
     "by_edge_type": {
-      "ownsTable": 111,
+      "ownsTable": 114,
       "ownsLegacyView": 13,
-      "consumesTable": 7,
+      "consumesTable": 18,
       "providesApi": 104,
       "charteredByAdr": 30,
-      "governedByAdr": 84,
-      "hasComponent": 601,
-      "dependsOn": 153,
-      "delegatesTo": 138,
+      "governedByAdr": 85,
+      "hasComponent": 607,
+      "dependsOn": 154,
+      "delegatesTo": 139,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 80,
@@ -4482,42 +4482,84 @@
       "type": "component",
       "module": "Manufacturing",
       "name": "DataController",
-      "desc": ""
+      "desc": "hooks UltimatePOS (pacote, permissões, menu, linha de produção no relatório de lucros e perdas)"
     },
     {
       "id": "component:Manufacturing/InstallController",
       "type": "component",
       "module": "Manufacturing",
       "name": "InstallController",
-      "desc": ""
+      "desc": "instalação do módulo"
+    },
+    {
+      "id": "component:Manufacturing/InsumosDaReceitaService",
+      "type": "component",
+      "module": "Manufacturing",
+      "name": "InsumosDaReceitaService",
+      "desc": "implementa app/Contracts/Fabricacao/InsumosDaReceita: insumos de uma receita para uma quantidade, lido pela Produção (reserva, falta, materiais da etapa)"
     },
     {
       "id": "component:Manufacturing/ManufacturingController",
       "type": "component",
       "module": "Manufacturing",
       "name": "ManufacturingController",
-      "desc": ""
+      "desc": "scaffold sem rota e sem view (index/create/show/edit apontam views que não existem, exceto index.blade); candidato a remoção"
     },
     {
       "id": "component:Manufacturing/ProductionController",
       "type": "component",
       "module": "Manufacturing",
       "name": "ProductionController",
-      "desc": ""
+      "desc": "ordens: lista e painel lateral (Inertia), relatório do período (/report), e o formulário Blade da ordem (create/store/edit/update/destroy) enquanto a D1 não o tira daqui"
+    },
+    {
+      "id": "component:Manufacturing/ProductionService",
+      "type": "component",
+      "module": "Manufacturing",
+      "name": "ProductionService",
+      "desc": "linhas da lista de ordens, indicadores com filtro, detalhe da ordem e relatório por produto"
+    },
+    {
+      "id": "component:Manufacturing/ProdutosDeReceitaService",
+      "type": "component",
+      "module": "Manufacturing",
+      "name": "ProdutosDeReceitaService",
+      "desc": "implementa app/Contracts/Fabricacao/ProdutosDeReceita: quais produtos têm receita, lido pelo cadastro de produto do núcleo"
+    },
+    {
+      "id": "component:Manufacturing/RecipeBomService",
+      "type": "component",
+      "module": "Manufacturing",
+      "name": "RecipeBomService",
+      "desc": "custo da receita recalculado na leitura, lista com custo, insumos e impacto reverso, editor da ficha; implementa app/Contracts/Fabricacao/ReceitaDoProduto"
     },
     {
       "id": "component:Manufacturing/RecipeController",
       "type": "component",
       "module": "Manufacturing",
       "name": "RecipeController",
-      "desc": ""
+      "desc": "receitas (/manufacturing/recipe), editor de ingredientes (/add-ingredient), janela Nova receita, busca de insumo, aba Insumos (/insumos), detalhe da receita para a ordem Blade e o Atualizar preço de venda (/update-product-prices)"
     },
     {
       "id": "component:Manufacturing/SettingsController",
       "type": "component",
       "module": "Manufacturing",
       "name": "SettingsController",
-      "desc": ""
+      "desc": "configurações do módulo (index Inertia + store), exige manufacturing.access_production"
+    },
+    {
+      "id": "component:Manufacturing/Support/EmpresaDaTrilhaDaReceita",
+      "type": "component",
+      "module": "Manufacturing",
+      "name": "Support/EmpresaDaTrilhaDaReceita",
+      "desc": "business_id da trilha (activity_log) da receita"
+    },
+    {
+      "id": "component:Manufacturing/Support/OcultaCusto",
+      "type": "component",
+      "module": "Manufacturing",
+      "name": "Support/OcultaCusto",
+      "desc": "tira custo das respostas quando falta view_purchase_price (lote 2.6)"
     },
     {
       "id": "component:Marketplaces/Anúncios",
@@ -6467,7 +6509,7 @@
       "id": "module:Manufacturing",
       "type": "module",
       "module": "Manufacturing",
-      "purpose": "Receita/BOM e ordem de produção: transforma insumos em produto acabado (transactions.type=production_purchase), calculando custo unitário com perda e baixando estoque dos ingredientes.",
+      "purpose": "Fabricação: cadastro da receita (ficha técnica) e do custo de produzir, consultas de ordens, insumos e relatório. Pela D1 (ADR 0448, aceita) a ordem nasce na Produção e a aba de ordens vira consulta; enquanto a etapa de unificação não sai, a ordem Blade antiga (transactions.type=production_purchase) segue aqui, consertada (B1).",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "manufacturing.*",
@@ -6748,6 +6790,39 @@
       "path": "memory/requisitos/Woocommerce/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
+    },
+    {
+      "id": "table:business",
+      "type": "table",
+      "name": "business",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:business_locations",
+      "type": "table",
+      "name": "business_locations",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:categories",
+      "type": "table",
+      "name": "categories",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:cobrancas",
@@ -7787,6 +7862,39 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mfg_ingredient_groups",
+      "type": "table",
+      "name": "mfg_ingredient_groups",
+      "owners": [
+        "Manufacturing"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mfg_recipe_ingredients",
+      "type": "table",
+      "name": "mfg_recipe_ingredients",
+      "owners": [
+        "Manufacturing"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mfg_recipes",
+      "type": "table",
+      "name": "mfg_recipes",
+      "owners": [
+        "Manufacturing"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_business_configs",
       "type": "table",
       "name": "nfe_business_configs",
@@ -8075,6 +8183,39 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:product_variations",
+      "type": "table",
+      "name": "product_variations",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:products",
+      "type": "table",
+      "name": "products",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:purchase_lines",
+      "type": "table",
+      "name": "purchase_lines",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
       "id": "table:subscriptions",
       "type": "table",
       "name": "subscriptions",
@@ -8106,6 +8247,61 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:transaction_sell_lines",
+      "type": "table",
+      "name": "transaction_sell_lines",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:transactions",
+      "type": "table",
+      "name": "transactions",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:units",
+      "type": "table",
+      "name": "units",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:variation_location_details",
+      "type": "table",
+      "name": "variation_location_details",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
+      "id": "table:variations",
+      "type": "table",
+      "name": "variations",
+      "owners": [],
+      "consumers": [
+        "Manufacturing"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     }
   ],
   "edges": [
@@ -13484,10 +13680,76 @@
     },
     {
       "from": "module:Manufacturing",
-      "to": "module:Forja",
+      "to": "table:business_locations",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:business",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:categories",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:product_variations",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:products",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:purchase_lines",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:transaction_sell_lines",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:transactions",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:units",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:variation_location_details",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:variations",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "module:Compras",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "MCP server admin"
+      "note": "Custo do insumo pela regra da empresa (CustoDoInsumo)"
     },
     {
       "from": "module:Manufacturing",
@@ -13505,10 +13767,17 @@
     },
     {
       "from": "module:Manufacturing",
-      "to": "module:Forja",
+      "to": "module:Producao",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Ordem de produção nova (por item da venda ou para estoque), apontamento, refugo e custo real"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "module:Compras",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "MCP server admin"
+      "note": "Custo do insumo pela regra da empresa (CustoDoInsumo)"
     },
     {
       "from": "module:Manufacturing",
@@ -13523,6 +13792,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "module:Producao",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Ordem de produção nova (por item da venda ou para estoque), apontamento, refugo e custo real"
     },
     {
       "from": "module:Manufacturing",
@@ -13533,6 +13809,12 @@
     {
       "from": "module:Manufacturing",
       "to": "adr:0080",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "adr:0448",
       "type": "governedByAdr",
       "source": "related_adrs"
     },
@@ -13550,6 +13832,12 @@
     },
     {
       "from": "module:Manufacturing",
+      "to": "component:Manufacturing/InsumosDaReceitaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Manufacturing",
       "to": "component:Manufacturing/ManufacturingController",
       "type": "hasComponent",
       "source": "contains"
@@ -13557,6 +13845,24 @@
     {
       "from": "module:Manufacturing",
       "to": "component:Manufacturing/ProductionController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "component:Manufacturing/ProductionService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "component:Manufacturing/ProdutosDeReceitaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "component:Manufacturing/RecipeBomService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13571,6 +13877,36 @@
       "to": "component:Manufacturing/SettingsController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "component:Manufacturing/Support/EmpresaDaTrilhaDaReceita",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "component:Manufacturing/Support/OcultaCusto",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:mfg_ingredient_groups",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:mfg_recipe_ingredients",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "table:mfg_recipes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
     },
     {
       "from": "module:Manufacturing",
@@ -16705,7 +17041,74 @@
         "source": "supersedes"
       }
     ],
-    "consumed_tables_without_catalog_owner": [],
+    "consumed_tables_without_catalog_owner": [
+      {
+        "table": "business_locations",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "business",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "categories",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "product_variations",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "products",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "purchase_lines",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "transaction_sell_lines",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "transactions",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "units",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "variation_location_details",
+        "consumers": [
+          "Manufacturing"
+        ]
+      },
+      {
+        "table": "variations",
+        "consumers": [
+          "Manufacturing"
+        ]
+      }
+    ],
     "tables_owned_by_multiple": [
       {
         "table": "mcp_memory_documents_history",
