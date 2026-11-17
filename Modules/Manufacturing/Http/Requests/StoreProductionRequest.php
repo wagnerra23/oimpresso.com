@@ -4,6 +4,7 @@ namespace Modules\Manufacturing\Http\Requests;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Manufacturing\Http\Requests\Concerns\ValidaNumerosDaOrdem;
 
 /**
  * FormRequest pra criar Production (Manufacturing).
@@ -15,6 +16,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class StoreProductionRequest extends FormRequest
 {
+    use ValidaNumerosDaOrdem;
+
     public function authorize(): bool
     {
         $user = $this->user();
@@ -39,7 +42,8 @@ class StoreProductionRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        // Quantidade, perda, custo extra, forma do custo e consumo por insumo: UC-OP-21 (lote 2.2).
+        return $this->regrasDosNumerosDaOrdem() + [
             // Originais do $request->validate() (L186-190)
             'transaction_date'         => ['required'],
             'location_id'              => ['required'],
@@ -49,10 +53,6 @@ class StoreProductionRequest extends FormRequest
             'ref_no'                   => ['nullable', 'string', 'max:255'],
             'finalize'                 => ['nullable'],
             'variation_id'             => ['required', 'integer', 'exists:variations,id'],
-            'quantity'                 => ['required', 'string'],
-            'mfg_wasted_units'         => ['nullable', 'string'],
-            'production_cost'          => ['nullable', 'string'],
-            'mfg_production_cost_type' => ['nullable', 'string'],
             'lot_number'               => ['nullable', 'string', 'max:255'],
             'exp_date'                 => ['nullable', 'string'],
             'sub_unit_id'              => ['nullable', 'integer'],
