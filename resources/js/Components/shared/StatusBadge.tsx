@@ -141,7 +141,8 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
     rascunho:    { variant: 'outline',     label: 'Rascunho' },
     processando: { variant: 'info',        label: 'Processando' },
     emitida:     { variant: 'success',     label: 'Emitida' },
-    cancelada:   { variant: 'outline',     label: 'Cancelada' },
+    // Cancelada com tom próprio (UC-NFSD-04): até 2026-11-16 era 'outline', igual a Rascunho.
+    cancelada:   { variant: 'warning',     label: 'Cancelada' },
     erro:        { variant: 'danger',      label: 'Erro' },
   },
   rep: {

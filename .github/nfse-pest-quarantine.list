@@ -15,13 +15,19 @@
 # ── Medido no 1º run da lane (43865896173, 2026-11-16): 121 passed, 8 failed, 1 skipped,
 # 281 assertions. Consertados no mesmo PR (defeito de teste óbvio): Wave26/Wave27 afirmavam
 # o bypass de superadmin que [W] removeu em 2026-08-26; NfseEmissaoServiceTest lia
-# `first()` da tabela inteira. Ficam aqui (saída: lote 1 da auditoria NFSe):
+# `first()` da tabela inteira.
 #
-# Insere em nfe_certificados colunas que não existem mais (nome_titular, validade_inicio,
-# validade_fim, tipo — QueryException 1054, :88-109) e faz SHOW COLUMNS ... LIKE com binding
-# (erro 1064, 3º caso). Fixture inteira desatualizada do schema; usa biz=1 (empresa real).
-Modules/NFSe/Tests/Feature/NfseCertificadoMultiTenantIsolationTest.php  # fixture com colunas inexistentes em nfe_certificados (run 43865896173) — lote 1
-# :154 — com sessão biz=99 a consulta devolve 0 linhas onde espera 1 (a nota da 99 foi
-# criada sem erro). Causa não medida ainda (contexto de empresa × sessão no teste); usa
-# biz=1 (empresa real) como lado A. Reescrever em 98×99 no lote 1.
-Modules/NFSe/Tests/Feature/MultiTenantIsolationTest.php  # :154 sessão 99 devolve 0 linhas (run 43865896173) — lote 1
+# Saíram no lote 1 PR 1.1 (#11024, 2026-11-16), causa medida e consertada no teste:
+#  - MultiTenantIsolationTest: rps_numero é varchar(20) e o teste gravava 22 caracteres
+#    ('RPS-TESTE-ISOL-CROSS-F'); o valor era truncado e a busca exata devolvia 0 linhas (:154).
+#  - NfseCertificadoMultiTenantIsolationTest: colunas antigas de nfe_certificados (1054) e
+#    SHOW COLUMNS ... LIKE com binding (1064); além disso, sem login o ScopeByBusiness não
+#    filtra no modo aberto, então o "não vaza" nunca tinha sido exercitado.
+# Os dois foram reescritos em 98×99 (run 43930096009: 135 passed, 344 assertions).
+#
+# Entrou no lote 1 PR 1.2 (2026-11-16) — DEFEITO DE PRODUTO, não do teste. Run 43931224157:
+# "forceDelete() apagou fisicamente uma NFS-e cancelada/emitida" (:66 e :80, 2 failed).
+# O model Modules/NFSe/Models/NfseEmissao.php não tem trava (sem deleting/forceDeleting nem
+# observer); contrato em resources/js/Pages/Nfse/Show.charter.md:73. Saída: trava no Model
+# (lote 4 da auditoria) e tirar esta linha no MESMO PR.
+tests/Feature/Modules/NFSe/NfseCanceladaNaoSomeDoBancoTest.php  # forceDelete apaga nota fiscal (run 43931224157) — lote 4

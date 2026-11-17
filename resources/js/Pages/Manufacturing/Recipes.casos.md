@@ -338,6 +338,66 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-26 · Sem `view_purchase_price`, a lista de receitas não traz custo
+- **Persona:** quem tem acesso a receitas, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre Receitas · Então custo, custo unitário, margem, preço, subtotais e custo médio vêm vazios do servidor, e ordenar ou filtrar por eles não vale · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** custo entregue a quem só tem acesso ao módulo, escondido só no navegador.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-24 · O menu e as abas da Fabricação só mostram o que a permissão abre
+- **Persona:** usuário que tem só receitas, ou só produção.
+- **Aceite:** Dado só `access_recipe` · Então o menu lateral e as abas mostram Receitas e Insumos, sem "Nova
+  ordem" · Dado só `access_production` · Então mostram Ordens de produção, Relatório e Configurações, e o item do
+  menu abre as ordens · Dado as duas · Então os cinco. Insumos está no menu lateral.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (Relatório e Configurações usam `access_production`) · auditoria do
+  Manufacturing, lote 2.4 (item que dá 403 ao clicar).
+- **Teste:** `MenuPorPermissaoTest.php` (menu, pelo `shell.menu`) · `tests/js/manufacturing-abas.test.tsx` (abas).
+- **Regressão que defende:** item visível que dá 403 ao clicar, e Insumos só alcançável pela aba.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-25 · A trilha da receita leva a empresa
+- **Persona:** quem consulta a auditoria (/auditoria) da empresa.
+- **Aceite:** Dado uma alteração na receita ou num ingrediente · Quando o registro da trilha é gravado · Então ele leva
+  a empresa da receita (pelo produto), e aparece na auditoria da empresa.
+- **Fonte:** trilha por empresa (`ActivityCauserKindObserver`, ADR 0127): a tela filtra por `business_id` ·
+  auditoria do Manufacturing, lote 2.7.
+- **Teste:** `ExcluirRascunhoTrilhaTest.php`
+- **Regressão que defende:** a receita não tem coluna de empresa, e o registro nascia sem ela — sumia da auditoria.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-22 · Perguntar se o produto tem receita exige acesso ao módulo
+- **Persona:** quem monta ordem de produção pela tela legada.
+- **Aceite:** Dado um usuário sem `access_recipe` nem `access_production` · Quando pergunta
+  `/manufacturing/is-recipe-exist/{variação}` · Então recebe 403 · Dado o mesmo pedido com `access_recipe`
+  ou com `access_production` · Então recebe a resposta (1 quando a receita existe).
+- **Fonte:** auditoria do Manufacturing, lote 2.1: todas as rotas do módulo checam pacote e permissão.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** a única rota do módulo sem gate nenhum.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-23 · A receita sempre tem forma de custo extra, e a lista mostra a forma que a conta usou
+- **Persona:** Wagner — lê "Custo extra (…)" no painel da receita.
+- **Aceite:** Dado o salvar sem `production_cost_type` (ausente ou vazio) · Então volta com erro no campo e a
+  receita não grava · Dado uma receita antiga gravada sem a forma · Quando a lista e o editor a mostram ·
+  Então os dois dizem "fixo", que é a forma que o custo calculado usou (15 de ingredientes + 2,5 = 17,5).
+- **Fonte:** charter de Recipes (❌ aceitar `production_cost_type` fora de `{fixed, percentage, per_unit}`) ·
+  UC-RECIPE-04 · auditoria do Manufacturing, lote 2.3.
+- **Teste:** `FormaCustoExtraTest.php` — a conta à mão e a fórmula que o rótulo anuncia.
+- **Regressão que defende:** o painel dizer "Custo extra (2,5%)" ao lado de um custo que somou 2,5 inteiro.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - ~~**[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** e uma requisição **ajax real** recebe o

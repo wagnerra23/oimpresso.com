@@ -12,6 +12,7 @@ parent_module: Superadmin
 related_adrs: [104, 93, 374]
 tier: B
 charter_version: 1
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-dashboard.md
 ---
 
 # Page Charter — /superadmin

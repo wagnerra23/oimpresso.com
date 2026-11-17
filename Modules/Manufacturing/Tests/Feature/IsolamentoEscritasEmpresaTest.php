@@ -126,6 +126,8 @@ describe('UC-INGRED-15 — grupo de ingredientes de outra empresa não é renome
 describe('UC-MCFG-04 — gravar configurações só altera a empresa da sessão (por HTTP)', function () {
     it('UC-MCFG-04 o POST grava na 98 e a configuração da 99 não muda', function () {
         $user = mfgEmpUsuario('mfg_iso_config');
+        // Configurações pedem `access_production` desde o lote 2.1 (decisão B3 de [W], UC-MCFG-05).
+        $user->givePermissionTo(Permission::firstOrCreate(['name' => 'manufacturing.access_production', 'guard_name' => 'web']));
         mfgEmpNegocio(MFG_EMP_OUTRO);
         $antesOutra = DB::table('business')->where('id', MFG_EMP_OUTRO)->value('manufacturing_settings');
 

@@ -202,3 +202,40 @@ it('trabalho: estabilidade só no caso acidentário, sem prometê-la pela fibrom
     expect($html)->toContain('A fibromialgia, por si só, <strong>não</strong> dá estabilidade');
     expect($html)->toContain('planalto.gov.br/ccivil_03/leis/l9029.htm');
 });
+
+it('como pedir: Meu INSS, CadÚnico antes do BPC, FCEE Digital e ajuda gratuita', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    $html = $this->get('http://uniafibro.com.br/direitos/como-pedir')->assertOk()->getContent();
+
+    expect($html)->toContain('Pedir Benefício por Incapacidade');
+    expect($html)->toContain('Primeiro o CadÚnico');
+    expect($html)->toContain('FCEE Digital');
+    expect($html)->toContain('dpu.def.br/previdencia');
+    expect($html)->toContain('defensoria.sc.def.br');
+});
+
+it('guias práticos: os 4 guias abrem na seção Guias, sem prometer carteira nacional', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    $slugs = array_map(fn ($p) => $p['slug'], Conteudo::todas()['guias']);
+    expect($slugs)->toBe(['carteira-cipf', 'laudo-medico', 'modelos-requerimento', 'perguntas-frequentes']);
+
+    foreach ($slugs as $slug) {
+        $this->get('http://uniafibro.com.br/direitos/'.$slug)->assertOk();
+    }
+    $cipf = $this->get('http://uniafibro.com.br/direitos/carteira-cipf')->getContent();
+    expect($cipf)->toContain('Não existe carteira <strong>nacional</strong>');
+});
+
+it('modelos: avisam que não são formulário oficial e apontam o modelo da FCEE', function () {
+    config(['uniafibro.pasta_conteudo' => resource_path('uniafibro/direitos')]);
+
+    $html = $this->get('http://uniafibro.com.br/direitos/modelos-requerimento')->assertOk()->getContent();
+
+    expect($html)->toContain('<strong>não</strong> são formulários oficiais');
+    expect($html)->toContain('fcee.sc.gov.br/informacoes/beneficios-para-pessoas-com-deficiencia');
+    // As linhas para preencher à mão não podem virar itálico nem linha horizontal no Markdown.
+    expect($html)->not->toContain('<em>');
+    expect($html)->not->toContain('<hr');
+});

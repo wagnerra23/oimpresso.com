@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1012,
-    "edges": 1355,
+    "nodes": 1020,
+    "edges": 1372,
     "by_node_type": {
       "module": 45,
-      "table": 118,
+      "table": 122,
       "adr": 157,
-      "component": 595,
-      "api": 97
+      "component": 597,
+      "api": 99
     },
     "by_edge_type": {
-      "ownsTable": 107,
+      "ownsTable": 111,
       "ownsLegacyView": 13,
       "consumesTable": 7,
-      "providesApi": 100,
+      "providesApi": 102,
       "charteredByAdr": 30,
-      "governedByAdr": 81,
-      "hasComponent": 595,
-      "dependsOn": 149,
-      "delegatesTo": 134,
+      "governedByAdr": 84,
+      "hasComponent": 597,
+      "dependsOn": 152,
+      "delegatesTo": 137,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 80,
@@ -1332,6 +1332,14 @@
       ]
     },
     {
+      "id": "api:/associacoes/m/{token}",
+      "type": "api",
+      "prefix": "/associacoes/m/{token}",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/atendimento/*",
       "type": "api",
       "prefix": "/atendimento/*",
@@ -1705,6 +1713,14 @@
       "prefix": "/ponto/install/*",
       "providers": [
         "Ponto"
+      ]
+    },
+    {
+      "id": "api:/pricing",
+      "type": "api",
+      "prefix": "/pricing",
+      "providers": [
+        "Superadmin"
       ]
     },
     {
@@ -2141,6 +2157,20 @@
       "module": "Associacoes",
       "name": "PendenciaDiretoria",
       "desc": "cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
+    },
+    {
+      "id": "component:Associacoes/PortalAssociadaController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalAssociadaController",
+      "desc": "área da associada por link + PIN, no site uniafibro.com.br e no endereço do app: ver os dados e revogar consentimento — ADR 0451 D6, US-ASSOC-005"
+    },
+    {
+      "id": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalLinkController + PortalAssociadaService",
+      "desc": "a diretoria gera e revoga o link + PIN da área da associada (só os hashes ficam no banco) — US-ASSOC-005"
     },
     {
       "id": "component:Auditoria/AuditEntryService",
@@ -6621,7 +6651,7 @@
       "id": "module:Superadmin",
       "type": "module",
       "module": "Superadmin",
-      "purpose": "Console do operador da plataforma (superadmin-only, cross-tenant por desenho). Vende e administra o produto — pacotes, assinaturas e checkout — e administra os tenants e o acesso: criar, desativar e destruir business, resetar senha, e a vista Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts. É o único módulo que fura o business_id global scope legitimamente.",
+      "purpose": "Duas partes num módulo: (1) console do operador da plataforma (/superadmin/*, middleware superadmin, cross-tenant por desenho) — vende e administra o produto (pacotes, assinaturas, comunicador, páginas do site, configurações globais) e administra os tenants e o acesso (criar e destruir business, resetar senha, Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts); (2) as telas de assinatura do CLIENTE (/subscription/*: Minha assinatura e Pagar), protegidas pela permissão superadmin.access_package_subscriptions e fora do middleware superadmin. É um dos módulos que furam o business_id global scope legitimamente, sempre com a marca // SUPERADMIN.",
       "trust": "L0",
       "owner": "wagner",
       "permission_prefix": "superadmin.*",
@@ -7986,11 +8016,55 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:packages",
+      "type": "table",
+      "name": "packages",
+      "owners": [
+        "Superadmin"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:payment_gateway_credentials",
       "type": "table",
       "name": "payment_gateway_credentials",
       "owners": [
         "PaymentGateway"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:subscriptions",
+      "type": "table",
+      "name": "subscriptions",
+      "owners": [
+        "Superadmin"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:superadmin_communicator_logs",
+      "type": "table",
+      "name": "superadmin_communicator_logs",
+      "owners": [
+        "Superadmin"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:superadmin_frontend_pages",
+      "type": "table",
+      "name": "superadmin_frontend_pages",
+      "owners": [
+        "Superadmin"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -9164,6 +9238,18 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalAssociadaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "api:/associacoes/associadas",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9177,6 +9263,12 @@
     {
       "from": "module:Associacoes",
       "to": "api:/associacoes/lista",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/m/{token}",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -15612,6 +15704,13 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "module:Connector",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -15630,6 +15729,20 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:Officeimpresso",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:PaymentGateway",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de cobrança (PIX Automático, mandato BCB, CNAB) e os eventos CobrancaPaga/CobrancaVencida"
     },
     {
       "from": "module:Superadmin",
@@ -15640,6 +15753,13 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "module:Connector",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -15658,6 +15778,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:Officeimpresso",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:PaymentGateway",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de cobrança (PIX Automático, mandato BCB, CNAB) e os eventos CobrancaPaga/CobrancaVencida"
     },
     {
       "from": "module:Superadmin",
@@ -15675,6 +15809,24 @@
     {
       "from": "module:Superadmin",
       "to": "adr:0080",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "adr:0093",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "adr:0170",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "adr:0170",
       "type": "governedByAdr",
       "source": "related_adrs"
     },
@@ -15764,6 +15916,30 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "table:packages",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "table:subscriptions",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "table:superadmin_communicator_logs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "table:superadmin_frontend_pages",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "api:/all-subscriptions",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -15777,6 +15953,12 @@
     {
       "from": "module:Superadmin",
       "to": "api:/pricing/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/pricing",
       "type": "providesApi",
       "source": "url_prefixes"
     },

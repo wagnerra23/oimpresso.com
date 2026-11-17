@@ -11,6 +11,7 @@ parent_module: Superadmin
 related_adrs: [104, 93]
 tier: B
 charter_version: 1
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-negocios.md
 ---
 
 # Page Charter — /superadmin/business

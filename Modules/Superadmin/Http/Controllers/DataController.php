@@ -138,7 +138,11 @@ class DataController extends Controller
             )->order(95);
         }
 
-        if (auth()->user()->can('superadmin.access_package_subscriptions') && auth()->user()->can('business_settings.access')) {
+        // Mesmo gate da rota (`SubscriptionController::index` só confere esta permissão). O
+        // `business_settings.access` a mais escondia o item de quem abre a rota. O dropdown
+        // "Configurações" do core já se abre para esta permissão sozinha (AdminSidebarMenu,
+        // US-GOV-059 classe D) — auditoria 2026-11-05, eixo 5 §5.
+        if (auth()->user()->can('superadmin.access_package_subscriptions')) {
             $menu = Menu::instance('admin-sidebar-menu');
             $menu->whereTitle(__('business.settings'), function ($sub) {
                 $sub->url(

@@ -84,9 +84,34 @@ last_run: "2026-10-06"
 
 ---
 
+## UC-MCFG-05 · Abrir e gravar Configurações exige acesso à produção
+- **Persona:** usuário da empresa com o pacote, mas sem `manufacturing.access_production`.
+- **Aceite:** Dado esse usuário · Quando abre `/manufacturing/settings` (tela ou `?legacy=1`) ou posta
+  nela · Então recebe 403 e `business.manufacturing_settings` não muda · Dado o mesmo usuário com
+  `access_production` · Então a tela abre e o POST grava.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (auditoria do Manufacturing): Configurações e Relatório usam
+  `access_production`, sem permissão nova. Promove o item de backlog que esperava essa decisão.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** qualquer usuário da empresa trocar o prefixo da ordem e as travas de
+  quantidade e de preço sem permissão nenhuma.
+- **Status: 🧪**
+
+---
+
+## UC-MCFG-06 · Contato com login de portal não entra nas rotas do módulo
+- **Persona:** contato do cliente com login no portal (`user_type = user_customer`).
+- **Aceite:** Dado esse login, mesmo com a permissão · Quando abre ou posta em `/manufacturing/settings` ·
+  Então recebe 403 · Dado um usuário interno com a mesma permissão · Então a tela abre.
+- **Fonte:** pilha canônica de rotas do projeto (`.claude/rules/modules.md`), que inclui `CheckUserLogin`.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** o grupo de rotas do módulo sem `CheckUserLogin`, deixando o portal alcançar
+  rotas que só checam o pacote.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Gravar configurações exige permissão do módulo: `POST /manufacturing/settings` de usuário com assinatura mas sem a permissão não altera `business.manufacturing_settings` (403). Hoje `SettingsController@store` só checa assinatura/superadmin. Falta o [W] dizer **qual** permissão manda (a Blade nunca teve).
 - **[BACKLOG]** O botão "Atualizar" fica desabilitado enquanto nada mudou e reabilita ao mexer
   em qualquer um dos 3 campos (R-24) — é comportamento de navegador; lugar é spec Playwright.
 - **[BACKLOG]** Submeter persiste e a tela volta com os valores novos (o `redirect()->back()`
