@@ -108,12 +108,14 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
           {aviso}
         </p>
 
-        <div
+        <Stack
           ref={resultadoRef}
+          gap={0}
+          align="center"
           tabIndex={-1}
           aria-busy={loading}
           aria-label="Consulta de OS"
-          className="w-full flex flex-col items-center outline-none"
+          className="w-full outline-none"
         >
         {estado === 'busca' && (
           <Card className="w-full max-w-md shadow-md">
@@ -192,7 +194,7 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
             </Card>
           </div>
         )}
-        </div>
+        </Stack>
       </div>
     </>
   )
