@@ -23,24 +23,24 @@
       "detail": {
         "coverage_pct": 89.4,
         "specs_total": 59,
-        "us_total": 1240,
+        "us_total": 1248,
         "anchor_coverage_pct": 89.4,
         "by_state": {
           "sem_campo": 123,
           "placeholder": 6,
           "pendente": 499,
           "parcial": 158,
-          "anchored_ok": 451,
+          "anchored_ok": 459,
           "anchored_dead": 3,
           "anchored_zombie": 0
         },
-        "fields_total": 1124,
+        "fields_total": 1132,
         "fields_placeholder": 6,
-        "fields_grammar_ok": 902,
+        "fields_grammar_ok": 911,
         "orphan_fields": 7,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 218,
+        "req_sem_aceite_total": 202,
         "req_sem_covering_test_total": 330,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 13,
@@ -62,7 +62,7 @@
           "covers": 0
         },
         "v1_files": 7,
-        "v1_violations": "0[object Object]"
+        "v1_violations": "0"
       },
       "stream": "SA"
     },
