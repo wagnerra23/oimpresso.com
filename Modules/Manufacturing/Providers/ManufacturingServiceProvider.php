@@ -21,6 +21,10 @@ class ManufacturingServiceProvider extends ServiceProvider
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->registerScheduleCommands();
+
+        // UC-RECIPE-25 (lote 2.7 da auditoria): o registro da trilha da receita e dos ingredientes leva a
+        // empresa pela cadeia até o produto. Ver `Support/EmpresaDaTrilhaDaReceita`.
+        \Spatie\Activitylog\Models\Activity::creating([\Modules\Manufacturing\Support\EmpresaDaTrilhaDaReceita::class, 'aplicar']);
     }
 
     /**

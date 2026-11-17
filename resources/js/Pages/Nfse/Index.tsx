@@ -6,8 +6,8 @@
 //   permissao: nfse.view
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, router } from '@inertiajs/react';
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { Deferred, Head, router } from '@inertiajs/react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Plus, Eye, XCircle, Download } from 'lucide-react';
 
@@ -15,7 +15,8 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
-import PageHeader from '@/Components/shared/PageHeader';
+import { Skeleton } from '@/Components/ui/skeleton';
+import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { PaginatorShape } from '@/Components/shared/DataTable';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -44,9 +45,30 @@ interface Filters {
 }
 
 interface Props {
-  notas: PaginatorShape<NfseRow>;
+  // Deferida (Inertia::defer): undefined no 1º render, chega no 2º pedido.
+  notas?: PaginatorShape<NfseRow>;
   filters: Filters;
-  flash?: { success: boolean; msg: string } | null;
+}
+
+// Os 5 status que a coluna aceita — mesmo vocabulário do IndexNfseRequest::STATUS e do
+// StatusBadge kind="nfse". Rótulos iguais aos do badge da tabela.
+const STATUS_OPCOES: { value: string; label: string }[] = [
+  { value: 'rascunho', label: 'Rascunho' },
+  { value: 'processando', label: 'Processando' },
+  { value: 'emitida', label: 'Emitida' },
+  { value: 'cancelada', label: 'Cancelada' },
+  { value: 'erro', label: 'Erro' },
+];
+const statusLabel = (v: string) => STATUS_OPCOES.find((o) => o.value === v)?.label ?? v;
+
+function TabelaSkeleton() {
+  return (
+    <div className="space-y-2" aria-busy="true" aria-label="Carregando notas">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Skeleton key={i} className="h-12 w-full" />
+      ))}
+    </div>
+  );
 }
 
 const brl = (v: number | null) =>
@@ -68,7 +90,8 @@ function savedFilters(): Filters {
   }
 }
 
-export default function NfseIndex({ notas, filters, flash }: Props) {
+export default function NfseIndex({ notas, filters }: Props) {
+  const rows = useMemo(() => notas?.data ?? [], [notas?.data]);
   const merged = { ...savedFilters(), ...filters };
 
   const [status, setStatus] = useState(merged.status ?? '');
@@ -92,20 +115,20 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
       if (e.key === 'n' || e.key === 'N') {
         router.visit('/nfse/emitir');
       } else if (e.key === 'j' || e.key === 'J') {
-        setFocusedIdx(i => Math.min(i + 1, notas.data.length - 1));
+        setFocusedIdx(i => Math.min(i + 1, rows.length - 1));
       } else if (e.key === 'k' || e.key === 'K') {
         setFocusedIdx(i => Math.max(i - 1, 0));
       } else if (e.key === '/') {
         e.preventDefault();
         searchRef.current?.focus();
       } else if (e.key === 'Enter' && focusedIdx >= 0) {
-        const row = notas.data[focusedIdx];
+        const row = rows[focusedIdx];
         if (row) router.visit(`/nfse/${row.id}`);
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [focusedIdx, notas.data]);
+  }, [focusedIdx, rows]);
 
   function applyFilters() {
     // D-14: partial reload — só re-busca o que muda com filtro.
@@ -122,7 +145,7 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
   }
 
   const activeChips = [
-    status && { label: `Status: ${status}`, onRemove: () => { setStatus(''); applyFilters(); } },
+    status && { label: `Status: ${statusLabel(status)}`, onRemove: () => { setStatus(''); applyFilters(); } },
     de && { label: `De: ${de}`, onRemove: () => { setDe(''); applyFilters(); } },
     ate && { label: `Até: ${ate}`, onRemove: () => { setAte(''); applyFilters(); } },
     q && { label: `Busca: ${q}`, onRemove: () => { setQ(''); applyFilters(); } },
@@ -259,21 +282,11 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
     <AppShellV2 title="NFSe">
       <Head title="Notas Fiscais de Serviço" />
       <div className="p-6 space-y-5 max-w-6xl mx-auto">
-        {flash && (
-          <div className={`rounded-lg px-4 py-3 text-sm border ${
-            flash.success
-              ? 'bg-[color:var(--accent-soft)] border-[color:var(--accent-2)] text-[color:var(--text)]'
-              : 'bg-destructive/10 border-destructive/30 text-destructive'
-          }`}>
-            {flash.msg}
-          </div>
-        )}
-
         <PageHeader
-          icon="file-text"
+          leading={<FileText size={18} aria-hidden="true" />}
           title="Notas Fiscais de Serviço"
-          description={`${notas.total} nota(s) no filtro atual`}
-          action={
+          subtitle={notas ? `${notas.total} nota(s) no filtro atual` : 'Carregando notas…'}
+          actions={
             <Button onClick={() => router.visit('/nfse/emitir')}>
               <Plus size={16} className="mr-1" />
               <span>Emitir NFSe</span>
@@ -288,35 +301,34 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
           onReset={resetFilters}
         >
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Status</label>
+            <label htmlFor="nfse-filtro-status" className="text-xs text-[color:var(--text-mute)]">Status</label>
             <Select value={status || STATUS_ALL} onValueChange={(v) => setStatus(v === STATUS_ALL ? '' : v)}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger id="nfse-filtro-status" aria-label="Status" className="h-9">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={STATUS_ALL}>Todos</SelectItem>
-                <SelectItem value="rascunho">Rascunho</SelectItem>
-                <SelectItem value="processando">Processando</SelectItem>
-                <SelectItem value="emitida">Emitida</SelectItem>
-                <SelectItem value="cancelada">Cancelada</SelectItem>
-                <SelectItem value="erro">Erro</SelectItem>
+                {STATUS_OPCOES.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Competência de</label>
-            <Input type="month" value={de} onChange={(e) => setDe(e.target.value)} className="h-9" />
+            <label htmlFor="nfse-filtro-de" className="text-xs text-[color:var(--text-mute)]">Competência de</label>
+            <Input id="nfse-filtro-de" type="month" value={de} onChange={(e) => setDe(e.target.value)} className="h-9" />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Competência até</label>
-            <Input type="month" value={ate} onChange={(e) => setAte(e.target.value)} className="h-9" />
+            <label htmlFor="nfse-filtro-ate" className="text-xs text-[color:var(--text-mute)]">Competência até</label>
+            <Input id="nfse-filtro-ate" type="month" value={ate} onChange={(e) => setAte(e.target.value)} className="h-9" />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[color:var(--text-mute)]">Tomador / Nº</label>
+            <label htmlFor="nfse-filtro-q" className="text-xs text-[color:var(--text-mute)]">Tomador / Nº</label>
             <Input
+              id="nfse-filtro-q"
               ref={searchRef}
               placeholder="Buscar... (/)"
               value={q}
@@ -333,34 +345,36 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
           </div>
         </PageFilters>
 
-        {notas.data.length === 0 ? (
-          <EmptyState
-            icon="file-text"
-            title="Nenhuma nota encontrada"
-            description="Emita sua primeira NFSe ou ajuste os filtros acima."
-            action={
-              <Button onClick={() => router.visit('/nfse/emitir')}>
-                <Plus size={16} className="mr-1" />
-                Emitir NFSe
-              </Button>
-            }
-          />
-        ) : (
-          <DataTable
-            columns={columns}
-            data={notas.data}
-            pagination={notas}
-            endpoint="/nfse"
-            // Copy do PageHeader da própria tela (Index.tsx:274).
-            caption="Notas Fiscais de Serviço"
-            filters={{ status, de, ate, q }}
-            showSearch={false}
-            rowKey={(row) => row.id}
-            emptyMessage="Nenhuma nota encontrada."
-          />
-        )}
+        <Deferred data="notas" fallback={<TabelaSkeleton />}>
+          {!notas || rows.length === 0 ? (
+            <EmptyState
+              icon="file-text"
+              title="Nenhuma nota encontrada"
+              description="Emita sua primeira NFSe ou ajuste os filtros acima."
+              action={
+                <Button onClick={() => router.visit('/nfse/emitir')}>
+                  <Plus size={16} className="mr-1" />
+                  Emitir NFSe
+                </Button>
+              }
+            />
+          ) : (
+            <DataTable
+              columns={columns}
+              data={rows}
+              pagination={notas}
+              endpoint="/nfse"
+              // Copy do PageHeader da própria tela (Index.tsx:274).
+              caption="Notas Fiscais de Serviço"
+              filters={{ status, de, ate, q }}
+              showSearch={false}
+              rowKey={(row) => row.id}
+              emptyMessage="Nenhuma nota encontrada."
+            />
+          )}
+        </Deferred>
 
-        {notas.data.length > 0 && (
+        {rows.length > 0 && (
           <p className="text-xs text-[color:var(--text-mute)] text-right">
             Atalhos: <kbd className="font-mono">J</kbd>/<kbd className="font-mono">K</kbd> navegar · <kbd className="font-mono">Enter</kbd> abrir · <kbd className="font-mono">N</kbd> nova nota · <kbd className="font-mono">/</kbd> busca
           </p>

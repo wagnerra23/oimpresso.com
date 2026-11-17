@@ -21,6 +21,7 @@ use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Http\Requests\StoreBusinessRequest;
 use Modules\Superadmin\Http\Requests\UpdateBusinessPasswordRequest;
 use Modules\Superadmin\Notifications\PasswordUpdateNotification;
+use Modules\Superadmin\Services\BusinessAuditService;
 use Modules\Superadmin\Support\RotuloAssinatura;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
@@ -629,13 +630,31 @@ class BusinessController extends BaseController
 
             //Check if logged in busines id is same as deleted business then not allowed.
             $business_id = request()->session()->get('user.business_id');
-            if ($business_id == $id) {
-                $output = ['success' => 0, 'msg' => __('superadmin.lang.cannot_delete_current_business')];
+
+            // Pré-condições centralizadas (negócio 1 protegido, próprio negócio, último negócio).
+            // O que é apagado não muda aqui — isso é a decisão B5 pendente do [W]. A recusa sai
+            // pelo mesmo `return` de antes, para não abrir mais um retorno no método.
+            $pode = app(BusinessAuditService::class)->canDestroy((int) $id, (int) $business_id);
+            if ($business_id == $id || ! $pode['can_destroy']) {
+                $output = ['success' => 0, 'msg' => $business_id == $id
+                    ? __('superadmin.lang.cannot_delete_current_business')
+                    : $pode['reason']];
 
                 return back()->with('status', $output);
             }
 
             DB::beginTransaction();
+
+            // Trilha: quem excluiu qual negócio (ids e o IP de quem excluiu). `business_id` do registro é o
+            // negócio excluído, não o da sessão do superadmin.
+            activity('superadmin_negocio')
+                ->causedBy(auth()->user())
+                ->event('negocio_excluido')
+                ->withProperties(['negocio_id' => (int) $id, 'ip' => request()->ip()])
+                ->tap(function ($activity) use ($id) {
+                    $activity->business_id = (int) $id;
+                })
+                ->log('negocio_excluido');
 
             //Delete related products & transactions.
             $products_id = Product::where('business_id', $id)->pluck('id')->toArray();
@@ -683,8 +702,13 @@ class BusinessController extends BaseController
             return $notAllowed;
         }
 
+        // A rota já restringe a 0/1; a checagem fica aqui também para quem chamar o método direto.
+        if (! in_array((string) $is_active, ['0', '1'], true)) {
+            abort(422);
+        }
+
         Business::where('id', $business_id)
-            ->update(['is_active' => $is_active]);
+            ->update(['is_active' => (int) $is_active]);
 
         $output = ['success' => 1,
             'msg' => __('lang_v1.success'),
