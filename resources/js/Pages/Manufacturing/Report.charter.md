@@ -14,8 +14,8 @@ casos: resources/js/Pages/Manufacturing/Report.casos.md
 alcance:
   rota: /manufacturing/report
   rota_nome: manufacturing.report.index   # canônico desde o cutover 2026-09-04; /manufacturing/v2/report virou 301
-  permission: null # sem permissão Spatie granular própria — mesmo gate do Blade legado (só pacote)
-  menu_hook: null  # não está na sidebar; alcançada pela aba "Relatório" das telas v2
+  permission: manufacturing.access_production   # desde 2026-11-16 (lote 2.1, decisão B3 do [W] 2026-11-09); antes era só o pacote — UC-REPORT-06, tela + AJAX + ?legacy=1
+  menu_hook: null  # sem item próprio: ghost "Relatório" do item Fabricação no menu lateral (DataController::modifyAdminMenu) e aba "Relatório" do módulo
   pacote: manufacturing_module
 tier: B
 charter_version: 1
@@ -28,10 +28,9 @@ charter_version: 1
 > Fonte visual: `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgRelatorio`, dentro do
 > mesmo bundle já aplicado inteiro pela Onda 1 (Recipes) — **nenhuma classe CSS nova**.
 >
-> **Rota aditiva, sem decisão [W] sobre o endereço** — segue o padrão da Onda 1 de Ordens de
-> produção (Wave J `indexV2`): `/manufacturing/v2/report` novo, `/manufacturing/report`
-> (Blade) intocado. Se [W] preferir tomar o endereço legado (como fez em Recipes), é troca de
-> rota + `?legacy=1`, não reescrita da tela.
+> **Endereço:** `/manufacturing/report` serve esta tela desde o cutover de 2026-09-04 (pedido
+> [F]); `?legacy=1` devolve o Blade antigo no mesmo endereço. A tela nasceu como rota aditiva em
+> `/manufacturing/v2/report`, que hoje é 301 para o canônico.
 
 ## Mission
 
@@ -45,8 +44,8 @@ que Wagner abra planilha ou some ordem por ordem.
   proporcional
 - Ordena por custo desc (maior gasto primeiro — é a pergunta que a tela responde)
 - Rodapé com o total do período e o aviso de que o valor entra no Financeiro
-- Mesma aba do módulo que as outras telas v2 (Receitas · Ordens de produção · Relatório ·
-  Configurações)
+- Mesma barra de abas das outras telas do módulo (Receitas · Ordens de produção · Insumos ·
+  Relatório · Configurações), filtrada pela permissão de cada aba (lote 2.4)
 
 ## Non-Goals — Features (NÃO faz)
 
