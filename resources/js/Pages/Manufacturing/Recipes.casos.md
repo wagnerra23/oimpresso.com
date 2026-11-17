@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-27"
+last_run: "2026-11-17"
 ---
 
 > ℹ️ **`last_run` 2026-10-19 → 2026-10-27 (G-6): cutover da Blade.** Pedido [W] 2026-10-27, *"1 PR por tela,
