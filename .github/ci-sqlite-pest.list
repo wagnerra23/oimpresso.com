@@ -822,3 +822,5 @@ tests/Feature/Architecture/SuperadminScheduledCommandsRegisteredTest.php
 # Guarda dos listeners de pagamento por dispatcher (2026-11-16): sem banco, e o
 # caso repetido em 3 apps do mesmo processo prova que a ordem aleatoria nao tira o listener.
 Modules/Financeiro/Tests/Feature/ListenersPorDispatcherContratoTest.php
+# Consumidor da fila nfse (auditoria NFSe, 2026-11-17): DB-less, só lê o Schedule.
+tests/Feature/Console/NfseQueueWorkerScheduleTest.php
