@@ -6,6 +6,33 @@ id: requisitos-consulta-os-changelog
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## 2026-11-17 — Documentação alinhada à fonte real
+
+### Mudou
+- SCOPE, README, README-cliente, catálogo `memory/modulos/ConsultaOs.md` e `description` do `module.json` passam a descrever o portal sobre o Repair. Eles ainda falavam do mock de 4 OS (pipeline orçado → entregue, filtro por estágio) e o README-cliente dizia que o nome do cliente aparecia no resultado, o que o contrato UC-COS-04 proíbe.
+
+## 2026-11-16 — Isolamento por empresa (#10940)
+
+### Adicionado
+- `Modules/ConsultaOs/Tests/Feature/ConsultaOsTenantIsolationTest.php` (esqueleto de isolamento por empresa).
+
+## 2026-10-27 — Cutover do portal antigo do Repair (#10072)
+
+### Mudou
+- A tela Blade do `/repair-status` e o `POST /post-repair-status` saíram. `/repair-status` só redireciona (302) pro `/consulta-os`; sem o ConsultaOs registrado, responde 404 (UC-COS-11).
+- O aviso de status passou a sair pelo `NotificadorClienteWhatsapp` (#9817, US-WA-319).
+
+## 2026-10-21 — Cada status diz se avisa o cliente (#9740, #9725)
+
+### Mudou
+- Quem decide se a mudança de status avisa o cliente por WhatsApp é a marca `repair_statuses.whatsapp_template_aviso` (`ready` | `waiting_parts` | vazio), configurada em `/repair/status`. O nome do status não decide mais (decisão [W]; UC-COS-13 e UC-COS-33).
+- O aviso filtra a empresa do cliente e respeita o opt-out de WhatsApp (UC-COS-31, UC-COS-32).
+
+## 2026-10-20 — US-CONSULTA-004: o cliente acompanha o status (#9662)
+
+### Adicionado
+- Contrato `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php`: mudar o status no balcão avisa o cliente e o portal mostra o status novo (UC-COS-12). Limite registrado: transição pela FSM do Repair não dispara o aviso nem muda o status que o portal lê (UC-COS-14).
+
 ## [Unreleased] - US-CONSULTA-001 fonte real (2026-10-02)
 
 ### Mudou
