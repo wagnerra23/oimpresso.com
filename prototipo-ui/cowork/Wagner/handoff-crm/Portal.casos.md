@@ -53,7 +53,7 @@ last_run: "—"
 | UC-CRMPO-13 | Minha solicitação de pedido não vira venda | must `[T0]` | Pedidos · 24 | `CrmPortalPedidosContratoTest` |
 | UC-CRMPO-14 | O preço do pedido é o da minha tabela | must valor | Pedidos · 24 | `CrmPortalPedidosContratoTest` |
 | UC-CRMPO-15 | Pedido desligado esconde a função inteira | must | Pedidos · 24 | `CrmPortalPedidosContratoTest` |
-| UC-CRMPO-16 | Vejo as minhas OS na Assistência | must `[T0]` | Assistência · 25 | `CrmPortalAssistenciaContratoTest` (= UC-COS-24) |
+| UC-CRMPO-16 | Vejo as minhas OS na Assistência | must `[T0]` | Assistência · 25 | `CrmPortalAssistenciaContratoTest` (= UC-COS-52) |
 | UC-CRMPO-17 | Aviso no Início quando uma OS está pronta ou espera orçamento | should | Painel · 18 + 25 | `CrmPortalPainelContratoTest` |
 | UC-CRMPO-18 | Operador não entra no portal; contato não entra no ERP | must `[T0]` | todas · 18 | `CrmPortalPainelContratoTest` |
 
@@ -122,7 +122,7 @@ last_run: "—"
 - **Aceite:** Dado `crm_settings.enable_order_request` desligado · Então a aba Pedidos não vem no menu do contato **e** o POST de criação recusa (403) — não é só botão escondido.
 
 ## UC-CRMPO-16 · Vejo as minhas OS na Assistência · `must` `[T0]`
-- **Aceite:** = **UC-COS-24** (`cowork-inbox/repair/ConsultaOs-link.casos.md`): só OS com `contact_id` = A e `business_id` da sessão; mesmo cartão (`os-acompanhamento.jsx`) e mesma whitelist da página do link.
+- **Aceite:** = **UC-COS-52** (`cowork-inbox/repair/ConsultaOs-link.casos.md`): só OS com `contact_id` = A e `business_id` da sessão; mesmo cartão (`os-acompanhamento.jsx`) e mesma whitelist da página do link.
 - **Teste:** OS de A, de B e de A' (negócio 99); só a de A aparece.
 
 ## UC-CRMPO-17 · Aviso no Início · `should`
