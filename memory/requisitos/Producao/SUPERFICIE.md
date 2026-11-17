@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 188 arquivos em 17 papéis.
+**Total mapeado:** 189 arquivos em 17 papéis.
 
 ## Controllers — 25
 
@@ -172,11 +172,11 @@ module: Producao
 - [AcaoDaProva.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/_components/AcaoDaProva.tsx)
 - [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
 - [Alocar.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/Alocar.tsx)
-- [PainelDaFicha.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/PainelDaFicha.tsx)
 - [SimuladorBobina.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx)
 - [EditorRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/EditorRoteiro.tsx)
 - [ProdutosDoRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/ProdutosDoRoteiro.tsx)
 - [FichaDaOs.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.tsx)
+- [PainelDaFicha.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/PainelDaFicha.tsx)
 - [ProducaoAbas.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas.tsx)
 
 ## Charters (lei da tela) — 7
@@ -204,7 +204,7 @@ module: Producao
 - 38 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 12
+## Demais arquivos (manifestos, docs, assets e misc) — 13
 
 - [ApontamentoRecusado.php](../../../Modules/Producao/Exceptions/ApontamentoRecusado.php)
 - [fila.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts)
@@ -214,6 +214,7 @@ module: Producao
 - [falhaDoDeferido.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/falhaDoDeferido.ts)
 - [ficha.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/ficha.ts)
 - [filtro.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/filtro.ts)
+- [usePainelDaFicha.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/usePainelDaFicha.ts)
 - [producao.php](../../../Modules/Producao/Resources/lang/pt/producao.php)
 - [composer.json](../../../Modules/Producao/composer.json)
 - [module.json](../../../Modules/Producao/module.json)

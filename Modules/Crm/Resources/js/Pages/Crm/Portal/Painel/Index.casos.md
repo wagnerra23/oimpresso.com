@@ -58,4 +58,4 @@ Status: ⬜ — quebrou no run 40498496667 (o operador recebe 404, não 403; o t
 
 ## Backlog de casos
 
-- **[BACKLOG]** UC-CRMPO-17 · Aviso no Início quando uma OS do contato está pronta ou com orçamento aguardando. Fora desta thread: o `main` não tem a derivação de fase/orçamento da OS para o portal — nasce com a aba Assistência (thread 25, UC-COS-24).
+- **[BACKLOG]** UC-CRMPO-17 · Aviso no Início quando uma OS do contato está pronta ou com orçamento aguardando. Fora desta thread: o `main` não tem a derivação de fase/orçamento da OS para o portal — nasce com a aba Assistência (thread 25, UC-COS-52).

@@ -111,10 +111,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      # ConsultaOs (2026-10-14, regime E6): Modules/ConsultaOs/Tests tem 1 arquivo
-      # (ScaffoldTest, modulo + 2 rotas nomeadas) registrado no phpunit.xml e
-      # rodado por lane nenhuma. O contrato da tela vive em tests/Feature/ConsultaOs
-      # e roda pela ci-sqlite-pest.list.
+      # ConsultaOs (2026-10-14, regime E6): entrou nesta matriz para rodar
+      # Modules/ConsultaOs/Tests (ScaffoldTest + ConsultaOsTenantIsolationTest, este só
+      # com ->todo()). Medido 2026-11-17, run 44082879187 job Pest ConsultaOs:
+      # 3 passed (4 assertions) · 3 todos. O contrato da tela vive em
+      # tests/Feature/ConsultaOs e roda pela ci-sqlite-pest.list (PHP / Pest (Unit)).
       # Em 2026-10-14 o test-lane-coverage.mjs parava de ler a lista module: no 1o
       # comentario dentro dela e os modulos seguintes sumiam do run-set (medido no
       # #9370: 670 -> 663 alvos). Corrigido no #9376 no mesmo dia.

@@ -534,6 +534,19 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Fiscal/DasRenderTest.php
 
+      # ── E2E — ConsultaOs/Index, portal público /consulta-os (NASCE ADVISORY) ─────────
+      # Buraco medido em 2026-11-17: `git grep -l "consulta-os" tests/Browser/` = 0. A tela só
+      # tinha o contrato da API (ConsultaOsIndexContratoTest). Este step prova UC-COS-01/02/03 no
+      # DOM, a falha 500 pintando alerta, e axe CRITICAL nos estados. Semeia uma folha de OS no
+      # tenant 98 e apaga ao fim. ADVISORY no nascimento: Pest Browser é CI-only e não rodou
+      # antes do PR. Promoção = remover o `continue-on-error` depois de 2 verdes que
+      # EXECUTARAM, lidos no log; é flip [W].
+      - name: E2E de render · ConsultaOs/Index (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-consultaos-index
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php
+
       # ── E2E DE RENDER — Superadmin, telas do assinante (NASCE ADVISORY) ──────────
       # Par do step "Superadmin plataforma". Páginas e Usuário 360° (lista e raio-X) atrás do
       # middleware `superadmin` — o teste põe o usuário 98 do VisregEmptyTenantSeeder em

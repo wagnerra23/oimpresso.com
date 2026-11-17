@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Modules\ConsultaOs\Services\EmpresaPublica;
 use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Repair\Tests\Support\JobSheetFixtures as Fx;
 use Modules\Whatsapp\Entities\Channel;
@@ -25,7 +26,7 @@ use Tests\Support\WithSeededTenant;
  *     → JobSheetController::update dispara RepairStatusChanged(os, nome do status)
  *     → Modules\Whatsapp\Listeners\NotifyRepairCustomer → NotificadorClienteWhatsapp (US-WA-319):
  *       mensagem na conversa do cliente no canal omnichannel + DespacharMensagemDoSistemaJob na fila
- *     → /consulta-os/buscar lê `status_id` (repair_statuses) e devolve o status novo.
+ *     → /consulta-os/{codigo da empresa}/buscar lê `status_id` (repair_statuses) e devolve o status novo.
  *
  * QUEM DECIDE O AVISO (decisão [W] 2026-10-21): a marca `repair_statuses.whatsapp_template_aviso`
  *   ('ready' | 'waiting_parts' | NULL), configurada em /repair/status, viaja no evento. O nome do
@@ -121,13 +122,14 @@ function flx24Avisos(): array
         ->orderBy('m.id')->get(['m.business_id', 'm.body', 'c.channel_id', 'c.customer_external_id'])->all();
 }
 
-/** Busca pública, sem login (o portal não tem sessão). */
-function flx24Portal(object $t, string $numero): array
+/** Busca pública, sem login, pelo link da empresa (decisão [W] 2026-11-17: empresa na URL). */
+function flx24Portal(object $t, int $businessId, string $numero): array
 {
     auth()->guard('web')->logout();
     session()->flush();
 
-    $resposta = $t->getJson('/consulta-os/buscar?'.http_build_query(['tipo' => 'job_sheet_no', 'numero' => $numero]));
+    $codigo = EmpresaPublica::codigoDe($businessId);
+    $resposta = $t->getJson("/consulta-os/{$codigo}/buscar?".http_build_query(['tipo' => 'job_sheet_no', 'numero' => $numero]));
     $resposta->assertOk();
 
     return $resposta->json();
@@ -181,7 +183,7 @@ it('UC-COS-12: mudar o status da OS avisa o cliente certo e o portal mostra o st
     Bus::assertDispatchedTimes(DespacharMensagemDoSistemaJob::class, 1);
 
     // Portal: a busca pelo nº da OS devolve só esta OS, já com o status novo.
-    $corpo = flx24Portal($this, $numero);
+    $corpo = flx24Portal($this, (int) $biz->id, $numero);
     expect($corpo['found'])->toBeTrue();
     expect($corpo['ordens'])->toHaveCount(1);
     expect($corpo['ordens'][0]['numero'])->toBe($numero);
@@ -220,7 +222,7 @@ it('UC-COS-13: status com o nome que a empresa deu avisa pelo WhatsApp quando es
         ->and($avisos[0]->customer_external_id)->toBe('+5547900000198')
         ->and($avisos[0]->body)->toContain('pronta para retirada');
 
-    $corpo = flx24Portal($this, $numero);
+    $corpo = flx24Portal($this, (int) $biz->id, $numero);
     expect($corpo['ordens'][0]['status']['nome'])->toBe('Pronto para retirada');
 });
 

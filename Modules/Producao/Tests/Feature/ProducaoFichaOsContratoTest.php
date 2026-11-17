@@ -226,3 +226,33 @@ it('UC-PCOSF-07 · o Quadro com ?os= entrega a Ficha; as abas só quando pedidas
     expect($quadro('', 'ficha')->assertOk()->json('props.ficha'))->toBeNull()
         ->and($quadro('?os=abc', 'ficha')->assertOk()->json('props.ficha'))->toBeNull();
 });
+
+it('UC-PCOSF-09 · a Linha do tempo com ?os= entrega a mesma Ficha do Quadro; as abas só quando pedidas; outra empresa não', function () {
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $linha = fn (string $qs, string $props) => $this->actingAs($this->pcp)->get('/producao/linha'.$qs, ['X-Inertia' => 'true',
+        'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => $versao, 'X-Inertia-Partial-Data' => $props,
+        'X-Inertia-Partial-Component' => 'Producao/Linha/Index']);
+
+    // Visita normal: a Ficha é deferida e as abas são optional — nenhuma vem no primeiro carregamento.
+    $this->actingAs($this->pcp)->get("/producao/linha?os={$this->ordem->id}")->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Producao/Linha/Index', false)
+            ->missing('ficha')->missing('ficha_artes')->missing('ficha_materiais'));
+
+    $f = $linha("?os={$this->ordem->id}", 'ficha')->assertOk()->json('props.ficha');
+    expect($f['os']['numero'])->toBe('OP '.$this->ordem->id)
+        ->and(array_column($f['etapas'], 'id'))->toBe([$this->e1->id, $this->e2->id]);
+
+    DB::table('pcp_aprovacoes_arte')->insert(['business_id' => $this->b98, 'ordem_id' => $this->ordem->id, 'programacao_id' => $this->e1->id,
+        'arte_programacao_id' => $this->e1->id, 'token_hash' => hash('sha256', uniqid()), 'arquivo' => 'https://ex.test/arte-linha.pdf', 'versao' => 1,
+        'expira_em' => now()->addDays(7), 'created_by' => $this->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+    $a = $linha("?os={$this->ordem->id}", 'ficha_artes')->assertOk()->json('props');
+    expect(array_column($a['ficha_artes'], 'arquivo'))->toBe(['https://ex.test/arte-linha.pdf'])->and($a)->not->toHaveKey('ficha');
+
+    // Tier 0: OS da empresa 99 pedida na Linha da 98 (empresa da sessão) não aparece, e a Linha abre igual.
+    // SUPERADMIN: fixture da empresa 99.
+    $os99 = Ordem::withoutGlobalScopes()->create(['business_id' => $this->b99, 'transaction_id' => 990024,
+        'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => 1, 'quantidade' => '1.0000']);
+    $p99 = $linha("?os={$os99->id}", 'ficha,ficha_artes')->assertOk()->json('props');
+    expect($p99)->toHaveKey('ficha')->and($p99['ficha'])->toBeNull()->and($p99['ficha_artes'])->toBeNull();
+    expect($linha('?os=abc', 'ficha')->assertOk()->json('props.ficha'))->toBeNull();
+});

@@ -74,10 +74,10 @@ Status: 🧪
 
 ## UC-PCOSF-06 · Quadro e Linha abrem a Ficha · `must`
 
-**Dado** uma OS por item no Quadro e na Linha do tempo **Quando** clico (sem arrastar) ou dou Enter no bloco da Linha
-**Então** abre `/producao/ordens/{id}` · **Quando** clico no número do cartão do Quadro **Então** a Ficha abre no painel
-lateral (UC-PCOSF-08) · arrastar o bloco para reprogramar não abre a Ficha · a OS da Comunicação Visual (`comvis_os`)
-não tem Ficha e não ganha link. Teste: `tests/js/producao-ficha-link.test.ts` (endereço e controle); o clique no
+**Dado** uma OS por item no Quadro e na Linha do tempo **Quando** clico no número do cartão do Quadro, ou clico (sem
+arrastar) ou dou Enter no bloco da Linha **Então** a Ficha abre no painel lateral (UC-PCOSF-08 e UC-PCOSF-09) · a página
+`/producao/ordens/{id}` segue existindo · arrastar o bloco para reprogramar não abre a Ficha · a OS da Comunicação Visual
+(`comvis_os`) não tem Ficha e não ganha link. Teste: `tests/js/producao-ficha-link.test.ts` (endereço e controle); o clique no
 navegador se confere no smoke.
 
 Status: 🧪
@@ -101,6 +101,18 @@ seguinte · depois de liberar, refazer, cancelar ou trocar a arte, o quadro se a
 empresa ou inexistente **Então** o painel diz "OS não encontrada". Teste: `tests/js/producao-quadro-painel-ficha.test.tsx`
 (abas por OS, troca e controle) e `tests/js/producao-ficha-link.test.ts` (URL); o servidor é o UC-PCOSF-07; o clique
 no navegador se confere no smoke.
+
+Status: 🧪
+
+## UC-PCOSF-09 · A Linha do tempo abre a Ficha no painel lateral · `must` `[T0]`
+
+**Dado** a Linha do tempo **Quando** clico (sem arrastar) ou dou Enter no bloco de uma OS por item **Então** a Ficha abre
+no mesmo painel de 760px do Quadro (UC-PCOSF-08), sem sair da linha · a URL ganha `?os={id}` e mantém o filtro e o dia ·
+depois de liberar, refazer, cancelar ou trocar a arte, os blocos e os eventos se atualizam junto · a Linha entrega
+`ficha` e as abas `ficha_*` como o Quadro, montadas no mesmo lugar (`PropsDaFicha::doPainel`) · **Dado** `?os=` de outra
+empresa ou inexistente **Então** `ficha` vem nula e a Linha abre normal. Teste: `ProducaoFichaOsContratoTest`
+(UC-PCOSF-09: servidor e Tier 0) e `tests/js/producao-ficha-link.test.ts` (URL na Linha); o clique no navegador se
+confere no smoke.
 
 Status: 🧪
 
@@ -138,6 +150,7 @@ Status: 🧪
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-17 · [M+C] A Linha do tempo abre a Ficha no mesmo painel lateral do Quadro (UC-PCOSF-09). As props do painel ficam num lugar só, `PropsDaFicha::doPainel`.
 - 2026-11-17 · [M+C] O número da OS no Quadro abre a Ficha no painel lateral de 760px, com `?os=` na URL (UC-PCOSF-08, decisão [W] no #10850). A Linha segue abrindo a página.
 - 2026-11-16 · [M+C] O Quadro entrega a Ficha com `?os=` para o painel lateral (UC-PCOSF-07, decisão [W] no #10850).
 - 2026-11-16 · [M+C] O conteúdo da Ficha vira o componente `_components/FichaDaOs.tsx`, para o painel lateral do Quadro usar o mesmo (decisão [W] no #10850). A página não muda.
