@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-consulta-os-index-casos
-casos: Consulta pública de OS · /consulta-os
+casos: Consulta pública de OS · /consulta-os/{empresa}
 irmaos: Index.charter.md (lei) · Index.tsx (código) · tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php (defesa)
 tecnica: Caso de uso = o que o cliente final faz + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do ERP que fala com o cliente final sem login — o que ela expõe e o que ela recusa não pode mudar sem alguém ver.
@@ -20,10 +20,12 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 > (`RepairConsultaOsRepository`) — decisão [W] "Ligar o ConsultaOs ao Repair". O mock de 4 OS
 > fixas saiu. O antigo `/repair-status` redireciona pra cá.
 >
-> **Multi-tenant:** a rota é pública e o `ScopeByBusiness` não age sem login; o único filtro é o
-> critério de busca. O portal **não sabe a empresa do cliente** — um nº válido é procurado em todas
-> as empresas, como no `/repair-status`. O UC-COS-09 documenta isso; quando [W] decidir como
-> identificar a empresa, o assert dele inverte.
+> **Multi-tenant (decisão [W] 2026-11-17 — "empresa na URL, celular só com série"):** a rota é
+> pública e a empresa vem do código na URL (`/consulta-os/{codigo}`, `EmpresaPublica`). A busca
+> filtra `repair_job_sheets`, `transactions` e `contacts` por ela. Até 2026-11-17 um nº válido era
+> procurado em todas as empresas e o UC-COS-09 travava isso; o assert inverteu. `/consulta-os` sem
+> código só mostra o aviso (UC-COS-61). Os UC que mudaram com isso (01, 08, 09, 38) voltam a 🧪 até
+> a lane rodar.
 
 **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC, veredito pendente da lane ·
 ⬜ não verificado · ❌ quebrou.
@@ -32,15 +34,15 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 
 | UC | Caso de uso | Prio | Âncora | Status |
 |----|-------------|------|--------|--------|
-| UC-COS-01 | Portal abre sem login | must | Non-Goals "NÃO exige login" · Mission | ✅ |
+| UC-COS-01 | Portal abre sem login | must | Non-Goals "NÃO exige login" · Mission | 🧪 |
 | UC-COS-02 | Busca pelo nº da OS mostra o status daquela OS | must | Goals "busca" + "exibe" | ✅ |
 | UC-COS-03 | OS não encontrada: resposta clara, sem pista | must | Goals "não encontrada claro" · UX "sem jargão" | ✅ |
 | UC-COS-04 | Payload é a whitelist — nada interno, financeiro ou do cliente | must `[T0]` | Non-Goals "NÃO expõe dados internos/financeiros" + "NÃO expõe dados do cliente" | ✅ |
 | UC-COS-05 | Sem critério válido não há busca nem lista | must `[T0]` | Non-Goals "NÃO lista todas as OS" · aceite US-CONSULTA-001 | ✅ |
 | UC-COS-06 | Só leitura: nada grava, nada edita | must | Non-Goals "NÃO permite editar/cancelar" · Anti-hooks "NÃO grava dado de negócio nem altera a OS em GET" | ✅ |
 | UC-COS-07 | Não deixa enumerar OS | must `[T0]` | Anti-hooks "NÃO facilita enumerar OS" | ✅ |
-| UC-COS-08 | Busca por nº da venda e por celular; série só estreita | must | Goals "busca por nº da OS, nº da venda ou celular" | ✅ |
-| UC-COS-09 | Busca cruza empresas — comportamento atual documentado | must `[T0]` | Pendências do charter "identificar a empresa" | ✅ |
+| UC-COS-08 | Busca por nº da venda e por celular com série; série estreita | must | Goals "busca por nº da OS, nº da venda ou celular" | 🧪 |
+| UC-COS-09 | Mesmo nº de OS em duas empresas: cada link só vê a sua | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" · Non-Goals "NÃO procura OS de outra empresa" | 🧪 |
 | UC-COS-10 | Celular desligado na config é recusado | must | Goals "celular só se a config ligar" | ✅ |
 | UC-COS-11 | `/repair-status` leva ao `/consulta-os` | must | charter §2026-10-02 (D-PORTAL) | ✅ |
 | UC-COS-12 | Mudar o status da OS avisa o cliente e o portal mostra o status novo | must `[T0]` | US-CONSULTA-004 (UC-FLX-24) | ✅ |
@@ -54,6 +56,9 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | Anti-hooks "NÃO grava dado de negócio nem altera a OS em GET" (só o log redigido) · `Config/retention.php` `consulta_os_logs` | 🧪 |
 | UC-COS-37 | Falha interna: 500 só com `found=false`, sem detalhe técnico | must | UX "sem jargão técnico" · UC-COS-03 | 🧪 |
 | UC-COS-38 | Falha do servidor na busca: a tela avisa e não diz "não encontrada" | must | UX "sem jargão técnico" · UC-COS-37 | 🧪 |
+| UC-COS-59 | Nº da venda: cada link só acha a venda da própria empresa | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" · ADR 0093 | 🧪 |
+| UC-COS-60 | Celular só com nº de série, e só na empresa do link | must `[T0]` | decisão [W] 2026-11-17 "celular só com série" · ADR 0093 | 🧪 |
+| UC-COS-61 | Sem código de empresa não há busca; código desconhecido dá 404 | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -65,12 +70,12 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
 
 ## UC-COS-01 · Portal abre sem login · `must`
 
-- **Persona:** cliente final com o link `/consulta-os` (ou o antigo `/repair-status`) que a loja mandou.
-- **Aceite:** Dado um visitante sem sessão · Quando abre `/consulta-os` como visita Inertia (com
-  `X-Inertia` e `X-Requested-With`) · Então recebe 200 e a tela `ConsultaOs/Index`, cuja única prop
-  de página é `buscaPorCelular` (booleana) — nenhum dado de OS no render.
+- **Persona:** cliente final com o link `/consulta-os/{codigo}` que a loja mandou.
+- **Aceite:** Dado um visitante sem sessão · Quando abre o link da empresa como visita Inertia (com
+  `X-Inertia` e `X-Requested-With`) · Então recebe 200 e a tela `ConsultaOs/Index`, com as props
+  `buscaPorCelular` (booleana) e `empresa` (o código da URL) — nenhum dado de OS no render.
 - **Fora do teste:** "sem AppShellV2/Sidebar" é propriedade do render no browser.
-- **Status:** ✅
+- **Status:** 🧪
 
 ## UC-COS-02 · Busca pelo nº da OS mostra o status daquela OS · `must`
 
@@ -123,22 +128,21 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
   com 422 · E, como controle, o formato real do nº de OS do Repair (`JS2026/0001`, com barra) é aceito.
 - **Status:** ✅
 
-## UC-COS-08 · Busca por nº da venda e por celular; série só estreita · `must`
+## UC-COS-08 · Busca por nº da venda e por celular com série; série estreita · `must`
 
-- **Aceite:** Dado a busca por celular ligada · Quando o cliente busca pelo nº da venda ou pelo
-  celular do cadastro · Então recebe a OS daquela venda/daquele celular · E o nº de série, quando
-  informado, só reduz o resultado (série errada → 404).
-- **Status:** ✅
+- **Aceite:** Dado a busca por celular ligada · Quando o cliente busca pelo nº da venda, ou pelo
+  celular do cadastro junto com o nº de série · Então recebe a OS daquela venda/daquele aparelho · E
+  nos outros tipos o nº de série, quando informado, só reduz o resultado (série errada → 404).
+- **Status:** 🧪
 
-## UC-COS-09 · Busca cruza empresas — comportamento atual documentado · `must` `[T0]`
+## UC-COS-09 · Mesmo nº de OS em duas empresas: cada link só vê a sua · `must` `[T0]`
 
-- **Aceite:** Dado o mesmo nº de OS em duas empresas (98 e 99) e uma terceira OS com outro nº ·
-  Quando o cliente busca esse nº · Então a OS de outro nº **não** aparece · E as duas OS com o mesmo
-  nº aparecem (é o que o `/repair-status` faz hoje).
-- **Pendente [W]:** fechar exige identificar a empresa (subdomínio, slug ou parâmetro na URL). O
-  ConsultaOs não tem esse mecanismo; criar rota nova ficou fora desta thread. Quando [W] decidir, o
-  segundo assert inverte.
-- **Status:** ✅
+- **Aceite:** Dado o mesmo nº de OS nas empresas 98 e 99, com status diferentes · Quando o cliente
+  busca esse nº pelo link da 98 · Então vê só a OS da 98 (e nada da 99) · E pelo link da 99 vê só a
+  da 99 · E uma OS que só existe na 99 dá 404 pelo link da 98.
+- **Histórico:** até 2026-11-17 este caso travava o contrário (as duas OS voltavam juntas). Decisão
+  [W] 2026-11-17: "empresa na URL, celular só com série".
+- **Status:** 🧪
 
 ## UC-COS-10 · Celular desligado na config é recusado · `must`
 
@@ -168,7 +172,7 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
 - **Aceite:** Dado uma OS da empresa 98 com cliente com celular, um número de WhatsApp da empresa
   que atende aviso de OS, e uma OS da empresa 99 com cliente e número próprios · Quando o status
   da OS da 98 muda na edição (para um status que o aviso reconhece) · Então sai **um** job de
-  WhatsApp, pelo número da 98, para o celular do cliente da 98 · E `/consulta-os/buscar` pelo nº
+  WhatsApp, pelo número da 98, para o celular do cliente da 98 · E `/consulta-os/{codigo da 98}/buscar` pelo nº
   da OS devolve só essa OS, com o status novo, sem nº nem nome da OS da 99.
 - **Status:** ✅
 
@@ -256,13 +260,37 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
 ## UC-COS-38 · Falha do servidor na busca: a tela avisa e não diz "não encontrada" · `must`
 
 - **Persona:** cliente final que pesquisa a OS no momento em que o servidor falha.
-- **Aceite:** Dado `/consulta-os` aberto no navegador · Quando o cliente pesquisa um número e a
+- **Aceite:** Dado o link da empresa (`/consulta-os/{codigo}`) aberto no navegador · Quando o cliente pesquisa um número e a
   busca responde 500 · Então a tela mostra um alerta (`role="alert"`) · E o formulário continua
   visível para tentar de novo · E a tela não mostra "OS não encontrada" nem dado de OS.
 - **Lado da API:** UC-COS-37 (o 500 devolve `{"found": false}` sem texto técnico).
 - **Fora do teste:** o texto do alerta. A mensagem própria do 429 é o UC-COS-39.
 - **Teste:** [`ConsultaOsIndexBrowserTest`](../../../../tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php),
   step `E2E de render · ConsultaOs/Index (ADVISORY)` do `visual-regression.yml`.
+- **Status:** 🧪
+
+## UC-COS-59 · Nº da venda: cada link só acha a venda da própria empresa · `must` `[T0]`
+
+- **Aceite:** Dado o mesmo nº de venda nas empresas 98 e 99, cada um ligado a uma OS da própria
+  empresa · Quando o cliente busca esse nº pelo link da 98 · Então vê só a OS da 98 · E pelo link da
+  99 só a da 99 · E uma venda da 99 ligada por engano a uma OS da 98 não abre essa OS pelo link da 98.
+- **Status:** 🧪
+
+## UC-COS-60 · Celular só com nº de série, e só na empresa do link · `must` `[T0]`
+
+- **Aceite:** Dado a busca por celular ligada · Quando o cliente busca por celular sem nº de série ·
+  Então recebe 422 com erro no campo `serie` e o repositório não consulta · E com a série, pelo link
+  da empresa certa, acha a OS · E o mesmo celular e série pelo link da outra empresa dá 404 · E um
+  contato da 99 ligado por engano a uma OS da 98 não abre essa OS pelo link da 98.
+- **Status:** 🧪
+
+## UC-COS-61 · Sem código de empresa não há busca; código desconhecido dá 404 · `must` `[T0]`
+
+- **Aceite:** Dado um visitante sem sessão · Quando abre `/consulta-os` sem código · Então a tela
+  abre com `empresa` nula, mostra o aviso para abrir o link da empresa e não mostra o formulário ·
+  E a busca antiga `/consulta-os/buscar` não existe (404) · E um código no formato certo que não é de
+  empresa nenhuma dá 404 na tela e na busca, só com `{"found": false}`.
+- **Teste:** contrato (API) + [`ConsultaOsIndexBrowserTest`](../../../../tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php) (tela).
 - **Status:** 🧪
 
 ---

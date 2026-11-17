@@ -17,9 +17,12 @@ type Estado = 'busca' | 'resultado' | 'nao-encontrado'
 
 interface Props {
   buscaPorCelular?: boolean
+  // Código público da empresa na URL (/consulta-os/{codigo}). null em /consulta-os sem empresa:
+  // a busca só existe dentro de uma empresa (decisão [W] 2026-11-17).
+  empresa?: string | null
 }
 
-export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
+export default function ConsultaOsIndex({ buscaPorCelular = false, empresa = null }: Props) {
   const [estado, setEstado] = useState<Estado>('busca')
   const [loading, setLoading] = useState(false)
   const [ordens, setOrdens] = useState<OrdemServico[]>([])
@@ -34,7 +37,7 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
     try {
       const params = new URLSearchParams({ tipo, numero })
       if (serie) params.set('serie', serie)
-      const res = await fetch(`/consulta-os/buscar?${params}`, {
+      const res = await fetch(`/consulta-os/${encodeURIComponent(empresa ?? '')}/buscar?${params}`, {
         headers: { Accept: 'application/json' },
       })
 
@@ -89,18 +92,29 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
                 Consulta de Ordem de Serviço
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Informe o número da OS, da venda ou o celular para acompanhar o seu reparo
+                {empresa
+                  ? 'Informe o número da OS, da venda ou o celular para acompanhar o seu reparo'
+                  : 'Abra o link de acompanhamento que a empresa do seu reparo enviou'}
               </p>
             </CardHeader>
 
             <CardContent className="pt-4 pb-7 px-7">
-              {erro && (
-                <Alert variant="destructive" className="mb-5">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{erro}</AlertDescription>
-                </Alert>
+              {empresa ? (
+                <>
+                  {erro && (
+                    <Alert variant="destructive" className="mb-5">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{erro}</AlertDescription>
+                    </Alert>
+                  )}
+                  <OsLookupForm onBuscar={handleBuscar} loading={loading} buscaPorCelular={buscaPorCelular} />
+                </>
+              ) : (
+                <p data-testid="consulta-os-sem-empresa" className="text-sm text-muted-foreground text-center leading-relaxed">
+                  A consulta é feita pelo link que a empresa enviou junto com a sua ordem de serviço.
+                  Se não tiver o link, peça à empresa.
+                </p>
               )}
-              <OsLookupForm onBuscar={handleBuscar} loading={loading} buscaPorCelular={buscaPorCelular} />
             </CardContent>
           </Card>
         )}
