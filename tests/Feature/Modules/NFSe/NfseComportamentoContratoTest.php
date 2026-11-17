@@ -133,9 +133,14 @@ function nfsecompRecusa(callable $emitir): CertificadoInvalidoException
     throw new \RuntimeException('A emissão deveria ter sido recusada por certificado e passou.');
 }
 
-/** A recusa deixa UMA linha `erro` da 98 para este payload, com o motivo na mensagem. */
-function nfsecompNotaEmErro(NfseEmissaoPayload $payload, string $motivo): void
+/**
+ * A recusa deixa UMA linha `erro` da 98 para este payload. A linha guarda a mensagem fixa da
+ * CertificadoInvalidoException ("Certificado A1 inválido ou expirado…"); o motivo específico
+ * (vencido × ausente) fica em ->detalhe, que cada teste confere na exceção. Medido no run do #11069.
+ */
+function nfsecompNotaEmErro(NfseEmissaoPayload $payload): void
 {
+    $motivo = 'Certificado A1 inválido ou expirado';
     // SUPERADMIN: teste confere a linha da própria empresa 98 sem depender da sessão.
     $notas = NfseEmissao::withoutGlobalScopes()
         ->where('business_id', NFSECOMP_TENANT)
@@ -209,9 +214,9 @@ it('US-NFSE-004 · certificado vencido bloqueia a emissao antes de chamar a Sefi
     expect((string) $recusa->detalhe)->toContain('expirado em');
 
     Http::assertNothingSent();
-    // Desde o lote 2 PR 2.2 (#11025) a nota é gravada antes da validação e fica `erro` com
-    // o motivo, para aparecer em /nfse. Antes sumia sem rastro.
-    nfsecompNotaEmErro($payload, 'expirado em');
+    // Desde o lote 2 PR 2.2 (#11025) a nota é gravada antes da validação e fica `erro`,
+    // para aparecer em /nfse. Antes sumia sem rastro.
+    nfsecompNotaEmErro($payload);
 });
 
 // ── 3. Senha errada ──────────────────────────────────────────────────────────
@@ -259,8 +264,8 @@ it('[T0] US-NFSE-004 · config da 98 apontando para certificado da 99 nao usa o 
     $recusa = nfsecompRecusa(fn () => $service->emitir($payload));
     expect((string) $recusa->detalhe)->toContain('Nenhum certificado');
     Http::assertNothingSent();
-    // A nota da 98 fica `erro` com o motivo (lote 2 PR 2.2); nada foi assinado com o A1 da 99.
-    nfsecompNotaEmErro($payload, 'Nenhum certificado');
+    // A nota da 98 fica `erro` (lote 2 PR 2.2); nada foi assinado com o A1 da 99.
+    nfsecompNotaEmErro($payload);
 
     // Controle positivo: com o certificado da própria empresa o relacionamento resolve.
     $config->update(['cert_id' => nfsecompCert(NFSECOMP_TENANT)]);
