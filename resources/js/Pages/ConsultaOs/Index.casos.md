@@ -37,8 +37,8 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-03 | OS não encontrada: resposta clara, sem pista | must | Goals "não encontrada claro" · UX "sem jargão" | ✅ |
 | UC-COS-04 | Payload é a whitelist — nada interno, financeiro ou do cliente | must `[T0]` | Non-Goals "NÃO expõe dados internos/financeiros" + "NÃO expõe dados do cliente" | ✅ |
 | UC-COS-05 | Sem critério válido não há busca nem lista | must `[T0]` | Non-Goals "NÃO lista todas as OS" · aceite US-CONSULTA-001 | ✅ |
-| UC-COS-06 | Só leitura: nada grava, nada edita | must | Non-Goals "NÃO permite editar/cancelar" · Anti-hooks "NÃO grava nada em GET" | ✅ |
-| UC-COS-07 | Não deixa enumerar OS | must `[T0]` | Anti-hooks "NÃO indexa/expõe OS por enumeração" | ✅ |
+| UC-COS-06 | Só leitura: nada grava, nada edita | must | Non-Goals "NÃO permite editar/cancelar" · Anti-hooks "NÃO grava dado de negócio nem altera a OS em GET" | ✅ |
+| UC-COS-07 | Não deixa enumerar OS | must `[T0]` | Anti-hooks "NÃO facilita enumerar OS" | ✅ |
 | UC-COS-08 | Busca por nº da venda e por celular; série só estreita | must | Goals "busca por nº da OS, nº da venda ou celular" | ✅ |
 | UC-COS-09 | Busca cruza empresas — comportamento atual documentado | must `[T0]` | Pendências do charter "identificar a empresa" | ✅ |
 | UC-COS-10 | Celular desligado na config é recusado | must | Goals "celular só se a config ligar" | ✅ |
@@ -50,8 +50,8 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-32 | OS com cliente de outra empresa não avisa ninguém | must `[T0]` | US-CONSULTA-004 + ADR 0093 | ✅ |
 | UC-COS-33 | Status sem marca não avisa, mesmo chamado `ready` | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | ✅ |
 | UC-COS-34 | Resposta traz no máximo 20 OS | must `[T0]` | Non-Goals "NÃO lista todas as OS (… no máximo 20)" | 🧪 |
-| UC-COS-35 | 31ª busca do mesmo IP no minuto recebe 429 | must `[T0]` | Anti-hooks "NÃO expõe OS por enumeração" · SPEC US-CONSULTA-001 "rate-limit por IP (`throttle:30,1`)" | 🧪 |
-| UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | `Config/retention.php` `consulta_os_logs` (IP + número redigido, 365 dias) | 🧪 |
+| UC-COS-35 | 31ª busca do mesmo IP no minuto recebe 429 | must `[T0]` | Anti-hooks "NÃO facilita enumerar OS" · SPEC US-CONSULTA-001 "rate-limit por IP (`throttle:30,1`)" | 🧪 |
+| UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | Anti-hooks "NÃO grava dado de negócio nem altera a OS em GET" (só o log redigido) · `Config/retention.php` `consulta_os_logs` | 🧪 |
 | UC-COS-37 | Falha interna: 500 só com `found=false`, sem detalhe técnico | must | UX "sem jargão técnico" · UC-COS-03 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
@@ -110,7 +110,8 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
 - **Aceite:** Dado as rotas públicas do portal (`consulta-os.index`, `consulta-os.buscar`) · Então
   as duas existem e aceitam só `GET`/`HEAD` · E uma busca que acha (por nº da OS, da venda e
   celular), uma que não acha e uma recusada não mudam a contagem de `repair_job_sheets`,
-  `activity_log`, `transactions` e `contacts` (Anti-hook "NÃO grava nada em GET").
+  `activity_log`, `transactions` e `contacts` (Anti-hook "NÃO grava dado de negócio nem altera a OS
+  em GET"; o log de auditoria redigido e o contador do throttle não ficam nessas tabelas).
 - **Anti-vácuo:** o teste confere antes que as tabelas têm linhas.
 - **Status:** ✅
 
