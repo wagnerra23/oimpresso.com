@@ -95,7 +95,7 @@ final class CatalogoProcessos
             'Retorno de rejeição' => ['parcial', 'A rejeição vira status erro com a mensagem (NfseEmissaoService::marcarErro), mas a nota não volta para correção: não pode ser editada.'],
             'Corrigir e revalidar' => ['nao', 'Não há rota de corrigir ou reemitir a nota rejeitada (Modules/NFSe/Routes/web.php só tem listar, emitir, emitir por venda, ver, cancelar e PDF); "Nova emissão" cria outra do zero.'],
             'Substituir' => ['nao', 'Não existe substituição de NFS-e: nenhuma rota, campo ou vínculo com a nota substituta.'],
-            'Cancelar' => ['parcial', 'NfseController@cancelar → NfseEmissaoService::cancelar (POST /nfse/{nfse}/cancelar) marca cancelada sem olhar a resposta da Sefin (fica cancelada mesmo se ela recusar). Não confere regra nem prazo e não cancela o título.'],
+            'Cancelar' => ['parcial', 'NfseController@cancelar → NfseEmissaoService::cancelar (POST /nfse/{nfse}/cancelar) só grava cancelada se o provedor confirmar, no ambiente e com o certificado da empresa da nota (sem confirmação, a nota segue emitida). Não confere regra nem prazo e não cancela o título.'],
         ],
         // Cobrança = fin_titulos (enum aberto/parcial/quitado/cancelado): Emitido, Vencido, Em cobrança e Conciliado não existem como estado.
         'cobranca' => [
