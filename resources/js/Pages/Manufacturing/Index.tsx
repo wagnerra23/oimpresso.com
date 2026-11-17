@@ -26,6 +26,7 @@ import StatusBadge from '@/Components/shared/StatusBadge';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import OrdemDrawer, { type OrdemDetalhe } from './_components/OrdemDrawer';
 import { CAMPO_DATA, ROTULO_CAMPO, ROTULO_CHECKBOX, isDataCompleta } from './_lib/filtros';
+import { ROTA_NOVA_ORDEM } from './_lib/ordem';
 
 interface Production {
   id: number;
@@ -79,7 +80,6 @@ interface Props {
 }
 
 const ROUTE = '/manufacturing/production';
-const CREATE_ROUTE = '/manufacturing/production/create';
 
 /**
  * Filtros serializados explicitamente em string|number|undefined (RequestPayload do Inertia não
@@ -301,7 +301,7 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
         </div>
         <div className="os-page-h-r">
           <Button asChild size="sm">
-            <a href={CREATE_ROUTE}>
+            <a href={ROTA_NOVA_ORDEM}>
               <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova produção
             </a>
           </Button>
@@ -497,7 +497,7 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
                   </Button>
                 ) : (
                   <Button asChild size="sm">
-                    <a href={CREATE_ROUTE}>
+                    <a href={ROTA_NOVA_ORDEM}>
                       <Plus className="mr-2 h-4 w-4" /> Nova produção
                     </a>
                   </Button>

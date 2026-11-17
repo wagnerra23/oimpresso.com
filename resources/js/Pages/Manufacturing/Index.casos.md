@@ -6,7 +6,7 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 related_us: [US-MANU-004, US-MANU-008, US-MANU-009]
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-11-17"
 ---
 
 > ℹ️ **2026-10-07 — UC-OP-10 novo (regra de VALOR):** os 4 indicadores passam a seguir o filtro de

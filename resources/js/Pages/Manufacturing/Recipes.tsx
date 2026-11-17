@@ -31,6 +31,7 @@ import { Segmented } from '@/Components/ui/segmented';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
+import { ROTA_NOVA_ORDEM } from './_lib/ordem';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import NovaReceitaDialog from './_components/NovaReceitaDialog';
@@ -76,7 +77,6 @@ const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
  * no link por compatibilidade e não muda nada. "Produzir" ainda vai para a ordem Blade.
  */
 const editarIngredientes = (variationId: number) => `/manufacturing/add-ingredient?variation_id=${variationId}&tela=nova`;
-const ROTA_PRODUZIR = '/manufacturing/production/create';
 
 /**
  * Colunas do `manufacturing-page.jsx`. O `id` de cada uma é a chave de ordenação que o servidor
@@ -441,7 +441,7 @@ function RecipeDrawer({
           </Button>
           {perms.prod && (
             <Button asChild variant="outline" className={BOTAO_SECUNDARIO}>
-              <a href={ROTA_PRODUZIR}>Produzir</a>
+              <a href={ROTA_NOVA_ORDEM}>Produzir</a>
             </Button>
           )}
           {perms.editar && (
