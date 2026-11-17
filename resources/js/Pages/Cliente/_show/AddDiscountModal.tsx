@@ -21,7 +21,33 @@ function getCsrf(): string {
   return document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 }
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+/** Data local de hoje em `YYYY-MM-DD` (toISOString usaria UTC e viraria o dia à noite). */
+const todayIso = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
+
+/**
+ * O servidor grava o desconto com data e hora. Mandar só `YYYY-MM-DD` fazia a conversão falhar e o
+ * desconto nunca gravava; aqui vai a data escolhida com a hora atual, em ISO.
+ */
+const dataComHora = (data: string) => {
+  const d = new Date();
+  return `${data} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+};
+
+/**
+ * Valor sempre com 2 casas e ponto (`25.00`). O servidor lê `25.000` como vinte e cinco mil
+ * (ponto + 3 dígitos = milhar no padrão brasileiro); com 2 casas não há ambiguidade.
+ * Devolve null quando não é um número maior que zero.
+ */
+const valorParaEnvio = (texto: string): string | null => {
+  const n = Number(texto);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n.toFixed(2);
+};
 
 const errorMessage = (e: unknown): string => {
   if (e instanceof Error) return e.message;
@@ -48,13 +74,18 @@ export default function AddDiscountModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const valor = valorParaEnvio(amount);
+    if (valor === null) {
+      setError('Informe um valor de desconto maior que zero.');
+      return;
+    }
     setSubmitting(true);
 
     try {
       const fd = new FormData();
       fd.append('contact_id', String(contactId));
-      fd.append('date', date);
-      fd.append('amount', amount);
+      fd.append('date', dataComHora(date));
+      fd.append('amount', valor);
       if (contactType === 'both') fd.append('sub_type', subType);
       if (note) fd.append('note', note);
 
