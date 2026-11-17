@@ -6,7 +6,7 @@ tela: Manufacturing/Recipes
 owner: W
 status: rascunho
 inertia_target: resources/js/Pages/Manufacturing/Recipes.tsx
-last_updated: "2026-10-05"
+last_updated: "2026-11-17"
 ---
 
 # Comparação design × produção — `Manufacturing/Recipes` (Receitas)
@@ -18,20 +18,29 @@ last_updated: "2026-10-05"
 
 ```
 node scripts/design/ancora.mjs Manufacturing/Recipes --staging prototipo-ui/cowork
-  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Felipe/manufacturing-page.jsx
+  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Wagner/manufacturing-page.jsx
 ```
 
-O desenho é a aba `receitas` do hub (`ABAS` em `:37`, lista em `:200`), declarado em
-`related_prototype` do [`Recipes.charter.md`](../../../resources/js/Pages/Manufacturing/Recipes.charter.md).
-Passou de `Wagner/` para `Felipe/` em 2026-09-22 ([PR #7696](https://github.com/wagnerra23/oimpresso.com/pull/7696), decisão [W]).
+Saída medida em 2026-11-17 contra `main`. A âncora voltou de `Felipe/` para `Wagner/` em 2026-09-25 ([#7984](https://github.com/wagnerra23/oimpresso.com/pull/7984)). As medições de 2026-09-22 abaixo foram feitas contra `Felipe/` ([#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)) e ficam como registro datado.
 
-> ⚠️ **Saída medida com o [#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)
-> aplicado** (branch `claude/fabricacao-prototype-production-8fa4a8`, 2026-09-22). Enquanto ele
-> não mergear, `main` ainda resolve esta tela em `Wagner/` — o que este bloco registra é a
-> medição daquela branch, não o estado de `main`.
+## Medição 2026-11-17 (auditoria, lote 5.3)
 
-⚠️ **Sem selo de frescor** — `ancora.mjs:93` fixa `LUGAR_FIXO = 'prototipo-ui/cowork/Wagner'`, então
-o `✓ frescor: verificado contra o Cowork vivo` deixa de ser emitido para fonte do Felipe.
+Produção em oimpresso.com (empresa 1, tema claro, 1600×900 num iframe), protótipo no espelho `Wagner/` gerado por `design-diff-lote.mjs --lado design --tema light`, comparação por `design-diff.mjs --compare --check`. Papéis do override [`roles/Manufacturing--Recipes.json`](../../../governance/design/targets/roles/Manufacturing--Recipes.json) (#11117). Os snapshots não foram commitados: o lado produção saiu sem shell e sem a `assinatura` (texto visível é dado real), e por isso o D0 (identidade da view) continua sem prova nesta rodada.
+
+| dim | prod | design | veredito |
+|---|---|---|---|
+| D2 layout (KPI 3×3) | ok | ok | IGUAL |
+| D4 tipografia (título 22px/600, valor do KPI) | ok | ok | IGUAL |
+| D6 cor (primário, texto do KPI) | ok | ok | IGUAL |
+| D8 alinhamento do KPI | ok | ok | IGUAL |
+| D8 coluna 0, alcançável | botão de expandir | sem elemento clicável | DIVERGE (fonte), a classificar |
+| D6 coluna Situação, ponto na pílula | com ponto | sem ponto | DIVERGE (fonte), a classificar |
+| Filtros (fichas de categoria) | — | — | sem papel: no protótipo o grupo é um `div` só com estilo inline |
+| D9 texto por região | presente | sem `[data-contract]` | SEM-DADO |
+
+**DIVERGE (bug): 0.**
+
+"DIVERGE (fonte)" é a diferença que a máquina reporta sem dizer de quem é a culpa. Classificar cada uma (decidida, deriva ou design andou) é trabalho de quem aplica a tela.
 
 ## O que este documento NÃO é
 
@@ -206,7 +215,7 @@ os JSON da medição não foram versionados — a re-medição pós-deploy entra
 
 1. ~~Re-medir com a âncora nova e `sameTheme: true`~~ — **FEITO em 2026-09-22** (secao acima).
    O `sameTheme` esta corrigido; o buraco das regioes **continua**, e agora esta medido: 4 de 21.
-2. **Calibrar o `__DD_ROLES`** desta familia (override em [`governance/design/targets/roles/`](../../../governance/design/targets/roles/)). E o que tira as regioes de `SEM-DADO` e faz o veredito falar da tela, nao de 4 celulas. O molde pronto e o [`Compras--Index.json`](../../../governance/design/targets/roles/Compras--Index.json), que ja mede papel no DOM dos dois lados em vez de adivinhar.
+2. ~~Calibrar o `__DD_ROLES`~~ — **FEITO em 2026-11-17** ([#11117](https://github.com/wagnerra23/oimpresso.com/pull/11117), seção *Medição 2026-11-17*). O que segue SEM-DADO é D9 (o protótipo não tem `[data-contract]`) e o shell.
 2. Achados do [LAUDO](../../../prototipo-ui/cowork/Felipe/handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md)
    que caem aqui: `--text-mute` nomeia a **coluna de dinheiro** e o **SKU do insumo** e reprova AA
    nos dois temas; `--accent` como texto mede **2,64:1** no escuro, e cai no *"Custo por unidade"*.
