@@ -14,8 +14,8 @@ casos: resources/js/Pages/Manufacturing/Settings.casos.md
 alcance:
   rota: /manufacturing/settings
   rota_nome: settings.index   # canônico desde o cutover 2026-09-04; /manufacturing/v2/settings virou 301
-  permission: null # sem permissão Spatie granular própria — mesmo gate do Blade legado (só pacote)
-  menu_hook: null  # alcançada pela aba "Configurações" das telas v2
+  permission: manufacturing.access_production   # desde 2026-11-16 (lote 2.1, decisão B3 do [W] 2026-11-09); antes era só o pacote — UC-MCFG-05, abrir e gravar
+  menu_hook: null  # sem item próprio: ghost "Configurações" do item Fabricação no menu lateral (DataController::modifyAdminMenu) e aba do módulo
   pacote: manufacturing_module
 tier: B
 charter_version: 1
@@ -28,8 +28,9 @@ charter_version: 1
 > `prototipo-ui/cowork/Wagner/manufacturing-producao.jsx::MfgConfig`.
 >
 > **Primeira tela da família que escreve** — e escreve no endpoint que JÁ EXISTIA
-> (`SettingsController@store`, sem uma linha alterada). Rota aditiva, `/manufacturing/settings`
-> (Blade) intocado.
+> (`SettingsController@store`, sem uma linha alterada na época). Desde o cutover de 2026-09-04
+> `/manufacturing/settings` serve esta tela e `?legacy=1` devolve o Blade; `/manufacturing/v2/settings`
+> é 301. Em 2026-11-16 o `store()` ganhou a checagem de `access_production` (lote 2.1, UC-MCFG-05).
 
 ## Mission
 
@@ -44,7 +45,7 @@ na própria tela, o que cada trava faz na operação.
 - Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
 - Cartão "Integrações" com 3 ponteiros reais: Produtos (`/products`) · Compras (`/purchases`) ·
   Fila de produção (`/manufacturing/production`)
-- Mesma aba do módulo que as outras telas v2
+- Mesma barra de abas das outras telas do módulo, filtrada pela permissão de cada aba (lote 2.4)
 
 ## Non-Goals — Features (NÃO faz)
 

@@ -10,6 +10,7 @@ import { BlocoArmazenagem } from './BlocoArmazenagem';
 import type { EnderecoNoEstoque, EstadoArmazenagem, SaldoPorLocal } from './armazenagem';
 import { BlocoFiscal } from './BlocoFiscal';
 import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
+import type { Grade } from './grade';
 import type { PrecoSimples } from './precos';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
 import type { EstadoPolitica } from './politicaPreco';
@@ -48,6 +49,8 @@ interface Props {
   politica?: { valor: EstadoPolitica; mudar: (e: EstadoPolitica) => void };
   /** UC-PEDIT-29: Editar — a imagem e o folheto gravados, trocados na hora. */
   midia?: { produtoId: number; imagem: string | null; folheto: Folheto | null };
+  /** UC-PCAD-32: Novo, produto variável — a grade, no card "Impostos e preços". */
+  grade?: { valor: Grade; mudar: (g: Grade) => void; aliquota: number; margemPadrao: number; erro?: string };
 }
 
 export function ProdutoFormulario({
@@ -66,6 +69,7 @@ export function ProdutoFormulario({
   armazenagem,
   politica,
   midia,
+  grade,
 }: Props) {
   return (
     <form id={id} onSubmit={onSubmit} className="space-y-6">
@@ -97,6 +101,7 @@ export function ProdutoFormulario({
         opcoes={opcoes}
         tipoAtual={tipoAtual}
         preco={preco}
+        grade={grade}
         metodoCusto={metodoCusto}
         politica={
           politica

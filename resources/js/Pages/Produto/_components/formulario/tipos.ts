@@ -1,3 +1,4 @@
+import type { ModeloVariacao } from './grade';
 // Formulário de produto compartilhado pelas telas Novo (Create.tsx) e Editar (Edit.tsx).
 // Cada bloco deste diretório é uma seção do formulário. Cada tela monta o próprio useForm e
 // entrega aos blocos o que eles leem e escrevem.
@@ -16,13 +17,14 @@ export type ModoFormulario = 'novo' | 'editar';
 export type TipoProduto = 'single' | 'variable' | 'combo';
 
 /**
- * Variável e composto ainda não têm editor na tela React: sem `product_variation` o store() cria o
- * variável sem variação nenhuma, e sem `composition_variation_id` o composto nasce sem itens e com
- * preço zero. Nos dois casos o produto não entra em venda, compra, OS nem fabricação. Até o editor
- * existir, a tela Novo só salva o simples e manda os outros para o cadastro clássico.
+ * O composto ainda não tem editor na tela React: sem `composition_variation_id` ele nasce sem itens e
+ * com preço zero, e não entra em venda, compra, OS nem fabricação. A tela Novo manda o composto para
+ * o cadastro clássico. O editor espera a D2 (`product_bom` como fonte única da composição, SDD §10.6),
+ * para o cadastro e a Fabricação não mostrarem composições diferentes. O variável tem a grade
+ * (UC-PCAD-32, grade.ts).
  */
 export function tipoSemEditor(tipo: TipoProduto | undefined): boolean {
-  return tipo === 'variable' || tipo === 'combo';
+  return tipo === 'combo';
 }
 
 /** O cadastro Blade, mesmo com a chave do cadastro React ligada (ProductController@create). */
@@ -112,6 +114,7 @@ export interface NaturezaFiscalProduto {
 export type ErrosProduto = Partial<
   Record<
     | 'name'
+    | 'product_variation'
     | 'unit_id'
     | 'origem_mercadoria'
     | 'ncm'
@@ -160,6 +163,8 @@ export interface OpcoesProduto {
   /** UC-PCAD-28 · UC-PEDIT-28: libera o "+" de unidade (`unit.create`) e de marca (`brand.create`). */
   podeCriarUnidade?: boolean;
   podeCriarMarca?: boolean;
+  /** UC-PCAD-32: os modelos de variação da empresa, com os valores. */
+  modelosVariacao?: ModeloVariacao[];
 }
 
 /** Uma unidade da lista de sub-unidades: `multiplicador` em unidades da principal (a principal tem 1). */

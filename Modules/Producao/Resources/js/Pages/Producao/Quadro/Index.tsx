@@ -17,7 +17,7 @@
 // (`?os={id}`), para o F5 e o link copiado reabrirem o painel. Fora deste corte: o painel de eventos ao lado do quadro.
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, router, usePage } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
@@ -33,7 +33,8 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
 import Alocar from './_components/Alocar';
 import SimuladorBobina from './_components/SimuladorBobina';
-import PainelDaFicha from './_components/PainelDaFicha';
+import PainelDaFicha from '../_components/PainelDaFicha';
+import { usePainelDaFicha } from '../_lib/usePainelDaFicha';
 import type { FichaBase } from '../_components/FichaDaOs';
 import { SEM_SETOR, setorDe, vaiNaBobina, type Cartao, type Midia, type Pessoas, type Posto } from './_lib/tipos';
 import { LIMPO, colunaDe, filtrado as temFiltro, passa, paraUrl, type Filtro } from '../_lib/filtro';
@@ -201,24 +202,14 @@ function Conteudo({ p, cartoes, midias, pessoas, abrir }: { p: Props; cartoes: C
 }
 
 export default function QuadroIndex(props: Props) {
-  // UC-PCOSF-08: a OS aberta vem da URL da página; entre o clique e a resposta, do próprio clique (o painel abre na hora).
-  const { url } = usePage();
-  const [abrindo, setAbrindo] = useState<{ os: number | null } | null>(null);
-  const osAberta = abrindo ? abrindo.os : osDoPainel(new URL(url, window.location.origin).search);
-  const irPara = (os: number | null) => {
-    setAbrindo({ os });
-    router.visit(urlDoPainel(window.location.search, os), {
-      only: ['ficha'], preserveState: true, preserveScroll: true,
-      onFinish: () => setAbrindo((cur) => (cur?.os === os ? null : cur)),
-    });
-  };
+  const painel = usePainelDaFicha('/producao/quadro'); // UC-PCOSF-08
   return (
     <div className="pcv-root" data-screen-label="Produção · Quadro">
       <div className="pcv-ph"><PageHeader title="Produção" suffix=" · Quadro" below={<ProducaoAbas ativa="/producao/quadro" />} /></div>
       <Deferred data={['cartoes', 'midias', 'pessoas']} fallback={<div className="pcv-body"><Skeleton className="h-64 w-full" /></div>}>
-        <Conteudo p={props} cartoes={props.cartoes ?? []} midias={props.midias ?? []} pessoas={props.pessoas ?? { pessoas: [], por_posto: {} }} abrir={irPara} />
+        <Conteudo p={props} cartoes={props.cartoes ?? []} midias={props.midias ?? []} pessoas={props.pessoas ?? { pessoas: [], por_posto: {} }} abrir={painel.abrir} />
       </Deferred>
-      <PainelDaFicha osId={osAberta} ficha={props.ficha} carregando={abrindo !== null && abrindo.os !== null} onFechar={() => irPara(null)} />
+      <PainelDaFicha osId={painel.osAberta} ficha={props.ficha} carregando={painel.carregando} onFechar={painel.fechar} atualizar={['cartoes', 'midias']} />
     </div>
   );
 }

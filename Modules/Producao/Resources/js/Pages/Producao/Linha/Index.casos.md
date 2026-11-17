@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: reprogramar para máquina que o operador não opera, ou por cima de outra OS, para a fábrica; ver a máquina de outra empresa é vazamento Tier 0.
 owner: wagner
-last_run: "2026-11-16"
+last_run: "2026-11-17"
 last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
@@ -61,5 +61,6 @@ ou sem caber, ou com horário já passado, não há aviso. Dado de outra empresa
 Status: ✅
 
 ## Trilha do tempo
+- 2026-11-17 · [M+C] Clicar no bloco abre a Ficha no painel lateral, como no Quadro, com `?os=` na URL (UC-PCOSF-09, em `../_components/FichaDaOs.casos.md`). O filtro e o dia continuam na URL junto do `?os=`; os casos desta tela foram relidos e seguem valendo.
 - 2026-11-09 · [W+C] Auditoria lote 4.3: aviso de mesma mídia na Linha (UC-PCLIN-01). O Non-Goal do charter passa a valer só para o encaixe na bobina.
-- 2026-11-06 · [W+C] Auditoria lote 3.5: clicar no bloco sem arrastar (ou Enter) abre a Ficha da OS por item; o arrastar para reprogramar segue igual. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.
+- 2026-11-06 · [W+C] Auditoria lote 3.5: clicar no bloco sem arrastar (ou Enter) abre a Ficha da OS por item; o arrastar para reprogramar segue igual. O caso é o UC-PCOSF-06, em `../_components/FichaDaOs.casos.md`; os casos desta tela foram relidos e seguem valendo.

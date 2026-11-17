@@ -11,6 +11,8 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
+ * @covers-us US-MANU-008
+ *
  * Quem passa pelas portas do módulo — auditoria do Manufacturing, lote 2.1.
  *
  * Contrato: decisão B3 de [W] em 2026-11-09 — Configurações e Relatório usam

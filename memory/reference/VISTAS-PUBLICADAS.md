@@ -358,6 +358,17 @@ usar sempre.
 |---|---|---|
 | 2026-11-04 | 👁 [Cadastro de produto — união (PR #10362)](https://claude.ai/artifact/DxxfR7MPFdrcWXRP8gHYA3) | **viva** (retrato do commit `9dff59b881`) |
 
+**Recorte do portal de OS** (tema `prototipo-portalos`). O mesmo protótipo inteiro, aberto na rota
+`portalos` (portal público do Repair, `repair-portal.jsx`), gerado do branch do PR #11089 (auditoria
+ConsultaOs, lote 5: estados carregando, falha do servidor, 429 e várias OS). A tela escolhe o caso na
+tira "Prévia" do topo. Medida antes de publicar em 1280, 1440 e 390 px: nada vaza e nenhum rótulo
+corta. Republicar com:
+`node scripts/design/build-artefato-prototipo.mjs --out <pasta> --rota-inicial portalos --titulo "Portal de OS — protótipo (PR #11089)"`.
+
+| Data | Vista | Estado |
+|---|---|---|
+| 2026-11-17 | 👁 [Portal de OS — protótipo (PR #11089)](https://claude.ai/artifact/XT5vPPFSxAjZrFeo3yb4jd) | **viva** (retrato do commit `26152f19cd`) |
+
 > Até 2026-10-22 esta página era um recorte montado à mão, com os `.jsx` crus e só os módulos da
 > Produção. Em 2026-10-28 ela estava atrás do git: faltavam a aba Postos e cadastros e as decisões de
 > 20 a 27/10, e foi refeita pelo build.

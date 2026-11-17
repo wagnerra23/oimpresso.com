@@ -1938,6 +1938,60 @@ class ProductController extends Controller
     }
 
     /**
+     * UC-PCAD-32: os modelos de variação da empresa (Cadastros → Variações), cada um com os valores,
+     * em ordem de nome. É a lista que a grade do Novo produto oferece; o Blade lê a mesma tabela.
+     *
+     * @return list<array{id: int, nome: string, valores: list<array{id: int, nome: string}>}>
+     */
+    protected function modelosDeVariacao(int $business_id): array
+    {
+        return VariationTemplate::where('business_id', $business_id)
+            ->with(['values' => fn ($q) => $q->orderBy('id')])
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn ($m) => [
+                'id' => (int) $m->id,
+                'nome' => (string) $m->name,
+                'valores' => $m->values->map(fn ($v) => ['id' => (int) $v->id, 'nome' => (string) $v->name])->values()->all(),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * UC-PCAD-32: a grade do produto variável antes de gravar. O `createVariableProductVariations`
+     * acha o modelo por `find()` (sem empresa) e, sem modelo, cria um com `business_id` nulo; aqui o
+     * modelo tem de ser desta empresa, cada valor escolhido tem de ser desse modelo e precisa haver ao
+     * menos um valor com nome. Tier 0 ({@see ADR 0093}).
+     */
+    protected function validarGradeDeVariacao(Request $request, int $business_id): void
+    {
+        $linhas = $request->input('product_variation');
+        $linhas = is_array($linhas) ? $linhas : [];
+        $temValor = false;
+        foreach ($linhas as $linha) {
+            $modelo = is_array($linha) ? (int) ($linha['variation_template_id'] ?? 0) : 0;
+            if ($modelo <= 0) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['product_variation' => 'Escolha o modelo da variação.']);
+            }
+            if (! VariationTemplate::where('id', $modelo)->where('business_id', $business_id)->exists()) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['product_variation' => 'O modelo de variação não pertence a este negócio.']);
+            }
+            $valores = is_array($linha['variations'] ?? null) ? $linha['variations'] : [];
+            foreach ($valores as $valor) {
+                $idValor = is_array($valor) ? (int) ($valor['variation_value_id'] ?? 0) : 0;
+                if ($idValor > 0 && ! \App\VariationValueTemplate::where('id', $idValor)->where('variation_template_id', $modelo)->exists()) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['product_variation' => 'O valor escolhido não é deste modelo de variação.']);
+                }
+                $temValor = $temValor || (is_array($valor) && trim((string) ($valor['value'] ?? '')) !== '');
+            }
+        }
+        if (! $temValor) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['product_variation' => 'Adicione ao menos um valor da variação.']);
+        }
+    }
+
+    /**
      * UC-PCAD-26 · UC-PEDIT-26: as sub-unidades de cada unidade da empresa, com o multiplicador do
      * cadastro de unidades, como o Blade lista em `/products/get_sub_units` (a unidade principal e as
      * que derivam dela). Vazio quando a empresa não usa sub-unidades (`enable_sub_units`).
@@ -2114,6 +2168,8 @@ class ProductController extends Controller
                 // UC-PCAD-25 · UC-PCAD-26: subcategorias e sub-unidades, só se a empresa as usa.
                 'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
                 'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
+                // UC-PCAD-32: os modelos de variação da empresa (Cadastros → Variações), com os valores.
+                'modelosVariacao' => $this->modelosDeVariacao((int) $business_id),
                 'categories' => $categories,
                 'brands' => $brands,
                 'units' => $units,
@@ -2613,6 +2669,11 @@ class ProductController extends Controller
         ]);
         if ($obrigatorios !== []) {
             throw \Illuminate\Validation\ValidationException::withMessages($obrigatorios);
+        }
+
+        // UC-PCAD-32: produto variável só com modelo e valores desta empresa, e ao menos um valor.
+        if ($request->input('type') === 'variable') {
+            $this->validarGradeDeVariacao($request, (int) $uc_pcad_05_bid);
         }
 
         $this->validarOrigemMercadoria($request);

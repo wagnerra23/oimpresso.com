@@ -4,6 +4,7 @@ irmaos: Report.charter.md (lei) · memory/requisitos/Manufacturing/RUNBOOK-repor
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.6 — os UC abaixo DERIVAM dele
+related_us: [US-MANU-002]
 owner: wagner
 last_run: "2026-10-06"
 ---
@@ -35,10 +36,12 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-REPORT-00 · Chego na tela pela aba "Relatório" das telas v2
+## UC-REPORT-00 · Chego na tela pela aba "Relatório" da barra do módulo
 - **Persona:** Wagner — está em Receitas ou Ordens de produção e clica "Relatório".
-- **Aceite:** Dado a aba "Relatório" em `Recipes.tsx` · Quando o usuário clica · Então navega
-  pra `/manufacturing/v2/report` (não mais pro Blade legado).
+- **Aceite:** Dado a aba "Relatório" da barra `FabricacaoAbas` (que `Recipes.tsx` renderiza) ·
+  Quando o usuário clica · Então navega pra `/manufacturing/report`, o endereço canônico, e
+  nunca pra `/manufacturing/v2/report`. *(Até o cutover de 2026-09-04 o destino era o `/v2`;
+  corrigido em 2026-11-17 para o que o teste prova.)*
 - **Regressão que defende:** a aba continuar apontando pro Blade em silêncio depois que a
   tela nova existir.
 - **Teste:** `Wave30ReportInertiaTest.php`
@@ -46,11 +49,12 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-REPORT-01 · A rota `/manufacturing/v2/report` serve a tela nova
-- **Persona:** Wagner — a rota aditiva existe e é do `ProductionController`.
+## UC-REPORT-01 · A rota `/manufacturing/report` serve a tela nova
+- **Persona:** Wagner — o endereço canônico existe e é do `ProductionController`.
 - **Aceite:** Dado o app carregado · Quando se pergunta ao **registry de rotas** (não ao
-  arquivo) quem serve `GET manufacturing/v2/report` · Então existe uma rota, e a ação dela é
-  o `ProductionController`.
+  arquivo) quem serve `GET manufacturing/report` · Então existe uma rota, e a ação dela é
+  o `ProductionController`. *(Até o cutover de 2026-09-04 o alvo era `/v2/report`, que hoje
+  é 301; corrigido em 2026-11-17 para o que o teste prova.)*
 - **Fonte:** §4.6 do handoff (a tela) + decisão de rota aditiva registrada em
   `RUNBOOK-report.md` (sem decisão [W] explícita sobre o endereço).
 - **Teste:** `Wave30ReportInertiaTest.php`

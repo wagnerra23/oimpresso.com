@@ -1549,7 +1549,15 @@ de produção ele segue, e um link para a tela de Roteiros.
 
 | Desde | O quê | Quem decide | Estado hoje |
 |---|---|---|---|
-| 2026-11-16 | Editores de **variação** (grade) e de **composição** (kit) no Novo e no Editar React | [F], combinado para 2026-11-17 | O Novo React não salva produto variável nem composto e manda para o formulário clássico (`tipoSemEditor` em `_components/formulario/tipos.ts`); o protótipo `produto-blade-forms.jsx` tem os dois editores |
+| 2026-11-16 | Editores de **variação** (grade) e de **composição** (kit) no Novo e no Editar React | [F], combinado para 2026-11-17 | **Variação decidida em 2026-11-17** (abaixo), entra como `UC-PCAD-32`. **Composição espera a D2**: segue no formulário clássico |
+
+**Decisão do [F] em 2026-11-17 — variação (grade):**
+
+1. O nome da variação vem do **modelo da empresa** (Cadastros → Variações), como no Blade. Texto livre, como no protótipo, deixaria "Cor" e "cor" como coisas diferentes.
+2. **Uma variação por produto**, como no protótipo. No sistema, duas variações não cruzam (Cor × Tamanho): viram listas independentes. O Editar continua mostrando os produtos antigos que têm mais de uma.
+3. Primeiro o **Novo**; o Editar entra quando estiver decidido onde fica o preço na edição nova.
+
+**Decisão do [F] em 2026-11-17 — composição (kit) espera a D2.** O cadastro guarda a composição no próprio produto (`combo_variations`, que a venda usa para baixar os itens do kit); a Fabricação guarda a receita em `mfg_recipes` (que a ordem de produção consome); e o núcleo tem `product_bom`, sem tela, que as vendas com produção usam para reservar e baixar. A **D2** da [proposta Fabricação × Produção](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md), aceita pelo [W] em 2026-10-13, fez de `product_bom` a fonte única, mas ainda não está no código (o Manufacturing não cita `product_bom`). Um editor de composição no Novo agora gravaria em `combo_variations` e alimentaria a fonte que a D2 aposenta, deixando o cadastro e a Fabricação mostrarem composições diferentes. Por isso o editor de composição só entra quando a D2 for feita, gravando no mesmo lugar que a Fabricação lê. Quando entrar, mantém a **unidade por item**, como no Blade.
 
 ---
 
@@ -1571,6 +1579,7 @@ de produção ele segue, e um link para a tela de Roteiros.
 
 **Histórico:**
 
+- 2026-11-17 — **Decisões do [F] sobre os editores (§10.6):** variação com o modelo da empresa, uma por produto, primeiro no Novo (`UC-PCAD-32`); composição espera a D2 (`product_bom` como fonte única). [F+C]
 - 2026-11-16 — **`CU-PROD-21`: a compra segue a regra do administrador em Fluxos** (`regraEm`), sem migrar os produtos existentes; ligar ainda depende do antes e depois aprovado pelo [W]. Pendência registrada em §10.6: editores de variação e composição, a decidir pelo [F] em 2026-11-17. [F+C]
 - 2026-11-11 — **`CU-PROD-20`: proposta de quem edita os locais de armazenagem** (v1.0.18): permissão nova `product.armazenagem` só para os locais, sem dar acesso a preço e imposto; `product.update` continua bastando; rota própria que grava só os locais; histórico de quem mudou. Vale se o [W] mergear o PR. Pergunta do [F]. [F+C]
 - 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.17): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]

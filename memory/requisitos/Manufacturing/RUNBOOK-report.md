@@ -1,5 +1,5 @@
 ---
-last_validated: "2026-09-03"
+last_validated: "2026-11-17"
 slug: runbook-manufacturing-report
 title: "RUNBOOK — /manufacturing/report (Fabricação · Relatório)"
 type: runbook
@@ -71,16 +71,18 @@ campo `custoSnap` não existe hoje em `transactions` (confirmado: só `mfg_produ
 curl -sv https://oimpresso.com/manufacturing/report 2>&1 | grep '^< HTTP'
 ```
 
-Regressão adjacente — a rota Blade legada não pode mudar:
+Regressão adjacente — a tela antiga no mesmo endereço:
 
 ```bash
-curl -sv https://oimpresso.com/manufacturing/report 2>&1 | grep '^< HTTP'
+curl -sv 'https://oimpresso.com/manufacturing/report?legacy=1' 2>&1 | grep '^< HTTP'
 ```
+
+Sem cookie, os dois devolvem `302` para `/login`. Desde o lote 2.1 (decisão B3 do [W]) os três
+ramos — tela, AJAX e `?legacy=1` — exigem `manufacturing.access_production` (UC-REPORT-06).
 
 Depois do 200, screenshot obrigatório (proibicoes.md §"Claim sem evidência").
 
 ## 4. Rollback
 
-Sem deploy: a tela nova é rota **aditiva** — nada aponta pra ela ainda exceto a aba "Relatório"
-das telas v2 (Recipes/Index). Reverter o PR remove a rota e a aba volta a apontar pro Blade
-legado (`/manufacturing/report`), que nunca saiu do ar. Sem migration — 100% leitura.
+Sem deploy: `?legacy=1` no mesmo endereço devolve a tela Blade antiga. Com deploy: reverter o PR
+do cutover de 2026-09-04 devolve o Blade como padrão. Sem migration — 100% leitura.

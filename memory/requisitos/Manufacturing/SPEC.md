@@ -2,8 +2,8 @@
 id: requisitos-manufacturing-spec
 module: Manufacturing
 owner: wagner
-version: "1.0"
-last_updated: "2026-10-06"
+version: "1.1"
+last_updated: "2026-11-17"
 na_justified:
   D6.a: "Manufacturing usa pattern Blade legacy + 1 página Inertia v2 (Wave J Onda 1) — Inertia::defer aplicado parcialmente."
 ---
@@ -15,7 +15,17 @@ na_justified:
 > Convenção do ID: `US-MANU-NNN`
 > Campo `implementado_em` linka com a Page React que atende a story.
 
+> **Conferência de 2026-11-17 (lote 4.1 da auditoria do módulo).** Status de cada US medido no
+> `origin/main` `18fd05d4bf`, depois dos lotes 0 a 3 da auditoria. Lane `PHP / Pest
+> (Manufacturing · MySQL)` no main: run 44074565768, **281 passed, 0 skipped (1223 assertions)**.
+> Os itens "Pest pendente" abaixo foram fechados por essa run; o smoke em produção das telas
+> continua pendente onde estava. US com âncora viva fica `done` (ADR 0302, `doneness-lint`); o
+> smoke que falta segue como item aberto do DoD de 002, 003 e 005. A linha `> owner: … status: …` de cada US é o formato que o
+> parser do MCP lê (`TaskParserService`); o estado vivo segue no MCP (ADR 0144).
+
 ### US-MANU-001 · Quanto custa produzir, com o preço de insumo de hoje
+
+> owner: — · priority: p2 · status: done
 
 **Como** Larissa (balcão/orçamento) e Wagner (dono)
 **Quero** ver, numa tela só, o custo de cada receita recalculado a partir do preço de compra
@@ -43,7 +53,10 @@ depois que um insumo subiu
       é a única barreira, porque o módulo não tem global scope ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
 - [x] Ficha técnica PT-07 em duas variantes; a **via de produção** não mostra nenhum valor de
       compra (R-22)
-- [x] Nenhuma rota Blade legada removida; `?legacy=1` devolve a tela antiga no mesmo endereço
+- [x] Nenhuma rota Blade legada removida; `?legacy=1` devolve a tela antiga no mesmo endereço —
+      verdade até o cutover de 2026-10-27, que apagou a Blade de receitas: desde então
+      `/manufacturing/recipe` só serve a tela React e o `?legacy=1` não existe mais nesse endereço
+      (`RecipeController.php`, comentário do `@index`). Segue valendo em production, report e settings
 - [x] Smoke real em prod (`curl` + screenshot) — feito 2026-09-03: `curl -sv` nas 4 rotas do
       §5 (sem cookie) devolve `302→/login` nas quatro; screenshot autenticado (Chrome MCP,
       sessão WR2 Sistemas) confirma `/manufacturing/recipe` e `?legacy=1` renderizando a tela
@@ -70,6 +83,8 @@ depois que um insumo subiu
 
 ### US-MANU-002 · Relatório de produção do período
 
+> owner: — · priority: p2 · status: done
+
 **Como** Wagner
 **Quero** ver quanto custou produzir no período, agrupado por produto
 **Para** saber para onde o dinheiro de produção foi antes de fechar o mês
@@ -90,8 +105,9 @@ nasceu aditiva em `/v2/report`, que virou 301). O Blade responde no MESMO endere
 `?legacy=1` — nenhuma rota removida.
 
 **Testado em:** `Modules/Manufacturing/Tests/Feature/Wave30ReportInertiaTest.php`
-(`@covers-us US-MANU-002`) — ⚠️ escrito e com `php -l` limpo, **ainda não rodou** (Pest só roda
-no CT 100, proibicoes.md). Verificação real fica pendente até a próxima sessão rodar lá.
+(`@covers-us US-MANU-002`) — verde na lane `PHP / Pest (Manufacturing · MySQL)` (run 44074565768,
+2026-11-17). O gate de acesso nos três ramos (tela, AJAX e `?legacy=1`) é o UC-REPORT-06,
+em `GateDoModuloTest.php` (lote 2.1).
 
 **Definition of Done:**
 - [x] Período (De/Até) + `Só finalizadas` com default **ligado** (`ProductionController::reportV2`)
@@ -99,10 +115,13 @@ no CT 100, proibicoes.md). Verificação real fica pendente até a próxima sess
 - [x] Ordenado por custo desc
 - [x] Rodapé verbatim: `Custo de produção do período R$ X · lançado como entrada de estoque no Financeiro`
 - [x] Divisão por zero no `% do período` devolve 0 (§7.3)
-- [ ] Pest rodado no CT 100 (verde) — pendente
-- [ ] Smoke real em prod (`curl` + screenshot) — pendente, receita em `RUNBOOK-report.md §3`
+- [x] Pest verde — lane `PHP / Pest (Manufacturing · MySQL)`, run 44074565768
+- [ ] Smoke real em prod (`curl` + screenshot) — pendente, receita em `RUNBOOK-report.md §3`.
+      É o único item aberto do DoD
 
 ### US-MANU-003 · Configurações do módulo
+
+> owner: — · priority: p2 · status: done
 
 **Como** Wagner
 **Quero** ajustar prefixo da referência e as duas travas de produção sem abrir a tela antiga
@@ -122,8 +141,11 @@ reusado sem alteração) — endereço canônico `/manufacturing/settings` desde
 `?legacy=1`; o POST nunca mudou.
 
 **Testado em:** `Modules/Manufacturing/Tests/Feature/Wave31SettingsInertiaTest.php`
-(`@covers-us US-MANU-003`) — ⚠️ escrito, `php -l` limpo, **ainda não rodou** (Pest roda na lane
-de CI da PR).
+(`@covers-us US-MANU-003`) — verde na lane `PHP / Pest (Manufacturing · MySQL)` (run
+44074565768, 2026-11-17). Desde o lote 2.1 da auditoria, abrir e gravar exigem
+`manufacturing.access_production` (decisão B3 do [W], 2026-11-09), travado pelo UC-MCFG-05 em
+`GateDoModuloTest.php`; a escrita só na empresa da sessão é o UC-MCFG-04, por HTTP, em
+`IsolamentoEscritasEmpresaTest.php`.
 
 **Definition of Done:**
 - [x] As 3 chaves reais de `business.manufacturing_settings` (§16): `ref_no_prefix` ·
@@ -133,11 +155,14 @@ de CI da PR).
 - [x] Cartão "Integrações" (3 links reais: `/products` · `/purchases` · `/manufacturing/production`) ·
       o cartão de permissões simuladas **não** entra
 - [x] Escrita scoped por `business_id` (herdada do `store()` legado, com UC-MCFG-04 travando)
-- [ ] Pest verde na lane de CI — pendente
+- [x] Pest verde na lane de CI — run 44074565768
+- [x] Gravar exige permissão do módulo (`access_production`, B3) — UC-MCFG-05
 - [ ] Smoke real em prod (`curl` + screenshot + **submit de verdade**) — pendente, receita em
-      `RUNBOOK-settings.md §3`
+      `RUNBOOK-settings.md §3`. Único item aberto do DoD
 
 ### US-MANU-004 · Ordens de produção — as 8 colunas e as duas marcas do §4.5
+
+> owner: — · priority: p2 · status: done
 
 **Como** Eliana (produção)
 **Quero** ver o produto, a quantidade e o custo unitário de cada ordem, e saber quando o custo está congelado
@@ -195,6 +220,8 @@ em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao
 
 ### US-MANU-005 · Insumos — impacto reverso e simulador de preço
 
+> owner: — · priority: p2 · status: done
+
 **Como** Wagner
 **Quero** ver quais receitas usam um insumo e quanto o custo delas sobe se ele reajustar
 **Para** decidir compra e preço antes do fornecedor mandar a tabela nova
@@ -210,7 +237,8 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
 `/v2/insumos`, que virou 301). **O backend que o §18.3 declarava faltar agora existe.**
 
 **Testado em:** `Modules/Manufacturing/Tests/Feature/Wave33InsumosTest.php`
-(`@covers-us US-MANU-005`) — 6 testes; Pest roda na lane de CI da PR.
+(`@covers-us US-MANU-005`) — verde na lane `PHP / Pest (Manufacturing · MySQL)` (run
+44074565768, 2026-11-17).
 
 > ⚠️ **Desvio DECLARADO do protótipo (a simulação):** o protótipo aproxima o custo simulado
 > somando um delta (`total + qtd × preço × pct`). Esta tela **recalcula** com
@@ -233,10 +261,13 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
 - [x] Drawer com simulador `-30%..+60%`, passo 5, default `+10%` — faixa clampada no SERVIDOR (UC-INS-05)
 - [x] Nota verbatim sobre o consumo convertido à unidade base
 - [x] A aba só aparece quando o backend existir — nada de aba vazia
-- [ ] Pest verde na lane de CI — pendente
-- [ ] Smoke real em prod (`curl` + screenshot + mexer no slider) — pendente
+- [x] Pest verde na lane de CI — run 44074565768
+- [ ] Smoke real em prod (`curl` + screenshot + mexer no slider) — pendente. Único item aberto
+      do DoD
 
 ### US-MANU-006 · Editor de ingredientes
+
+> owner: — · priority: p2 · status: done
 
 **Como** Wagner
 **Quero** montar e corrigir a ficha técnica com o custo se atualizando na tela
@@ -256,8 +287,10 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
       multiplicador junto (UC-INGRED-11) · o editor trabalha numa **cópia** e cancelar descarta
       (UC-INGRED-12) — vitest/jsdom no componente real, 19/19 verde local em 2026-10-09, mordida
       provada por 8 mutações. O veredito que conta é o da lane no PR.
-- [ ] Regra 2 no **segundo lugar** (formulário de ordem de produção): a tela da ordem ainda é Blade,
-      que deixa o campo `readonly` em vez de virar texto — entra com a US-MANU-007.
+- [x] ~~Regra 2 no **segundo lugar** (formulário de ordem de produção)~~ — **sai do escopo desta
+      US.** O item dizia "entra com a US-MANU-007", que foi cancelada em 2026-10-13 (D1, ADR 0448):
+      o formulário de ordem não será construído na Fabricação. O formulário Blade que ainda existe
+      segue com o campo `readonly`; a regra no formulário novo é da ordem na Produção (ADR 0448 §5).
 - [x] Excluir receita só com confirmação que diz o que se perde (ficha + N ingredientes **gravados**)
       e que **ordens já lançadas continuam com o custo registrado** — UC-INGRED-13 (tela) + caso 19
       de `Recipes.casos.md` (servidor só apaga receita da própria empresa, #9071).
@@ -290,6 +323,21 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
       `NovaReceitaTest.php` (UC-RECIPE-13).
 
 ### US-MANU-007 · Formulário de ordem de produção
+
+> owner: — · priority: p2 · status: cancelled
+
+> ⛔ **Cancelada em 2026-10-13** (D1 do [W], ratificada na [ADR 0448](../../decisions/0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica.md)).
+> O MCP a marcava `done` desde 2026-10-08, antes do cancelamento; corrigido para `cancelled` em
+> 2026-11-17. O texto abaixo fica como registro do que foi pedido.
+>
+> **O que esta US carregava e onde foi parar:**
+> - Custo da ordem gravado pelo navegador (`final_total` do request, contra o §9 do handoff):
+>   ficou sem dono com o cancelamento e foi fechado no lote 1.5 da auditoria — o servidor calcula
+>   o total no `store` e no `update` (UC-OP-19, `OrdemTotalServidorTest.php`).
+> - Finalizar baixa o insumo e dá entrada no acabado: travado pelo UC-EST-08B
+>   (`OrdemFinalizarEstoqueTest.php`, lote 1.1) no formulário Blade que ainda existe.
+> - Formulário novo, FSM rascunho→finalizada, `custoSnap`, os dois números: ficam com a ordem
+>   na Produção (ADR 0448 §5, etapa 6).
 
 **Como** Eliana (produção)
 **Quero** lançar o lote com o consumo já calculado e ver o que falta de estoque
@@ -346,23 +394,74 @@ de segurança no servidor (H1 `store`, H2 `get-recipe-details`), ainda sem teste
 
 ### US-MANU-008 · Rotas legadas só tocam dado da própria empresa
 
+> owner: — · priority: p2 · status: done
+
 **Como** Wagner
 **Quero** que nenhuma rota legada da Fabricação leia ou grave dado de outra empresa
 **Para** não vazar receita nem alterar preço ou estoque alheio
 
-**Fonte:** leitura de código em 2026-10-20 (acompanhamento da Fabricação). **Tudo abaixo é hipótese até o teste vermelho existir** — nenhum
-item foi provado. Os itens H1/H2 vêm do PARIDADE; H3 e o último são leitura nova.
+**Fonte:** leitura de código em 2026-10-20 (acompanhamento da Fabricação). Os itens H1/H2 vêm do
+PARIDADE; H3 e o último são leitura nova. Escritos como hipótese; viraram defeito provado por teste
+vermelho e foram consertados no lote 0 (H1, H2, H3) e no lote 2.1 (Settings) da auditoria.
 
-**Implementado em:** _pendente_
+> ⚠️ O MCP marcou esta US `done` em 2026-10-20, no dia em que foi escrita, com os 5 itens abertos.
+> A auditoria de 2026-11-09 previu reabri-la; quando o lote 4 conferiu (2026-11-17), os 5 itens já
+> estavam fechados no main, com teste. O `done` do MCP ficou certo, só que por outra razão; a prova
+> agora está nas linhas abaixo.
 
-**Testado em:** _pendente_
+**Implementado em:** `Modules/Manufacturing/Http/Controllers/ProductionController.php` (`@store`,
+`@update`) · `Modules/Manufacturing/Http/Controllers/RecipeController.php` (`@getRecipeDetails`,
+`@updateRecipeProductPrices`) · `Modules/Manufacturing/Http/Controllers/SettingsController.php`
+(`@store`) · verificado@18fd05d4bf (2026-11-17)
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/OrdemReceitaEmpresaTest.php` (UC-OP-12,
+UC-OP-13) · `Modules/Manufacturing/Tests/Feature/OrdemProdutoLocalEmpresaTest.php` (UC-OP-14) ·
+`Modules/Manufacturing/Tests/Feature/AtualizarPrecoReceitaEmpresaTest.php` (UC-RECIPE-21) ·
+`Modules/Manufacturing/Tests/Feature/GateDoModuloTest.php` (UC-MCFG-05) — todos verdes na run
+44074565768
 
 **Definition of Done:**
-- [ ] H1 — `ProductionController::store` recusa `variation_id` e `location_id` de outra empresa e não cria transação nem baixa estoque
-- [ ] H2 — `RecipeController::getRecipeDetails` devolve 404 para receita de outra empresa
-- [ ] H3 — `RecipeController::updateRecipeProductPrices` só altera variação de receita da própria empresa (Tier 0 de valor: dupla prova + antes→depois)
-- [ ] `SettingsController::store` exige permissão do módulo (o [W] define qual)
-- [ ] Teste de cada item com a empresa fictícia 98 contra a 99 (nunca biz=4), na lane `Manufacturing · Pest (MySQL)`
+- [x] H1 — `ProductionController::store` recusa `variation_id` e `location_id` de outra empresa e não
+      cria transação nem baixa estoque — variação: UC-OP-13; local, no POST e no PUT: UC-OP-14
+- [x] H2 — `RecipeController::getRecipeDetails` devolve 404 para receita de outra empresa — UC-OP-12
+- [x] H3 — `RecipeController::updateRecipeProductPrices` só altera variação de receita da própria
+      empresa — UC-RECIPE-21 (receita alheia não muda o preço; chamada mista só altera a própria)
+- [x] `SettingsController::store` exige permissão do módulo — `manufacturing.access_production`,
+      decisão B3 do [W] em 2026-11-09 — UC-MCFG-05
+- [x] Teste de cada item com a empresa fictícia 98 contra a 99, na lane `Manufacturing · Pest (MySQL)`
+
+### US-MANU-009 · Painel lateral da ordem de produção
+
+> owner: — · priority: p2 · status: done
+
+**Como** Eliana (produção)
+**Quero** abrir uma ordem da lista e ver, ao lado, os ingredientes, o consumo e o custo dela
+**Para** conferir o lote sem sair da tela de Ordens
+
+**Fonte:** handoff §4.5 (drawer da ordem). Registrada em 2026-11-17: o código existia sem US
+(achado M3 da auditoria de 2026-11-09). O caso é o UC-OP-07 de `Index.casos.md`.
+
+**Implementado em:** `resources/js/Pages/Manufacturing/_components/OrdemDrawer.tsx` ·
+`Modules/Manufacturing/Http/Controllers/ProductionController.php` (`@indexV2`, prop opcional
+`ordem_detalhe`) · `Modules/Manufacturing/Services/ProductionService.php` (`detalheOrdem`) ·
+verificado@18fd05d4bf (2026-11-17)
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/DetalheOrdemProducaoTest.php` (UC-OP-07) — verde
+na run 44074565768
+
+**Definition of Done:**
+- [x] O detalhe usa as mesmas contas do formulário da tela antiga nas três formas de custo extra
+      (percentual, por unidade com as perdidas, fixo)
+- [x] Ordem de outra empresa não tem detalhe
+- [x] O detalhe só é calculado quando a tela o pede (`Inertia::optional`): a carga da lista não paga
+- [x] Ordem fora dos locais permitidos ao usuário: o detalhe dá 403 (UC-OP-22, lote 2.5)
+- [x] Sem `view_purchase_price`, o custo sai do detalhe (lote 2.6, `Support/OcultaCusto::detalheOrdem`;
+      o caso UC-OP-24 cobre a lista, não o painel)
+
+> Pendente fora desta US: o painel ainda tem o botão "Editar ordem" no rascunho
+> (`OrdemDrawer.tsx`, abre o formulário Blade). Pela D1 a aba vira só consulta; pela B1 do [W]
+> (2026-11-09) a ordem Blade segue consertada enquanto existir. Os botões da ordem nas telas são
+> do lote 5 da auditoria.
 
 ## 4. Regras de negócio (Gherkin)
 
@@ -377,7 +476,11 @@ Quando ele acessa qualquer recurso do módulo Manufacturing
 Então só vê registros com `business_id = A`
 ```
 
-**Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
+**Implementação:** `mfg_recipes` e `mfg_recipe_ingredients` não têm `business_id` nem global scope;
+a barreira é a cadeia até `products.business_id` (receita) e o `business_id` da `transactions`
+(ordem). Só `mfg_ingredient_groups` tem `business_id` próprio, com `HasBusinessScope`. Conferidos
+em cada consulta e gravação dos controllers e services. Corrigido em 2026-11-17: a linha anterior
+dizia `where('business_id', …)` nos controllers, que não descreve as receitas.  
 **Testado em:** `Modules/Manufacturing/Tests/Feature/MultiTenantIsolationTest.php` (cadeia `mfg_recipes.variation_id → variations.product_id → products.business_id`) — corrigido 2026-09-03, o teste já existia e a linha estava desatualizada.
 
 ### R-MANU-002 · Autorização Spatie `manufacturing.access_recipe`
@@ -416,7 +519,10 @@ Então recebe `403 Unauthorized`
 > vive). O gate é código real, só sem porta HTTP que o alcance — o gherkin acima descreve um
 > cenário hoje inalcançável via navegador.
 
-**Implementação:** `UpdateRecipeRequest::authorize()` checa `$user->can('manufacturing.edit_recipe')` — classe **não wired** a nenhuma rota  
+**Implementação:** nenhuma. Até 2026-11-16 o `UpdateRecipeRequest::authorize()` checava a
+permissão, sem rota que o alcançasse; a classe saiu no lote 2.8 da auditoria (código morto, medido).
+A permissão segue cadastrada e exibida na tela de papéis (`DataController`); quem grava receita é o
+`store()`, que exige `manufacturing.add_recipe`  
 **Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` (par permission+`can()` + trava que quebra se uma rota PUT/PATCH `/manufacturing/recipe/{id}` reaparecer), criado 2026-09-03. Não é teste HTTP — não há rota pra testar.
 
 ### R-MANU-005 · Autorização Spatie `manufacturing.access_production`

@@ -9,6 +9,8 @@ base_lida: wagnerra23/oimpresso.com@main 7806b8ec7c
 ---
 # _saida-18
 
+> **Nota de 2026-11-17:** os UC-COS deste registro foram renumerados de 12..30 para 40..58 (+28) para não colidir com os casos da produção. O que este recibo registra não mudou.
+
 ## Entregue: Início do portal do contato em React, atrás da flag OFF
 `DashboardController@index` responde Inertia `Crm/Portal/Painel/Index` quando a flag `useV2CrmPortalPainel` está ligada para o
 negócio. Desligada (default), ou com `?classico=1`, segue a Blade `crm::dashboard.index`. Ligar é o cutover (F5), decisão [W].
@@ -25,7 +27,7 @@ entregue 4 de 5 UCs · ausente UC-CRMPO-17 por falta de fonte no `main`.
 | UC-CRMPO-01 saldo, e só o meu `[T0]` | teste escrito (contato A × B × A' do negócio 99) |
 | UC-CRMPO-02 blocos pelo tipo | teste escrito (customer · supplier · both · abertura) |
 | UC-CRMPO-03 casca do contato | teste escrito (`shell.portal` presente, `shell.menu`/`shell.topnavs` ausentes; Blade com flag OFF e `?classico=1`) |
-| UC-CRMPO-17 aviso de OS | **ausente.** O `main` não tem regra que diga, para o portal, quando uma OS está "pronta para retirada" ou com "orçamento aguardando". É a mesma derivação que a thread 25 (UC-COS-24) precisa criar. Ficou como `[BACKLOG]` no `Index.casos.md` |
+| UC-CRMPO-17 aviso de OS | **ausente.** O `main` não tem regra que diga, para o portal, quando uma OS está "pronta para retirada" ou com "orçamento aguardando". É a mesma derivação que a thread 25 (UC-COS-52) precisa criar. Ficou como `[BACKLOG]` no `Index.casos.md` |
 | UC-CRMPO-18 cada um na sua porta `[T0]` | teste escrito (operador → 403 no portal; contato → 403 em `/crm/leads`) |
 
 Pela prova do índice (o teste precisa conter `UC-CRMPO-17`), o placar **não** conta esta thread como feita: `placar.mjs --thread 18`

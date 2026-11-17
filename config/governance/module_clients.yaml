@@ -147,7 +147,7 @@ ADS:
 
 ConsultaOs:
   level: biz_1_wagner_active
-  note: Wave 25 saturation — portal público LIVE em dev (Mock 4 OS + Repository pattern bindable), Wagner valida fluxo end-to-end (busca + audit PiiRedactor + retention 365d + OTel span); US-CONSULTA-001 substitui mock por transactions real preservando contrato — biz=1 sustained Wagner uso diário ao acompanhar Repair flow
+  note: portal público /consulta-os (sem login); a busca lê as folhas de OS do Modules/Repair via RepairConsultaOsRepository (o mock de 4 OS foi removido) + audit PiiRedactor + OTel span; retention.php declara plano, sem tabela própria — biz=1 sustained Wagner uso diário ao acompanhar Repair flow
 
 SRS:
   level: internal_governance_active

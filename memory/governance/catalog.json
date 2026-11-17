@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1020,
-    "edges": 1372,
+    "nodes": 1025,
+    "edges": 1380,
     "by_node_type": {
       "module": 45,
       "table": 122,
       "adr": 157,
-      "component": 597,
-      "api": 99
+      "component": 601,
+      "api": 100
     },
     "by_edge_type": {
       "ownsTable": 111,
       "ownsLegacyView": 13,
       "consumesTable": 7,
-      "providesApi": 102,
+      "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 84,
-      "hasComponent": 597,
-      "dependsOn": 152,
-      "delegatesTo": 137,
+      "hasComponent": 601,
+      "dependsOn": 153,
+      "delegatesTo": 138,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 80,
@@ -1420,6 +1420,14 @@
       ]
     },
     {
+      "id": "api:/consulta-os",
+      "type": "api",
+      "prefix": "/consulta-os",
+      "providers": [
+        "ConsultaOs"
+      ]
+    },
+    {
       "id": "api:/consulta-os/*",
       "type": "api",
       "prefix": "/consulta-os/*",
@@ -1816,6 +1824,7 @@
       "type": "api",
       "prefix": "/repair-status",
       "providers": [
+        "ConsultaOs",
         "Repair"
       ]
     },
@@ -2866,6 +2875,34 @@
       "desc": ""
     },
     {
+      "id": "component:ConsultaOs/ConsultaOsHealthCommand",
+      "type": "component",
+      "module": "ConsultaOs",
+      "name": "ConsultaOsHealthCommand",
+      "desc": ""
+    },
+    {
+      "id": "component:ConsultaOs/ConsultaOsRepositoryInterface",
+      "type": "component",
+      "module": "ConsultaOs",
+      "name": "ConsultaOsRepositoryInterface",
+      "desc": ""
+    },
+    {
+      "id": "component:ConsultaOs/ConsultaOsService",
+      "type": "component",
+      "module": "ConsultaOs",
+      "name": "ConsultaOsService",
+      "desc": ""
+    },
+    {
+      "id": "component:ConsultaOs/ConsultaPublicaRequest",
+      "type": "component",
+      "module": "ConsultaOs",
+      "name": "ConsultaPublicaRequest",
+      "desc": ""
+    },
+    {
       "id": "component:ConsultaOs/DataController",
       "type": "component",
       "module": "ConsultaOs",
@@ -2877,6 +2914,13 @@
       "type": "component",
       "module": "ConsultaOs",
       "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:ConsultaOs/RepairConsultaOsRepository",
+      "type": "component",
+      "module": "ConsultaOs",
+      "name": "RepairConsultaOsRepository",
       "desc": ""
     },
     {
@@ -2912,13 +2956,6 @@
       "type": "component",
       "module": "Crm",
       "name": "\"ClienteLookupController\"      # Drawer 760 endpoint lookup CEP/CNPJ",
-      "desc": ""
-    },
-    {
-      "id": "component:Crm/\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
-      "type": "component",
-      "module": "Crm",
-      "name": "\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
       "desc": ""
     },
     {
@@ -5330,13 +5367,6 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
-      "id": "component:Producao/OrdemFichaController + FichaDaOrdem",
-      "type": "component",
-      "module": "Producao",
-      "name": "OrdemFichaController + FichaDaOrdem",
-      "desc": "Ficha da OS por item, /producao/ordens/{id} (Inertia Producao/Os/Show, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404"
-    },
-    {
       "id": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "component",
       "module": "Producao",
@@ -5391,6 +5421,13 @@
       "module": "Producao",
       "name": "PrometerPrazoDaVenda",
       "desc": "na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/PropsDaFicha + FichaDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "PropsDaFicha + FichaDaOrdem",
+      "desc": "Ficha da OS por item no painel lateral do Quadro e da Linha do tempo (?os={id}, decisão [W] no #10850, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404. OrdemFichaController leva /producao/ordens/{id} ao Quadro com ela aberta (UC-PCOSF-10)"
     },
     {
       "id": "component:Producao/QuadroController + QuadroDaProducao",
@@ -6300,7 +6337,7 @@
       "id": "module:ConsultaOs",
       "type": "module",
       "module": "ConsultaOs",
-      "purpose": "Casca de portal público de consulta de OS — backend completo (rota sem auth, anti-enumeration, auditoria LGPD, throttle, OTel, Repository trocável) rodando sobre dataset FAKE de 4 OS. Não lê banco: existe para validar UX e segurança antes de US-CONSULTA-001 ligar a query real.",
+      "purpose": "Portal público (sem login) onde o cliente final consulta a OS dele. Desde 2026-10-02 (US-CONSULTA-001) lê as folhas de OS reais do Modules/Repair via RepairConsultaOsRepository e devolve só a whitelist pública (nº, aparelho, status com cor, previsão, atividades). Até 2026-10-02 rodava sobre um mock de 4 OS fixas.",
       "trust": "L4",
       "owner": "wagner",
       "permission_prefix": "consultaos.*",
@@ -10354,7 +10391,14 @@
       "to": "module:Repair",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Folhas de OS (repair_job_sheets)"
+      "note": "Folhas de OS (repair_job_sheets) e status"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "module:Whatsapp",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Aviso ao cliente quando o status muda"
     },
     {
       "from": "module:ConsultaOs",
@@ -10382,7 +10426,14 @@
       "to": "module:Repair",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Folhas de OS (repair_job_sheets)"
+      "note": "Folhas de OS (repair_job_sheets) e status"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "module:Whatsapp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Aviso ao cliente quando o status muda"
     },
     {
       "from": "module:ConsultaOs",
@@ -10404,6 +10455,30 @@
     },
     {
       "from": "module:ConsultaOs",
+      "to": "component:ConsultaOs/ConsultaOsHealthCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "component:ConsultaOs/ConsultaOsRepositoryInterface",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "component:ConsultaOs/ConsultaOsService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "component:ConsultaOs/ConsultaPublicaRequest",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ConsultaOs",
       "to": "component:ConsultaOs/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -10416,7 +10491,25 @@
     },
     {
       "from": "module:ConsultaOs",
+      "to": "component:ConsultaOs/RepairConsultaOsRepository",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ConsultaOs",
       "to": "api:/consulta-os/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "api:/consulta-os",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "api:/repair-status",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -10507,12 +10600,6 @@
     {
       "from": "module:Crm",
       "to": "component:Crm/\"ClienteLookupController\"      # Drawer 760 endpoint lookup CEP/CNPJ",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Crm",
-      "to": "component:Crm/\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -15102,12 +15189,6 @@
     },
     {
       "from": "module:Producao",
-      "to": "component:Producao/OrdemFichaController + FichaDaOrdem",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Producao",
       "to": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "hasComponent",
       "source": "contains"
@@ -15151,6 +15232,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PrometerPrazoDaVenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PropsDaFicha + FichaDaOrdem",
       "type": "hasComponent",
       "source": "contains"
     },

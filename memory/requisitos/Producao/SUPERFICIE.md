@@ -157,11 +157,10 @@ module: Producao
 - [aprovacao-arte.blade.php](../../../Modules/Producao/Resources/views/aprovacao-arte.blade.php)
 - [etiqueta-os.blade.php](../../../Modules/Producao/Resources/views/etiqueta-os.blade.php)
 
-## Telas (Inertia/React) — 7
+## Telas (Inertia/React) — 6
 
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx)
-- [Show.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
@@ -172,39 +171,39 @@ module: Producao
 - [AcaoDaProva.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/_components/AcaoDaProva.tsx)
 - [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
 - [Alocar.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/Alocar.tsx)
-- [PainelDaFicha.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/PainelDaFicha.tsx)
 - [SimuladorBobina.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx)
 - [EditorRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/EditorRoteiro.tsx)
 - [ProdutosDoRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/ProdutosDoRoteiro.tsx)
 - [FichaDaOs.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.tsx)
+- [PainelDaFicha.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/PainelDaFicha.tsx)
 - [ProducaoAbas.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas.tsx)
 
 ## Charters (lei da tela) — 7
 
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.charter.md)
-- [Show.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.charter.md)
+- [FichaDaOs.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.charter.md)
 
 ## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.casos.md)
-- [Show.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
+- [FichaDaOs.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.casos.md)
 
 ## Testes (Pest) — 38
 
 - 38 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 12
+## Demais arquivos (manifestos, docs, assets e misc) — 13
 
 - [ApontamentoRecusado.php](../../../Modules/Producao/Exceptions/ApontamentoRecusado.php)
 - [fila.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts)
@@ -214,6 +213,7 @@ module: Producao
 - [falhaDoDeferido.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/falhaDoDeferido.ts)
 - [ficha.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/ficha.ts)
 - [filtro.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/filtro.ts)
+- [usePainelDaFicha.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/usePainelDaFicha.ts)
 - [producao.php](../../../Modules/Producao/Resources/lang/pt/producao.php)
 - [composer.json](../../../Modules/Producao/composer.json)
 - [module.json](../../../Modules/Producao/module.json)

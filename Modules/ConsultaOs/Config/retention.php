@@ -12,7 +12,7 @@ declare(strict_types=1);
  *                          User-Agent truncado, timestamp). 365 dias = janela ANPD Resolucao
  *                          02/2022 minima + cobertura conferencia fiscal anual.
  *  - consulta_os_tokens : tokens publicos efêmeros usados para identificar OS sem auth
- *                          (quando US-CONSULTA-001 sair de mock-only). 90 dias = janela
+ *                          (planejados — a tabela nao existe). 90 dias = janela
  *                          razoavel para cliente acompanhar OS (entrega + 60d garantia).
  *
  * LGPD Art. 16: dados pessoais devem ser eliminados apos termino do tratamento.
@@ -20,7 +20,9 @@ declare(strict_types=1);
  *
  * **Multi-tenant Tier 0 IRREVOGAVEL** ([ADR 0093]):
  * Quando US-CONSULTA-001 ativar busca real, jobs de purge respeitam business_id
- * global scope — NUNCA cross-tenant cleanup. Hoje (mock-only) sem persistencia.
+ * global scope — NUNCA cross-tenant cleanup. Hoje sem persistencia propria:
+ * a busca le as folhas de OS do Modules/Repair e nao grava log nem token em tabela
+ * (nenhuma migration cria consulta_os_logs/consulta_os_tokens — git grep 2026-11-17).
  *
  * **Append-only contrato:**
  * `activity_log` (Spatie LogsActivity) é AUDITORIA — NUNCA purgada, mesmo que
@@ -49,7 +51,7 @@ return [
     | Quando true, jobs de purge consultam estas configs antes de deletar.
     | Default false ate job `consultaos:retention-purge` estar implementado +
     | aprovado por Wagner em canary (ADR 0105 — sinal qualificado).
-    | Hoje (mock-only) sem persistencia — flag fica false na vida real.
+    | Hoje sem persistencia propria (tabelas acima nao existem) — flag fica false.
     */
     'enabled' => env('CONSULTAOS_RETENTION_ENABLED', false),
 

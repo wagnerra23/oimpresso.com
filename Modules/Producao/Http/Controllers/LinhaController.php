@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Producao\Services\LinhaDaProducao;
 use Modules\Producao\Services\PainelDaProducao;
+use Modules\Producao\Services\PropsDaFicha;
 
 /**
  * Linha do tempo por máquina (thread 07 do playbook · UC-PCV-08, 09, 30). Ver: `producao.access` +
@@ -20,10 +21,14 @@ use Modules\Producao\Services\PainelDaProducao;
  *
  * `?dia=proximo` mostra o próximo dia útil do calendário de produção (UC-FLX-06). O filtro do Quadro
  * vem na mesma URL (UC-PCV-06). A empresa vem da sessão (ADR 0093).
+ *
+ * Ficha em painel lateral (UC-PCOSF-09, decisão [W] no #10850): `?os={id}` entrega `ficha` e as abas `ficha_*`,
+ * as mesmas do Quadro (`PropsDaFicha::doPainel`). OS de outra empresa ou inexistente → `ficha` nula.
  */
 class LinhaController extends Controller
 {
-    public function __construct(private readonly LinhaDaProducao $linha, private readonly PainelDaProducao $painel, private readonly ModuleUtil $moduleUtil) {}
+    public function __construct(private readonly LinhaDaProducao $linha, private readonly PainelDaProducao $painel, private readonly ModuleUtil $moduleUtil,
+        private readonly PropsDaFicha $ficha) {}
 
     public function index(Request $request): Response
     {
@@ -47,6 +52,6 @@ class LinhaController extends Controller
             'pode_mover' => $user->can('producao.etapa.mover'),
             'linha' => Inertia::defer(fn () => $this->linha->montar($biz, $dia, $dias['turno']['fim'])),
             'eventos' => Inertia::defer(fn () => $qual === 'hoje' ? $this->painel->eventos($biz, 12, $dia) : []),
-        ]);
+        ] + $this->ficha->doPainel($request, $biz, $user));
     }
 }
