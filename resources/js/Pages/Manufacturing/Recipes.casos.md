@@ -347,6 +347,10 @@ last_run: "2026-10-27"
   Manufacturing, lote 2.4 (item que dá 403 ao clicar).
 - **Teste:** `MenuPorPermissaoTest.php` (menu, pelo `shell.menu`) · `tests/js/manufacturing-abas.test.tsx` (abas).
 - **Regressão que defende:** item visível que dá 403 ao clicar, e Insumos só alcançável pela aba.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-22 · Perguntar se o produto tem receita exige acesso ao módulo
 - **Persona:** quem monta ordem de produção pela tela legada.
 - **Aceite:** Dado um usuário sem `access_recipe` nem `access_production` · Quando pergunta
