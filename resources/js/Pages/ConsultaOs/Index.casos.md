@@ -6,8 +6,8 @@ tecnica: Caso de uso = o que o cliente final faz + critério de aceite verificá
 por_que: é a única tela do ERP que fala com o cliente final sem login — o que ela expõe e o que ela recusa não pode mudar sem alguém ver.
 owner: wagner
 related_us: [US-CONSULTA-001, US-CONSULTA-004]
-last_run: "2026-10-27"
-last_run_ci: "2026-10-27: UC-COS-07 e UC-COS-11 mudam (cutover do portal antigo do Repair); veredito pendente da lane PHP / Pest (Unit) (ci-sqlite-pest.list)"
+last_run: "2026-11-17"
+last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — ConsultaOsIndexContratoTest 11 passed · 0 skipped · 75 assertions; verticais-pest run 44088901247 — ClienteAcompanhaStatusContratoTest 5 passed · 0 skipped · 34 assertions; modules-pest run 44082879187 (Pest Repair) — UC-COS-14"
 ---
 
 # Casos de Uso & Aceite — Consulta pública de OS (`/consulta-os`)
@@ -32,33 +32,34 @@ last_run_ci: "2026-10-27: UC-COS-07 e UC-COS-11 mudam (cutover do portal antigo 
 
 | UC | Caso de uso | Prio | Âncora | Status |
 |----|-------------|------|--------|--------|
-| UC-COS-01 | Portal abre sem login | must | Non-Goals "NÃO exige login" · Mission | 🧪 |
-| UC-COS-02 | Busca pelo nº da OS mostra o status daquela OS | must | Goals "busca" + "exibe" | 🧪 |
-| UC-COS-03 | OS não encontrada: resposta clara, sem pista | must | Goals "não encontrada claro" · UX "sem jargão" | 🧪 |
-| UC-COS-04 | Payload é a whitelist — nada interno, financeiro ou do cliente | must `[T0]` | Non-Goals "NÃO expõe dados internos/financeiros" + "NÃO expõe dados do cliente" | 🧪 |
-| UC-COS-05 | Sem critério válido não há busca nem lista | must `[T0]` | Non-Goals "NÃO lista todas as OS" · aceite US-CONSULTA-001 | 🧪 |
-| UC-COS-06 | Só leitura: nada grava, nada edita | must | Non-Goals "NÃO permite editar/cancelar" · Anti-hooks "NÃO grava nada em GET" | 🧪 |
-| UC-COS-07 | Não deixa enumerar OS | must `[T0]` | Anti-hooks "NÃO indexa/expõe OS por enumeração" | ⬜ |
-| UC-COS-08 | Busca por nº da venda e por celular; série só estreita | must | Goals "busca por nº da OS, nº da venda ou celular" | 🧪 |
-| UC-COS-09 | Busca cruza empresas — comportamento atual documentado | must `[T0]` | Pendências do charter "identificar a empresa" | 🧪 |
-| UC-COS-10 | Celular desligado na config é recusado | must | Goals "celular só se a config ligar" | 🧪 |
-| UC-COS-11 | `/repair-status` leva ao `/consulta-os` | must | charter §2026-10-02 (D-PORTAL) | ⬜ |
-| UC-COS-12 | Mudar o status da OS avisa o cliente e o portal mostra o status novo | must `[T0]` | US-CONSULTA-004 (UC-FLX-24) | 🧪 |
-| UC-COS-13 | Status com o nome que a empresa deu avisa quando está marcado | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | 🧪 |
+| UC-COS-01 | Portal abre sem login | must | Non-Goals "NÃO exige login" · Mission | ✅ |
+| UC-COS-02 | Busca pelo nº da OS mostra o status daquela OS | must | Goals "busca" + "exibe" | ✅ |
+| UC-COS-03 | OS não encontrada: resposta clara, sem pista | must | Goals "não encontrada claro" · UX "sem jargão" | ✅ |
+| UC-COS-04 | Payload é a whitelist — nada interno, financeiro ou do cliente | must `[T0]` | Non-Goals "NÃO expõe dados internos/financeiros" + "NÃO expõe dados do cliente" | ✅ |
+| UC-COS-05 | Sem critério válido não há busca nem lista | must `[T0]` | Non-Goals "NÃO lista todas as OS" · aceite US-CONSULTA-001 | ✅ |
+| UC-COS-06 | Só leitura: nada grava, nada edita | must | Non-Goals "NÃO permite editar/cancelar" · Anti-hooks "NÃO grava dado de negócio nem altera a OS em GET" | ✅ |
+| UC-COS-07 | Não deixa enumerar OS | must `[T0]` | Anti-hooks "NÃO facilita enumerar OS" | ✅ |
+| UC-COS-08 | Busca por nº da venda e por celular; série só estreita | must | Goals "busca por nº da OS, nº da venda ou celular" | ✅ |
+| UC-COS-09 | Busca cruza empresas — comportamento atual documentado | must `[T0]` | Pendências do charter "identificar a empresa" | ✅ |
+| UC-COS-10 | Celular desligado na config é recusado | must | Goals "celular só se a config ligar" | ✅ |
+| UC-COS-11 | `/repair-status` leva ao `/consulta-os` | must | charter §2026-10-02 (D-PORTAL) | ✅ |
+| UC-COS-12 | Mudar o status da OS avisa o cliente e o portal mostra o status novo | must `[T0]` | US-CONSULTA-004 (UC-FLX-24) | ✅ |
+| UC-COS-13 | Status com o nome que a empresa deu avisa quando está marcado | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | ✅ |
 | UC-COS-14 | Transição pela FSM hoje não avisa nem muda o portal (limite) | must | US-CONSULTA-004 limite (2) | 🧪 |
-| UC-COS-31 | Cliente que recusou WhatsApp não recebe o aviso da OS | must `[T0]` | US-CONSULTA-004 + LGPD opt-out | 🧪 |
-| UC-COS-32 | OS com cliente de outra empresa não avisa ninguém | must `[T0]` | US-CONSULTA-004 + ADR 0093 | 🧪 |
-| UC-COS-33 | Status sem marca não avisa, mesmo chamado `ready` | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | 🧪 |
+| UC-COS-31 | Cliente que recusou WhatsApp não recebe o aviso da OS | must `[T0]` | US-CONSULTA-004 + LGPD opt-out | ✅ |
+| UC-COS-32 | OS com cliente de outra empresa não avisa ninguém | must `[T0]` | US-CONSULTA-004 + ADR 0093 | ✅ |
+| UC-COS-33 | Status sem marca não avisa, mesmo chamado `ready` | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | ✅ |
 | UC-COS-34 | Resposta traz no máximo 20 OS | must `[T0]` | Non-Goals "NÃO lista todas as OS (… no máximo 20)" | 🧪 |
-| UC-COS-35 | 31ª busca do mesmo IP no minuto recebe 429 | must `[T0]` | Anti-hooks "NÃO expõe OS por enumeração" · SPEC US-CONSULTA-001 "rate-limit por IP (`throttle:30,1`)" | 🧪 |
-| UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | `Config/retention.php` `consulta_os_logs` (IP + número redigido, 365 dias) | 🧪 |
+| UC-COS-35 | 31ª busca do mesmo IP no minuto recebe 429 | must `[T0]` | Anti-hooks "NÃO facilita enumerar OS" · SPEC US-CONSULTA-001 "rate-limit por IP (`throttle:30,1`)" | 🧪 |
+| UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | Anti-hooks "NÃO grava dado de negócio nem altera a OS em GET" (só o log redigido) · `Config/retention.php` `consulta_os_logs` | 🧪 |
 | UC-COS-37 | Falha interna: 500 só com `found=false`, sem detalhe técnico | must | UX "sem jargão técnico" · UC-COS-03 | 🧪 |
 | UC-COS-38 | Falha do servidor na busca: a tela avisa e não diz "não encontrada" | must | UX "sem jargão técnico" · UC-COS-37 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
-in-memory com tenants fictícios 98 e 99. Nenhum status aqui é afirmação de verde: este PR não
-rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
+in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/casos-test-results.json`
+(G-7) e dos runs citados no `last_run_ci`; nenhum teste rodou local
+([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ---
 
@@ -69,20 +70,20 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   `X-Inertia` e `X-Requested-With`) · Então recebe 200 e a tela `ConsultaOs/Index`, cuja única prop
   de página é `buscaPorCelular` (booleana) — nenhum dado de OS no render.
 - **Fora do teste:** "sem AppShellV2/Sidebar" é propriedade do render no browser.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-02 · Busca pelo nº da OS mostra o status daquela OS · `must`
 
 - **Aceite:** Dado uma folha de OS com status, marca, modelo, aparelho, série e previsão · Quando o
   cliente busca o nº dela · Então recebe `found: true` e uma OS com esses valores · E uma outra OS
   devolve outro status (caso discriminante: um status fixo passaria com uma OS só).
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-03 · OS não encontrada: resposta clara, sem pista · `must`
 
 - **Aceite:** Dado um número que não existe · Quando o cliente busca · Então recebe 404 com corpo
   exatamente `{"found": false}`. A frase amigável ("OS não encontrada") é da tela, não da API.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-04 · Payload é a whitelist — nada interno, financeiro ou do cliente · `must` `[T0]`
 
@@ -94,7 +95,7 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 - **Controle positivo:** o teste prova antes que o custo secreto está no banco.
 - **Lista:** é a paridade com o `/repair-status` (D-PORTAL, 2026-10-02). Acrescentar campo é
   decisão [W].
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-05 · Sem critério válido não há busca nem lista · `must` `[T0]`
 
@@ -103,30 +104,31 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   inválido ou número em branco, devolve `[]` sem consultar (defesa em profundidade — o portal não
   pode aceitar menos que o `/post-repair-status` endurecido no #8527).
 - **Controle:** com critério válido o mesmo repositório acha a OS.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-06 · Só leitura: nada grava, nada edita · `must`
 
 - **Aceite:** Dado as rotas públicas do portal (`consulta-os.index`, `consulta-os.buscar`) · Então
   as duas existem e aceitam só `GET`/`HEAD` · E uma busca que acha (por nº da OS, da venda e
   celular), uma que não acha e uma recusada não mudam a contagem de `repair_job_sheets`,
-  `activity_log`, `transactions` e `contacts` (Anti-hook "NÃO grava nada em GET").
+  `activity_log`, `transactions` e `contacts` (Anti-hook "NÃO grava dado de negócio nem altera a OS
+  em GET"; o log de auditoria redigido e o contador do throttle não ficam nessas tabelas).
 - **Anti-vácuo:** o teste confere antes que as tabelas têm linhas.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-07 · Não deixa enumerar OS · `must` `[T0]`
 
 - **Aceite:** Dado `consulta-os.index`, `consulta-os.buscar` e `repair-status`
   · Então as três têm `throttle:` · E um número com aspas, `%` ou mais de 20 caracteres é recusado
   com 422 · E, como controle, o formato real do nº de OS do Repair (`JS2026/0001`, com barra) é aceito.
-- **Status:**⬜ (mudou em 2026-10-27; veredito da lane PHP / Pest (Unit) pendente)
+- **Status:** ✅
 
 ## UC-COS-08 · Busca por nº da venda e por celular; série só estreita · `must`
 
 - **Aceite:** Dado a busca por celular ligada · Quando o cliente busca pelo nº da venda ou pelo
   celular do cadastro · Então recebe a OS daquela venda/daquele celular · E o nº de série, quando
   informado, só reduz o resultado (série errada → 404).
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-09 · Busca cruza empresas — comportamento atual documentado · `must` `[T0]`
 
@@ -136,20 +138,20 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 - **Pendente [W]:** fechar exige identificar a empresa (subdomínio, slug ou parâmetro na URL). O
   ConsultaOs não tem esse mecanismo; criar rota nova ficou fora desta thread. Quando [W] decidir, o
   segundo assert inverte.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-10 · Celular desligado na config é recusado · `must`
 
 - **Aceite:** Dado `repair.enable_repair_check_using_mobile_num = false` · Quando o cliente busca por
   celular · Então recebe 422 e o repositório devolve `[]` · E os outros tipos seguem valendo.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-11 · `/repair-status` leva ao `/consulta-os` · `must`
 
 - **Aceite:** Dado um visitante sem sessão · Quando abre o antigo `/repair-status` · Então é
   redirecionado para `/consulta-os` · E a rota `post-repair-status` não existe mais (o portal antigo
   saiu no cutover de 2026-10-27; o `POST /post-repair-status` responde 404).
-- **Status:** ⬜ (mudou em 2026-10-27; veredito da lane PHP / Pest (Unit) pendente)
+- **Status:** ✅
 
 ## Cliente acompanha o status — catálogo UC-FLX-24 (US-CONSULTA-004)
 
@@ -168,7 +170,7 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   da OS da 98 muda na edição (para um status que o aviso reconhece) · Então sai **um** job de
   WhatsApp, pelo número da 98, para o celular do cliente da 98 · E `/consulta-os/buscar` pelo nº
   da OS devolve só essa OS, com o status novo, sem nº nem nome da OS da 99.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-13 · Status com o nome que a empresa deu avisa quando está marcado · `must`
 
@@ -179,7 +181,7 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 - **Histórico:** até 2026-10-21 este UC travava o limite oposto: só os nomes literais
   `ready`/`waiting_parts` avisavam, e "Pronto para retirada" não avisava. `is_completed_status` não
   virou o sinal porque vale "Pronto" no kanban e "Entregue" no `startPipeline`.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-14 · Transição pela FSM hoje não avisa nem muda o portal · `must`
 
@@ -187,6 +189,10 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   ação da FSM move a etapa (`RepairFsmActionController::execute`) · Então a etapa muda · E
   nenhum `RepairStatusChanged` é disparado · E o `status_id` que o portal lê fica igual.
 - **Follow-up:** evento genérico de transição da FSM (fora desta US).
+- **Por que segue 🧪:** o teste passa na matriz `modules-pest.yml` (job Pest Repair), mas essa
+  lane não emite JUnit (`--log-junit` + artifact), então o `junit-lanes.mjs` não a lista e o
+  `casos-results-publish` nunca leva o veredito ao manifesto (medido 2026-11-17: UC-COS-14 ausente
+  em `scripts/casos-test-results.json`). O ✅ depende de a lane passar a publicar JUnit.
 - **Status:** 🧪
 
 ## UC-COS-31 · Cliente que recusou WhatsApp não recebe o aviso da OS · `must` `[T0]`
@@ -196,7 +202,7 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   cada um vai para `ready` · Então o de opt-out explícito não recebe job nenhum · E o sem resposta
   recebe um, pelo número da 98 (`Contact::canReceiveWhatsappNotification`, LGPD: null permite,
   false bloqueia).
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-32 · OS com cliente de outra empresa não avisa ninguém · `must` `[T0]`
 
@@ -204,14 +210,14 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   celular e consentimento) · Quando o status vai para `ready` · Então nenhum job sai (o contato é
   buscado com `business_id` da OS, ADR 0093) · E o cliente da própria 98, no mesmo cenário,
   recebe um job.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-33 · Status sem marca não avisa, mesmo chamado `ready` · `must`
 
 - **Aceite:** Dado um status com o nome literal `ready` e sem marca, e outro marcado com
   aguardando peças · Quando a OS vai para o primeiro · Então nenhum job sai · E quando vai para o
   segundo sai um job com o template de aguardando peças.
-- **Status:** 🧪
+- **Status:** ✅
 
 ## UC-COS-34 · Resposta traz no máximo 20 OS · `must` `[T0]`
 

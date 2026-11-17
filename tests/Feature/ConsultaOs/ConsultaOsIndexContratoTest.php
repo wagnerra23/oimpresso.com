@@ -323,7 +323,7 @@ it('UC-COS-06 as rotas públicas do portal são só leitura (GET) e nenhuma busc
         expect(array_values(array_diff($rota->methods(), ['GET', 'HEAD'])))->toBe([]);
     }
 
-    // Comportamento, não só o verbo (Anti-hook "NÃO grava nada em GET"): uma busca que acha,
+    // Comportamento, não só o verbo (Anti-hook "NÃO grava dado de negócio nem altera a OS em GET"): uma busca que acha,
     // uma que não acha e uma recusada não mudam nenhuma linha das tabelas que o portal lê.
     $antes = consultaOsContagens();
     // Anti-vácuo: há o que gravar nessas tabelas (3 OS, 3 vendas, 6 atividades no seed).
