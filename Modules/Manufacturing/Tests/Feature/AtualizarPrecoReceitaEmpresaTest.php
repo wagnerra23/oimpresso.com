@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Schema;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
+ * @covers-us US-MANU-008
+ *
  * Atualizar o preço da variação a partir da receita (`POST /manufacturing/update-product-prices`)
  * só alcança receita da PRÓPRIA empresa. Tier 0, ADR 0093 · US-MANU-008 H3 · handoff Fabricação §9
  * ("business_id pela cadeia mfg_recipes → variations → products em TODA query").

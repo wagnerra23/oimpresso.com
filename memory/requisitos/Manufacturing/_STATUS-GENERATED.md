@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 8 |
+| US no SPEC | 9 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
@@ -25,7 +25,16 @@ authority: generated
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
+| Lacuna | O que falta escrever |
+|---|---|
+| `US-MANU-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Quanto custa produzir, com o preço de insumo de hoje |
+| `US-MANU-002` **entregue sem contrato** (`status: review`) | UC que prove o que foi entregue — Relatório de produção do período |
+| `US-MANU-003` **entregue sem contrato** (`status: review`) | UC que prove o que foi entregue — Configurações do módulo |
+| `US-MANU-004` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Ordens de produção — as 8 colunas e as duas marcas do §4.5 |
+| `US-MANU-005` **entregue sem contrato** (`status: review`) | UC que prove o que foi entregue — Insumos — impacto reverso e simulador de preço |
+| `US-MANU-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de ingredientes |
+| `US-MANU-008` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Rotas legadas só tocam dado da própria empresa |
+| `US-MANU-009` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel lateral da ordem de produção |
 
 ### Backlog — NÃO é lacuna
 
@@ -36,14 +45,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 
 | US | status | Título |
 |---|---|---|
-| US-MANU-001 | `desconhecido` | Quanto custa produzir, com o preço de insumo de hoje |
-| US-MANU-002 | `desconhecido` | Relatório de produção do período |
-| US-MANU-003 | `desconhecido` | Configurações do módulo |
-| US-MANU-004 | `desconhecido` | Ordens de produção — as 8 colunas e as duas marcas do §4.5 |
-| US-MANU-005 | `desconhecido` | Insumos — impacto reverso e simulador de preço |
-| US-MANU-006 | `desconhecido` | Editor de ingredientes |
-| US-MANU-007 | `desconhecido` | Formulário de ordem de produção |
-| US-MANU-008 | `desconhecido` | Rotas legadas só tocam dado da própria empresa |
+| US-MANU-007 | `cancelled` | Formulário de ordem de produção |
 
 ## UC por status
 
