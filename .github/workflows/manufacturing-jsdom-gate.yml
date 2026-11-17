@@ -53,6 +53,8 @@ on:
       - 'tests/js/manufacturing-ordem-drawer.test.tsx'
       - 'resources/js/Pages/Manufacturing/_components/Gaveta.tsx'
       - 'tests/js/manufacturing-gaveta.test.tsx'
+      - 'resources/js/Pages/Manufacturing/_components/FabricacaoAbas.tsx'
+      - 'tests/js/manufacturing-abas.test.tsx'
       - '.github/workflows/manufacturing-jsdom-gate.yml'
   push:
     branches: [main]
@@ -68,6 +70,8 @@ on:
       - 'tests/js/manufacturing-ordem-drawer.test.tsx'
       - 'resources/js/Pages/Manufacturing/_components/Gaveta.tsx'
       - 'tests/js/manufacturing-gaveta.test.tsx'
+      - 'resources/js/Pages/Manufacturing/_components/FabricacaoAbas.tsx'
+      - 'tests/js/manufacturing-abas.test.tsx'
 
 concurrency:
   group: manufacturing-jsdom-gate-${{ github.ref }}
@@ -88,12 +92,13 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: UC-OP-06 · UC-OP-10 · UC-OP-11 · UC-INGRED-08..13 · gaveta (vitest/jsdom)
+      - name: UC-OP-06 · UC-OP-10 · UC-OP-11 · UC-INGRED-08..13 · gaveta · UC-RECIPE-24 abas (vitest/jsdom)
         run: |
           npx vitest run \
             tests/js/manufacturing-index-datas.test.tsx \
             tests/js/manufacturing-ingredientes-editor.test.tsx \
             tests/js/manufacturing-ordem-drawer.test.tsx             tests/js/manufacturing-gaveta.test.tsx \
+            tests/js/manufacturing-abas.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-manufacturing-jsdom-junit.xml
