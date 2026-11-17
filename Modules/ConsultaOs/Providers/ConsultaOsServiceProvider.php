@@ -5,6 +5,7 @@ namespace Modules\ConsultaOs\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\ConsultaOs\Console\Commands\ConsultaOsHealthCommand;
 use Modules\ConsultaOs\Console\Commands\ConsultaOsLinkCommand;
+use Modules\ConsultaOs\Console\Commands\ConsultaOsSmokeIsolamentoCommand;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
 use Modules\ConsultaOs\Repositories\RepairConsultaOsRepository;
 
@@ -27,6 +28,7 @@ class ConsultaOsServiceProvider extends ServiceProvider
             $this->commands([
                 ConsultaOsHealthCommand::class,
                 ConsultaOsLinkCommand::class,
+                ConsultaOsSmokeIsolamentoCommand::class,
             ]);
         }
     }
