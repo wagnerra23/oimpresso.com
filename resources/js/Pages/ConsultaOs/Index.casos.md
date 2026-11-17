@@ -53,6 +53,7 @@ last_run_ci: "2026-10-27: UC-COS-07 e UC-COS-11 mudam (cutover do portal antigo 
 | UC-COS-35 | 31ª busca do mesmo IP no minuto recebe 429 | must `[T0]` | Anti-hooks "NÃO expõe OS por enumeração" · SPEC US-CONSULTA-001 "rate-limit por IP (`throttle:30,1`)" | 🧪 |
 | UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | `Config/retention.php` `consulta_os_logs` (IP + número redigido, 365 dias) | 🧪 |
 | UC-COS-37 | Falha interna: 500 só com `found=false`, sem detalhe técnico | must | UX "sem jargão técnico" · UC-COS-03 | 🧪 |
+| UC-COS-38 | Falha do servidor na busca: a tela avisa e não diz "não encontrada" | must | UX "sem jargão técnico" · UC-COS-37 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -244,6 +245,18 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   corpo exatamente `{"found": false}` · E o texto do erro não aparece na resposta · E o log
   `consultaos.busca_falhou` traz só o tipo do erro, não a mensagem · E a busca é registrada com
   resultado `erro`.
+- **Status:** 🧪
+
+## UC-COS-38 · Falha do servidor na busca: a tela avisa e não diz "não encontrada" · `must`
+
+- **Persona:** cliente final que pesquisa a OS no momento em que o servidor falha.
+- **Aceite:** Dado `/consulta-os` aberto no navegador · Quando o cliente pesquisa um número e a
+  busca responde 500 · Então a tela mostra um alerta (`role="alert"`) · E o formulário continua
+  visível para tentar de novo · E a tela não mostra "OS não encontrada" nem dado de OS.
+- **Lado da API:** UC-COS-37 (o 500 devolve `{"found": false}` sem texto técnico).
+- **Fora do teste:** o texto do alerta. A mensagem própria do 429 é o UC-COS-39.
+- **Teste:** [`ConsultaOsIndexBrowserTest`](../../../../tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php),
+  step `E2E de render · ConsultaOs/Index (ADVISORY)` do `visual-regression.yml`.
 - **Status:** 🧪
 
 ---
