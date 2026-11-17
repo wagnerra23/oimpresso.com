@@ -14,13 +14,21 @@ created: 2026-05-16
 wave: J
 runbook: memory/requisitos/Manufacturing/RUNBOOK-producao.md
 casos: resources/js/Pages/Manufacturing/Index.casos.md
-related_us: [US-MANU-004]
+related_us: [US-MANU-004, US-MANU-008, US-MANU-009]
 ---
 
 # Charter — Manufacturing/Index.tsx
 
 ## Mission
-Listar ordens de produção (production_purchase) do business ativo em UX Inertia/React, em coexistência com Blade legacy `/manufacturing/production` durante migração MWART.
+Listar ordens de produção (production_purchase) do business ativo em UX Inertia/React, no endereço
+canônico `/manufacturing/production` desde o cutover de 2026-09-04 (`?legacy=1` devolve o Blade
+antigo).
+
+> **D1 (ADR 0448, aceita pelo [W] em 2026-10-13):** Fabricação é cadastro; a ordem nova nasce na
+> Produção e esta aba vira consulta. Até a etapa de unificação da ADR, o formulário Blade da ordem
+> (criar, editar rascunho, excluir) continua sendo o daqui, consertado em valor e estoque pela
+> decisão B1 do [W] (2026-11-09, lote 1 da auditoria). Os botões "Nova produção" e "Editar ordem"
+> da tela são do lote 5.
 
 ## Goals
 - G1: PageHeader + summary cards (total / final / pendente / valor). **Desde 2026-10-07 (UC-OP-10,
@@ -68,7 +76,8 @@ Listar ordens de produção (production_purchase) do business ativo em UX Inerti
 ## UX targets
 - Responsivo 1280px+ (cliente piloto ROTA LIVRE biz=4 monitor pequeno)
 - PT-BR em todos labels
-- Empty state com link pra rota legacy (`?legacy=1`) enquanto a migração não termina
+- Empty state convida a criar a primeira ordem pelo botão "Nova produção" (o link para `?legacy=1`
+  saiu; a tela antiga segue acessível nesse parâmetro)
 
 ## Forma (alinhamento ao protótipo — 2026-09-08)
 
@@ -110,8 +119,10 @@ Controller@indexV2  →  ProductionService::listProductions(biz, filters)   # + 
 > `fix` marca a ordem finalizada. Detalhe e a razão em `RUNBOOK-producao.md §1`.
 
 ## Rota
-- `GET /manufacturing/v2/production` — nova (Inertia)
-- `GET /manufacturing/production` — legacy Blade preservada (ProductionController@index)
+- `GET /manufacturing/production` — esta tela (`ProductionController@index` delega ao `indexV2`)
+- `GET /manufacturing/production?legacy=1` — a tela Blade antiga, no mesmo endereço
+- `GET /manufacturing/v2/production` — 301 para o canônico desde 2026-09-04
+- Formulário da ordem: `production/create`, `production/{id}/edit`, `POST`/`PUT`/`DELETE` — Blade
 
 ## Próximos passos
 - ~~Wire-up filtros (location, date range) com Inertia partial reload~~ — **feito** (o
@@ -121,5 +132,6 @@ Controller@indexV2  →  ProductionService::listProductions(biz, filters)   # + 
   `RUNBOOK-production-index.md`, nunca existiu)
 - `Inertia::defer` segue **não aplicado de propósito** — `indexV2` documenta o rollback do
   Wave L/W7 (PR #963), em que defer quebrava o initial render desta tela
-- US-MANU-007 introduz o `custoSnap` gravado; quando existir, a coluna de custo desta tela
-  pode passar a distinguir congelado de vivo (hoje não dá — o campo não existe)
+- ~~US-MANU-007 introduz o `custoSnap` gravado~~ — a US-MANU-007 foi cancelada (D1); o custo
+  congelado passa a ser da ordem na Produção. Aqui, desde o lote 1.5 (UC-OP-19), o `final_total`
+  é calculado no servidor
