@@ -6641,9 +6641,6 @@ button:where(.sb-item, .um-item, .sb-dd-i, .sb-dd-foot){ font-size: inherit; }
 .sb-group-ic{width:12px;height:12px;flex:0 0 auto}
 .sb-item-chev{width:11px!important;height:11px!important;margin-left:auto;opacity:.5}
 .sb-item.is-open{background:var(--sb-hover);color:var(--sb-text-hi)}
-.sb-item-popover{position:fixed;min-width:200px;background:var(--sb-bg-2);border:1px solid var(--sb-border);border-radius:var(--radius);box-shadow:0 12px 32px -8px rgba(0,0,0,.5),0 4px 8px -2px rgba(0,0,0,.3);padding:6px;z-index:1100;display:flex;flex-direction:column;gap:1px;font-family:var(--font-sans)}
-.sb-item-popover .sb-item{height:30px}
-.sb-item-popover .ic.dot{width:4px;height:4px;border-radius:50%;background:var(--sb-text-dim);margin:0 6px}
 /* Tema escuro — controles nativos (select, input date, scrollbar) seguem o tema. Sem isto o <select> nativo saía branco (varredura 2026-10-05: 15 rotas do CRM). */
 html[data-theme="dark"]{ color-scheme: dark; }
 [data-theme="dark"] .os-kpi-alert{ background: color-mix(in oklch, var(--warn) 10%, var(--surface)); border-color: color-mix(in oklch, var(--warn) 40%, var(--border)); }

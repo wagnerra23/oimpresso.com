@@ -27,3 +27,14 @@ Placar: **entregue 4 de 7** (R7 · R2 · R3 · R6) · ausentes **R1** e **R5** p
 Sem `node_modules` nesta máquina: typecheck/eslint ficam com o CI. Nenhum Pest foi alterado; os
 testes que leem esses arquivos (`Wave25SaturationTest`) procuram `Persona-alvo`, `Anti-padrões` e
 `Index.charter.md`, que continuam lá.
+
+## Nota de 2026-11-09 (acrescentada depois do recibo)
+O placar "4 de 7" acima é o retrato de 2026-09-23 e fica como estava. Os 3 refinos que faltavam
+entraram em seguida, e os 7 estão no `main` (conferido em `51159b0262`):
+
+| refino | PR | como foi conferido |
+|---|---|---|
+| R7 · R2 · R3 · R6 | #7854 | charter sem "Stub Sprint 2"; `crypto.randomUUID` só aparece em comentário; `itens.every(itemOk)` no `Index.tsx`; 8 `htmlFor` no `Index.tsx` |
+| R4 | #7868 | prévia com arredondamento por item, sem o `Math.max(0, …)` no total |
+| R1 | #7870 | `Routes/web.php` entrega `materiais` à tela |
+| R5 | #7872 | `CalcularOrcamentoRequest` não existe mais no repo |

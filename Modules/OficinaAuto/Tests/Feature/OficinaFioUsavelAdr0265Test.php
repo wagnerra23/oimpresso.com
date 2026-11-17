@@ -42,20 +42,20 @@ uses(Tests\TestCase::class);
  * tem can_override): 1 item DVI + 1 foto no laudo + 1 item de orçamento + aprovação
  * do cliente registrada (approval_decision=approved, accessor approval_state).
  *
- * Pattern: skip SQLite (ADR 0101 — schema MySQL UltimatePOS). Multi-tenant biz=1
- * (ADR 0101 — nunca business de cliente).
+ * Pattern: skip SQLite (ADR 0358 — schema MySQL UltimatePOS). Multi-tenant biz=98
+ * (ADR 0358 — nunca business de cliente).
  *
  * @see Modules/OficinaAuto/Services/ServiceOrderPipelineStarter.php
  * @see Modules/OficinaAuto/Services/StageGateEvaluator.php (RULES oficina_mecanica_os)
  * @see memory/decisions/0265-oficina-reparo-erradica-locacao.md
  */
 
-const BIZ_FIO = 1;
+const BIZ_FIO = 98;
 const PLATE_FIO = 'FIO0265';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
 
     foreach (['service_orders', 'vehicles', 'sale_processes', 'sale_process_stages',

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1094 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1089 tarefas abertas** em **62 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,23 +11,22 @@
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 78 | 0 | 0 | 0 | 78 |
 | [`Sells`](#sells) | 73 | 6 | 0 | 0 | 67 |
-| [`Financeiro`](#financeiro) | 58 | 6 | 1 | 0 | 51 |
+| [`Financeiro`](#financeiro) | 57 | 6 | 1 | 0 | 50 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
-| [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
+| [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 35 | 0 | 0 | 6 | 29 |
 | [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
-| [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
+| [`Fisio`](#fisio) | 28 | 0 | 0 | 0 | 28 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
 | [`Marketplaces`](#marketplaces) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
-| [`Fisio`](#fisio) | 24 | 0 | 0 | 0 | 24 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
-| [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
+| [`Compras`](#compras) | 20 | 2 | 0 | 0 | 17 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
@@ -42,6 +41,7 @@
 | [`Produto`](#produto) | 12 | 1 | 0 | 0 | 11 |
 | [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
+| [`Vestuario`](#vestuario) | 10 | 1 | 0 | 0 | 9 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
@@ -52,8 +52,11 @@
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`Repair`](#repair) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
+| [`Associacoes`](#associacoes) | 5 | 0 | 0 | 0 | 5 |
+| [`Captacao`](#captacao) | 5 | 0 | 0 | 0 | 5 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
+| [`Auditoria`](#auditoria) | 4 | 0 | 0 | 0 | 4 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`Estoque`](#estoque) | 3 | 1 | 0 | 0 | 2 |
@@ -64,9 +67,9 @@
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Relatorios`](#relatorios) | 2 | 1 | 0 | 0 | 1 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
-| [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
 | [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
+| [`ProductCatalogue`](#productcatalogue) | 1 | 0 | 0 | 0 | 1 |
 
 
 ## Jana
@@ -356,7 +359,6 @@
 - **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
 - **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
 - **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
-- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
 - **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
 - **US-FIN-079** — Pagar o título a pagar pelo banco (boleto e Pix), com aprovação e baixa automática — **P1** _(`p1`)_
 - **US-FIN-082** — Portal do cliente: títulos em aberto, segunda via, histórico e pagamento _(`p1`)_
@@ -532,8 +534,6 @@
 - **US-OFICINA-020** — Importer Firebird `WR_KANBAN` → `oa_kanban_state` (pré-arte Vargas/Martinho) — **P2** _(`p2`)_
 - **US-OFICINA-021** — Integração FIPE veículo (valor mercado + filtro garantia) — **P2** _(`p2`)_
 - **US-OFICINA-046** — Dívida F3: repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas" _(`p2`)_
-- **US-OFICINA-047** — Entrega da OS exige foto do serviço feito (UC-FLX-22) _(`p2`)_
-- **US-OFICINA-048** — Entrega da OS exige assinatura do cliente, por empresa (UC-FLX-22) _(`p2`)_
 - **US-AUTO-001** — Cadastro veículo persistente (placa + chassi + km + ano + modelo + cor) — **P0**
 - **US-AUTO-002** — Consulta CRLV/Renavam por placa (DETRAN/SerPro) — **P0**
 - **US-AUTO-003** — Histórico do veículo (todas OS passadas) — **P0**
@@ -645,47 +645,6 @@
 - **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
 - **US-PCP-032** — OS liberada sem material fica Aguardando material (D3) — **P1**
 
-## Compras
-
-
-### doing
-
-- **US-COM-029** — Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0** _(`p0`)_
-- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
-- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
-- **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
-- **US-COM-034** — Inspeção de qualidade no recebimento da compra — **P2** _(`p2`)_
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
-- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-030** — MRP: necessidade de compra somando todas as OS, com prazo do fornecedor — **P1** _(`p1`)_
-- **US-COM-031** — Cotação de compra entre fornecedores — **P1** _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
-- **US-COM-032** — Aprovação do pedido de compra por alçada de valor — **P2** _(`p2`)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-033** — Avaliação automática do fornecedor por entrega — **P3** _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
-
 ## Fiscal
 
 
@@ -720,6 +679,40 @@
 - **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
+
+## Fisio
+
+
+### todo
+
+- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
+- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
+- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
+- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
+- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
+- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
+- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
+- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
+- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
+- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
+- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
+- **US-FISIO-012** — Fecha o loop da F1 — **P1**
+- **US-FISIO-013** — Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
+- **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
+- **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
+- **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
+- **US-FISIO-020** — Pacote de sessões com saldo derivado de ledger append-only — **P0**
+- **US-FISIO-021** — Tela "Pacote e cobrança" da ficha do paciente — **P0**
+- **US-FISIO-022** — Vender e renovar pacote pela venda do núcleo — **P0**
+- **US-FISIO-023** — Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
+- **US-FISIO-024** — Lote do Receita Saúde no layout oficial — **P1**
+- **US-FISIO-025** — Planos do produto Fisio no Superadmin — **P1**
+- **US-FISIO-050** — Primeira configuração da clínica (Onboarding, 5 passos) — **P1**
+- **US-FISIO-051** — Pré-anamnese no portal antes da primeira consulta — **P1**
+- **US-FISIO-060** — Laudo de avaliação biopsicossocial no modelo SES-SC — **P1**
+- **US-FISIO-061** — Dados sociais do paciente, todos opcionais — **P1**
+- **US-FISIO-062** — Relatório agregado para a associação — **P1**
+- **US-FISIO-063** — Exames e receitas por foto, com transcrição sugerida e conferida — **P1**
 
 ## Crm
 
@@ -881,36 +874,6 @@
 - **US-INV-024** — Dashboard analytics estoque (giro, lead-time, ruptura, custo real per categoria) — **P3**
 - **US-INV-025** — Multi-location transfer com batch preservation — **P3**
 
-## Fisio
-
-
-### todo
-
-- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
-- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
-- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
-- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
-- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
-- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
-- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
-- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
-- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
-- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
-- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
-- **US-FISIO-012** — Fecha o loop da F1 — **P1**
-- **US-FISIO-013** — Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
-- **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
-- **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
-- **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
-- **US-FISIO-020** — Pacote de sessões com saldo derivado de ledger append-only — **P0**
-- **US-FISIO-021** — Tela "Pacote e cobrança" da ficha do paciente — **P0**
-- **US-FISIO-022** — Vender e renovar pacote pela venda do núcleo — **P0**
-- **US-FISIO-023** — Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
-- **US-FISIO-024** — Lote do Receita Saúde no layout oficial — **P1**
-- **US-FISIO-025** — Planos do produto Fisio no Superadmin — **P1**
-- **US-FISIO-050** — Primeira configuração da clínica (Onboarding, 5 passos) — **P1**
-- **US-FISIO-051** — Pré-anamnese no portal antes da primeira consulta — **P1**
-
 ## ComunicacaoVisual
 
 
@@ -970,35 +933,37 @@
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
 
-## Vestuario
+## Compras
 
 
 ### doing
 
-- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
+- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
+- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
 
 ### todo
 
-- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
-- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
-- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
-- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
-- **US-VEST-031** — Sugestão de compra por tamanho pela curva de venda `p1` _(`p1`)_
-- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
-- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
-- **US-VEST-032** — Remarcação por coleção, com prévia e reversão `p2` _(`p2`)_
-- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
-- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
-- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
-- **US-VEST-001** — Cadastro de produto com variações tamanho + cor `live`
-- **US-VEST-002** — Venda balcão (PDV) com leitor de código de barras `live`
-- **US-VEST-003** — Emissão de NFC-e modelo 65 a partir do POS `live (parcial — biz=4 não usa hoje, mas infra existe)`
-- **US-VEST-004** — Histórico de vendas com filtros (cliente, período, vendedor) `live`
-- **US-VEST-005** — Estoque por localização (matriz tamanho × cor × loja) `live`
-- **US-VEST-006** — Compra (purchase) com fornecedor + recebimento `live`
-- **US-VEST-007** — Conta a receber (boleto Asaas) e a pagar `live`
-- **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
-- **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-033** — Avaliação automática do fornecedor por entrega — **P3** _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### wontfix
+
+- **US-COM-019** — ~~Eager-load `->with(['contact','location'])` em `listarCompras().paginate()`~~ → REFUTADA (2026-07-03) _(`p2`)_
 
 ## Forja
 
@@ -1307,6 +1272,25 @@
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
 
+## Vestuario
+
+
+### doing
+
+- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
+
+### todo
+
+- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
+- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
+- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
+- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
+- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
+- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
+- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
+- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
+- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
+
 ## Cliente
 
 
@@ -1447,6 +1431,28 @@
 - **US-SRS-005** — Audit log SRS (validation runs)
 - **US-SRS-006** — Memcofre legacy prefix (compat layer)
 
+## Associacoes
+
+
+### todo
+
+- **US-ASSOC-001** — Camada de dados da rede — **P0**
+- **US-ASSOC-002** — Associações e documentos, com a pendência de 30 dias — **P0**
+- **US-ASSOC-003** — Associadas com consentimento — **P0**
+- **US-ASSOC-004** — Painel da rede — **P1**
+- **US-ASSOC-005** — Área da associada no site da Uniafibro e no app — **P1**
+
+## Captacao
+
+
+### todo
+
+- **US-CAPT-001** — Camada de dados dos projetos de captação — **P0**
+- **US-CAPT-002** — Fontes e projetos — **P0**
+- **US-CAPT-003** — Aportes — **P0**
+- **US-CAPT-004** — Comprovantes e prestação de contas — **P1**
+- **US-CAPT-005** — Integração com o Financeiro — **P2**
+
 ## LaravelAI
 
 
@@ -1468,6 +1474,16 @@
 - **US-SHEET-003** — Share via link (público read-only)
 - **US-SHEET-004** — Post-share (revogar / listar shares ativos)
 - **US-SHEET-005** — Embed view (iframe-friendly)
+
+## Auditoria
+
+
+### todo
+
+- **US-AUDIT-006** — Resolver de causer (user/agent/system/api) `parcial`
+- **US-AUDIT-008** — RevertService com registry UNREVERTIBLE `parcial`
+- **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
+- **US-AUDIT-010** — AuditoriaController + permissões + redirect 301 `parcial`
 
 ## ConsultaOs
 
@@ -1522,8 +1538,8 @@
 
 ### todo
 
-- **US-ASSET-009** — Depreciação gerencial linear por categoria — **P2** _(`p2`)_
 - **US-ASSET-010** — Manutenção preventiva com próxima data por bem — **P2** _(`p2`)_
+- **US-ASSET-011** — Prazo padrão de vida útil por categoria — **P2** _(`p2`)_
 
 ## Documentacao
 
@@ -1559,13 +1575,6 @@
 
 - **US-ADM-001** — ..010
 
-## Auditoria
-
-
-### todo
-
-- **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
-
 ## Backup
 
 
@@ -1579,3 +1588,10 @@
 ### todo
 
 - **US-MCP-017** — Tool `module-state <modulo>` (CQRS projection per bounded context) _(`p1` · @wagner)_
+
+## ProductCatalogue
+
+
+### todo
+
+- **US-PCAT-004** — Instalar, atualizar e desinstalar o módulo (padrão ADR 0011) _(@W)_

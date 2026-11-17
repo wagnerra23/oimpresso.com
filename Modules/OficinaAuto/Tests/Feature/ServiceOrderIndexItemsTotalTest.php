@@ -28,13 +28,13 @@ uses(Tests\TestCase::class);
  * @see resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx (workspace unificado — coluna VALOR da Lista)
  */
 
-const BIZ_ITOTAL = 1;
-const BIZ_ITOTAL_OUTRO = 2; // 2º tenant do seed da lane (pest-mysql-setup); 99 não existe lá e quebra fk_vehicles_business
+const BIZ_ITOTAL = 98;
+const BIZ_ITOTAL_OUTRO = 99;
 const PLATE_ITOTAL_PREFIX = 'ITOT';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oficina_service_order_items')) {
         $this->markTestSkipped('Rode migration 2026_05_17_000010 primeiro');
@@ -141,6 +141,6 @@ it('3. multi-tenant Tier 0 — global scope filtra a OS de outro business inteir
         ->whereIn('id', [$osBiz1->id, $osOutroBiz->id])
         ->get();
 
-    // Global scope (biz=1): só a OS do tenant aparece; a OS do biz=2 (e os R$ dela) não vazam.
+    // Global scope (biz=98): só a OS do tenant aparece; a OS do biz=99 (e os R$ dela) não vazam.
     expect($rows->pluck('id')->all())->toBe([$osBiz1->id]);
 })->after(fn () => itotal_cleanup());

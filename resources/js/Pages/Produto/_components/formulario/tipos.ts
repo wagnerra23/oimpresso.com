@@ -56,12 +56,21 @@ export function camposPersonalizadosGravados(
  * alarga o valor inicial `''` para string. Os quatro campos opcionais existem só no formulário
  * da tela Novo, e os blocos só os mostram em modo `novo`.
  */
-export interface CamposProduto {
+export interface CamposProduto extends Record<CampoPersonalizado, string> {
   name: string;
   sku: string;
   unit_id: number | string;
   brand_id: number | string;
   category_id: number | string;
+  /** UC-PCAD-25 · UC-PEDIT-25: '' = sem subcategoria. */
+  sub_category_id?: number | string;
+  /** UC-PCAD-26 · UC-PEDIT-26: as sub-unidades ligadas ao produto. */
+  sub_unit_ids?: number[];
+  /** UC-PCAD-27 · UC-PEDIT-27: IMEI / nº de série (1 liga). */
+  enable_sr_no?: number;
+  /** UC-PCAD-29: a imagem e o folheto escolhidos no Novo (vão com o produto ao salvar). */
+  image?: File | null;
+  product_brochure?: File | null;
   tax: number | string;
   tax_type: 'inclusive' | 'exclusive';
   origem_mercadoria: number;
@@ -80,8 +89,6 @@ export interface CamposProduto {
   comprimento_cm?: number | string;
   product_description: string;
   warranty_id: number | string;
-  product_custom_field1: string;
-  product_custom_field2: string;
   type?: TipoProduto;
   enable_stock?: number;
   not_for_selling?: number;
@@ -104,12 +111,33 @@ export interface NaturezaFiscalProduto {
 /** Os erros de validação que os blocos exibem. */
 export type ErrosProduto = Partial<
   Record<
-    'name' | 'origem_mercadoria' | 'ncm' | 'cest' | 'peso_liquido' | 'largura_cm' | 'altura_cm' | 'comprimento_cm',
+    | 'name'
+    | 'origem_mercadoria'
+    | 'ncm'
+    | 'cest'
+    | 'peso_liquido'
+    | 'largura_cm'
+    | 'altura_cm'
+    | 'comprimento_cm'
+    | 'politica_preco'
+    | 'margem_alvo_pct',
     string
   >
 >;
 
 export type DefinirCampo = <K extends keyof CamposProduto>(campo: K, valor: CamposProduto[K]) => void;
+
+/**
+ * UC-PCAD-24 · UC-PEDIT-24: um campo personalizado que a empresa nomeou em Configurações → Rótulos
+ * (ProductController::camposPersonalizadosDaEmpresa). Campo sem nome não vem, como no Blade.
+ */
+export interface CampoDaEmpresa {
+  numero: NumeroCampoPersonalizado;
+  rotulo: string;
+  /** `dropdown` só vem com opções; sem elas o servidor manda `text`. */
+  tipo: 'text' | 'date' | 'dropdown';
+  opcoes: string[];
+}
 
 /** As listas de opções que as duas telas recebem do servidor. */
 export interface OpcoesProduto {
@@ -122,6 +150,22 @@ export interface OpcoesProduto {
   productTypes: OptionStringMap;
   /** Novo: os locais do negócio que quem cadastra pode acessar. */
   businessLocations?: OptionMap;
+  /** Os campos personalizados com o nome que a empresa deu (UC-PCAD-24 · UC-PEDIT-24). */
+  camposDaEmpresa?: CampoDaEmpresa[];
+  /** UC-PCAD-25 · UC-PEDIT-25: categoria => {subcategoria => nome}. Vazio: a empresa não usa subcategoria. */
+  subcategoriasPorCategoria?: Record<string, Record<string, string>>;
+  /** UC-PCAD-26 · UC-PEDIT-26: unidade => sub-unidades. Vazio: a empresa não usa sub-unidades. */
+  subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
+  /** UC-PCAD-28 · UC-PEDIT-28: libera o "+" de unidade (`unit.create`) e de marca (`brand.create`). */
+  podeCriarUnidade?: boolean;
+  podeCriarMarca?: boolean;
+}
+
+/** Uma unidade da lista de sub-unidades: `multiplicador` em unidades da principal (a principal tem 1). */
+export interface SubUnidade {
+  id: number;
+  nome: string;
+  multiplicador: number;
 }
 
 /**

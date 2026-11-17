@@ -188,6 +188,7 @@ it('R-NFE-032 · série e numeração do local emissor', function () {
 
 it('R-NFE-032 · autorização da filial não mexe no contador da matriz; a da matriz mexe', function () {
     Storage::fake();
+    Storage::fake('nfe_fiscal');
     $biz = t26Biz();
     $svc = t26Svc();
     $padrao = (string) (DB::table('business')->where('id', $biz)->value('numero_serie_nfe') ?? '1');

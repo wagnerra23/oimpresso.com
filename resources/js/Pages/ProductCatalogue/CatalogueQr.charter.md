@@ -11,6 +11,7 @@ related_adrs: [93, 104, 180, 358]
 tier: C
 charter_version: 2
 related_runbook: memory/requisitos/ProductCatalogue/RUNBOOK-catalogue-qr.md
+related_visual_comparison: memory/requisitos/ProductCatalogue/CatalogueQr-visual-comparison.md
 related_us: [US-PCAT-003]
 ---
 
@@ -60,11 +61,12 @@ Assinatura com `productcatalogue_module` (como antes) **e** `product.view` no pa
 
 ## UX targets
 
-- Cabe em 1280px; duas colunas (forma × resultado) e uma coluna abaixo de 1024px.
+- Cabe em 1280px; duas colunas (forma × resultado) e uma coluna até 1100px (ponto de quebra do protótipo, medido em 2026-11-10).
 - Contraste do QR é leitura: a tela avisa que cor clara em fundo branco o celular não lê.
 
 ## Pendências antes de `status: live`
 
 - [x] [W] aprova Non-Goals + Anti-hooks e o screenshot — [W] 2026-10-09, no chat da sessão: *"aprovado"*.
 - [ ] Smoke em produção (`smoke:` datado no frontmatter). Em 2026-10-09 o `screen-smoke-after-merge` saiu NÃO MEDIDO: a tela não tinha rota em `scripts/screen-smoke/routes.json`.
+  Estado em 2026-11-11: a rota entrou no `routes.json` no mesmo dia (#9109, label `catalogo-qr`), mas o smoke ainda **não mediu a tela nenhuma vez**. Dos merges que tocaram a tela depois disso, o do #9997 (F5) e o do #10691 saíram `skipped`; o do #10695 foi cancelado; o do #10699 (run `43031538109`) caiu no passo "Instalar deps + Chromium do Playwright" por falha de DNS do apt, antes de abrir qualquer tela. A pendência continua aberta, agora por falta de uma execução que chegue até a tela.
 - [ ] Confirmar se o PNG deve ganhar tamanho maior pra impressão A4 (hoje 256 px).

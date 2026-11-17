@@ -6,6 +6,7 @@ use App\Business;
 use App\BusinessLocation;
 use App\Contact;
 use App\CustomerGroup;
+use App\NotificationTemplate;
 use App\Notifications\CustomerNotification;
 use App\PurchaseLine;
 use App\Transaction;
@@ -751,6 +752,8 @@ class ContactController extends Controller
             // protege server-side, mas evita o no-op confuso). Wagner 2026-06-08.
             'contacts.is_default',
             'contacts.created_at',
+            // Filtro "Excluídos" (UC-CIDX-16): data em que o cadastro foi excluído; null nos demais.
+            'contacts.deleted_at',
             // Endereço completo — sem isso, router.reload({only:['rows']}) pós lookup
             // CNPJ/CEP zera campos no EnderecoTab (undefined → setState('')) e a UI
             // some apesar do DB ter os dados. Wagner 2026-05-27.
@@ -876,7 +879,11 @@ class ContactController extends Controller
         }
 
         // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
-        $contactsQuery = Contact::where('contacts.business_id', $business_id);
+        // UC-CIDX-16 — filtro "Excluídos": só os cadastros excluídos (deleted_at), para consulta e
+        // restauração. Excluir nunca apaga a linha (soft delete); sem o filtro eles ficam fora da lista.
+        $contactsQuery = request()->boolean('excluidos')
+            ? Contact::onlyTrashed()->where('contacts.business_id', $business_id)
+            : Contact::where('contacts.business_id', $business_id);
         $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
         $contactsQuery = $this->applyViewOwnFilter($contactsQuery, $type);
 
@@ -885,19 +892,25 @@ class ContactController extends Controller
         // encontrava clientes da página atual. Agora `q` bate no banco via LIKE
         // em colunas indexáveis (name/tax_number/mobile/fantasia). Multi-tenant
         // Tier 0 OK — scope `business_id` já aplicado acima ([ADR 0093]).
+        // Cada palavra casa em separado (E entre palavras, OU entre as colunas), como a
+        // busca de cliente da venda (#10719): o texto inteiro num LIKE só não achava
+        // "NOME SOBRENOME" quando o cadastro tinha nome do meio ou espaço duplo.
         $q = trim((string) request()->input('q', ''));
         if ($q !== '') {
-            $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $q).'%';
             $hasFantasia = $hasWaveBCols; // fantasia veio na Wave B junto com tipo.
-            $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
-                $w->where('contacts.name', 'like', $like)
-                    ->orWhere('contacts.tax_number', 'like', $like)
-                    ->orWhere('contacts.mobile', 'like', $like)
-                    ->orWhere('contacts.contact_id', 'like', $like);
-                if ($hasFantasia) {
-                    $w->orWhere('contacts.fantasia', 'like', $like);
-                }
-            });
+            $palavras = preg_split('/[\s\p{Z}]+/u', $q, -1, PREG_SPLIT_NO_EMPTY) ?: [$q];
+            foreach ($palavras as $palavra) {
+                $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $palavra).'%';
+                $contactsQuery->where(function ($w) use ($like, $hasFantasia) {
+                    $w->where('contacts.name', 'like', $like)
+                        ->orWhere('contacts.tax_number', 'like', $like)
+                        ->orWhere('contacts.mobile', 'like', $like)
+                        ->orWhere('contacts.contact_id', 'like', $like);
+                    if ($hasFantasia) {
+                        $w->orWhere('contacts.fantasia', 'like', $like);
+                    }
+                });
+            }
         }
 
         // Sort server-side (ligado 2026-06-12 · bug Wagner "alfabético → lixo de
@@ -1056,6 +1069,8 @@ class ContactController extends Controller
                     : null,
                 // Consumidor/fornecedor padrão (walk-in) — front esconde "Excluir".
                 'is_default' => (bool) $contact->is_default,
+                // UC-CIDX-16 — data da exclusão (só no filtro "Excluídos").
+                'excluido_em' => $contact->deleted_at ? $contact->deleted_at->format('Y-m-d H:i') : null,
                 // Wave G novos campos cadastrais.
                 // avatar_hash_seed = name (HSL hash determinístico Pages/Cliente/_components/Avatar.tsx).
                 // Frontend usa name por default mas seed explícito permite estabilidade
@@ -1843,6 +1858,8 @@ class ContactController extends Controller
      */
     public function anexos($id)
     {
+        $this->exigirPermissaoDeVerContato();
+
         $business_id = request()->session()->get('user.business_id');
 
         // 404 cross-tenant: o contato precisa existir DENTRO do business.
@@ -1894,6 +1911,8 @@ class ContactController extends Controller
      */
     public function storeAnexo(Request $request, $id)
     {
+        $this->exigirPermissaoDeVerContato();
+
         $request->validate([
             'file' => 'required|file|max:25600', // 25 MB
         ]);
@@ -1957,6 +1976,8 @@ class ContactController extends Controller
      */
     public function destroyAnexo($id, $mediaId)
     {
+        $this->exigirPermissaoDeVerContato();
+
         $business_id = request()->session()->get('user.business_id');
 
         \App\Contact::where('business_id', $business_id)->findOrFail($id);
@@ -2603,48 +2624,53 @@ class ContactController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed>|null JSON {success, msg} no pedido AJAX; nada fora dele.
      */
     public function destroy($id)
     {
-        if (! auth()->user()->can('supplier.delete') && ! auth()->user()->can('customer.delete') && ! auth()->user()->can('customer.view_own') && ! auth()->user()->can('supplier.view_own')) {
+        // Só quem tem "Remover cliente/fornecedor". Antes, "Ver os próprios" também passava aqui,
+        // embora a tela só mostrasse o botão com a permissão de remover.
+        if (! auth()->user()->can('supplier.delete') && ! auth()->user()->can('customer.delete')) {
             abort(403, 'Unauthorized action.');
         }
 
         if ($this->isLegacyAjax()) {
+            $business_id = request()->user()->business_id;
+            // Tier 0 (ADR 0093): fora do try, para outra empresa responder 404 e não "algo deu errado".
+            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+
+            if ($contact->is_default) {
+                return ['success' => false, 'msg' => 'O cliente padrão não pode ser excluído.'];
+            }
+
+            // Excluir não apaga a linha: marca o cadastro como excluído (deleted_at), e ele pode ser
+            // consultado e restaurado. Mesmo assim, cadastro com histórico não sai das telas.
+            $vinculos = $this->vinculosDoContato((int) $business_id, (int) $contact->id);
+            if (! empty($vinculos)) {
+                return ['success' => false,
+                    'msg' => 'Este cadastro não pode ser excluído porque tem '.implode(', ', $vinculos).'. Se não vai mais usar, inative-o.',
+                ];
+            }
+
             try {
-                $business_id = request()->user()->business_id;
+                $log_properities = [
+                    'id' => $contact->id,
+                    'name' => $contact->name,
+                    'supplier_business_name' => $contact->supplier_business_name,
+                ];
+                $this->contactUtil->activityLog($contact, 'contact_deleted', $log_properities);
 
-                //Check if any transaction related to this contact exists
-                $count = Transaction::where('business_id', $business_id)
-                                    ->where('contact_id', $id)
-                                    ->count();
-                if ($count == 0) {
-                    $contact = Contact::where('business_id', $business_id)->findOrFail($id);
-                    if (! $contact->is_default) {
-                        $log_properities = [
-                            'id' => $contact->id,
-                            'name' => $contact->name,
-                            'supplier_business_name' => $contact->supplier_business_name,
-                        ];
-                        $this->contactUtil->activityLog($contact, 'contact_deleted', $log_properities);
+                //Disable login for associated users
+                User::where('crm_contact_id', $contact->id)
+                    ->update(['allow_login' => 0]);
 
-                        //Disable login for associated users
-                        User::where('crm_contact_id', $contact->id)
-                            ->update(['allow_login' => 0]);
+                $contact->delete();
 
-                        $contact->delete();
+                event(new ContactCreatedOrModified($contact, 'deleted'));
 
-                        event(new ContactCreatedOrModified($contact, 'deleted'));
-                    }
-                    $output = ['success' => true,
-                        'msg' => __('contact.deleted_success'),
-                    ];
-                } else {
-                    $output = ['success' => false,
-                        'msg' => __('lang_v1.you_cannot_delete_this_contact'),
-                    ];
-                }
+                $output = ['success' => true,
+                    'msg' => __('contact.deleted_success'),
+                ];
             } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
@@ -2655,6 +2681,91 @@ class ContactController extends Controller
 
             return $output;
         }
+
+        return null;
+    }
+
+    /**
+     * UC-CIDX-16 — restaura um cadastro excluído (o filtro "Excluídos" da lista de clientes).
+     * Mesma permissão de excluir; só cadastro da empresa da sessão (Tier 0, ADR 0093).
+     */
+    public function restore($id)
+    {
+        if (! auth()->user()->can('supplier.delete') && ! auth()->user()->can('customer.delete')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->user()->business_id;
+        $contact = Contact::onlyTrashed()->where('business_id', $business_id)->findOrFail($id);
+
+        $contact->restore();
+        $this->contactUtil->activityLog($contact, 'contact_restored', [
+            'id' => $contact->id,
+            'name' => $contact->name,
+        ]);
+        event(new ContactCreatedOrModified($contact, 'updated'));
+
+        return ['success' => true, 'msg' => 'Cadastro restaurado.'];
+    }
+
+    /**
+     * Ver cliente ou fornecedor (todos ou só os próprios) — a mesma regra do getLedger e das
+     * abas JSON da ficha. Anexos e anotações do contato seguem quem o vê (legado:
+     * DocumentAndNoteController::__getPermission dá view/create/delete para App\Contact).
+     */
+    private function exigirPermissaoDeVerContato(): void
+    {
+        $user = auth()->user();
+        if (! $user->can('customer.view') && ! $user->can('customer.view_own')
+            && ! $user->can('supplier.view') && ! $user->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * O que impede excluir o cadastro: registros de negócio ou financeiros que apontam para ele.
+     * Antes só se contavam os lançamentos (`transactions`); OS, assinatura, cobrança, veículo e
+     * crédito do cliente ficavam apontando para um cadastro excluído. Tabela de módulo que não
+     * existe nesta instalação é pulada; linhas já excluídas (deleted_at) não contam.
+     *
+     * @return list<string> rótulos do que existe, na ordem da tabela abaixo
+     */
+    private function vinculosDoContato(int $business_id, int $contact_id): array
+    {
+        $tabelas = [
+            'transactions' => 'vendas, compras, orçamentos ou pagamentos',
+            'repair_job_sheets' => 'ordens de serviço de reparo',
+            'service_orders' => 'ordens de serviço da oficina',
+            'rb_subscriptions' => 'assinaturas',
+            'rb_invoices' => 'faturas de assinatura',
+            'cobrancas' => 'cobranças',
+            'vehicles' => 'veículos',
+            'vestuario_creditos_cliente' => 'crédito do cliente',
+            'devolucaos' => 'devoluções',
+            'bookings' => 'reservas',
+            'crm_proposals' => 'propostas',
+            'crm_deals' => 'negócios do CRM',
+            'journal_entries' => 'lançamentos contábeis',
+        ];
+
+        $vinculos = [];
+        foreach ($tabelas as $tabela => $rotulo) {
+            if (! \Illuminate\Support\Facades\Schema::hasTable($tabela) || ! \Illuminate\Support\Facades\Schema::hasColumn($tabela, 'contact_id')) {
+                continue;
+            }
+            $consulta = DB::table($tabela)->where('contact_id', $contact_id);
+            if (\Illuminate\Support\Facades\Schema::hasColumn($tabela, 'business_id')) {
+                $consulta->where('business_id', $business_id);
+            }
+            if (\Illuminate\Support\Facades\Schema::hasColumn($tabela, 'deleted_at')) {
+                $consulta->whereNull('deleted_at');
+            }
+            if ($consulta->exists()) {
+                $vinculos[] = $rotulo;
+            }
+        }
+
+        return $vinculos;
     }
 
     /**
@@ -2691,12 +2802,20 @@ class ContactController extends Controller
                 $contacts->onlyCustomers();
             }
 
-            if (! empty($term)) {
-                $contacts->where(function ($query) use ($term) {
-                    $query->where('contacts.name', 'like', '%'.$term.'%')
-                            ->orWhere('supplier_business_name', 'like', '%'.$term.'%')
-                            ->orWhere('mobile', 'like', '%'.$term.'%')
-                            ->orWhere('contacts.contact_id', 'like', '%'.$term.'%');
+            // Cada palavra digitada casa em separado (E entre palavras, OU entre colunas).
+            // Com o termo inteiro num LIKE só, "NOME SOBRE" não achava o cadastro gravado
+            // com espaço duplo, nome do meio ou espaço não-separável vindo de importação —
+            // e o cliente que aparecia com "NOME" sumia ao digitar o começo do sobrenome
+            // (ROTA LIVRE, 2026-11-10). O resultado é sempre um superconjunto do anterior:
+            // quem casava o termo inteiro casa cada palavra dele.
+            // Texto só de espaços não vira "sem filtro" (devolveria tudo): segue como veio.
+            $palavras = preg_split('/[\s\p{Z}]+/u', trim((string) $term), -1, PREG_SPLIT_NO_EMPTY) ?: [(string) $term];
+            foreach ($palavras as $palavra) {
+                $contacts->where(function ($query) use ($palavra) {
+                    $query->where('contacts.name', 'like', '%'.$palavra.'%')
+                            ->orWhere('supplier_business_name', 'like', '%'.$palavra.'%')
+                            ->orWhere('mobile', 'like', '%'.$palavra.'%')
+                            ->orWhere('contacts.contact_id', 'like', '%'.$palavra.'%');
                 });
             }
 
@@ -3247,6 +3366,10 @@ class ContactController extends Controller
             return $notAllowed;
         }
 
+        // Mesma permissão do getLedger: sem ela, quem não vê clientes mandava o extrato
+        // de qualquer cadastro da empresa para qualquer e-mail.
+        $this->exigirPermissaoDeVerContato();
+
         // Mesma trava do getLedger, fora do try (o catch genérico engoliria o 404):
         // sem ela o e-mail levava nome e tags do contato de outra empresa.
         $contact = Contact::where('business_id', request()->session()->get('business.id'))
@@ -3256,11 +3379,30 @@ class ContactController extends Controller
         }
 
         try {
-            $data = $request->only(['to_email', 'subject', 'email_body', 'cc', 'bcc', 'ledger_format']);
-            $emails_array = array_map('trim', explode(',', $data['to_email']));
+            $business_id = request()->session()->get('business.id');
+
+            // A aba Extrato da ficha React pede só o e-mail: assunto, texto e cópias vêm do modelo
+            // "Enviar razão" da empresa, como o modal Blade já fazia ao abrir (NotificationController@getTemplate).
+            // O modelo é o padrão; o que o pedido trouxer preenchido tem prioridade.
+            $modelo = NotificationTemplate::getTemplate($business_id, 'send_ledger');
+            $padrao = [
+                'subject' => $modelo['subject'] ?: __('lang_v1.send_ledger'),
+                'email_body' => $modelo['email_body'],
+                'cc' => $modelo['cc'],
+                'bcc' => $modelo['bcc'],
+                'ledger_format' => 'format_1',
+            ];
+            $data = array_merge($padrao, array_filter(
+                $request->only(['to_email', 'subject', 'email_body', 'cc', 'bcc', 'ledger_format']),
+                fn ($valor) => filled($valor)
+            ));
+
+            $emails_array = array_values(array_filter(array_map('trim', explode(',', (string) ($data['to_email'] ?? '')))));
+            if (empty($emails_array)) {
+                return ['success' => 0, 'msg' => __('validation.required', ['attribute' => 'e-mail'])];
+            }
 
             $contact_id = $request->input('contact_id');
-            $business_id = request()->session()->get('business.id');
 
             $start_date = request()->input('start_date');
             $end_date = request()->input('end_date');
@@ -3315,8 +3457,9 @@ class ContactController extends Controller
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
+            // O detalhe fica no log; a tela recebe a mensagem genérica (antes ia caminho e linha do arquivo).
             $output = ['success' => 0,
-                'msg' => 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage(),
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 
@@ -3425,8 +3568,18 @@ class ContactController extends Controller
 
         if ($this->isLegacyAjax()) {
             $business_id = request()->session()->get('user.business_id');
-            $contact = Contact::where('business_id', $business_id)->find($id);
-            $contact->contact_status = $contact->contact_status == 'active' ? 'inactive' : 'active';
+            // Outra empresa (ou id inexistente) é 404; antes o null virava erro 500.
+            $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+
+            // A ficha React manda o estado que o usuário confirmou ("Desativar" → inactive).
+            // Sem ele, inverter o estado atual reativava um cadastro que outra pessoa já
+            // tinha desativado. O botão Blade antigo não manda nada e segue invertendo.
+            $pedido = request()->input('status');
+            if (in_array($pedido, ['active', 'inactive'], true)) {
+                $contact->contact_status = $pedido;
+            } else {
+                $contact->contact_status = $contact->contact_status == 'active' ? 'inactive' : 'active';
+            }
             $contact->save();
 
             $output = ['success' => true,

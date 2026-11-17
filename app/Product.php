@@ -11,6 +11,18 @@ class Product extends Model
     use LogsActivity;
 
     /**
+     * UC-PIDX-45 (AR-PROD-022): o excluído fica guardado e só se mexe nele depois de restaurar
+     * (decisão [F] 2026-11-11). Esta é a resposta de toda porta que grava num produto excluído.
+     */
+    public const MSG_EXCLUIDO = 'Este produto está excluído. Restaure antes de alterar.';
+
+    /** Excluído = `deleted_at` preenchido pelo "Excluir" (sem o trait SoftDeletes: a exclusão é manual). */
+    public function estaExcluido(): bool
+    {
+        return $this->getAttribute('deleted_at') !== null;
+    }
+
+    /**
      * Activity log config — captura mudancas em campos criticos pra auditoria
      * com diff old/new automatico. Padrao canonico Modules/Financeiro/Models/Titulo.
      *

@@ -132,7 +132,7 @@ de CI da PR).
 - [x] Rodapé com a versão do módulo (`System::getProperty('manufacturing_version')`)
 - [x] Cartão "Integrações" (3 links reais: `/products` · `/purchases` · `/manufacturing/production`) ·
       o cartão de permissões simuladas **não** entra
-- [x] Escrita scoped por `business_id` (herdada do `store()` legado, com UC-CFG-04 travando)
+- [x] Escrita scoped por `business_id` (herdada do `store()` legado, com UC-MCFG-04 travando)
 - [ ] Pest verde na lane de CI — pendente
 - [ ] Smoke real em prod (`curl` + screenshot + **submit de verdade**) — pendente, receita em
       `RUNBOOK-settings.md §3`

@@ -214,6 +214,7 @@ it('R-WA-INTERACTIVE-001 — payload buttons válido em canal Baileys persiste M
     Http::fake([
         '*/instances/*/interactive' => Http::response(['status' => 'sent', 'message_id' => 'prov_abc'], 200),
     ]);
+    config(['whatsapp.baileys.daemon_url' => 'https://daemon.test', 'whatsapp.baileys.api_key' => 'k']);
 
     $ch = iiMakeChannel(1, 'int-001-uuid');
     $conv = iiMakeConv(1, $ch->id);

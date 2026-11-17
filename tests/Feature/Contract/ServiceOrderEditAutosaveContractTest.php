@@ -48,9 +48,15 @@ beforeEach(function () {
     // Não usamos isModuleInstalled aqui pra evitar dep circular nos tests CI fresh.
 
     // Setup multi-tenant (autentica user + session business_id) — reusa runner helper.
-    $ctx = AutosaveContractRunner::setupContext($this);
+    $ctx = AutosaveContractRunner::setupContext($this, $this->seededTenant());
     $this->business = $ctx['business'];
     $this->user = $ctx['user'];
+    $this->user->givePermissionTo('superadmin');
+    // O gate de pacote é outra regra (OficinaAutoPacoteGateTest): aqui a empresa tem o pacote.
+    $moduleUtil = \Mockery::mock(\App\Utils\ModuleUtil::class)->makePartial();
+    $moduleUtil->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($biz, $perm) => $perm === 'oficina_auto_module');
+    app()->instance(\App\Utils\ModuleUtil::class, $moduleUtil);
     $this->contactId = $ctx['contactId'];
 
     // Cria Vehicle base usando padrão validado em ServiceOrderCrudTest (withoutGlobalScopes
@@ -122,7 +128,9 @@ it('ServiceOrder/Edit — PUT endpoint persiste TODOS os campos cadastrais do fi
             // limpo definido em ServiceOrderController::show §397+.
             $getResponse = $this->getJson('/oficina-auto/service-orders/' . $this->orderId);
             $getStatus = $getResponse->status();
-            $received = data_get($getResponse->json(), $recvKey);
+            $received = ($field['no_banco'] ?? false)
+                ? DB::table('service_orders')->where('id', $this->orderId)->value($recvKey)
+                : data_get($getResponse->json(), $recvKey);
 
             $valueOk = matchesValue($sent, $received, $match);
 
@@ -172,11 +180,19 @@ it('ServiceOrder/Edit — PUT endpoint persiste TODOS os campos cadastrais do fi
  * não cobre PUT (somente patchJson). Quando runner ganhar suporte a method
  * configurable, este test migra pra invocar runner direto.
  */
+function dataNoFusoDaAplicacao(string $valor): string
+{
+    // O cast datetime serializa em UTC (2026-05-27T13:00:00.000000Z): é o mesmo instante.
+    return preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}T/', $valor) === 1
+        ? \Illuminate\Support\Carbon::parse($valor)->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s')
+        : $valor;
+}
+
 function matchesValue(mixed $sent, mixed $received, string $match): bool
 {
     return match ($match) {
         'partial' => $received !== null && is_string($received)
-            && str_contains((string) $received, is_string($sent) ? $sent : (string) $sent),
+            && str_contains(dataNoFusoDaAplicacao($received), is_string($sent) ? $sent : (string) $sent),
         'bool' => (bool) $received === (bool) $sent,
         'int' => (int) $received === (int) $sent,
         'array_eq' => json_encode($received) === json_encode($sent),

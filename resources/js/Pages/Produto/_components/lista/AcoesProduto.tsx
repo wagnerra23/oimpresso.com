@@ -23,6 +23,7 @@ import type { LinhaProduto, PermissoesLista } from './tipos';
 export type AcaoProduto =
   | 'ver'
   | 'editar'
+  | 'armazenagem'
   | 'estoque_inicial'
   | 'historico'
   | 'duplicar'
@@ -32,7 +33,8 @@ export type AcaoProduto =
   | 'anexo'
   | 'ativar'
   | 'desativar'
-  | 'excluir';
+  | 'excluir'
+  | 'restaurar';
 
 interface Props {
   linha: LinhaProduto;
@@ -58,16 +60,21 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
   const grupo1 = [
     // "Ver" abre o painel de detalhe do protótipo (`DetalheDrawer`) — o conteúdo da janela "Ver" da Blade.
     pode('view') && item('ver', 'Ver'),
-    pode('update') && item('editar', 'Editar'),
+    // UC-PIDX-45 (decisão [F] 2026-11-11): o excluído não se edita nem ganha estoque, código de barras ou
+    // preço — quem quer mexer restaura antes. Fica o que só lê (Ver, Histórico, Dados fiscais, anexo) e Duplicar.
+    !linha.excluido && pode('update') && item('editar', 'Editar'),
+    // UC-PIDX-47 (#10765): quem só pode mexer nos locais de armazenagem abre o Editar enxuto, que só
+    // tem os locais. Quem tem `product.update` já chega lá pelo Editar.
+    !linha.excluido && linha.controla_estoque && !pode('update') && pode('armazenagem') && item('armazenagem', 'Locais de armazenagem'),
     // Como na lista Blade: só para produto com estoque gerenciado e com `product.opening_stock`. Abre a
     // página do `OpeningStockController@add` (a mesma que o cadastro abre em "salvar e estoque inicial").
-    linha.controla_estoque && pode('opening_stock') && item('estoque_inicial', 'Adicionar ou editar estoque inicial'),
+    !linha.excluido && linha.controla_estoque && pode('opening_stock') && item('estoque_inicial', 'Adicionar ou editar estoque inicial'),
     pode('view') && item('historico', 'Histórico de estoque do produto'),
   ].filter(Boolean);
   const grupo2 = [
     pode('create') && item('duplicar', 'Duplicar produto'),
-    item('rotulos', 'Gerar código de barras'),
-    pode('create') && gruposDePreco > 0 && item('precos', 'Adicionar ou editar preços por grupo'),
+    !linha.excluido && item('rotulos', 'Gerar código de barras'),
+    !linha.excluido && pode('create') && gruposDePreco > 0 && item('precos', 'Adicionar ou editar preços por grupo'),
     linha.anexo && item('anexo', 'Baixar anexo do produto'),
   ].filter(Boolean);
   const grupoFiscal = [
@@ -78,8 +85,10 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
   ].filter(Boolean);
   const grupo3 = [
     // Ativar e desativar exigem `product.update` no servidor (`activate`/`massDeactivate`).
-    pode('update') && (linha.inativo ? item('ativar', 'Ativar') : item('desativar', 'Desativar')),
-    pode('delete') && item('excluir', 'Excluir', true),
+    // UC-PIDX-45 (AR-PROD-022): no lugar de Ativar/Desativar/Excluir, o excluído oferece "Restaurar", com a
+    // mesma permissão do Excluir.
+    !linha.excluido && pode('update') && (linha.inativo ? item('ativar', 'Ativar') : item('desativar', 'Desativar')),
+    linha.excluido ? pode('delete') && item('restaurar', 'Restaurar') : pode('delete') && item('excluir', 'Excluir', true),
   ].filter(Boolean);
   const grupos = [grupo1, grupo2, grupoFiscal, grupo3].filter((g) => g.length > 0);
 
@@ -92,13 +101,16 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
           <Button
             variant="outline"
             size="sm"
-            // 12px como o `Kebab` do protótipo (medido com design-diff em 2026-10-11; o `sm` dava 14px).
-            className="text-[12px]"
+            // Do tamanho do `Kebab` do protótipo (`os-btn sm`, medido no render em 2026-11-12): 26px de
+            // altura, letra 11,5px e seta de 12px — 72px de largura. Com o `sm` do DS (32px de altura e a
+            // seta forçada a 16px pelo `size-4` do botão) ele dava 80px e não cabia nos 76px da coluna
+            // "Ação" (96 menos a margem): a célula cortava e mostrava ".." ao lado do botão.
+            className="h-[26px] text-[11.5px]"
             aria-label={`Ações do produto ${linha.nome}`}
             onClick={parar}
             onKeyDown={parar}
           >
-            Ações <ChevronDown size={12} aria-hidden />
+            Ações <ChevronDown className="size-3" aria-hidden />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="min-w-[236px]" onClick={parar} onKeyDown={parar}>

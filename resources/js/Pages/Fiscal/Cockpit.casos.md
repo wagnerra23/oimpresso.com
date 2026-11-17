@@ -5,8 +5,8 @@ irmaos: Cockpit.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "revalidado em 2026-09-04 ao paginar a lista (Onda 3): UC-FCKP-01..06 relidos um a um — nenhum toca a fonte nem o recorte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos. UC-FCKP-07 (dado real) segue válido: a paginação recorta a MESMA lista, não muda a fonte. UC-FCKP-08 (fila de alertas) segue válido: o rodapé entra depois da tabela e não encosta na seção de alertas. UC-FCKP-09 nasce aqui, com lane e teste próprios, verde local 4/4 e mordida provada em 2 mutações. Veredito das lanes pendente do CI deste PR"
+last_run: "2026-11-16"
+last_run_ci: "revalidado em 2026-11-16 ao pôr o atalho Naturezas de operação no topo (UC-FCKP-17, teste próprio sem banco). UC-FCKP-01..16 não citam os botões do topo; o atalho só aparece com flag + permissão, então nenhum muda. Veredito da lane PHP / Pest (NfeBrasil · MySQL) pendente do CI deste PR. Anterior: revalidado em 2026-11-06 ao tirar o card de baixa por incobrabilidade (decisão [W] B10, PR #10571): nenhum UC cita o card. UC-FCKP-13 (procedência) segue válido com uma superfície de demonstração a menos — método mock, declaração e chave da tela saíram juntos, e o ProcedenciaCockpitTest seguiu verde. Lanes verdes neste PR: PHP / Pest (NfeBrasil · MySQL), PHP / Pest (Unit) e as 4 lanes vitest do Fiscal. Anterior: revalidado em 2026-09-04 ao paginar a lista (Onda 3): UC-FCKP-01..06 relidos um a um — nenhum toca a fonte nem o recorte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos. UC-FCKP-07 (dado real) segue válido: a paginação recorta a MESMA lista, não muda a fonte. UC-FCKP-08 (fila de alertas) segue válido: o rodapé entra depois da tabela e não encosta na seção de alertas. UC-FCKP-09 nasce aqui, com lane e teste próprios, verde local 4/4 e mordida provada em 2 mutações. Veredito das lanes pendente do CI deste PR"
 related_us: [US-FISCAL-002, US-FISCAL-019]
 ---
 
@@ -112,7 +112,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 **Então** apenas as notas do business ativo entram na conta.
 
 - **Regressão que defende:** vazamento cross-tenant Tier 0 ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)) — aqui na forma mais silenciosa, um número inflado que ninguém questiona.
-- **Teste:** `Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php` — `it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts de biz=1')`
+- **Teste:** `Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php` — `it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts de biz=98')`
 - **Status:** 🧪 lane **required**; veredito pendente.
 
 ## UC-FCKP-06 — O cache de indicadores é separado por business e é invalidado pela mesma chave `[must]` `[T0]`
@@ -288,6 +288,20 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 - **Regressão que defende:** sem `user.business_id` o `ScopeByBusiness` não filtra, e o painel guardaria o total de todas as empresas na chave `biz:0`; e, para `jana.superadmin`, o scope acrescenta `OR business_id IS NULL` (D15 da auditoria do Fiscal, 2026-11-05). As consultas do cockpit passam a filtrar a empresa explicitamente. Medido em produção no mesmo dia: `nfe_emissoes`, `nfe_certificados` e `nfe_dfe_recebidos` têm `business_id NOT NULL` e 0 linhas nulas — nenhum total muda.
 - **Teste:** `Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php` — os dois casos `UC-FCKP-16 · …` (tenant 98 × 99).
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FCKP-17 — Atalho para as Naturezas de operação só com a flag e a permissão da Tributação `[must]`
+
+**Dado** a flag `useV2NfeNaturezas` ligada para a empresa e um usuário com `nfe.tributacao.manage`
+**Quando** abre o cockpit
+**Então** o topo mostra "Naturezas de operação", que leva a `/nfe-brasil/tributacao#naturezas`.
+
+**Dado** a flag desligada, ou um usuário só com `fiscal.access`
+**Quando** abre o cockpit
+**Então** o atalho não aparece (`naturezasUrl` nulo) — clicar levaria a um 404 ou 403.
+
+- **Regressão que defende:** a seção mora em um lugar só (a Tributação, decisão [F] 2026-11-15); o cockpit é caminho, não segunda cópia. Botão sem a flag ou sem a permissão levaria a uma tela que recusa.
+- **Teste:** `Modules/Fiscal/Tests/Feature/CockpitAtalhoNaturezasTest.php` — os três casos `UC-FCKP-17 · …` (empresa 98, sem banco).
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ---

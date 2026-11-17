@@ -152,7 +152,7 @@ it('UC-FSPED-05 · resolverTributoItem com motor configurado retornando CST 00 +
     // Cria stub NfeEmissao com metadata NCM válido
     $emissao = new \Modules\NfeBrasil\Models\NfeEmissao;
     $emissao->id = 1;
-    $emissao->business_id = 1;
+    $emissao->business_id = 98;
     $emissao->valor_total = 1000.00;
     $emissao->metadata = ['ncm' => '61091000', 'dest_uf' => 'RS'];
 
@@ -181,7 +181,7 @@ it('UC-FSPED-06 · resolverTributoItem fallback quando motor lança NcmObrigator
 
     $emissao = new \Modules\NfeBrasil\Models\NfeEmissao;
     $emissao->id = 1;
-    $emissao->business_id = 1;
+    $emissao->business_id = 98;
     $emissao->valor_total = 500.00;
     $emissao->metadata = ['ncm' => '61091000'];
 
@@ -198,7 +198,7 @@ it('UC-FSPED-07 · keyTotalizadorC190 não retorna mais hardcode "102" — chave
     $service = new SpedIcmsIpiGeneratorService;
     $emissao = new \Modules\NfeBrasil\Models\NfeEmissao;
     $emissao->id = 1;
-    $emissao->business_id = 1;
+    $emissao->business_id = 98;
 
     $tributo = [
         'cst'       => '00',

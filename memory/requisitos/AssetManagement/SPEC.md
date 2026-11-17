@@ -2,7 +2,7 @@
 id: requisitos-asset-management-spec
 module: AssetManagement
 version: "1.0"
-last_updated: "2026-07-02"
+last_updated: "2026-11-05"
 owner: wagner
 status: ativo
 anchor_format: "v1"
@@ -10,7 +10,7 @@ na_justified:
   D5: "Módulo legacy UltimatePOS de gestão de ativos (impressoras, máquinas, equipamentos). Cross-business interno — sem cliente externo pagante específico reportando dor. ADR 0121 §modular especializado legacy + ADR 0105 §cliente como sinal qualificado: módulo dormente sem sinal qualificado de cliente real ativo."
   D6.c: "Scaffold UltimatePOS v6 legacy — controllers usam DataTables server-side (yajra) com SQL determinístico simples, sem paginate Eloquent complexo nem eager-load com N+1 risk. Volume típico <2k assets/business — perf adequada sem otimização avançada."
   D9.b: "AssetManagement é módulo CRUD síncrono — sem jobs assíncronos Horizon. Operações de allocate/revoke/maintenance são single-shot via Controller. failed_jobs N/A por design."
-related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0, 0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified]
+related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0, 0358-doutrina-de-teste-tenant-98-supersede-0101, 0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react, 0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified]
 ---
 <!-- schema-allowlist: US ativas sob "## Tabela de US" + backlog sob "## Backlog (feature wish...)"; SPEC legacy UltimatePOS usa heading "## Tabela de US" em vez do canônico "## US ativas". -->
 
@@ -21,9 +21,9 @@ related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0,
 ## Estado
 
 - ✅ Em produção (legacy UltimatePOS, 7 controllers, 4 Entities)
-- 🟡 Sem `BusinessScope` global — isolamento Tier 0 via filtro manual em Controllers
-- 🟡 Frontend Blade only — sem MWART/Inertia ainda
-- ⏸️ Backlog feature-wish: Depreciação automática (ADR 0105 — sem cliente sinalizando)
+- 🟡 Sem `BusinessScope` global — isolamento Tier 0 via filtro manual em Controllers e Services (os 4 Models estão em `grandfathered` em `governance/multi-tenant-scope-baseline.json:8-11`)
+- ✅ Frontend Inertia/React em `resources/js/Pages/Patrimonio/` (Index, Bens, Alocacoes, Manutencoes, Configuracoes — [ADR 0394](../../decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)); formulários de escrita em drawer React ([ADR 0414](../../decisions/0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react.md)). Medido em `origin/main` 2026-11-05: os 5 controllers de tela devolvem `Inertia::render` (`AssetController.php:284`, `:911`, `AssetAllocationController.php:167`, `AssetMaitenanceController.php:275`, `AssetSettingsController.php:92`) e nenhum controller chama `view(` (a única ocorrência, `AssetController.php:892`, é docblock). Até esta data esta linha dizia "Frontend Blade only".
+- ✅ Depreciação gerencial linear pela vida útil do bem (US-ASSET-009); o prazo padrão por categoria segue aberto (US-ASSET-011)
 
 ## Tabela de US
 
@@ -37,6 +37,8 @@ related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0,
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/AssetController.php` · `AssetController@store` · `Modules/AssetManagement/Entities/Asset.php` · verificado@dad0b11 (2026-07-02)
 
+**Aceite:** cadastrar pelo drawer grava valor e quantidade exatamente como digitados, na empresa de quem cadastra; a listagem só mostra bens da própria empresa. Contrato executável: UC-BENS-01 e UC-BENS-05 em `resources/js/Pages/Patrimonio/Bens.casos.md`.
+
 ### US-ASSET-002 · Alocação de ativo a colaborador (`transaction_type=allocate`) `✅ done`
 
 > status: done
@@ -44,6 +46,8 @@ related_adrs: [0011-alinhamento-padrao-jana, 0093-multi-tenant-isolation-tier-0,
 Vincula `receiver` (colaborador) + `quantity` reservada via `AssetTransaction` (schema real usa coluna `receiver`, não `user_id`).
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/AssetAllocationController.php` · verificado@dad0b11 (2026-07-02)
+
+**Aceite:** alocar grava exatamente a quantidade e a data digitadas; editar só abre alocação da própria empresa. Contrato executável: UC-ALOC-01, UC-ALOC-06 e UC-ALOC-07 em `resources/js/Pages/Patrimonio/Alocacoes.casos.md`.
 
 ### US-ASSET-003 · Revogação/devolução de alocação (`transaction_type=revoke`) `✅ done`
 
@@ -53,6 +57,8 @@ Restaura quantidade disponível.
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php` · verificado@dad0b11 (2026-07-02)
 
+**Aceite:** devolver e excluir devolução pelo drawer, com a alocação e a devolução escopadas na empresa. Contrato executável: UC-ALOC-08 em `resources/js/Pages/Patrimonio/Alocacoes.casos.md`.
+
 ### US-ASSET-004 · Log de manutenções `✅ done`
 
 > status: done
@@ -60,6 +66,8 @@ Restaura quantidade disponível.
 `AssetMaintenance` com `status` + `priority` + `details` + `assigned_to` (schema real da migration `2022_03_26_062215_create_asset_maintenances_table.php` — **sem** colunas `maintenance_date`/`completion_date`/`cost`; o texto legado que as citava foi corrigido em 2026-07-02).
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/AssetMaitenanceController.php` · `Modules/AssetManagement/Entities/AssetMaintenance.php` · verificado@dad0b11 (2026-07-02)
+
+**Aceite:** a listagem mostra só manutenções da empresa (quem só pode ver as suas vê só as suas); gravar não alcança outra empresa; a tela não mostra custo que o banco não guarda. Contrato executável: UC-MANU-01, UC-MANU-02, UC-MANU-03, UC-MANU-05 e UC-MANU-06 em `resources/js/Pages/Patrimonio/Manutencoes.casos.md`.
 
 ### US-ASSET-005 · Garantia/warranty (período + custo adicional) `✅ done`
 
@@ -69,11 +77,15 @@ Restaura quantidade disponível.
 
 **Implementado em:** `Modules/AssetManagement/Entities/AssetWarranty.php` · `Modules/AssetManagement/Entities/Asset.php` · `Asset::is_in_warranty` · verificado@dad0b11 (2026-07-02)
 
+**Aceite:** garantia ligada ao bem e escopada pela empresa do bem; editar o bem não apaga nem alcança garantia de outra empresa; excluir o bem leva as garantias. Contrato executável: UC-BENS-06, UC-BENS-08, UC-BENS-09 e UC-BENS-11 em `resources/js/Pages/Patrimonio/Bens.casos.md`.
+
 ### US-ASSET-006 · Notificações de manutenção (mail) `✅ done`
 
 > status: done
 
 **Implementado em:** `Modules/AssetManagement/Notifications/AssetAssignedForMaintenance.php` · `Modules/AssetManagement/Notifications/AssetSentForMaintenance.php` · verificado@dad0b11 (2026-07-02)
+
+**Aceite:** desligar o e-mail nas Configurações desliga o envio. Contrato executável: UC-CFG-04 em `resources/js/Pages/Patrimonio/Configuracoes.casos.md`.
 
 ### US-ASSET-007 · Settings per-business (prefix, notification) `✅ done`
 
@@ -83,6 +95,8 @@ Coluna `asset_settings` em `business` table.
 
 **Implementado em:** `Modules/AssetManagement/Http/Controllers/AssetSettingsController.php` · verificado@dad0b11 (2026-07-02)
 
+**Aceite:** só o administrador configura; os prefixos exibidos são os da própria empresa; salvar grava o mesmo campo `asset_settings`. Contrato executável: UC-CFG-01, UC-CFG-03 e UC-CFG-05 em `resources/js/Pages/Patrimonio/Configuracoes.casos.md`.
+
 ### US-ASSET-008 · Multi-tenant isolation test biz=1 vs biz=99 (Tier 0) `✅ done`
 
 > status: done
@@ -91,13 +105,22 @@ Owner [Claude] — Wave I-W 2026-05-16.
 
 **Implementado em:** `Modules/AssetManagement/Tests/Feature/MultiTenantIsolationTest.php` · `Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php` · verificado@dad0b11 (2026-07-02)
 
-### US-ASSET-009 · Depreciação gerencial linear por categoria — **P2**
+**Aceite:** dado de uma empresa nunca aparece nem é gravado em outra; os testes usam tenant fictício ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)), nunca o cliente piloto.
 
-> owner: — · priority: p2 · status: todo · type: story
+### US-ASSET-009 · Depreciação gerencial linear pela vida útil do bem — **P2** `✅ done`
+
+> owner: — · priority: p2 · status: done · type: story
 
 Como dono, quero ver quanto cada bem já perdeu de valor e quanto vale hoje, calculado de forma linear pelo prazo da categoria (editável no bem), para saber o valor do meu patrimônio sem esperar o contador.
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/AssetManagement/Services/DepreciacaoGerencial.php` · `DepreciacaoGerencial::doPatrimonio` · `Modules/AssetManagement/Http/Controllers/AssetController.php` · `AssetController@dashboard` · verificado@7d99759 (2026-11-05)
+
+**Testado em:** `Modules/AssetManagement/Tests/Feature/DepreciacaoGerencialTest.php`
+
+**Aceite:** dado bens com vida útil em anos e data de compra, o card "Valor residual" do painel mostra a soma linear (valor de compra × meses que faltam ÷ meses totais), rotulada gerencial, e diz quantos bens sem vida útil ficaram fora; bem de outra empresa não entra. Contrato executável: UC-PAT-12 em `resources/js/Pages/Patrimonio/Index.casos.md`.
+
+- **Entregue em 2026-10-26** ([#9881](https://github.com/wagnerra23/oimpresso.com/pull/9881), `2654d9c532`): a vida útil vem do campo do próprio bem (`assets.depreciation`, em anos); a soma é `DepreciacaoGerencial.php:52` e o painel a chama em `AssetController.php:963`. Até 2026-11-05 esta US constava `status: todo` com âncora `_pendente_`.
+- **O que NÃO foi entregue:** o prazo padrão por categoria. `DepreciacaoGerencial.php` não lê categoria e as Configurações não têm o campo (`git grep -niE categor` em `DepreciacaoGerencial.php` e `AssetSettingsController.php`: vazio). Essa parte da decisão [W] passou para a US-ASSET-011. O título original desta US era "Depreciação gerencial linear por categoria".
 
 - **Decisão [W] 2026-10-26:** opção A, linear por categoria com prazo padrão editável no bem. Mostrar como valor **GERENCIAL**, rotulado assim, nunca como contábil. Promove o wish US-ASSET-W01 (só a parte linear; SAC e taxa fiscal ficam fora).
 - Até esta data o painel devolvia `null` para o valor residual ("depreciação nunca é calculada", RESÍDUO 6 em `AssetController::dashboard`).
@@ -114,13 +137,24 @@ Como responsável pelo patrimônio, quero cadastrar a cada quantos dias um bem p
 - Origem: lacunas de 2026-10-25 (P2 "depreciação e manutenção preventiva"). Não depende da US-ASSET-009.
 - Hoje só existe o registro de manutenção feita (US-ASSET-004) e o aviso por e-mail dela (US-ASSET-006).
 
+### US-ASSET-011 · Prazo padrão de vida útil por categoria — **P2**
+
+> owner: — · priority: p2 · status: todo · type: story
+
+Como dono, quero definir nas Configurações um prazo padrão de vida útil por categoria de bem, que o bem herda quando não tem prazo próprio, para não preencher a vida útil bem a bem.
+
+**Implementado em:** _pendente_
+
+- Origem: a parte "prazo padrão por categoria" da decisão [W] de 2026-10-26 registrada na US-ASSET-009, que foi entregue só com a vida útil do próprio bem.
+- Mexe em valor exibido (valor residual do painel): regra mestre — dupla prova e antes→depois no PR.
+
 ## Backlog (feature wish — sem sinal qualificado ADR 0105)
 
 - ~~🔒 US-ASSET-W01: Depreciação automática linear/SAC (depreciation_rate + book_value)~~ → parte linear ativa como US-ASSET-009 (decisão [W] 2026-10-26)
 - 🔒 US-ASSET-W02: Transferência entre filiais (transfer between BusinessLocations)
 - 🔒 US-ASSET-W03: Disposal/baixa contábil com motivo + data
 - 🔒 US-ASSET-W04: QR code físico no ativo + scan mobile pra check-in/out
-- 🔒 US-ASSET-W05: Migração Blade → Inertia/React (skill `mwart-process`)
+- ~~🔒 US-ASSET-W05: Migração Blade → Inertia/React (skill `mwart-process`)~~ → feita: as 5 telas são Inertia em `resources/js/Pages/Patrimonio/` (ADR 0394 e ADR 0414). Em 2026-11-05 restavam arquivos Blade em `Modules/AssetManagement/Resources/views/` que nenhum controller renderiza.
 
 ## Schema canônico
 
@@ -134,5 +168,5 @@ Como responsável pelo patrimônio, quero cadastrar a cada quantos dias um bem p
 - [Modules/AssetManagement/Entities/Asset.php](../../../Modules/AssetManagement/Entities/Asset.php)
 - [Modules/AssetManagement/Http/Controllers/](../../../Modules/AssetManagement/Http/Controllers/)
 - [ADR 0093 Multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0101 Tests biz=1 nunca biz=cliente](../../decisions/0101-tests-business-id-1-nunca-cliente.md)
+- [ADR 0358 Doutrina de teste — tenant 98](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) (até 2026-11-05 esta linha apontava para `0101-tests-business-id-1-nunca-cliente.md`, arquivo que não existe; a 0358 supersede a doutrina de teste da antiga 0101)
 - [BRIEFING.md](BRIEFING.md)

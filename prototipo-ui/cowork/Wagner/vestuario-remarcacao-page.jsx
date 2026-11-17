@@ -78,7 +78,7 @@ dialog{border:1px solid var(--border);border-radius:12px;background:var(--surfac
 
   <section class="card" data-contract="previa" id="previa" hidden>
     <h2>2 · Prévia — nada foi gravado ainda</h2>
-    <div class="chips"><span class="chip" id="c-qtd"></span><span class="chip">2 sem mudança, fora da lista</span><span class="chip">Tabelas de preço por grupo não mudam</span></div>
+    <div class="chips"><span class="chip" id="c-qtd"></span><span class="chip">2 sem mudança, fora da lista</span><span class="chip">Preço fixo de grupo não muda; percentual acompanha</span></div>
     <table><thead><tr><th>Produto</th><th>Variação</th><th>SKU</th><th class="n">Antes</th><th class="n">Depois</th><th class="n">Diferença</th></tr></thead><tbody id="linhas"></tbody></table>
     <div class="bar"><span class="sub">Se algum preço mudar antes de você gravar, a gravação é recusada e a prévia precisa ser refeita.</span>
       <button class="btn primary" onclick="document.getElementById('conf').showModal()">Gravar remarcação</button></div>

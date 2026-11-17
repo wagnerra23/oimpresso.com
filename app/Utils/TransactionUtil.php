@@ -896,8 +896,10 @@ class TransactionUtil extends Util
 
         $payment['amount'] = $uf_data ? $this->num_uf($payment['amount']) : $payment['amount'];
 
+        // A linha editada tem que ser desta venda (Tier 0, ADR 0093): o payment_id vem do request.
         $tp = TransactionPayment::where('id', $payment_id)
-                            ->first();
+                            ->where('transaction_id', $transaction->id)
+                            ->firstOrFail();
 
         $transaction_type = ! empty($transaction->type) ? $transaction->type : null;
 
@@ -4852,6 +4854,70 @@ class TransactionUtil extends Util
      * @param  int  $transaction_id
      * @return array
      */
+    /**
+     * P-076 — quem tem só `draft.delete` exclui rascunho pela lista de rascunhos.
+     *
+     * Os dois `destroy` de venda (`SellController` atende `DELETE /sells/{id}`, usado pela lista
+     * React; `SellPosController` atende o Excluir da lista Blade `sale_pos/draft`) aceitavam só
+     * as permissões de excluir venda, então o Excluir de rascunho dava 403 para quem tinha só
+     * `draft.delete`. A regra mora aqui, num lugar só, e os dois chamam.
+     *
+     * Vale só para rascunho comum (status `draft`, fora cotação) da empresa da sessão; com
+     * `draft.view_own` sem `draft.view_all`, só o rascunho que o próprio usuário criou. Venda
+     * finalizada segue exigindo as permissões de antes; cotação tem regra própria em
+     * `podeExcluirComoCotacao`. Não mexe em valor nem estoque:
+     * só decide se o `destroy` prossegue; quem apaga continua sendo `deleteSale`.
+     */
+    public function podeExcluirComoRascunho($user, $business_id, $transaction_id): bool
+    {
+        if (empty($user) || ! $user->can('draft.delete')) {
+            return false;
+        }
+
+        $rascunho = Transaction::where('business_id', $business_id)
+            ->where('id', $transaction_id)
+            ->where('type', 'sell')
+            ->where('status', 'draft')
+            ->where(function ($q) {
+                $q->whereNull('sub_status')->orWhere('sub_status', '!=', 'quotation');
+            })
+            ->first(['id', 'created_by']);
+
+        if (empty($rascunho)) {
+            return false;
+        }
+
+        return $user->can('draft.view_all') || (int) $rascunho->created_by === (int) $user->id;
+    }
+
+    /**
+     * Mesmo caso do `podeExcluirComoRascunho`, para cotação: a lista de cotações mostra Excluir
+     * para quem tem `quotation.delete`, e os dois `destroy` recusavam essa permissão (403).
+     *
+     * Vale só para cotação (status `draft`, `sub_status` `quotation`) da empresa da sessão; com
+     * `quotation.view_own` sem `quotation.view_all`, só a cotação que o próprio usuário criou —
+     * o mesmo recorte da lista. Não mexe em valor nem estoque: só decide se o `destroy` prossegue.
+     */
+    public function podeExcluirComoCotacao($user, $business_id, $transaction_id): bool
+    {
+        if (empty($user) || ! $user->can('quotation.delete')) {
+            return false;
+        }
+
+        $cotacao = Transaction::where('business_id', $business_id)
+            ->where('id', $transaction_id)
+            ->where('type', 'sell')
+            ->where('status', 'draft')
+            ->where('sub_status', 'quotation')
+            ->first(['id', 'created_by']);
+
+        if (empty($cotacao)) {
+            return false;
+        }
+
+        return $user->can('quotation.view_all') || (int) $cotacao->created_by === (int) $user->id;
+    }
+
     public function deleteSale($business_id, $transaction_id)
     {
         //Check if return exist then not allowed

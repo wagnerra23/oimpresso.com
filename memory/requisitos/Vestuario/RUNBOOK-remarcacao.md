@@ -1,12 +1,12 @@
 ---
-last_validated: "2026-10-27"
+last_validated: "2026-11-09"
 slug: vestuario-runbook-remarcacao
 title: "RUNBOOK — Remarcação por coleção (US-VEST-032)"
 type: runbook
 authority: canonical
 lifecycle: ativo
 owner: W
-last_updated: "2026-10-27"
+last_updated: "2026-11-09"
 pii: false
 related_us: [US-VEST-032]
 related_adrs:
@@ -50,7 +50,9 @@ Desligada por padrão (404). Liga pelo setting do Vestuário da empresa:
 php artisan vestuario:settings set --business=<id> --key=remarcacao.enabled --value=true --type=bool
 ```
 
-Permissão: `product.update`.
+Permissão: `vestuario.remarcacao.aplicar` (Funções > Vestuário), decisão [W] 2026-11-09. Editar produto
+não basta. O item Vestuário do menu segue exigindo `vestuario.access` ou `vestuario.etiqueta.view`
+(SDD CU-VEST-08 item 2), logo a função precisa de uma delas para ver "Remarcação" no menu.
 
 ## Multi-tenant Tier 0
 

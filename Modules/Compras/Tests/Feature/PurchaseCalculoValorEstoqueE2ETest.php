@@ -41,7 +41,9 @@ use Tests\Support\EstoqueFixture;
  *   (só no full-suite nightly do CT 100) e a redação dizia "a lane Compras não bloqueia
  *   merge" — falsa desde 2026-08-05, quando a lane virou required (#5313, ADR 0369).
  *   Em 2026-11-05 a auditoria de Compras (pergunta 9) levou ao [W] a decisão de pôr este
- *   teste na lane de PR; ele é a única prova da US-COM-011 [V0].
+ *   teste na lane de PR; ele é a única prova da US-COM-011 [V0]. Entrou na allowlist do
+ *   compras-pest no #10419 (2 passed, 48 assertions no tenant 98) e em 2026-11-06 o [W]
+ *   decidiu: fica na lane de PR.
 
  * O QUE ESTE TESTE ASSERTA (com NÚMEROS CONCRETOS, ancorado em CONTRATO)
  * =====================================================================

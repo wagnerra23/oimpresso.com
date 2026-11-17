@@ -132,3 +132,39 @@ it('usuário de outra empresa não decide o pedido', function () {
 
     expect(fn () => $this->svc->decidir($this->biz, $p, $alheio, true))->toThrow(InvalidArgumentException::class, 'Você não tem alçada para este valor.');
 });
+
+it('D4 · o histórico da alçada guarda a decisão anterior quando o pedido volta para aprovação', function () {
+    // Lote 2.4 da auditoria de Compras (2026-11-05): `registrar` faz updateOrInsert, e um pedido
+    // aprovado que sobe de valor (PurchaseOrderController@update chama registrar de novo) perdia a
+    // aprovação anterior. A linha guarda o estado atual; o activity_log guarda cada evento.
+    $this->svc->definir($this->biz, true, '1000.00', '10000.00');
+    $p = alcPedido($this, '5000.00');
+    $log = fn () => DB::table('activity_log')->where('subject_type', App\Transaction::class)->where('subject_id', $p)
+        ->whereIn('description', ['compras_alcada_registrada', 'compras_alcada_decidida'])->orderBy('id')->get();
+
+    $this->actingAs($this->comprador);
+    $this->svc->registrar($this->biz, $p, $this->comprador->id);
+    $this->actingAs($this->gerente);
+    $this->svc->decidir($this->biz, $p, $this->gerente, true);
+
+    DB::table('transactions')->where('id', $p)->update(['final_total' => '20000.00']);
+    $this->actingAs($this->comprador);
+    $this->svc->registrar($this->biz, $p, $this->comprador->id);
+
+    // Estado atual: pendente na diretoria.
+    $atual = DB::table('compras_aprovacoes_pedido')->where('transaction_id', $p)->first();
+    expect($atual->status)->toBe('pendente')->and($atual->nivel)->toBe('diretoria');
+
+    // Histórico: três eventos, na ordem, e o terceiro carrega a aprovação do gerente que foi sobrescrita.
+    $eventos = $log();
+    expect($eventos->pluck('description')->all())->toBe(['compras_alcada_registrada', 'compras_alcada_decidida', 'compras_alcada_registrada'])
+        ->and($eventos->pluck('business_id')->unique()->all())->toBe([$this->biz]);
+
+    $decidida = json_decode($eventos[1]->properties, true);
+    expect($decidida['status'])->toBe('aprovado')->and($decidida['decidido_por'])->toBe($this->gerente->id)
+        ->and((int) $eventos[1]->causer_id)->toBe($this->gerente->id);
+
+    $anterior = json_decode($eventos[2]->properties, true)['anterior'];
+    expect($anterior['status'])->toBe('aprovado')->and((int) $anterior['decidido_por'])->toBe($this->gerente->id)
+        ->and($anterior['nivel'])->toBe('gerente');
+});

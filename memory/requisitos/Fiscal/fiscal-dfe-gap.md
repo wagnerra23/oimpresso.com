@@ -12,3 +12,5 @@ comparacao: memory/requisitos/Fiscal/fiscal-dfe-visual-comparison.md
 | Parte | Estado no vivo | Ação |
 |---|---|---|
 | Filtros e manifestação | Busca e as 5 chips com paridade exata; a manifestação EM LOTE do protótipo (fx-bulk, fiscal-subpages.jsx:134-142) não existe — o próprio vivo declara "PR seguinte" (Dfe.tsx:140) | **Decidir.** A região declarada do protótipo inclui o bloco fx-bulk (4 botões de manifestação em lote) que o Dfe.tsx não tem — existe manifestação por LINHA (:254-282), não em lote. Construir, encolher o range do protótipo para 127-133, ou rejeitar por escrito. |
+
+> **Re-medido em 2026-11-06:** a manifestação em lote existe: `Dfe.tsx` posta em `/fiscal/acoes/dfe/lote` (US-FISCAL-008), e a barra `fx-bulk` aparece com seleção. A linha "Filtros e manifestação" acima é o retrato de 2026-08-28.

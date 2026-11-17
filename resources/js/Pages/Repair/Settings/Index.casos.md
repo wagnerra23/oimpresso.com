@@ -6,10 +6,15 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato de gravação é durável — "são duas colunas disjuntas" e "submit parcial apaga" valem em qualquer refactor da tela
 owner: wagner
 autor: "[C] 2026-09-04"
-last_run: "2026-09-05"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Configurações do Repair
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10550). Nada
+> do comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch,
+> run [42222751388](https://github.com/wagnerra23/oimpresso.com/actions/runs/42222751388) (verde): `RepairSettingsContratoTest` 8 testes, 30 asserções, 0 skipped.
 
 > Derivados do contrato de gravação medido em `RepairSettingsController` e do
 > [RUNBOOK-repair-settings.md](../../../../../memory/requisitos/Repair/RUNBOOK-repair-settings.md) —

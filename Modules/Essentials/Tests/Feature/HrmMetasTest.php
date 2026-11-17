@@ -298,3 +298,40 @@ it('UC-METAS-07: a rota Inertia NAO quebrou o ramo DataTables que a Blade legada
         ->assertOk()
         ->assertJsonStructure(['data', 'recordsTotal', 'recordsFiltered']);
 });
+
+it('UC-METAS-08: o item HRM do menu tem a sub-tela "Metas de venda" apontando para a rota da tela', function () {
+    hmPular($this);
+
+    // A empresa precisa do pacote com `essentials_module` — é o gate do item HRM no
+    // DataController. Inscrição própria, dentro da transação do teste (rollback no fim).
+    $pacote = \Modules\Superadmin\Entities\Package::create([
+        'name' => 'Pacote HrmMetasTest '.uniqid(), 'description' => 'fixture UC-METAS-08',
+        'location_count' => 1, 'user_count' => 5, 'product_count' => 100, 'invoice_count' => 1000,
+        'interval' => 'months', 'interval_count' => 1, 'trial_days' => 0, 'price' => 0,
+        'is_active' => 1, 'sort_order' => 999, 'is_private' => 1, 'is_one_time' => 0,
+        'custom_permissions' => ['essentials_module' => 1],
+    ]);
+    \Modules\Superadmin\Entities\Subscription::create([
+        'business_id' => $this->hmTenant->id, 'package_id' => $pacote->id, 'paid_via' => 'offline',
+        'start_date' => now()->toDateString(), 'end_date' => now()->addYear()->toDateString(),
+        'trial_end_date' => null, 'status' => 'approved', 'package_price' => 0,
+        'package_details' => ['name' => $pacote->name, 'essentials_module' => 1], 'created_id' => $this->hmUser->id,
+    ]);
+    session(['user.business_id' => $this->hmTenant->id]);
+
+    \Menu::create('admin-sidebar-menu', fn ($menu) => $menu);
+    (new \Modules\Essentials\Http\Controllers\DataController())->modifyAdminMenu();
+    $hrm = collect((new \App\Services\LegacyMenuAdapter())->build())
+        ->first(fn ($i) => parse_url($i['href'] ?? '', PHP_URL_PATH) === '/hrm/dashboard');
+
+    $this->assertNotNull($hrm, 'o item HRM deveria estar no menu da empresa com essentials_module');
+    $ghosts = collect($hrm['ghosts'] ?? [])->map(fn ($g) => [$g['label'], $g['href']])->all();
+    // Ordem do protótipo (`data.jsx`, ghosts do HRM): Feriados → Metas de venda.
+    $iFeriados = array_search(['Feriados', '/hrm/holiday'], $ghosts, true);
+    $iMetas = array_search(['Metas de venda', HM_ROTA_LISTA], $ghosts, true);
+    expect($iMetas)->not->toBeFalse()
+        ->and($iFeriados)->not->toBeFalse()
+        ->and($iMetas)->toBe($iFeriados + 1);
+
+    $this->get(HM_ROTA_LISTA)->assertOk();
+});

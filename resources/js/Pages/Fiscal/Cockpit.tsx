@@ -16,7 +16,7 @@ import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
 import {
-  Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw,
+  Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw, Scale,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -30,7 +30,6 @@ import RibbonSpark from './_components/RibbonSpark';
 import SavedViewsChips from './_components/SavedViewsChips';
 import { SeloProcedencia } from './_components/SeloProcedencia';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
-import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
 import { useDensidadeFiscal } from './_lib/densidade-fiscal';
 import { type MapaProcedencia } from './_lib/procedencia';
@@ -130,10 +129,10 @@ interface CockpitProps {
   // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
   eventosMock?: EventoFiscal[];
   contabilData?: SendToContabilData | null;
-  // Onda 3 — auditoria mensal (write-off candidatos)
-  writeOffSummary?: WriteOffSummary | null;
   // CU-FISC-16 — procedência por superfície, declarada em CockpitController::procedencia().
   procedencia?: MapaProcedencia;
+  // Atalho para a seção Naturezas de operação da Tributação; null = sem flag ou sem permissão.
+  naturezasUrl?: string | null;
 }
 
 type ViewId = 'todas' | 'resolver' | 'janela24' | 'processando' | 'nfse' | 'nfce' | 'custom';
@@ -226,8 +225,9 @@ function mapToNFSeDrawerData(n: NotaRow): NFSeDrawerData {
 
 export default function Cockpit({
   kpis, sparklines, alerts, notas, savedViewCounts, sefazStatus,
-  eventosMock = [], contabilData = null, writeOffSummary = null,
+  eventosMock = [], contabilData = null,
   procedencia,
+  naturezasUrl = null,
 }: CockpitProps) {
   const goto = (path: string) => router.visit(path);
 
@@ -382,6 +382,16 @@ export default function Cockpit({
                 <span className="ml-1 text-[10px] font-bold text-muted-foreground">{eventosMock.length}</span>
               )}
             </Button>
+            {naturezasUrl && (
+              <Button
+                type="button"
+                variant="cowork-ghost"
+                onClick={() => goto(naturezasUrl)}
+                data-acao="naturezas-operacao"
+              >
+                <Scale size={12} /> Naturezas de operação
+              </Button>
+            )}
             <Button
               type="button"
               variant="cowork-ghost"
@@ -466,14 +476,6 @@ export default function Cockpit({
           </Inline>
         )}
         <AlertasFiscais alerts={alerts} />
-
-        {/* Onda 3 L — Write-off auditoria mensal (só renderiza se houver candidatos) */}
-        {writeOffSummary && (
-          <Inline justify="end">
-            <SeloProcedencia mapa={procedencia} chave="writeoff" />
-          </Inline>
-        )}
-        <WriteOffAuditoriaCard summary={writeOffSummary} />
 
         {/* Toolbar minimalista — search + 3 selects + density */}
         <div className="fx-notas-toolbar">

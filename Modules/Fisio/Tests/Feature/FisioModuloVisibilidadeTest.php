@@ -69,6 +69,11 @@ it('UC-FPN-01 · o menu Fisio lista as telas do módulo na ordem da ADR 0437 §3
         ['Biblioteca', '/fisio/biblioteca'],
         ['Agenda', '/fisio/agenda'],
         ['Protocolos', '/fisio/protocolos'],
+        // [W] 2026-11-06: configurações e fila fiscal tinham rota e permissão, sem item no menu.
+        ['Fila fiscal', '/fisio/fiscal'],
+        ['Agendamento online', '/fisio/configuracoes/agendamento'],
+        ['WhatsApp', '/fisio/configuracoes/whatsapp'],
+        ['Primeira configuração', '/fisio/onboarding'],
     ]);
 
     // Cada item abre: link de menu para rota inexistente seria 404 para a clínica.
@@ -86,7 +91,8 @@ it('UC-FPN-01 · rotas do Fisio respondem 403 para business sem o pacote, e 200 
     $this->get('/fisio/protocolos')->assertOk();
 
     F::como($this, $this->u99);
-    foreach (['/fisio', '/fisio/pacientes', '/fisio/biblioteca', '/fisio/agenda', '/fisio/protocolos'] as $rota) {
+    foreach (['/fisio', '/fisio/pacientes', '/fisio/biblioteca', '/fisio/agenda', '/fisio/protocolos',
+              '/fisio/fiscal', '/fisio/configuracoes/agendamento', '/fisio/configuracoes/whatsapp', '/fisio/onboarding'] as $rota) {
         $this->get($rota)->assertForbidden();
     }
     // Escrita também barrada — nada é gravado no business sem módulo.

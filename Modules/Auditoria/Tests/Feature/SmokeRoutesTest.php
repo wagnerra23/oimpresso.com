@@ -2,88 +2,67 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Activitylog\Models\Activity;
 
 /**
- * Smoke das 3 rotas principais do AuditoriaController + checagem
- * de middleware auth aplicado na stack canonica UltimatePOS.
+ * Acesso anônimo às rotas do AuditoriaController.
  *
- * Valida que:
- *   1. GET /auditoria (auditoria.index) responde <500 (200 ou 302 pra login)
- *   2. GET /auditoria/{id} (auditoria.show) responde <500
- *   3. POST /auditoria/{id}/revert (auditoria.revert) responde <500
- *      (placeholder 501 atual e considerado smoke OK — ver
- *      AuditoriaController::revert US-AUDIT-008 pendente)
- *   4. Acesso anonimo (sem auth) e redirecionado/blocado pelo
- *      middleware 'auth' da stack canonica
+ * Stack UltimatePOS: ['web','SetSessionData','auth','language','timezone',
+ * 'AdminSidebarMenu','CheckUserLogin'] (Routes/web.php). O contrato aqui é exato: quem
+ * não está logado vai para o login e não recebe dado nem altera nada. "Qualquer status
+ * abaixo de 500" não provava isso (aceitava 200, 404 e até 501).
  *
- * Per stack UltimatePOS: ['web','SetSessionData','auth','language',
- * 'timezone','AdminSidebarMenu','CheckUserLogin'] (Routes/web.php).
+ * Tenant fictício via seededTenant() (ADR 0358), nunca biz=4. Transação revertida.
  *
- * NUNCA usar biz=4 (ROTA LIVRE producao) — ADR 0101. Tests assumem
- * que rotas existem (validado em AuditoriaModuleTest) e so checam
- * status HTTP nao-500.
- *
- * @see memory/decisions/0127-modules-auditoria-ui-undo.md
- * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
+ * @see memory/decisions/0127-modulo-auditoria-ui-undo.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  */
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 // Guard SQLite: middlewares UltimatePOS (SetSessionData/AdminSidebarMenu) requerem
 // tables MySQL como business/users/permissions; smoke real precisa schema completo.
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompativel: middlewares UltimatePOS (SetSessionData, AdminSidebarMenu) requerem schema MySQL com tables business/users/permissions (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompativel: middlewares UltimatePOS (SetSessionData, AdminSidebarMenu) requerem schema MySQL com tables business/users/permissions');
     }
     if (! Schema::hasTable('activity_log')) {
         $this->markTestSkipped('activity_log table missing — rode migrations Spatie primeiro');
     }
-});
 
-// ------------------------------------------------------------------
-// Smoke routes
-// ------------------------------------------------------------------
-
-it('GET /auditoria (auditoria.index) responde com status < 500', function () {
-    // Sem auth — esperado redirect 302 pra login ou similar < 500.
-    // Importante: NAO deve crashar com 500 (signal de bug em Controller/middleware).
-    $response = $this->get(route('auditoria.index'));
-
-    expect($response->getStatusCode())->toBeLessThan(500);
-});
-
-it('GET /auditoria/{id} (auditoria.show) responde com status < 500', function () {
-    $response = $this->get(route('auditoria.show', ['activityId' => 1]));
-
-    expect($response->getStatusCode())->toBeLessThan(500);
-});
-
-it('POST /auditoria/{id}/revert (auditoria.revert) responde com status < 500', function () {
-    // Placeholder atual retorna 501 (Not Implemented) per
-    // AuditoriaController::revert. 501 < 500 nao bate — corrigir
-    // expectativa: 501 e classe 5xx, mas e SEMANTIC nao crash.
-    // Smoke real aqui: response existe e nao e 500 generico.
-    $response = $this->post(route('auditoria.revert', ['activityId' => 1]), [
-        'reason' => 'teste smoke route revert — placeholder',
+    $this->marcador = 'smoke-auditoria-'.uniqid();
+    $this->activity = Activity::create([
+        'log_name'    => 'auditoria-smoke-test',
+        'description' => $this->marcador,
+        'event'       => 'updated',
+        'business_id' => $this->seededTenant()->id,
+        'properties'  => ['old' => ['nome' => 'A'], 'attributes' => ['nome' => 'B']],
     ]);
-
-    // Aceita: 302 (redirect auth), 401/403 (auth fail), 419 (csrf), 501 (placeholder),
-    // 422 (validation). REJEITA: 500 (crash generico) e ausencia de response.
-    expect($response->getStatusCode())->not->toBe(500);
 });
 
-it('rota /auditoria bloqueia acesso anonimo via middleware auth', function () {
-    // Sem login — middleware 'auth' da stack canonica UltimatePOS deve
-    // interceptar e redirecionar pra /login ou retornar 401/403.
-    $response = $this->get(route('auditoria.index'));
+it('GET /auditoria anônimo vai para o login', function () {
+    $this->get(route('auditoria.index'))->assertRedirect(route('login'));
+});
 
-    $statusCode = $response->getStatusCode();
-    $isAuthBlocked = in_array($statusCode, [302, 401, 403], true);
+it('GET /auditoria/{id} anônimo vai para o login', function () {
+    $this->get(route('auditoria.show', ['activityId' => $this->activity->id]))
+        ->assertRedirect(route('login'));
+});
 
-    expect($isAuthBlocked)->toBeTrue(
-        "Esperado status 302/401/403 (auth middleware) — recebeu {$statusCode}. ".
-        'Se 200, middleware auth NAO esta aplicado em /auditoria — violacao ADR 0127 stack canonica.'
-    );
+it('POST /auditoria/{id}/revert anônimo vai para o login e não marca reversão', function () {
+    $this->post(route('auditoria.revert', ['activityId' => $this->activity->id]), [
+        'revert_reason' => 'teste de acesso anonimo ao revert',
+    ])->assertRedirect(route('login'));
+
+    expect($this->activity->fresh()->reverted_at)->toBeNull();
+});
+
+it('resposta anônima do detalhe não carrega o conteúdo da Activity', function () {
+    $response = $this->get(route('auditoria.show', ['activityId' => $this->activity->id]));
+
+    $response->assertRedirect(route('login'));
+    expect($response->getContent())->not->toContain($this->marcador);
 });

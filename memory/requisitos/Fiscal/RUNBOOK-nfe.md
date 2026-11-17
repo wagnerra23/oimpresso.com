@@ -2,7 +2,7 @@
 title: "RUNBOOK — Fiscal/Nfe (cockpit NF-e · NFC-e)"
 owner: W
 status: ativo
-last_validated: "2026-06-08"
+last_validated: "2026-11-06"
 ---
 
 # RUNBOOK — Fiscal/Nfe (cockpit NF-e · NFC-e)
@@ -59,7 +59,10 @@ NotaDrawer (slide-in 480px, ESC fecha)
 
 - **`fiscal.access`** — habilita entrada sidebar "Fiscal"
 - **`fiscal.nfe.view`** — acesso a `/fiscal/nfe` (`NfeCockpitController::index` 403 se faltar)
-- **`fiscal.nfe.acoes`** — futuro: habilita botões Cancelar/Retransmitir/CC-e (PR #4)
+- **`fiscal.nfe.acoes`** — botões Cancelar, CC-e, Inutilizar, Retransmitir e Devolução (`AcoesController`; *"futuro"* até o PR #4)
+- **pacote `fiscal_module`** — desde 2026-11-05 (#10404) o middleware `FiscalLiberado` exige o pacote também na URL direta, junto com `CheckUserLogin`
+
+> **Cancelar (R-NFE-044):** o modal pergunta *só a nota* (padrão, `NfeService::cancelar`, sem FSM) ou *a venda junto* (`escopo=venda`: confere antes se a venda pode ser cancelada; depois roda a ação FSM `cancelar_venda`). **Devolução (R-NFE-039):** `POST /fiscal/acoes/nfe/{id}/devolucao`, delega `DevolucaoService`. Erro da SEFAZ volta como mensagem genérica (#10462).
 - **`superadmin`** — bypass total
 
 Todas registradas em `Modules/Fiscal/Http/Controllers/DataController::user_permissions`.

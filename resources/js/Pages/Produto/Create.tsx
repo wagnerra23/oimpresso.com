@@ -8,18 +8,24 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
 import { tipoDeEnvio } from './_components/formulario/envio';
-import { definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
-import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
+import { camposPersonalizadosGravados, definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
+import type { CampoDaEmpresa, OptionMap, OptionStringMap, SubUnidade } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
+import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
+import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
+import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
+import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
+import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
+import { apagarRascunho, gravarRascunho, lerRascunho, semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
 
 function localUnico(locais: OptionMap): number[] {
   const ids = opcoesDe(locais).map(([id]) => Number(id));
@@ -48,6 +54,8 @@ interface ProdutoDuplicate {
   weight: number | null;
   product_description: string | null;
   type: 'single' | 'variable' | 'combo';
+  sub_unit_ids?: number[];
+  enable_sr_no?: number;
 }
 
 export interface ProdutoCreatePageProps {
@@ -72,6 +80,22 @@ export interface ProdutoCreatePageProps {
   expiryType?: string;
   enableLot: boolean;
   enableRacks: boolean;
+  /** CU-PROD-20: quais partes do endereço no estoque a empresa usa. */
+  enderecoNoEstoque?: EnderecoNoEstoque;
+  /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
+  metodoCusto?: MetodoCustoDoFormulario | null;
+  /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
+  margemMinima?: number | null;
+  /** `product.opening_stock`: mostra "Salvar e adicionar estoque inicial", como o Blade. */
+  podeEstoqueInicial?: boolean;
+  /** UC-PCAD-24: os campos personalizados com o nome que a empresa deu. */
+  camposDaEmpresa?: CampoDaEmpresa[];
+  /** UC-PCAD-25: categoria => {subcategoria => nome}; vazio sem subcategoria na empresa. */
+  subcategoriasPorCategoria?: Record<string, Record<string, string>>;
+  /** UC-PCAD-26: unidade => sub-unidades; vazio sem sub-unidades na empresa. */
+  subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
+  /** UC-PCAD-30: a chave do rascunho no navegador, por empresa e usuário (o servidor manda). */
+  rascunho?: string;
 }
 
 function ProdutoCreate(props: ProdutoCreatePageProps) {
@@ -83,6 +107,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
   // Preço do produto simples (precos.ts). Só os valores sem imposto; os "com imposto" saem da
   // alíquota do imposto escolhido, no envio e na tela.
   const [preco, setPreco] = useState(() => precoInicial(Number(props.defaultProfitPercent)));
+  const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
 
   const { data, setData, post, transform, processing, errors } = useForm({
     name: dup?.name ?? '',
@@ -110,18 +135,80 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     altura_cm: dup?.altura_cm ?? '',
     comprimento_cm: dup?.comprimento_cm ?? '',
     product_description: dup?.product_description ?? '',
-    sub_unit_ids: [] as number[],
+    sub_unit_ids: (dup?.sub_unit_ids ?? []) as number[],
     // Um local só: já vem marcado, como no Blade (`$default_location`). Mais de um: quem cadastra escolhe.
     product_locations: localUnico(props.businessLocations),
     warranty_id: '' as number | '',
     expiry_period: validadeNaCompra ? '12' : '',
     expiry_period_type: 'months',
-    enable_sr_no: 0,
-    product_custom_field1: '',
-    product_custom_field2: '',
-    product_custom_field3: '',
-    product_custom_field4: '',
+    enable_sr_no: dup?.enable_sr_no ? 1 : 0,
+    // UC-PCAD-29: imagem e folheto escolhidos. Com arquivo, o envio vira multipart sozinho.
+    image: null as File | null,
+    product_brochure: null as File | null,
+    // UC-PCAD-24: os 20 campos personalizados; a tela mostra os que a empresa nomeou.
+    ...camposPersonalizadosGravados(null),
   });
+
+  // CU-PROD-20: locais de armazenagem. Começa no local único (ou no primeiro), que é o padrão;
+  // duplicar traz os locais e o endereço do produto original.
+  const [armazenagem, setArmazenagem] = useState(() =>
+    armazenagemInicial(props.rackDetails as never, {
+      salvo: false,
+      localInicial: Number(opcoesDe(props.businessLocations)[0]?.[0] ?? 0) || null,
+    }),
+  );
+  // CU-PROD-21: produto novo começa com Preço fixo (US-PROD-030, padrão do protótipo).
+  const [politica, setPolitica] = useState(() => politicaInicial());
+  const endereco: EnderecoNoEstoque = props.enderecoNoEstoque ?? { prateleira: props.enableRacks, fileira: false, posicao: false };
+
+  // UC-PCAD-30: rascunho automático e aviso ao sair. O retrato junta tudo que a pessoa preenche;
+  // diferente do retrato inicial, a tela tem alterações não salvas.
+  const chaveRascunho = dup ? undefined : props.rascunho;
+  const retrato = JSON.stringify({
+    form: semArquivos(data as unknown as Record<string, unknown>),
+    preco,
+    politica,
+    armazenagem,
+    metodoCusto,
+    arquivos: [data.image?.name ?? null, data.product_brochure?.name ?? null],
+  });
+  const inicial = useRef<{ retrato: string; form: Record<string, unknown>; preco: typeof preco; politica: typeof politica; armazenagem: typeof armazenagem; metodoCusto: typeof metodoCusto } | null>(null);
+  if (inicial.current === null) inicial.current = { retrato, form: { ...data }, preco, politica, armazenagem, metodoCusto };
+  const sujo = retrato !== inicial.current.retrato;
+  const aviso = useAvisoAoSair(sujo);
+  const [salvoAs, setSalvoAs] = useState<string | null>(null);
+  const [recuperado, setRecuperado] = useState<string | null>(null);
+  const restaurar = (r: { form: Record<string, unknown>; preco?: unknown; politica?: unknown; armazenagem?: unknown; metodoCusto?: unknown }) => {
+    for (const [k, v] of Object.entries(r.form)) setData(k as never, v as never);
+    if (r.preco !== undefined) setPreco(r.preco as typeof preco);
+    if (r.politica !== undefined) setPolitica(r.politica as typeof politica);
+    if (r.armazenagem !== undefined) setArmazenagem(r.armazenagem as typeof armazenagem);
+    if (r.metodoCusto !== undefined) setMetodoCusto(r.metodoCusto as typeof metodoCusto);
+  };
+  useEffect(() => {
+    const r = lerRascunho(chaveRascunho);
+    if (!r) return;
+    restaurar(r);
+    setRecuperado(String(r.form.name ?? '').trim() || 'produto sem nome');
+    // Só na abertura da tela.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!sujo) return;
+    const t = window.setTimeout(() => {
+      const hora = gravarRascunho(chaveRascunho, { form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto });
+      if (hora) setSalvoAs(hora);
+    }, 800);
+    return () => window.clearTimeout(t);
+    // O retrato já resume tudo que muda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retrato]);
+  const descartarRascunho = () => {
+    apagarRascunho(chaveRascunho);
+    if (inicial.current) restaurar(inicial.current);
+    setRecuperado(null);
+    setSalvoAs(null);
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -132,9 +219,19 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     // Variável e composto têm o próprio editor de preço; só o simples manda os cinco campos.
     transform((d) => {
       const comPreco = d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d;
-      return envio ? { ...comPreco, submit_type: envio } : comPreco;
+      const comMetodo = {
+        ...comPreco,
+        ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
+        ...(d.enable_stock === 1 ? camposDaArmazenagem(armazenagem) : {}),
+        ...camposDaPolitica(politica),
+      };
+      return envio ? { ...comMetodo, submit_type: envio } : comMetodo;
     });
-    post('/products');
+    aviso.liberar();
+    post('/products', {
+      onSuccess: () => apagarRascunho(chaveRascunho),
+      onError: () => aviso.travar(),
+    });
   };
 
   return (
@@ -169,6 +266,15 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
         </header>
 
         <div className="pb-16 px-6 mt-4">
+          {recuperado && (
+            <div role="status" className="mb-3 rounded-md border border-border bg-muted px-3 py-2 text-[13px]">
+              Rascunho recuperado: você parou em “{recuperado}”.{' '}
+              <button type="button" className="underline" onClick={descartarRascunho}>
+                Descartar rascunho
+              </button>
+            </div>
+          )}
+          {salvoAs && <p className="mb-2 text-[12px] text-muted-foreground">Rascunho salvo automaticamente às {salvoAs}</p>}
           <ProdutoFormulario
             id="produto-create-form"
             onSubmit={handleSubmit}
@@ -180,9 +286,14 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
             mostrarValidade={props.enableExpiry && !validadeNaCompra}
             preco={
               data.type === 'single'
-                ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) }
+                ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes), margemMinima: props.margemMinima ?? null }
                 : undefined
             }
+            metodoCusto={
+              props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
+            }
+            armazenagem={data.enable_stock === 1 ? { valor: armazenagem, mudar: setArmazenagem, endereco } : undefined}
+            politica={{ valor: politica, mudar: setPolitica }}
           />
           <AcoesDoCadastro
             form="produto-create-form"
@@ -190,6 +301,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
             cancelarHref="/products"
             desabilitado={processing || tipoSemEditor(data.type)}
             comGruposDePreco={props.sellingPriceGroupCount > 0}
+            podeEstoqueInicial={props.podeEstoqueInicial}
+            controlaEstoque={data.enable_stock === 1}
           />
         </div>
       </div>

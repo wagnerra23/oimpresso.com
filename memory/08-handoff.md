@@ -1,5 +1,8 @@
 # 08 — Handoff (índice)
 
+- [2026-11-16 22:45 BRT — **Associações: 6 ondas no main (ADR 0451, Uniafibro)**](handoffs/2026-11-16-2245-associacoes-6-ondas-no-main.md) (#10862 #10878 #10883 #10882 #10881 #10880 · onda 6 em produção, smoke sem regressão · UC-ASSOC-01 era arrow fn capturando por valor → #11066 mergeado · mesmo defeito na NFSe, sessão avisada · pendente [W]: empresa Uniafibro + pacote associacoes_module)
+- [2026-11-14 12:00 BRT — **Captação: ADR 0452 e esqueleto do módulo**](handoffs/2026-11-14-1200-captacao-onda1-adr-esqueleto.md) (PR #10895 · 4 tabelas captacao_* + teste 98×99 · merge ratifica a ADR · próximo: fontes e projetos)
+- [2026-11-15 21:30 BRT — **Smoke dos clientes vivos (ROTA LIVRE + WR2)**](handoffs/2026-11-15-2130-smoke-clientes-vivos.md) (#10925 job pós-deploy só-leitura · #10926 sinal diário 5 dias · #10927 label affects/<cliente> · biz=1 = WR2 real, zero marcações em 365d · pendente [W]: login da conta biz=99 do smoke falha em produção)
 - [2026-10-30 — Venda V3: fechamento da onda 2 preparado](handoffs/2026-10-30-1655-venda-v3-fechamento-onda2.md) (domínio isolado de imposto/despesas/ST/sinal/adiantamento/parcelas · 55 testes verdes · sem integração da Page · dependências da onda 1 e persistência do plano no Financeiro no RUNBOOK)
 - [2026-10-30 — Venda V3: preparação da edição, onda 1](handoffs/2026-10-30-1700-venda-v3-edicao-onda1.md) (guards por empresa antes do prazo · base preservada · adaptador sem alteração da Page · 19 testes JS · CT100 56 pass/2 falhas de reparo reproduzidas no main · PHPStan verde; integração e homologação pendentes)
 

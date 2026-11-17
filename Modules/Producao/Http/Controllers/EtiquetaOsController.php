@@ -6,6 +6,7 @@ use App\Services\AppLojas\EtiquetaProducao;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
 use Illuminate\Support\Facades\DB;
 use Milon\Barcode\DNS2D;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,10 +21,12 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EtiquetaOsController extends Controller
 {
+    use ExigePacoteProducao;
+
     public function show(Request $request, int $id): Response
     {
         abort_unless($request->user()->can('producao.access'), 403);
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
 
         $os = DB::table('comvis_os')->where('business_id', $biz)->where('id', $id)->whereNull('deleted_at')
             ->first(['id', 'numero', 'orcamento_id', 'data_prazo']);

@@ -2,7 +2,7 @@
 title: "RUNBOOK — Fiscal/Dfe (sub-página 4)"
 owner: W
 status: ativo
-last_validated: "2026-06-08"
+last_validated: "2026-11-06"
 ---
 
 # RUNBOOK — Fiscal/Dfe (sub-página 4)
@@ -32,7 +32,9 @@ FxShell route="dfe"
 
 ## 4. Permissão
 
-`fiscal.dfe.manage` — adicionada em PR #1. Pré-existente, não muda.
+`fiscal.dfe.manage` — adicionada em PR #1. Vale para a tela, para a manifestação por linha (`POST /fiscal/acoes/dfe/{id}/{acao}`) e para a **manifestação em lote** (`POST /fiscal/acoes/dfe/lote`: a mesma ação para as N selecionadas, um request, uma ida à SEFAZ por nota). Desde 2026-11-05 (#10404) a rota também exige o pacote `fiscal_module` (`FiscalLiberado`). A busca ⌘K só mostra DF-e a quem tem esta permissão (#10439).
+
+O ambiente (`tpAmb`) da manifestação e da distribuição vem da configuração da empresa (`business.ambiente`, #10405, 2026-11-05).
 
 ## 5. Riscos
 

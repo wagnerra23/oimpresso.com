@@ -10,77 +10,84 @@ uses(Tests\TestCase::class);
 /**
  * US-FISCAL-015 — Palette ⌘K cross-fiscal search (PR #7 Wave).
  *
- * Tests focados em contrato + validação. Smoke completo de SEFAZ + busca real
- * em biz=1 fica via Pest browser MCP pós-merge.
+ * Até 2026-11-06 este arquivo montava um `validator()` local com as regras reescritas à mão,
+ * conferia a classe e a rota por reflexão e contava `->limit(5)` no fonte do controller.
+ * Nada disso caía se o controller mudasse. Agora cada caso chama GET /fiscal/palette/search.
+ *
+ * O isolamento entre empresas e o gate por categoria estão em BuscaEventosPermissaoTest
+ * (98 × 99); aqui ficam a validação de `q` e o teto de 5 por categoria.
  */
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: NfeBrasil requer schema MySQL (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: NfeBrasil requer schema MySQL (ADR 0358)');
     }
     if (! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('nfe_dfe_recebidos')) {
         $this->markTestSkipped('Tabelas NfeBrasil ausentes — rodar migrate primeiro');
     }
+
+    $this->tenant = $this->seededTenant();
+    $this->biz = (int) $this->tenant->id;
+    $this->marca = 'Pl' . substr(md5(uniqid('', true)), 0, 10);
+
+    $user = $this->usuarioComPermissoes(['fiscal.access', 'fiscal.nfe.view', 'fiscal.dfe.manage'], $this->tenant);
+    $this->actingAs($user);
+    session(['business.id' => $this->biz, 'user.business_id' => $this->biz]);
+});
+
+afterEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite' || ! Schema::hasTable('nfe_emissoes')) {
+        return;
+    }
+    DB::table('nfe_emissoes')->where('motivo', 'like', "%{$this->marca}%")->delete();
+    DB::table('nfe_dfe_recebidos')->where('nome_emitente', 'like', "%{$this->marca}%")->delete();
 });
 
 it('search rejeita query < 3 chars (anti-DOS leading wildcard — GAP-FISCAL-002)', function () {
     foreach (['a', 'ab'] as $q) {
-        $validator = validator(
-            ['q' => $q],
-            ['q' => ['required', 'string', 'min:3', 'max:50']],
-        );
-        expect($validator->fails())->toBeTrue("q='{$q}' deveria falhar (anti-DOS leading wildcard)")
-            ->and($validator->errors()->has('q'))->toBeTrue();
+        $this->getJson('/fiscal/palette/search?q=' . $q)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('q');
     }
 });
 
 it('search rejeita query > 50 chars (defesa anti-abuse)', function () {
-    $validator = validator(
-        ['q' => str_repeat('x', 51)],
-        ['q' => ['required', 'string', 'min:3', 'max:50']],
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('q'))->toBeTrue();
+    $this->getJson('/fiscal/palette/search?q=' . str_repeat('x', 51))
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('q');
 });
 
-it('search aceita query válida 3-50 chars', function () {
+it('search aceita query válida de 3 a 50 chars', function () {
     foreach (['abc', 'numero 123', str_repeat('x', 50)] as $q) {
-        $validator = validator(
-            ['q' => $q],
-            ['q' => ['required', 'string', 'min:3', 'max:50']],
-        );
-        expect($validator->fails())->toBeFalse("q='{$q}' deveria passar");
+        $this->getJson('/fiscal/palette/search?q=' . urlencode($q))
+            ->assertOk()
+            ->assertJsonStructure(['q', 'notas', 'dfe']);
     }
 });
 
-it('PaletteSearchController classe existe + método search público', function () {
-    expect(class_exists(\Modules\Fiscal\Http\Controllers\PaletteSearchController::class))->toBeTrue()
-        ->and(method_exists(\Modules\Fiscal\Http\Controllers\PaletteSearchController::class, 'search'))->toBeTrue();
+it('cada categoria devolve no máximo 5 resultados, os mais recentes primeiro', function () {
+    $notas = [];
+    $dfes = [];
+    for ($i = 1; $i <= 6; $i++) {
+        $notas[] = DB::table('nfe_emissoes')->insertGetId([
+            'business_id' => $this->biz, 'modelo' => '55', 'serie' => '936',
+            'numero' => random_int(800000, 899999), 'status' => 'autorizada',
+            'motivo' => "Autorizado {$this->marca} {$i}", 'valor_total' => 10.00,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $dfes[] = DB::table('nfe_dfe_recebidos')->insertGetId([
+            'business_id' => $this->biz,
+            'chave_44' => str_pad((string) random_int(1, PHP_INT_MAX), 44, '7', STR_PAD_LEFT),
+            'nsu' => random_int(1, 999999999), 'cnpj_emitente' => '00000000000191',
+            'nome_emitente' => "Fornecedor {$this->marca} {$i}",
+            'data_emissao' => now()->subDays(6 - $i),
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
 
-    $reflection = new ReflectionMethod(
-        \Modules\Fiscal\Http\Controllers\PaletteSearchController::class,
-        'search',
-    );
-    expect($reflection->isPublic())->toBeTrue();
-});
+    $json = $this->getJson('/fiscal/palette/search?q=' . $this->marca)->assertOk()->json();
 
-it('route fiscal.palette.search registrada', function () {
-    expect(\Illuminate\Support\Facades\Route::has('fiscal.palette.search'))->toBeTrue();
-});
-
-it('contract: searchNotas + searchDfe são privates (não exposed externamente)', function () {
-    $class = \Modules\Fiscal\Http\Controllers\PaletteSearchController::class;
-    expect((new ReflectionMethod($class, 'searchNotas'))->isPrivate())->toBeTrue()
-        ->and((new ReflectionMethod($class, 'searchDfe'))->isPrivate())->toBeTrue();
-});
-
-it('contract: result format — categorias notas + dfe (top 5 cada)', function () {
-    // Defesa estrutural: documentar limit declarativo. Implementation usa
-    // ->limit(5) em ambas queries — guarda no source code.
-    $src = file_get_contents(
-        (new ReflectionClass(\Modules\Fiscal\Http\Controllers\PaletteSearchController::class))->getFileName(),
-    );
-
-    expect(substr_count($src, '->limit(5)'))->toBeGreaterThanOrEqual(2);
+    // 6 casam; o teto corta em 5 e deixa de fora o mais antigo de cada categoria.
+    expect(collect($json['notas'])->pluck('id')->all())->toBe(array_reverse(array_slice($notas, 1)));
+    expect(collect($json['dfe'])->pluck('id')->all())->toBe(array_reverse(array_slice($dfes, 1)));
 });

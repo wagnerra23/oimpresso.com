@@ -1,6 +1,6 @@
 {{-- Etiquetas TAG vestuário - PDF A4 grid (US-VEST-020)
      Grid 4 colunas × 8 linhas = 32 etiquetas por A4 (50×30mm cada + margem 5mm).
-     Renderiza nome + tamanho + cor + coleção + preço + EAN-13 (PNG inline) + QR (opcional).
+     Renderiza nome + tamanho + cor + coleção + preço + código de barras do sub_sku (PNG inline) + QR (opcional).
      @see Modules/Vestuario/Http/Controllers/EtiquetaTagController.php
      @see memory/requisitos/Vestuario/RUNBOOK-etiqueta-tag.md --}}
 <!DOCTYPE html>
@@ -56,12 +56,13 @@
         <div class="row">
             @foreach($chunk as $e)
                 @php
-                    $ean13 = $e['ean13'] ?? '';
+                    $codigo = $e['codigo'] ?? ($e['ean13'] ?? '');
+                    $simbologia = $e['simbologia'] ?? 'EAN13';
                     $qrEnabled = (bool) ($e['qr_enabled'] ?? false);
                     $qrTemplate = 'https://oimpresso.com/p/{ean13}';
-                    $qrData = str_replace('{ean13}', $ean13, $qrTemplate);
-                    $eanPng = $ean13 !== '' ? $generator->getBarcodePNG($ean13, 'EAN13', 1.5, 30) : null;
-                    $qrPng = $qrEnabled && $ean13 !== '' ? $qrGenerator->getBarcodePNG($qrData, 'QRCODE', 4, 4) : null;
+                    $qrData = str_replace('{ean13}', rawurlencode($codigo), $qrTemplate);
+                    $barrasPng = $codigo !== '' ? $generator->getBarcodePNG($codigo, $simbologia, 1.5, 30) : null;
+                    $qrPng = $qrEnabled && $codigo !== '' ? $qrGenerator->getBarcodePNG($qrData, 'QRCODE', 4, 4) : null;
                 @endphp
                 <div class="label">
                     @if($qrPng)
@@ -78,10 +79,10 @@
                         <div class="colecao">{{ $e['colecao'] }}</div>
                     @endif
                     <div class="preco">R$ {{ number_format((float) ($e['preco'] ?? 0), 2, ',', '.') }}</div>
-                    @if($eanPng)
-                        <div class="barcode"><img src="data:image/png;base64,{{ $eanPng }}" alt="{{ $ean13 }}"></div>
+                    @if($barrasPng)
+                        <div class="barcode"><img src="data:image/png;base64,{{ $barrasPng }}" alt="{{ $codigo }}"></div>
                     @endif
-                    <div class="sku">SKU: {{ $e['sku'] ?? '-' }} · {{ $ean13 }}</div>
+                    <div class="sku">SKU: {{ $e['sku'] ?? '-' }}@if($codigo !== ($e['sku'] ?? '')) · {{ $codigo }}@endif</div>
                 </div>
             @endforeach
             @if(count($chunk) < $cols)

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Compras\Services;
 
+use App\Transaction;
 use App\User;
+use App\Utils\Util;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -79,12 +81,20 @@ final class AlcadaDoPedido
         $autor = User::where('business_id', $businessId)->find($userId);
         $jaPode = $autor !== null && $this->podeAprovar($autor, $nivel);
         $agora = now();
+        // A linha de compras_aprovacoes_pedido guarda o estado ATUAL (uma por pedido). Quem guarda
+        // o histórico é o activity_log: a decisão anterior vai junto, antes de ser sobrescrita.
+        $anterior = DB::table('compras_aprovacoes_pedido')->where('business_id', $businessId)
+            ->where('transaction_id', $pedidoId)->first(['nivel', 'status', 'valor', 'decidido_por', 'decidido_em', 'motivo']);
         DB::table('compras_aprovacoes_pedido')->updateOrInsert(
             ['business_id' => $businessId, 'transaction_id' => $pedidoId],
             ['valor' => (string) $pedido->final_total, 'nivel' => $nivel, 'status' => $jaPode ? 'aprovado' : 'pendente',
                 'pedido_por' => $userId, 'decidido_por' => $jaPode ? $userId : null, 'decidido_em' => $jaPode ? $agora : null,
                 'created_at' => $agora, 'updated_at' => $agora],
         );
+        $this->historico($businessId, $pedidoId, 'compras_alcada_registrada', [
+            'nivel' => $nivel, 'status' => $jaPode ? 'aprovado' : 'pendente', 'valor' => (string) $pedido->final_total,
+            'pedido_por' => $userId, 'anterior' => $anterior === null ? null : (array) $anterior,
+        ]);
 
         return $jaPode ? 'aprovado' : 'pendente';
     }
@@ -105,6 +115,23 @@ final class AlcadaDoPedido
             'status' => $aprovar ? 'aprovado' : 'recusado', 'decidido_por' => $quem->id, 'decidido_em' => now(),
             'motivo' => $aprovar ? null : trim((string) $motivo), 'updated_at' => now(),
         ]);
+        $this->historico($businessId, $pedidoId, 'compras_alcada_decidida', [
+            'nivel' => (string) $linha->nivel, 'valor' => (string) $linha->valor,
+            'status' => $aprovar ? 'aprovado' : 'recusado', 'decidido_por' => (int) $quem->id,
+            'motivo' => $aprovar ? null : trim((string) $motivo),
+        ]);
+    }
+
+    /**
+     * Uma entrada nova no activity_log por evento da alçada (D4, auditoria de Compras 2026-11-05).
+     * Só insere; nada aqui atualiza ou apaga entrada anterior.
+     */
+    private function historico(int $businessId, int $pedidoId, string $acao, array $propriedades): void
+    {
+        $pedido = Transaction::where('business_id', $businessId)->find($pedidoId);
+        if ($pedido !== null) {
+            app(Util::class)->activityLog($pedido, $acao, null, $propriedades, false, $businessId);
+        }
     }
 
     /** Ids dos pedidos, dentre os dados, que ainda não podem virar compra recebida. */

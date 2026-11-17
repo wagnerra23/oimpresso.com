@@ -199,8 +199,8 @@ it('Controller PRESERVA path AJAX DataTables legacy (Yajra)', function () {
 it('visual-comparison.md existe em memory/requisitos/Compras/_telas/', function () {
     expect(file_exists(base_path(PURCHASE_VISUAL_COMP_PATH)))->toBeTrue();
     $content = file_get_contents(base_path(PURCHASE_VISUAL_COMP_PATH));
+    // Não fixar o status do documento: ele muda a cada medição (#10617 passou para `medido`).
     expect($content)->toContain('15 dimensões comparativas');
-    expect($content)->toContain('aguardando-screenshot-wagner');
 });
 
 // ─── Anti-padrões (ADR 0093 + ADR 0094) ──────────────────────────────────────

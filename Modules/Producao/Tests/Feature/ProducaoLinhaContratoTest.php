@@ -233,6 +233,82 @@ it('UC-PCV-30 · reprogramar exige producao.etapa.mover; etapa de outra empresa 
     expect((string) DB::table('pcp_programacoes')->find($e)->inicio_previsto)->toBe("$d 10:00:00");
 });
 
+function lnMidia(int $biz, string $nome): int
+{
+    return (int) DB::table('comvis_materiais')->insertGetId(['business_id' => $biz, 'nome' => $nome, 'categoria' => 'lona', 'created_at' => now(), 'updated_at' => now()]);
+}
+
+/** Etapa de uma OS nova da CV com uma peça medida em cada mídia pedida. */
+function lnImp(int $biz, int $posto, array $midias, string $ini, string $fim, string $status = 'pendente'): int
+{
+    $os = lnOs($biz, null);
+    $orc = (int) DB::table('comvis_os')->where('id', $os)->value('orcamento_id');
+    foreach ($midias as $k => $m) {
+        DB::table('comvis_orcamento_itens')->insert(['business_id' => $biz, 'orcamento_id' => $orc, 'material_id' => $m, 'descricao' => 'Faixa',
+            'largura_m' => '1.000', 'altura_m' => '0.500', 'quantidade' => 1, 'area_m2' => '0.500', 'ordem' => $k + 1, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    return lnEtapa($biz, 'comvis_os', $os, $posto, $ini, $fim, $status);
+}
+
+it('UC-PCLIN-01 · mesma mídia separada por outra: avisa o horário logo depois da primeira e agrupar reprograma', function () {
+    $d = '2026-11-03';
+    $lona = lnMidia($this->b98, 'Lona 440 g');
+    $adesivo = lnMidia($this->b98, 'Adesivo branco');
+    lnImp($this->b98, $this->latex, [$lona], "$d 08:00:00", "$d 09:10:00", 'iniciada');
+    lnImp($this->b98, $this->latex, [$adesivo], "$d 11:00:00", "$d 12:00:00");
+    $b = lnImp($this->b98, $this->latex, [$lona], "$d 12:00:00", "$d 13:00:00");
+
+    $g = $this->linha->montar($this->b98, Carbon::parse($d), '18:00', Carbon::parse("$d 07:00:00"))['agrupamento'];
+    // Discriminante: 09:10 sobe para 09:15, a grade do arrastar, e não para o início da etapa de adesivo.
+    expect($g['programacao_id'])->toBe($b)->and($g['midia'])->toBe('Lona 440 g')->and($g['posto_id'])->toBe($this->latex)->and($g['inicio'])->toBe("{$d}T09:15");
+
+    $this->actingAs($this->gestor)->putJson("/producao/etapas/{$b}/reprogramar", ['posto_id' => $this->latex, 'inicio_previsto' => "$d 09:15:00"])->assertOk();
+    expect($this->linha->montar($this->b98, Carbon::parse($d), '18:00', Carbon::parse("$d 07:00:00"))['agrupamento'])->toBeNull();
+});
+
+it('UC-PCLIN-01 · sem aviso quando agrupar não evita troca, não cabe ou não pode', function () {
+    $lona = lnMidia($this->b98, 'Lona 440 g');
+    $adesivo = lnMidia($this->b98, 'Adesivo branco');
+    $cenario = function (string $d, array $midB, string $statusB = 'pendente', string $iniC = '11:00', ?int $posto = null) use ($lona, $adesivo) {
+        $posto ??= $this->latex;
+        lnImp($this->b98, $posto, [$lona], "$d 08:00:00", "$d 09:00:00", 'iniciada');
+        lnImp($this->b98, $posto, [$adesivo], "$d $iniC:00", "$d 12:00:00");
+        lnImp($this->b98, $posto, $midB, "$d 12:00:00", "$d 13:00:00", $statusB);
+
+        return $this->linha->montar($this->b98, Carbon::parse($d), '18:00', Carbon::parse("$d 07:00:00"))['agrupamento'];
+    };
+
+    // Controle positivo: o mesmo cenário avisa; cada linha abaixo muda uma condição só.
+    expect($cenario('2026-11-03', [$lona]))->not->toBeNull()
+        ->and($cenario('2026-11-04', [$adesivo]))->toBeNull()          // outra mídia
+        ->and($cenario('2026-11-05', [$lona, $adesivo]))->toBeNull()   // OS com duas mídias
+        ->and($cenario('2026-11-06', [$lona], 'iniciada'))->toBeNull() // já começou
+        ->and($cenario('2026-11-09', [$lona], 'pendente', '09:30'))->toBeNull() // não cabe antes da outra
+        ->and($cenario('2026-11-10', [$lona], 'pendente', '11:00', $this->cnc))->toBeNull(); // não é impressão
+
+    // Horário já passado.
+    expect($this->linha->montar($this->b98, Carbon::parse('2026-11-03'), '18:00', Carbon::parse('2026-11-03 10:00:00'))['agrupamento'])->toBeNull();
+});
+
+it('UC-PCLIN-01 · sem bloco entre as duas não há troca a evitar, e a etapa de outra empresa não entra (Tier 0)', function () {
+    $d = '2026-11-03';
+    $lona = lnMidia($this->b98, 'Lona 440 g');
+    lnImp($this->b98, $this->latex, [$lona], "$d 08:00:00", "$d 09:00:00");
+    lnImp($this->b98, $this->latex, [$lona], "$d 11:00:00", "$d 12:00:00");
+    expect($this->linha->montar($this->b98, Carbon::parse($d), '18:00', Carbon::parse("$d 07:00:00"))['agrupamento'])->toBeNull();
+
+    $imp99 = lnPosto($this->b99, 'Latex 99', 'Impressão');
+    $lona99 = lnMidia($this->b99, 'Lona 99');
+    $outra99 = lnMidia($this->b99, 'Vinil 99');
+    lnImp($this->b99, $imp99, [$lona99], "$d 08:00:00", "$d 09:00:00");
+    lnImp($this->b99, $imp99, [$outra99], "$d 11:00:00", "$d 12:00:00");
+    $b99 = lnImp($this->b99, $imp99, [$lona99], "$d 12:00:00", "$d 13:00:00");
+
+    expect($this->linha->montar($this->b98, Carbon::parse($d), '18:00', Carbon::parse("$d 07:00:00"))['agrupamento'])->toBeNull()
+        ->and($this->linha->montar($this->b99, Carbon::parse($d), '18:00', Carbon::parse("$d 07:00:00"))['agrupamento']['programacao_id'])->toBe($b99);
+});
+
 it('UC-PCV-08 · a tela abre com producao.access e ?dia=proximo pede o próximo dia útil; a linha vem deferida', function () {
     $this->flushSession();
     $this->actingAs($this->usuarioComPermissoes([], $this->B98))->get('/producao/linha')->assertForbidden();

@@ -5,8 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-10-29"
+last_run: "2026-11-16"
 ---
+
+> ℹ️ **`last_run` 2026-10-29 → 2026-11-16 (G-6): a tela ganhou o filtro "Excluídos" e o Restaurar (UC-CIDX-16).**
+> O que mudou em `Index.tsx`: a opção "Excluídos" no filtro Status (recarrega do servidor com `excluidos=1`), a marca
+> "Excluído em" na célula do nome, o botão Restaurar no lugar do menu ⋮ da linha excluída, a linha excluída não abre
+> a gaveta e o texto do diálogo de excluir. Filtros, ordenação, KPIs e gaveta dos cadastros ativos não mudaram.
+> **Nenhum outro UC foi reexecutado**; o bump marca o trio reconciliado com a tela nesta data.
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **2 linha(s) de COMENTÁRIO** —
@@ -124,6 +130,52 @@ last_run: "2026-10-29"
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ---
+
+## UC-CIDX-12 · Enviar o extrato por e-mail sai de verdade, com o modelo da empresa `[must]`
+- **Persona:** quem atende o cliente e manda o extrato pela aba Extrato da gaveta (Operações).
+- **Como usa:** Extrato → **Enviar por e-mail** → digita o e-mail → Enviar.
+- **Aceite:** Dado o modelo "Enviar razão" da empresa com assunto e texto · Quando envio só com o e-mail e o formato · Então sai um e-mail para o endereço digitado com o assunto do modelo · E sem e-mail nada sai e a resposta diz por quê · E quando o servidor recusa (200 com `success: 0`) a tela mostra "Falha: …", nunca "Extrato enviado".
+- **Âncora de contrato:** `ContactController::sendLedger` lê `to_email`, `ledger_format`, `subject`, `email_body` (os nomes do modal Blade `notification/show_template`); modelo via `NotificationTemplate::getTemplate(…, 'send_ledger')`, o mesmo que o modal Blade abre. Antes de 2026-11-12 a aba mandava `email`/`format`, o método caía no erro e a tela dizia "Extrato enviado".
+- **Teste:** `tests/Feature/Cliente/ClienteExtratoEmailTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-extrato-email.test.tsx` (Vitest, `Frontend / Vite build`) — `UC-CIDX-12 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
+## UC-CIDX-13 · Desconto no extrato: recusa do servidor aparece, o modal não fecha `[must]`
+- **Persona:** quem lança desconto no extrato do cliente (permissão `discount.manage`).
+- **Aceite:** Dado o servidor respondendo 200 com `{success: 0, msg}` · Quando aplico o desconto · Então a mensagem aparece no modal e ele não fecha · Controle: com `{success: true}` o modal fecha.
+- **Âncora de contrato:** `LedgerDiscountController::store` (responde `success: 0` em vez de erro HTTP). Só a tela: não muda o que o servidor grava.
+- **Teste:** `tests/js/cliente-ficha-recusa-servidor.test.tsx` — `UC-CIDX-13 …` (Vitest, `Frontend / Vite build`).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+## UC-CIDX-14 · A anotação da aba Documentos é uma só, e a recusa aparece `[must]`
+- **Persona:** quem escreve anotações internas sobre o cliente na aba Documentos.
+- **Aceite:** Dado uma anotação nova · Quando o primeiro salvamento automático cria a nota · Então a resposta traz o id dela e o salvamento seguinte atualiza a mesma nota (uma nota só no banco, da empresa da sessão) · E quando o servidor recusa (200 com `success: false`) a tela mostra "Erro ao salvar", nunca "Salvo".
+- **Âncora de contrato:** `DocumentAndNoteController::store` passa a devolver `note.id`; a tela (`DocumentsTab`) já usava esse id para o PUT seguinte. Antes de 2026-11-12, sem o id, cada pausa na digitação criava uma nota nova. O teste deste caso achou mais dois, consertados junto: o `update` lia `heading` sem conferir se veio (a tela só mandava o título preenchido), e dava 500 ao editar anotação sem título; e o controller não importava `Exception`, então nenhum dos 4 `catch` pegava erro.
+- **Teste:** `tests/Feature/Cliente/ClienteAnotacaoTest.php` (Pest) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-14 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
+## UC-CIDX-15 · Excluir só cadastro sem vínculo, só com "Remover cliente", e a recusa aparece `[T0]` `[must]`
+- **Persona:** gerente da loja que limpa cadastros duplicados ou feitos por engano; vendedor que não deveria excluir.
+- **Como usa:** lista de clientes, menu ⋮ → **Excluir**; ou a ficha completa, menu Ações → **Excluir cliente**.
+- **Aceite:** Dado um cadastro sem nenhum registro ligado · Quando quem tem "Remover cliente" exclui · Então ele é marcado como excluído (`deleted_at`) e a linha continua no banco · E quem só tem "Ver os próprios clientes" recebe 403, mesmo no cadastro que criou · E cadastro com veículo (sem venda nenhuma) é recusado com mensagem que diz "veículos" · E o cliente padrão é recusado com mensagem · E cadastro de outra empresa responde 404 · E na ficha completa a recusa aparece e a ficha não sai como se tivesse excluído.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-16 (excluir marca o registro como excluído para consulta; o vendedor não exclui) · charter v9 (soft delete, cliente padrão protegido, permissão `customer.delete`/`supplier.delete`) e v10 · padrão de mercado: Omie só exclui cadastro sem pedido, OS, contas a receber/pagar ou nota e orienta inativar · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteExcluirRegrasTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-15 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
+## UC-CIDX-16 · Consultar os excluídos e restaurar `[T0]` `[must]`
+- **Persona:** gerente da loja que precisa achar um cadastro excluído por engano ou consultar um antigo.
+- **Como usa:** filtro **Status › Excluídos** na lista de clientes; na linha excluída, **Restaurar**.
+- **Aceite:** Dado um cadastro ativo e um excluído da mesma empresa · Quando abro a lista sem filtro · Então só o ativo aparece · E com o filtro Excluídos só o excluído aparece, com a data da exclusão · E Restaurar (com "Remover cliente") devolve o cadastro à lista normal · E sem "Remover cliente" Restaurar responde 403 e o cadastro segue excluído · E o excluído de outra empresa não aparece no filtro e Restaurar responde 404.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-16 (*"Excluir aplica o status de excluído no registro para eventuais consultas"*; "faz os quatro, com restaurar") · charter v9 (soft delete; o Restaurar era Non-Goal "se a demanda aparecer") e v11 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteExcluidosTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-16 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-17 · Anexos, extrato por e-mail e ativar/desativar conferem permissão e estado no servidor `[T0]` `[must]`
+- **Persona:** dono que limita o que cada funcionário mexe no cadastro; atendente que desativa um cliente que outra pessoa pode ter mexido.
+- **Como usa:** gaveta da lista de clientes, aba Operações › Documentos e Extrato; ficha, menu Ações → **Desativar cliente** / **Reativar cliente**.
+- **Aceite:** Dado um usuário sem permissão de ver clientes · Quando ele lista, envia ou apaga anexo de um cadastro, ou manda o extrato por e-mail · Então recebe 403 e nada é enviado · E com "Ver clientes" a lista de anexos abre · E Dado um cadastro já inativo · Quando alguém confirma "Desativar" · Então ele segue inativo (não reativa) · E "Reativar" aplica ativo · E o botão da lista Blade, que não manda estado, segue invertendo · E cadastro de outra empresa responde 404 sem mudar nada.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-16 ("corrige o 1, o 3 e o 4") · regra de permissão do `getLedger` e das abas JSON da ficha (ver cliente ou fornecedor, todos ou os próprios) · legado `DocumentAndNoteController::__getPermission` (anexos de `App\Contact` seguem quem vê o contato, decisão Wagner 2026-06-01 no `Index.tsx`) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteAcoesPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-17 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
@@ -246,6 +298,10 @@ last_run: "2026-10-29"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-11-16 · [F+C] **UC-CIDX-17**: anexos (listar/enviar/apagar) e extrato por e-mail passam a exigir permissão de ver clientes; ativar/desativar recebe o estado confirmado por POST (o GET do Blade segue invertendo) e id de outra empresa dá 404 em vez de 500. Não mexe em `Index.tsx`.
+- 2026-11-16 · [F+C] **UC-CIDX-16**: filtro Status › Excluídos (servidor, `onlyTrashed`) e Restaurar (`POST /contacts/{id}/restore`, mesma permissão de excluir). Charter v11. `last_run` 2026-10-29 → 2026-11-16 (G-6).
+- 2026-11-16 · [F+C] **UC-CIDX-15**: excluir exige "Remover cliente" no servidor, recusa cadastro com qualquer registro de negócio (não só lançamentos) e o cliente padrão com mensagem; a ficha completa mostra a recusa. Charter v10. Não mexe em `Index.tsx`.
+- 2026-11-12 · [F+C] **UC-CIDX-12..14**: na gaveta (aba Operações, componentes `_show/*`), o envio do extrato por e-mail manda os campos que o servidor lê e usa o modelo da empresa; desconto e anotação mostram a recusa do servidor; a anotação não se duplica mais a cada salvamento. Não mexe em `Index.tsx`.
 - 2026-10-29 · [W+C] **UC-CIDX-09..11** (P-025): sinal mínimo por cliente (`contacts.sinal_minimo_pct`), campo na aba Comercial, lido por `SinalDaOrdem::minimo` no Liberar da OS. O prazo do cliente já existia (`pay_term_number`).
 - 2026-10-29 · [W+C] **UC-CIDX-06..08** (P-087): tabela de preço no próprio cliente (`contacts.selling_price_group_id`), que vale no lugar da do grupo na busca de cliente da venda. Comportamento novo na aba Comercial (campo "Tabela própria do cliente"); `last_run` sobe por isso.
 - 2026-10-23 · [M+C] Backlog de saldo a favor e limite de crédito no drawer, sem id.

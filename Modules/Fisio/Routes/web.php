@@ -6,15 +6,23 @@ use Modules\Fisio\Http\Controllers\ConfigAgendamentoController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\ConfiguracoesController;
+use Modules\Fisio\Http\Controllers\DocumentosPacienteController;
+use Modules\Fisio\Http\Controllers\DadosSociaisController;
 use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
+use Modules\Fisio\Http\Controllers\LaudoBiopsicossocialController;
+use Modules\Fisio\Http\Controllers\MedicamentosPacienteController;
 use Modules\Fisio\Http\Controllers\OnboardingController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\FiscalController;
 use Modules\Fisio\Http\Controllers\PainelController;
+use Modules\Fisio\Http\Controllers\PesquisaController;
+use Modules\Fisio\Http\Controllers\PacoteComprovanteController;
 use Modules\Fisio\Http\Controllers\PacotesController;
 use Modules\Fisio\Http\Controllers\PortalAgendaController;
 use Modules\Fisio\Http\Controllers\PortalController;
+use Modules\Fisio\Http\Controllers\PortalDocumentosController;
+use Modules\Fisio\Http\Controllers\PortalLaudoController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
 use Modules\Fisio\Http\Controllers\FolhaProgramaController;
@@ -22,7 +30,9 @@ use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
 use Modules\Fisio\Http\Controllers\ProtocolosController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
+use Modules\Fisio\Http\Controllers\RelatorioAssociacaoController;
 use Modules\Fisio\Http\Controllers\ResponsavelController;
+use Modules\Fisio\Http\Controllers\TranscricaoDocumentoController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
 /*
@@ -57,6 +67,27 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->group(function () {
         // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
         Route::get('/', [PainelController::class, 'index'])->name('painel');
+
+        // Relatório agregado para a associação (US-FISIO-062). Exige `fisio.relatorio` (no controller).
+        Route::get('relatorio-associacao', [RelatorioAssociacaoController::class, 'index'])->name('relatorio-associacao.index');
+        Route::get('relatorio-associacao.pdf', [RelatorioAssociacaoController::class, 'pdf'])->name('relatorio-associacao.pdf');
+
+        // Área do estudo (etapa 07 P-04). Exige `fisio.pesquisa` (no controller), além de fisio.access.
+        Route::get('pesquisa', [PesquisaController::class, 'index'])->name('pesquisa.index');
+        Route::post('pesquisa/estudos', [PesquisaController::class, 'store'])->name('pesquisa.estudos.store');
+        Route::post('pesquisa/estudos/{study}/participantes', [PesquisaController::class, 'incluir'])->whereNumber('study')->name('pesquisa.participantes.store');
+        Route::post('pesquisa/estudos/{study}/participantes/{participant}/saida', [PesquisaController::class, 'saida'])
+            ->whereNumber('study')->whereNumber('participant')->name('pesquisa.participantes.saida');
+        Route::post('pesquisa/estudos/{study}/eventos/{evento}/revisar', [PesquisaController::class, 'revisarEvento'])
+            ->whereNumber('study')->whereNumber('evento')->name('pesquisa.eventos.revisar');
+        Route::get('pesquisa/estudos/{study}/exportar/{arquivo}', [PesquisaController::class, 'exportar'])
+            ->whereNumber('study')->whereIn('arquivo', ['momentos', 'diario', 'participantes', 'dicionario'])->name('pesquisa.exportar');
+        Route::post('pesquisa/estudos/{study}/travar', [PesquisaController::class, 'travar'])->whereNumber('study')->name('pesquisa.travar');
+        // Assistente de IA da pesquisadora (etapa 07 P-08): desligado por padrão, só na área do estudo.
+        Route::post('pesquisa/assistente', [PesquisaController::class, 'assistente'])->name('pesquisa.assistente');
+        Route::post('pesquisa/estudos/{study}/sugestoes', [PesquisaController::class, 'sugerir'])->whereNumber('study')->name('pesquisa.sugestoes.store');
+        Route::post('pesquisa/estudos/{study}/sugestoes/{sugestao}/{decisao}', [PesquisaController::class, 'decidirSugestao'])
+            ->whereNumber('study')->whereNumber('sugestao')->whereIn('decisao', ['aceitar', 'descartar'])->name('pesquisa.sugestoes.decidir');
 
         // Configurações › WhatsApp: a clínica escolhe o canal; número e driver são do módulo Whatsapp.
         Route::get('configuracoes/whatsapp', [ConfiguracoesController::class, 'whatsapp'])->name('configuracoes.whatsapp');
@@ -101,12 +132,42 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.destroy');
 
         // Fisioterapeuta responsável: transferir o paciente (UC-FPS-31). Exige `fisio.editar`.
+        // Dados sociais (US-FISIO-061): opcionais, dado sensível; gravar exige fisio.editar (no controller).
+        Route::put('pacientes/{id}/dados-sociais', [DadosSociaisController::class, 'update'])->whereNumber('id')->name('pacientes.dados-sociais.update');
         Route::post('pacientes/{id}/responsavel', [ResponsavelController::class, 'store'])->whereNumber('id')->name('pacientes.responsavel.store');
 
         Route::post('pacientes/{id}/registros', [RegistrosController::class, 'store'])->whereNumber('id')->name('pacientes.registros.store');
         // Prontuário é append-only: estes verbos existem só para responder 405 com o motivo.
         Route::match(['put', 'patch', 'delete'], 'pacientes/{id}/registros/{registro}', [RegistrosController::class, 'imutavel'])
             ->whereNumber(['id', 'registro'])->name('pacientes.registros.imutavel');
+
+        // Laudo biopsicossocial no modelo SES-SC (US-FISIO-060). Escrita exige `fisio.editar` (no controller).
+        Route::post('pacientes/{id}/laudos-bps', [LaudoBiopsicossocialController::class, 'store'])->whereNumber('id')->name('pacientes.laudos-bps.store');
+        Route::put('laudos-bps/{laudo}', [LaudoBiopsicossocialController::class, 'update'])->whereNumber('laudo')->name('laudos-bps.update');
+        Route::post('laudos-bps/{laudo}/equipe', [LaudoBiopsicossocialController::class, 'incluirMembro'])->whereNumber('laudo')->name('laudos-bps.equipe.store');
+        Route::delete('laudos-bps/{laudo}/equipe/{membro}', [LaudoBiopsicossocialController::class, 'removerMembro'])->whereNumber(['laudo', 'membro'])->name('laudos-bps.equipe.destroy');
+        Route::post('laudos-bps/{laudo}/finalizar', [LaudoBiopsicossocialController::class, 'finalizar'])->whereNumber('laudo')->name('laudos-bps.finalizar');
+        Route::get('laudos-bps/{laudo}/apoio-fisio', [LaudoBiopsicossocialController::class, 'apoioFisio'])->whereNumber('laudo')->name('laudos-bps.apoio-fisio');
+        Route::get('laudos-bps/{laudo}/pdf', [LaudoBiopsicossocialController::class, 'pdf'])->whereNumber('laudo')->name('laudos-bps.pdf');
+        Route::post('laudos-bps/{laudo}/nova-versao', [LaudoBiopsicossocialController::class, 'novaVersao'])->whereNumber('laudo')->name('laudos-bps.nova-versao');
+
+        // Exames e receitas do paciente (US-FISIO-063). Anexar e tirar da lista exigem fisio.editar (no controller);
+        // o arquivo sai só pela rota que confere a empresa. Documento do prontuário não se apaga.
+        Route::post('pacientes/{id}/documentos', [DocumentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.documentos.store');
+        Route::post('documentos/{documento}/tirar', [DocumentosPacienteController::class, 'tirar'])->whereNumber('documento')->name('documentos.tirar');
+        Route::get('documentos/{documento}/arquivo', [DocumentosPacienteController::class, 'arquivo'])->whereNumber('documento')->name('documentos.arquivo');
+        // Envio do portal pendente de conferência (parte 4): aceitar no prontuário ou recusar com motivo.
+        Route::post('documentos/{documento}/aceitar', [DocumentosPacienteController::class, 'aceitar'])->whereNumber('documento')->name('documentos.aceitar');
+        Route::post('documentos/{documento}/recusar', [DocumentosPacienteController::class, 'recusar'])->whereNumber('documento')->name('documentos.recusar');
+        // Transcrição pela IA, conferida pelo profissional (US-FISIO-063 parte 3). Tudo exige fisio.editar; desligada por empresa.
+        Route::post('documentos/transcricao-ia', [TranscricaoDocumentoController::class, 'configurar'])->name('documentos.transcricao-ia');
+        Route::post('documentos/{documento}/transcricao', [TranscricaoDocumentoController::class, 'sugerir'])->whereNumber('documento')->name('documentos.transcricao.store');
+        Route::post('transcricoes/{transcricao}/confirmar', [TranscricaoDocumentoController::class, 'confirmar'])->whereNumber('transcricao')->name('transcricoes.confirmar');
+        Route::post('transcricoes/{transcricao}/descartar', [TranscricaoDocumentoController::class, 'descartar'])->whereNumber('transcricao')->name('transcricoes.descartar');
+        // Medicamentos em uso, estruturados (US-FISIO-063 parte 2). Escrita exige fisio.editar; sai da lista com motivo.
+        Route::post('pacientes/{id}/medicamentos', [MedicamentosPacienteController::class, 'store'])->whereNumber('id')->name('pacientes.medicamentos.store');
+        Route::put('medicamentos/{medicamento}', [MedicamentosPacienteController::class, 'update'])->whereNumber('medicamento')->name('medicamentos.update');
+        Route::post('medicamentos/{medicamento}/tirar', [MedicamentosPacienteController::class, 'tirar'])->whereNumber('medicamento')->name('medicamentos.tirar');
 
         // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
         Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');
@@ -118,6 +179,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('pacotes/{pacote}/consumir', [PacotesController::class, 'consumir'])->whereNumber('pacote')->name('pacotes.consumir');
         Route::post('pacotes/{pacote}/venda', [PacotesController::class, 'ligarVenda'])->whereNumber('pacote')->name('pacotes.venda');
         Route::post('pacotes/lancamentos/{lancamento}/estornar', [PacotesController::class, 'estornar'])->whereNumber('lancamento')->name('pacotes.estornar');
+        // Comprovante (voucher) do pacote em PDF (UC-FPK-10): leitura com fisio.access; só sessões, sem valor.
+        Route::get('pacotes/{pacote}/comprovante.pdf', [PacoteComprovanteController::class, 'show'])->whereNumber('pacote')->name('pacotes.comprovante');
         // Documentos fiscais do dia (US-FISIO-023): NFS-e lida do NFSe; Receita Saúde só marca o envio.
         Route::get('fiscal', [FiscalController::class, 'index'])->name('fiscal.index');
         Route::post('fiscal/recibos/{payment}/enviado', [FiscalController::class, 'marcarEnviado'])->whereNumber('payment')->name('fiscal.recibos.enviado');
@@ -168,9 +231,16 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('pin', [PortalController::class, 'pin'])->name('pin');
         Route::post('consentimentos', [PortalController::class, 'consentir'])->name('consentimentos.store');
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
+        // Pesquisa é por estudo (etapa 07 P-02): revogar tira o paciente daquele estudo.
+        Route::delete('consentimentos/pesquisa/{study}', [PortalController::class, 'revogarPesquisa'])
+            ->whereNumber('study')->name('consentimentos.pesquisa.destroy');
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
         Route::post('pre-anamnese', [PortalController::class, 'preAnamnese'])->name('pre-anamnese');
         Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
+        // Foto de exame ou receita (US-FISIO-063 parte 4): exige o consentimento `documentos`; chega pendente à clínica.
+        Route::post('documentos', [PortalDocumentosController::class, 'store'])->name('documentos.store');
+        // Laudo biopsicossocial (US-FISIO-060, UC-FBP-16): o paciente baixa só o próprio laudo FINALIZADO e vigente.
+        Route::get('laudos-bps/{laudo}/pdf', [PortalLaudoController::class, 'pdf'])->whereNumber('laudo')->name('laudos-bps.pdf');
         // Agenda do paciente (US-FISIO-016): mesmo portão do portal (PIN + teleatendimento), business do token.
         Route::get('agenda', [PortalAgendaController::class, 'index'])->name('agenda.index');
         Route::get('agenda/horarios', [PortalAgendaController::class, 'horarios'])->name('agenda.horarios');

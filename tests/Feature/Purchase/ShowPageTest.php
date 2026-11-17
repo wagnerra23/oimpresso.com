@@ -189,7 +189,8 @@ it('Controller@show não tem mais a Blade do modal (cutover 2026-10-27)', functi
 it('visual-comparison.md existe', function () {
     expect(file_exists(base_path(PURCHASE_SHOW_VISUAL)))->toBeTrue();
     $content = file_get_contents(base_path(PURCHASE_SHOW_VISUAL));
-    expect($content)->toContain('aguardando-screenshot-wagner');
+    // Não fixar o status do documento: ele muda a cada medição (#10617 passou para `medido`).
+    expect($content)->toContain('15 dimensões comparativas');
 });
 
 // ─── Anti-padrões (ADR 0093 + ADR 0094) ─────────────────────────────────────

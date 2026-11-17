@@ -146,3 +146,36 @@ it('nao vaza dias ativos de outro tenant (Tier 0 — ADR 0093)', function () {
     // 5 dias existem no vizinho; o alvo só pode enxergar o 1 que é dele.
     expect($perf->dias_ativos_30d)->toBe(1);
 });
+
+// Migrados do EmployeePerformanceRebuilderTest: refreshVelocity usa TIMESTAMPDIFF, que só
+// existe no MySQL. No SQLite o catch engolia o erro e o campo ficava null.
+it('Velocidade mediana calculada entre inbound prev e outbound do atendente', function () {
+    $biz = bizFicticio(98);
+    $conv = convDiasAtivos($biz->id, '5548900000003');
+    $dia = now()->subDays(2)->toDateString();
+
+    msgDiasAtivos($biz->id, $conv, "{$dia} 10:00:00", ['direction' => 'inbound', 'body' => 'msg']);
+    msgDiasAtivos($biz->id, $conv, "{$dia} 10:00:30");
+    msgDiasAtivos($biz->id, $conv, "{$dia} 11:00:00", ['direction' => 'inbound', 'body' => 'msg']);
+    msgDiasAtivos($biz->id, $conv, "{$dia} 11:01:00");
+
+    $perf = app(EmployeePerformanceRebuilder::class)->rebuild($biz->id, null, 'Zelda');
+
+    expect($perf->tempo_resposta_mediana_s)->toBeGreaterThan(0)
+        ->and($perf->tempo_resposta_mediana_s)->toBeLessThan(120);
+});
+
+it('SLA breach contado quando outbound >4h após inbound', function () {
+    $biz = bizFicticio(98);
+    $conv = convDiasAtivos($biz->id, '5548900000004');
+    $dia = now()->subDays(2)->toDateString();
+
+    msgDiasAtivos($biz->id, $conv, "{$dia} 08:00:00", ['direction' => 'inbound', 'body' => 'msg']);
+    msgDiasAtivos($biz->id, $conv, "{$dia} 13:00:00");
+    msgDiasAtivos($biz->id, $conv, "{$dia} 14:00:00", ['direction' => 'inbound', 'body' => 'msg']);
+    msgDiasAtivos($biz->id, $conv, "{$dia} 14:30:00");
+
+    $perf = app(EmployeePerformanceRebuilder::class)->rebuild($biz->id, null, 'Zelda');
+
+    expect($perf->sla_breach_count)->toBe(1);
+});

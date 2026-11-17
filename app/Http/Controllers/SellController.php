@@ -2071,7 +2071,23 @@ class SellController extends Controller
             // F3 PaymentGateway UI Tela 3 — cobrança vinculada à venda (ADR 0144 + 0170).
             // null = não emitida ainda; UI mostra chip "Emitir cobrança" no footer drawer.
             'cobranca' => $this->buildCobrancaState($sale),
+            // Lote 3.3 NfeBrasil — /nfe-brasil/* exige o pacote fiscal_module. Sem ele a seção
+            // fiscal do drawer receberia 403 e mostraria o erro em toda venda; o drawer esconde.
+            'fiscal_liberado' => $this->fiscalLiberado($business_id),
         ]);
+    }
+
+    /**
+     * A empresa tem o pacote fiscal_module? Mesma regra das rotas (FiscalPacote, dono único).
+     * Sem o módulo Fiscal instalado, nenhuma rota /nfe-brasil/* passa — então false.
+     */
+    private function fiscalLiberado($business_id): bool
+    {
+        if (! class_exists(\Modules\Fiscal\Services\FiscalPacote::class)) {
+            return false;
+        }
+
+        return app(\Modules\Fiscal\Services\FiscalPacote::class)->ativo($business_id);
     }
 
     /**
@@ -3480,6 +3496,9 @@ class SellController extends Controller
                 'permissions' => [
                     'view_all' => auth()->user()->can('draft.view_all'),
                     'view_own' => auth()->user()->can('draft.view_own'),
+                    // P-076 — "Excluir rascunho" no menu Ações da linha. Mesma permissão que a lista
+                    // Blade usava pra mostrar o Excluir; SellPosController@destroy passou a aceitá-la.
+                    'delete' => auth()->user()->can('draft.delete'),
                 ],
                 'urls' => [
                     // O mesmo endpoint do DataTable do Blade (`sale_pos/draft.blade.php`). Antes apontava
@@ -3619,7 +3638,10 @@ class SellController extends Controller
                     DB::raw('COUNT( DISTINCT tsl.id) as total_items'),
                     DB::raw('SUM(tsl.quantity) as total_quantity'),
                     DB::raw("CONCAT(COALESCE(u.surname, ''), ' ', COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, '')) as added_by"),
-                    'transactions.is_export'
+                    'transactions.is_export',
+                    // P-076 — coluna Valor da lista React de rascunhos e a confirmação de exclusão.
+                    // Só leitura do total gravado; o agrupamento por transactions.id mantém 1 valor por linha.
+                    'transactions.final_total'
                 );
 
             if ($is_quotation == 1) {
@@ -3750,7 +3772,9 @@ class SellController extends Controller
                                     </li>';
                         }
 
-                        if (auth()->user()->can('draft.delete') || auth()->user()->can('quotation.delete')) {
+                        // Excluir só com a permissão que o destroy aceita para ESTA linha: cotação pede
+                        // `quotation.delete`, rascunho pede `draft.delete` (TransactionUtil::podeExcluirComo*).
+                        if (auth()->user()->can($row->sub_status == 'quotation' ? 'quotation.delete' : 'draft.delete')) {
                             $html .= '<li>
                                 <a href="'.action([\App\Http\Controllers\SellPosController::class, 'destroy'], [$row->id]).'" class="delete-sale"><i class="fas fa-trash"></i>'.__('messages.delete').'</a>
                                 </li>';
@@ -4202,7 +4226,11 @@ class SellController extends Controller
 
     public function destroy($id)
     {
-        if (! auth()->user()->can('sell.delete') && ! auth()->user()->can('direct_sell.delete') && ! auth()->user()->can('so.delete')) {
+        // P-076 — `draft.delete` também exclui rascunho comum (regra em TransactionUtil::podeExcluirComoRascunho).
+        // E `quotation.delete` exclui cotação (TransactionUtil::podeExcluirComoCotacao).
+        if (! auth()->user()->can('sell.delete') && ! auth()->user()->can('direct_sell.delete') && ! auth()->user()->can('so.delete')
+            && ! $this->transactionUtil->podeExcluirComoRascunho(auth()->user(), request()->session()->get('user.business_id'), $id)
+            && ! $this->transactionUtil->podeExcluirComoCotacao(auth()->user(), request()->session()->get('user.business_id'), $id)) {
             abort(403, 'Unauthorized action.');
         }
 

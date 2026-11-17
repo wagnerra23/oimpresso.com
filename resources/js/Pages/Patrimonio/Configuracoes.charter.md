@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-configuracoes.md
 tier: B
-charter_version: 1
-last_validated: "2026-09-08"
+charter_version: 2
+last_validated: "2026-11-05"
 ---
 
 # Page Charter — Patrimonio/Configuracoes (DRAFT)
@@ -125,6 +125,10 @@ O que muda é só quem desenha o formulário.
 - O bloco de assunto/corpo aparece só quando o interruptor está ligado, como no Blade
   (`index.blade.php:52-64` fazia isso por jQuery; aqui é estado do React).
 - Nenhum atalho de teclado é anunciado nesta onda.
+- Carga que falha não vira espera eterna (2026-11-05): se a carga deferida de os destinatários (`usuarios`) termina
+  sem a prop, a lista de destinatários mostra o estado de erro do protótipo (`patrimonio-page.jsx:846`) —
+  `role="alert"`, "Não consegui carregar …" e "Tentar de novo", que pede só aquela prop.
+  Detecção em `_shared/falhaDeferida.ts`. Contrato: UC-CFG-06.
 
 ## Pendências antes de `status: live`
 

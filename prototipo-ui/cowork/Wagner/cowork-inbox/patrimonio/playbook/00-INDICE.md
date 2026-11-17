@@ -11,7 +11,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/
 # SINCRONIZAR Patrimônio — playbook
 
 > **Absorve** `COLAR-NO-CODE-patrimonio-ondas.md` (que vira ponteiro de 2 KB). Primeiro módulo emitido pelo fluxo do §13 — **ficha antes de escrever**.
-> **O módulo é 100% Blade:** 6 `Route::resource` sob o prefixo `asset`, **zero `Inertia::render`**, e a busca por `(?i)(patrimonio|asset)` em `resources/js/Pages/` bateu **0 de 794**. Nenhuma tela React existe. A D-ENDERECO **foi respondida** em 2026-09-08 (`Pages/Patrimonio/**`, ADR 0394) — as telas passam a nascer pelo MWART da ADR 0104, uma thread por tela.
+> **Retrato de 2026-09-08 (passado):** o módulo era 100% Blade — 6 `Route::resource` sob o prefixo `asset`, **zero `Inertia::render`**, e a busca por `(?i)(patrimonio|asset)` em `resources/js/Pages/` bateu **0 de 794**. Desde então as threads 07–20 criaram `resources/js/Pages/Patrimonio/**` — não leia esta linha como o estado de hoje. A D-ENDERECO **foi respondida** em 2026-09-08 (`Pages/Patrimonio/**`, ADR 0394) — as telas passam a nascer pelo MWART da ADR 0104, uma thread por tela.
 
 ## 0-bis · Restauração de 2026-09-23
 
@@ -47,7 +47,7 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | **09** | **Alocações** — funde `allocation`+`revocation` | ~12 KB | ~280 ln | 3 | 3 | **1** | **CABE** se a fusão for só de tela |
 | **10** | **Manutenções** — carrega o D1 | ~8 KB | ~220 ln | 2 | 2 | 0 | **CABE** · não corrige o D1 |
 | **11** | **Configurações** | ~5 KB | ~150 ln | 2 | 2 | 0 | **CABE** · menor da frente |
-| **12** | **Garantias** — tela nova, dado existente | ~6 KB | ~200 ln | 2 | 2 | **1** | **BLOQUEADA** por D-GARANTIAS |
+| **12** | **Garantias** — recorte "Garantia crítica" em Bens | ~6 KB | ~200 ln | 2 | 2 | **1** | **CABE** · D-GARANTIAS respondida (filtro em Bens, 2026-09-29) |
 | **13** | **Auditoria** — deep-link p/ `Modules/Auditoria` | ~6 KB | ~45 ln | 2 | 1 | 0 | **CABE** · D-AUDITORIA respondida (ADR 0414) |
 | **14** | Provas de 09/10/11 apontam subpasta; o `main` é flat | ~22 KB | ~12 ln (JSON) | 1 | — | 0 | **CABE** · 1ª |
 | **15** | As 8 chamadas de view que não têm arquivo | ~12 KB | 0 | 0 | — | 0 | **CABE** (medição) |
@@ -60,8 +60,9 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 A ficha 05 registra a invalidação do pedido antigo pela decisão canônica de 27/07.
 
 **Backend (01-05):** consultar o placar para validar os recibos de 01, 03 e 04; 02 depende da validação de 01; 05 foi retirada pela lápide §5.
-**Frente de UI (07-13), aberta pela ADR 0394:** a **07** vai sozinha — ela cria o `_shared/PatrimonioSubNav.tsx` que as outras importam, e errar ali custa seis telas. Depois **08 ∥ 09 ∥ 10** (prefixos disjuntos), então **11**. A **12** espera D-GARANTIAS e a **13**, D-AUDITORIA.
-**Patch de 09/09 (14-20):** 14 → 15 → 16. As 17–20 não abrem sem `D-FORMS`: os charters das 5 telas declaram `create`/`edit`/`show` como Non-Goal com motivo, então emitir PR ali antes da resposta seria pedido contra o próprio charter.
+**Frente de UI (07-13), aberta pela ADR 0394:** a **07** vai sozinha — ela cria o `_shared/PatrimonioSubNav.tsx` que as outras importam, e errar ali custa seis telas. Depois **08 ∥ 09 ∥ 10** (prefixos disjuntos), então **11**. A **12** esperava D-GARANTIAS (respondida 2026-09-29: filtro em Bens) e a **13**, D-AUDITORIA (respondida 2026-09-24, ADR 0414).
+**Patch de 09/09 (14-20):** 14 → 15 → 16. As 17–20 esperavam `D-FORMS` (respondida 2026-09-24, ADR 0414: drawers React).
+**Thread 06 (UI bloqueada):** não tem linha na tabela nem no JSON porque foi substituída pelas threads 07–13 quando a D-ENDERECO foi respondida; os `_saida-06-*` são recibo histórico dela.
 **A ordem não é gosto:** 01 vem primeiro porque é multi-tenant em produção — Tier 0 fura antes de qualquer verniz.
 
 ## 2-bis · ESTADO — derivado, nunca escrito
@@ -106,7 +107,7 @@ resíduo histórico foi resolvido pelo SCOPE (`asset.*`); o item 10 foi descarta
 canônica, não é uma pergunta de quando ligar. O bloco abaixo preserva o retrato original.
 
 ## 6 · RESÍDUO HISTÓRICO — levantamento com D-ENDERECO respondida em 08/09
-**1** ~~Módulo próprio ou seção do Estoque?~~ **RESPONDIDA [W] 2026-09-08** → `Pages/Patrimonio/**`, módulo próprio ([ADR 0394](../../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)) · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** ~~Auditoria é aba daqui ou do `Modules/Auditoria`?~~ **RESPONDIDA [W] 2026-09-24** → deep-link para o `Modules/Auditoria` filtrado ([ADR 0414](../../../../../memory/decisions/0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react.md)) · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** quando ligar o purge LGPD em canary? · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
+**1** ~~Módulo próprio ou seção do Estoque?~~ **RESPONDIDA [W] 2026-09-08** → `Pages/Patrimonio/**`, módulo próprio ([ADR 0394](../../../../../memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md)) · **2** prefixo de permissão: `asset.*` (código) ou `assetmanagement.*` (SCOPE)? · **3** custo de manutenção entra (não há coluna)? · **4** Garantias é tela ou filtro de Bens? · **5** ~~Auditoria é aba daqui ou do `Modules/Auditoria`?~~ **RESPONDIDA [W] 2026-09-24** → deep-link para o `Modules/Auditoria` filtrado ([ADR 0414](../../../../../memory/decisions/0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react.md)) · **6** depreciação: linear ou SAC, com que fonte contábil? (a coluna já existe e é gravada, mas nunca calculada) · **7** baixa/disposal: `status` ou tabela própria? (hoje "dar baixa" = **deletar o bem**) · **8** transferência entre locais: transação ou edição do `location_id`? · **9** QR + scan mobile entra ou vira Non-Goal escrito? · **10** ~~quando ligar o purge LGPD em canary?~~ **DESCARTADA [W] 2026-10-13** — não há retenção nem purge no Patrimônio (ADR 0430 recusada, lápide §5 2026-10-13) · **11** placa veicular: Patrimônio e Oficina falam do mesmo veículo?
 
 Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º módulo** com o mesmo achado (CRM, Repair, HRM, Patrimônio). Vira pedido do DS, não onda daqui.
 
@@ -264,7 +265,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     },
     {
       "id": "05a",
-      "titulo": "ADR sucessora da lápide 27/07 + corrigir as 4 chaves mortas do retention.php",
+      "titulo": "Corrigir as 4 chaves mortas do retention.php (a ADR sucessora 0430 foi recusada em 2026-10-13)",
       "dono": "CL",
       "arquivo": "05a-adr-e-chaves.md",
       "depende_decisoes": [
@@ -282,11 +283,11 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
     },
     {
       "id": "05",
-      "titulo": "Job de retenção LGPD (nasce desligado, anonimiza, nunca apaga)",
+      "titulo": "Job de retenção LGPD — descartado por [W] em 2026-10-13 (não executável)",
       "dono": "CL",
       "vaga": 2,
       "arquivo": "05-retencao-lgpd.md",
-      "bloqueio": "descartada por [W] 2026-10-13 — ADR 0430 recusada (PR #9268). Não há retenção LGPD no Patrimônio.",
+      "descartada": "[W] 2026-10-13 — ADR 0430 recusada (PR #9268). Não há retenção LGPD no Patrimônio; vale a lápide de 2026-07-27.",
       "prefixo": [],
       "nao_toca": [
         "Modules/AssetManagement/Services/",

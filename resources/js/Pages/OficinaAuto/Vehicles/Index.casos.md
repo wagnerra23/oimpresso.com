@@ -5,13 +5,18 @@ irmaos: Index.charter.md (lei) · ../../../../../memory/requisitos/OficinaAuto/S
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-11-06"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (OficinaAuto · MySQL)"
 related_us: [US-OFICINA-001, US-AUTO-001]
 related_cu: [CU-OFI-02, CU-OFI-15]
 ---
 
 # Casos de Uso & Aceite — Frota dos clientes (Index)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10561). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (OficinaAuto · MySQL)` disparada no branch, run
+> [42228129702](https://github.com/wagnerra23/oimpresso.com/actions/runs/42228129702): `VehicleCrudTest` 6 testes, 13 asserções · `VehicleMultiTenantTest` 4 testes, 6 asserções, 0 skipped (verde). A rodada anterior no mesmo branch (42223940931) saiu skip-as-pass sem executar teste, porque o filtro da lane não olhava `resources/js/Pages/OficinaAuto/**`; corrigido no mesmo PR.
 
 > **Nasce neste PR** (chip Onda 2 do passo 5, [ADR 0351](../../../../../memory/decisions/0351-sdd-from-source.md)).
 > Deriva do §6 [`CU-OFI-02`/`CU-OFI-15`](../../../../../memory/requisitos/OficinaAuto/SDD-tela-ordem-servico-v1.0.md)

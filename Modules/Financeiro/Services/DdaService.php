@@ -34,6 +34,7 @@ class DdaService
             return $existente;
         }
 
+        // SUPERADMIN: roda em job sem sessão; o business_id é preenchido explicitamente
         return DdaBoleto::withoutGlobalScope(BusinessScopeImpl::class)->create([
             'business_id' => $businessId,
             'fonte' => $fonte,
@@ -70,6 +71,7 @@ class DdaService
     public function aceitar(int $businessId, int $ddaId, int $userId): Titulo
     {
         $titulo = DB::transaction(function () use ($businessId, $ddaId, $userId) {
+            // SUPERADMIN: chamado fora de sessão; o filtro é o where business_id explícito
             $dda = DdaBoleto::withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $businessId)->lockForUpdate()->findOrFail($ddaId);
 
@@ -77,6 +79,7 @@ class DdaService
                 throw new \DomainException('Este boleto DDA já foi decidido.');
             }
 
+            // SUPERADMIN: chamado fora de sessão; o filtro é o where business_id explícito
             $max = (int) Titulo::withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $businessId)->where('numero', 'like', 'P-%')->lockForUpdate()
                 ->selectRaw('MAX(CAST(SUBSTRING(numero, 3) AS UNSIGNED)) as max_n')->value('max_n');
@@ -118,6 +121,7 @@ class DdaService
 
     public function descartar(int $businessId, int $ddaId, int $userId): void
     {
+        // SUPERADMIN: chamado fora de sessão; o filtro é o where business_id explícito
         $afetadas = DdaBoleto::withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)->where('id', $ddaId)
             ->where('status', DdaBoleto::STATUS_SUGERIDO)

@@ -4,7 +4,7 @@ irmaos: Manutencoes.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOO
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-11-16"
 ---
 
 > ℹ️ **`last_run` 2026-09-11 → 2026-09-30 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -138,6 +138,54 @@ last_run: "2026-09-30"
   `edit` tinham — toda visita Inertia é ajax, e ele devolvia fragmento de modal jQuery (página
   em branco). E o Non-Goal de dinheiro: o drawer não oferece custo (UC-MANU-03).
 - **Status: ⬜** — a lane de CI do PR é o primeiro run.
+
+---
+
+## UC-MANU-07 · Quando a carga das manutenções falha, a tela diz isso e deixa tentar de novo
+
+- **Persona:** quem acompanha o que está na oficina e precisa saber se a lista não veio.
+- **Aceite:** Dado a tela aberta · Quando a carga deferida de `manutencoes` termina sem a prop (500, 503
+  do deploy ou rede caída) · Então a área da tabela vira o estado de erro do protótipo
+  (`patrimonio-page.jsx:846-850`): `role="alert"`, título "Não consegui carregar as manutenções", a frase de que nada foi
+  perdido e o botão "Tentar de novo". O botão pede **só** `manutencoes` de novo, sem o diálogo de erro
+  do Inertia por cima; quando a prop chega, a tela volta ao normal.
+- **Por quê:** o `<Deferred>` mostra o esqueleto enquanto a prop não chegou, e numa falha ela
+  nunca chega — a tela parecia carregando para sempre. O critério (`_shared/falhaDeferida.ts`) é
+  a visita que pediu a prop ter terminado sem ela; não depende de horário nem de código de erro.
+- **Teste:** `tests/js/patrimonio-estado-erro.test.tsx` — oito `it()` citando `UC-MANU-07`: o alerta aparece quando a visita que pediu `manutencoes` termina sem ela; "Tentar de novo" pede só `manutencoes` com `onHttpException`/`onNetworkError` devolvendo `false`; o erro some quando a prop chega; e três controles (antes da carga terminar, visita que trouxe a prop, visita que pediu outra prop). **Bite-test (2026-11-05):** com as cinco telas de `main`, os 3 casos não-controle de cada tela caem (15 de 30); os controles ficam verdes nos dois lados. **Emenda (2026-11-06):** o smoke em produção mostrou que a falha da carga ORIGINAL abria também o `dialog#inertia-error-dialog` do Inertia por cima do estado de erro (5 de 5 telas) — a carga deferida nasce no core sem `onHttpException`. Dois `it()` a mais: enquanto a carga desta tela está em voo, `httpException` e `networkError` são cancelados (sem modal); fora dela (antes, outra prop, depois do `finish`) o modal segue como era. Bite-test: com o hook anterior, os 5 casos do modal caem; os controles ficam verdes nos dois lados.
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
+
+---
+
+## UC-MANU-08 · Excluir pede confirmação no diálogo do Design System, não no do navegador
+
+- **Persona:** quem clica na lixeira da linha e precisa ver **qual** manutenção vai sair antes
+  de confirmar.
+- **Aceite:** Dado uma manutenção na lista · Quando o usuário clica em "Excluir" na linha · Então
+  abre o `AlertDialog` do DS (`role="alertdialog"`, nunca `window.confirm`) com o código no título
+  ("Excluir a manutenção MNT-0012?") e o bem na descrição; "Cancelar" fecha sem falar com o
+  servidor; "Excluir" manda o DELETE no contrato ajax `{success, msg}` do `destroy`, fecha o
+  diálogo e recarrega só `manutencoes`.
+- **Por quê:** é o mesmo defeito que Bens tinha (UC-BENS-13). O `destroy` só responde sob
+  `request()->ajax()` com JSON; o `router.delete` anterior mandava `X-Requested-With` como toda
+  visita Inertia, recebia `{success, msg}` e o Inertia mostrava o diálogo de resposta crua, sem
+  tirar a linha da lista. O diálogo é o mesmo componente de Bens (`_shared/ConfirmarExclusao.tsx`).
+- **Teste:** `tests/js/patrimonio-manutencoes-excluir.test.tsx` — três `it()` citando `UC-MANU-08`,
+  com o "Editar" da linha como controle de que a tabela renderizou. **Bite-test (2026-11-16):** com
+  o `Manutencoes.tsx` de `main` (`window.confirm` + `router.delete`), os 6 casos do arquivo caem.
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
+
+## UC-MANU-09 · A exclusão que falha avisa na hora e deixa tentar de novo
+
+- **Persona:** quem confirmou a exclusão e precisa saber se ela aconteceu.
+- **Aceite:** Dado o diálogo de exclusão aberto · Quando o servidor responde `success: false`,
+  responde fora de 2xx (o 403 de quem não alcança a manutenção, por exemplo) ou a rede cai ·
+  Então o diálogo **fica aberto** com a mensagem em `role="alert"` ("Não consegui excluir." + o
+  motivo), o botão vira "Tentar de novo", e a lista **não** é recarregada nem o aviso de sucesso
+  aparece. "Tentar de novo" refaz o pedido.
+- **Teste:** `tests/js/patrimonio-manutencoes-excluir.test.tsx` — três `it()` citando `UC-MANU-09`
+  (`success: false`, HTTP 403 sem JSON, rede caída seguida de nova tentativa que dá certo).
+- **Status: 🧪** — verde no vitest local; lane `patrimonio-painel-gate` no PR.
 
 ---
 

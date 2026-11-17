@@ -16,8 +16,20 @@ class FinanceiroServiceProvider extends ServiceProvider
 {
     /**
      * Guard contra duplicação do listener — nWidart pode rodar boot() 2x.
+     *
+     * Por DISPATCHER, não global: a chave é o objeto `events` em que o listener foi
+     * registrado. Em produção há um dispatcher por request, então o 2º boot() acha a
+     * chave e sai (igual à flag estática que existia aqui). Na suíte Pest cada teste
+     * recria a app e o dispatcher; a flag estática sobrevivia entre testes e deixava
+     * `CobrancaPaga` sem listener do 2º teste em diante.
+     *
+     * WeakMap e não `spl_object_id`: o id de um dispatcher já coletado pode ser
+     * reaproveitado pelo próximo, e a guarda pularia o registro. A entrada do WeakMap
+     * some junto com o dispatcher.
+     *
+     * @var \WeakMap<object, true>|null
      */
-    private static bool $paymentgatewayListenersRegistered = false;
+    private static ?\WeakMap $paymentgatewayListenersRegisteredOn = null;
 
     protected string $moduleName = 'Financeiro';
 
@@ -40,25 +52,28 @@ class FinanceiroServiceProvider extends ServiceProvider
 
     /**
      * ADR 0170 Onda 5 SIMPLIFICADA — auto-baixa de Titulo a receber em
-     * fin_titulos quando cobrança SaaS é paga. Apenas business_id=1 (Wagner).
+     * fin_titulos quando cobrança SaaS é paga. Apenas a empresa dona do SaaS
+     * (`app.saas_owner_business_id`), gravando no business_id do evento.
      */
     protected function registerPaymentGatewayListeners(): void
     {
-        if (self::$paymentgatewayListenersRegistered) {
+        $events = $this->app['events'];
+        self::$paymentgatewayListenersRegisteredOn ??= new \WeakMap();
+        if (isset(self::$paymentgatewayListenersRegisteredOn[$events])) {
             return;
         }
 
-        Event::listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
+        $events->listen(CobrancaPaga::class, [OnCobrancaPagaCreateFinanceiroTitulo::class, 'handle']);
 
         // ADR 0183 — Ponte cash_registers → fin_titulos (multi-caixa canon)
-        Event::listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
+        $events->listen(CashRegisterClosed::class, [OnCashRegisterClosedCreateFinanceiroTitulo::class, 'handle']);
 
         // PR F (2026-05-25) G9 — Event TituloCriado dispatched no store() manual
         // (UnificadoController). Listener stub log INFO + abre caminho extensão
         // (notify, cache, accounting). Não dispara em auto-criação observers.
-        Event::listen(TituloCriado::class, [OnTituloCriadoLog::class, 'handle']);
+        $events->listen(TituloCriado::class, [OnTituloCriadoLog::class, 'handle']);
 
-        self::$paymentgatewayListenersRegistered = true;
+        self::$paymentgatewayListenersRegisteredOn[$events] = true;
     }
 
     /**
@@ -150,6 +165,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\ImportarExtratoOfxCommand::class,
                 // 2026-11-03 — devoluções antigas abatem o título da venda (dry-run por padrão).
                 \Modules\Financeiro\Console\Commands\DevolucoesAbaterCommand::class,
+                // 2026-11-13 — títulos RECEBIDA do Delphi gravados como pagar (dry-run por padrão).
+                \Modules\Financeiro\Console\Commands\CorrigirTipoLegadoCommand::class,
             ]);
         }
     }
@@ -163,8 +180,13 @@ class FinanceiroServiceProvider extends ServiceProvider
         // business com a régua LIGADA em common_settings (default OFF), então agendar não envia
         // nada a ninguém até o negócio ligar.
         $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule): void {
+            //
+            // 2026-11-05 (auditoria lote 1.3): os 3 só rodam em produção (`APP_ENV=live`, o
+            // padrão do app/Console/Kernel.php). Sem isso qualquer ambiente com cron (staging,
+            // local) rodaria a régua e as consultas ao banco e à Pluggy.
             $schedule->command('financeiro:regua-cobranca')
                 ->dailyAt('09:00')
+                ->environments(['live'])
                 ->withoutOverlapping()
                 ->onOneServer();
 
@@ -172,6 +194,7 @@ class FinanceiroServiceProvider extends ServiceProvider
             // do sync Inter das 07:00, para a conciliação abrir o dia com as duas fontes.
             $schedule->command('financeiro:pluggy-sync')
                 ->dailyAt('07:15')
+                ->environments(['live'])
                 ->when(fn () => (bool) config('financeiro.pluggy.enabled', false))
                 ->withoutOverlapping()
                 ->onOneServer();
@@ -180,6 +203,7 @@ class FinanceiroServiceProvider extends ServiceProvider
             // com FINANCEIRO_PAGAMENTO_BANCO_ENABLED=true (default false).
             $schedule->command('financeiro:pagamentos-banco-sync')
                 ->everyFifteenMinutes()
+                ->environments(['live'])
                 ->when(fn () => (bool) config('financeiro.pagamento_banco.enabled', false))
                 ->withoutOverlapping()
                 ->onOneServer();
@@ -207,8 +231,15 @@ class FinanceiroServiceProvider extends ServiceProvider
      */
     protected function registerConfig(): void
     {
-        $this->publishes([module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower.'.php')], 'config');
+        // 2026-11-05 (auditoria lote 1.3): sem `publishes` de config. O destino seria
+        // config/financeiro.php, que já existe na raiz com outras chaves (pluggy, conciliacao,
+        // extrato_bancos); um `vendor:publish --tag=config --force` o trocaria pelo do módulo.
+        // As duas fontes convivem pelo merge: a raiz ganha nas chaves que ela define.
         $this->mergeConfigFrom(module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower);
+
+        // Config/retention.php nunca era carregado: `config('financeiro.retention.*')` voltava
+        // sempre o default, e o check 6 do FinanceiroHealthCommand lia uma chave inexistente.
+        $this->mergeConfigFrom(module_path($this->moduleName, 'Config/retention.php'), $this->moduleNameLower.'.retention');
     }
 
     /**

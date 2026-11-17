@@ -2,11 +2,12 @@
 id: resources-js-pages-oficina-auto-service-orders-board-charter
 page: /oficina-auto/ordens-servico
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
+related_runbook: memory/requisitos/OficinaAuto/RUNBOOK-board.md
 visual_source: oficina-page.jsx
-related_us: [US-OFICINA-004, US-OFICINA-006]
+related_us: [US-OFICINA-004, US-OFICINA-006, US-OFICINA-047, US-OFICINA-048]
 owner: wagner
 status: live
-last_validated: "2026-06-11"
+last_validated: "2026-11-05"
 parent_module: OficinaAuto
 states: [default, empty, dark]  # gate L2 — loading podado (render == default, md5 #3288) + error removido (toast não determinístico, md5 #3290) · sync com tests/Browser/visreg-states.json
 related_adrs:
@@ -15,7 +16,7 @@ related_adrs:
   - 0129-state-machine-canonica-fsm-rbac
   - 0093-multi-tenant-isolation-tier-0
 tier: A
-charter_version: 6
+charter_version: 7
 ---
 
 # Charter — Oficina Auto · workspace de OS (tela unificada)
@@ -76,11 +77,23 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
   FSM do payload `columns`, e a **marca** cai na célula da **etapa atual** (tom da
   coluna + glifo semântico). Respeita busca + KPI-filtro + aba de box; legenda
   data-driven. Independe do foco (Box/Mecânico é pivot só do Quadro).
+- **Entrega com evidência** (US-OFICINA-047/048 · conferido 2026-11-05): a ação `entregar`
+  (Pronto p/ retirar → Entregue), pelo botão do card ou pelo drawer, passa pelo gate do servidor
+  (`StageGateEvaluator`): foto do serviço feito, sempre; assinatura do cliente quando a empresa
+  liga a exigência. O checklist (`ServiceOrderStageGate`) e o quadro de assinatura
+  (`ServiceOrderSignaturePad`) ficam no drawer. Sem gate atendido, o `fsm/execute` volta 422.
+- **Estado da OS — dois donos (fato, conferido 2026-11-05):** as transições deste quadro mudam
+  só a etapa FSM; não gravam a coluna `status`, que é o que dispara a venda derivada e a baixa
+  de estoque. Decisão D1 do [W], aberta — ver `RUNBOOK-fsm-pipeline.md`.
 - Densidade compacta @1280 (monitor do operador) via **@container** (não @media).
 - Reusar o canon: KanbanDndProvider, DragConfirmDialog, ServiceOrderRichSheet,
   MercosulPlate (estender, não recriar — §10.4).
 
 ## Non-Goals
+
+> Nota 2026-11-05: lista não alterada — Non-Goals e Anti-hooks só o [W] preenche. Conferida contra
+> o código no lote 5.5 da auditoria; nenhuma divergência medida nesta seção.
+
 - NÃO cria OS inline pelo drag (usar "Nova OS").
 - NÃO emite documento fiscal nem dispara cobrança (fiscal real espera [W]).
 - As 4 views derivam do MESMO payload `columns` (workspace do pipeline mecânica não-

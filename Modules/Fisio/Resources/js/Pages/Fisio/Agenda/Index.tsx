@@ -7,6 +7,7 @@
 // Agenda da clínica. Fonte visual: prototipo-ui/cowork/Wagner/prototipos/fisio/Agenda.dc.html
 // (canvas Prescreve Pro, ADR 0438). Semana do profissional, legenda de status, resumo do dia, vaga
 // liberada e lista de espera. Conflito, encaixe, prazo e faltas são do servidor (AgendaService).
+// Com fisio.editar, clicar na sessão abre status/desmarcar/liberar app (UC-FAG-06, UC-FAG-08).
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
@@ -21,6 +22,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
 import SemanaHoras, { type Atendimento, type Bloqueio } from './_components/SemanaHoras';
+import { AtendimentoAcoes, EntrarNaEspera } from './_components/AcoesAgenda';
 
 interface Opcao { id: number; nome: string }
 interface Tipo extends Opcao { duracao: number; modalidade: string }
@@ -53,6 +55,8 @@ const quando = (iso: string) => new Date(iso).toLocaleString('pt-BR', { weekday:
 export default function FisioAgenda(p: Props) {
   const [nova, setNova] = useState(false);
   const [bloquear, setBloquear] = useState(false);
+  const [aberto, setAberto] = useState<Atendimento | null>(null);
+  const [espera, setEspera] = useState(false);
   const nomeProf = p.profissionais.find((x) => x.id === p.profissional_id)?.nome ?? '';
   const ir = (q: Record<string, string | number>) =>
     router.get('/fisio/agenda', { semana: p.semana, profissional: p.profissional_id, ...q }, { preserveState: true });
@@ -92,7 +96,7 @@ export default function FisioAgenda(p: Props) {
             </div>
           </div>
           <Deferred data={['atendimentos', 'bloqueios']} fallback={<Skeleton className="h-[620px] w-full rounded-lg" />}>
-            <SemanaHoras segunda={p.semana} hoje={hojeIso()} atendimentos={p.atendimentos ?? []} bloqueios={p.bloqueios ?? []} />
+            <SemanaHoras segunda={p.semana} hoje={hojeIso()} atendimentos={p.atendimentos ?? []} bloqueios={p.bloqueios ?? []} abrir={p.pode_editar ? setAberto : undefined} />
           </Deferred>
         </main>
         <aside aria-label="Lista de espera" className="flex max-w-xs flex-[1_1_280px] flex-col border-l border-border bg-card">
@@ -117,12 +121,21 @@ export default function FisioAgenda(p: Props) {
           </Deferred>
           <Deferred data="espera" fallback={<Skeleton className="m-4 h-24" />}>
             <section className="flex flex-col gap-2.5 px-4 py-3.5">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Lista de espera · {p.espera?.length ?? 0}</h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Lista de espera · {p.espera?.length ?? 0}</h2>
+                {p.pode_editar && <Button size="sm" variant="outline" onClick={() => setEspera(true)}>Pôr na lista</Button>}
+              </div>
               {(p.espera ?? []).length === 0 && <p className="text-sm text-muted-foreground">Ninguém esperando vaga.</p>}
               {(p.espera ?? []).map((w) => (
-                <div key={w.id} className="flex flex-col gap-0.5 border-b border-border/60 pb-2">
-                  <span className="font-medium">{w.paciente}</span>
-                  <span className="text-xs text-muted-foreground">{w.preferencia}</span>
+                <div key={w.id} data-espera={w.id} className="flex items-start justify-between gap-2 border-b border-border/60 pb-2">
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="font-medium">{w.paciente}</span>
+                    <span className="text-xs text-muted-foreground">{w.preferencia}</span>
+                  </div>
+                  {p.pode_editar && (
+                    <Button size="sm" variant="ghost" aria-label={`Tirar ${w.paciente} da lista de espera`}
+                      onClick={() => router.delete(`/fisio/agenda/espera/${w.id}`, { preserveScroll: true })}>Tirar</Button>
+                  )}
                 </div>
               ))}
             </section>
@@ -131,6 +144,8 @@ export default function FisioAgenda(p: Props) {
       </div>
       {nova && <NovaSessao p={p} fechar={() => setNova(false)} />}
       {bloquear && <BloquearHorario p={p} fechar={() => setBloquear(false)} />}
+      {aberto && <AtendimentoAcoes a={aberto} fechar={() => setAberto(null)} />}
+      {espera && <EntrarNaEspera pacientes={p.pacientes ?? []} fechar={() => setEspera(false)} />}
     </>
   );
 }

@@ -12,6 +12,7 @@
 //   (B1..B4 + E1..E2) preserva UX atual quando biz não configurou ainda.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Camera } from 'lucide-react';
@@ -197,6 +198,11 @@ export default function ProducaoOficinaIndex({ columns, totals, data_source, slo
 
   return (
     <div className="flex flex-col h-full bg-slate-50 text-slate-900">
+      {/* Barra de abas do módulo: a mesma lista do sidebar ([W] 2026-11-06, RUNBOOK-producao-oficina
+          §F1). A tela não tem PageHeader; a barra ocupa uma faixa própria acima dos filtros. */}
+      <div className="bg-card border-b border-border px-6 pt-2 flex-shrink-0">
+        <ModuleTabs modulo="Assistência técnica" />
+      </div>
       {/* Filter bar — dinâmica conforme slot_config */}
       <div className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-6 sticky top-0 z-10 flex-wrap">
         {slot_config.map((group, idx) => (

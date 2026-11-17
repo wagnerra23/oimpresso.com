@@ -25,6 +25,8 @@ use Modules\Fisio\Entities\Record;
  */
 class LaudoEvolucao
 {
+    public function __construct(private readonly IdentidadeClinica $identidade) {}
+
     private const DATA = 'd/m/Y';
 
     /** @return array<string, mixed> */
@@ -38,6 +40,7 @@ class LaudoEvolucao
 
         return [
             'empresa' => (string) DB::table('business')->where('id', $businessId)->value('name'),
+            'clinica' => $this->identidade->montar($businessId),
             'emitido_em' => now()->format(self::DATA),
             'paciente' => $paciente->contact?->name,
             'periodo' => $registros->isEmpty() ? null : $registros->first()->signed_at->format(self::DATA).' a '.now()->format(self::DATA),

@@ -1,77 +1,74 @@
 {{--
     Prontuário do paciente em PDF (UC-FPS-19; Res. COFFITO 414/2012). Renderizado pelo dompdf
-    (barryvdh/laravel-dompdf, mesmo padrão de financeiro::pdf.dre). Fonte DejaVu Sans: cobre
-    acentos sem fonte externa. "Página X de Y" é desenhado pelo controller via page_text do
-    canvas, porque o total de páginas só existe depois do layout.
-    Cores: documento impresso fora do app — o dompdf não recebe o CSS nem os tokens do DS.
+    sobre a base comum dos impressos (pdf/_base): cabeçalho da clínica, rodapé com empresa,
+    emissão e "Página X de Y" em toda página. Cada registro é um bloco que não quebra no meio,
+    fechado pela assinatura de quem assinou (nome, CREFITO, data e hora). O documento só lê:
+    registro assinado não se altera, correção aparece como adendo.
 --}}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Prontuário — {{ $paciente['nome'] ?? 'Paciente' }}</title>
-    <style>
-        @page { margin: 16mm 14mm 20mm; }
-        body { font-family: DejaVu Sans, sans-serif; font-size: 9pt; color: #1c1917; }
-        h1 { font-size: 13pt; margin: 0 0 1mm; font-weight: bold; }
-        h2 { font-size: 10pt; margin: 6mm 0 2mm; font-weight: bold; border-bottom: 1px solid #e7e5e4; padding-bottom: 1mm; }
-        .sub { font-size: 8pt; color: #57534e; margin-bottom: 4mm; }
-        dl { margin: 0; }
-        dt { font-size: 7.5pt; color: #57534e; margin-top: 1.5mm; }
-        dd { margin: 0; }
-        .registro { border: 1px solid #e7e5e4; padding: 3mm; margin-bottom: 3mm; page-break-inside: avoid; }
-        .registro .cab { font-weight: bold; }
-        .carimbo { font-size: 8pt; color: #57534e; margin-top: 2mm; border-top: 1px dashed #e7e5e4; padding-top: 1.5mm; }
-        .aviso { font-size: 8pt; color: #57534e; }
-        #rodape { position: fixed; bottom: -12mm; left: 0; right: 0; font-size: 7.5pt; color: #57534e; }
-    </style>
-</head>
-<body>
+@extends('fisio::pdf._base', ['documento' => [
+    'titulo' => 'Prontuário fisioterapêutico',
+    'numero' => 'Paciente nº '.($paciente['id'] ?? '—'),
+]])
 
-<div id="rodape">{{ $empresa }} · emitido em {{ $emitido_em }}</div>
+@section('estilos')
+<style>
+    .registro { border: 0.5pt solid #dfdedb; margin-bottom: 4mm; page-break-inside: avoid; }
+    .registro .topo { background: #f4f3f0; padding: 1.8mm 3mm; border-bottom: 0.5pt solid #dfdedb; }
+    .registro .topo table { width: 100%; border-collapse: collapse; }
+    .registro .topo td { padding: 0; vertical-align: middle; }
+    .registro .tipo { font-weight: bold; font-size: 9.5pt; }
+    .registro .ref { font-size: 7.5pt; color: #58554f; text-align: right; }
+    .registro .adendo { color: #5e3d9e; }
+    .registro .corpo { padding: 2mm 3mm 0; }
+    .registro .corpo table.ficha th { width: 42mm; }
+    .registro .corpo table.ficha tr:last-child { border-bottom: none; }
+    .registro .assinado { margin: 2mm 3mm 2.5mm; padding-top: 1.5mm; border-top: 0.5pt dashed #c9c7c2; font-size: 7.5pt; color: #58554f; }
+    .registro .assinado b { color: #1d1a15; }
+</style>
+@endsection
 
-<h1>Prontuário fisioterapêutico</h1>
-<div class="sub">Documento gerado pelo sistema a partir dos registros assinados. Registro assinado não se altera; correções aparecem como adendo.</div>
+@section('conteudo')
+<h1 class="titulo-doc">Prontuário fisioterapêutico</h1>
+<div class="subtitulo-doc">Documento gerado pelo sistema a partir dos registros assinados. Registro assinado não se altera; correções aparecem como adendo.</div>
 
-<h2>Identificação do paciente</h2>
-<dl>
-    <dt>Nome</dt><dd>{{ $paciente['nome'] ?? '—' }}</dd>
-    <dt>Telefone</dt><dd>{{ $paciente['telefone'] ?: '—' }}</dd>
+<div class="secao">Identificação do paciente</div>
+<table class="ficha">
+    <tr><th>Nome</th><td>{{ $paciente['nome'] ?? '—' }}</td></tr>
+    <tr><th>Telefone</th><td>{{ $paciente['telefone'] ?: '—' }}</td></tr>
     @if($paciente['bloqueado'])
-        <dt>Situação</dt><dd>Bloqueado — prontuário guardado</dd>
+        <tr><th>Situação</th><td>Bloqueado — prontuário guardado</td></tr>
     @endif
-</dl>
+</table>
 
-<h2>Perfil clínico</h2>
-<dl>
-    <dt>Queixa principal</dt><dd>{{ $paciente['queixa_principal'] ?: '—' }}</dd>
-    <dt>Objetivos</dt><dd>{{ $paciente['objetivos'] ? implode('; ', $paciente['objetivos']) : '—' }}</dd>
-    <dt>Dias por semana</dt><dd>{{ $paciente['sessoes_por_semana'] }}</dd>
-    <dt>Marcadores de condição</dt><dd>{{ $paciente['condicoes'] ? implode('; ', $paciente['condicoes']) : '—' }}</dd>
-</dl>
+<div class="secao">Perfil clínico</div>
+<table class="ficha">
+    <tr><th>Queixa principal</th><td>{{ $paciente['queixa_principal'] ?: '—' }}</td></tr>
+    <tr><th>Objetivos</th><td>{{ $paciente['objetivos'] ? implode('; ', $paciente['objetivos']) : '—' }}</td></tr>
+    <tr><th>Dias por semana</th><td>{{ $paciente['sessoes_por_semana'] }}</td></tr>
+    <tr><th>Marcadores de condição</th><td>{{ $paciente['condicoes'] ? implode('; ', $paciente['condicoes']) : '—' }}</td></tr>
+</table>
 
-<h2>Registros ({{ count($registros) }})</h2>
+<div class="secao">Registros ({{ count($registros) }})</div>
 @forelse($registros as $r)
     <div class="registro">
-        <div class="cab">
-            {{ $r['tipo'] }} · registro nº {{ $r['id'] }}
-            @if($r['corrige']) — corrige o registro nº {{ $r['corrige'] }} @endif
+        <div class="topo">
+            <table><tr>
+                <td class="tipo">{{ $r['tipo'] }}@if($r['corrige']) <span class="adendo">— corrige o registro nº {{ $r['corrige'] }}</span>@endif</td>
+                <td class="ref">Registro nº {{ $r['id'] }}@if($r['modalidade'] || $r['canal'])<br>Modalidade: {{ $r['modalidade'] ?? '—' }} · canal: {{ $r['canal'] ?? '—' }}@endif</td>
+            </tr></table>
         </div>
-        @if($r['modalidade'] || $r['canal'])
-            <div class="aviso">Modalidade: {{ $r['modalidade'] ?? '—' }} · canal: {{ $r['canal'] ?? '—' }}</div>
-        @endif
-        <dl>
-            @foreach($r['campos'] as $c)
-                <dt>{{ $c['rotulo'] }}</dt><dd>{{ $c['valor'] }}</dd>
-            @endforeach
-        </dl>
-        <div class="carimbo">
-            Assinado por {{ $r['assinado_por'] ?: 'Usuário' }} · {{ $r['crefito'] ?? '—' }} · {{ $r['assinado_em'] }}
+        <div class="corpo">
+            <table class="ficha">
+                @foreach($r['campos'] as $c)
+                    <tr><th>{{ $c['rotulo'] }}</th><td>{{ $c['valor'] }}</td></tr>
+                @endforeach
+            </table>
+        </div>
+        <div class="assinado">
+            Assinado por <b>{{ $r['assinado_por'] ?: 'Usuário' }}</b> · {{ $r['crefito'] ?? 'CREFITO não informado' }} · em {{ $r['assinado_em'] }}
         </div>
     </div>
 @empty
-    <p class="aviso">Nenhum registro assinado no prontuário.</p>
+    <p class="nota">Nenhum registro assinado no prontuário.</p>
 @endforelse
-
-</body>
-</html>
+@endsection

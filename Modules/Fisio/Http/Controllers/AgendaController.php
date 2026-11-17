@@ -25,6 +25,9 @@ use Modules\Fisio\Services\ResponsavelPaciente;
  * Ler exige `fisio.access` (FisioLiberado); escrever exige `fisio.editar`. `business_id` vem
  * sempre da sessão; atendimento, bloqueio, espera ou paciente de outra empresa respondem 404
  * pelo escopo do model e pelo `where('business_id', …)` explícito em cada busca (defesa dupla). Toda leitura cara vai por `Inertia::defer`.
+ *
+ * A mensagem de retorno vai em `success`: é a chave que o HandleInertiaRequests repassa ao toast.
+ * Uma string solta em `status` não chega à tela (o middleware lê `status.msg`).
  */
 class AgendaController extends Controller
 {
@@ -67,7 +70,7 @@ class AgendaController extends Controller
             'starts_at' => Carbon::parse($d['starts_at']), 'created_by' => (int) $request->user()->id,
         ], (bool) ($d['encaixe'] ?? false));
 
-        return back()->with('status', 'Sessão marcada.');
+        return back()->with('success', 'Sessão marcada.');
     }
 
     public function status(Request $request, int $id): RedirectResponse
@@ -79,7 +82,7 @@ class AgendaController extends Controller
         ]);
         $this->agenda->mudarStatus(Appointment::query()->where('business_id', $this->biz($request))->findOrFail($id), $d['status'], isset($d['record_id']) ? (int) $d['record_id'] : null);
 
-        return back()->with('status', 'Atendimento atualizado.');
+        return back()->with('success', 'Atendimento atualizado.');
     }
 
     public function cancelar(Request $request, int $id): RedirectResponse
@@ -90,7 +93,7 @@ class AgendaController extends Controller
 
         $n = $candidatos->count();
 
-        return back()->with('status', match (true) {
+        return back()->with('success', match (true) {
             $n === 0 => 'Sessão desmarcada.',
             $n === 1 => 'Sessão desmarcada. 1 paciente da lista de espera serve neste horário.',
             default => "Sessão desmarcada. {$n} pacientes da lista de espera servem neste horário.",
@@ -111,7 +114,7 @@ class AgendaController extends Controller
             'ends_at' => Carbon::parse($d['ends_at']), 'reason' => $d['motivo'] ?? null, 'created_by' => (int) $request->user()->id,
         ]);
 
-        return back()->with('status', 'Horário bloqueado.');
+        return back()->with('success', 'Horário bloqueado.');
     }
 
     public function desbloquearHorario(Request $request, int $id): RedirectResponse
@@ -119,7 +122,7 @@ class AgendaController extends Controller
         $this->editar($request);
         ScheduleBlock::query()->where('business_id', $this->biz($request))->findOrFail($id)->delete();
 
-        return back()->with('status', 'Bloqueio removido.');
+        return back()->with('success', 'Bloqueio removido.');
     }
 
     public function entrarNaEspera(Request $request): RedirectResponse
@@ -133,7 +136,7 @@ class AgendaController extends Controller
         WaitlistEntry::query()->create(['business_id' => $this->biz($request), 'patient_id' => $pac->id,
             'preferences' => array_filter(['dias' => $d['dias'] ?? [], 'turnos' => $d['turnos'] ?? [], 'ate' => $d['ate'] ?? null])]);
 
-        return back()->with('status', 'Paciente na lista de espera.');
+        return back()->with('success', 'Paciente na lista de espera.');
     }
 
     public function sairDaEspera(Request $request, int $id): RedirectResponse
@@ -141,7 +144,7 @@ class AgendaController extends Controller
         $this->editar($request);
         WaitlistEntry::query()->where('business_id', $this->biz($request))->findOrFail($id)->forceFill(['status' => 'saiu'])->save();
 
-        return back()->with('status', 'Paciente saiu da lista de espera.');
+        return back()->with('success', 'Paciente saiu da lista de espera.');
     }
 
     public function liberarApp(Request $request, int $id): RedirectResponse
@@ -149,7 +152,7 @@ class AgendaController extends Controller
         $this->editar($request);
         $this->agenda->desbloquear(Patient::query()->where('business_id', $this->biz($request))->findOrFail($id));
 
-        return back()->with('status', 'Agendamento pelo app liberado para o paciente.');
+        return back()->with('success', 'Agendamento pelo app liberado para o paciente.');
     }
 
     private function biz(Request $request): int

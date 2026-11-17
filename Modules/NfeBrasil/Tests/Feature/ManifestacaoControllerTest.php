@@ -16,6 +16,8 @@ uses(Tests\TestCase::class);
  * Lógica SEFAZ é mockada via ManifestacaoService.
  */
 
+const MANIF_CTRL_PERMS = ['nfe.manifestacao.view', 'nfe.manifestacao.manage'];
+
 function manifestacaoCtrlBootstrap(): array
 {
     if (! Schema::hasTable('nfe_dfe_recebidos') || ! Schema::hasTable('nfe_dfe_eventos')) {
@@ -23,9 +25,20 @@ function manifestacaoCtrlBootstrap(): array
     }
 
     try {
-        $business = \App\Business::first();
-        $user = \App\User::whereHas('roles', fn ($q) => $q->where('name', 'like', 'Admin%'))->first()
-            ?? \App\User::first();
+        // Usuario da empresa com as permissoes de manifestacao CONCEDIDAS pelo teste (mesmo
+        // padrao do ManifestacaoContratoTest, que passa nesta lane) e revogadas no afterEach.
+        // Antes o teste dependia de achar algum usuario com papel Admin no banco: no run
+        // 42930817657 (2026-11-11) o escolhido nao passava no gate e as 5 rotas autenticadas
+        // deram 403; exigir `Admin#{business_id}` fez os 7 casos pularem (run seguinte).
+        $business = \App\Business::orderBy('id')->first();
+        $user = $business ? \App\User::where('business_id', $business->id)->orderBy('id')->first() : null;
+        if ($user) {
+            foreach (MANIF_CTRL_PERMS as $nome) {
+                $user->givePermissionTo(\Spatie\Permission\Models\Permission::firstOrCreate(['name' => $nome, 'guard_name' => 'web']));
+            }
+            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            test()->manifCtrlUser = $user;
+        }
     } catch (\Throwable) {
         test()->markTestSkipped('Tabelas core indisponíveis.');
     }
@@ -48,6 +61,14 @@ function actingAsUserComBiz($user, $businessId): void
 }
 
 afterEach(function () {
+    if (isset($this->manifCtrlUser)) {
+        foreach (MANIF_CTRL_PERMS as $nome) {
+            if (\Spatie\Permission\Models\Permission::where('name', $nome)->where('guard_name', 'web')->exists()) {
+                $this->manifCtrlUser->revokePermissionTo($nome);
+            }
+        }
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    }
     \Mockery::close();
 });
 

@@ -165,6 +165,11 @@ beforeEach(function () {
         'allow_login' => 1,
     ]);
     $this->userPrimary->assignRole($roleAdmin1);
+    // Acesso a todas as lojas, DIRETO no usuário (`permitted_locations()` lê as permissões diretas).
+    // Este arquivo prova isolamento entre EMPRESAS; o escopo entre lojas é do UC-CMP-08/12/13. Sem
+    // isto, desde o lote 2.2 (2026-11-06) o detalhe e os KPIs aplicam whereIn(location_id, []) e o
+    // usuário vê zero compras — o mesmo que a listagem e o /purchases já faziam.
+    $this->userPrimary->givePermissionTo(Permission::firstOrCreate(['name' => 'access_all_locations', 'guard_name' => 'web']));
 
     $this->userOther = User::factory()->create([
         'business_id' => $this->bizOther->id,

@@ -23,7 +23,7 @@ beforeEach(function () {
 
 it('UC-FCFG-01 · NfeCertificado encrypted_password é hidden — não vaza no payload Inertia', function () {
     $cert = new NfeCertificado([
-        'business_id'        => 1,
+        'business_id'        => 98,
         'cnpj_titular'       => '00000000000000',
         'encrypted_password' => 'SECRET_NEVER_LEAK',
         'ativo'              => true,
@@ -41,13 +41,26 @@ it('UC-FCFG-01 · NfeCertificado encrypted_password é hidden — não vaza no p
 });
 
 it('UC-FCFG-02 · NfeCertificado HasBusinessScope esconde certs de outros tenants', function () {
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    // Até 2026-11-06 este caso contava sem usuário autenticado (o escopo global no-opa) e sem
+    // semear nada: dava 0 com a tabela vazia. Agora há um cert em cada empresa e o usuário é
+    // da 98; a vizinha some e a própria aparece (controle positivo).
+    $tenant = test()->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) test()->seededSupportClientTenant()->id;
+    $doA = configCertTeste($bizA, '11222333000181');
+    $doB = configCertTeste($bizB, '99888777000166');
 
-    $crossTenantCount = NfeCertificado::query()
-        ->where('business_id', '!=', 1)
-        ->count();
+    try {
+        test()->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant));
+        session(['business.id' => $bizA, 'user.business_id' => $bizA]);
 
-    expect($crossTenantCount)->toBe(0, 'Cross-tenant nunca vaza certs');
+        $ids = NfeCertificado::query()->pluck('id')->all();
+
+        expect($ids)->not->toContain($doB)
+            ->and($ids)->toContain($doA);
+    } finally {
+        DB::table('nfe_certificados')->whereIn('id', [$doA, $doB])->delete();
+    }
 });
 
 it('UC-FCFG-04 · o payload da tela carrega o estado da contingência com a duração vinda do SERVIDOR', function () {
@@ -55,7 +68,7 @@ it('UC-FCFG-04 · o payload da tela carrega o estado da contingência com a dura
         $this->markTestSkipped('Coluna em_contingencia ausente — rode as migrations do NfeBrasil (US-NFE-006).');
     }
 
-    $bizId = 1;
+    $bizId = (int) test()->seededTenant()->id;
     $ativadaEm = now()->subDays(3);
 
     DB::table('nfe_business_configs')->updateOrInsert(
@@ -108,10 +121,10 @@ it('UC-FCFG-04 · o payload da tela carrega o estado da contingência com a dura
 });
 
 it('UC-FCFG-05 · o card de envio de documentos espelha as flags REAIS do deploy', function () {
-    $user = \App\User::factory()->create(['business_id' => 1]);
+    $user = \App\User::factory()->create(['business_id' => 98]);
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
-    session(['business.id' => 1, 'user.business_id' => 1]);
+    session(['business.id' => 98, 'user.business_id' => 98]);
 
     // As duas chaves governam os listeners que mandam o DANFE:
     // `EnviarDanfePorEmail` (NFe 55) e `EnviarDanfeNFCePorEmail` (NFC-e 65).
@@ -213,5 +226,59 @@ it('UC-FCFG-11 · cert sem CNPJ titular mostra o CNPJ da empresa como fallback',
             );
     } finally {
         DB::table('nfe_certificados')->where('id', $comCnpj)->delete();
+    }
+});
+
+it('UC-FCFG-12 · a tela mostra a configuração fiscal da própria empresa, nunca a da vizinha', function () {
+    $tenant = test()->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) test()->seededSupportClientTenant()->id;
+
+    // Guarda o que já existe para devolver no fim (a lane compartilha o banco entre arquivos).
+    $antes = DB::table('nfe_business_configs')->whereIn('business_id', [$bizA, $bizB])->get()->keyBy('business_id');
+    $gravar = function (int $biz, string $regime, string $cfop): void {
+        DB::table('nfe_business_configs')->updateOrInsert(
+            ['business_id' => $biz],
+            ['regime' => $regime, 'tributacao_default' => json_encode(['cfop' => $cfop]),
+                'created_at' => now(), 'updated_at' => now()],
+        );
+    };
+    $gravar($bizA, 'simples', '5102');
+    $gravar($bizB, 'lucro_real', '6108');
+
+    $user = test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant);
+
+    try {
+        $this->actingAs($user)
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->get('/fiscal/config')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->component('Fiscal/Config')
+                    ->where('config.regime', 'simples')
+                    ->where('painel.regime', 'simples')
+                    ->where('painel.cfopDefault', '5102'),
+            );
+
+        // Os dois lados: sem o filtro, `first()` devolveria a MESMA linha às duas empresas,
+        // e uma das duas asserções cai. Com o filtro, cada uma vê a sua.
+        $userB = test()->usuarioComPermissoes(['fiscal.config.edit'], \App\Business::findOrFail($bizB));
+        $this->actingAs($userB)
+            ->withSession(['business.id' => $bizB, 'user.business_id' => $bizB])
+            ->get('/fiscal/config')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->where('config.regime', 'lucro_real')
+                    ->where('painel.cfopDefault', '6108'),
+            );
+    } finally {
+        foreach ([$bizA, $bizB] as $biz) {
+            DB::table('nfe_business_configs')->where('business_id', $biz)->delete();
+            if ($antes->has($biz)) {
+                DB::table('nfe_business_configs')->insert((array) $antes->get($biz));
+            }
+        }
     }
 });

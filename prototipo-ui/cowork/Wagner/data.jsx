@@ -103,6 +103,11 @@ const MENU = [
       { id: "fisio-protocolos",  icon: "list",  label: "Protocolos" },
       { id: "fisio-tele",        icon: "phone", label: "Teleconsulta" },
       { id: "fisio-financeiro",  icon: "cash",  label: "Financeiro" },
+      // [W] 2026-11-06: telas com rota e permissão que faltavam no menu (vivo: PR #10528).
+      { id: "fisio-fiscal",      icon: "receipt", label: "Fila fiscal" },
+      { id: "fisio-agendamento", icon: "clock", label: "Agendamento online" },
+      { id: "fisio-whatsapp",    icon: "chat",  label: "WhatsApp" },
+      { id: "fisio-onboarding",  icon: "check", label: "Primeira configuração" },
       { id: "fisio-p-hoje",      icon: "globe", label: "Portal do paciente" },
     ]},
   ]},
@@ -166,12 +171,14 @@ const MENU = [
     { id: "entregas", icon: "car",  label: "Entregas e instalação" },
     // Comunicação Visual (Modules/ComunicacaoVisual · group 'producao' no vivo, order 55)
     { id: "cv",     icon: "print",  label: "Comunicação Visual" },
+    // [W] 2026-11-06: sidebar e abas do topo mostram a MESMA lista. Rótulos da barra `MP.Tabs` do
+    // `repair-page.jsx` ("Áreas da assistência técnica"), que é a lista do vivo (PR #10550).
     { id: "repair", icon: "wrench", label: "Assistência técnica", ghosts: [
-      { id: "rep-producao", icon: "grid",    label: "Produção · oficina" },
+      { id: "rep-producao", icon: "grid",    label: "Produção" },
       { id: "rep-folhas",   icon: "orders",  label: "Folhas de OS" },
-      { id: "rep-reparos",  icon: "cash",    label: "Reparos faturados" },
-      { id: "rep-status",   icon: "list",    label: "Status do reparo" },
-      { id: "rep-modelos",  icon: "product", label: "Modelos de equipamento" },
+      { id: "rep-reparos",  icon: "cash",    label: "Reparos" },
+      { id: "rep-status",   icon: "list",    label: "Status" },
+      { id: "rep-modelos",  icon: "product", label: "Modelos" },
       { id: "rep-portal",   icon: "globe",   label: "Portal do cliente" },
       { id: "rep-config",   icon: "cog",     label: "Configurações" },
     ]},

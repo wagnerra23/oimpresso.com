@@ -404,6 +404,14 @@ it('Multi-tenant Tier 0 — biz=99 NÃO vê reminders criados em biz=1 via globa
     expect(WhatsappReminder::withoutGlobalScopes()->count())->toBe(2);
 
     // Visão biz=99 (global scope ativo) vê só o dele
+    $user = new class extends \Illuminate\Foundation\Auth\User {
+        protected $table = 'users';
+        protected $guarded = [];
+        public function can($abilities, $arguments = []): bool { return false; }
+    };
+    $user->id = 1;
+    $user->business_id = 99;
+    auth()->setUser($user); // o ScopeByBusiness não filtra sem usuário autenticado
     session(['user.business_id' => 99]);
     $visible = WhatsappReminder::all();
     expect($visible)->toHaveCount(1);

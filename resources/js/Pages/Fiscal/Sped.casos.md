@@ -97,11 +97,11 @@ nenhuma lane disponível hoje** — é lacuna de ambiente, não defeito de teste
 vez de editar estes números.
 
 ## UC-FSPED-01 — A geração nunca cruza business (Tier 0)
-Status: 🧪 (`SpedIcmsIpiGeneratorServiceTest::UC-FSPED-01 · gerar lança RuntimeException cross-tenant` — **passa**; `SpedControllerTest::UC-FSPED-01 · agregação de períodos` skipa sem `nfe_emissoes`)
+Status: 🧪 (`SpedIcmsIpiGeneratorServiceTest::UC-FSPED-01 · gerar lança RuntimeException cross-tenant` — **passa**; `SpedControllerTest::UC-FSPED-01 · agregação de períodos` chama GET /fiscal/sped com notas do mês nas empresas 98 e 99 e confere que o painel conta só as da sessão — até 2026-11-06 contava sem usuário autenticado e sem dado, e passava com a tabela vazia)
 Dado a sessão do business X · Quando alguém pede a geração do SPED do business Y (X≠Y) · Então
 `RuntimeException: Cross-tenant attempt` **antes de qualquer query**, e a agregação do painel só conta
 notas do business da sessão. Âncora: ADR 0093 (`business_id` global scope, Tier 0 IRREVOGÁVEL).
-**Pronto quando:** biz=1 pedindo biz=99 lança; biz=1 pedindo biz=1 segue o fluxo normal.
+**Pronto quando:** biz=98 pedindo biz=99 lança; biz=98 pedindo biz=98 segue o fluxo normal.
 
 ## UC-FSPED-02 — Competência inválida é rejeitada antes de gerar
 Status: 🧪 (`SpedIcmsIpiGeneratorServiceTest::UC-FSPED-02 · …ano < 2020` / `…ano > ano atual` / `…mes fora 1-12` — 3 casos, **passam**)
@@ -172,11 +172,12 @@ Dado nenhuma configuração explícita · Quando o app lê `fiscal.sped_simples_
 **Pronto quando:** default true, chave no arquivo canônico, e o Controller referencia a flag.
 
 ## UC-FSPED-11 — O COD_VER do 0000 é o do leiaute do ano do período
-Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-11` — 2 casos, rodam sem banco)
+Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-11` — 2 casos, rodam sem banco · `SpedControllerTest::UC-FSPED-11` — o cabeçalho do download)
 Dado uma competência de 2025 ou de 2026 · Quando o gerador monta o `0000` · Então `COD_VER` é `019` e
-`020`, respectivamente — a tabela 3.1.1 da **NT 2025.001 v1.0**. Ano sem leiaute mapeado (2027, leiaute
-021 da NT 2026.001) é **recusado**, não gerado com a versão de outro ano. Âncora: NT 2025.001 §3.1.1.
-**Pronto quando:** o código sai por período, e não fixo em `018` (que só vale para 2024).
+`020`, respectivamente — a tabela 3.1.1 da **NT 2025.001 v1.0**, e o cabeçalho `X-Sped-Layout-Version`
+do download declara o mesmo valor. Ano sem leiaute mapeado (2027, leiaute 021 da NT 2026.001) é
+**recusado**, não gerado com a versão de outro ano. Âncora: NT 2025.001 §3.1.1.
+**Pronto quando:** o código sai por período, e não fixo em `018` (que só vale para 2024), no arquivo e no cabeçalho.
 
 ## UC-FSPED-12 — Os 10 blocos obrigatórios saem, na ordem do Guia Prático
 Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-12`)

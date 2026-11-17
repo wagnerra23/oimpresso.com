@@ -635,7 +635,10 @@ function arquivosDeEstado() {
  * é acusado: medir idade do que não declara data seria inventar o número.
  */
 export function dataInterna(txt) {
-  const re = new RegExp(`(${CHAVES_DATA.join('|')})["']?\\s*[:=]\\s*["']?(\\d{4}-\\d{2}-\\d{2})`, 'g');
+  // O lookbehind exige a chave INTEIRA. Sem ele, `oldest_distilled_at` (métrica do
+  // sdd-scorecard: o BRIEFING mais antigo, que não anda quando o artefato é publicado)
+  // casava como `distilled_at`. O scorecard era commitado todo dia e saía "parado 64d".
+  const re = new RegExp(`(?<![A-Za-z0-9_])(${CHAVES_DATA.join('|')})["']?\\s*[:=]\\s*["']?(\\d{4}-\\d{2}-\\d{2})`, 'g');
   const achadas = [...txt.matchAll(re)].map((m) => m[2]).sort();
   return achadas.length ? achadas[achadas.length - 1] : null;
 }
@@ -780,6 +783,10 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   ok(dataInterna('"generated_at": "2026-01-01"\n"updated_at": "2026-07-01"') === '2026-07-01',
     'dataInterna: pega a MAIS RECENTE quando há várias');
   ok(dataInterna('{"foo": 1}') === null, 'dataInterna: sem chave de data → null');
+  ok(dataInterna('"oldest_distilled_at": "2026-09-06"') === null,
+    'dataInterna: sufixo de outra chave NÃO conta (oldest_distilled_at não é distilled_at)');
+  ok(dataInterna('"distilled_at": "2026-09-06"') === '2026-09-06',
+    'dataInterna: a chave inteira segue contando (controle do lookbehind)');
   ok(dataInterna('"gerado_em": "2026-07-01"') === '2026-07-01',
     'dataInterna: reconhece chave PT-BR (gerado_em) — o projeto escreve em PT-BR');
   // Regressão: `governance/route-hits.json` usa `ultima_data` e alimenta DOIS gates

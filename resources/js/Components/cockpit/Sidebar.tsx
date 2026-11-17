@@ -638,6 +638,23 @@ function rotaAtiva(href: string | undefined): boolean {
   }
 }
 
+/** Entre sub-telas que casam por prefixo (`/fisio` e `/fisio/agenda` em
+ *  `/fisio/agenda`), só a de caminho mais longo é a ativa — um único
+ *  `aria-current="page"` por lista. */
+function hrefMaisEspecifico(hrefs: (string | undefined)[]): string | undefined {
+  let melhor: string | undefined;
+  let tamanho = -1;
+  for (const h of hrefs) {
+    if (!h || !rotaAtiva(h)) continue;
+    const n = new URL(h, window.location.origin).pathname.replace(/\/+$/, '').length;
+    if (n > tamanho) {
+      melhor = h;
+      tamanho = n;
+    }
+  }
+  return melhor;
+}
+
 function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalhosUsaveis?: Set<string> }) {
   // Dica só aparece pra atalho que o listener REALMENTE liga. Sequência em
   // conflito (duplicada ou prefixo) é descartada em `construirIndiceAtalhos` e
@@ -650,6 +667,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
   // Um único `aria-current="page"` por página: se a tela aberta é uma sub-tela
   // (ghost), é ela que carrega a marca — não o item pai, que só casa por prefixo.
   const ghostAtivo = ativo && ghosts.some((g) => rotaAtiva(g.href));
+  const ghostMarcado = ativo ? hrefMaisEspecifico(ghosts.map((g) => g.href)) : undefined;
   const [ghostsAbertos, setGhostsAbertos] = useState(false);
   // Espelha `GhostList` do protótipo (playbook sidebar/10): fechado, mostra o
   // teto; se a sub-tela ATIVA ficou além dele, ela é promovida pra última vaga
@@ -663,68 +681,99 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
     if (promovido) ghostsVisiveis = ghosts.slice(0, GHOST_TETO - 1).concat(promovido);
     ghostsOcultos = ghosts.length - ghostsVisiveis.length;
   }
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [popPos, setPopPos] = useState<{ top: number; left: number } | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
   const hasChildren = !!item.children?.length;
+  // Item com filhos abre DENTRO do sidebar, como as sub-telas do Financeiro
+  // ([W] 2026-11-06: "todos como o Financeiro"). Até aqui abria um popover
+  // lateral (`.sb-item-popover`, UI-0011 2026-05-05). Os filhos usam as mesmas
+  // linhas `sb-ghost` dos ghosts — um caminho só pra sub-tela no sidebar.
+  // Abre sozinho quando a rota atual é um dos filhos, sem gravar preferência.
+  const filhoAtivo = hasChildren && item.children!.some((c) => rotaAtiva(c.href));
+  const filhoMarcado = hasChildren ? hrefMaisEspecifico(item.children!.map((c) => c.href)) : undefined;
+  const [isOpen, setIsOpen] = useState(filhoAtivo);
   const href = item.href ?? '#';
   const Icon = findMenuIcon(item.label);
 
-  // Calcula posição fixed do popover-2 quando abre. Cascata lateral à direita
-  // do popover-1 (UI-0011 segundo nível, Wagner 2026-05-05).
-  useEffect(() => {
-    if (!isOpen) { setPopPos(null); return; }
-    if (!buttonRef.current) return;
-    const r = buttonRef.current.getBoundingClientRect();
-    setPopPos({ top: r.top, left: r.right + 4 });
-  }, [isOpen]);
-
-  // Click fora fecha popover-2 (considera tanto o button quanto o popover via classe)
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (buttonRef.current?.contains(target)) return;
-      const popoverEl = document.querySelector('.sb-item-popover');
-      if (popoverEl?.contains(target)) return;
-      setIsOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [isOpen]);
+  // Sub-telas (ghosts) sob o item ATIVO, com teto + "⋯ mais N". Usado pelos
+  // DOIS ramos: item com filhos também recebe ghosts do `AdminSidebarMenu`
+  // (Vendas, Conector, Jana, Atendimento — medido em prod 2026-11-16, 16
+  // atalhos que nunca chegavam ao DOM). Protótipo `sidebar.jsx` (MenuGroup):
+  // a `GhostList` vem depois da cascata quando o item está ativo. Pai de
+  // dropdown chega SEM href (`LegacyMenuAdapter::convertItem`), então `ativo`
+  // é sempre falso nele: no ramo com filhos a condição é a cascata aberta —
+  // que já abre sozinha quando a rota é de um filho.
+  const linhasGhost = (mostrar: boolean) => mostrar && (
+    <>
+      {ghostsVisiveis.map((g) => {
+        const GhostIcon = findGhostIcon(g.icon);
+        return (
+          <a
+            key={g.key ?? g.href}
+            href={g.href}
+            className="sb-item sb-sub sb-ghost"
+            aria-current={g.href === ghostMarcado ? 'page' : undefined}
+          >
+            {GhostIcon && <GhostIcon size={14} strokeWidth={1.6} className="ic" aria-hidden="true" />}
+            <span className="label">{g.label}</span>
+          </a>
+        );
+      })}
+      {ghostsOcultos > 0 && (
+        <button
+          type="button"
+          className="sb-ghost-more"
+          onClick={() => setGhostsAbertos(true)}
+          aria-expanded="false"
+          aria-label={`Mostrar mais ${ghostsOcultos} tela(s) de ${item.label}`}
+        >
+          <span className="sb-ghost-more-d" aria-hidden="true">⋯</span>
+          <span>mais {ghostsOcultos}</span>
+        </button>
+      )}
+      {ghostsAbertos && ghosts.length > GHOST_TETO && (
+        <button
+          type="button"
+          className="sb-ghost-more"
+          onClick={() => setGhostsAbertos(false)}
+          aria-expanded="true"
+          aria-label={`Mostrar menos telas de ${item.label}`}
+        >
+          <span className="sb-ghost-more-d" aria-hidden="true">⌃</span>
+          <span>mostrar menos</span>
+        </button>
+      )}
+    </>
+  );
 
   if (hasChildren) {
     return (
       <>
         <button
-          ref={buttonRef}
           type="button"
-          className={`sb-item ${isOpen ? 'is-open' : ''}`}
+          className={`sb-item sb-sub${isOpen ? ' is-open' : ''}`}
           onClick={() => setIsOpen((v) => !v)}
           aria-expanded={isOpen}
         >
           <Icon size={16} strokeWidth={1.6} className="ic" />
           <span className="label">{item.label}</span>
-          <ItemEnd atalho={atalho} />
-          <ChevronRight size={11} className="sb-item-chev" style={{ opacity: 0.5 }} />
+          <ItemEnd atalho={atalho} telas={item.children!.length} />
+          <ChevronDown
+            size={11}
+            className="sb-item-chev"
+            aria-hidden="true"
+            style={{ opacity: 0.5, transform: isOpen ? 'rotate(0)' : 'rotate(-90deg)', transition: 'transform 120ms' }}
+          />
         </button>
-        {isOpen && popPos && (
-          <div
-            className="sb-item-popover"
-            style={{ position: 'fixed', top: popPos.top, left: popPos.left }}
+        {isOpen && item.children!.map((c, i) => (
+          <a
+            key={`${c.label}-${i}`}
+            href={c.href ?? '#'}
+            className="sb-item sb-sub sb-ghost"
+            aria-current={c.href !== undefined && c.href === filhoMarcado ? 'page' : undefined}
           >
-            {item.children!.map((c, i) => (
-              <a
-                key={`${c.label}-${i}`}
-                href={c.href ?? '#'}
-                className="sb-item"
-              >
-                <span className="ic dot" />
-                <span className="label">{c.label}</span>
-              </a>
-            ))}
-          </div>
-        )}
+            <span className="label">{c.label}</span>
+          </a>
+        ))}
+        {linhasGhost(isOpen)}
       </>
     );
   }
@@ -741,44 +790,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
         <span className="label">{item.label}</span>
         <ItemEnd atalho={atalho} telas={ghosts.length} />
       </a>
-      {ativo && ghostsVisiveis.map((g) => {
-        const GhostIcon = findGhostIcon(g.icon);
-        return (
-          <a
-            key={g.key ?? g.href}
-            href={g.href}
-            className="sb-item sb-sub sb-ghost"
-            aria-current={rotaAtiva(g.href) ? 'page' : undefined}
-          >
-            {GhostIcon && <GhostIcon size={14} strokeWidth={1.6} className="ic" aria-hidden="true" />}
-            <span className="label">{g.label}</span>
-          </a>
-        );
-      })}
-      {ativo && ghostsOcultos > 0 && (
-        <button
-          type="button"
-          className="sb-ghost-more"
-          onClick={() => setGhostsAbertos(true)}
-          aria-expanded="false"
-          aria-label={`Mostrar mais ${ghostsOcultos} tela(s) de ${item.label}`}
-        >
-          <span className="sb-ghost-more-d" aria-hidden="true">⋯</span>
-          <span>mais {ghostsOcultos}</span>
-        </button>
-      )}
-      {ativo && ghostsAbertos && ghosts.length > GHOST_TETO && (
-        <button
-          type="button"
-          className="sb-ghost-more"
-          onClick={() => setGhostsAbertos(false)}
-          aria-expanded="true"
-          aria-label={`Mostrar menos telas de ${item.label}`}
-        >
-          <span className="sb-ghost-more-d" aria-hidden="true">⌃</span>
-          <span>mostrar menos</span>
-        </button>
-      )}
+      {linhasGhost(ativo)}
     </>
   );
 }
@@ -1113,7 +1125,9 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
           // usuário depois do 1º clique (o localStorage vence o default).
           defaultOpen={g.key !== 'plataforma'}
           temAtivo={(groupedItems[g.key] ?? []).some(
-            (it) => rotaAtiva(it.href) || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+            (it) => rotaAtiva(it.href)
+            || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+            || (it.children ?? []).some((c) => rotaAtiva(c.href))
           )}
         >
           {(groupedItems[g.key] ?? []).map((item, idx) => (
@@ -1272,7 +1286,9 @@ function SidebarMenuRail({
         // `.active` quando a tela atual está no grupo — mesmo detector
         // (`rotaAtiva`, item ou ghost) que abre o grupo no modo expandido.
         const temAtivo = (groupedItems[g.key] ?? []).some(
-          (it) => rotaAtiva(it.href) || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+          (it) => rotaAtiva(it.href)
+            || (it.ghosts ?? []).some((gh) => rotaAtiva(gh.href))
+            || (it.children ?? []).some((c) => rotaAtiva(c.href))
         );
         return (
           <button

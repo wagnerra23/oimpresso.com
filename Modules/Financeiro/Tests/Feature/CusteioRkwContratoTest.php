@@ -23,6 +23,11 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
 const RKW_MES = '2031-03';
 
 beforeEach(function () {
+    // Auditoria lote 2.4: os cadastros e a etiqueta exigem o Producao no pacote; o resto segue o real.
+    $this->partialMock(\App\Utils\ModuleUtil::class, function ($m) {
+        $m->shouldReceive('hasThePermissionInSubscription')->byDefault()->passthru();
+        $m->shouldReceive('hasThePermissionInSubscription')->withSomeOfArgs('producao_module')->andReturnUsing(fn () => $this->pacoteProducao ?? true);
+    });
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: fundo do PCP depende de schema MySQL.');
     }

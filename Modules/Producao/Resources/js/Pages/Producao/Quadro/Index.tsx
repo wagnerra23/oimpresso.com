@@ -35,6 +35,7 @@ import SimuladorBobina from './_components/SimuladorBobina';
 import { SEM_SETOR, setorDe, vaiNaBobina, type Cartao, type Midia, type Pessoas, type Posto } from './_lib/tipos';
 import { LIMPO, colunaDe, filtrado as temFiltro, passa, paraUrl, type Filtro } from '../_lib/filtro';
 import { json } from './_lib/json';
+import { urlDaFicha } from '../_lib/ficha';
 
 interface Props {
   hoje: string; filtro: Filtro & { agrupar: 'setor' | 'maquina' }; pode_alocar: boolean; pode_aceitar_arranjo: boolean; postos: Posto[];
@@ -55,7 +56,9 @@ function CartaoOs({ c, podeAlocar, marcado, onMarcar, onAlocar, destinos, onMove
       data-contract="producao-quadro-cartao" data-os={c.chave}
       onPointerDown={(ev) => { if (!onPegar || ev.button !== 0 || (ev.target as HTMLElement).closest('[data-sem-arrastar], button, [role="checkbox"]')) return; onPegar(ev); }}>
       <div className="pcv-card-h">
-        <b className="mono">{c.numero}</b>
+        {urlDaFicha(c.os_tipo, c.os_id)
+          ? <a className="pcv-link mono" data-sem-arrastar href={urlDaFicha(c.os_tipo, c.os_id) ?? undefined} aria-label={`Abrir a ficha da ${c.numero}`}>{c.numero}</a>
+          : <b className="mono">{c.numero}</b>}
         {onMover && destinos.length > 0 && (
           <span data-sem-arrastar><DropdownMenu>
             <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-7 w-7" aria-label={`Mais ações de ${c.numero}`}><MoreVertical className="h-4 w-4" aria-hidden="true" /></Button></DropdownMenuTrigger>

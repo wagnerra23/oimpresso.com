@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Producao\Services;
 
 use App\Contracts\Fabricacao\InsumosDaReceita;
-use App\Scopes\ScopeByBusiness;
 use App\Utils\TransactionUtil;
 use Illuminate\Support\Facades\DB;
 use Modules\Producao\Entities\Ordem;
@@ -52,8 +51,7 @@ final class MateriaisDaEtapa
 
     private function daOrdem(int $businessId, int $ordemId): array
     {
-        // Escopo global trocado por business_id explícito, como no ConsumoMaterialService (ADR 0093).
-        $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->find($ordemId);
+        $ordem = Ordem::query()->where('business_id', $businessId)->find($ordemId);
         if (! $ordem) {
             return [];
         }

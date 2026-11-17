@@ -81,6 +81,7 @@ beforeEach(function () {
         test()->markTestSkipped('Schema da contingência ausente — rode as migrations do NfeBrasil.');
     }
     \Illuminate\Support\Facades\Storage::fake('local');
+    \Illuminate\Support\Facades\Storage::fake('nfe_fiscal');
     retrLimpar();
 });
 

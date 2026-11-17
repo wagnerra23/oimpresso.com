@@ -133,6 +133,12 @@ curl -sv https://oimpresso.com/pricing 2>&1 | grep '^< HTTP'
   nunca terá. Nada de escopo de tenant aqui.
 - **Esta onda é LEITURA.** `store`, `update` e `destroy` não são tocados. O FormDrawer do F1
   (UC-SA-010/011) é a **SA-O4d** e não entra sem o tratamento da REGRA MESTRE (§5.1).
+  > **Estado em 2026-11-16 (lote L6):** o drawer de **criar e editar** foi entregue em
+  > 2026-10-05 ([#8725](https://github.com/wagnerra23/oimpresso.com/pull/8725)):
+  > `create()`/`edit()` redirecionam para `?pacote=novo` / `?pacote=<id>` (UC-SAPAC-09/10), e
+  > criar e editar passaram a gravar o mesmo preço (UC-SAPAC-11), o que fecha a assimetria do
+  > §5.1. **Duplicar**, o kebab e excluir **não** estão na tela (`grep -i
+  > "duplicar\|excluir" Pacotes/` sem resultado em 2026-11-16).
 - **Pacote privado não vaza.** `is_private` é o que separa esta tela de `/pricing`; a lista aqui
   mostra todos por desenho, a de lá exclui privados. Uma "simplificação" que unifique as duas
   consultas expõe grade privada ao público (**R7** do F1).
@@ -144,7 +150,7 @@ curl -sv https://oimpresso.com/pricing 2>&1 | grep '^< HTTP'
 
 | Peça do F1 | Situação |
 |---|---|
-| **FormDrawer novo/editar/duplicar** (UC-SA-010/011) | **SA-O4d** — escreve `price`, então exige a REGRA MESTRE (2 caminhos + antes→depois) e a decisão [W] do §5.1 |
+| **FormDrawer novo/editar/duplicar** (UC-SA-010/011) | **SA-O4d** — escreve `price`, então exige a REGRA MESTRE (2 caminhos + antes→depois) e a decisão [W] do §5.1. _2026-11-16: novo e editar entregues no #8725; duplicar não._ |
 | **Kebab** (editar · duplicar · ativar/desativar · excluir) | idem — todas as ações escrevem |
 | **Aviso "migre antes de excluir"** | depende do §5.3, que é decisão [W] |
 

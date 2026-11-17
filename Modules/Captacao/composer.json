@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/captacao",
+    "description": "Captação — projetos de captação de recursos (ADR 0452)",
+    "authors": [{"name": "Wagner"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Captacao\\Providers\\CaptacaoServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Captacao\\": ""
+        }
+    }
+}

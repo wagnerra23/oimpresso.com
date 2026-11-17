@@ -24,7 +24,10 @@ related_us: [US-FISIO-014, US-FISIO-015]
 | UC-FAG-02 | sessão marcada aparece na semana do profissional, sem o recado do paciente | must | `FisioAgendaTelaTest` |
 | UC-FAG-03 | outra clínica não vê, não marca, não muda nem desmarca | must | `FisioAgendaTelaTest` |
 | UC-FAG-04 | sem `fisio.editar` a agenda abre só para ler | must | `FisioAgendaTelaTest` |
-| UC-FAG-05 | desmarcar aponta quantos da lista de espera servem na vaga | must | `FisioAgendaTelaTest` |
+| UC-FAG-05 | desmarcar aponta quantos da lista de espera servem na vaga | must | `FisioAgendaTelaTest` · `fisio-agenda-acoes.test.tsx` |
+| UC-FAG-06 | mudar o status da sessão pela agenda, só nas transições do serviço | must | `FisioAgendaTelaTest` · `fisio-agenda-acoes.test.tsx` |
+| UC-FAG-07 | pôr e tirar paciente da lista de espera | should | `FisioAgendaTelaTest` |
+| UC-FAG-08 | liberar o app do paciente travado por faltas | must | `FisioAgendaTelaTest` · `fisio-agenda-acoes.test.tsx` |
 
 ---
 
@@ -52,6 +55,26 @@ related_us: [US-FISIO-014, US-FISIO-015]
 
 ## UC-FAG-05 · Vaga liberada vai para a lista de espera · `must`
 - **Persona:** recepção quando um paciente desmarca.
-- **Aceite:** Dado um paciente na lista de espera que aceita manhã · Quando a sessão da manhã é desmarcada · Então a resposta diz que 1 paciente da lista de espera serve no horário, e a tela mostra a vaga liberada com esse número.
+- **Aceite:** Dado um paciente na lista de espera que aceita manhã · Quando a recepção abre a sessão da manhã na semana, diz quem desmarcou e clica em "Desmarcar sessão" · Então a sessão fica desmarcada com quem desmarcou, a mensagem diz que 1 paciente da lista de espera serve no horário, e a tela mostra a vaga liberada com esse número.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php` · `tests/js/fisio-agenda-acoes.test.tsx`
+- **Status: 🧪**
+
+## UC-FAG-06 · Mudar o status da sessão pela agenda `[T0]` · `must`
+- **Persona:** recepção durante o dia.
+- **Aceite:** Dado uma sessão aguardando · Quando quem tem `fisio.editar` clica nela na semana · Então vê só os próximos status que a regra permite (Confirmar, Chegou, Iniciar atendimento, Marcar falta); confirmar grava o status e a hora da confirmação. "Realizado" não aparece na agenda: exige a evolução assinada, feita na ficha. Transição inválida volta com o motivo; sem `fisio.editar` responde 403 e o bloco só leva à ficha.
+- **Âncora:** etapa 04 §3.2 A10.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php` · `tests/js/fisio-agenda-acoes.test.tsx`
+- **Status: 🧪**
+
+## UC-FAG-07 · Lista de espera pela agenda · `should`
+- **Aceite:** Dado um paciente da clínica · Quando a recepção clica em "Pôr na lista" e escolhe dias e turnos · Então ele aparece na lista com a preferência em texto; "Tirar" o remove da lista. A 99 recebe 404 ao tirar um paciente da 98 e o leitor recebe 403.
+- **Âncora:** etapa 04 §3.2 A7.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php`
+- **Status: 🧪**
+
+## UC-FAG-08 · Liberar o app de quem faltou `[T0]` · `must`
+- **Persona:** fisioterapeuta que conversou com o paciente depois das faltas.
+- **Aceite:** Dado um paciente com o agendamento pelo app travado por faltas · Quando a sessão dele é aberta na semana · Então aparece "Liberar agendamento pelo app"; clicar destrava o paciente e guarda a hora do desbloqueio. Paciente sem trava não mostra o botão. A 99 recebe 404 e o leitor 403.
+- **Âncora:** etapa 04 §3.2 A21.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php` · `tests/js/fisio-agenda-acoes.test.tsx`
 - **Status: 🧪**

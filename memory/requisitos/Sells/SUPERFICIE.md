@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 230 arquivos em 9 papéis.
+**Total mapeado:** 232 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -166,7 +166,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 49
+## Componentes / apoio de tela — 50
 
 - [EditarRemessaSheet.tsx](../../../resources/js/Pages/Sells/Shipments/_components/EditarRemessaSheet.tsx)
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
@@ -176,6 +176,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [CustomerSearchAutocomplete.tsx](../../../resources/js/Pages/Sells/_components/CustomerSearchAutocomplete.tsx)
 - [FiscalSection.tsx](../../../resources/js/Pages/Sells/_components/FiscalSection.tsx)
 - [FsmActionPanel.tsx](../../../resources/js/Pages/Sells/_components/FsmActionPanel.tsx)
+- [NaturezaLancamentoSelect.tsx](../../../resources/js/Pages/Sells/_components/NaturezaLancamentoSelect.tsx)
 - [PadraoDesbloqueio.tsx](../../../resources/js/Pages/Sells/_components/PadraoDesbloqueio.tsx)
 - [PaymentRow.tsx](../../../resources/js/Pages/Sells/_components/PaymentRow.tsx)
 - [ProductLineCard.tsx](../../../resources/js/Pages/Sells/_components/ProductLineCard.tsx)
@@ -246,12 +247,13 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 - [Subscriptions.casos.md](../../../resources/js/Pages/Sells/Subscriptions.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 25
+## Demais arquivos (manifestos, docs, assets e misc) — 26
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
 - [dropdownEntries.ts](../../../resources/js/Pages/Sells/_components/dropdownEntries.ts)
 - [edicaoVenda.ts](../../../resources/js/Pages/Sells/_components/edicaoVenda.ts)
+- [naturezaLancamento.ts](../../../resources/js/Pages/Sells/_components/naturezaLancamento.ts)
 - [precoDaBusca.ts](../../../resources/js/Pages/Sells/_components/precoDaBusca.ts)
 - [reparoVenda.ts](../../../resources/js/Pages/Sells/_components/reparoVenda.ts)
 - [resgate-pontos-valor.ts](../../../resources/js/Pages/Sells/_components/resgate-pontos-valor.ts)

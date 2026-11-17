@@ -23,18 +23,18 @@ uses(Tests\TestCase::class);
  * Status livre na V0. FSM canônica (3 estados Simples + 5 estados Complexa)
  * chega em US-OFICINA-003 (ADR 0129).
  *
- * Tests biz=1 conforme ADR 0101.
+ * Tests biz=98 conforme ADR 0358.
  *
  * @see memory/decisions/0137-modules-oficinaauto-qualificada.md
  * @see memory/decisions/0129-state-machine-canonica-fsm-rbac.md
  */
 
-const BIZ_WAGNER_SO = 1;
+const BIZ_WAGNER_SO = 98;
 const BIZ_FICTICIO_SO = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('service_orders/vehicles tables missing — rode OficinaAuto migrate primeiro');
@@ -126,7 +126,7 @@ it('atualiza status da OS (status livre na V0 — FSM em US-OFICINA-003)', funct
     Vehicle::withoutGlobalScopes()->where('plate', 'SOC004')->forceDelete();
 });
 
-it('isolamento multi-tenant — OS biz=1 não aparece com session biz=99', function () {
+it('isolamento multi-tenant — OS biz=98 não aparece com session biz=99', function () {
     session(['user.business_id' => BIZ_WAGNER_SO]);
 
     $vehicle = createTestVehicle('SOC005');

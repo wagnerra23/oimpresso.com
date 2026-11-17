@@ -34,6 +34,18 @@ final class MensagensFisio
     }
 
     /**
+     * Aviso da avaliação do estudo (etapa 07 P-05). Não diz nada sobre a saúde do paciente nem
+     * pede para ele responder sozinho: a clínica aplica na sessão.
+     */
+    public static function avaliacaoEstudo(string $nome, string $clinica, string $momento, string $ate): string
+    {
+        $ola = $nome !== '' ? "Oi, {$nome}!" : 'Oi!';
+
+        return "{$ola} Está na hora da avaliação de {$momento} do estudo de que você participa com {$clinica}. "
+            ."Ela vai até {$ate}; a equipe aplica com você na próxima sessão.\n\nPara não receber mais lembretes, responda PARAR.";
+    }
+
+    /**
      * A mensagem gravada no módulo Whatsapp é deste envio do Fisio, PARA ESTE paciente? Usado pelo
      * fallback do painel (T-09e). O telefone sozinho não basta: outro módulo escreve para o mesmo
      * número, e dois pacientes podem ter o celular do mesmo responsável. Por isso o texto é casado

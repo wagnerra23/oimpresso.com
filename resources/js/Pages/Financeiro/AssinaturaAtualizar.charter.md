@@ -62,7 +62,7 @@ cobrança de cliente real (biz=4 ROTA LIVRE, prod).
 ## Backend contract
 
 - `PATCH /financeiro/assinaturas/{assinatura}` → `AssinaturaController@atualizar`
-- Request: `UpdateAssinaturaRequest` — `valor` (numeric 0.01..999999.99),
+- Request: `UpdateAssinaturaRequest` — `valor` (numeric ≥ 0.01, sem teto),
   `ciclo` (mensal|trimestral|semestral|anual), `forma_pagamento`
   (boleto|pix|cartao) — todos `sometimes`, ≥1 obrigatório.
-- Permissão: `recurringbilling.assinatura.update`.
+- Permissão: `recurringbilling.subscriptions.manage`, na tela e no PATCH (a tela só existe para editar).

@@ -4,10 +4,15 @@ irmaos: Painel.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-24"
+last_run: "2026-11-06"
 ---
 
 # Casos de Uso & Aceite — Essentials/Painel
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10561). Nada do
+> comportamento coberto pelos UCs mudou. Lane `essentials-pest` disparada no branch, run
+> [42256776945](https://github.com/wagnerra23/oimpresso.com/actions/runs/42256776945): `HrmPainelTest` 4 testes, 12 asserções, 0 pulados, 0 erros, no commit `7990c3a712`.
 
 > Derivados do playbook hrm thread 06 (§B/§C) e do charter — não do `.tsx`.
 > **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.

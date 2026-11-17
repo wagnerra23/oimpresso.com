@@ -3,7 +3,6 @@
 namespace Modules\Producao\Services;
 
 use App\Contracts\Producao\ProgramacaoDaOs;
-use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Producao\Entities\Programacao;
@@ -38,7 +37,7 @@ final class ProgramacaoDoRoteiro implements ProgramacaoDaOs
                 $inicio = $cursor->copy();
                 foreach ($trilha as $e) {
                     $fim = $inicio->copy()->addMinutes((int) round(((float) $e->horas) * 60));
-                    Programacao::withoutGlobalScope(ScopeByBusiness::class)->create([
+                    Programacao::create([
                         'business_id' => $businessId, 'os_tipo' => $osTipo, 'os_id' => $osId,
                         'posto_id' => $e->posto_id, 'roteiro_etapa_id' => $e->id, 'bloco' => $e->bloco, 'trilha' => $e->trilha,
                         'ordem' => $e->ordem, 'nome' => $e->nome, 'junta' => $e->junta,

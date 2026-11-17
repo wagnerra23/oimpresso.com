@@ -60,7 +60,7 @@ class DataController extends Controller
 
     /**
      * `fisio.access` abre o módulo; `fisio.editar` grava (paciente, prontuário,
-     * programa, biblioteca própria). Nenhuma nasce concedida.
+     * programa, biblioteca própria); `fisio.pesquisa` é do pesquisador do estudo. Nenhuma nasce concedida.
      */
     public function user_permissions(): array
     {
@@ -73,6 +73,18 @@ class DataController extends Controller
             [
                 'value'   => 'fisio.editar',
                 'label'   => 'Fisio: cadastrar pacientes, prontuario e programas',
+                'default' => false,
+            ],
+            [
+                // Etapa 07 P-04: criar estudo, incluir e tirar participante, exportar. Não abre o prontuário.
+                'value'   => 'fisio.pesquisa',
+                'label'   => 'Fisio: pesquisador do estudo',
+                'default' => false,
+            ],
+            [
+                // US-FISIO-062: relatório agregado para a associação (só contagem e média, grupo < 5 sai "<5").
+                'value'   => 'fisio.relatorio',
+                'label'   => 'Fisio: relatorio agregado da associacao',
                 'default' => false,
             ],
         ];
@@ -119,6 +131,42 @@ class DataController extends Controller
                 $sub->url(url('/fisio/protocolos'), 'Protocolos', [
                     'icon' => 'fa fa-list-ol',
                     'active' => request()->segment(2) === 'protocolos',
+                ]);
+                // [W] 2026-11-06: as telas de configuração e a fila fiscal existiam com rota
+                // e permissão, mas sem item no menu (Onboarding e Fila fiscal não tinham porta
+                // nenhuma). Rótulos do protótipo (`fisio-page.jsx`, lista CLINICA). Mesma regra
+                // de acesso do grupo: as 4 rotas estão sob FisioLiberado (`fisio.access`);
+                // gravar exige `fisio.editar`, checado em cada controller.
+                // Etapa 07 P-04: área do estudo, só para o pesquisador (`fisio.pesquisa`), a mesma
+                // permissão que o PesquisaController exige.
+                if (auth()->user()?->can('fisio.pesquisa')) {
+                    $sub->url(url('/fisio/pesquisa'), 'Pesquisa', [
+                        'icon' => 'fa fa-flask',
+                        'active' => request()->segment(2) === 'pesquisa',
+                    ]);
+                }
+                // US-FISIO-062: relatório agregado, só para quem tem `fisio.relatorio` (a mesma do controller).
+                if (auth()->user()?->can('fisio.relatorio')) {
+                    $sub->url(url('/fisio/relatorio-associacao'), 'Relatório da associação', [
+                        'icon' => 'fa fa-chart-bar',
+                        'active' => request()->segment(2) === 'relatorio-associacao',
+                    ]);
+                }
+                $sub->url(url('/fisio/fiscal'), 'Fila fiscal', [
+                    'icon' => 'fa fa-file-invoice',
+                    'active' => request()->segment(2) === 'fiscal',
+                ]);
+                $sub->url(url('/fisio/configuracoes/agendamento'), 'Agendamento online', [
+                    'icon' => 'fa fa-calendar-check',
+                    'active' => request()->segment(2) === 'configuracoes' && request()->segment(3) === 'agendamento',
+                ]);
+                $sub->url(url('/fisio/configuracoes/whatsapp'), 'WhatsApp', [
+                    'icon' => 'fa fa-comment',
+                    'active' => request()->segment(2) === 'configuracoes' && request()->segment(3) === 'whatsapp',
+                ]);
+                $sub->url(url('/fisio/onboarding'), 'Primeira configuração', [
+                    'icon' => 'fa fa-flag-checkered',
+                    'active' => request()->segment(2) === 'onboarding',
                 ]);
             }, [
                 'icon' => 'fa fa-heartbeat',

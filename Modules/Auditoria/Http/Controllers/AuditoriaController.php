@@ -48,7 +48,7 @@ class AuditoriaController extends Controller
         // hidratar properties JSON pesado (diff old/attributes em entidades
         // grandes tipo Transaction/Contact). Deferred libera 1st paint do shell.
         return Inertia::render('Auditoria/Detail', [
-            'activity' => Inertia::defer(fn () => $this->entries->find($businessId, $activityId)),
+            'activity' => Inertia::defer(fn () => $this->entries->findOrNull($businessId, $activityId)),
         ]);
     }
 

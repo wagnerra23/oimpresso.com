@@ -110,7 +110,9 @@ it('UC-FNFE-22 · com flag habilitada e invoice ausente: log warning + no-op (n�
     });
 });
 
-it('UC-FNFE-21 · com flag habilitada + invoice presente: chama service.emitirParaInvoice + dispara NFeAutorizada', function () {
+// Lote 1.1 (N4-09): o disparo de NFeAutorizada passou para o NfeService (único ponto de
+// autorização). O listener só chama o service; disparar de novo duplicaria o DANFE.
+it('UC-FNFE-21 · com flag habilitada + invoice presente: chama service.emitirParaInvoice e não dispara NFeAutorizada de novo', function () {
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
 
     $invoice = Invoice::create([
@@ -134,7 +136,7 @@ it('UC-FNFE-21 · com flag habilitada + invoice presente: chama service.emitirPa
         businessId: 1, invoiceRef: $invoice->numero_documento, valor: 199.90, paidAt: '2026-05-06',
     ));
 
-    Event::assertDispatched(NFeAutorizada::class, fn ($e) => $e->emissao->status === 'autorizada');
+    Event::assertNotDispatched(NFeAutorizada::class);
 
     $invoice->forceDelete();
 });

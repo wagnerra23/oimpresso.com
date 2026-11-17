@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md
 tier: B
-charter_version: 3
-last_validated: "2026-09-30"
+charter_version: 4
+last_validated: "2026-11-05"
 ---
 
 # Page Charter — Patrimonio/Alocacoes (DRAFT)
@@ -131,6 +131,10 @@ não consertado: mudaria quem enxerga a tela, é decisão [W], e 1 PR = 1 intent
   larga que a janela e o botão primário não pode nascer fora do viewport.
 - Nenhum atalho de teclado é anunciado nesta onda — declarar atalho que a tela não implementa
   é afordância falsa.
+- Carga que falha não vira espera eterna (2026-11-05): se a carga deferida de a lista (`alocacoes`) termina
+  sem a prop, a área da tabela mostra o estado de erro do protótipo (`patrimonio-page.jsx:846`) —
+  `role="alert"`, "Não consegui carregar …" e "Tentar de novo", que pede só aquela prop.
+  Detecção em `_shared/falhaDeferida.ts`. Contrato: UC-ALOC-09.
 
 ## Pendências antes de `status: live`
 

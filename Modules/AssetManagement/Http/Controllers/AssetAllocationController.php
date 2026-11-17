@@ -197,12 +197,10 @@ class AssetAllocationController extends Controller
      * (DataTables legado e Inertia). Antes deste PR a expressao existia uma vez, inline no
      * ramo ajax; extrai-la evita que a proxima correcao pouse em so um dos caminhos.
      *
-     * ⚠️ RESIDUO Tier 0 PRESERVADO BYTE-A-BYTE: o leftJoin de `asset_transactions as PT`
-     * NAO filtra `PT.business_id`, entao `revoked_quantity` agrega devolucao de qualquer
-     * empresa quando a pre-condicao existe (linha filha com parent de outro tenant). E o
-     * gemeo catalogado em `_saida-01.md §9(a)`, com thread dona. Nao e corrigido aqui por
-     * duas leis que caem juntas: mexer em quantidade e REGRA MESTRE (prova por dois caminhos
-     * + antes→depois pro [W]) e 1 PR = 1 intent. Ver §9 do RUNBOOK-alocacoes.md.
+     * O leftJoin de `asset_transactions as PT` filtra `PT.business_id` desde o lote 0.4
+     * (2026-11-05) — era o residuo Tier 0 catalogado em `_saida-01.md §9(a)`. Prova por dois
+     * caminhos no PR: teste (4 alocado, 1 devolvido, 2 de outra empresa → 1) e dry-run em
+     * producao (0 linhas filhas de outra empresa, 0 alocacoes mudam).
      */
     private function baseAllocationsQuery($business_id)
     {
@@ -225,8 +223,13 @@ class AssetAllocationController extends Controller
                                 $join->on('assets.category_id', '=', 'CAT.id')
                                     ->on('CAT.business_id', '=', 'assets.business_id');
                             })
-                            ->leftJoin('asset_transactions as PT',
-                            'asset_transactions.id', '=', 'PT.parent_id')
+                            // Lote 0.4 (auditoria 2026-11-05): a devolucao so conta se for da MESMA
+                            // empresa da alocacao. Sem o predicado, linha filha de outro tenant
+                            // inflava `revoked_quantity` e mudava a situacao da linha e os recortes.
+                            ->leftJoin('asset_transactions as PT', function ($join) {
+                                $join->on('asset_transactions.id', '=', 'PT.parent_id')
+                                    ->on('PT.business_id', '=', 'asset_transactions.business_id');
+                            })
                             ->where('asset_transactions.business_id', $business_id)
                             ->where('asset_transactions.transaction_type', 'allocate')
                             ->select('asset_transactions.ref_no as ref_no',
@@ -294,7 +297,7 @@ class AssetAllocationController extends Controller
 
         return $alocacoes->paginate(25)->withQueryString()->through(function ($row) use ($hoje) {
             $quantidade = (float) $row->quantity;
-            // Herda o residuo Tier 0 do §9 do RUNBOOK — NAO e numero auditado.
+            // So devolucao da propria empresa (lote 0.4) — o residuo do §9 do RUNBOOK fechou.
             $devolvido = (float) $row->revoked_quantity;
 
             $prazo = $row->allocated_upto ? \Carbon::parse($row->allocated_upto)->startOfDay() : null;

@@ -44,6 +44,7 @@ return [
     'product.view' => 'View product',
     'product.create' => 'Add product',
     'product.update' => 'Edit product',
+    'product.armazenagem' => 'Edit product storage locations',
     'product.delete' => 'Delete product',
 
     'purchase.view' => 'View purchase & Stock Adjustment',

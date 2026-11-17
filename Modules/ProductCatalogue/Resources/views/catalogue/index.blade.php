@@ -6,7 +6,8 @@
 <section class="content-header text-center" id="top">
     <h2>{{$business->name}}</h2>
     <h4 class="mb-0">{{$business_location->name}}</h4>
-    <p>{!! $business_location->location_address !!}</p>
+    {{-- location_address junta texto digitado com um <br> fixo: escapa tudo e devolve só a quebra. --}}
+    <p>{!! str_replace(e('<br>'), '<br>', e($business_location->location_address)) !!}</p>
 </section>
 <section class="no-print">
     <div class="container">
@@ -33,7 +34,7 @@
                     @foreach($categories as $key => $value)
                         <li><a href="#category{{$key}}" class="menu">{{$value}}</a></li>
                     @endforeach 
-                        <li><a href="#category0" class="menu">Uncategorized</a></li>           
+                        <li><a href="#category0" class="menu">{{ __('lang_v1.uncategorized') }}</a></li>           
                     </ul>
                 </div><!--/.nav-collapse -->
             </div><!--/.container-fluid -->
@@ -46,7 +47,7 @@
         @foreach($products as $product_category)
             <div class="row">
                 <div class="col-md-12">
-                    <h2 class="page-header" id="category{{$product_category->first()->category->id ?? 0}}">{{$product_category->first()->category->name ?? 'Uncategorized'}}</h2>
+                    <h2 class="page-header" id="category{{$product_category->first()->category->id ?? 0}}">{{$product_category->first()->category->name ?? __('lang_v1.uncategorized')}}</h2>
                 </div>
             </div>
             <div class="row eq-height-row">
@@ -57,16 +58,8 @@
                             <a href="#" class="show-product-details" data-href="{{action([\Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController::class, 'show'],  [$business->id, $product->id])}}?location_id={{$business_location->id}}">
                             <img src="{{$product->image_url}}" class="img-responsive catalogue"></a>
 
-                            @php
-                                $discount = $discounts->firstWhere('brand_id', $product->brand_id);
-                                if(empty($discount)){
-                                    $discount = $discounts->firstWhere('category_id', $product->category_id);
-                                }
-                            @endphp
-
-                            @if(!empty($discount))
-                                <span class="label label-warning discount-badge">- {{($discount->discount_amount)}}%</span>
-                            @endif
+                            {{-- Mesmo desconto que o PDV aplicaria: vem do CatalogueService (getProductDiscount). --}}
+                            @include('productcatalogue::catalogue.partials.discount_badge', ['discount' => $product->desconto_vitrine ?? null])
 
                             @php
                                 $max_price = $product->variations->max('sell_price_inc_tax');
@@ -81,7 +74,8 @@
                                 <tr>
                                     <th class="pb-0"> @lang('lang_v1.price'):</th>
                                     <td class="pb-0">
-                                        <span class="display_currency" data-currency_symbol="true">{{($max_price)}}</span> @if($max_price != $min_price) - <span class="display_currency" data-currency_symbol="true">{{($min_price)}}</span> @endif
+                                        {{-- Faixa do menor para o maior. --}}
+                                        <span class="display_currency" data-currency_symbol="true">{{($min_price)}}</span> @if($max_price != $min_price) - <span class="display_currency" data-currency_symbol="true">{{($max_price)}}</span> @endif
                                     </td>
                                 </tr>
                                 <tr>
@@ -98,7 +92,7 @@
                                         <td>
                                             <select class="form-control input-sm">
                                             @foreach($product_variation as $variation)
-                                                <option value="{{$variation->id}}">{{$variation->name}} ({{$variation->sub_sku}}) - {{($variation->sell_price_inc_tax)}}</option>
+                                                <option value="{{$variation->id}}">{{$variation->name}} ({{$variation->sub_sku}}) - {{ $formato->dinheiro($variation->sell_price_inc_tax) }}</option>
                                             @endforeach
                                             </select>
                                         </td>

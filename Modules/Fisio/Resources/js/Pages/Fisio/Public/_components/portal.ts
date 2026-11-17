@@ -52,15 +52,28 @@ export interface RespostaCheckin {
 
 const csrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
-export async function enviar(metodo: 'POST' | 'DELETE', url: string, corpo?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
+// FormData (arquivo) vai como multipart: o navegador põe o Content-Type com o boundary.
+// Também usado pela ficha (US-FISIO-063): formulário dentro de <Deferred> não pode depender de
+// visita Inertia, que desmonta a seção e perde o que foi digitado (lápide §5 2026-10-13).
+export async function enviar(metodo: 'POST' | 'PUT' | 'DELETE', url: string, corpo?: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
+  const multipart = corpo instanceof FormData;
   const res = await fetch(url, {
     method: metodo,
     credentials: 'same-origin',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-    body: corpo === undefined ? undefined : JSON.stringify(corpo),
+    headers: {
+      Accept: 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest',
+      ...(multipart ? {} : { 'Content-Type': 'application/json' }),
+    },
+    body: corpo === undefined ? undefined : multipart ? corpo : JSON.stringify(corpo),
   });
   const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   return { status: res.status, json };
+}
+
+/** Erros de validação (422) do Laravel → primeira mensagem de cada campo. */
+export function errosDe(json: Record<string, unknown>): Record<string, string> {
+  const e = (json.errors ?? {}) as Record<string, string[]>;
+  return Object.fromEntries(Object.entries(e).map(([k, v]) => [k, Array.isArray(v) ? String(v[0]) : String(v)]));
 }
 
 /** "3×12 · segurar 5s" — a dose como a fisioterapeuta prescreveu. */

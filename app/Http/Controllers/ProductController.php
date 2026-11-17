@@ -10,7 +10,6 @@ use App\Exports\ProductsExport;
 use App\Media;
 use App\Product;
 use App\ProductVariation;
-use App\PurchaseLine;
 use App\SellingPriceGroup;
 use App\TaxRate;
 use App\Unit;
@@ -27,7 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ProductsCreatedOrModified;
-use App\TransactionSellLine;
 use App\Services\FeatureFlagService;
 use Inertia\Inertia;
 
@@ -41,6 +39,9 @@ class ProductController extends Controller
 
     /** Peso líquido (kg) e dimensões da embalagem (cm) — UC-PCAD-16 e UC-PEDIT-13, CU-PROD-17. */
     private const PESO_E_DIMENSOES = ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm'];
+
+    /** Política de preço do produto (CU-PROD-21), nos nomes de Fluxos e da Fabricação. */
+    protected const POLITICAS_DE_PRECO = ['fixo', 'acompanha', 'margem'];
 
     /**
      * All Utils instance.
@@ -297,6 +298,13 @@ class ProductController extends Controller
                     'rotulos_campos' => $this->rotulosCamposProduto(),
                     // UC-PIDX-31: o filtro "Natureza fiscal" só existe com o módulo Fiscal.
                     'natureza_fiscal' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class),
+                    // UC-PIDX-44 (CV1): as opções do filtro "Uso". "Material" só com a Fabricação (receitas) e
+                    // "Serviço" só com o módulo Fiscal (natureza); com uma opção só, a tela não mostra o filtro.
+                    'usos' => array_values(array_filter([
+                        'vender',
+                        app()->bound(\App\Contracts\Fabricacao\ProdutosDeReceita::class) ? 'material' : null,
+                        app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class) ? 'servico' : null,
+                    ])),
                     // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
                     // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
                     'papel' => ($papel = auth()->user()->roles->pluck('name')->first()) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
@@ -306,6 +314,9 @@ class ProductController extends Controller
                 'permissions' => [
                     'create' => auth()->user()->can('product.create'),
                     'update' => auth()->user()->can('product.update'),
+                    // UC-PIDX-47 (#10765): só os locais de armazenagem; a lista mostra "Locais de
+                    // armazenagem" para quem tem isto sem `product.update`.
+                    'armazenagem' => auth()->user()->can('product.armazenagem'),
                     'delete' => auth()->user()->can('product.delete'),
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'view' => auth()->user()->can('product.view'),
@@ -402,6 +413,7 @@ class ProductController extends Controller
             'products.enable_stock',
             'products.is_inactive',
             'products.not_for_selling',
+            'products.deleted_at',
             'products.product_custom_field1', 'products.product_custom_field2', 'products.product_custom_field3', 'products.product_custom_field4', 'products.product_custom_field5', 'products.product_custom_field6',
             'products.product_custom_field7', 'products.product_custom_field8', 'products.product_custom_field9',
             'products.product_custom_field10', 'products.product_custom_field11', 'products.product_custom_field12',
@@ -449,6 +461,12 @@ class ProductController extends Controller
         }
 
         $active_state = $f['active_state'] ?? null;
+        // UC-PIDX-45 (D13 · AR-PROD-022): o excluído some da lista e só aparece em "Situação: Excluídos".
+        if ($active_state === 'excluido') {
+            $products->whereNotNull('products.deleted_at');
+        } else {
+            $products->whereNull('products.deleted_at');
+        }
         if ($active_state == 'active') {
             $products->Active();
         }
@@ -473,6 +491,30 @@ class ProductController extends Controller
         // Só a lista React manda; o DataTable do Blade não.
         if (! empty($f['abaixo_do_alerta'])) {
             $products->havingRaw('products.enable_stock = 1 AND products.alert_quantity IS NOT NULL AND COALESCE(SUM(vld.qty_available), 0) <= products.alert_quantity');
+        }
+
+        // UC-PIDX-42: "Falta NCM" — a MESMA regra do card de Saúde fiscal (`SaudeFiscalService::semNcm`) e da
+        // emissão: NCM válido tem 8 dígitos e não é 00000000; fora disso a nota sai com o NCM padrão da empresa.
+        // A coluna é NOT NULL DEFAULT '0', então produto que nunca recebeu NCM cai aqui. Só a lista React manda.
+        if (! empty($f['falta_ncm'])) {
+            $products->where(fn ($w) => $w->whereRaw("products.ncm NOT REGEXP '^[0-9]{8}$'")->orWhere('products.ncm', '00000000'));
+        }
+
+        // UC-PIDX-44 (CV1): "Uso". Material = o produto que entra como insumo em alguma receita da Fabricação;
+        // Serviço = natureza fiscal "servico" decidida pelo contador (UC-PIDX-31); Para vender = nem um nem
+        // outro. Sem o módulo de onde vem a lista, aquela opção não filtra nada (a tela nem a oferece).
+        if (! empty($f['uso'])) {
+            $receitas = \App\Contracts\Fabricacao\ProdutosDeReceita::class;
+            $naturezas = \App\Contracts\Fiscal\NaturezaDoProduto::class;
+            $materiais = app()->bound($receitas) ? app($receitas)->materiais($business_id) : [];
+            $servicos = app()->bound($naturezas) ? app($naturezas)->produtosCom($business_id, 'servico') : [];
+            if ($f['uso'] === 'material') {
+                $products->whereIn('products.id', $materiais ?: [0]);
+            } elseif ($f['uso'] === 'servico') {
+                $products->whereIn('products.id', $servicos ?: [0]);
+            } elseif (($fora = array_values(array_unique(array_merge($materiais, $servicos)))) !== []) {
+                $products->whereNotIn('products.id', $fora);
+            }
         }
 
         // UC-PIDX-31: natureza fiscal decidida pelo contador. Produto sem decisão é mercadoria (é o que a
@@ -536,7 +578,8 @@ class ProductController extends Controller
             'unit_id' => $texto('unit_id'),
             'tax_id' => $texto('tax_id'),
             'location_id' => $texto('location_id'),
-            'active_state' => in_array($estado, ['active', 'inactive'], true) ? $estado : null,
+            // UC-PIDX-45: "excluido" mostra só os excluídos (AR-PROD-022). Só a lista React manda.
+            'active_state' => in_array($estado, ['active', 'inactive', 'excluido'], true) ? $estado : null,
             'not_for_selling' => request()->boolean('not_for_selling'),
             'woocommerce_enabled' => request()->boolean('woocommerce_enabled'),
             'repair_model_id' => $texto('repair_model_id'),
@@ -544,6 +587,10 @@ class ProductController extends Controller
             'natureza_fiscal' => in_array(request()->input('natureza_fiscal'), ['mercadoria', 'servico', 'pendente'], true) ? (string) request()->input('natureza_fiscal') : null,
             // UC-PIDX-35: o clique no indicador "Abaixo do alerta". Só a lista React manda.
             'abaixo_do_alerta' => request()->boolean('abaixo_do_alerta'),
+            // UC-PIDX-42: "Falta NCM", e o link do card de Saúde fiscal (produto_sem_ncm). Só a lista React manda.
+            'falta_ncm' => request()->boolean('falta_ncm'),
+            // UC-PIDX-44 (CV1): "Uso" — Para vender, Material ou Serviço. Só a lista React manda.
+            'uso' => in_array(request()->input('uso'), ['vender', 'material', 'servico'], true) ? (string) request()->input('uso') : null,
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
@@ -613,6 +660,81 @@ class ProductController extends Controller
      *
      * @return array<string, mixed>|null
      */
+    /**
+     * UC-PIDX-48 (D-29): a receita da Fabricação no painel, só leitura. Os números são os da tela de
+     * Receitas (`ReceitaDoProduto` → `RecipeBomService::presentRecipe`): o painel não recalcula nada.
+     * null = a empresa não tem a Fabricação; [] = tem, mas o produto não tem receita. Custo e margem só
+     * para quem vê o preço de compra (o servidor nem envia); "Abrir receita" só para quem abre as receitas.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    protected function receitasDoProduto(int $business_id, int $id): ?array
+    {
+        // A mesma regra do Roteiro (UC-PIDX-29): o contrato ligado pelo módulo e o módulo no pacote da empresa.
+        if (! app()->bound(\App\Contracts\Fabricacao\ReceitaDoProduto::class)
+            || ! $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) {
+            return null;
+        }
+        $verCusto = auth()->user()->can('view_purchase_price');
+        $abrir = auth()->user()->can('manufacturing.access_recipe');
+
+        return array_map(function (array $f) use ($verCusto, $abrir): array {
+            $insumos = [];
+            foreach ($f['grupos'] as $g) {
+                foreach ($g['itens'] as $i) {
+                    $insumos[] = ['nome' => (string) $i['nome'], 'sku' => (string) $i['sku'], 'quantidade' => (float) $i['quantidade'], 'unidade' => (string) $i['unidade']];
+                }
+            }
+
+            return [
+                'nome' => (string) $f['name'],
+                'sku' => (string) $f['sku'],
+                'rendimento' => (float) $f['qtd'],
+                'unidade' => (string) $f['un'],
+                'insumos' => $insumos,
+                'custo_total' => $verCusto ? (float) $f['custos']['total'] : null,
+                'custo_unitario' => $verCusto ? (float) $f['custos']['unit'] : null,
+                'margem' => $verCusto ? (float) $f['custos']['margem'] : null,
+                'link' => $abrir ? '/manufacturing/recipe?q=' . rawurlencode((string) $f['sku']) : null,
+            ];
+        }, app(\App\Contracts\Fabricacao\ReceitaDoProduto::class)->fichasDoProduto($id, $business_id));
+    }
+
+    /**
+     * UC-PIDX-49 (CV3): os lotes do produto que ainda têm saldo (numa comunicação visual, cada rolo é um lote),
+     * pela MESMA consulta do relatório de Lotes (ConsultaDeLotes): o painel não recalcula. O link abre o
+     * relatório já filtrado no produto, onde ficam os lotes zerados e o rastreio do lote por OS (UC-RLT-06).
+     * null = sem `stock_report.view` (a permissão do relatório) ou produto que não controla estoque.
+     *
+     * @return array{lotes: list<array<string, mixed>>, mais: bool, link: string}|null
+     */
+    protected function lotesDoProduto(int $business_id, int $id, bool $controlaEstoque): ?array
+    {
+        if (! $controlaEstoque || ! auth()->user()->can('stock_report.view')) {
+            return null;
+        }
+        $limite = 50;
+        $linhas = app(\App\Services\Estoque\ConsultaDeLotes::class)
+            ->consulta($business_id, ['product_id' => $id])
+            ->havingRaw('stock > 0')
+            ->orderBy('sub_sku', 'asc')->orderBy('pl.lot_number', 'asc')
+            ->limit($limite + 1)
+            ->toBase()->get();
+
+        return [
+            'lotes' => $linhas->take($limite)->map(fn (\stdClass $r): array => [
+                'lote' => (string) $r->lot_number,
+                'variacao' => $r->variation_name !== 'DUMMY' ? (string) $r->variation_name : null,
+                'validade' => ! empty($r->exp_date) ? (string) $this->productUtil->format_date($r->exp_date) : '',
+                'vencido' => ! empty($r->exp_date) && \Carbon::now()->diffInDays(\Carbon::createFromFormat('Y-m-d', $r->exp_date), false) < 0,
+                'estoque' => (float) $r->stock,
+                'unidade' => (string) ($r->unit ?? ''),
+            ])->values()->all(),
+            'mais' => $linhas->count() > $limite,
+            'link' => '/reports/lot-report?' . http_build_query(['tela' => 'nova', 'product_id' => $id]),
+        ];
+    }
+
     protected function buildProdutoDetalhe(int $business_id, int $id): ?array
     {
         $produto = Product::where('business_id', $business_id)->find($id);
@@ -749,12 +871,33 @@ class ProductController extends Controller
             }
         }
 
+        // UC-PIDX-31: null sem o módulo Fiscal. Sem decisão registrada é mercadoria.
+        $natureza = app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
+            ? (app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, [$id])[$id] ?? ['natureza' => 'mercadoria', 'codigo_servico' => null])
+            : null;
+        // UC-PIDX-46 (resto da CV1): o "O que é" do painel, pela mesma regra do filtro "Uso" (UC-PIDX-44).
+        // Material = insumo de alguma receita da Fabricação; Serviço = natureza fiscal serviço; os dois podem
+        // valer juntos; nenhum = Para vender.
+        $uso = [];
+        if (app()->bound(\App\Contracts\Fabricacao\ProdutosDeReceita::class)
+            && in_array($id, app(\App\Contracts\Fabricacao\ProdutosDeReceita::class)->materiais($business_id), true)) {
+            $uso[] = 'material';
+        }
+        if (($natureza['natureza'] ?? null) === 'servico') {
+            $uso[] = 'servico';
+        }
+
         return [
             'id' => (int) $produto->id,
             'nome' => (string) $produto->name,
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
+            'receitas' => $this->receitasDoProduto($business_id, $id),
+            'lotes' => $this->lotesDoProduto($business_id, $id, $controlaEstoque),
+            'uso' => $uso === [] ? ['vender'] : $uso,
             'inativo' => (bool) $produto->is_inactive,
+            // UC-PIDX-45: excluído (AR-PROD-022). O painel tira Editar e Preços por grupo, como o menu da linha.
+            'excluido' => $produto->getAttribute('deleted_at') !== null,
             // Sem foto vai null (o painel desenha a caixa "Sem imagem" do protótipo): o acessor
             // `image_url` devolveria a imagem genérica /img/default.png — UC-PIDX-22.
             'imagem' => empty($produto->image) ? null : $produto->image_url,
@@ -803,10 +946,7 @@ class ProductController extends Controller
                 'origem' => (string) ($produto->origem_mercadoria ?? 0),
                 'origem_por_produto' => true,
                 'link_modulo' => $this->linkTributacaoDoProduto($business_id, $id),
-                // UC-PIDX-31: null sem o módulo Fiscal. Sem decisão registrada é mercadoria.
-                'natureza' => app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
-                    ? (app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, [$id])[$id] ?? ['natureza' => 'mercadoria', 'codigo_servico' => null])
-                    : null,
+                'natureza' => $natureza,
             ],
             'prateleiras' => [
                 'colunas' => [
@@ -1028,9 +1168,9 @@ class ProductController extends Controller
      * componente limita. É a conta do núcleo para o combo na venda (`ProductUtil::calculateComboQuantity`):
      * por componente que controla estoque, saldo no local ÷ (quantidade no kit × multiplicador da unidade
      * do item); vale o menor, arredondado para baixo. Componente que não controla estoque não limita.
-     * Diferença de propósito: lá um componente com saldo zero que vem primeiro na lista não zera o resultado
-     * (o `0` faz as vezes de "ainda não calculado"); aqui zero é zero, em qualquer ordem. Contas em 4 casas,
-     * como a quantidade do estoque.
+     * Até 2026-11-12 havia uma diferença: lá um componente com saldo zero tinha a conta sobrescrita pelo
+     * seguinte (o `0` fazia as vezes de "ainda não calculado"). Corrigido lá pela D-30; aqui zero sempre foi
+     * zero, em qualquer ordem. Contas em 4 casas, como a quantidade do estoque.
      *
      * Locais: os do kit (`product_locations`) que o usuário pode ver; kit sem local, todos os que ele vê.
      * null quando nenhum componente controla estoque (não há o que limitar).
@@ -1129,6 +1269,16 @@ class ProductController extends Controller
     }
 
     /**
+     * Margem mínima do orçamento da empresa, em % (UC-FLX-35, Fluxos → regras da venda). O cadastro do
+     * produto só avisa quando a % de lucro fica abaixo dela; quem barra é a venda (MargemAbaixoDoMinimo).
+     * Null = a empresa não ligou a regra, e o cadastro não avisa nada.
+     */
+    protected function margemMinimaDaEmpresa(int $business_id): ?float
+    {
+        return app(\App\Domain\Fsm\Modelos\RegrasDaEmpresa::class)->margemMinima($business_id);
+    }
+
+    /**
      * Método da regra de custo da empresa (`medio`, `ultimo` ou `por_insumo`), só quando a regra está
      * gravada, ligada e dispara no Recebido — as mesmas condições em que o recebimento a aplica
      * (AplicarCustoDoRecebimento). Sem o módulo Compras, null.
@@ -1199,6 +1349,50 @@ class ProductController extends Controller
      *
      * @return array{natureza: string, codigoServico: string|null, link: string|null}|null
      */
+    /** Partes do endereço no estoque que a empresa liga em Configurações (CU-PROD-20, CU-PROD-14). */
+    private function enderecoNoEstoque(): array
+    {
+        return [
+            'prateleira' => (bool) session('business.enable_racks'),
+            'fileira' => (bool) session('business.enable_row'),
+            'posicao' => (bool) session('business.enable_position'),
+        ];
+    }
+
+    /**
+     * Card "Produção" do Editar (CU-PROD-22, decisão [W] opção A): o roteiro que o produto segue, só
+     * para ler. `null` quando o card não aparece: empresa sem o módulo Produção no pacote, composição
+     * (a OS nasce dos itens) ou serviço decidido pelo contador, como no protótipo.
+     *
+     * Sem roteiro o produto não vira OS (UC-PCROT-02); a tela diz isso em vez do texto do protótipo,
+     * que vale só quando a ADR 0436 item 3 existir. Tier 0: o roteiro é lido só da `$business_id`.
+     *
+     * @param  array{natureza: string}|null  $naturezaFiscal
+     * @return array{roteiro: array{nome: string, etapas: int, ativo: bool}|null, linkRoteiros: ?string}|null
+     */
+    private function producaoDoProduto(int $business_id, Product $product, ?array $naturezaFiscal): ?array
+    {
+        if ($product->type === 'combo' || ($naturezaFiscal['natureza'] ?? null) === 'servico') {
+            return null;
+        }
+        if (! app()->bound(\App\Contracts\Producao\RoteiroDoProduto::class)
+            || ! $this->moduleUtil->hasThePermissionInSubscription($business_id, 'producao_module')) {
+            return null;
+        }
+
+        $roteiro = app(\App\Contracts\Producao\RoteiroDoProduto::class)->doProduto($business_id, (int) $product->id);
+        $podeAbrir = auth()->user()?->can('producao.access') && \Illuminate\Support\Facades\Route::has('producao.roteiros.index');
+
+        return [
+            'roteiro' => $roteiro === null ? null : [
+                'nome' => $roteiro['nome'],
+                'etapas' => count($roteiro['etapas']),
+                'ativo' => $roteiro['ativo'],
+            ],
+            'linkRoteiros' => $podeAbrir ? route('producao.roteiros.index', [], false) : null,
+        ];
+    }
+
     private function naturezaFiscalDoProduto(int $business_id, int $id): ?array
     {
         $respostas = $this->moduleUtil->getModuleData('produto_natureza_fiscal', ['business_id' => $business_id, 'product_id' => $id]);
@@ -1219,6 +1413,29 @@ class ProductController extends Controller
      * "Abrir no módulo Fiscal"; o superadmin vale pelo módulo instalado. Decide a aba Fiscal do painel e o "Dados fiscais" do menu
      * da linha (decisão [F] 2026-10-26: muitas empresas vendem sem nota, e aí a aba só atrapalha).
      */
+    /**
+     * "Método de custo" do formulário React (US-COM-024 · UC-FLX-38): os mesmos dados que o módulo
+     * Compras entrega ao formulário Blade pelo gancho `product_form_part`. `null` quando o gancho não
+     * devolveu o campo (Compras fora do pacote ou não instalado): a tela não mostra o campo e não o envia.
+     * Quem grava é o `after_product_saved` do Compras, igual ao Blade.
+     *
+     * @param  array<string, mixed>  $module_form_parts
+     * @return array{atual: string, empresa: string, editavel: bool}|null
+     */
+    private function metodoCustoDoFormulario(array $module_form_parts): ?array
+    {
+        $dados = $module_form_parts['Compras']['template_data'] ?? null;
+        if (! is_array($dados) || ! array_key_exists('compras_metodo_custo_atual', $dados)) {
+            return null;
+        }
+
+        return [
+            'atual' => (string) $dados['compras_metodo_custo_atual'],
+            'empresa' => (string) ($dados['compras_metodo_custo_empresa'] ?? ''),
+            'editavel' => (bool) ($dados['compras_metodo_custo_editavel'] ?? false),
+        ];
+    }
+
     private function moduloFiscalNoPacote(int $business_id): bool
     {
         return auth()->user()?->can('superadmin')
@@ -1592,6 +1809,8 @@ class ProductController extends Controller
                 'alerta' => $alerta,
                 'abaixo_do_alerta' => $estoque !== null && $alerta !== null && $estoque <= $alerta,
                 'inativo' => (bool) $row->is_inactive,
+                // UC-PIDX-45: excluído (AR-PROD-022) — a linha oferece "Restaurar".
+                'excluido' => $row->deleted_at !== null,
                 'nao_para_venda' => (bool) $row->not_for_selling,
                 'serie' => (bool) $row->enable_sr_no,
                 'locais' => $row->product_locations->pluck('name')->values()->all(),
@@ -1696,6 +1915,94 @@ class ProductController extends Controller
     }
 
     /**
+     * UC-PCAD-25 · UC-PEDIT-25: as subcategorias de cada categoria da empresa, para a tela trocar a
+     * lista quando a categoria muda (o Blade pede uma a uma em `/products/get_sub_categories`). Vazio
+     * quando a empresa não usa categoria ou subcategoria, como o Blade esconde o campo.
+     *
+     * @return object  categoria => {subcategoria => nome}
+     */
+    protected function subcategoriasPorCategoria(int $business_id): object
+    {
+        if (! (session('business.enable_category') && session('business.enable_sub_category'))) {
+            return (object) [];
+        }
+        $mapa = [];
+        $subs = Category::where('business_id', $business_id)
+            ->whereNotNull('parent_id')->where('parent_id', '!=', 0)
+            ->orderBy('name')->get(['id', 'name', 'parent_id']);
+        foreach ($subs as $c) {
+            $mapa[(int) $c->parent_id][(int) $c->id] = (string) $c->name;
+        }
+
+        return (object) array_map(fn (array $l) => (object) $l, $mapa);
+    }
+
+    /**
+     * UC-PCAD-26 · UC-PEDIT-26: as sub-unidades de cada unidade da empresa, com o multiplicador do
+     * cadastro de unidades, como o Blade lista em `/products/get_sub_units` (a unidade principal e as
+     * que derivam dela). Vazio quando a empresa não usa sub-unidades (`enable_sub_units`).
+     *
+     * @return object  unidade => list<{id, nome, multiplicador}>
+     */
+    protected function subUnidadesPorUnidade(int $business_id): object
+    {
+        if (! session('business.enable_sub_units')) {
+            return (object) [];
+        }
+        $mapa = [];
+        $unidades = Unit::where('business_id', $business_id)->orderBy('id')->get(['id', 'actual_name', 'base_unit_id', 'base_unit_multiplier']);
+        foreach ($unidades as $u) {
+            if ($u->base_unit_id === null) {
+                $mapa[(int) $u->id] = [['id' => (int) $u->id, 'nome' => (string) $u->actual_name, 'multiplicador' => 1.0]];
+            }
+        }
+        foreach ($unidades as $u) {
+            // Só a derivada de uma principal desta empresa entra (a principal veio do mesmo filtro).
+            if ($u->base_unit_id !== null && isset($mapa[(int) $u->base_unit_id])) {
+                $mapa[(int) $u->base_unit_id][] = ['id' => (int) $u->id, 'nome' => (string) $u->actual_name, 'multiplicador' => (float) $u->base_unit_multiplier];
+            }
+        }
+
+        return (object) $mapa;
+    }
+
+    /**
+     * UC-PCAD-24 · UC-PEDIT-24: os campos personalizados que a empresa nomeou em Configurações →
+     * Rótulos (`custom_labels.product.custom_field_N`), com o tipo de cada um
+     * (`custom_labels.product_cf_details.N`: texto, data ou lista). Como no Blade
+     * (product/create.blade.php), campo sem nome não aparece; a lista sem opções vira texto.
+     *
+     * @return list<array{numero:int, rotulo:string, tipo:string, opcoes:list<string>}>
+     */
+    protected function camposPersonalizadosDaEmpresa(): array
+    {
+        $labels = json_decode((string) request()->session()->get('business.custom_labels'), true);
+        $labels = is_array($labels) ? $labels : [];
+        $rotulos = is_array($labels['product'] ?? null) ? $labels['product'] : [];
+        $detalhes = is_array($labels['product_cf_details'] ?? null) ? $labels['product_cf_details'] : [];
+        $campos = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $rotulo = trim((string) ($rotulos['custom_field_' . $i] ?? ''));
+            if ($rotulo === '') {
+                continue;
+            }
+            $d = is_array($detalhes[$i] ?? null) ? $detalhes[$i] : [];
+            $tipo = in_array($d['type'] ?? null, ['text', 'date', 'dropdown'], true) ? $d['type'] : 'text';
+            $opcoes = [];
+            if ($tipo === 'dropdown') {
+                $linhas = preg_split('/\R/', (string) ($d['dropdown_options'] ?? '')) ?: [];
+                $opcoes = array_values(array_unique(array_filter(array_map('trim', $linhas), fn ($o) => $o !== '')));
+                if ($opcoes === []) {
+                    $tipo = 'text';
+                }
+            }
+            $campos[] = ['numero' => $i, 'rotulo' => $rotulo, 'tipo' => $tipo, 'opcoes' => $opcoes];
+        }
+
+        return $campos;
+    }
+
+    /**
      * O valor gravado dos 20 campos personalizados do produto (1 → 20). O Editar React devolve
      * todos no envio, porque o update() grava '' em quem não vem no request (UC-PEDIT-10).
      *
@@ -1796,6 +2103,17 @@ class ProductController extends Controller
 
         if ($telaReact) {
             return Inertia::render('Produto/Create', [
+                // UC-PCAD-30: a chave do rascunho no navegador, por empresa e usuário. A tela não monta a
+                // chave sozinha: a empresa vem da sessão, nunca do cliente (ADR 0093).
+                'rascunho' => $business_id . '.' . auth()->id(),
+                // UC-PCAD-24: os campos personalizados com o nome que a empresa deu.
+                'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PCAD-28: o "+" de unidade e de marca, com a permissão de cada cadastro (como o Blade).
+                'podeCriarUnidade' => auth()->user()->can('unit.create'),
+                'podeCriarMarca' => auth()->user()->can('brand.create'),
+                // UC-PCAD-25 · UC-PCAD-26: subcategorias e sub-unidades, só se a empresa as usa.
+                'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
+                'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
                 'categories' => $categories,
                 'brands' => $brands,
                 'units' => $units,
@@ -1827,6 +2145,9 @@ class ProductController extends Controller
                     'weight' => $duplicate_product->weight,
                     'product_description' => $duplicate_product->product_description,
                     'type' => $duplicate_product->type,
+                    // UC-PCAD-26 · UC-PCAD-27: duplicar leva as sub-unidades e o IMEI, como o Blade.
+                    'sub_unit_ids' => array_map('intval', (array) ($duplicate_product->sub_unit_ids ?? [])),
+                    'enable_sr_no' => (int) $duplicate_product->enable_sr_no,
                 ] : null,
                 'subCategories' => $sub_categories,
                 'rackDetails' => $rack_details,
@@ -1840,6 +2161,12 @@ class ProductController extends Controller
                 'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
+                // CU-PROD-20: quais partes do endereço no estoque a empresa usa.
+                'enderecoNoEstoque' => $this->enderecoNoEstoque(),
+                'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
+                'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
+                // O botão "Salvar e adicionar estoque inicial" do rodapé, como o @can do create.blade.php.
+                'podeEstoqueInicial' => (bool) auth()->user()?->can('product.opening_stock'),
             ]);
         }
 
@@ -1910,6 +2237,327 @@ class ProductController extends Controller
     }
 
     /**
+     * Locais de armazenagem (CU-PROD-20): o endereço por local (`product_racks` e
+     * `product_racks_update`, as chaves são o id do local) e o local padrão (`local_padrao_id`).
+     *
+     * Tier 0 (ADR 0093): todo local citado tem de ser do negócio da sessão. O `addRackDetails`
+     * gravava o id que viesse; agora um local de outra empresa é recusado com 422, antes do `try`.
+     * O padrão, quando vem preenchido, tem de ser um dos locais de armazenagem do produto: os do
+     * envio e, no Editar, os que ele já tem. O Blade não manda `local_padrao_id` e não muda nada.
+     */
+    protected function validarLocaisDeArmazenagem(Request $request, int $business_id, ?int $product_id = null): void
+    {
+        $request->validate(
+            [
+                'local_padrao_id' => ['sometimes', 'nullable', 'integer'],
+                'product_racks_remover' => ['sometimes', 'array'],
+                'product_racks_remover.*' => ['integer'],
+            ],
+            [
+                'local_padrao_id.integer' => 'O local padrão não é válido.',
+                'product_racks_remover.*' => 'Um dos locais a tirar não é válido.',
+            ],
+        );
+        $remover = $product_id === null ? collect() : $this->locaisARemover($request);
+
+        $doEnvio = collect(['product_racks', 'product_racks_update'])
+            ->flatMap(fn ($chave) => is_array($request->input($chave)) ? array_keys($request->input($chave)) : [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+        $padrao = $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null;
+        $citados = $padrao === null ? $doEnvio : $doEnvio->concat([$padrao])->unique();
+        $erros = [];
+        if ($remover->isNotEmpty()) {
+            // Tirar um local só apaga o endereço dele, e só quando o produto não tem saldo ali: o
+            // saldo muda por compra, venda, ajuste ou transferência, nunca pelo cadastro ([M]
+            // 2026-10-22). Só sai local que já é de armazenagem deste produto, neste negócio.
+            $doProdutoAgora = DB::table('product_racks')->where('business_id', $business_id)
+                ->where('product_id', $product_id)->pluck('location_id')->map(fn ($id) => (int) $id);
+            $saldos = $this->saldoPorLocal($business_id, (int) $product_id);
+            if ($remover->diff($doProdutoAgora)->isNotEmpty()) {
+                $erros['product_racks_remover'] = 'Só dá para tirar o endereço de um local que o produto já tem.';
+            } elseif ($remover->contains(fn ($id) => abs($saldos[$id] ?? 0.0) > 0.00001)) {
+                $erros['product_racks_remover'] = 'Este local tem saldo do produto. O endereço só sai depois de transferir ou ajustar o estoque.';
+            }
+        }
+        if ($citados->isEmpty()) {
+            if ($erros !== []) {
+                throw \Illuminate\Validation\ValidationException::withMessages($erros);
+            }
+
+            return;
+        }
+
+        $doNegocio = DB::table('business_locations')->where('business_id', $business_id)
+            ->whereIn('id', $citados->all())->pluck('id')->map(fn ($id) => (int) $id);
+        if ($doEnvio->diff($doNegocio)->isNotEmpty()) {
+            $erros['product_racks'] = 'Um dos locais de armazenagem não pertence a este negócio.';
+        }
+        if ($padrao !== null) {
+            $doProduto = $product_id === null ? collect() : DB::table('product_racks')
+                ->where('business_id', $business_id)->where('product_id', $product_id)
+                ->pluck('location_id')->map(fn ($id) => (int) $id);
+            if (! $doNegocio->contains($padrao)) {
+                $erros['local_padrao_id'] = 'O local padrão não pertence a este negócio.';
+            } elseif (! $doEnvio->merge($doProduto->diff($remover))->contains($padrao)) {
+                $erros['local_padrao_id'] = 'O local padrão tem de ser um dos locais de armazenagem do produto.';
+            }
+        }
+        if ($erros !== []) {
+            throw \Illuminate\Validation\ValidationException::withMessages($erros);
+        }
+    }
+
+    /** Os locais que o Editar pede para tirar (`product_racks_remover`), sem repetição. */
+    protected function locaisARemover(Request $request): \Illuminate\Support\Collection
+    {
+        $remover = $request->input('product_racks_remover');
+
+        return collect(is_array($remover) ? $remover : [])->map(fn ($id) => (int) $id)->unique()->values();
+    }
+
+    /**
+     * Saldo do produto por local (soma das variações), só nos locais do negócio. É o "Em estoque" do
+     * bloco "Locais de armazenagem" no Editar e o que impede tirar um local com saldo (CU-PROD-20).
+     *
+     * @return array<int, float> id do local => saldo
+     */
+    protected function saldoPorLocal(int $business_id, int $product_id): array
+    {
+        return DB::table('variation_location_details as vld')
+            ->join('business_locations as bl', 'bl.id', '=', 'vld.location_id')
+            ->where('bl.business_id', $business_id)
+            ->where('vld.product_id', $product_id)
+            ->groupBy('vld.location_id')
+            ->selectRaw('vld.location_id, SUM(vld.qty_available) as saldo')
+            ->pluck('saldo', 'location_id')
+            ->mapWithKeys(fn ($saldo, $local) => [(int) $local => (float) $saldo])
+            ->all();
+    }
+
+    /**
+     * Grava os locais de armazenagem do envio (CU-PROD-20): cria o endereço dos locais novos
+     * (`product_racks`), muda o dos gravados (`product_racks_update`) e tira os sem saldo
+     * (`product_racks_remover`). Se um local tirado era o padrão e o envio não trouxe outro, o padrão
+     * fica vazio. Chamado pelo update() e pela rota só de locais; a validação vem antes.
+     */
+    protected function gravarEnderecos(Request $request, int $business_id, Product $product): void
+    {
+        $novos = $request->get('product_racks', null);
+        if (! empty($novos)) {
+            $this->productUtil->addRackDetails($business_id, $product->id, $novos);
+        }
+        $gravados = $request->get('product_racks_update', null);
+        if (! empty($gravados)) {
+            $this->productUtil->updateRackDetails($business_id, $product->id, $gravados);
+        }
+        $remover = $this->locaisARemover($request);
+        if ($remover->isNotEmpty()) {
+            DB::table('product_racks')->where('business_id', $business_id)
+                ->where('product_id', $product->id)->whereIn('location_id', $remover->all())->delete();
+            if (! $request->has('local_padrao_id') && $remover->contains((int) $product->local_padrao_id)) {
+                DB::table('products')->where('business_id', $business_id)->where('id', $product->id)
+                    ->update(['local_padrao_id' => null]);
+            }
+        }
+    }
+
+    /**
+     * O retrato dos locais de armazenagem de um produto: o padrão e o endereço de cada local.
+     *
+     * @return array{local_padrao_id: int|null, enderecos: array<int, array{prateleira: ?string, fileira: ?string, posicao: ?string}>}
+     */
+    protected function armazenagemAtual(int $business_id, int $product_id): array
+    {
+        $padrao = DB::table('products')->where('business_id', $business_id)->where('id', $product_id)->value('local_padrao_id');
+        $enderecos = DB::table('product_racks')->where('business_id', $business_id)->where('product_id', $product_id)
+            ->orderBy('location_id')->get(['location_id', 'rack', 'row', 'position'])
+            ->mapWithKeys(fn ($r) => [(int) $r->location_id => ['prateleira' => $r->rack, 'fileira' => $r->row, 'posicao' => $r->position]])
+            ->all();
+
+        return ['local_padrao_id' => $padrao !== null ? (int) $padrao : null, 'enderecos' => $enderecos];
+    }
+
+    /**
+     * Histórico de quem mudou os locais de armazenagem (#10765): o log do produto não guarda o local
+     * padrão, e o endereço fica em `product_racks`, sem log. Registra só quando algo mudou, com o
+     * antes e o depois.
+     */
+    protected function registrarArmazenagem(Product $product, array $antes): void
+    {
+        $depois = $this->armazenagemAtual((int) $product->business_id, (int) $product->id);
+        if ($depois === $antes) {
+            return;
+        }
+        $this->productUtil->activityLog($product, 'armazenagem_alterada', null, ['old' => $antes, 'attributes' => $depois], false, (int) $product->business_id);
+    }
+
+    /**
+     * UC-PEDIT-29: troca a imagem e o folheto do produto pelo Editar React, na hora em que a pessoa
+     * escolhe o arquivo. Rota própria para o resto do formulário continuar indo como JSON: mandar o
+     * Editar inteiro como multipart muda como listas vazias chegam ao update() (somem do pedido).
+     * O que grava é o mesmo trecho do update(): `uploadFile` da imagem (apaga a anterior e zera a
+     * mídia do WooCommerce) e `Media::uploadMedia` do folheto, que substitui o anterior.
+     */
+    public function atualizarMidia(Request $request, $id)
+    {
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        $product = Product::where('business_id', $business_id)->findOrFail($id);
+
+        $limiteKb = (int) floor(((int) config('constants.document_size_limit')) / 1024);
+        $request->validate([
+            'image' => ['nullable', 'file', 'image', 'max:' . $limiteKb],
+            'product_brochure' => ['nullable', 'file', 'max:' . $limiteKb],
+        ], [
+            'image.image' => 'A imagem precisa ser um arquivo de imagem (JPG, PNG, WEBP).',
+            'image.max' => 'A imagem passa do limite de 5 MB.',
+            'product_brochure.max' => 'O folheto passa do limite de 5 MB.',
+        ]);
+        if (! $request->hasFile('image') && ! $request->hasFile('product_brochure')) {
+            return response()->json(['success' => false, 'msg' => 'Escolha uma imagem ou um folheto.'], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+            $file_name = $this->productUtil->uploadFile($request, 'image', config('constants.product_img_path'), 'image');
+            if (! empty($file_name)) {
+                if (! empty($product->image_path) && file_exists($product->image_path)) {
+                    unlink($product->image_path);
+                }
+                $product->image = $file_name;
+                if (! empty($product->woocommerce_media_id)) {
+                    $product->woocommerce_media_id = null;
+                }
+                $product->save();
+            }
+            Media::uploadMedia($product->business_id, $product, $request, 'product_brochure', true);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::warning('Produto: falha ao gravar imagem/folheto', ['product_id' => $product->id, 'erro' => $e->getMessage()]);
+
+            return response()->json(['success' => false, 'msg' => 'Não foi possível gravar o arquivo. Confira o tipo e o tamanho.'], 422);
+        }
+
+        event(new ProductsCreatedOrModified($product, 'updated'));
+        $product->refresh();
+
+        return response()->json(['success' => true, 'imagem' => $product->image_url, 'folheto' => $this->folhetoDoProduto($product)]);
+    }
+
+    /** UC-PEDIT-29: o folheto gravado do produto (nome e link), ou null. */
+    protected function folhetoDoProduto(Product $product): ?array
+    {
+        $m = $product->media()->first();
+
+        return $m ? ['nome' => (string) $m->display_name, 'url' => (string) $m->display_url] : null;
+    }
+
+    /**
+     * Só os locais de armazenagem do produto (CU-PROD-20, proposta #10765, autorizada pelo [F] em
+     * 2026-11-12). Quem tem `product.update` ou `product.armazenagem` grava aqui os locais, o endereço
+     * e o local padrão; qualquer outro campo do envio é ignorado. Valem as mesmas regras do update():
+     * local de outro negócio, padrão fora dos locais e local com saldo são recusados. O saldo não muda.
+     */
+    public function atualizarArmazenagem(Request $request, $id)
+    {
+        $user = auth()->user();
+        if (! $user->can('product.update') && ! $user->can('product.armazenagem')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        $product = Product::where('business_id', $business_id)->where('id', $id)->firstOrFail();
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
+        if (! $product->enable_stock) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['product_racks' => 'Este produto não controla estoque, então não tem locais de armazenagem.']);
+        }
+        $this->validarLocaisDeArmazenagem($request, $business_id, (int) $product->id);
+
+        $antes = $this->armazenagemAtual($business_id, (int) $product->id);
+        DB::transaction(function () use ($request, $business_id, $product) {
+            if ($request->has('local_padrao_id')) {
+                $padrao = $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null;
+                DB::table('products')->where('business_id', $business_id)->where('id', $product->id)
+                    ->update(['local_padrao_id' => $padrao]);
+                $product->local_padrao_id = $padrao;
+            }
+            $this->gravarEnderecos($request, $business_id, $product);
+        });
+        $this->registrarArmazenagem($product, $antes);
+
+        return back()->with('status', ['success' => 1, 'msg' => 'Locais de armazenagem salvos.']);
+    }
+
+    /**
+     * O Editar de quem tem `product.armazenagem` sem `product.update` (UC-PEDIT-23, proposta #10765).
+     * Manda só o que o bloco "Locais de armazenagem" precisa: nome, código, local padrão, endereço por
+     * local, saldo por local e os locais do negócio. Preço, imposto e o resto do produto não saem do
+     * servidor, nem para leitura. Produto sem estoque controlado não tem locais: 403.
+     */
+    protected function editSoArmazenagem(int $business_id, int $id)
+    {
+        $product = Product::where('business_id', $business_id)->where('id', $id)->firstOrFail();
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
+        if (! $product->enable_stock) {
+            abort(403, 'Este produto não controla estoque, então não tem locais de armazenagem.');
+        }
+
+        return Inertia::render('Produto/Edit', [
+            'somenteArmazenagem' => true,
+            'product' => [
+                'id' => (int) $product->id,
+                'name' => (string) $product->name,
+                'sku' => (string) $product->sku,
+                'localPadraoId' => $product->local_padrao_id !== null ? (int) $product->local_padrao_id : null,
+            ],
+            'rackDetails' => $this->productUtil->getRackDetails($business_id, $product->id),
+            'businessLocations' => BusinessLocation::forDropdown($business_id),
+            'enderecoNoEstoque' => $this->enderecoNoEstoque(),
+            'saldoPorLocal' => (object) $this->saldoPorLocal($business_id, (int) $product->id),
+        ]);
+    }
+
+    /**
+     * Política de preço (CU-PROD-21): `fixo`, `acompanha` ou `margem`. Com `margem`, a margem alvo é
+     * obrigatória e fica acima de 0 e abaixo de 100: ela é sobre o preço de venda, então 100% não
+     * existe. O Blade não manda nenhum dos dois e não muda nada. Fora do `try`, como os outros.
+     */
+    protected function validarPoliticaDePreco(Request $request): void
+    {
+        $request->validate(
+            [
+                'politica_preco' => ['sometimes', 'string', 'in:'.implode(',', self::POLITICAS_DE_PRECO)],
+                'margem_alvo_pct' => ['nullable', 'required_if:politica_preco,margem', 'numeric', 'gt:0', 'lt:100'],
+            ],
+            [
+                'politica_preco.*' => 'A política de preço não é válida.',
+                'margem_alvo_pct.required_if' => 'Informe a margem alvo.',
+                'margem_alvo_pct.*' => 'A margem alvo tem que ser um número maior que 0 e menor que 100.',
+            ],
+        );
+    }
+
+    /**
+     * O que o store() e o update() gravam da política de preço. A margem alvo só fica com a política
+     * `margem`; nas outras volta a nula, porque a tela nem mostra o campo.
+     *
+     * @return array{politica_preco: string, margem_alvo_pct: float|null}
+     */
+    protected function politicaDePrecoDoEnvio(Request $request): array
+    {
+        $politica = (string) $request->input('politica_preco');
+
+        return [
+            'politica_preco' => $politica,
+            'margem_alvo_pct' => $politica === 'margem' ? round((float) $request->input('margem_alvo_pct'), 2) : null,
+        ];
+    }
+
+    /**
      * Peso líquido e dimensões: número de 0 a 99999, com ponto decimal (a tela manda assim).
      * Fora do `try`, como a origem. Ausente ou vazio não valida: os quatro são opcionais.
      */
@@ -1960,6 +2608,8 @@ class ProductController extends Controller
         $this->validarNcm($request);
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
+        $this->validarLocaisDeArmazenagem($request, (int) $uc_pcad_05_bid);
+        $this->validarPoliticaDePreco($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -1999,6 +2649,14 @@ class ProductController extends Controller
                 if ($request->filled($campo)) {
                     $product_details[$campo] = $request->input($campo);
                 }
+            }
+            // Local padrão de armazenagem (CU-PROD-20): já validado contra os locais do envio.
+            if ($request->filled('local_padrao_id')) {
+                $product_details['local_padrao_id'] = (int) $request->input('local_padrao_id');
+            }
+            // Política de preço (CU-PROD-21): sem ela no envio (Blade), vale o padrão da coluna, `fixo`.
+            if ($request->filled('politica_preco')) {
+                $product_details = array_merge($product_details, $this->politicaDePrecoDoEnvio($request));
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -2109,6 +2767,13 @@ class ProductController extends Controller
         }
 
         if ($request->input('submit_type') == 'submit_n_add_opening_stock') {
+            // A tela de estoque inicial é Blade. Num envio pela tela React (visita Inertia), o 302 traria
+            // o HTML dela para dentro da página; Inertia::location faz o navegador abrir a página inteira.
+            // O envio pelo Blade segue com o mesmo redirect de sempre (Create.charter.md, exceção 2026-11-06).
+            if ($request->header('X-Inertia')) {
+                return Inertia::location(action([\App\Http\Controllers\OpeningStockController::class, 'add'], ['product_id' => $product->id]));
+            }
+
             return redirect()->action([\App\Http\Controllers\OpeningStockController::class, 'add'],
                 ['product_id' => $product->id]
             );
@@ -2190,6 +2855,8 @@ class ProductController extends Controller
                 'permissions' => [
                     'update' => auth()->user()->can('product.update'),
                     'delete' => auth()->user()->can('product.delete'),
+                    // UC-PSHOW-08 (#10765): "Locais de armazenagem" para quem só tem `product.armazenagem`.
+                    'armazenagem' => auth()->user()->can('product.armazenagem'),
                     // EAGER: 2 booleanos já resolvidos. O `.tsx` aplica default fail-closed,
                     // então ausência da prop nunca vira permissão.
                     'view_purchase_price' => $podeVerCusto,
@@ -2235,8 +2902,14 @@ class ProductController extends Controller
 
     public function edit($id)
     {
-        if (! auth()->user()->can('product.update')) {
-            abort(403, 'Unauthorized action.');
+        $user = auth()->user();
+        if (! $user->can('product.update')) {
+            // UC-PEDIT-23 (#10765): só com `product.armazenagem`, o Editar abre só com os locais.
+            if (! $user->can('product.armazenagem')) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            return $this->editSoArmazenagem((int) request()->session()->get('user.business_id'), (int) $id);
         }
 
         $business_id = request()->session()->get('user.business_id');
@@ -2253,6 +2926,7 @@ class ProductController extends Controller
                             ->with(['product_locations'])
                             ->where('id', $id)
                             ->firstOrFail();
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         //Sub-category
         $sub_categories = [];
@@ -2287,6 +2961,8 @@ class ProductController extends Controller
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
         if (request()->header('X-Inertia')) {
+            $naturezaFiscal = $this->naturezaFiscalDoProduto((int) $business_id, (int) $id);
+
             return Inertia::render('Produto/Edit', [
                 'product' => [
                     'id' => (int) $product->id,
@@ -2296,6 +2972,8 @@ class ProductController extends Controller
                     'brandId' => $product->brand_id,
                     'unitId' => $product->unit_id,
                     'subUnitIds' => $product->sub_unit_ids,
+                    // UC-PEDIT-27: o IMEI / nº de série volta no envio; sem ele o update() mantém o gravado.
+                    'enableSrNo' => (bool) $product->enable_sr_no,
                     'categoryId' => $product->category_id,
                     'subCategoryId' => $product->sub_category_id,
                     'tax' => $product->tax,
@@ -2304,11 +2982,16 @@ class ProductController extends Controller
                     'ncm' => (string) ($product->ncm ?? ''),
                     'cest' => (string) ($product->cest ?? ''),
                     'pesoLiquido' => $product->peso_liquido ?? null,
+                    // CU-PROD-20: o local padrão de armazenagem (null = sem padrão).
+                    'localPadraoId' => $product->local_padrao_id !== null ? (int) $product->local_padrao_id : null,
+                    // CU-PROD-21: a política de preço e a margem alvo (só com `margem`).
+                    'politicaPreco' => (string) ($product->politica_preco ?? 'fixo'),
+                    'margemAlvoPct' => $product->margem_alvo_pct !== null ? (float) $product->margem_alvo_pct : null,
                     'larguraCm' => $product->largura_cm ?? null,
                     'alturaCm' => $product->altura_cm ?? null,
                     'comprimentoCm' => $product->comprimento_cm ?? null,
                     // UC-PEDIT-14: natureza fiscal decidida pelo contador (null = sem decisão registrada).
-                    'naturezaFiscal' => $this->naturezaFiscalDoProduto((int) $business_id, (int) $id),
+                    'naturezaFiscal' => $naturezaFiscal,
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
@@ -2316,6 +2999,8 @@ class ProductController extends Controller
                     'productDescription' => $product->product_description,
                     'productLocations' => $product->product_locations->pluck('id')->all(),
                     'image' => $product->image_url,
+                    // UC-PEDIT-29: o folheto gravado, para a tela mostrar e trocar.
+                    'folheto' => $this->folhetoDoProduto($product),
                     'warrantyId' => $product->warranty_id,
                     // UC-PEDIT-10: o update() grava '' em todo campo personalizado que não vem no
                     // request e, com a empresa usando validade, zera a validade que não vem. A tela
@@ -2327,6 +3012,14 @@ class ProductController extends Controller
                     // edit_single_product_form_part.blade.php mostra. Variável e composto: null.
                     'precoSimples' => $this->precoSimplesDoProduto($product),
                 ],
+                // UC-PEDIT-24: os campos personalizados com o nome que a empresa deu.
+                'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
+                // UC-PEDIT-28: o "+" de unidade e de marca, com a permissão de cada cadastro (como o Blade).
+                'podeCriarUnidade' => auth()->user()->can('unit.create'),
+                'podeCriarMarca' => auth()->user()->can('brand.create'),
+                // UC-PEDIT-25 · UC-PEDIT-26: subcategorias e sub-unidades, só se a empresa as usa.
+                'subcategoriasPorCategoria' => $this->subcategoriasPorCategoria((int) $business_id),
+                'subUnidadesPorUnidade' => $this->subUnidadesPorUnidade((int) $business_id),
                 'categories' => $categories,
                 'brands' => $brands,
                 'units' => $units,
@@ -2337,12 +3030,20 @@ class ProductController extends Controller
                 'subCategories' => $sub_categories,
                 'businessLocations' => $business_locations,
                 'rackDetails' => $rack_details,
+                // CU-PROD-20: o "Em estoque" de cada local, só leitura. Um SUM agrupado de um produto
+                // (rápido como os outros dados do Editar), por isso vem junto e não deferido.
+                'saldoPorLocal' => $product->enable_stock ? (object) $this->saldoPorLocal((int) $business_id, (int) $product->id) : (object) [],
+                'enderecoNoEstoque' => $this->enderecoNoEstoque(),
                 'productTypes' => $product_types,
                 'warranties' => $warranties,
                 'permissions' => [
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'delete' => auth()->user()->can('product.delete'),
                 ],
+                'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
+                'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
+                // CU-PROD-22 (opção A): card "Produção", só leitura. Lê o banco, então vem depois.
+                'producao' => Inertia::defer(fn () => $this->producaoDoProduto((int) $business_id, $product, $naturezaFiscal)),
             ]);
         }
 
@@ -2374,14 +3075,20 @@ class ProductController extends Controller
         // Query separada DE PROPÓSITO — não atribui a $product pra NÃO narrowar o Product|null do
         // `$product = ...->first()` de baixo (preserva o phpstan-baseline; custo = 1 SELECT indexado
         // por (business_id, id) num fluxo raro de edição).
-        Product::where('business_id', $business_id)
+        $alvo = Product::where('business_id', $business_id)
                 ->where('id', $id)
                 ->firstOrFail();
+        // UC-PIDX-45: o excluído só se edita depois de restaurar.
+        abort_if($alvo->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         $this->validarOrigemMercadoria($request);
         $this->validarNcm($request);
         $this->validarCest($request);
         $this->validarPesoEDimensoes($request);
+        $this->validarLocaisDeArmazenagem($request, (int) $business_id, (int) $id);
+        $this->validarPoliticaDePreco($request);
+        // CU-PROD-20 (#10765): o retrato dos locais antes da edição, para o histórico.
+        $armazenagemAntes = $this->armazenagemAtual((int) $business_id, (int) $id);
 
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
@@ -2431,6 +3138,16 @@ class ProductController extends Controller
             foreach (self::PESO_E_DIMENSOES as $campo) {
                 if ($request->has($campo)) {
                     $product->setAttribute($campo, $request->filled($campo) ? $request->input($campo) : null);
+                }
+            }
+            // Local padrão (CU-PROD-20): só mexe quando a chave vem; vazio volta a nulo. O Blade não manda.
+            if ($request->has('local_padrao_id')) {
+                $product->setAttribute('local_padrao_id', $request->filled('local_padrao_id') ? (int) $request->input('local_padrao_id') : null);
+            }
+            // Política de preço (CU-PROD-21): só mexe quando vem. O Blade não manda e não muda nada.
+            if ($request->filled('politica_preco')) {
+                foreach ($this->politicaDePrecoDoEnvio($request) as $coluna => $valor) {
+                    $product->setAttribute($coluna, $valor);
                 }
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
@@ -2622,16 +3339,8 @@ class ProductController extends Controller
                 $variation->save();
             }
 
-            //Add product racks details.
-            $product_racks = $request->get('product_racks', null);
-            if (! empty($product_racks)) {
-                $this->productUtil->addRackDetails($business_id, $product->id, $product_racks);
-            }
-
-            $product_racks_update = $request->get('product_racks_update', null);
-            if (! empty($product_racks_update)) {
-                $this->productUtil->updateRackDetails($business_id, $product->id, $product_racks_update);
-            }
+            // Endereço por local, locais novos e locais tirados (CU-PROD-20), já validados.
+            $this->gravarEnderecos($request, (int) $business_id, $product);
 
             //Set Module fields
             if (! empty($request->input('has_module_data'))) {
@@ -2641,6 +3350,7 @@ class ProductController extends Controller
             Media::uploadMedia($product->business_id, $product, $request, 'product_brochure', true);
 
             DB::commit();
+            $this->registrarArmazenagem($product, $armazenagemAntes);
             $output = ['success' => 1,
                 'msg' => __('product.product_updated_success'),
             ];
@@ -2670,10 +3380,12 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
+     * UC-PIDX-45 (D13 · AR-PROD-022): "Excluir" não apaga. Com `product.delete`, qualquer produto pode ser
+     * excluído; o cadastro vira inativo e fica marcado em `deleted_at`, some da lista e da busca da venda e da
+     * compra (as duas só trazem produto ativo) e aparece em "Situação: Excluídos", de onde "Restaurar" o
+     * devolve (`restaurar`). Variações, preços, estoque e histórico ficam guardados — nunca hard-delete
+     * ("preserva consulta futura", [W] 2026-07-13). Antes desta mudança o produto e o estoque eram apagados,
+     * e o produto com compra ou ajuste não podia ser excluído.
      */
     public function destroy($id)
     {
@@ -2682,126 +3394,48 @@ class ProductController extends Controller
         }
 
         if (request()->ajax()) {
-            try {
-                $business_id = request()->session()->get('user.business_id');
+            $business_id = (int) request()->session()->get('user.business_id');
+            $excluidos = $this->excluirProdutos($business_id, [(int) $id]);
 
-                $can_be_deleted = true;
-                $error_msg = '';
-
-                //Check if any purchase or transfer exists
-                $count = PurchaseLine::join(
-                    'transactions as T',
-                    'purchase_lines.transaction_id',
-                    '=',
-                    'T.id'
-                )
-                                    ->whereIn('T.type', ['purchase'])
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->count();
-                if ($count > 0) {
-                    $can_be_deleted = false;
-                    $error_msg = __('lang_v1.purchase_already_exist');
-                } else {
-                    //Check if any opening stock sold
-                    $count = PurchaseLine::join(
-                        'transactions as T',
-                        'purchase_lines.transaction_id',
-                        '=',
-                        'T.id'
-                     )
-                                    ->where('T.type', 'opening_stock')
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->where('purchase_lines.quantity_sold', '>', 0)
-                                    ->count();
-                    if ($count > 0) {
-                        $can_be_deleted = false;
-                        $error_msg = __('lang_v1.opening_stock_sold');
-                    } else {
-                        //Check if any stock is adjusted
-                        $count = PurchaseLine::join(
-                            'transactions as T',
-                            'purchase_lines.transaction_id',
-                            '=',
-                            'T.id'
-                        )
-                                    ->where('T.business_id', $business_id)
-                                    ->where('purchase_lines.product_id', $id)
-                                    ->where('purchase_lines.quantity_adjusted', '>', 0)
-                                    ->count();
-                        if ($count > 0) {
-                            $can_be_deleted = false;
-                            $error_msg = __('lang_v1.stock_adjusted');
-                        }
-                    }
-                }
-
-                $product = Product::where('id', $id)
-                                ->where('business_id', $business_id)
-                                ->with('variations')
-                                ->first();
-
-                // check for enable stock = 0 product
-                if($product->enable_stock == 0){
-                    $t_count = TransactionSellLine::join(
-                        'transactions as T',
-                        'transaction_sell_lines.transaction_id',
-                        '=',
-                        'T.id'
-                    )
-                        ->where('T.business_id', $business_id)
-                        ->where('transaction_sell_lines.product_id', $id)
-                        ->count();
-
-                    if ($t_count > 0) {
-                        $can_be_deleted = false;
-                        $error_msg = "can't delete product exit in sell";
-                    }
-                }
-
-                //Check if product is added as an ingredient of any recipe
-                if ($this->moduleUtil->isModuleInstalled('Manufacturing')) {
-                    $variation_ids = $product->variations->pluck('id');
-
-                    $exists_as_ingredient = \Modules\Manufacturing\Entities\MfgRecipeIngredient::whereIn('variation_id', $variation_ids)
-                        ->exists();
-                    if ($exists_as_ingredient) {
-                        $can_be_deleted = false;
-                        $error_msg = __('manufacturing::lang.added_as_ingredient');
-                    }
-                }
-            
-                if ($can_be_deleted) {
-                    if (! empty($product)) {
-                        DB::beginTransaction();
-                        //Delete variation location details
-                        VariationLocationDetails::where('product_id', $id)
-                                                ->delete();
-                        $product->delete();
-                        event(new ProductsCreatedOrModified($product, 'deleted'));
-                        DB::commit();
-                    }
-
-                    $output = ['success' => true,
-                        'msg' => __('lang_v1.product_delete_success'),
-                    ];
-                } else {
-                    $output = ['success' => false,
-                        'msg' => $error_msg,
-                    ];
-                }
-            } catch (\Exception $e) {
-                DB::rollBack();
-                \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-                $output = ['success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
+            return $excluidos > 0
+                ? ['success' => true, 'msg' => 'Produto excluído. Ele fica em "Situação: Excluídos" e pode ser restaurado.']
+                : ['success' => false, 'msg' => 'Produto não encontrado.'];
         }
+    }
+
+    /**
+     * UC-PIDX-45: marca os produtos da empresa como excluídos (inativos + `deleted_at`). Devolve quantos mudou.
+     * Tier 0 (ADR 0093): só os ids da empresa do usuário; o de outra empresa não muda.
+     */
+    protected function excluirProdutos(int $business_id, array $ids): int
+    {
+        $produtos = Product::where('business_id', $business_id)->whereIn('id', $ids)->whereNull('deleted_at')->get();
+        foreach ($produtos as $produto) {
+            $produto->forceFill(['is_inactive' => 1, 'deleted_at' => now()])->save();
+            event(new ProductsCreatedOrModified($produto, 'deleted'));
+        }
+
+        return $produtos->count();
+    }
+
+    /**
+     * UC-PIDX-45: "Restaurar" devolve o produto excluído a Ativo, com tudo o que ele tinha. Mesma permissão do
+     * Excluir. Tier 0: só produto da empresa do usuário.
+     */
+    public function restaurar($id)
+    {
+        if (! auth()->user()->can('product.delete')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) request()->session()->get('user.business_id');
+        $produto = Product::where('business_id', $business_id)->where('id', (int) $id)->whereNotNull('deleted_at')->first();
+        if ($produto === null) {
+            return response()->json(['success' => false, 'msg' => 'Produto excluído não encontrado.'], 404);
+        }
+        $produto->forceFill(['is_inactive' => 0, 'deleted_at' => null])->save();
+
+        return response()->json(['success' => true, 'msg' => 'Produto restaurado e ativo de novo.']);
     }
 
     /**
@@ -3522,77 +4156,21 @@ class ProductController extends Controller
     }
 
     /**
-     * Mass deletes products.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Excluir selecionados (UC-PIDX-45 · AR-PROD-022): marca como excluídos, sem apagar nada — o mesmo do
+     * Excluir de um produto (`excluirProdutos`).
      */
     public function massDestroy(Request $request)
     {
         if (! auth()->user()->can('product.delete')) {
             abort(403, 'Unauthorized action.');
         }
-        try {
-            $purchase_exist = false;
 
-            if (! empty($request->input('selected_rows'))) {
-                $business_id = $request->session()->get('user.business_id');
-
-                $selected_rows = explode(',', $request->input('selected_rows'));
-
-                $products = Product::where('business_id', $business_id)
-                                    ->whereIn('id', $selected_rows)
-                                    ->with(['purchase_lines', 'variations'])
-                                    ->get();
-                $deletable_products = [];
-
-                $is_mfg_installed = $this->moduleUtil->isModuleInstalled('Manufacturing');
-
-                DB::beginTransaction();
-
-                foreach ($products as $product) {
-                    $can_be_deleted = true;
-                    //Check if product is added as an ingredient of any recipe
-                    if ($is_mfg_installed) {
-                        $variation_ids = $product->variations->pluck('id');
-
-                        $exists_as_ingredient = \Modules\Manufacturing\Entities\MfgRecipeIngredient::whereIn('variation_id', $variation_ids)
-                            ->exists();
-                        $can_be_deleted = ! $exists_as_ingredient;
-                    }
-
-                    //Delete if no purchase found
-                    if (empty($product->purchase_lines->toArray()) && $can_be_deleted) {
-                        //Delete variation location details
-                        VariationLocationDetails::where('product_id', $product->id)
-                                                    ->delete();
-                        $product->delete();
-                        event(new ProductsCreatedOrModified($product, 'Deleted'));
-                    } else {
-                        $purchase_exist = true;
-                    }
-                }
-
-                DB::commit();
-            }
-
-            if (! $purchase_exist) {
-                $output = ['success' => 1,
-                    'msg' => __('lang_v1.deleted_success'),
-                ];
-            } else {
-                $output = ['success' => 0,
-                    'msg' => __('lang_v1.products_could_not_be_deleted'),
-                ];
-            }
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
-
-            $output = ['success' => 0,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $request->input('selected_rows')))));
+        $excluidos = $ids === [] ? 0 : $this->excluirProdutos($business_id, $ids);
+        $output = $excluidos > 0
+            ? ['success' => 1, 'msg' => $excluidos . ' produto(s) excluído(s). Eles ficam em "Situação: Excluídos" e podem ser restaurados.']
+            : ['success' => 0, 'msg' => 'Nenhum produto excluído.'];
 
         return redirect()->back()->with(['status' => $output]);
     }
@@ -3613,6 +4191,7 @@ class ProductController extends Controller
         $product = Product::where('business_id', $business_id)
                     ->with(['variations', 'variations.group_prices', 'variations.product_variation'])
                             ->findOrFail($id);
+        abort_if($product->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         $price_groups = SellingPriceGroup::where('business_id', $business_id)
                                             ->active()
@@ -3665,6 +4244,12 @@ class ProductController extends Controller
         if (! auth()->user()->can('product.create')) {
             abort(403, 'Unauthorized action.');
         }
+
+        // UC-PIDX-45: o excluído só tem preço alterado depois de restaurar. Fora do try: o catch
+        // genérico abaixo engoliria o abort e devolveria "algo deu errado".
+        $alvo = Product::where('business_id', $request->session()->get('user.business_id'))
+            ->where('id', (int) $request->input('product_id'))->first();
+        abort_if($alvo !== null && $alvo->estaExcluido(), 409, Product::MSG_EXCLUIDO);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -3836,8 +4421,10 @@ class ProductController extends Controller
         if (request()->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
+                // UC-PIDX-45: produto excluído volta por "Restaurar", não por "Ativar".
                 $product = Product::where('id', $id)
                                 ->where('business_id', $business_id)
+                                ->whereNull('deleted_at')
                                 ->update(['is_inactive' => 0]);
 
                 $output = ['success' => true,
@@ -4003,6 +4590,7 @@ class ProductController extends Controller
 
             $products = Product::where('business_id', $business_id)
                                 ->whereIn('id', $selected_products)
+                                ->whereNull('deleted_at') // UC-PIDX-45: excluído fica fora do lote até ser restaurado
                                 ->with(['variations', 'variations.product_variation', 'variations.group_prices', 'product_locations'])
                                 ->get();
 
@@ -4110,6 +4698,9 @@ class ProductController extends Controller
                 //Update product
                 $product = Product::where('business_id', $business_id)
                                 ->findOrFail($id);
+                if ($product->estaExcluido()) {
+                    continue; // UC-PIDX-45: excluído fica fora do lote até ser restaurado
+                }
 
                 $product->update($update_data);
 
@@ -4281,6 +4872,35 @@ class ProductController extends Controller
         }
     }
 
+    /**
+     * UC-PIDX-43: o mesmo NCM em vários produtos de uma vez, a partir da seleção na consulta de produto
+     * (pedido da PraMoto, 2026-10-27). Mesmo gate da edição do produto (`product.update`). O NCM vale
+     * com 8 dígitos e diferente de 00000000 (a regra da emissão e do card de Saúde fiscal); pontos são
+     * ignorados. Só os produtos da empresa do usuário (ADR 0093): id de outra empresa não é alterado.
+     * Não recalcula nada: a próxima nota usa o NCM novo, como se fosse editado produto a produto.
+     */
+    public function bulkUpdateNcm(Request $request)
+    {
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) $request->session()->get('user.business_id');
+        $ncm = preg_replace('/[^0-9]/', '', (string) $request->input('ncm'));
+        if (strlen($ncm) !== 8 || $ncm === '00000000') {
+            return response()->json(['success' => 0, 'msg' => 'Informe um NCM com 8 dígitos.'], 422);
+        }
+        $ids = array_values(array_filter(array_map('intval', explode(',', (string) $request->input('products')))));
+        if ($ids === []) {
+            return response()->json(['success' => 0, 'msg' => 'Nenhum produto selecionado.'], 422);
+        }
+
+        // UC-PIDX-45: o excluído fica fora do lote até ser restaurado (a contagem diz quantos mudaram de fato).
+        $alterados = Product::where('business_id', $business_id)->whereIn('id', $ids)->whereNull('deleted_at')->update(['ncm' => $ncm]);
+
+        return response()->json(['success' => 1, 'msg' => $alterados . ' produto(s) com o NCM ' . $ncm . '.']);
+    }
+
     public function updateProductLocation(Request $request)
     {
         if (! auth()->user()->can('product.update')) {
@@ -4298,6 +4918,7 @@ class ProductController extends Controller
 
             $products = Product::where('business_id', $business_id)
                                 ->whereIn('id', $product_ids)
+                                ->whereNull('deleted_at') // UC-PIDX-45: excluído fica fora do lote até ser restaurado
                                 ->with(['product_locations'])
                                 ->get();
             DB::beginTransaction();

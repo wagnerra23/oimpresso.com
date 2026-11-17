@@ -97,9 +97,8 @@ describe('Wave 26 ComVis — D7 forensic restore (1/10 → 10/10)', function () 
 
 describe('Wave 26 ComVis — D8 security FormRequests + D3 docs canon', function () {
 
-    it('RecusarOrcamentoRequest FormRequest dedicado existe (D8 boost)', function () {
-        expect(class_exists(\Modules\ComunicacaoVisual\Http\Requests\RecusarOrcamentoRequest::class))->toBeTrue();
-    });
+    // 2026-11-10: o RecusarOrcamentoRequest saiu (nenhuma rota o usava; a recusa do cliente é a página
+    // pública do aceite). A asserção de que a classe existia saiu junto: media presença de código morto.
 
     // ADR 0345 (aceito [W] 2026-07-21): Modules/ComunicacaoVisual/BRIEFING.md virou lápide-ponteiro
     // — a casa única do BRIEFING é memory/requisitos/ComunicacaoVisual/BRIEFING.md, que não carrega

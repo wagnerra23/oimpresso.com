@@ -1,32 +1,55 @@
-# Gerado por scripts/qa/screen-grade-seed.mjs a partir do baseline canônico
-# screen-grades-baseline-2026-05-30.json (método "SCREEN-GRADE-9.75").
-# A nota 16-dim é LLM-as-judge (agente screen-qa) — NÃO editar à mão.
-# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+# Scorecard de tela — regrade de 2026-11-11 (lote 4 da auditoria ComunicacaoVisual, achado A8).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), skill screen-grade.
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos + rota, SEM browser de produção. O E2E com
+# axe destas telas nasce no PR do mesmo lote (tests/Browser/ComunicacaoVisual/); nenhuma dimensão
+# daqui foi medida em runtime. Cada evidência cita resources/js/Pages/ComunicacaoVisual/Index.tsx.
+# Persona: o módulo não está em memory/requisitos/_DesignSystem/personas-por-modulo.yml. A nota de
+# 2026-07-05 usava larissa (vestuário, outro ramo); aqui peso uniforme, nota = média das 16 dims
+# arredondada (1212/16 = 75,75).
+# Os 3 gaps de 2026-07-05: "orçamento não persiste" e "sem Index.casos.md" estão superados (salvar,
+# link do cliente e OS existem; o casos.md existe). O <select> nativo segue, e fica como gap.
 screen: ComunicacaoVisual/Index
 path: resources/js/Pages/ComunicacaoVisual/Index.tsx
-archetype: other
-persona: larissa
-nota: 72
+archetype: other       # calculadora bespoke de m² + hub; charter declara arquétipo único no repo
+persona: sem-mapeamento
+nota: 76
 nivel: "Advanced"
-baseline_anterior: 54   # ratchet — nota não cai abaixo disto sem aprovação
+baseline_anterior: 72   # ratchet — nota de 2026-07-05; não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: regrade-onda1-2026-07-05
-graded_at: "2026-07-05"
-resumo: "Hub deixou de ser stub: calculadora de orcamento por m2 real (preview instantaneo + conferencia server-side authoritative), seletor de material do catalogo do business, tokens DS v4 sem cor crua, AppShellV2+PageHeader e copy PT-BR calorosa pra Larissa nos cards 'em breve'."
-dimensoes: { density: 68, discoverability: 74, speed_to_task: 76, error_recovery: 72, cognitive_load: 74, aesthetic_usability: 72, affordance: 72, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 66, i18n_ptbr: 84, performance_perceived: 76, information_hierarchy: 72, microcopy: 80, internal_consistency: 70, preflight_conformance: 74 }
+source: regrade-lote4-auditoria-2026-11-11
+graded_at: "2026-11-11"
+resumo: "A calculadora virou o fluxo inteiro do orçamento: confere no servidor, salva (POST/PUT com ?orcamento= na URL), gera o link de aceite do cliente, anexa arquivos e aprova em OS com confirmação. Perde em: <select> nativo no material enquanto o resto do módulo usa o Select do DS, página longa (5 cards abaixo da calculadora), cabeçalho da grade com text-[11px] e badge com text-[10px]."
+dimensoes: { density: 74, discoverability: 76, speed_to_task: 82, error_recovery: 78, cognitive_load: 70, aesthetic_usability: 74, affordance: 76, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 70, i18n_ptbr: 86, performance_perceived: 78, information_hierarchy: 74, microcopy: 82, internal_consistency: 70, preflight_conformance: 78 }
+evidencias:
+  density: "Index.tsx:529 grade de 12 colunas por peça (material, descrição, medidas, qtd, preço/m²)"
+  discoverability: "Index.tsx:961-976 orçamentos salvos ao lado da calculadora; Index.tsx:983 cartões 'Em breve' dizem o que ainda não existe"
+  speed_to_task: "Index.tsx:344-354 conferir no servidor; Index.tsx:433-456 salvar grava e põe ?orcamento= na URL; Index.tsx:377-392 link do cliente"
+  error_recovery: "Index.tsx:350,370,388 erro de cada ação vira mensagem; Index.tsx:903-904 aprovar pede confirmação (confirmandoAprovar)"
+  cognitive_load: "Index.tsx:481-983 calculadora + total + arquivos + link + aprovar + salvos + roteiro + em breve na mesma página"
+  aesthetic_usability: "Index.tsx:472 PageHeader com ícone primary; tokens semânticos, sem cor crua"
+  affordance: "Index.tsx:462-463 salvar só depois de conferir e aprovar só o gravado igual à tela"
+  brand_confidence: "Index.charter.md:9 status draft; Index.tsx:983 'Em breve' honesto"
+  mobile_fit: "Index.tsx:529 cabeçalho da grade só em md+; peças empilham abaixo — não medido em viewport"
+  a11y_wcag: "Index.tsx:560-635 aria-label em cada campo da peça; Index.tsx:636 aria-invalid; Index.tsx:529 cabeçalho visual aria-hidden com text-[11px]; Index.tsx:1057 badge text-[10px]"
+  i18n_ptbr: "copy toda em PT-BR, BRL e medida pt-BR"
+  performance_perceived: "rota / em Modules/ComunicacaoVisual/Routes/web.php: catálogo eager de propósito, 'recentes' em Inertia::defer; Index.tsx:973 fallback de texto, sem skeleton"
+  information_hierarchy: "cabeçalho → calculadora → total/margem → ações → salvos → em breve (Index.tsx:470-983)"
+  microcopy: "Index.tsx:344-345 comentário e mensagens dizem o que o servidor confere; copy calorosa nos cartões em breve"
+  internal_consistency: "Index.tsx:553 <select> nativo no material; Agenda.tsx:302 usa o Select do DS"
+  preflight_conformance: "charter draft + Index.casos.md + RUNBOOK-comunicacao-visual-index.md; âncora = porte reverso do vivo (comunicacao-visual-page.jsx)"
 gaps:
   - dim: "Internal-consistency"
-    best_of_class: "@/Components/ui"
-    fix: "seletor de material usa <select> nativo — migrar pro Select do DS (com .filter(Boolean) nas opcoes data-driven, licao PR #3411)"
+    best_of_class: "@/Components/ui Select (Agenda.tsx:302 no mesmo módulo)"
+    fix: "Trocar o <select> nativo do material pelo Select do DS, com .filter(Boolean) nas opções vindas do catálogo (§5 2026-06-29)"
     esforco: baixo
     origin: regrade-onda1-2026-07-05
-  - dim: "Speed-to-task"
-    best_of_class: "Bling orcamento"
-    fix: "orcamento calculado nao persiste — falta salvar (POST /api/orcamentos) + enviar PDF no WhatsApp (TODO Sprint 2); hoje Larissa perde o calculo ao sair"
-    esforco: alto
-    origin: regrade-onda1-2026-07-05
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Sells/Create (casos.md)"
-    fix: "sem Index.casos.md — a formula m2 (espelhada client/server) merece contrato de nao-regressao citando Pest do OrcamentoCalculator"
+  - dim: "Cognitive-load"
+    best_of_class: "Bling orçamento: lista de orçamentos em tela própria, calculadora focada"
+    fix: "Avaliar mover 'Orçamentos salvos' e 'Em breve' para fora do fluxo da calculadora (decisão de produto, não de forma)"
+    esforco: medio
+    origin: regrade-lote4-2026-11-11
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear: menor texto da UI em 12px"
+    fix: "Subir o cabeçalho da grade (text-[11px]) e o badge (text-[10px]) para text-xs; o axe do E2E do lote 4 é o recibo"
     esforco: baixo
-    origin: regrade-onda1-2026-07-05
+    origin: regrade-lote4-2026-11-11

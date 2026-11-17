@@ -4,6 +4,8 @@ titulo: ADR sucessora + chaves do retention.php
 dono: "[CL]"
 base: e1dea70d4710
 ---
+> **REVOGADA EM PARTE por [W] em 2026-10-13** — *"não pode ter o LGPD no patrimonio isso é errado"*. O item 1 (ADR sucessora) caiu: a ADR 0430 foi **recusada** (PR #9268) e a lápide de 2026-07-27 volta a valer no Patrimônio. Fica só o item 2, a troca das chaves do `retention.php` pelos nomes reais das tabelas, que é fato de schema. Ver `_ERRATA-INDICE-2026-10-13-thread05.md` e a lápide §5 2026-10-13 em `memory/licoes-rejeitadas.md`.
+
 # 05a · Reabrir a retenção LGPD direito
 
 [W] 2026-10-07, no Cowork: o descarte da 05 (lápide §5 de 27/07, *"num ERP não se apaga PII"*) **está errado**. A 05 não apaga — **anonimiza** campo pessoal, preserva a linha e nunca toca a trilha de auditoria (ver B da `05-retencao-lgpd.md`). A lápide misturou as duas coisas.

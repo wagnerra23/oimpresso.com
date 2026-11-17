@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 20 |
+| US no SPEC | 23 |
 | CU no SDD | 10 |
-| Telas (.tsx) | 1 |
-| Telas com `casos.md` | 1 |
-| UC declarados | 20 |
-| UC com teste que os cita | 20 |
+| Telas (.tsx) | 3 |
+| Telas com `casos.md` | 3 |
+| UC declarados | 93 |
+| UC com teste que os cita | 93 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -36,13 +36,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 
 | US | status | Título |
 |---|---|---|
-| US-COMVIS-001 | `desconhecido` | Cálculo automático por m² (lona, vinil, banner, fachada) — **P0** |
 | US-COMVIS-002 | `desconhecido` | Cadastro de material com preço por gramatura — **P0** |
-| US-COMVIS-003 | `desconhecido` | PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0** |
-| US-COMVIS-004 | `desconhecido` | Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1** |
-| US-COMVIS-005 | `desconhecido` | Pós-cálculo (orçado vs realizado) — **P1** |
 | US-COMVIS-006 | `desconhecido` | Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0** |
-| US-COMVIS-007 | `desconhecido` | Gestão de fachada/instalação (agenda + equipe + EPI) — **P1** |
 | US-COMVIS-008 | `desconhecido` | NFSe automática pra serviço de instalação — **P1** |
 | US-COMVIS-009 | `desconhecido` | NFe automática a partir de boleto pago — **P0** (já entregue no núcleo) |
 | US-COMVIS-010 | `desconhecido` | Provador de orçamento online (formulário web público) — **P2** |
@@ -72,6 +67,55 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CV-10 | Index | 🧪 aguarda veredito da lane |
 | UC-CV-11 | Index | 🧪 aguarda veredito da lane |
 | UC-CV-12 | Index | 🧪 aguarda veredito da lane |
+| UC-CVACE-01 | AceitePublico | 🧪 aguarda veredito da lane |
+| UC-CVACE-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVACE-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVACE-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVACEP-01 | AceitePublico | 🧪 aguarda veredito da lane |
+| UC-CVACEP-02 | AceitePublico | 🧪 aguarda veredito da lane |
+| UC-CVACEP-03 | AceitePublico | 🧪 aguarda veredito da lane |
+| UC-CVACEP-04 | AceitePublico | 🧪 aguarda veredito da lane |
+| UC-CVACEP-05 | AceitePublico | 🧪 aguarda veredito da lane |
+| UC-CVACEP-06 | AceitePublico | 🧪 aguarda veredito da lane |
+| UC-CVAG-01 | Agenda | 🧪 aguarda veredito da lane |
+| UC-CVAG-02 | Agenda | 🧪 aguarda veredito da lane |
+| UC-CVAG-03 | Agenda | 🧪 aguarda veredito da lane |
+| UC-CVAG-04 | Agenda | 🧪 aguarda veredito da lane |
+| UC-CVAPT-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVAPT-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVAPT-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVAPT-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVAPT-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CVARQ-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVARQ-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVARQ-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVARQ-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVARQ-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CVARQ-06 | Index | 🧪 aguarda veredito da lane |
+| UC-CVARQ-07 | Index | 🧪 aguarda veredito da lane |
+| UC-CVEMP-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVEMP-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVEMP-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVEMP-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVHIG-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVHIG-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVHIG-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-06 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-07 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-08 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-09 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-10 | Index | 🧪 aguarda veredito da lane |
+| UC-CVMRG-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVMRG-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVMRG-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVMRG-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVMRG-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CVMRG-06 | Index | 🧪 aguarda veredito da lane |
 | UC-CVOS-01 | Index | 🧪 aguarda veredito da lane |
 | UC-CVOS-02 | Index | 🧪 aguarda veredito da lane |
 | UC-CVOS-03 | Index | 🧪 aguarda veredito da lane |
@@ -79,7 +123,31 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CVOS-05 | Index | 🧪 aguarda veredito da lane |
 | UC-CVOS-06 | Index | 🧪 aguarda veredito da lane |
 | UC-CVOS-07 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-08 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-09 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-10 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-11 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPAC-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPAC-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPAC-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPOS-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPOS-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPOS-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPOS-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPOS-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPRC-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPRC-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPRC-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVPRC-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVSAL-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVSAL-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVSAL-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVSAL-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVSAL-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CVSAL-06 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-01 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-03 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-21 | Agenda | 🧪 aguarda veredito da lane |
 
 ---
 

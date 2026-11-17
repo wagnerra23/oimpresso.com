@@ -30,6 +30,7 @@
      'product.view' => 'Visualizar o produto',
      'product.create' => 'Adicionar produto',
      'product.update' => 'Editar produto',
+     'product.armazenagem' => 'Editar locais de armazenagem do produto',
      'product.delete' => 'Excluir produto',
      'purchase.view' => 'Ver ajuste de compra e estoque',
      'purchase.create' => 'Adicionar ajuste de compra e estoque',

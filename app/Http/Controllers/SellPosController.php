@@ -2014,7 +2014,9 @@ class SellPosController extends Controller
      */
     public function destroy($id)
     {
-        if (!auth()->user()->can('sell.delete') && !auth()->user()->can('direct_sell.delete') && !auth()->user()->can('so.delete')) {
+        if (!auth()->user()->can('sell.delete') && !auth()->user()->can('direct_sell.delete') && !auth()->user()->can('so.delete')
+            && !$this->transactionUtil->podeExcluirComoRascunho(auth()->user(), request()->session()->get('user.business_id'), $id)
+            && !$this->transactionUtil->podeExcluirComoCotacao(auth()->user(), request()->session()->get('user.business_id'), $id)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -3206,7 +3208,9 @@ class SellPosController extends Controller
 
     public function getFeaturedProducts($id)
     {
-        $location = BusinessLocation::findOrFail($id);
+        // Só local da empresa da sessão (Tier 0, ADR 0093).
+        $location = BusinessLocation::where('business_id', request()->session()->get('user.business_id'))
+            ->findOrFail($id);
         $featured_products = $location->getFeaturedProducts();
 
         if (!empty($featured_products)) {

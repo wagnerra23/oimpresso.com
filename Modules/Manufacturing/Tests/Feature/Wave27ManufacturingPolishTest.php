@@ -9,7 +9,9 @@ use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Services\RecipeBomService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Wave 27 — POLISH ≥90 Manufacturing (2026-05-17).
@@ -101,19 +103,11 @@ it('W27 D5 BOM 7 ingredients: customer journey biz=1 robusto', function () {
         $this->markTestSkipped('Requer MySQL UltimatePOS (ADR 0101).');
     }
 
-    $variationBiz1 = DB::table('variations as v')
-        ->join('products as p', 'p.id', '=', 'v.product_id')
-        ->where('p.business_id', 1)
-        ->select('v.id', 'v.product_id')
-        ->first();
-
-    if (! $variationBiz1) {
-        $this->markTestSkipped('Sem variation biz=1.');
-    }
+    $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
     $recipe = MfgRecipe::create([
-        'product_id'           => $variationBiz1->product_id,
-        'variation_id'         => $variationBiz1->id,
+        'product_id'           => $variacao->product_id,
+        'variation_id'         => $variacao->id,
         'instructions'         => 'wave27-bom-7-ingredients',
         'waste_percent'        => 7,
         'ingredients_cost'     => 100.0,
@@ -127,7 +121,7 @@ it('W27 D5 BOM 7 ingredients: customer journey biz=1 robusto', function () {
     for ($i = 0; $i < 7; $i++) {
         MfgRecipeIngredient::create([
             'mfg_recipe_id' => $recipe->id,
-            'variation_id'  => $variationBiz1->id,
+            'variation_id'  => $variacao->id,
             'quantity'      => 1.0 + ($i * 0.25),
             'sort_order'    => $i,
         ]);
@@ -135,10 +129,10 @@ it('W27 D5 BOM 7 ingredients: customer journey biz=1 robusto', function () {
 
     /** @var RecipeBomService $svc */
     $svc = app(RecipeBomService::class);
-    $bom = $svc->resolveBom($recipe->id, 1);
+    $bom = $svc->resolveBom($recipe->id, MFG_EMP_BIZ);
 
     expect($bom->count())->toBe(7);
-    expect($svc->resolveBom($recipe->id, 99)->count())->toBe(0);
+    expect($svc->resolveBom($recipe->id, MFG_EMP_OUTRO)->count())->toBe(0);
 })->after(function () {
     // ->after() roda mesmo quando o corpo chamou markTestSkipped (o Pest marca o teste
     // como iniciado); na lane sqlite a tabela nao existe.

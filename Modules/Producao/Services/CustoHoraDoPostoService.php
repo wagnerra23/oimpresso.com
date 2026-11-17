@@ -31,6 +31,6 @@ final class CustoHoraDoPostoService implements CustoHoraDoPosto
             ->where('custo_hora', '>', 0)
             ->value('custo_hora');
 
-        return $custo === null ? null : number_format((float) $custo, 2, '.', '');
+        return $custo === null ? null : CustoHoraDecimal::comDuasCasas($custo);
     }
 }

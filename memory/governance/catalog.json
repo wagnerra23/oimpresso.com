@@ -25,29 +25,29 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 38,
-    "nodes": 913,
-    "edges": 1237,
+    "modules": 40,
+    "nodes": 1020,
+    "edges": 1372,
     "by_node_type": {
-      "module": 43,
-      "table": 108,
-      "adr": 152,
-      "component": 521,
-      "api": 89
+      "module": 45,
+      "table": 122,
+      "adr": 157,
+      "component": 597,
+      "api": 99
     },
     "by_edge_type": {
-      "ownsTable": 97,
+      "ownsTable": 111,
       "ownsLegacyView": 13,
-      "consumesTable": 6,
-      "providesApi": 93,
+      "consumesTable": 7,
+      "providesApi": 102,
       "charteredByAdr": 30,
-      "governedByAdr": 81,
-      "hasComponent": 521,
-      "dependsOn": 136,
-      "delegatesTo": 125,
+      "governedByAdr": 84,
+      "hasComponent": 597,
+      "dependsOn": 152,
+      "delegatesTo": 137,
       "migratesTo": 1,
       "supersedes": 27,
-      "supersedesPartially": 76,
+      "supersedesPartially": 80,
       "supersededBy": 31
     },
     "dangling": 0
@@ -317,6 +317,13 @@
       "type": "adr",
       "num": "0088",
       "slug": "0088-module-rename-php-only",
+      "exists": true
+    },
+    {
+      "id": "adr:0090",
+      "type": "adr",
+      "num": "0090",
+      "slug": "0090-nfe-replace-gradual-app-services",
       "exists": true
     },
     {
@@ -1119,6 +1126,34 @@
       "exists": true
     },
     {
+      "id": "adr:0448",
+      "type": "adr",
+      "num": "0448",
+      "slug": "0448-fabricacao-cadastro-producao-execucao-product-bom-fonte-unica",
+      "exists": true
+    },
+    {
+      "id": "adr:0449",
+      "type": "adr",
+      "num": "0449",
+      "slug": "0449-nfebrasil-certificado-sem-fallback-legado",
+      "exists": true
+    },
+    {
+      "id": "adr:0451",
+      "type": "adr",
+      "num": "0451",
+      "slug": "0451-associacoes-rede-uniafibro-area-de-membros",
+      "exists": true
+    },
+    {
+      "id": "adr:0454",
+      "type": "adr",
+      "num": "0454",
+      "slug": "0454-uniafibro-estatuto-tipos-de-membro-projetos-e-dinheiro",
+      "exists": true
+    },
+    {
       "id": "api:/.well-known/assetlinks.json",
       "type": "api",
       "prefix": "/.well-known/assetlinks.json",
@@ -1205,8 +1240,15 @@
       "prefix": "/api/v1/*",
       "providers": [
         "Financeiro",
-        "NfeBrasil",
         "RecurringBilling"
+      ]
+    },
+    {
+      "id": "api:/api/v1/nfebrasil",
+      "type": "api",
+      "prefix": "/api/v1/nfebrasil",
+      "providers": [
+        "NfeBrasil"
       ]
     },
     {
@@ -1258,6 +1300,46 @@
       ]
     },
     {
+      "id": "api:/associacoes",
+      "type": "api",
+      "prefix": "/associacoes",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/associadas",
+      "type": "api",
+      "prefix": "/associacoes/associadas",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/install",
+      "type": "api",
+      "prefix": "/associacoes/install",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/lista",
+      "type": "api",
+      "prefix": "/associacoes/lista",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
+      "id": "api:/associacoes/m/{token}",
+      "type": "api",
+      "prefix": "/associacoes/m/{token}",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/atendimento/*",
       "type": "api",
       "prefix": "/atendimento/*",
@@ -1279,6 +1361,14 @@
       "prefix": "/c/*",
       "providers": [
         "Cms"
+      ]
+    },
+    {
+      "id": "api:/captacao/install",
+      "type": "api",
+      "prefix": "/captacao/install",
+      "providers": [
+        "Captacao"
       ]
     },
     {
@@ -1530,6 +1620,22 @@
       ]
     },
     {
+      "id": "api:/nfe-brasil/contador/*",
+      "type": "api",
+      "prefix": "/nfe-brasil/contador/*",
+      "providers": [
+        "NfeBrasil"
+      ]
+    },
+    {
+      "id": "api:/nfe-brasil/danfe/{business}/{emissao}",
+      "type": "api",
+      "prefix": "/nfe-brasil/danfe/{business}/{emissao}",
+      "providers": [
+        "NfeBrasil"
+      ]
+    },
+    {
       "id": "api:/nfebrasil/*",
       "type": "api",
       "prefix": "/nfebrasil/*",
@@ -1607,6 +1713,14 @@
       "prefix": "/ponto/install/*",
       "providers": [
         "Ponto"
+      ]
+    },
+    {
+      "id": "api:/pricing",
+      "type": "api",
+      "prefix": "/pricing",
+      "providers": [
+        "Superadmin"
       ]
     },
     {
@@ -1968,11 +2082,109 @@
       "desc": ""
     },
     {
+      "id": "component:Associacoes/Associações-membro",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Associações-membro",
+      "desc": "US-ASSOC-001"
+    },
+    {
+      "id": "component:Associacoes/AssociacoesAcesso + AssociacoesLiberado",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociacoesAcesso + AssociacoesLiberado",
+      "desc": "regra única de acesso: pacote, associacoes.access e alcance por associação (rede inteira com associacoes.rede; senão só onde é representante em assoc_representantes) — ADR 0451 D4"
+    },
+    {
+      "id": "component:Associacoes/AssociacoesController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociacoesController",
+      "desc": "lista PT-01 e ficha das associações, representantes e mudança de diretoria (US-ASSOC-002)"
+    },
+    {
+      "id": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Associadas como contacts do núcleo, sem CPF",
+      "desc": "US-ASSOC-001"
+    },
+    {
+      "id": "component:Associacoes/AssociadasController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "AssociadasController",
+      "desc": "lista de associadas com celular mascarado, cadastro pelo contato do núcleo e desligamento (onda 4) — US-ASSOC-003"
+    },
+    {
+      "id": "component:Associacoes/Consentimentos",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "Consentimentos",
+      "desc": "conceder, revogar e vigente por finalidade e versão da config; usado pelo cadastro e pelo app da onda 6 — US-ASSOC-003"
+    },
+    {
+      "id": "component:Associacoes/DataController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "desc": "documentos com arquivo no Arquivos, tirar da lista com motivo (US-ASSOC-002)"
+    },
+    {
+      "id": "component:Associacoes/InstallController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PainelDaRedeController + PendenciasDaRede",
+      "desc": "painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
+    },
+    {
+      "id": "component:Associacoes/PendenciaDiretoria",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PendenciaDiretoria",
+      "desc": "cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
+    },
+    {
+      "id": "component:Associacoes/PortalAssociadaController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalAssociadaController",
+      "desc": "área da associada por link + PIN, no site uniafibro.com.br e no endereço do app: ver os dados e revogar consentimento — ADR 0451 D6, US-ASSOC-005"
+    },
+    {
+      "id": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalLinkController + PortalAssociadaService",
+      "desc": "a diretoria gera e revoga o link + PIN da área da associada (só os hashes ficam no banco) — US-ASSOC-005"
+    },
+    {
       "id": "component:Auditoria/AuditEntryService",
       "type": "component",
       "module": "Auditoria",
       "name": "AuditEntryService",
       "desc": "leitura paginada e detalhe de activity_log"
+    },
+    {
+      "id": "component:Auditoria/AuditNote",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "AuditNote",
+      "desc": "entidade sem rota; tabela auditoria_audit_notes ausente de produção em 2026-07-30"
     },
     {
       "id": "component:Auditoria/AuditoriaController",
@@ -1982,10 +2194,38 @@
       "desc": ""
     },
     {
+      "id": "component:Auditoria/AuditoriaLiberado",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "AuditoriaLiberado",
+      "desc": "middleware das leituras: auditoria.view (superadmin passa); o pacote auditoria_module vale só para o menu"
+    },
+    {
+      "id": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "Comandos artisan auditoria:health e auditoria:backfill-business-id",
+      "desc": ""
+    },
+    {
+      "id": "component:Auditoria/Config/config.php e Config/retention.php",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "Config/config.php e Config/retention.php",
+      "desc": ""
+    },
+    {
       "id": "component:Auditoria/DataController",
       "type": "component",
       "module": "Auditoria",
       "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Auditoria/FormRequests de revert, filtro, export, lote e notas",
+      "type": "component",
+      "module": "Auditoria",
+      "name": "FormRequests de revert, filtro, export, lote e notas",
       "desc": ""
     },
     {
@@ -2024,6 +2264,41 @@
       "desc": "whitelist do que NUNCA reverte (append-only legal/fiscal)"
     },
     {
+      "id": "component:Captacao/Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "type": "component",
+      "module": "Captacao",
+      "name": "Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "desc": "US-CAPT-001"
+    },
+    {
+      "id": "component:Captacao/CaptacaoAcesso + CaptacaoLiberado",
+      "type": "component",
+      "module": "Captacao",
+      "name": "CaptacaoAcesso + CaptacaoLiberado",
+      "desc": "regra única de acesso: pacote captacao_module e permissão captacao.access — ADR 0452 D1"
+    },
+    {
+      "id": "component:Captacao/DataController",
+      "type": "component",
+      "module": "Captacao",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Captacao/Fontes de recurso",
+      "type": "component",
+      "module": "Captacao",
+      "name": "Fontes de recurso",
+      "desc": "US-CAPT-001"
+    },
+    {
+      "id": "component:Captacao/InstallController",
+      "type": "component",
+      "module": "Captacao",
+      "name": "InstallController",
+      "desc": ""
+    },
+    {
       "id": "component:Cms/CmsController",
       "type": "component",
       "module": "Cms",
@@ -2059,6 +2334,13 @@
       "desc": ""
     },
     {
+      "id": "component:Compras/AlcadaDoPedido",
+      "type": "component",
+      "module": "Compras",
+      "name": "AlcadaDoPedido",
+      "desc": "alçada de valor do pedido de compra por empresa (comprador, gerente, diretoria); desligada por padrão em business.common_settings (US-COM-032)"
+    },
+    {
       "id": "component:Compras/AplicarCustoDoRecebimento",
       "type": "component",
       "module": "Compras",
@@ -2066,11 +2348,39 @@
       "desc": "compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
     },
     {
-      "id": "component:Compras/ComprasController",
+      "id": "component:Compras/AvisoDeFalhaDaAgenda",
       "type": "component",
       "module": "Compras",
-      "name": "ComprasController",
-      "desc": ""
+      "name": "AvisoDeFalhaDaAgenda",
+      "desc": "falha da agenda ou do job de Compras vira task bloqueada no mcp_tasks, pelo HitlEscalationService do Jana"
+    },
+    {
+      "id": "component:Compras/ComprasController + ComprasService",
+      "type": "component",
+      "module": "Compras",
+      "name": "ComprasController + ComprasService",
+      "desc": "lista, KPIs e detalhe do cockpit /compras"
+    },
+    {
+      "id": "component:Compras/ComprasLiberado",
+      "type": "component",
+      "module": "Compras",
+      "name": "ComprasLiberado",
+      "desc": "middleware das rotas operacionais de /compras: pacote compras_module da empresa e, onde pedido, a permissão (compras.view)"
+    },
+    {
+      "id": "component:Compras/CotacaoDeCompra",
+      "type": "component",
+      "module": "Compras",
+      "name": "CotacaoDeCompra",
+      "desc": "cotação entre fornecedores: convida, registra respostas, compara e fecha em pedido de compra; sem tela ainda (US-COM-031)"
+    },
+    {
+      "id": "component:Compras/CurvaAbcReposicao",
+      "type": "component",
+      "module": "Compras",
+      "name": "CurvaAbcReposicao",
+      "desc": "curva ABC e sugestão de reposição pelo giro; só leitura (US-ESTOQUE-003)"
     },
     {
       "id": "component:Compras/CustoDoInsumoService",
@@ -2080,6 +2390,13 @@
       "desc": "custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
     },
     {
+      "id": "component:Compras/CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear",
+      "type": "component",
+      "module": "Compras",
+      "name": "CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear",
+      "desc": "custo médio ponderado móvel por variação, recalculado a cada compra recebida e estornado quando ela é cancelada ou excluída; desligado pela flag compras.custo_medio_movel (US-PROD-024)"
+    },
+    {
       "id": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
       "type": "component",
       "module": "Compras",
@@ -2087,11 +2404,25 @@
       "desc": "tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
     },
     {
+      "id": "component:Compras/Database/Migrations/2026_10_27_*",
+      "type": "component",
+      "module": "Compras",
+      "name": "Database/Migrations/2026_10_27_*",
+      "desc": "tabelas compras_produto_fornecedor (de-para do item da nota com a variação), compras_prazo_fornecedor, compras_cotacoes + compras_cotacao_itens/fornecedores/respostas, compras_aprovacoes_pedido, compras_custo_medio + compras_custo_medio_movimentos e compras_inspecoes"
+    },
+    {
       "id": "component:Compras/DataController",
       "type": "component",
       "module": "Compras",
       "name": "DataController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/InspecaoDoRecebimento",
+      "type": "component",
+      "module": "Compras",
+      "name": "InspecaoDoRecebimento",
+      "desc": "inspeção por linha da compra recebida; o reprovado sai do estoque pela devolução de compra do núcleo; desligada por padrão em business.common_settings; sem tela ainda (US-COM-034)"
     },
     {
       "id": "component:Compras/InstallController",
@@ -2122,6 +2453,13 @@
       "desc": "campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
     },
     {
+      "id": "component:Compras/NecessidadeDeCompra",
+      "type": "component",
+      "module": "Compras",
+      "name": "NecessidadeDeCompra",
+      "desc": "MRP: necessidade por insumo e local somando as reservas das OS e das vendas e o estoque mínimo, com data para pedir pelo prazo do fornecedor; só lê estoque (US-COM-030)"
+    },
+    {
       "id": "component:Compras/PropostasPrecoController + PropostasDePreco",
       "type": "component",
       "module": "Compras",
@@ -2129,11 +2467,25 @@
       "desc": "fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
     },
     {
+      "id": "component:Compras/ReconciliacaoCustoMedio + comando compras:custo-medio-reconciliar",
+      "type": "component",
+      "module": "Compras",
+      "name": "ReconciliacaoCustoMedio + comando compras:custo-medio-reconciliar",
+      "desc": "confere custo guardado, histórico e compras canceladas, por empresa e variação; só grava com --aplicar --business=N; não é agendado"
+    },
+    {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "component",
       "module": "Compras",
       "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
+    },
+    {
+      "id": "component:Compras/TransactionSellLineCustoObserver",
+      "type": "component",
+      "module": "Compras",
+      "name": "TransactionSellLineCustoObserver",
+      "desc": "congela o custo previsto da linha de orçamento no dia (UC-FLX-33 · US-SELL-067)"
     },
     {
       "id": "component:ComunicacaoVisual/AgendaController",
@@ -2211,6 +2563,13 @@
       "module": "ComunicacaoVisual",
       "name": "FsmProcessoComunicacaoVisualSeeder",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Http/Middleware/ComunicacaoVisualLiberado",
+      "desc": "UC-CVPAC-01..03)"
     },
     {
       "id": "component:ComunicacaoVisual/InstalacaoController",
@@ -2955,6 +3314,13 @@
       "desc": ""
     },
     {
+      "id": "component:Financeiro/CorrigirTipoLegadoCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CorrigirTipoLegadoCommand",
+      "desc": "financeiro:corrigir-tipo-legado --business=N corrige título do Delphi com TIPO=RECEBIDA importado como pagar (metadata.delphi_tipo_raw); só mostra por padrão, --apply grava e marca metadata.tipo_corrigido"
+    },
+    {
       "id": "component:Financeiro/CoworkSidebarController",
       "type": "component",
       "module": "Financeiro",
@@ -3092,7 +3458,7 @@
       "type": "component",
       "module": "Fiscal",
       "name": "AcoesController",
-      "desc": "PR #4 thin delegate NfeService::cancelar + ManifestacaoService (4 ações DF-e)"
+      "desc": "thin delegate: cancelar (só a nota, ou a venda junto via FSM — R-NFE-044) · CC-e · inutilizar · retransmitir · devolução (DevolucaoService, R-NFE-039) · manifestar DF-e (4 ações, por linha e em lote)"
     },
     {
       "id": "component:Fiscal/CockpitController",
@@ -3106,7 +3472,21 @@
       "type": "component",
       "module": "Fiscal",
       "name": "ConfigController",
-      "desc": "sub-página 6 (Cert A1 + regime + tributação default read-only)"
+      "desc": "sub-página 6 (cert A1, ambiente SEFAZ, contingência, séries, SPED) + POST /config/contador; cert/ambiente/contingência postam para rotas do NfeBrasil"
+    },
+    {
+      "id": "component:Fiscal/Console/Commands/CertHealthCheckCommand",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Console/Commands/CertHealthCheckCommand",
+      "desc": "fiscal:cert-health-check (alerta de vencimento do A1 em mcp_alertas_eventos)"
+    },
+    {
+      "id": "component:Fiscal/Console/Commands/HabilitarBusinessCommand",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Console/Commands/HabilitarBusinessCommand",
+      "desc": "fiscal:habilitar-business {biz}"
     },
     {
       "id": "component:Fiscal/DasController",
@@ -3137,11 +3517,25 @@
       "desc": "sub-página 5 (timeline append-only CC-e/Cancel/EPEC/Manifesto)"
     },
     {
+      "id": "component:Fiscal/Http/Middleware/FiscalLiberado",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Http/Middleware/FiscalLiberado",
+      "desc": "exige o pacote fiscal_module da empresa em toda rota operacional (#10404)"
+    },
+    {
       "id": "component:Fiscal/InstallController",
       "type": "component",
       "module": "Fiscal",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Fiscal/Listeners/InvalidaCockpitCacheListener",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Listeners/InvalidaCockpitCacheListener",
+      "desc": "invalida o cache de KPIs em NFeAutorizada/NFCeAutorizada"
     },
     {
       "id": "component:Fiscal/NfeCockpitController",
@@ -3165,18 +3559,53 @@
       "desc": "PR #7 ⌘K palette cross-fiscal (US-FISCAL-015 — busca global notas + DF-e)"
     },
     {
+      "id": "component:Fiscal/Services/FiscalPacote",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/FiscalPacote",
+      "desc": "leitura do pacote fiscal_module usada pelo FiscalLiberado"
+    },
+    {
+      "id": "component:Fiscal/Services/NotasUnifiedService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/NotasUnifiedService",
+      "desc": "lista unificada de notas do Cockpit (substituiu o mock)"
+    },
+    {
+      "id": "component:Fiscal/Services/SefazCstatService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/SefazCstatService",
+      "desc": "mapa cstat → tom/rótulo"
+    },
+    {
+      "id": "component:Fiscal/Services/Sped/EfdIcmsIpiLeiaute",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/Sped/EfdIcmsIpiLeiaute",
+      "desc": "ordem dos blocos (Guia Prático v3.2.3) e COD_VER por ano (NT 2025.001)"
+    },
+    {
       "id": "component:Fiscal/Services/SpedIcmsIpiGeneratorService",
       "type": "component",
       "module": "Fiscal",
       "name": "Services/SpedIcmsIpiGeneratorService",
-      "desc": "gerador TXT EFD-ICMS/IPI v3.1.1 perfil A (PR #8 saídas MVP — sem PIS/COFINS, sem Bloco E apuração, sem Bloco H inventário)"
+      "desc": "gerador TXT EFD-ICMS/IPI perfil A: os 10 blocos obrigatórios (B, D, G, K e 1 sem dados), Bloco E apuração, Bloco H esqueleto; sem PIS/COFINS"
+    },
+    {
+      "id": "component:Fiscal/Services/SpedReferenciaArquivoService",
+      "type": "component",
+      "module": "Fiscal",
+      "name": "Services/SpedReferenciaArquivoService",
+      "desc": ""
     },
     {
       "id": "component:Fiscal/SpedController",
       "type": "component",
       "module": "Fiscal",
       "name": "SpedController",
-      "desc": "sub-página 7 + endpoint gerar() download EFD-ICMS/IPI MVP (PR #8)"
+      "desc": "sub-página 7 + gerar() download EFD-ICMS/IPI (atrás de fiscal.sped_simples_only_lock) + POST /sped/trava (bypass só na sessão do superadmin)"
     },
     {
       "id": "component:Fisio/Agenda: tipos de atendimento, atendimentos, bloqueios, lista de espera e regras do agendamento pelo app",
@@ -3249,11 +3678,25 @@
       "desc": "Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
     },
     {
+      "id": "component:Fisio/DadosSociaisController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "DadosSociaisController",
+      "desc": "dados sociais do paciente, todos opcionais, em fisio_patient_social; nascimento, município e bairro no contato (US-FISIO-061)"
+    },
+    {
       "id": "component:Fisio/DataController",
       "type": "component",
       "module": "Fisio",
       "name": "DataController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/DocumentosPacienteController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "DocumentosPacienteController",
+      "desc": "anexar, abrir e tirar da lista os exames e receitas na ficha (US-FISIO-063)"
     },
     {
       "id": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
@@ -3268,6 +3711,20 @@
       "module": "Fisio",
       "name": "EnvioWhatsappController",
       "desc": "envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
+    },
+    {
+      "id": "component:Fisio/Estudo de pesquisa",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Estudo de pesquisa",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Exames e receitas do paciente",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Exames e receitas do paciente",
+      "desc": ""
     },
     {
       "id": "component:Fisio/Exportação do prontuário em PDF",
@@ -3319,6 +3776,27 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "desc": "US-FISIO-060)"
+    },
+    {
+      "id": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "LaudoBiopsicossocialController",
+      "desc": "cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
+    },
+    {
+      "id": "component:Fisio/MedicamentosPacienteController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "MedicamentosPacienteController",
+      "desc": "medicamentos em uso estruturados (fisio_patient_medications): incluir, alterar com antes/depois no activity_log e tirar da lista com motivo (US-FISIO-063)"
+    },
+    {
       "id": "component:Fisio/OnboardingController",
       "type": "component",
       "module": "Fisio",
@@ -3338,6 +3816,13 @@
       "module": "Fisio",
       "name": "Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/PacoteComprovanteController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PacoteComprovanteController",
+      "desc": "comprovante (voucher) do pacote de sessões em PDF, só sessões e sem valor (US-FISIO-021, UC-FPK-10)"
     },
     {
       "id": "component:Fisio/PacotesController",
@@ -3361,6 +3846,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/PesquisaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PesquisaController",
+      "desc": "estudo, participantes (código sem nome nem CPF), momentos de avaliação e pendências, com a permissão fisio.pesquisa (etapa 07 P-04)"
+    },
+    {
       "id": "component:Fisio/Portal público do paciente",
       "type": "component",
       "module": "Fisio",
@@ -3380,6 +3872,20 @@
       "module": "Fisio",
       "name": "PortalController",
       "desc": "portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
+    },
+    {
+      "id": "component:Fisio/PortalDocumentosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PortalDocumentosController",
+      "desc": "paciente envia foto de exame ou receita pelo portal com o consentimento `documentos`; chega pendente e a clínica aceita ou recusa na ficha (US-FISIO-063)"
+    },
+    {
+      "id": "component:Fisio/PortalLaudoController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PortalLaudoController",
+      "desc": "paciente baixa pelo portal o próprio laudo biopsicossocial finalizado e vigente, com o mesmo PDF da ficha (US-FISIO-060, UC-FBP-16)"
     },
     {
       "id": "component:Fisio/PortalLinkController",
@@ -3431,11 +3937,25 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/RelatorioAssociacaoController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "RelatorioAssociacaoController",
+      "desc": "relatório agregado da associação por período, tela e PDF, só contagem e média com grupo < 5 como \\\"<5\\\" (RelatorioAssociacao, permissão fisio.relatorio — US-FISIO-062)"
+    },
+    {
       "id": "component:Fisio/ResponsavelController",
       "type": "component",
       "module": "Fisio",
       "name": "ResponsavelController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/TranscricaoDocumentoController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "TranscricaoDocumentoController",
+      "desc": "transcrição da foto pela IA (TranscricaoDocumentoAgent, laravel/ai), desligada por empresa, só provedor sem treino; a IA só copia e o profissional confere antes de gravar (fisio_document_transcriptions, US-FISIO-063)"
     },
     {
       "id": "component:Fisio/VendaDoPacoteObserver",
@@ -4040,6 +4560,13 @@
       "desc": ""
     },
     {
+      "id": "component:NfeBrasil/Comandos nfe:*",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Comandos nfe:*",
+      "desc": "health, retentar-contingencia, enviar-xml-contador, importar-regras-csv, migrate-cert-business, mover-arquivos-fiscais (#10692), puxar DF-e"
+    },
+    {
       "id": "component:NfeBrasil/ConfigDefaultController",
       "type": "component",
       "module": "NfeBrasil",
@@ -4089,11 +4616,32 @@
       "desc": ""
     },
     {
+      "id": "component:NfeBrasil/Jobs EmitirNfceJob",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Jobs EmitirNfceJob",
+      "desc": ""
+    },
+    {
       "id": "component:NfeBrasil/ManifestacaoController",
       "type": "component",
       "module": "NfeBrasil",
       "name": "ManifestacaoController",
       "desc": "Manifestação do Destinatário (US-NFE-052, PR #317)"
+    },
+    {
+      "id": "component:NfeBrasil/Middleware PermissaoNfe",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "Middleware PermissaoNfe",
+      "desc": "permissão por rota nas ações fiscais que só exigiam login (lote 3.2 da auditoria, #10728)"
+    },
+    {
+      "id": "component:NfeBrasil/NaturezaOperacaoController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "NaturezaOperacaoController",
+      "desc": "naturezas de operação na Tributação, atrás da flag useV2NfeNaturezas (RUNBOOK-tributacao §Naturezas, onda 3a)"
     },
     {
       "id": "component:NfeBrasil/NfeEmissaoController",
@@ -4145,10 +4693,24 @@
       "desc": "CRUD regras NCM (US-NFE-010 fase 2)"
     },
     {
+      "id": "component:NFSe/Comandos nfse:health e nfse:importar-cert",
+      "type": "component",
+      "module": "NFSe",
+      "name": "Comandos nfse:health e nfse:importar-cert",
+      "desc": ""
+    },
+    {
       "id": "component:NFSe/DataController",
       "type": "component",
       "module": "NFSe",
       "name": "DataController",
+      "desc": "menu e permissões nfse.view/emit/cancel"
+    },
+    {
+      "id": "component:NFSe/EmitirNfseJob",
+      "type": "component",
+      "module": "NFSe",
+      "name": "EmitirNfseJob",
       "desc": ""
     },
     {
@@ -4163,7 +4725,35 @@
       "type": "component",
       "module": "NFSe",
       "name": "NfseController",
-      "desc": ""
+      "desc": "telas Index/Emitir/Show, cancelar, pdf e POST /nfse/transactions/{tx}/emitir (emissão a partir da venda)"
+    },
+    {
+      "id": "component:NFSe/NfseEmissaoService",
+      "type": "component",
+      "module": "NFSe",
+      "name": "NfseEmissaoService",
+      "desc": "idempotência, retry e cancelamento"
+    },
+    {
+      "id": "component:NFSe/NotaDaVendaNfse",
+      "type": "component",
+      "module": "NFSe",
+      "name": "NotaDaVendaNfse",
+      "desc": "diz à venda se ela tem NFS-e emitida (trava de edição, US-SELL-072)"
+    },
+    {
+      "id": "component:NFSe/SnNfseAdapter",
+      "type": "component",
+      "module": "NFSe",
+      "name": "SnNfseAdapter",
+      "desc": "chamada HTTP à Sefin Nacional; a DPS é serializada e assinada pela DpsXml do NfeBrasil"
+    },
+    {
+      "id": "component:NFSe/TransactionNfseObserver",
+      "type": "component",
+      "module": "NFSe",
+      "name": "TransactionNfseObserver",
+      "desc": "cria rascunho a partir da venda recorrente"
     },
     {
       "id": "component:Officeimpresso/AuditController",
@@ -4254,7 +4844,7 @@
       "type": "component",
       "module": "OficinaAuto",
       "name": "Public/AprovacaoOsController",
-      "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
+      "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-014). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
     },
     {
       "id": "component:OficinaAuto/ServiceOrderAssinaturaController",
@@ -4740,11 +5330,25 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
+      "id": "component:Producao/OrdemFichaController + FichaDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemFichaController + FichaDaOrdem",
+      "desc": "Ficha da OS por item, /producao/ordens/{id} (Inertia Producao/Os/Show, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404"
+    },
+    {
       "id": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "component",
       "module": "Producao",
       "name": "OrdemMaterialController + FaltaDeMaterialDaOs",
       "desc": "OS liberada sem material fica em Aguardando material (US-PCP-032 · D3): falta por insumo da receita (necessário × disponível no local menos reservas de outras OS) e compras a caminho, conferir volta para Na fila; chave producao_aguarda_material da empresa, desligada por padrão; ler com producao.access, conferir com o papel producao.liberar, JSON"
+    },
+    {
+      "id": "component:Producao/OrdemSituacaoController",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemSituacaoController",
+      "desc": "ações de tela da OS por item em JSON: Liberar, Refazer e Cancelar item (POST ordens/{id}/liberar|refazer|cancelar); pacote + producao.access na rota, papel do motor FSM (producao.liberar · vendas.gerente) na ação; a Ficha da OS chama"
     },
     {
       "id": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
@@ -4831,10 +5435,31 @@
       "desc": "regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
     },
     {
+      "id": "component:ProductCatalogue/CatalogueQrService",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "CatalogueQrService",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/CatalogueService",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "CatalogueService",
+      "desc": ""
+    },
+    {
       "id": "component:ProductCatalogue/DataController",
       "type": "component",
       "module": "ProductCatalogue",
       "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/FormatoVitrine",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "FormatoVitrine",
       "desc": ""
     },
     {
@@ -4849,6 +5474,20 @@
       "type": "component",
       "module": "ProductCatalogue",
       "name": "ProductCatalogueController",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/ProductCatalogueHealthCommand",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "ProductCatalogueHealthCommand",
+      "desc": ""
+    },
+    {
+      "id": "component:ProductCatalogue/ProductCatalogueRepository",
+      "type": "component",
+      "module": "ProductCatalogue",
+      "name": "ProductCatalogueRepository",
       "desc": ""
     },
     {
@@ -5143,7 +5782,7 @@
       "type": "component",
       "module": "Vestuario",
       "name": "DevolucaoService",
-      "desc": "CDC art. 49 7d devolução + crédito vest_creditos_cliente (US-VEST-021, scaffold)"
+      "desc": "devolução com crédito em vestuario_creditos_cliente; sem chamador em produção desde a decisão [W] 2026-10-26 (o crédito da US-VEST-021 é o Adiantamento do núcleo, ValeTrocaService); destino é decisão [W]"
     },
     {
       "id": "component:Vestuario/EtiquetaTagController",
@@ -5164,7 +5803,7 @@
       "type": "component",
       "module": "Vestuario",
       "name": "GradeCurvaService",
-      "desc": "matriz tamanho × cor + proporção curva BR (Wave 27, ADR 0121 §P7)"
+      "desc": "matriz tamanho × cor + proporção curva BR em configuração (Wave 27); sem consumidor fora dos testes"
     },
     {
       "id": "component:Vestuario/Remarcacao",
@@ -5179,6 +5818,13 @@
       "module": "Vestuario",
       "name": "RemarcacaoController",
       "desc": "remarcação por coleção: tela, prévia, gravação, reversão e etiquetas do lote (/vestuario/remarcacao, atrás do setting remarcacao.enabled, US-VEST-032 · UC-VREM-05..07)"
+    },
+    {
+      "id": "component:Vestuario/VestuarioLiberado",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "VestuarioLiberado",
+      "desc": "middleware de todas as rotas /vestuario/*: exige o pacote vestuario_module da empresa (UC-VPAC-01)"
     },
     {
       "id": "component:Vestuario/VestuarioSettingsResolver",
@@ -5524,7 +6170,7 @@
       "id": "module:Arquivos",
       "type": "module",
       "module": "Arquivos",
-      "purpose": "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe sha256, signed URL e soft-delete. Não tem tela própria: a UI é do módulo dono. Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação.",
+      "purpose": "Backbone de arquivos do ERP — toda entidade que anexa binário adota o trait HasArquivos e ganha storage multi-tenant, dedupe md5, signed URL e soft-delete. O anexo aparece na tela do módulo dono; o acervo inteiro da empresa tem tela própria em /arquivos (Arquivos/Index, 4 vistas: Acervo, Retenção, Cofre, Trilha). Carrega junto o aparato LGPD do acervo (exportação Art. 18, retenção, aviso ao titular, audit log de acesso, cofre criptografado com re-encrypt por rotação de chave) e o CuradorEngine de classificação.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "arquivos.*",
@@ -5547,6 +6193,19 @@
       "catalog_status": "catalogued"
     },
     {
+      "id": "module:Associacoes",
+      "type": "module",
+      "module": "Associacoes",
+      "purpose": "Rede de associações (primeira: Uniafibro-SC, associações de pessoas com fibromialgia de SC): cadastro das associações-membro e da documentação delas, das associadas com consentimento LGPD por finalidade, e visão consolidada da rede. A rede inteira é uma empresa. Decidido pela ADR 0451 em 2026-11-13.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Associacoes/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
       "id": "module:Auditoria",
       "type": "module",
       "module": "Auditoria",
@@ -5556,6 +6215,19 @@
       "permission_prefix": "auditoria.*",
       "charter_adr": "0094",
       "path": "memory/requisitos/Auditoria/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Captacao",
+      "type": "module",
+      "module": "Captacao",
+      "purpose": "Projetos de captação de recursos de ONGs e associações (primeira: Uniafibro-SC e associações-membro): fontes (edital, lei de incentivo, fundo, doação, parceria, voluntariado), projetos com proponente, aportes recebidos e comprovantes de despesa para prestação de contas. Decidido pela ADR 0452 em 2026-11-14.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Captacao/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -5589,7 +6261,7 @@
       "id": "module:Compras",
       "type": "module",
       "module": "Compras",
-      "purpose": "Cockpit de leitura de compras (/compras): lista, KPIs e drawer de detalhe sobre transactions type=purchase. Complementa — não substitui — o CRUD /purchases do core, pra onde delega criar, editar e excluir.",
+      "purpose": "Cockpit de leitura de compras (/compras) e as regras de compra que o CRUD /purchases do core consome: custo no recebimento, recebimento parcial, MRP, cotação, alçada, inspeção. O cockpit complementa — não substitui — o CRUD, pra onde delega criar, editar e excluir.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "compras.*",
@@ -5602,10 +6274,10 @@
       "id": "module:ComunicacaoVisual",
       "type": "module",
       "module": "ComunicacaoVisual",
-      "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto: hoje entrega cálculo de orçamento por m2 server-authoritative e apontamento de produção. PCP/FSM, materiais e integração fiscal existem como schema e contrato, não como fluxo navegável.",
+      "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto registrado: orçamento por m2 server-authoritative (salvar, aceite do cliente por link, aprovar), OS que nasce do orçamento e entra no quadro do PCP do Modules/Producao, agenda da instalação com aviso ao cliente, pós-cálculo da OS em JSON e o spool de apontamento sem tela. Faturamento da OS, cadastro de materiais e FSM própria não existem.",
       "trust": "L2",
       "owner": "wagner",
-      "permission_prefix": "com_visual.*",
+      "permission_prefix": "comvis.*",
       "charter_adr": "0121",
       "path": "memory/requisitos/ComunicacaoVisual/SCOPE.md",
       "catalog_kind": "scope",
@@ -5797,7 +6469,7 @@
       "id": "module:NFSe",
       "type": "module",
       "module": "NFSe",
-      "purpose": "Emissão, consulta e cancelamento de NFS-e pelo Sistema Nacional (sefin.nfse.gov.br) com certificado A1 e ambiente por business. Dono do schema nfse_emissoes em produção; serve as telas /nfse e é consumido pela tela de venda e pelo cockpit Fiscal.",
+      "purpose": "Emite, consulta e cancela NFS-e pelo Sistema Nacional (Sefin Nacional) com certificado A1 e ambiente por empresa; serve as telas /nfse e a emissão a partir da venda. Divide a tabela nfse_emissoes com o Modules/NfeBrasil, que também a cria e altera. A decisão [W] de 2026-10-13 de consolidar a NFS-e no NfeBrasil (D-NFSE-CONSOLIDA) ainda não tem ADR.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "nfse.*",
@@ -5979,7 +6651,7 @@
       "id": "module:Superadmin",
       "type": "module",
       "module": "Superadmin",
-      "purpose": "Console do operador da plataforma (superadmin-only, cross-tenant por desenho). Vende e administra o produto — pacotes, assinaturas e checkout — e administra os tenants e o acesso: criar, desativar e destruir business, resetar senha, e a vista Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts. É o único módulo que fura o business_id global scope legitimamente.",
+      "purpose": "Duas partes num módulo: (1) console do operador da plataforma (/superadmin/*, middleware superadmin, cross-tenant por desenho) — vende e administra o produto (pacotes, assinaturas, comunicador, páginas do site, configurações globais) e administra os tenants e o acesso (criar e destruir business, resetar senha, Usuário 360 com roles, permissões efetivas, tokens, sessões e lockouts); (2) as telas de assinatura do CLIENTE (/subscription/*: Minha assinatura e Pagar), protegidas pela permissão superadmin.access_package_subscriptions e fora do middleware superadmin. É um dos módulos que furam o business_id global scope legitimamente, sempre com a marca // SUPERADMIN.",
       "trust": "L0",
       "owner": "wagner",
       "permission_prefix": "superadmin.*",
@@ -5992,7 +6664,7 @@
       "id": "module:Vestuario",
       "type": "module",
       "module": "Vestuario",
-      "purpose": "Vertical lojas de vestuário e moda BR (CNAE 4781-4/00): capacidades que o núcleo não tem por serem específicas do ramo — etiqueta TAG térmica (ZPL e PDF, tamanho x cor x coleção) e devolução/troca CDC com crédito-ficha — mais os settings por business do vertical.",
+      "purpose": "Vertical lojas de vestuário e moda BR (CNAE 4781-4/00): capacidades que o núcleo não tem por serem específicas do ramo — etiqueta TAG térmica (ZPL e PDF, tamanho x cor x coleção), curva de compra por tamanho e remarcação por coleção — mais os settings por business do vertical.",
       "trust": "L2",
       "owner": "wagner",
       "permission_prefix": "vestuario.*",
@@ -7095,7 +7767,9 @@
       "owners": [
         "NfeBrasil"
       ],
-      "consumers": [],
+      "consumers": [
+        "NFSe"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -7122,9 +7796,64 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_dfe_eventos",
+      "type": "table",
+      "name": "nfe_dfe_eventos",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_itens",
+      "type": "table",
+      "name": "nfe_dfe_itens",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_nsu_state",
+      "type": "table",
+      "name": "nfe_dfe_nsu_state",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_dfe_recebidos",
+      "type": "table",
+      "name": "nfe_dfe_recebidos",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_emissoes",
       "type": "table",
       "name": "nfe_emissoes",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_envios_contador",
+      "type": "table",
+      "name": "nfe_envios_contador",
       "owners": [
         "NfeBrasil"
       ],
@@ -7188,6 +7917,28 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_locais_emissores",
+      "type": "table",
+      "name": "nfe_locais_emissores",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfe_naturezas_produto",
+      "type": "table",
+      "name": "nfe_naturezas_produto",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_operacoes_fiscais",
       "type": "table",
       "name": "nfe_operacoes_fiscais",
@@ -7232,11 +7983,88 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfse_emissoes",
+      "type": "table",
+      "name": "nfse_emissoes",
+      "owners": [
+        "NFSe"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfse_eventos_cancelamento",
+      "type": "table",
+      "name": "nfse_eventos_cancelamento",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:nfse_provider_configs",
+      "type": "table",
+      "name": "nfse_provider_configs",
+      "owners": [
+        "NFSe"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:packages",
+      "type": "table",
+      "name": "packages",
+      "owners": [
+        "Superadmin"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:payment_gateway_credentials",
       "type": "table",
       "name": "payment_gateway_credentials",
       "owners": [
         "PaymentGateway"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:subscriptions",
+      "type": "table",
+      "name": "subscriptions",
+      "owners": [
+        "Superadmin"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:superadmin_communicator_logs",
+      "type": "table",
+      "name": "superadmin_communicator_logs",
+      "owners": [
+        "Superadmin"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:superadmin_frontend_pages",
+      "type": "table",
+      "name": "superadmin_frontend_pages",
+      "owners": [
+        "Superadmin"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -8049,6 +8877,30 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0448",
+      "to": "adr:0431",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0448",
+      "to": "adr:0436",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0449",
+      "to": "adr:0090",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0454",
+      "to": "adr:0451",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -8063,24 +8915,10 @@
     },
     {
       "from": "module:Arquivos",
-      "to": "module:SRS",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MemCofre senhas/segredos"
-    },
-    {
-      "from": "module:Arquivos",
       "to": "module:Jana",
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Memoria RAG semântico Jana"
-    },
-    {
-      "from": "module:Arquivos",
-      "to": "module:SRS",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MemCofre senhas/segredos"
     },
     {
       "from": "module:Arquivos",
@@ -8299,6 +9137,148 @@
       "source": "url_prefixes"
     },
     {
+      "from": "module:Associacoes",
+      "to": "module:Arquivos",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Arquivo do documento (estatuto, ata, certidão)"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Fisio",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Prontuário, laudo e programa de exercícios"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Arquivo do documento (estatuto, ata, certidão)"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "module:Fisio",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Prontuário, laudo e programa de exercícios"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Associações-membro",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociacoesAcesso + AssociacoesLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociacoesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Associadas como contacts do núcleo, sem CPF",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/AssociadasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/Consentimentos",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/DocumentosAssociacaoController + DocumentosDaAssociacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PainelDaRedeController + PendenciasDaRede",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PendenciaDiretoria",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalAssociadaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/associadas",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/lista",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/m/{token}",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
       "from": "module:Auditoria",
       "to": "adr:0094",
       "type": "charteredByAdr",
@@ -8380,13 +9360,43 @@
     },
     {
       "from": "module:Auditoria",
+      "to": "component:Auditoria/AuditNote",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "component:Auditoria/AuditoriaController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Auditoria",
+      "to": "component:Auditoria/AuditoriaLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/Comandos artisan auditoria:health e auditoria:backfill-business-id",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/Config/config.php e Config/retention.php",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "component:Auditoria/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "component:Auditoria/FormRequests de revert, filtro, export, lote e notas",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8429,6 +9439,90 @@
     {
       "from": "module:Auditoria",
       "to": "api:/reports/activity-log",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Arquivo do comprovante"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Associacoes",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Cadastro da rede de associações e das associadas"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Título a receber e despesa no caixa"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Arquivo do comprovante"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Associacoes",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cadastro da rede de associações e das associadas"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Título a receber e despesa no caixa"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/Aportes de dinheiro, bens, serviços ou horas de voluntário",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/CaptacaoAcesso + CaptacaoLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/Fontes de recurso",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "component:Captacao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Captacao",
+      "to": "api:/captacao/install",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -8590,6 +9684,12 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Compras",
       "to": "module:NfeBrasil",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -8616,13 +9716,43 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/AlcadaDoPedido",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/AplicarCustoDoRecebimento",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Compras",
-      "to": "component:Compras/ComprasController",
+      "to": "component:Compras/AvisoDeFalhaDaAgenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/ComprasController + ComprasService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/ComprasLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/CotacaoDeCompra",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/CurvaAbcReposicao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8634,13 +9764,31 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/CustoMedioMovel + CompraRecebidaCustoMedioObserver + comando compras:custo-medio-semear",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/Database/Migrations/2026_10_27_*",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/InspecaoDoRecebimento",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8670,13 +9818,31 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/NecessidadeDeCompra",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/PropostasPrecoController + PropostasDePreco",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/ReconciliacaoCustoMedio + comando compras:custo-medio-reconciliar",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/TransactionSellLineCustoObserver",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8701,10 +9867,24 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "module:Producao",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Quadro do PCP, roteiros e apontamento por etapa"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "module:Repair",
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "module:Whatsapp",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Aviso ao cliente por WhatsApp"
     },
     {
       "from": "module:ComunicacaoVisual",
@@ -8715,10 +9895,24 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "module:Producao",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Quadro do PCP, roteiros e apontamento por etapa"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "module:Repair",
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "module:Whatsapp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Aviso ao cliente por WhatsApp"
     },
     {
       "from": "module:ComunicacaoVisual",
@@ -8801,6 +9995,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/FsmProcessoComunicacaoVisualSeeder",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9788,6 +10988,12 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "component:Financeiro/CorrigirTipoLegadoCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "component:Financeiro/CoworkSidebarController",
       "type": "hasComponent",
       "source": "contains"
@@ -9943,6 +11149,20 @@
       "to": "module:NfeBrasil",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Cálculo do DAS"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão fiscal (XML + SEFAZ)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
       "note": "Emissão fiscal (XML + SEFAZ)"
     },
     {
@@ -9965,6 +11185,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cálculo do DAS"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão fiscal (XML + SEFAZ)"
     },
     {
       "from": "module:Fiscal",
@@ -10036,6 +11270,18 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Console/Commands/CertHealthCheckCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Console/Commands/HabilitarBusinessCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/DasController",
       "type": "hasComponent",
       "source": "contains"
@@ -10060,7 +11306,19 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Http/Middleware/FiscalLiberado",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Listeners/InvalidaCockpitCacheListener",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10084,7 +11342,37 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/FiscalPacote",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/NotasUnifiedService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/SefazCstatService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/Sped/EfdIcmsIpiLeiaute",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "component:Fiscal/Services/SpedIcmsIpiGeneratorService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "component:Fiscal/Services/SpedReferenciaArquivoService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10238,7 +11526,19 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/DadosSociaisController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/DocumentosPacienteController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10251,6 +11551,18 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/EnvioWhatsappController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Estudo de pesquisa",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Exames e receitas do paciente",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10298,6 +11610,24 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Laudo de avaliação biopsicossocial no modelo SES-SC",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/LaudoBiopsicossocialController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/MedicamentosPacienteController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/OnboardingController",
       "type": "hasComponent",
       "source": "contains"
@@ -10311,6 +11641,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Pacote de sessões: saldo derivado do ledger append-only fisio_package_ledger, sem valor em dinheiro",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PacoteComprovanteController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10334,6 +11670,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/PesquisaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Portal público do paciente",
       "type": "hasComponent",
       "source": "contains"
@@ -10347,6 +11689,18 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/PortalController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PortalDocumentosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PortalLaudoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10394,7 +11748,19 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/RelatorioAssociacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/ResponsavelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/TranscricaoDocumentoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12271,6 +13637,20 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Regra do pacote fiscal_module nas rotas /nfe-brasil/* (middleware FiscalLiberado"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "SPED Fiscal/EFD"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -12299,6 +13679,27 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Schema nfse_emissoes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Regra do pacote fiscal_module nas rotas /nfe-brasil/* (middleware FiscalLiberado"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:Fiscal",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "SPED Fiscal/EFD"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -12324,6 +13725,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Schema nfse_emissoes"
     },
     {
       "from": "module:NfeBrasil",
@@ -12340,6 +13748,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/CertificadoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Comandos nfe:*",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12387,7 +13801,25 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Jobs EmitirNfceJob",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/ManifestacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/Middleware PermissaoNfe",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/NaturezaOperacaoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12459,7 +13891,37 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_eventos",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_itens",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_nsu_state",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_dfe_recebidos",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "table:nfe_emissoes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_envios_contador",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -12495,6 +13957,18 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "table:nfe_locais_emissores",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_naturezas_produto",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "table:nfe_operacoes_fiscais",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -12519,13 +13993,31 @@
     },
     {
       "from": "module:NfeBrasil",
-      "to": "api:/api/v1/*",
+      "to": "table:nfse_eventos_cancelamento",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/api/v1/nfebrasil",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:NfeBrasil",
       "to": "api:/nfe-brasil/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/contador/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "api:/nfe-brasil/danfe/{business}/{emissao}",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -12543,45 +14035,72 @@
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
+      "to": "table:nfe_certificados",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:Financeiro",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "MCP server admin"
+      "note": "Retenção da NFS-e como baixa no título"
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
+      "to": "module:Fiscal",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Tasks Jira-style"
+      "note": "Cockpit fiscal de leitura (/fiscal/nfse)"
     },
     {
       "from": "module:NFSe",
-      "to": "module:KB",
+      "to": "module:NfeBrasil",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Conhecimento canônico (ADRs, sessions)"
+      "note": "Cancelamento por evento assinado (nfse_eventos_cancelamento, CancelarNfseJob)"
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Serialização e assinatura da DPS, leitura do certificado A1 e lista de serviços nacional"
     },
     {
       "from": "module:NFSe",
-      "to": "module:Forja",
+      "to": "module:Financeiro",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Tasks Jira-style"
+      "note": "Retenção da NFS-e como baixa no título"
     },
     {
       "from": "module:NFSe",
-      "to": "module:KB",
+      "to": "module:Fiscal",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Conhecimento canônico (ADRs, sessions)"
+      "note": "Cockpit fiscal de leitura (/fiscal/nfse)"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Cancelamento por evento assinado (nfse_eventos_cancelamento, CancelarNfseJob)"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "nfe_certificados"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Serialização e assinatura da DPS, leitura do certificado A1 e lista de serviços nacional"
     },
     {
       "from": "module:NFSe",
@@ -12597,7 +14116,19 @@
     },
     {
       "from": "module:NFSe",
+      "to": "component:NFSe/Comandos nfse:health e nfse:importar-cert",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
       "to": "component:NFSe/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/EmitirNfseJob",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12612,6 +14143,42 @@
       "to": "component:NFSe/NfseController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/NfseEmissaoService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/NotaDaVendaNfse",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/SnNfseAdapter",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/TransactionNfseObserver",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "table:nfse_emissoes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "table:nfse_provider_configs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
     },
     {
       "from": "module:NFSe",
@@ -13535,7 +15102,19 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/OrdemFichaController + FichaDaOrdem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/OrdemSituacaoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13643,48 +15222,6 @@
     },
     {
       "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "MCP server admin"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Tasks Jira-style"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:KB",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "MCP server admin"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:Forja",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Tasks Jira-style"
-    },
-    {
-      "from": "module:ProductCatalogue",
-      "to": "module:KB",
-      "type": "dependsOn",
-      "source": "delegatesTo",
-      "note": "Conhecimento canônico (ADRs, sessions)"
-    },
-    {
-      "from": "module:ProductCatalogue",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -13697,7 +15234,25 @@
     },
     {
       "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/CatalogueQrService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/CatalogueService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
       "to": "component:ProductCatalogue/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/FormatoVitrine",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13710,6 +15265,18 @@
     {
       "from": "module:ProductCatalogue",
       "to": "component:ProductCatalogue/ProductCatalogueController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/ProductCatalogueHealthCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "component:ProductCatalogue/ProductCatalogueRepository",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -14137,6 +15704,13 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "module:Connector",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -14155,6 +15729,20 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:Officeimpresso",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:PaymentGateway",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de cobrança (PIX Automático, mandato BCB, CNAB) e os eventos CobrancaPaga/CobrancaVencida"
     },
     {
       "from": "module:Superadmin",
@@ -14165,6 +15753,13 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "module:Connector",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -14183,6 +15778,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:Officeimpresso",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Aplicação do bloqueio do desktop Delphi (leitura de business.officeimpresso_bloqueado nos endpoints de licença)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:PaymentGateway",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de cobrança (PIX Automático, mandato BCB, CNAB) e os eventos CobrancaPaga/CobrancaVencida"
     },
     {
       "from": "module:Superadmin",
@@ -14200,6 +15809,24 @@
     {
       "from": "module:Superadmin",
       "to": "adr:0080",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "adr:0093",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "adr:0170",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "adr:0170",
       "type": "governedByAdr",
       "source": "related_adrs"
     },
@@ -14289,6 +15916,30 @@
     },
     {
       "from": "module:Superadmin",
+      "to": "table:packages",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "table:subscriptions",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "table:superadmin_communicator_logs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "table:superadmin_frontend_pages",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Superadmin",
       "to": "api:/all-subscriptions",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -14302,6 +15953,12 @@
     {
       "from": "module:Superadmin",
       "to": "api:/pricing/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "api:/pricing",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -14434,6 +16091,12 @@
     {
       "from": "module:Vestuario",
       "to": "component:Vestuario/RemarcacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/VestuarioLiberado",
       "type": "hasComponent",
       "source": "contains"
     },

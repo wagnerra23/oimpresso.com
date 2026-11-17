@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **452** arquivos · **437** números únicos · máx **0447**
-- **ADRs ATIVOS (lifecycle ativo): 404** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 388 · superseded 28 · proposto 22 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 404 · substituido 28 · arquivado 20
+- **459** arquivos · **444** números únicos · máx **0454**
+- **ADRs ATIVOS (lifecycle ativo): 411** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 391 · superseded 28 · proposto 26 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 411 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (452)
+## Todas as ADRs (459)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -491,3 +491,10 @@ _(nenhuma)_
 | 0445 | aceito | ativo | decision | A comparação de pixel (snapshots do VRT) sai do projeto; os testes de comportame |
 | 0446 | proposto | ativo | decision | Fisio: teleconsulta por vídeo no navegador (LiveKit, sem gravação) e evolução di |
 | 0447 | aceito | ativo | decision | Fisio: a câmera conta repetições, ritmo e tempo parado no celular do paciente, s |
+| 0448 | aceito | ativo | decision | Fabricação é cadastro, Produção é execução e product_bom é a fonte única da comp |
+| 0449 | proposto | ativo | decision | NfeBrasil: o certificado A1 vem só de nfe_certificados — sai o fallback para bus |
+| 0450 | proposto | ativo | decision | Fisio: notificar à Anvisa um componente clínico separado como SaMD classe II, e  |
+| 0451 | aceito | ativo | decision | Associações: área de membros da rede Uniafibro — uma empresa só, associações e a |
+| 0452 | proposto | ativo | decision | Captação: módulo próprio para projetos de captação de recursos (edital, lei de i |
+| 0453 | aceito | ativo | decision | Escopo de empresa fecha quando não há contexto: consulta sem empresa definida la |
+| 0454 | proposto | ativo | decision | Uniafibro conforme o estatuto: tipos de membro, quem é associado, controle de pa |

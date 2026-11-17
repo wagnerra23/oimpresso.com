@@ -33,27 +33,32 @@ related_us: [US-VEST-032]
 - **Aceite:** Dado um filtro (categoria, subcategoria, marca ou trecho do nome) · Quando pede a prévia
   com um percentual (ex.: −30%) ou um preço fixo · Então cada variação aparece com o preço de etiqueta
   de antes e o novo, arredondado a 2 casas; nenhum preço muda e nenhum lote é criado. Variação cujo
-  preço não mudaria, ou ficaria zero, fica fora.
-- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Regressão que defende:** gravar preço na prévia, ou mostrar preço que não será o gravado.
+  preço não mudaria, ou ficaria zero, fica fora. Produto simples não mostra a variação interna. Quando
+  há peças com preço de grupo, a prévia diz quantas: o fixo não muda e o percentual acompanha o preço novo.
+- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php` · `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php` · `tests/js/vestuario-remarcacao-valor.test.tsx`
+- **Regressão que defende:** gravar preço na prévia, mostrar preço que não será o gravado, ou afirmar que o preço de grupo não muda quando ele é percentual.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-02 · Gravar exige a prévia em dia e guarda o antes
 - **Persona:** quem confirma a remarcação depois de olhar a prévia.
 - **Aceite:** Dado uma prévia · Quando confirma · Então, se algum preço mudou desde a prévia, nada é
   gravado e pede-se nova prévia; senão, cada variação recebe o preço novo, o preço sem imposto e a
-  margem são recalculados pela taxa do produto, e o lote guarda o antes de cada uma.
-- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Regressão que defende:** gravar sobre prévia velha (preço mexido por outra pessoa) ou perder o preço de antes.
+  margem são recalculados pela taxa do produto, e o lote guarda o antes de cada uma, exato como estava
+  (até 4 casas). A leitura que confere a prévia já trava as variações: duas gravações ao mesmo tempo não
+  passam juntas. Cada variação gravada entra na trilha de auditoria da empresa, com o número do lote.
+  Falha de banco chega à tela como mensagem genérica, sem SQL.
+- **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php` · `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
+- **Regressão que defende:** gravar sobre prévia velha (preço mexido por outra pessoa), perder o preço de antes, remarcar fora da trilha de auditoria ou mostrar SQL na tela.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-03 · Reverter devolve o antes sem pisar em preço mexido depois
 - **Persona:** quem desfaz a liquidação no fim da campanha.
 - **Aceite:** Dado um lote aplicado · Quando reverte · Então a variação que ainda tem o preço da
-  remarcação volta ao de antes (etiqueta, sem imposto e margem); a que foi mexida depois fica como
-  está e é contada como conflito; reverter de novo é recusado.
+  remarcação volta ao de antes, exato (etiqueta, sem imposto e margem); a que foi mexida depois fica como
+  está e é contada como conflito, inclusive quando uma compra mudou custo e margem sem tocar na etiqueta;
+  reverter de novo é recusado.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Regressão que defende:** reversão que apaga um preço ajustado depois da remarcação.
+- **Regressão que defende:** reversão que apaga um preço ajustado depois da remarcação, devolve valor arredondado ou deixa margem antiga sobre custo novo.
 - **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-04 · Outra empresa não entra; sem filtro não remarca `[T0]`

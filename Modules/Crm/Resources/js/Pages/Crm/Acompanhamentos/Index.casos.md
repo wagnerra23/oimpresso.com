@@ -5,11 +5,16 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a agenda comercial mostra compromissos de clientes e leads. Errar o escopo vaza agenda de outro negócio ou de colega que não devia ver; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-10-05"
+last_run: "2026-11-06"
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/03. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
 # Casos de Uso & Aceite — Crm · Acompanhamentos (`/crm/follow-ups`)
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10558). Nada do
+> comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch, run
+> [42224015385](https://github.com/wagnerra23/oimpresso.com/actions/runs/42224015385): `CrmAcompanhamentosContratoTest` 21 testes, 135 asserções · `CrmRegistroEscopoTest` 3 testes, 15 asserções, 0 skipped (verde).
 
 > **Âncora:** o [charter](Index.charter.md) (Goals e Anti-hooks), o SPEC do Crm §0 ("Follow-up
 > agendado — funcional") e as permissões que a tela Blade já exigia

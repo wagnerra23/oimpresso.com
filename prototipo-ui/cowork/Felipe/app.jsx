@@ -935,13 +935,7 @@ function App() {
   if (route === "rb-planos") content = <window.CobrancaRecorrentePage view="planos" />;else
   if (route === "rb-faturas") content = <window.CobrancaRecorrentePage view="faturas" />;else
   if (route === "rb-config") content = <window.CobrancaRecorrentePage view="config" />;else
-  if (route === "fiscal") content = <window.FiscalPage view="notas" />;else
-  if (route === "fiscal-nfe" || route === "nfe") content = <window.FiscalPage view="nfe" />;else
-  if (route === "fiscal-nfse" || route === "nfse") content = <window.FiscalPage view="nfse" />;else
-  if (route === "fiscal-eventos") content = <window.FiscalPage view="eventos" />;else
-  if (route === "fiscal-dfe") content = <window.FiscalPage view="dfe" />;else
-  if (route === "fiscal-config") content = <window.FiscalPage view="config" />;else
-  if (route === "fiscal-sped") content = <window.FiscalPage view="sped" />;else
+  if (route === "fiscal" || route === "nfe" || route === "nfse" || (typeof route === "string" && route.indexOf("fiscal-") === 0)) content = <div style={{ padding: 24, color: "var(--text-dim)" }}><b style={{ color: "var(--text)" }}>Fiscal</b><br />O protótipo do Fiscal fica só em prototipo-ui/cowork/Wagner (decisão [W] 2026-11-06, B11 da auditoria Fiscal).</div>;else
   if (route === "cv") content = <window.ComunicacaoVisualPage estado={tweaks.cvEstado} papel={tweaks.cvPapel} dense={tweaks.cvDensidade === "compacto"} toque={tweaks.cvToque} pcp={tweaks.cvPcp} salvar={tweaks.cvSalvar} />;else
   if (route === "arquivos" || (typeof route === "string" && route.indexOf("arq-") === 0)) content = <window.ArquivosPage view={{ "arquivos": "acervo", "arq-retencao": "retencao", "arq-cofre": "cofre", "arq-trilha": "trilha" }[route]} estado={tweaks.arqEstado} papel={tweaks.arqPapel} dense={tweaks.arqDensidade === "compacto"} toque={tweaks.arqToque} casa={tweaks.arqCasa} />;else
   if (route === "voz") content = <window.VozDoClientePage estado={tweaks.vozEstado} papel={tweaks.vozPapel} dense={tweaks.vozDensidade === "compacto"} />;else

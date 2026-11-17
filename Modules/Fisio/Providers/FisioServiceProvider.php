@@ -23,14 +23,18 @@ class FisioServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         // US-FISIO-008: ponto de entrada único do jogo — check-in gravado lança o XP no ledger.
         Event::listen(CheckinRegistrado::class, [LancarXpDoCheckin::class, 'handle']);
+        // Etapa 07 P-06: check-in de participante de estudo pode virar evento adverso (crise > 48 h, alerta de dor).
+        Event::listen(CheckinRegistrado::class, [\Modules\Fisio\Listeners\RegistrarEventoAdversoDoEstudo::class, 'handle']);
         // US-FISIO-022: venda do pacote cancelada ou excluída tira do saldo as sessões que sobraram.
         \App\Transaction::observe(\Modules\Fisio\Observers\VendaDoPacoteObserver::class);
 
         // US-FISIO-009: lembrete diário por WhatsApp (pelo módulo Whatsapp). Um job por empresa com o pacote;
         // o job é idempotente (1 lembrete por paciente por dia) e respeita o horário de silêncio.
-        $this->commands([LembretesCommand::class]);
+        // Auditoria d4: aviso de sinal de alerta que falhou no check-in é tentado de novo.
+        $this->commands([LembretesCommand::class, \Modules\Fisio\Console\ReenviarAlertasCommand::class]);
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('fisio:lembretes')->dailyAt((string) config('fisio.whatsapp.lembrete_horario', '08:30'))->environments(['live'])->withoutOverlapping();
+            $schedule->command('fisio:reenviar-alertas')->everyFifteenMinutes()->environments(['live'])->withoutOverlapping();
         });
     }
 

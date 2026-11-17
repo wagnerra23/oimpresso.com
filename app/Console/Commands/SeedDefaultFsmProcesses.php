@@ -20,7 +20,7 @@ use App\Scopes\ScopeByBusiness;
  *
  *   a) `venda_sem_nota`        — DEFAULT pra Contact CF/sem · sem stages emitida/enviada
  *   b) `venda_com_nota_manual` — usuário clica "Emitir NFe" via UI
- *   c) `venda_com_nota_auto`   — listener auto-emite (NfeBrasil) via event_class
+ *   c) `venda_com_nota_auto`   — listener auto-emite (NfeBrasil) ao receber o pagamento
  *
  * Idempotente: usa firstOrCreate por (business_id, key).
  *
@@ -198,8 +198,9 @@ class SeedDefaultFsmProcesses extends Command
     }
 
     /**
-     * c) `venda_com_nota_auto` — listener auto-emite via event_class.
-     *    Idem (b), mas action `emitir_nfe` tem event_class definido.
+     * c) `venda_com_nota_auto` — o listener EmitirNFeAoReceberPagamento emite ao receber o pagamento.
+     *    Idem (b). A action `emitir_nfe` no stage é o gate que o listener consulta, e não leva
+     *    event_class: o evento apontado aqui nunca existiu e a execução quebrava com Class not found.
      */
     private function seedVendaComNotaAuto(int $businessId): int
     {
@@ -254,8 +255,6 @@ class SeedDefaultFsmProcesses extends Command
                 [
                     'label' => 'Emitir NFe (auto)',
                     'target_stage_id' => $emitida->id,
-                    // event_class disparado pós-execução → listener pode auto-emitir
-                    'event_class' => '\\Modules\\NfeBrasil\\Events\\NFeEmissaoSolicitada',
                 ]
             );
             SaleStageAction::firstOrCreate(

@@ -79,7 +79,7 @@ class BusinessAuditService
     public function canDestroy(int $businessId, int $currentSessionBizId): array
     {
         return OtelHelper::spanBiz('superadmin.business_audit.can_destroy', function () use ($businessId, $currentSessionBizId): array {
-            if ($businessId === 1) {
+            if ($businessId === (int) config('app.saas_owner_business_id')) {
                 return [
                     'can_destroy' => false,
                     'reason'      => 'Business #1 (Wagner) é protegido — nunca pode ser deletado.',

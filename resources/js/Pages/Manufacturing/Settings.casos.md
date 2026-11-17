@@ -30,7 +30,7 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-01 · A rota `/manufacturing/v2/settings` serve a tela nova
+## UC-MCFG-01 · A rota `/manufacturing/v2/settings` serve a tela nova
 - **Persona:** Wagner — chega pela aba "Configurações" das telas v2.
 - **Aceite:** Dado o app carregado · Quando se pergunta ao **registry de rotas** quem serve
   `GET manufacturing/v2/settings` · Então existe rota e a ação é o `SettingsController`.
@@ -41,7 +41,7 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-02 · A escrita continua no endpoint legado — `store()` NÃO muda
+## UC-MCFG-02 · A escrita continua no endpoint legado — `store()` NÃO muda
 - **Persona:** Wagner — a tela Blade antiga e a nova postam no MESMO lugar.
 - **Aceite:** Dado o `SettingsController` · Quando se lê o `store()` · Então ele segue lendo
   exatamente as 3 chaves (`ref_no_prefix`, `disable_editing_ingredient_qty`,
@@ -56,7 +56,7 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-03 · Business sem configuração salva NÃO quebra a tela
+## UC-MCFG-03 · Business sem configuração salva NÃO quebra a tela
 - **Persona:** business novo — `manufacturing_settings` nunca foi gravado.
 - **Aceite:** Dado `ManufacturingUtil::getSettings()` devolvendo `[]` · Quando o controller
   monta o payload · Então `ref_no_prefix` vira `''` e as duas travas viram `false` — nunca
@@ -70,22 +70,48 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-CFG-04 · Escrita scoped por business — nunca escreve no business errado
+## UC-MCFG-04 · Escrita scoped por business — nunca escreve no business errado
 - **Persona:** qualquer tenant — Tier 0.
 - **Aceite:** Dado o `store()` · Quando ele grava · Então o update é
   `Business::where('id', $business_id)->update(...)` — nunca um update sem cláusula de tenant.
 - **Fonte:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) +
   SPEC.md DoD ("Escrita scoped por business_id").
-- **Teste:** `Wave31SettingsInertiaTest.php`
+- **Teste:** `Wave31SettingsInertiaTest.php` e, por HTTP desde 2026-11-11, `IsolamentoEscritasEmpresaTest.php`
+  (o POST grava na empresa da sessão e a configuração da outra não muda).
 - **Regressão que defende:** alguém trocar por `Business::update(...)` em massa (o Eloquent
   permite) e reconfigurar o módulo de TODOS os tenants de uma vez.
 - **Status: 🧪**
 
 ---
 
+## UC-MCFG-05 · Abrir e gravar Configurações exige acesso à produção
+- **Persona:** usuário da empresa com o pacote, mas sem `manufacturing.access_production`.
+- **Aceite:** Dado esse usuário · Quando abre `/manufacturing/settings` (tela ou `?legacy=1`) ou posta
+  nela · Então recebe 403 e `business.manufacturing_settings` não muda · Dado o mesmo usuário com
+  `access_production` · Então a tela abre e o POST grava.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (auditoria do Manufacturing): Configurações e Relatório usam
+  `access_production`, sem permissão nova. Promove o item de backlog que esperava essa decisão.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** qualquer usuário da empresa trocar o prefixo da ordem e as travas de
+  quantidade e de preço sem permissão nenhuma.
+- **Status: 🧪**
+
+---
+
+## UC-MCFG-06 · Contato com login de portal não entra nas rotas do módulo
+- **Persona:** contato do cliente com login no portal (`user_type = user_customer`).
+- **Aceite:** Dado esse login, mesmo com a permissão · Quando abre ou posta em `/manufacturing/settings` ·
+  Então recebe 403 · Dado um usuário interno com a mesma permissão · Então a tela abre.
+- **Fonte:** pilha canônica de rotas do projeto (`.claude/rules/modules.md`), que inclui `CheckUserLogin`.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** o grupo de rotas do módulo sem `CheckUserLogin`, deixando o portal alcançar
+  rotas que só checam o pacote.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Gravar configurações exige permissão do módulo: `POST /manufacturing/settings` de usuário com assinatura mas sem a permissão não altera `business.manufacturing_settings` (403). Hoje `SettingsController@store` só checa assinatura/superadmin. Falta o [W] dizer **qual** permissão manda (a Blade nunca teve).
 - **[BACKLOG]** O botão "Atualizar" fica desabilitado enquanto nada mudou e reabilita ao mexer
   em qualquer um dos 3 campos (R-24) — é comportamento de navegador; lugar é spec Playwright.
 - **[BACKLOG]** Submeter persiste e a tela volta com os valores novos (o `redirect()->back()`

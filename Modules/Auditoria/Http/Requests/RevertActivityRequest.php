@@ -9,40 +9,36 @@ use Illuminate\Foundation\Http\FormRequest;
 /**
  * FormRequest pra POST /auditoria/{activityId}/revert.
  *
- * D8.c Security — Wave S Batch 2. Extraido de AuditoriaController@revert (MVP 501).
+ * D8.c Security — Wave S Batch 2. Extraido de AuditoriaController@revert.
  *
- * Constituicao Art. 9 (audit trail preservado) — Tier 0 IRREVOGAVEL:
- *   - Authorization Spatie per-permission acontece no RevertService::canRevert()
- *     (3 niveis: auditoria.revert.own / .any / .unlimited)
- *   - 5 categorias UNREVERTIBLE bloqueadas pelo registry do RevertService
- *     (Marcacao, NFe SEFAZ, Asaas paid, OS+NFSe, Transaction com payment)
- *   - Cada revert gera NOVA entry activity_log event='reverted' linkada via
- *     batch_uuid (append-only conceitual — audit trail intocado)
+ * Em 2026-11-09 o controller respondia 501 depois desta validacao e nao chamava
+ * o RevertService. A autorizacao descrita em RevertService::canRevert() so vale
+ * quando a rota for ligada (decisao D1 de [W], ver SPEC §Estado real).
  *
- * Aqui validamos APENAS o input HTTP: revert_reason >= 10 chars (regra explicita
- * no RevertService::revert() L163-164). Authorization fica DELEGADA pro Service
- * (multi-camada checks: unrevertibleRegistry + Spatie permission + time window).
+ * Aqui validamos APENAS o input HTTP: revert_reason >= 10 chars, a mesma regra
+ * de RevertService::revert().
  *
  * @see Modules/Auditoria/Http/Controllers/AuditoriaController.php
  * @see Modules/Auditoria/Services/RevertService.php
- * @see memory/decisions/0127-modulo-auditoria-ui-undo.md
+ * @see memory/requisitos/Auditoria/SPEC.md
+ * @see memory/decisions/0127-modules-auditoria-undo-activity-log.md
  */
 class RevertActivityRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Auth basica — RBAC fino (auditoria.revert.own/.any/.unlimited) +
-        // unrevertibleRegistry sao checados no RevertService (fail-secure).
-        // Aqui so garantimos que ha user autenticado (middleware 'auth' ja
-        // bloqueia, mas duplicamos pro caso de FormRequest fora da rota web).
+        // Auth basica: so garante que ha user autenticado (middleware 'auth' ja
+        // bloqueia, duplicado pro caso de FormRequest fora da rota web).
+        // RBAC fino fica em RevertService::canRevert(), fora do caminho HTTP
+        // enquanto o controller responder 501.
         return $this->user() !== null;
     }
 
     public function rules(): array
     {
         return [
-            // RevertService::revert() L163-164 exige min 10 chars — replicamos
-            // aqui pra retornar 422 antes de tocar Service (UX melhor que 500).
+            // RevertService::revert() exige min 10 chars — replicado aqui pra
+            // retornar 422 antes de tocar o Service.
             'revert_reason' => ['required', 'string', 'min:10', 'max:500'],
         ];
     }

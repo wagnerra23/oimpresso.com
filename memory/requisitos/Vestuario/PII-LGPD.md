@@ -4,11 +4,21 @@ id: requisitos-vestuario-pii-lgpd
 
 # Vestuario — PII / LGPD
 
-> Documento canônico de conformidade LGPD do **Modules/Vestuario** (vertical CNAE 4781-4/00 — varejo de artigos do vestuário). Atualizado 2026-05-16. Vinculado a [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7 e ADR canônica de PII redaction do core.
+> Documento canônico de conformidade LGPD do **Modules/Vestuario** (vertical CNAE 4781-4/00 — varejo de artigos do vestuário). Atualizado 2026-11-12. Vinculado a [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7 e ADR canônica de PII redaction do core.
 
 ## Escopo de dados pessoais tratados
 
-Vestuario é módulo **vertical-thin** ([SPEC](SPEC.md) Sprint 1): contém apenas tabela `vestuario_settings` (settings JSON per-business) — **nenhuma coluna PII própria**. Toda PII de cliente final (consumidor que compra na loja de Larissa) é tratada via tabelas core UltimatePOS:
+Vestuario é módulo **vertical-thin** ([SPEC](SPEC.md)). Tabelas próprias em 2026-11-12:
+
+| Tabela | Dado pessoal |
+|---|---|
+| `vestuario_settings` | nenhum (configuração JSON por empresa) |
+| `vestuario_remarcacoes` | `aplicada_por` e `revertida_por` (ids de usuário: identificam o funcionário) |
+| `vestuario_remarcacao_itens` | nenhum (variação, preço antes e depois) |
+| `vestuario_devolucoes` | `processed_by_user_id` e `motivo` (texto livre digitado pelo operador); sem chamador em produção desde 2026-10-26 |
+| `vestuario_creditos_cliente` | `contact_id` (cliente final); sem chamador em produção desde 2026-10-26 |
+
+Nenhuma coluna guarda nome, documento ou contato do cliente; o `motivo` é texto livre e pode conter o que o operador digitar. Toda PII de cliente final é tratada via tabelas core UltimatePOS:
 
 | Dado | Onde vive | Quem possui PII redaction |
 |---|---|---|
@@ -29,7 +39,7 @@ Vestuario **NÃO cria PiiRedactor próprio**. Herda o redactor do core conforme 
 ## Onde PII pode aparecer em logs do Vestuario
 
 - `Modules/Vestuario/Console/Commands/VestuarioSettingsCommand.php` — settings JSON nunca contém PII por construção (só flags `format_date_shift_hours`, etc)
-- Pest tests (`Tests/Feature/*.php`) — **proibido** usar `biz=4` (ROTA LIVRE prod, Larissa) em fixtures ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)). Tests usam `biz=1` sempre
+- Pest tests (`Tests/Feature/*.php`) — **proibido** usar `biz=4` (ROTA LIVRE, produção) em fixtures. O tenant de teste é o fictício 98, com o 99 de adversário ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
 
 ## Conformidade Tier 0
 
@@ -39,8 +49,8 @@ Vestuario **NÃO cria PiiRedactor próprio**. Herda o redactor do core conforme 
 
 ## Quando reavaliar
 
-Quando Vestuario evoluir Sprint 2+ e ganhar tabelas próprias com PII (ex: ficha cliente vestuário, medidas corporais, preferências), este doc precisa ser atualizado com:
+Quando Vestuario ganhar tabela própria com PII de cliente (ex: ficha cliente vestuário, medidas corporais, preferências), este doc precisa ser atualizado com:
 
 - Lista de colunas PII próprias
 - Pii redaction custom se aplicável (preferir delegar ao core)
-- Política de retenção LGPD Art. 16
+- Controle por permissão de acesso. Purga ou anonimização por prazo não se aplica: num ERP o dado tem dever de guarda (decisão [W], lápide §5 2026-07-27 em [`proibicoes.md`](../../proibicoes.md))

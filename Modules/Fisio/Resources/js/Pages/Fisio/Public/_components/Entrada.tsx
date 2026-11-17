@@ -90,7 +90,7 @@ export function EtapaPin({ token, restantes, lembrarDias }: { token: string; res
 
       <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
         <Checkbox id="portal-lembrar" checked={lembrar} onCheckedChange={(v) => setLembrar(v === true)} className="mt-0.5" />
-        <Label htmlFor="portal-lembrar" className="flex flex-col items-start gap-0.5 font-normal">
+        <Label variant="shadcn" htmlFor="portal-lembrar" className="flex flex-col items-start gap-0.5 font-normal leading-snug">
           <span className="font-medium">Lembrar este aparelho por {lembrarDias} dias</span>
           <span className="text-xs text-muted-foreground">Não marque em celular emprestado ou compartilhado.</span>
         </Label>
@@ -112,7 +112,7 @@ const TEXTO_OPCIONAL: Record<string, { titulo: string; detalhe: string }> = {
 function LinhaAutorizacao({ id, titulo, detalhe, ligado, onChange }: { id: string; titulo: string; detalhe: string; ligado: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
-      <Label htmlFor={id} className="flex flex-1 flex-col items-start gap-0.5 font-normal">
+      <Label variant="shadcn" htmlFor={id} className="flex flex-1 flex-col items-start gap-0.5 font-normal leading-snug">
         <span className="font-semibold">{titulo}</span>
         <span className="text-sm text-muted-foreground">{detalhe}</span>
       </Label>

@@ -5,8 +5,8 @@ irmaos: AprovacaoPublica.charter.md (lei) · ../../../../memory/requisitos/Ofici
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-27"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (OficinaAuto · MySQL)"
+last_run: "2026-11-09"
+last_run_ci: "UC-OAP-11..12 revalidados contra o .tsx de 2026-11-09: Pest na run 42696198529 (lane oficinaauto-pest) e vitest no Frontend da run 42709584363; o último commit da tela só troca a cor do ícone"
 related_us: [US-OFICINA-014, US-AUTO-009]
 related_cu: [CU-OFI-12, CU-OFI-15]
 ---
@@ -40,6 +40,9 @@ related_cu: [CU-OFI-12, CU-OFI-15]
 | UC-OAP-05 | token de outro cliente não abre a OS | must | CU-OFI-15 · US-AUTO-009 | `AprovacaoOsTokenTest` |
 | UC-OAP-06 | PIN correto é de uso único | must | CU-OFI-12 · US-OFICINA-014 | `AprovacaoOsTokenTest` |
 | UC-OAP-07 | rejeitar não muda o estado da OS | should | CU-OFI-12 · US-OFICINA-014 | `WhatsAppAprovacaoPinTest` |
+| UC-OAP-08 | antes do PIN: sem notas internas, itens nem valor | must | CU-OFI-12 · US-OFICINA-014 | `AprovacaoPublicaOrcamentoContratoTest` |
+| UC-OAP-09 | depois do PIN: itens e total iguais aos da tela interna | must | CU-OFI-12 · US-OFICINA-014 | `AprovacaoPublicaOrcamentoContratoTest` |
+| UC-OAP-10 | PIN de uma OS não abre o orçamento de OS de outra empresa | must | CU-OFI-15 · US-AUTO-009 | `AprovacaoPublicaOrcamentoContratoTest` |
 
 ---
 
@@ -99,6 +102,53 @@ related_cu: [CU-OFI-12, CU-OFI-15]
   orçamento (o balcão renegocia) — rejeitar é idempotente, não é um estado terminal.
 - **Regressão que defende:** rejeição jogar a OS num beco sem saída no pátio.
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/WhatsAppAprovacaoPinTest.php`
+- **Status: 🧪**
+
+## UC-OAP-08 · Antes do PIN, só o que identifica a OS `[must]`
+- **Persona:** cliente final; e quem recebeu o link encaminhado (preview de WhatsApp, grupo).
+- **Aceite:** Dado um link válido · Quando a página abre sem PIN · Então mostra número, veículo e
+  datas, e **não** traz as notas internas da oficina, os itens nem o valor.
+- **Regressão que defende:** o link sozinho expor texto interno ("cliente devedor") e o orçamento
+  a quem não tem o PIN (auditoria 2026-11-05, eixo 5 A7).
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php`
+- **Status: 🧪**
+
+## UC-OAP-09 · Depois do PIN, o cliente vê o orçamento discriminado antes de aprovar `[must]`
+- **Persona:** cliente final.
+- **Âncora:** CDC art. 40 — orçamento prévio, discriminando material, mão de obra e valores.
+- **Aceite:** Dado o PIN correto conferido · Quando a página recarrega · Então lista cada item
+  (tipo, descrição, quantidade, valor unitário, valor) e o total, **igual** ao total que a tela
+  interna mostra e que o faturamento usa; só então aprovar/recusar, sem pedir o PIN de novo.
+  Decidir sem PIN e sem orçamento aberto é recusado.
+- **Regressão que defende:** o cliente aprovar um valor que não viu (a página mandava
+  `valor_total: null` e nenhum item).
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php`
+- **Status: 🧪**
+
+## UC-OAP-10 · PIN conferido não abre orçamento de outra empresa `[T0]`
+- **Persona:** invariante multi-tenant ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **Aceite:** Dado o PIN conferido na OS da oficina A · Quando o mesmo navegador abre o link de
+  uma OS da oficina B · Então o orçamento de B segue fechado e aprovar B sem PIN é recusado.
+- **Regressão que defende:** a liberação de uma OS vazar para outra.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php`
+- **Status: 🧪**
+
+## UC-OAP-11 · Sem aviso não há faixa, e PIN errado aparece na tela
+- **Persona:** cliente final no link público.
+- **Aceite:** Dado o link aberto sem nenhuma ação · Então a tela não mostra faixa de aviso. Dado
+  um PIN errado · Quando o cliente confere · Então a tela diz quantas tentativas restam.
+- **Regressão que defende:** faixa branca vazia em toda abertura e erro de PIN mudo: o controller
+  gravava `flash` com `type`/`message`, formato que o `HandleInertiaRequests` não entrega.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php` · `tests/js/oficina-aprovacao-publica-aviso.test.tsx`
+- **Status: 🧪**
+
+## UC-OAP-12 · Quem decide recebe a confirmação
+- **Persona:** cliente final que aprova ou recusa.
+- **Aceite:** Dado o orçamento aprovado · Quando a tela volta · Então mostra a confirmação, e não
+  "Link inválido", embora o link tenha deixado de valer. Dado o orçamento recusado · Então mostra o
+  aviso de rejeição e o link segue aberto.
+- **Regressão que defende:** o cliente aprovar e ler que o link expirou.
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/AprovacaoPublicaOrcamentoContratoTest.php` · `tests/js/oficina-aprovacao-publica-aviso.test.tsx`
 - **Status: 🧪**
 
 ---

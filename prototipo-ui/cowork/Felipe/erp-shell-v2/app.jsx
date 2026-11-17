@@ -575,13 +575,7 @@ function App() {
   else if (route === "crm") content = <window.CrmPage/>;
   else if (route === "whatsapp") content = <window.WhatsappPage/>;
   else if (route === "recurring") content = <window.RecurringPage tab={recTab} onTab={setRecTab}/>;
-  else if (route === "fiscal")    content = <window.FiscalCockpit onNavigate={handleSelectRoute}/>;
-  else if (route === "nfe")       content = <window.FiscalNFePage/>;
-  else if (route === "nfse")      content = <window.FiscalNFSePage/>;
-  else if (route === "dfe")       content = <window.FiscalDFePage/>;
-  else if (route === "fiscal_eventos") content = <window.FiscalEventosPage/>;
-  else if (route === "fiscal_config")  content = <window.FiscalConfigPage/>;
-  else if (route === "sped")      content = <window.FiscalSpedPage/>;
+  else if (["fiscal", "nfe", "nfse", "dfe", "fiscal_eventos", "fiscal_config", "sped"].includes(route)) content = <div style={{ padding: 24, color: "var(--text-dim)" }}><b style={{ color: "var(--text)" }}>Fiscal</b><br />O protótipo do Fiscal fica só em prototipo-ui/cowork/Wagner (decisão [W] 2026-11-06, B11 da auditoria Fiscal).</div>;
   else if ([
     "crm", "whatsapp", "cv", "relatorios", "assets",
     "catalogue", "brief", "repair", "manufacturing", "ads", "projects", "vestuario",

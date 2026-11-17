@@ -280,7 +280,7 @@ class CombinedPurchaseReturnController extends Controller
             $purchase_return_id = $request->input('purchase_return_id');
             $purchase_return = Transaction::where('business_id', $business_id)
                                 ->where('type', 'purchase_return')
-                                ->find($purchase_return_id);
+                                ->findOrFail($purchase_return_id);
 
             if (! empty($products)) {
                 $product_data = [];
@@ -289,7 +289,11 @@ class CombinedPurchaseReturnController extends Controller
                 foreach ($products as $product) {
                     $unit_price = $this->productUtil->num_uf($product['unit_price']);
                     if (! empty($product['purchase_line_id'])) {
-                        $return_line = PurchaseLine::find($product['purchase_line_id']);
+                        // Tier 0 (ADR 0093): só linha DESTA devolução. O find cru pegava a linha de
+                        // qualquer empresa e o saveMany abaixo a mudava de transação, baixando o
+                        // estoque dela (auditoria Compras 2026-11-05, A4).
+                        $return_line = PurchaseLine::where('transaction_id', $purchase_return->id)
+                            ->findOrFail($product['purchase_line_id']);
                         $updated_purchase_lines[] = $return_line->id;
 
                         $this->productUtil->decreaseProductQuantity(

@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: comportamento e duravel — "a tela e read-only e a cor vem do banco" vale em qualquer refactor
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-10-21"
+last_run: "2026-11-06"
 ---
 
 > ℹ️ **`last_run` 2026-09-11 → 2026-10-21 (G-6).** A tela mudou neste PR em duas coisas: cada linha mostra
@@ -22,6 +22,11 @@ last_run: "2026-10-21"
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
 # Casos de Uso & Aceite — Status de OS
+
+> **Revalidação 2026-11-06 (barra de abas do módulo, `last_run`).** A tela ganhou a barra de abas do
+> módulo no topo (`ModuleTabs`, a mesma lista do sidebar — pedido [W] 2026-11-06, PR #10550). Nada
+> do comportamento coberto pelos UCs mudou. Lane `PHP / Pest (Verticais · MySQL)` disparada no branch,
+> run [42222751388](https://github.com/wagnerra23/oimpresso.com/actions/runs/42222751388) (verde): `RepairStatusContratoTest` 10 testes, 40 asserções, 0 skipped.
 
 > Derivados do [Index.charter.md](Index.charter.md) e do `RepairStatusController` — não do `.tsx`
 > ([§5 2026-06-05](../../../../../memory/proibicoes.md)).

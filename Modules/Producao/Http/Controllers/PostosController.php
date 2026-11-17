@@ -6,7 +6,10 @@ use App\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
+use Modules\Producao\Services\CustoHoraDecimal;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,12 +25,14 @@ use Modules\Producao\Entities\Posto;
  */
 class PostosController extends Controller
 {
+    use ExigePacoteProducao;
+
     public function index(Request $request): Response
     {
         abort_unless($request->user()->can('producao.access'), 403);
         $veCusto = $request->user()->can('producao.desempenho.ver');
         $defineOperadores = $request->user()->can('producao.etapa.mover');
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
 
         return Inertia::render('Producao/Postos/Index', [
             'motivos_padrao' => Motivo::PADRAO,
@@ -37,7 +42,7 @@ class PostosController extends Controller
             // US-PCP-030 · UC-FLX-08: candidatos a operador = gente da empresa com acesso à Produção
             // (a mesma regra que o OperadoresDoPosto::definir confere ao gravar).
             'usuarios' => Inertia::defer(fn () => $defineOperadores ? $this->candidatosAOperador($biz) : []),
-            'ferramentas' => Inertia::defer(fn () => Ferramenta::query()->orderBy('nome')->get(['id', 'codigo_qr', 'nome', 'ativo'])),
+            'ferramentas' => Inertia::defer(fn () => Ferramenta::query()->where('business_id', $biz)->orderBy('nome')->get(['id', 'codigo_qr', 'nome', 'ativo'])),
             'colaboradores' => Inertia::defer(fn () => $veCusto ? $this->colaboradores($biz) : []),
         ]);
     }
@@ -62,7 +67,7 @@ class PostosController extends Controller
         $posto = Posto::query()->where('business_id', $biz)->findOrFail($id);
         $dados = $this->validarPosto($request, $biz, $posto->id);
         // Custo-hora digitado é o direto: se mudou, a parcela do custeio RKW sai até aplicar de novo.
-        if (round((float) $dados['custo_hora'], 2) !== round((float) $posto->custo_hora, 2)) {
+        if (CustoHoraDecimal::emCentavos($dados['custo_hora']) !== CustoHoraDecimal::emCentavos($posto->custo_hora)) {
             $dados['custo_hora_direto'] = null;
         }
         $posto->update($dados);
@@ -89,7 +94,7 @@ class PostosController extends Controller
     {
         abort_unless($request->user()->can('producao.access'), 403);
 
-        return (int) $request->session()->get('user.business_id');
+        return $this->empresaComPacote($request);
     }
 
     private function validarPosto(Request $request, int $biz, ?int $ignorar = null): array
@@ -101,7 +106,7 @@ class PostosController extends Controller
             'tipo_custo' => ['required', Rule::in([Posto::MAQUINA, Posto::PESSOA])],
             'veiculo' => ['boolean'],
             'placa' => ['nullable', 'required_if:veiculo,true', 'string', 'max:10'],
-            'custo_hora' => ['required', 'numeric', 'min:0', 'max:99999'],
+            'custo_hora' => ['required', 'numeric', 'not_regex:/e/i', 'min:0', 'max:99999'],
             'custo_km' => ['nullable', 'numeric', 'min:0', 'max:9999'],
             'capacidade_por_hora' => ['nullable', 'numeric', 'min:0'],
             'unidade_capacidade' => ['nullable', 'string', 'max:10'],
@@ -115,14 +120,46 @@ class PostosController extends Controller
         return $dados;
     }
 
-    /** @param  array<int, string>  $nomes */
+    /**
+     * A lista que vem substitui a do tipo. Motivo que saiu da lista e já foi usado (pausa apontada ou
+     * refugo lançado) não é apagado — fica inativo, e volta ativo se o nome voltar. Antes, apagar o
+     * motivo usado dava erro de chave estrangeira (auditoria lote 2.4, P-08 do eixo 5).
+     *
+     * @param  array<int, string>  $nomes
+     */
     private function gravarMotivos(Posto $posto, string $tipo, array $nomes): void
     {
-        Motivo::query()->where('posto_id', $posto->id)->where('tipo', $tipo)->delete();
-        foreach (array_values($nomes) as $ordem => $nome) {
-            Motivo::create(['business_id' => $posto->business_id, 'posto_id' => $posto->id, 'tipo' => $tipo,
-                'nome' => trim($nome), 'ordem' => $ordem]);
+        $nomes = array_values(array_map('trim', $nomes));
+        $atuais = Motivo::query()->where('business_id', $posto->business_id)->where('posto_id', $posto->id)->where('tipo', $tipo)->get();
+        $usados = $this->motivosUsados((int) $posto->business_id, $atuais->pluck('id')->map(fn ($id) => (int) $id)->all());
+        foreach ($atuais as $m) {
+            if (! in_array($m->nome, $nomes, true)) {
+                in_array((int) $m->id, $usados, true) ? $m->forceFill(['ativo' => false])->save() : $m->delete();
+            }
         }
+        foreach ($nomes as $ordem => $nome) {
+            $existente = $atuais->first(fn (Motivo $m) => $m->nome === $nome);
+            $existente
+                ? $existente->forceFill(['ordem' => $ordem, 'ativo' => true])->save()
+                : Motivo::create(['business_id' => $posto->business_id, 'posto_id' => $posto->id, 'tipo' => $tipo, 'nome' => $nome, 'ordem' => $ordem]);
+        }
+    }
+
+    /**
+     * @param  list<int>  $ids
+     * @return list<int>
+     */
+    private function motivosUsados(int $biz, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        $usados = DB::table('pcp_apontamentos')->where('business_id', $biz)->whereIn('motivo_id', $ids)->distinct()->pluck('motivo_id');
+        if (Schema::hasTable('pcp_refugos')) {
+            $usados = $usados->merge(DB::table('pcp_refugos')->where('business_id', $biz)->whereIn('motivo_id', $ids)->distinct()->pluck('motivo_id'));
+        }
+
+        return $usados->map(fn ($id) => (int) $id)->unique()->values()->all();
     }
 
     private function postos(int $biz): array

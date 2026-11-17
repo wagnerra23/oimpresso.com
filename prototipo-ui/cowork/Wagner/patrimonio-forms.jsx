@@ -11,6 +11,9 @@ const DS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 const Codigo = ({ children }) => <span style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, letterSpacing: ".04em", color: "var(--text-mute)" }}>{children}</span>;
 const Grade = ({ children, cols = 2 }) => <div className="pfm-grid" style={{ gridTemplateColumns: "repeat(" + cols + ",minmax(0,1fr))" }}>{children}</div>;
 const Largo = ({ children }) => <div style={{ gridColumn: "1/-1" }}>{children}</div>;
+// O DatePicker do DS não recebe `error` (lacuna do DS): sem isto o salvar falhava calado
+// quando a data faltava. A mensagem aparece abaixo do campo, anunciada por role="alert".
+const ErroData = ({ msg }) => (msg ? <small className="pfm-erro" role="alert">{msg}</small> : null);
 const dataISO = (d) => (d ? P().iso(d) : "");
 // leitura: o DatePicker recebe Date local, nunca a string ISO crua.
 const dLocal = (v) => P().dataLocal(v);
@@ -52,7 +55,7 @@ function BemForm({ modo, bem, bens, papel, onClose, onSalvar }) {
     setErros(e);
     if (Object.keys(e).length) return;
     const g = f.garMeses
-      ? (() => { const d = new Date(f.garIni); d.setMonth(d.getMonth() + Number(f.garMeses)); return { ini: f.garIni, fim: D.iso(d), fornec: f.garFornec || "—" }; })()
+      ? (() => { const d = D.dataLocal(f.garIni); d.setMonth(d.getMonth() + Number(f.garMeses)); return { ini: f.garIni, fim: D.iso(d), fornec: f.garFornec || "—" }; })()
       : null;
     onSalvar({ ...f, valor: Number(f.valor), qtd: Number(f.qtd), dep: Number(f.dep), garantia: g }, novo);
   };
@@ -78,7 +81,7 @@ function BemForm({ modo, bem, bens, papel, onClose, onSalvar }) {
         <Grade>
           <div>{DatePicker
             ? <DatePicker label="Data da compra" value={dLocal(f.compra)} onChange={(d) => set("compra", dataISO(d))} />
-            : <Input label="Data da compra" type="date" value={f.compra} error={erros.compra} onChange={(e) => set("compra", e.target.value)} />}</div>
+            : <Input label="Data da compra" type="date" value={f.compra} error={erros.compra} onChange={(e) => set("compra", e.target.value)} />}{DatePicker && <ErroData msg={erros.compra} />}</div>
           <Select label="Tipo de compra" value={f.tipo} onChange={(e) => set("tipo", e.target.value)}
             options={Object.keys(D.TIPOS).map((k) => ({ value: k, label: D.TIPOS[k] }))} />
           <Input label="Valor unitário (R$)" type="number" value={String(f.valor)} error={erros.valor} onChange={(e) => set("valor", e.target.value)} />
@@ -95,7 +98,7 @@ function BemForm({ modo, bem, bens, papel, onClose, onSalvar }) {
           <Input label="Período de garantia (meses)" type="number" value={String(f.garMeses)} help="Vazio = bem sem garantia registrada." onChange={(e) => set("garMeses", e.target.value)} />
           <div>{DatePicker
             ? <DatePicker label="Início da garantia" value={dLocal(f.garIni)} onChange={(d) => set("garIni", dataISO(d))} />
-            : <Input label="Início da garantia" type="date" value={f.garIni} error={erros.garIni} onChange={(e) => set("garIni", e.target.value)} />}</div>
+            : <Input label="Início da garantia" type="date" value={f.garIni} error={erros.garIni} onChange={(e) => set("garIni", e.target.value)} />}{DatePicker && <ErroData msg={erros.garIni} />}</div>
           <Largo><Input label="Fornecedor / contrato" value={f.garFornec} placeholder="Ex.: Roland Care · contrato RC-8842" onChange={(e) => set("garFornec", e.target.value)} /></Largo>
         </Grade>
       </DrawerSection>
@@ -169,10 +172,10 @@ function AlocarForm({ bemId, bens, alocacoes, papel, onClose, onSalvar }) {
           <Input label="Quantidade alocada" type="number" value={String(f.qtd)} error={erros.qtd} help={"Saldo livre: " + livre} onChange={(e) => set("qtd", e.target.value)} />
           <div>{DatePicker
             ? <DatePicker label="Alocado de" value={dLocal(f.em)} onChange={(d) => set("em", dataISO(d))} />
-            : <Input label="Alocado de" type="date" value={f.em} error={erros.em} onChange={(e) => set("em", e.target.value)} />}</div>
+            : <Input label="Alocado de" type="date" value={f.em} error={erros.em} onChange={(e) => set("em", e.target.value)} />}{DatePicker && <ErroData msg={erros.em} />}</div>
           <div>{DatePicker
             ? <DatePicker label="Alocado até" value={dLocal(f.ate)} onChange={(d) => set("ate", dataISO(d))} placeholder="indeterminado" />
-            : <Input label="Alocado até" type="date" value={f.ate} error={erros.ate} onChange={(e) => set("ate", e.target.value)} />}</div>
+            : <Input label="Alocado até" type="date" value={f.ate} error={erros.ate} onChange={(e) => set("ate", e.target.value)} />}{DatePicker && <ErroData msg={erros.ate} />}</div>
           <Largo><Input label="Razão" value={f.motivo} error={erros.motivo} placeholder="Ex.: Estação de orçamento do balcão" onChange={(e) => set("motivo", e.target.value)} /></Largo>
         </Grade>
       </DrawerSection>
@@ -212,7 +215,7 @@ function RevogarForm({ alocacao, bens, alocacoes, onClose, onSalvar }) {
             <Input label="Quantidade revogada" type="number" value={f.qtd} error={erros.qtd} onChange={(e) => set("qtd", e.target.value)} />
             <div>{DatePicker
               ? <DatePicker label="Revogado em" value={dLocal(f.em)} onChange={(d) => set("em", dataISO(d))} />
-              : <Input label="Revogado em" type="date" value={f.em} error={erros.em} onChange={(e) => set("em", e.target.value)} />}</div>
+              : <Input label="Revogado em" type="date" value={f.em} error={erros.em} onChange={(e) => set("em", e.target.value)} />}{DatePicker && <ErroData msg={erros.em} />}</div>
             <Largo><Input label="Razão" value={f.motivo} error={erros.motivo} placeholder="Ex.: Fim da obra do cliente" onChange={(e) => set("motivo", e.target.value)} /></Largo>
           </Grade>
         </div>
@@ -227,7 +230,7 @@ function ManutencaoForm({ bemId, bemIds, bens, manutencoes, papel, onClose, onSa
   const { Drawer, DrawerSection, Input, Select, Textarea, DatePicker, Alert } = DS();
   const lista = bens.filter((b) => D.podeVerLocal(papel, b.loc));
   const lote = bemIds && bemIds.length > 1 ? bemIds : null;
-  const [f, setF] = useState({ bem: bemId || (lista[0] && lista[0].id) || "", prestador: "", resp: D.PAPEIS[papel] ? D.PAPEIS[papel].quem : "Wagner", ini: D.iso(D.HOJE), fim: "", custo: "", notas: "" });
+  const [f, setF] = useState({ bem: bemId || (lista[0] && lista[0].id) || "", prestador: "", resp: D.PAPEIS[papel] ? D.PAPEIS[papel].quem : "Paulo", ini: D.iso(D.HOJE), fim: "", custo: "", notas: "" });
   const [erros, setErros] = useState({});
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
   if (!Drawer) return null;
@@ -259,10 +262,10 @@ function ManutencaoForm({ bemId, bemIds, bens, manutencoes, papel, onClose, onSa
           <Input label="Responsável interno" value={f.resp} onChange={(e) => set("resp", e.target.value)} />
           <div>{DatePicker
             ? <DatePicker label="Enviado em" value={dLocal(f.ini)} onChange={(d) => set("ini", dataISO(d))} />
-            : <Input label="Enviado em" type="date" value={f.ini} error={erros.ini} onChange={(e) => set("ini", e.target.value)} />}</div>
+            : <Input label="Enviado em" type="date" value={f.ini} error={erros.ini} onChange={(e) => set("ini", e.target.value)} />}{DatePicker && <ErroData msg={erros.ini} />}</div>
           <div>{DatePicker
             ? <DatePicker label="Devolvido em" value={dLocal(f.fim)} onChange={(d) => set("fim", dataISO(d))} placeholder="ainda fora" />
-            : <Input label="Devolvido em" type="date" value={f.fim} error={erros.fim} onChange={(e) => set("fim", e.target.value)} />}</div>
+            : <Input label="Devolvido em" type="date" value={f.fim} error={erros.fim} onChange={(e) => set("fim", e.target.value)} />}{DatePicker && <ErroData msg={erros.fim} />}</div>
           <Largo><Input label="Custo adicional (R$)" type="number" value={f.custo}
             help="Vira título a pagar no Financeiro quando a manutenção fecha." onChange={(e) => set("custo", e.target.value)} /></Largo>
           <Largo><Textarea label="Nota adicional" rows={3} value={f.notas} placeholder="O que será feito e por quê." onChange={(e) => set("notas", e.target.value)} /></Largo>

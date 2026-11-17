@@ -6,9 +6,9 @@
 //   runbook: memory/requisitos/Vestuario/RUNBOOK-etiqueta-tag.md
 //   permissao: vestuario.etiqueta.view / vestuario.etiqueta.create
 
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { Head } from '@inertiajs/react';
-import { Download, Printer, Plus, Trash2, FileText, QrCode } from 'lucide-react';
+import { Download, Printer, Trash2, FileText, QrCode } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -18,12 +18,16 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 
+import BuscaVariacao from './_components/BuscaVariacao';
+import { rotuloDaVariacao, type VariacaoEncontrada } from './_components/variacao';
+
 interface EtiquetaConfig {
   width_dots: number;
   height_dots: number;
   dpi: number;
   margin_dots: number;
   qr_enabled: boolean;
+  max_etiquetas: number;
 }
 
 interface EtiquetaItem {
@@ -43,37 +47,55 @@ interface Props {
   config: EtiquetaConfig;
 }
 
-function emptyItem(): EtiquetaItem {
+// O preço fica em 0 de propósito: quem informa é o operador (UC-VET-06). Variação com nome maior
+// que o campo Tam (10) é cor, não tamanho.
+function itemDaVariacao(v: VariacaoEncontrada): EtiquetaItem {
+  const rotulo = rotuloDaVariacao(v);
   return {
     id: crypto.randomUUID(),
-    product_id: 1,
-    nome: '',
-    tamanho: 'M',
-    cor: '',
+    product_id: v.product_id,
+    variation_id: v.variation_id,
+    nome: v.name.slice(0, 120),
+    tamanho: rotulo.length <= 10 ? rotulo : '',
+    cor: rotulo.length > 10 ? rotulo.slice(0, 30) : '',
     colecao: '',
     preco: 0,
-    sku: '',
+    sku: v.sub_sku ?? '',
     ean13: '',
   };
 }
 
+function Campo({ id, rotulo, span, children }: { id: string; rotulo: string; span: string; children: ReactNode }) {
+  return (
+    <div className={span}>
+      <Label htmlFor={id} className="text-xs">{rotulo}</Label>
+      {children}
+    </div>
+  );
+}
+
 export default function EtiquetasIndex({ config }: Props) {
-  const [items, setItems] = useState<EtiquetaItem[]>([emptyItem()]);
+  const [items, setItems] = useState<EtiquetaItem[]>([]);
   const [copies, setCopies] = useState(1);
   const [submitting, setSubmitting] = useState<'zpl' | 'pdf' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function addItem() {
-    setItems((prev) => [...prev, emptyItem()]);
+  function addItem(v: VariacaoEncontrada) {
+    setItems((prev) => (prev.some((i) => i.variation_id === v.variation_id) ? prev : [...prev, itemDaVariacao(v)]));
   }
 
   function removeItem(id: string) {
-    setItems((prev) => (prev.length === 1 ? prev : prev.filter((i) => i.id !== id)));
+    setItems((prev) => prev.filter((i) => i.id !== id));
   }
 
   function updateItem(id: string, field: keyof EtiquetaItem, value: string | number) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, [field]: value } : i)));
   }
+
+  const maxEtiquetas = config.max_etiquetas;
+  const copiasValidas = Math.max(1, Math.min(100, copies));
+  const totalEtiquetas = items.length * copiasValidas;
+  const acimaDoTeto = totalEtiquetas > maxEtiquetas;
 
   function buildPayload() {
     return {
@@ -88,12 +110,16 @@ export default function EtiquetasIndex({ config }: Props) {
         sku: i.sku || undefined,
         ean13: i.ean13 || undefined,
       })),
-      copies: Math.max(1, Math.min(100, copies)),
+      copies: copiasValidas,
     };
   }
 
   async function submit(format: 'zpl' | 'pdf', e: FormEvent) {
     e.preventDefault();
+    if (items.length === 0) {
+      setError('Busque um produto antes de gerar as etiquetas.');
+      return;
+    }
     setSubmitting(format);
     setError(null);
 
@@ -106,14 +132,14 @@ export default function EtiquetasIndex({ config }: Props) {
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken,
-          Accept: format === 'pdf' ? 'application/pdf' : 'text/plain',
+          // Com JSON a validação volta 422 com a mensagem; sem isso volta 302 e o HTML baixava como etiqueta.
+          Accept: 'application/json',
         },
         body: JSON.stringify(buildPayload()),
       });
 
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200)}`);
+        throw new Error(await mensagemDeErro(res));
       }
 
       const blob = await res.blob();
@@ -183,83 +209,40 @@ export default function EtiquetasIndex({ config }: Props) {
                 onChange={(e) => setCopies(Number(e.target.value) || 1)}
                 className="w-20"
               />
-              <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                <Plus className="mr-1 h-4 w-4" /> Item
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
+            <BuscaVariacao onEscolher={addItem} />
+
+            {items.length === 0 && (
+              <p className="text-sm text-muted-foreground">Busque um produto para montar o lote.</p>
+            )}
+
             {items.map((item) => (
               <div
                 key={item.id}
                 className="grid grid-cols-12 items-end gap-2 rounded-md border bg-muted/30 p-3"
               >
-                <div className="col-span-1">
-                  <Label className="text-xs">Produto ID</Label>
-                  <Input
-                    type="number"
-                    value={item.product_id}
-                    onChange={(e) => updateItem(item.id, 'product_id', Number(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="col-span-3">
-                  <Label className="text-xs">Nome</Label>
-                  <Input
-                    value={item.nome}
-                    onChange={(e) => updateItem(item.id, 'nome', e.target.value)}
-                    placeholder="Camiseta Básica"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <Label className="text-xs">Tam</Label>
-                  <Input
-                    value={item.tamanho}
-                    onChange={(e) => updateItem(item.id, 'tamanho', e.target.value)}
-                    placeholder="M"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label className="text-xs">Cor</Label>
-                  <Input
-                    value={item.cor}
-                    onChange={(e) => updateItem(item.id, 'cor', e.target.value)}
-                    placeholder="Azul Marinho"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label className="text-xs">Coleção</Label>
-                  <Input
-                    value={item.colecao}
-                    onChange={(e) => updateItem(item.id, 'colecao', e.target.value)}
-                    placeholder="Verão 2026"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <Label className="text-xs">Preço</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={item.preco}
-                    onChange={(e) => updateItem(item.id, 'preco', Number(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="col-span-1">
-                  <Label className="text-xs">SKU</Label>
-                  <Input
-                    value={item.sku}
-                    onChange={(e) => updateItem(item.id, 'sku', e.target.value)}
-                    placeholder="auto"
-                  />
-                </div>
+                <Campo id={`nome-${item.id}`} rotulo="Nome" span="col-span-3">
+                  <Input id={`nome-${item.id}`} value={item.nome} onChange={(e) => updateItem(item.id, 'nome', e.target.value)} />
+                </Campo>
+                <Campo id={`tam-${item.id}`} rotulo="Tam" span="col-span-1">
+                  <Input id={`tam-${item.id}`} value={item.tamanho} onChange={(e) => updateItem(item.id, 'tamanho', e.target.value)} />
+                </Campo>
+                <Campo id={`cor-${item.id}`} rotulo="Cor" span="col-span-2">
+                  <Input id={`cor-${item.id}`} value={item.cor} onChange={(e) => updateItem(item.id, 'cor', e.target.value)} placeholder="Azul Marinho" />
+                </Campo>
+                <Campo id={`colecao-${item.id}`} rotulo="Coleção" span="col-span-2">
+                  <Input id={`colecao-${item.id}`} value={item.colecao} onChange={(e) => updateItem(item.id, 'colecao', e.target.value)} placeholder="Verão 2026" />
+                </Campo>
+                <Campo id={`preco-${item.id}`} rotulo="Preço" span="col-span-1">
+                  <Input id={`preco-${item.id}`} type="number" step="0.01" value={item.preco} onChange={(e) => updateItem(item.id, 'preco', Number(e.target.value) || 0)} />
+                </Campo>
+                <Campo id={`sku-${item.id}`} rotulo="SKU" span="col-span-2">
+                  <Input id={`sku-${item.id}`} value={item.sku} readOnly title={item.sku} />
+                </Campo>
                 <div className="col-span-1 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(item.id)}
-                    disabled={items.length === 1}
-                    aria-label="Remover item"
-                  >
+                  <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(item.id)} aria-label="Remover item">
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
@@ -272,33 +255,39 @@ export default function EtiquetasIndex({ config }: Props) {
               </div>
             )}
 
+            {acimaDoTeto && (
+              <div role="alert" className="rounded border border-warning/20 bg-warning-soft px-3 py-2 text-sm text-warning-fg">
+                Este pedido soma {totalEtiquetas} etiquetas e o limite é {maxEtiquetas} por vez. Reduza as cópias ou divida em mais de um lote.
+              </div>
+            )}
+
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={(e) => submit('zpl', e)}
-                disabled={submitting !== null}
+                disabled={submitting !== null || acimaDoTeto}
               >
                 {submitting === 'zpl' ? (
                   <>Gerando…</>
                 ) : (
                   <>
                     <Printer className="mr-2 h-4 w-4" />
-                    Baixar ZPL ({items.length * copies}×)
+                    Baixar ZPL ({totalEtiquetas}×)
                   </>
                 )}
               </Button>
               <Button
                 type="button"
                 onClick={(e) => submit('pdf', e)}
-                disabled={submitting !== null}
+                disabled={submitting !== null || acimaDoTeto}
               >
                 {submitting === 'pdf' ? (
                   <>Gerando PDF…</>
                 ) : (
                   <>
                     <FileText className="mr-2 h-4 w-4" />
-                    Gerar PDF ({items.length * copies}×)
+                    Gerar PDF ({totalEtiquetas}×)
                   </>
                 )}
               </Button>
@@ -312,6 +301,17 @@ export default function EtiquetasIndex({ config }: Props) {
         </p>
       </div>
     </>
+  );
+}
+
+async function mensagemDeErro(res: Response): Promise<string> {
+  const dados = (await res.json().catch(() => null)) as
+    | { message?: string; errors?: Record<string, string[]> }
+    | null;
+  return (
+    Object.values(dados?.errors ?? {})[0]?.[0] ??
+    dados?.message ??
+    `Não foi possível gerar as etiquetas (erro ${res.status}).`
   );
 }
 

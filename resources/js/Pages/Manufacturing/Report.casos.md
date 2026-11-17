@@ -107,6 +107,45 @@ last_run: "2026-10-06"
 
 ---
 
+## UC-REPORT-05 · Receita em sub-unidade: o custo não é multiplicado pelo multiplicador
+- **Persona:** Wagner — lê o custo do período de um produto feito em pacotes.
+- **Aceite:** Dado uma receita que rende 1 pacote de 10 a 15 por pacote e uma ordem que gravou 30 na base
+  (3 pacotes) · Quando o relatório soma · Então o custo é 3 × 15 = 45 (não 30 × 15), a quantidade segue na
+  base (30) e o custo médio é por unidade base (1,5) · Dado uma receita na própria unidade, sem multiplicador
+  gravado (o caso que existe em produção) · Então o custo é quantidade × custo da receita.
+- **Fonte:** handoff Fabricação §7 ponto 4 (multiplicador da sub-unidade) · UC-REPORT-03 (custo unitário da
+  receita × quantidade produzida, na mesma unidade).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/ProducaoSubUnidadeTest.php` — à mão e pela soma dos
+  ingredientes.
+- **Regressão que defende:** o custo unitário da receita (por pacote) multiplicado pela quantidade na base.
+- **Status: 🧪**
+
+---
+
+## UC-REPORT-07 · Sem `view_purchase_price`, o relatório não traz custo
+- **Persona:** quem tem acesso à produção, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre o relatório (ou pede o JSON de totais) · Então custo total, custo médio, percentual e o total do período vêm vazios · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** o relatório de custo entregue a quem só acompanha a produção.
+- **Status: 🧪**
+
+---
+
+## UC-REPORT-06 · O relatório exige acesso à produção, em todos os ramos
+- **Persona:** usuário da empresa com o pacote, mas sem `manufacturing.access_production`.
+- **Aceite:** Dado esse usuário · Quando abre `/manufacturing/report`, pede o JSON de totais (AJAX) ou abre
+  `?legacy=1` · Então recebe 403 nos três · Dado o mesmo usuário com `access_production` · Então os três
+  respondem.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (auditoria do Manufacturing): Configurações e Relatório usam
+  `access_production`, sem permissão nova.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** custo total e médio por produto entregue a qualquer usuário da empresa, e o
+  ramo AJAX e o legado sem gate nenhum.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Custo **congelado** por ordem finalizada (`custoSnap`) — não existe ainda;
@@ -137,3 +176,4 @@ last_run: "2026-10-06"
   `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
   acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
   canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.
+- 2026-11-11 · [C] UC-REPORT-05 (lote 1.4 da auditoria): receita em sub-unidade. Medido em produção: nenhuma linha de ordem com sub-unidade; as receitas apontam a própria unidade. A tela não mudou.

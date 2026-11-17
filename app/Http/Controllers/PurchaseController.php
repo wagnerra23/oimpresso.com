@@ -21,6 +21,7 @@ use App\Variation;
 use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\PurchaseCreatedOrModified;
@@ -469,6 +470,10 @@ class PurchaseController extends Controller
             'common_settings' => $common_settings,
             // "Comprar" da lista de produtos (/products) abre esta tela com o produto já na compra.
             'produto_inicial' => $this->produtoInicialDaCompra($business_id),
+            // US-VEST-031: "Sugerir pela curva" só com o módulo instalado e no pacote da empresa.
+            // A rota só existe com o módulo ativo. `purchase.create` já foi conferida em create().
+            'curva_compra_disponivel' => Route::has('vestuario.curva-compra')
+                && (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'vestuario_module', 'superadmin_package'),
         ]);
     }
 
@@ -518,6 +523,11 @@ class PurchaseController extends Controller
         // store() é compartilhado Blade+Inertia; bloqueia payload forjado cross-tenant.
         // Fora do try de propósito pra o 422 não ser engolido pelo catch genérico.
         $this->assertPurchaseVariationsOwnership($request);
+        // US-COM-029 (Tier 0): compra NOVA não tem linha própria ainda, então qualquer
+        // `purchase_line_id` no payload é forjado. Sem esta trava, createOrUpdatePurchaseLines
+        // fazia PurchaseLine::findOrFail no id cru e reaproveitava a linha de OUTRA empresa
+        // (movia a linha e o estoque dela). Transação 0 não existe: qualquer id reprova com 422.
+        $this->assertPurchaseLinesBelongTo($request, 0);
         $this->assertPurchaseOrderRefsBelongTo($request); // US-COM-029
         $this->assertPurchaseOrdersAprovados($request); // US-COM-032
 
@@ -814,7 +824,8 @@ class PurchaseController extends Controller
                 // Supplier
                 'supplier_name' => (string) ($purchase->contact->name ?? ''),
                 'supplier_business_name' => $purchase->contact->supplier_business_name ?? null,
-                'supplier_address' => $purchase->contact->contact_address ?? null,
+                // Texto puro (a tela renderiza como texto); nome e razão social já vão em campos próprios.
+                'supplier_address' => $purchase->contact ? (implode(', ', $purchase->contact->contact_address_array) ?: null) : null,
                 'supplier_tax_number' => $purchase->contact->tax_number ?? null,
                 'supplier_mobile' => $purchase->contact->mobile ?? null,
                 'supplier_email' => $purchase->contact->email ?? null,
@@ -1681,6 +1692,15 @@ class PurchaseController extends Controller
      */
     public function getPurchaseEntryRow(Request $request)
     {
+        // Tier 0 (ADR 0093): a linha devolve produto, variações, estoque e o último custo de
+        // compra. Antes não conferia permissão nem empresa: qualquer usuário logado lia o
+        // produto/custo de outra empresa pelo id. Quem chama é a tela de compra e a de pedido.
+        $pode = collect(['purchase.create', 'purchase.update', 'purchase_order.create', 'purchase_order.update'])
+            ->contains(fn ($perm) => auth()->user()->can($perm));
+        if (! $pode) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             $product_id = $request->input('product_id');
             $variation_id = $request->input('variation_id');
@@ -1699,8 +1719,18 @@ class PurchaseController extends Controller
             if (! empty($product_id)) {
                 $row_count = $request->input('row_count');
                 $product = Product::where('id', $product_id)
+                                    ->where('business_id', $business_id)
                                     ->with(['unit', 'second_unit'])
-                                    ->first();
+                                    ->firstOrFail();
+
+                // Local de outra empresa: o estoque (variation_location_details) e o último
+                // custo (getLastPurchaseLine) seriam lidos dele.
+                if (! empty($location_id)) {
+                    abort_unless(
+                        BusinessLocation::where('business_id', $business_id)->whereKey($location_id)->exists(),
+                        404
+                    );
+                }
 
                 $sub_units = $this->productUtil->getSubUnits($business_id, $product->unit->id, false, $product_id);
 
@@ -1720,7 +1750,7 @@ class PurchaseController extends Controller
                             ->ExcludeForTaxGroup()
                             ->get();
 
-                $last_purchase_line = $this->getLastPurchaseLine($variation_id, $location_id, $supplier_id);
+                $last_purchase_line = $this->getLastPurchaseLine($variation_id, $location_id, $supplier_id, (int) $business_id);
 
                 return view('purchase.partials.purchase_entry_row')
                     ->with(compact(
@@ -1742,10 +1772,11 @@ class PurchaseController extends Controller
     /**
      * Finds last purchase line of a variation for the supplier for a location
      */
-    private function getLastPurchaseLine($variation_id, $location_id, $supplier_id = null)
+    private function getLastPurchaseLine($variation_id, $location_id, $supplier_id = null, ?int $business_id = null)
     {
         $query = PurchaseLine::join('transactions as t', 'purchase_lines.transaction_id',
                         '=', 't.id')
+                        ->where('t.business_id', $business_id ?? request()->session()->get('user.business_id'))
                         ->where('t.location_id', $location_id)
                         ->where('t.type', 'purchase')
                         ->where('t.status', 'received')
@@ -1885,6 +1916,11 @@ class PurchaseController extends Controller
 
     public function getPurchaseOrderLines($purchase_order_id)
     {
+        // D3: só quem lança ou edita compra puxa as linhas de um pedido para a compra.
+        if (! auth()->user()->can('purchase.create') && ! auth()->user()->can('purchase.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         $purchase_order = Transaction::where('business_id', $business_id)
@@ -1962,6 +1998,11 @@ class PurchaseController extends Controller
      */
     public function printInvoice($id)
     {
+        // D3: imprimir é ver a compra; mesma permissão do show().
+        if (! auth()->user()->can('purchase.view') && ! auth()->user()->can('view_own_purchase')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             $business_id = request()->session()->get('user.business_id');
             $taxes = TaxRate::where('business_id', $business_id)

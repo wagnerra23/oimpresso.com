@@ -18,10 +18,17 @@ use Inertia\Response;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Entities\DocumentoPaciente;
+use Modules\Fisio\Services\DocumentosDoPaciente;
 use Modules\Fisio\Services\EditorProgramaPayload;
+use Modules\Fisio\Services\MedicamentosDoPaciente;
+use Modules\Fisio\Services\Laudo\LaudoBiopsicossocialDocumento;
+use Modules\Fisio\Services\Laudo\MatrizIfbrm;
 use Modules\Fisio\Services\PainelFisio;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 use Modules\Fisio\Services\ResponsavelPaciente;
+use Modules\Fisio\Services\TranscricaoDocumentos;
+use Modules\Fisio\Services\Social\DadosSociais;
 
 /**
  * Pacientes do Fisio (US-FISIO-005). O paciente É um contact (ADR 0437 §4): aqui mora só o
@@ -126,7 +133,7 @@ class PacientesController extends Controller
             'pode_editar' => $this->podeEditar($request),
             'prontuario' => Inertia::defer(fn () => $this->linhaDoTempo($paciente)),
             // Catálogo estático (sem query): vai junto. O histórico é query → defer (US-FISIO-011).
-            'instrumentos' => array_values(CatalogoQuestionarios::todos()),
+            'instrumentos' => array_values(CatalogoQuestionarios::disponiveis()),
             'questionarios' => Inertia::defer(fn () => $this->historicoQuestionarios($paciente)),
             // Aba Programa (US-FISIO-006): queries → defer.
             'programa' => Inertia::defer(fn () => app(EditorProgramaPayload::class)->programaAtivo($paciente), 'programa'),
@@ -141,6 +148,18 @@ class PacientesController extends Controller
                 return $e;
             }),
             'serie_dor' => Inertia::defer(fn () => ($evolucao ??= app(PainelFisio::class)->evolucao($paciente))['serie_dor']),
+            // Laudo biopsicossocial (US-FISIO-060): catálogo da matriz é estático (vai junto); os laudos são query → defer.
+            'laudo_bps_dominios' => MatrizIfbrm::DOMINIOS,
+            'laudos_bps' => Inertia::defer(fn () => app(LaudoBiopsicossocialDocumento::class)->doPaciente($paciente, $this->businessId($request)), 'laudos_bps'),
+            // Exames e receitas (US-FISIO-063): a lista de tipos é estática (vai junto); os documentos são query → defer.
+            'documento_tipos' => DocumentoPaciente::TIPOS,
+            // Transcrição pela IA (parte 3): uma leitura de configuração da empresa, vai junto.
+            'transcricao_ia' => app(TranscricaoDocumentos::class)->ligada($this->businessId($request)),
+            'documentos' => Inertia::defer(fn () => app(DocumentosDoPaciente::class)->daFicha($paciente), 'documentos'),
+            'medicamentos' => Inertia::defer(fn () => app(MedicamentosDoPaciente::class)->daFicha($paciente), 'documentos'),
+            // Dados sociais (US-FISIO-061): listas fechadas vão junto (estáticas); os valores são query → defer.
+            'opcoes_sociais' => ['opcoes' => DadosSociais::OPCOES, 'comorbidades' => DadosSociais::COMORBIDADES, 'ufs' => DadosSociais::UFS],
+            'dados_sociais' => Inertia::defer(fn () => app(DadosSociais::class)->doPaciente($paciente), 'dados_sociais'),
         ]);
     }
 
@@ -389,6 +408,7 @@ class PacientesController extends Controller
             ->map(fn (Questionnaire $q) => [
                 'id' => $q->id,
                 'instrumento' => $q->instrument,
+                'versao' => $q->instrument_version,
                 'score' => $q->score !== null ? (float) $q->score : null,
                 'detalhe' => (array) ($q->answers['detalhe'] ?? []),
                 'answered_at' => $q->answered_at?->toIso8601String(),

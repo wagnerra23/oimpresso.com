@@ -63,7 +63,8 @@ last_run: "2026-10-21"
   (`total + qtd × preço × pct`), porque o extra percentual também sobe.
 - **Fonte:** §7 (fórmulas) + `RUNBOOK-insumos.md §1` (o desvio declarado).
 - **Teste:** `Wave33InsumosTest.php` — compara os dois caminhos com números concretos e
-  exige que difiram no caso `percentage` e coincidam em `fixed`.
+  exige que difiram no caso `percentage` e coincidam em `fixed`; e roda `usosDoInsumo` sobre
+  uma receita gravada com esses números (desde 2026-11-11 — antes a 2ª perna lia o fonte).
 - **Regressão que defende:** alguém "simplificar" a simulação copiando o protótipo e passar a
   subestimar o custo exatamente nas receitas de custo percentual.
 - **Status: 🧪**
@@ -99,10 +100,10 @@ last_run: "2026-10-21"
 - **Aceite:** Dado um `variacao_pct` fora da faixa (ex: 999) · Quando o controller monta o
   payload · Então o valor usado é o limite (60), não o que veio na URL.
 - **Fonte:** §4.4 (faixa do slider) + a regra de nunca confiar no range do cliente.
-- **Teste:** `Wave33InsumosTest.php` — assert estrutural sobre o clamp no controller.
-- ⚠️ **O que este teste NÃO prova:** que uma requisição HTTP real devolve o payload clampado —
-  isso é smoke (`RUNBOOK-insumos.md §5`), não Pest.
-- **Status: 🧪** — do que ele mede: o clamp existe no código.
+- **Teste:** `Wave33InsumosTest.php` — `GET /manufacturing/insumos` com `variacao_pct` 999,
+  −500 e 15 e lê a prop `variacao_pct` da resposta (desde 2026-11-11; antes era assert
+  estrutural sobre o texto do controller).
+- **Status: 🧪**
 
 ---
 
@@ -248,6 +249,16 @@ partes dos módulos **Então** o Compras não manda nada; **Dado** acesso ao pac
 **Então** manda o campo com o método atual das variações. É o mesmo gate do WooCommerce no formulário.
 
 Status: 🧪
+
+---
+
+## UC-INS-07 · Sem `view_purchase_price`, Insumos não traz custo
+- **Persona:** quem tem acesso a receitas, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre Insumos e escolhe um insumo · Então o custo do insumo e o custo e a margem por receita vêm vazios · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** a tela de impacto de preço entregar o preço de compra a quem não pode vê-lo.
+- **Status: 🧪**
 
 ---
 

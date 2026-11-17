@@ -9,6 +9,20 @@ id: requisitos-fiscal-capterra-inventario
 > ADR de governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md). Programa de Ondas Passo 2.
 > Base code-verified: `origin/main` (Fiscal module maduro pós-Waves 1-9).
 
+> ⚠️ **Reconciliação de 2026-11-06 (auditoria Fiscal, lote 4).** A tabela abaixo é o retrato de
+> 2026-07-03 e fica como está. Medido no `origin/main` 0eb214f534, mudaram:
+> - **cap #7 IBS/CBS** ❌ → entregue em parte: o motor calcula e o XML leva o grupo UB; CRT 3 sem
+>   opt-in (ADR 0442). Falta medir as rejeições da NT 2025.002 — ver US-FISCAL-021/025 no SPEC.
+> - **cap #11 SPED** — já não são "23 registros": são os 10 blocos obrigatórios (US-FISCAL-028 fatia 1).
+>   Bloco H real e o PVA seguem pendentes; a trava segue ligada.
+> - **cap #13 health-check do A1** 🟡 → entregue (US-FISCAL-022, `fiscal:cert-health-check`, alerta em
+>   `mcp_alertas_eventos`).
+> - **cap #5 Config** — o `ConfigController` não é mais só leitura: cert, ambiente, contingência e contador
+>   são editados na tela.
+> - ICMS-ST/DIFAL (#9828) e devolução (#9851) saíram depois; ver o SPEC do NfeBrasil.
+>
+> A nota da ficha (75/100) não foi recalculada: recalcular é rodar o `capterra-senior` de novo.
+
 ## Resumo
 
 | Bucket | Quantidade | % |
@@ -93,3 +107,4 @@ id: requisitos-fiscal-capterra-inventario
 ## Histórico
 
 - `2026-07-03` — Claude Code (`/comparativo Fiscal`) — **criação**. Programa de Ondas Passo 2. 21 capacidades classificadas (12✅/4🟡/5❌). Wagner OK [W] → **2 tasks criadas no MCP**: US-FISCAL-021 (P0 IBS/CBS) + US-FISCAL-022 (P1 health-check cert), apensas ao SPEC. 1 descartada (US-FISCAL-023 cache = duplicata de US-FISCAL-019 done — dedup falhou pq `tasks-list` só lista ativas; corrigido). 4 tasks seguram pra próxima onda (ICMS-ST/DIFAL, SPED Bloco H, entrada DF-e, MDF-e). Base `origin/main` fresca.
+- `2026-11-06` — Claude Code (auditoria Fiscal, lote 4) — **reconciliação** no topo (caps #5, #7, #11, #13); tabela de 2026-07-03 preservada.

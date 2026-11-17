@@ -2,75 +2,67 @@
     Laudo de evolução fisioterapêutica (Lote 2; protótipo prototipo-ui/cowork/Wagner/prototipos/fisio/Laudo.dc.html).
     Síntese de uma página para quem encaminhou — não substitui o prontuário (pdf.prontuario).
     Conteúdo montado por LaudoEvolucao a partir de registros assinados; nada é escrito na hora.
-    Mesmo padrão do prontuário: dompdf, DejaVu Sans, cores fixas (o dompdf não recebe os tokens do DS).
+    Base comum dos impressos (pdf/_base): cabeçalho da clínica, rodapé com o aviso de dado de saúde.
 --}}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Laudo de evolução</title>
-    <style>
-        @page { margin: 16mm 16mm 20mm; }
-        body { font-family: DejaVu Sans, sans-serif; font-size: 9.5pt; color: #1c1917; }
-        .cab { border-bottom: 1px solid #e7e5e4; padding-bottom: 3mm; margin-bottom: 4mm; }
-        .empresa { font-weight: bold; }
-        h1 { font-size: 14pt; margin: 4mm 0 1mm; }
-        h2 { font-size: 10pt; margin: 5mm 0 1.5mm; }
-        .dim { color: #57534e; font-size: 8pt; }
-        table { width: 100%; border-collapse: collapse; }
-        td, th { text-align: left; padding: 1.2mm 2mm 1.2mm 0; border-bottom: 1px solid #e7e5e4; vertical-align: top; }
-        th { font-size: 8pt; color: #57534e; font-weight: normal; }
-        .assinatura { margin-top: 14mm; width: 70mm; border-top: 1px solid #1c1917; padding-top: 1.5mm; }
-        #rodape { position: fixed; bottom: -12mm; left: 0; right: 0; font-size: 7.5pt; color: #57534e; }
-    </style>
-</head>
-<body>
+@extends('fisio::pdf._base', ['documento' => ['titulo' => 'Laudo de evolução fisioterapêutica']])
 
-<div id="rodape">Documento gerado a partir do prontuário (Res. COFFITO 414/2012). Contém dados de saúde; compartilhar só com o destinatário indicado.</div>
+@section('aviso')
+Documento gerado a partir do prontuário (Res. COFFITO 414/2012). Contém dados de saúde; compartilhar só com o destinatário indicado.
+@endsection
 
-<div class="cab">
-    <div class="empresa">{{ $empresa }}</div>
-    <h1>Laudo de evolução fisioterapêutica</h1>
-    <div class="dim">Emitido em {{ $emitido_em }}</div>
-</div>
+@section('estilos')
+<style>
+    .texto { margin: 0; }
+    .assinatura .data { margin-top: 6mm; font-size: 8pt; color: #58554f; }
+</style>
+@endsection
 
-<table>
+@section('conteudo')
+<h1 class="titulo-doc">Laudo de evolução fisioterapêutica</h1>
+<div class="subtitulo-doc">Síntese do acompanhamento a partir dos registros assinados no prontuário.</div>
+
+<table class="ficha">
     <tr><th>Paciente</th><td>{{ $paciente ?: '—' }}</td></tr>
     <tr><th>Período</th><td>{{ $periodo ?? 'sem registro assinado' }}</td></tr>
     <tr><th>Registros</th><td>{{ $contagem['avaliacoes'] }} avaliação(ões) · {{ $contagem['evolucoes'] }} evolução(ões) · {{ $contagem['telemonitoramentos'] }} telemonitoramento(s)</td></tr>
     <tr><th>Destinatário</th><td>&nbsp;</td></tr>
 </table>
 
-<h2>Diagnóstico fisioterapêutico</h2>
-<div>{{ $diagnostico ?? 'Não registrado na avaliação.' }}</div>
+<div class="secao">Diagnóstico fisioterapêutico</div>
+<p class="texto">{{ $diagnostico ?? 'Não registrado na avaliação.' }}</p>
 
-<h2>Medidas</h2>
+<div class="secao">Medidas</div>
 @if($medidas)
-    <table>
-        <tr><th>Questionário</th><th>Primeira aplicação</th><th>Mais recente</th></tr>
+    <table class="grade bloco">
+        <tr><th>Questionário</th><th class="num">Primeira aplicação</th><th class="num">Mais recente</th></tr>
         @foreach($medidas as $m)
-            <tr><td>{{ $m['instrumento'] }}</td><td>{{ $m['primeira'] ?? '—' }} ({{ $m['primeira_em'] }})</td><td>{{ $m['atual'] ?? '—' }} ({{ $m['atual_em'] }})</td></tr>
+            <tr>
+                <td>{{ $m['instrumento'] }}</td>
+                <td class="num">{{ $m['primeira'] ?? '—' }} <span class="nota">({{ $m['primeira_em'] }})</span></td>
+                <td class="num"><b>{{ $m['atual'] ?? '—' }}</b> <span class="nota">({{ $m['atual_em'] }})</span></td>
+            </tr>
         @endforeach
     </table>
-    <div class="dim">Pontuação como calculada no questionário; a leitura clínica é do profissional.</div>
+    <p class="nota" style="margin-top: 1.5mm">Pontuação como calculada no questionário; a leitura clínica é do profissional.</p>
 @else
-    <div class="dim">Nenhum questionário aplicado.</div>
+    <p class="nota">Nenhum questionário aplicado.</p>
 @endif
 
-<h2>Conduta realizada</h2>
-<div>{{ $conduta ?? 'Não registrada na última evolução.' }}</div>
+<div class="secao">Conduta realizada</div>
+<p class="texto">{{ $conduta ?? 'Não registrada na última evolução.' }}</p>
 @if($exercicios)
-    <div class="dim" style="margin-top: 1.5mm">Programa domiciliar ativo: {{ implode(' · ', $exercicios) }}</div>
+    <p class="nota" style="margin-top: 1.5mm">Programa domiciliar ativo: {{ implode(' · ', $exercicios) }}</p>
 @endif
 
-<h2>Objetivos e plano</h2>
-@if($objetivos)<div>{{ $objetivos }}</div>@endif
-<div>{{ $plano ?? 'Plano não registrado na avaliação.' }}</div>
+<div class="secao">Objetivos e plano</div>
+@if($objetivos)<p class="texto">{{ $objetivos }}</p>@endif
+<p class="texto">{{ $plano ?? 'Plano não registrado na avaliação.' }}</p>
 
 <div class="assinatura">
-    {{ $emitido_por ?: 'Fisioterapeuta' }}<br>
-    <span class="dim">Fisioterapeuta · CREFITO {{ $crefito ?? '__________' }}</span>
+    <div class="linha">
+        <div class="nome">{{ $emitido_por ?: 'Fisioterapeuta' }}</div>
+        <div class="dados">Fisioterapeuta · {{ $crefito ?? 'CREFITO __________' }}</div>
+    </div>
+    <div class="data">Emitido em {{ $emitido_em }}</div>
 </div>
-
-</body>
-</html>
+@endsection

@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 157 arquivos em 17 papéis.
+**Total mapeado:** 169 arquivos em 16 papéis.
 
 ## Controllers — 6
 
@@ -25,20 +25,18 @@ module: Manufacturing
 - [RecipeController.php](../../../Modules/Manufacturing/Http/Controllers/RecipeController.php)
 - [SettingsController.php](../../../Modules/Manufacturing/Http/Controllers/SettingsController.php)
 
-## Requests (validação) — 7
+## Requests (validação) — 4
 
-- [DestroyRecipeRequest.php](../../../Modules/Manufacturing/Http/Requests/DestroyRecipeRequest.php)
-- [StoreIngredientGroupRequest.php](../../../Modules/Manufacturing/Http/Requests/StoreIngredientGroupRequest.php)
+- [ValidaNumerosDaOrdem.php](../../../Modules/Manufacturing/Http/Requests/Concerns/ValidaNumerosDaOrdem.php)
 - [StoreProductionRequest.php](../../../Modules/Manufacturing/Http/Requests/StoreProductionRequest.php)
 - [StoreRecipeRequest.php](../../../Modules/Manufacturing/Http/Requests/StoreRecipeRequest.php)
-- [UpdateIngredientGroupRequest.php](../../../Modules/Manufacturing/Http/Requests/UpdateIngredientGroupRequest.php)
 - [UpdateProductionRequest.php](../../../Modules/Manufacturing/Http/Requests/UpdateProductionRequest.php)
-- [UpdateRecipeRequest.php](../../../Modules/Manufacturing/Http/Requests/UpdateRecipeRequest.php)
 
-## Services — 3
+## Services — 4
 
 - [InsumosDaReceitaService.php](../../../Modules/Manufacturing/Services/InsumosDaReceitaService.php)
 - [ProductionService.php](../../../Modules/Manufacturing/Services/ProductionService.php)
+- [ProdutosDeReceitaService.php](../../../Modules/Manufacturing/Services/ProdutosDeReceitaService.php)
 - [RecipeBomService.php](../../../Modules/Manufacturing/Services/RecipeBomService.php)
 
 ## Models / Entities — 3
@@ -46,10 +44,6 @@ module: Manufacturing
 - [MfgIngredientGroup.php](../../../Modules/Manufacturing/Entities/MfgIngredientGroup.php)
 - [MfgRecipe.php](../../../Modules/Manufacturing/Entities/MfgRecipe.php)
 - [MfgRecipeIngredient.php](../../../Modules/Manufacturing/Entities/MfgRecipeIngredient.php)
-
-## Console / Commands — 1
-
-- [ManufacturingHealthCommand.php](../../../Modules/Manufacturing/Console/Commands/ManufacturingHealthCommand.php)
 
 ## Providers — 2
 
@@ -81,18 +75,16 @@ module: Manufacturing
 
 - [ManufacturingDatabaseSeeder.php](../../../Modules/Manufacturing/Database/Seeders/ManufacturingDatabaseSeeder.php)
 
-## Config — 2
+## Config — 1
 
 - [config.php](../../../Modules/Manufacturing/Config/config.php)
-- [retention.php](../../../Modules/Manufacturing/Config/retention.php)
 
-## Views (Blade) — 14
+## Views (Blade) — 13
 
 - [index.blade.php](../../../Modules/Manufacturing/Resources/views/index.blade.php)
 - [master.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/master.blade.php)
 - [nav.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/nav.blade.php)
 - [common_script.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/partials/common_script.blade.php)
-- [sidebar.blade.php](../../../Modules/Manufacturing/Resources/views/layouts/partials/sidebar.blade.php)
 - [create.blade.php](../../../Modules/Manufacturing/Resources/views/production/create.blade.php)
 - [edit.blade.php](../../../Modules/Manufacturing/Resources/views/production/edit.blade.php)
 - [index.blade.php](../../../Modules/Manufacturing/Resources/views/production/index.blade.php)
@@ -140,13 +132,13 @@ module: Manufacturing
 - [Report.casos.md](../../../resources/js/Pages/Manufacturing/Report.casos.md)
 - [Settings.casos.md](../../../resources/js/Pages/Manufacturing/Settings.casos.md)
 
-## Testes (Pest) — 36
+## Testes (Pest) — 51
 
-- 35 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
+- 50 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
 - 1 em [Modules/Manufacturing/Tests/Support/](../../../Modules/Manufacturing/Tests/Support)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 42
+## Demais arquivos (manifestos, docs, assets e misc) — 44
 
 - [AssertsBusinessChain.php](../../../Modules/Manufacturing/Concerns/AssertsBusinessChain.php)
 - [HasManufacturingProductChain.php](../../../Modules/Manufacturing/Concerns/HasManufacturingProductChain.php)
@@ -181,6 +173,8 @@ module: Manufacturing
 - [lang.php](../../../Modules/Manufacturing/Resources/lang/tr/lang.php)
 - [lang.php](../../../Modules/Manufacturing/Resources/lang/vi/lang.php)
 - [.gitkeep](../../../Modules/Manufacturing/Resources/views/.gitkeep)
+- [EmpresaDaTrilhaDaReceita.php](../../../Modules/Manufacturing/Support/EmpresaDaTrilhaDaReceita.php)
+- [OcultaCusto.php](../../../Modules/Manufacturing/Support/OcultaCusto.php)
 - [.gitkeep](../../../Modules/Manufacturing/Tests/.gitkeep)
 - [ManufacturingUtil.php](../../../Modules/Manufacturing/Utils/ManufacturingUtil.php)
 - [composer.json](../../../Modules/Manufacturing/composer.json)

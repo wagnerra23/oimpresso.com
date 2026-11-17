@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Enviar exame ou receita</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+button{font:inherit;cursor:pointer}
+a{color:oklch(0.45 0.15 295)}
+</style>
+</helmet>
+<!--
+  US-FISIO-063 · tela do portal do paciente: enviar foto de exame ou receita.
+  Gerado pelo Code em 2026-11-11 (ADR 0282 §0.1), no padrão das telas Paciente*.
+  Antes do primeiro envio o paciente aceita o consentimento próprio desta finalidade
+  (separado do teleatendimento, revogável nas Configurações). O que ele envia chega à
+  clínica como pendente de conferência; não entra no prontuário sozinho.
+-->
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
+  <header style="padding: 22px 20px 8px; display: flex; align-items: center; gap: 12px">
+    <a href="PacienteHoje.dc.html" aria-label="Voltar" style="width: 44px; height: 44px; border-radius: 50%; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); display: grid; place-items: center; color: oklch(0.22 0.01 80)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600">Enviar exame ou receita</h1>
+  </header>
+
+  <div style="flex: 1; overflow: hidden; padding: 8px 20px 16px; display: flex; flex-direction: column; gap: 14px">
+    <section style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+      <h2 style="margin: 0; font-size: 16px; font-weight: 600">Antes do primeiro envio</h2>
+      <p style="margin: 0; font-size: 14px">A foto vai para a sua fisioterapeuta, que confere e guarda no seu prontuário. Ela fica guardada com segurança e só a clínica vê. Você pode retirar esta autorização nas Configurações; o que já foi guardado continua no prontuário.</p>
+      <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 14px"><input type="checkbox" checked style="width: 22px; height: 22px; margin: 0"> Autorizo enviar fotos de exames e receitas para a clínica.</label>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: oklch(0.50 0.01 80)">O que é</span>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+        <button type="button" aria-pressed="true" style="height: 48px; border-radius: 12px; border: 2px solid oklch(0.55 0.15 295); background: oklch(0.96 0.03 295)">Receita</button>
+        <button type="button" aria-pressed="false" style="height: 48px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF">Exame</button>
+        <button type="button" aria-pressed="false" style="height: 48px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF">Laudo médico</button>
+        <button type="button" aria-pressed="false" style="height: 48px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF">Outro</button>
+      </div>
+    </section>
+
+    <button type="button" style="height: 120px; border-radius: 14px; border: 2px dashed oklch(0.75 0.06 295); background: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span style="font-weight: 500">Tirar foto ou escolher arquivo</span>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">foto ou PDF, até 10 MB</span>
+    </button>
+
+    <label style="display: flex; flex-direction: column; gap: 4px; font-size: 14px">Recado para a clínica (opcional)
+      <input placeholder="Ex.: ressonância da coluna" style="height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid oklch(0.90 0.004 90); font: inherit">
+    </label>
+
+    <button type="button" style="height: 52px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font-weight: 600">Enviar para a clínica</button>
+
+    <p role="status" style="margin: 0; font-size: 13px; color: oklch(0.45 0.01 80)">Enviado em 10/11: ressonância da coluna · aguardando a clínica conferir.</p>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

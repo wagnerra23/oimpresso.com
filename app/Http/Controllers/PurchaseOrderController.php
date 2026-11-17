@@ -223,6 +223,79 @@ class PurchaseOrderController extends Controller
      * React (thread compras/playbook/06). Movido do index() sem reescrever: escopo por negócio, tipo, locais
      * permitidos, "ver os próprios" e os filtros da Blade. Travado por PedidosCompraBaselineTest.
      */
+    /**
+     * Ids que o formulário do pedido novo manda crus (auditoria Compras 2026-11-05, A2).
+     *
+     * - `purchase_requisition_ids` desce para `TransactionUtil::updatePurchaseOrderStatus`, que
+     *   troca o status da requisição sem filtrar empresa;
+     * - `purchases.*.purchase_requisition_line_id` desce para `ProductUtil::updatePurchaseOrderLine`,
+     *   que soma a quantidade pedida na linha da requisição;
+     * - `purchases.*.purchase_line_id` faz `createOrUpdatePurchaseLines` reaproveitar a linha pelo id
+     *   (`PurchaseLine::findOrFail`). Pedido novo não tem linha própria: qualquer id é forjado.
+     *
+     * A requisição tem de ser `purchase_requisition` desta empresa; a linha, de uma requisição desta empresa.
+     */
+    private function assertRefsDoPedidoNovo(Request $request): void
+    {
+        $toIds = fn ($ids) => collect($ids)->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)->unique()->values();
+
+        abort_if(
+            $toIds(collect($request->input('purchases', []))->pluck('purchase_line_id'))->isNotEmpty(),
+            422,
+            'Linha de compra inválida para um pedido novo.'
+        );
+
+        $this->assertRefsDoPedido($request);
+    }
+
+    /**
+     * Ids que o formulário do pedido manda crus, ao criar e ao editar (UC-PEDC-11, ADR 0093).
+     *
+     * `purchases.*.purchase_order_line_id` e `purchases.*.purchase_requisition_line_id` descem para
+     * `ProductUtil::updatePurchaseOrderLine`, que soma a quantidade na linha sem filtrar empresa;
+     * `purchase_requisition_ids` desce para `TransactionUtil::updatePurchaseOrderStatus`. A edição
+     * reenvia só referências que a própria empresa já tinha, então a mesma trava vale nas duas portas.
+     */
+    private function assertRefsDoPedido(Request $request): void
+    {
+        $business_id = (int) $request->session()->get('user.business_id');
+        $toIds = fn ($ids) => collect($ids)->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)->unique()->values();
+        $linhas = collect($request->input('purchases', []));
+
+        $requisicoes = $toIds($request->input('purchase_requisition_ids', []));
+        if ($requisicoes->isNotEmpty()) {
+            $validas = Transaction::where('business_id', $business_id)
+                ->where('type', 'purchase_requisition')
+                ->whereIn('id', $requisicoes->all())
+                ->count();
+            abort_if($validas !== $requisicoes->count(), 422, 'Requisição de compra inválida para este negócio.');
+        }
+
+        $linhasRequisicao = $toIds($linhas->pluck('purchase_requisition_line_id'));
+        if ($linhasRequisicao->isNotEmpty()) {
+            $validas = PurchaseLine::query()
+                ->join('transactions', 'transactions.id', '=', 'purchase_lines.transaction_id')
+                ->whereIn('purchase_lines.id', $linhasRequisicao->all())
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_requisition')
+                ->count();
+            abort_if($validas !== $linhasRequisicao->count(), 422, 'Linha de requisição inválida para este negócio.');
+        }
+
+        $linhasPedido = $toIds($linhas->pluck('purchase_order_line_id'));
+        if ($linhasPedido->isNotEmpty()) {
+            $validas = PurchaseLine::query()
+                ->join('transactions', 'transactions.id', '=', 'purchase_lines.transaction_id')
+                ->whereIn('purchase_lines.id', $linhasPedido->all())
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_order')
+                ->count();
+            abort_if($validas !== $linhasPedido->count(), 422, 'Linha de pedido de compra inválida para este negócio.');
+        }
+    }
+
     private function consultaPedidos(int $business_id, Request $request)
     {
         $purchase_orders = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
@@ -431,6 +504,10 @@ class PurchaseOrderController extends Controller
         if (! auth()->user()->can('purchase_order.create')) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Tier 0 (ADR 0093) — fora do try de propósito: dentro dele o 422 virava o
+        // "algo deu errado" do catch genérico e o pedido seguia sem dizer por quê.
+        $this->assertRefsDoPedidoNovo($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -755,16 +832,25 @@ class PurchaseOrderController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        try {
-            $transaction = Transaction::findOrFail($id);
+        $business_id = request()->session()->get('user.business_id');
 
+        // Tier 0 (ADR 0093): App\Transaction não tem global scope. O findOrFail($id) cru
+        // deixava editar o pedido de OUTRA empresa pelo id da URL (auditoria Compras
+        // 2026-11-05, A1). Pedido de outra empresa, ou id que não é pedido, responde 404.
+        // Fora do try de propósito: dentro dele o catch genérico chamava DB::rollBack() sem
+        // transação aberta e devolvia a mensagem da exceção como se fosse erro de validação.
+        $transaction = Transaction::where('business_id', $business_id)
+            ->where('type', 'purchase_order')
+            ->findOrFail($id);
+
+        // Tier 0 (ADR 0093) — fora do try pelo mesmo motivo do store(): dentro dele o 422 vira mensagem genérica.
+        $this->assertRefsDoPedido($request);
+
+        try {
             //Validate document size
             $request->validate([
                 'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
             ]);
-
-            $transaction = Transaction::findOrFail($id);
-            $business_id = request()->session()->get('user.business_id');
 
             $currency_details = $this->transactionUtil->purchaseCurrencyDetails($business_id);
 
@@ -847,10 +933,23 @@ class PurchaseOrderController extends Controller
 
             $this->transactionUtil->activityLog($transaction, 'edited', $transaction_before);
 
+            // US-COM-032 (auditoria 2026-11-05, A7): a alçada era decidida só quando o pedido
+            // nascia. Subir o valor na edição mantinha a aprovação dada ao valor antigo e o
+            // pedido podia virar compra recebida sem quem tem alçada ver o valor novo. Valor
+            // mudou: a regra roda de novo para o valor gravado, com quem editou como autor.
+            $aprovacao = null;
+            if ((string) $transaction_before->final_total !== (string) $transaction->fresh()->final_total
+                && class_exists(\Modules\Compras\Services\AlcadaDoPedido::class)) {
+                $aprovacao = app(\Modules\Compras\Services\AlcadaDoPedido::class)
+                    ->registrar((int) $business_id, (int) $transaction->id, (int) auth()->id());
+            }
+
             DB::commit();
 
             $output = ['success' => 1,
-                'msg' => __('purchase.purchase_update_success'),
+                'msg' => $aprovacao === 'pendente'
+                    ? 'Pedido salvo. O valor novo passou do seu limite e aguarda aprovação.'
+                    : __('purchase.purchase_update_success'),
             ];
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1019,7 +1118,10 @@ class PurchaseOrderController extends Controller
 
         if ($request->ajax()) {
             $business_id = request()->session()->get('user.business_id');
+            // D3 (auditoria de Compras, 2026-11-05): só pedido de compra. Antes, qualquer
+            // transação da empresa (venda, compra, despesa) abria este modal.
             $transaction = Transaction::where('business_id', $business_id)
+                                ->where('type', 'purchase_order')
                                 ->findOrFail($id);
 
             $status = $transaction->status;
@@ -1045,8 +1147,16 @@ class PurchaseOrderController extends Controller
         if ($request->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
+                // D3: só pedido de compra, e só um status da lista do pedido. Antes qualquer
+                // transação da empresa aceitava qualquer texto em `status` (ex.: uma venda
+                // final virava `ordered`).
                 $transaction = Transaction::where('business_id', $business_id)
+                                ->where('type', 'purchase_order')
                                 ->findOrFail($id);
+
+                if (! array_key_exists((string) $request->input('status'), $this->purchaseOrderStatuses)) {
+                    throw new \InvalidArgumentException('Status fora da lista do pedido de compra.');
+                }
 
                 $transaction_before = $transaction->replicate();
 

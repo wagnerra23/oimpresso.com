@@ -6,6 +6,7 @@ namespace Modules\OficinaAuto\Http\Requests;
 
 use App\Domain\Oficina\PlacaVeiculo;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
@@ -41,7 +42,18 @@ class StoreVehicleRequest extends FormRequest
             'secondary_plate'   => ['nullable', 'string', 'max:10'],
             'chassis'           => ['nullable', 'string', 'max:30'],
             'secondary_chassis' => ['nullable', 'string', 'max:30'],
-            'contact_id'        => ['nullable', 'integer'],
+            // exists ESCOPADO por business (Tier 0 ADR 0093): sem ele o veículo aceitava
+            // cliente de outra empresa, e a venda derivada da OS saía em nome desse cliente.
+            'contact_id'        => [
+                'nullable',
+                'integer',
+                Rule::exists('contacts', 'id')->where(
+                    fn ($query) => $query->where(
+                        'business_id',
+                        (int) (session('user.business_id') ?? session('business.id') ?? 0)
+                    )
+                ),
+            ],
             'manufacture_year'  => ['nullable', 'integer', 'min:1900', 'max:2100'],
             'model_year'        => ['nullable', 'integer', 'min:1900', 'max:2100'],
             'renavam'           => ['nullable', 'string', 'max:11'],

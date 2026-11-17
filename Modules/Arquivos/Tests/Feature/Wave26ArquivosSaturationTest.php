@@ -30,15 +30,18 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
         config()->set('otel.enabled', false);
     });
 
-    it('D1: Arquivo Entity usa SoftDeletes + LogsActivity + global scope', function () {
+    it('D1: Arquivo Entity usa SoftDeletes + LogsActivity e declara o global scope business_id', function () {
         $traits = class_uses_recursive(Arquivo::class);
 
         expect(in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, $traits, true))->toBeTrue();
         expect(in_array(\Spatie\Activitylog\Traits\LogsActivity::class, $traits, true))->toBeTrue();
 
-        // Global scope multi-tenant Tier 0
-        $src = file_get_contents((new ReflectionClass(Arquivo::class))->getFileName());
-        expect($src)->toContain("addGlobalScope('business_id'");
+        // Global scope multi-tenant Tier 0. Desde 2026-11-16 (ADR 0453, auditoria L2) o scope
+        // mora na trait EscopoDeEmpresa, não no fonte do Arquivo: confere o scope REGISTRADO,
+        // não a string no arquivo. O `new` sobe o model: antes do boot o registro de scopes
+        // está vazio e `hasGlobalScope` responde false mesmo com a trait no lugar.
+        new Arquivo();
+        expect(Arquivo::hasGlobalScope('business_id'))->toBeTrue();
     });
 
     it('D1: HasArquivos trait expoe API canônica (arquivos, attachArquivo, arquivosClassificados)', function () {
@@ -91,13 +94,14 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
         expect($src)->toContain("useLogName('arquivos.arquivo')");
     });
 
-    it('D7: ArquivosService.audit usa PiiRedactor (defesa em profundidade payload)', function () {
+    it('D7: o fonte do ArquivosService referencia PiiRedactor e redactPayload', function () {
         $src = file_get_contents((new ReflectionClass(ArquivosService::class))->getFileName());
 
         expect($src)->toContain('PiiRedactor');
         expect($src)->toContain('redactPayload');
-        // fail-open: audit > redaction (LGPD pragmatismo)
-        expect($src)->toContain('fail-open');
+        // Desde 2026-11-16 (auditoria L2, #10981) o redator falha FECHADO. O comportamento é
+        // provado em ArquivosConsertosL2Test ("redator do audit indisponível: payload cru NÃO passa").
+        expect($src)->not->toContain('fail-open');
     });
 
     it('D9: ArquivosService spans count >= 6 canon arquivos.* (Wave 18 + 26)', function () {
@@ -110,7 +114,7 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
         expect($src)->toContain("'arquivos.dedupe_lookup'");
     });
 
-    it('D9: ArquivosService.dedupe NUNCA inclui md5 em span attributes (defesa em profundidade)', function () {
+    it('D9: o span arquivos.dedupe_lookup existe e o fonte registra a decisão de não pôr md5 nos atributos', function () {
         $src = file_get_contents((new ReflectionClass(ArquivosService::class))->getFileName());
 
         // Verifica que existe a span dedupe_lookup

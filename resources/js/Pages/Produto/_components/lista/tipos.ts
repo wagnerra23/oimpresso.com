@@ -24,6 +24,8 @@ export interface LinhaProduto {
   alerta: number | null;
   abaixo_do_alerta: boolean;
   inativo: boolean;
+  /** UC-PIDX-45 (AR-PROD-022): excluído — guardado, só aparece em "Situação: Excluídos" e pode ser restaurado. */
+  excluido?: boolean;
   nao_para_venda: boolean;
   serie: boolean;
   locais: string[];
@@ -100,7 +102,7 @@ export interface FiltrosLista {
   unit_id: string | null;
   tax_id: string | null;
   location_id: string | null;
-  active_state: 'active' | 'inactive' | null;
+  active_state: 'active' | 'inactive' | 'excluido' | null;
   not_for_selling: boolean;
   woocommerce_enabled: boolean;
   repair_model_id: string | null;
@@ -108,6 +110,10 @@ export interface FiltrosLista {
   natureza_fiscal: NaturezaFiscal | null;
   /** UC-PIDX-35 — ligado pelo clique no indicador "Abaixo do alerta". */
   abaixo_do_alerta: boolean;
+  /** UC-PIDX-42 — produtos sem NCM válido; só em empresa que emite nota. */
+  falta_ncm?: boolean;
+  /** UC-PIDX-44 — "Uso" (CV1): para vender, material (entra em receita) ou serviço (natureza fiscal). */
+  uso?: Uso | null;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -176,7 +182,7 @@ export interface RelatorioEstoqueLista {
 
 /** Painel de detalhe (ProductController::buildProdutoDetalhe). Chave de preço ausente = sem permissão. */
 /** Abas do painel de detalhe. Quem abre o painel escolhe em qual ele começa. */
-export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'roteiro' | 'fiscal' | 'prateleira';
+export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'lotes' | 'receita' | 'roteiro' | 'fiscal' | 'prateleira';
 
 /** Preço proposto pela compra recebida, aguardando aprovação (UC-PIDX-28). */
 export interface PrecoPropostoDoProduto {
@@ -194,6 +200,33 @@ export interface PrecoPropostoDoProduto {
   compra_url: string | null;
 }
 
+/**
+ * UC-PIDX-48 (D-29): a receita da Fabricação, só leitura. Os números são os da tela de Receitas. Custo,
+ * custo por unidade e margem vêm null para quem não vê o preço de compra; `link` (abrir a receita na
+ * Fabricação) vem null para quem não abre as receitas.
+ */
+export interface ReceitaDoProdutoNoPainel {
+  nome: string;
+  sku: string;
+  rendimento: number;
+  unidade: string;
+  insumos: Array<{ nome: string; sku: string; quantidade: number; unidade: string }>;
+  custo_total: number | null;
+  custo_unitario: number | null;
+  margem: number | null;
+  link: string | null;
+}
+
+/**
+ * UC-PIDX-49 (CV3): os lotes do produto com saldo, pela mesma consulta do relatório de Lotes. Cada rolo é um
+ * lote. `mais` = há mais lotes que os mostrados; `link` abre o relatório filtrado no produto.
+ */
+export interface LotesDoProdutoNoPainel {
+  lotes: Array<{ lote: string; variacao: string | null; validade: string; vencido: boolean; estoque: number; unidade: string }>;
+  mais: boolean;
+  link: string;
+}
+
 /** Roteiro de produção do produto, com o posto e o setor de cada etapa (UC-PIDX-29). */
 export interface RoteiroDoProduto {
   nome: string;
@@ -207,6 +240,10 @@ export interface DetalheProdutoDados {
   sku: string;
   tipo: TipoProduto;
   inativo: boolean;
+  /** UC-PIDX-45: excluído. O painel não oferece Editar nem Preços por grupo — quem quer mexer restaura antes. */
+  excluido?: boolean;
+  /** UC-PIDX-46 (resto da CV1): o "Uso" do produto, pela regra do filtro (UC-PIDX-44). Material e Serviço podem vir juntos. */
+  uso?: Uso[];
   imagem: string | null;
   dados: {
     codigo_de_barras: string;
@@ -304,6 +341,10 @@ export interface DetalheProdutoDados {
   };
   /** null = sem o módulo Produção ou produto sem roteiro. */
   roteiro?: RoteiroDoProduto | null;
+  /** UC-PIDX-48: null = a empresa não tem a Fabricação; [] = o produto não tem receita. */
+  receitas?: ReceitaDoProdutoNoPainel[] | null;
+  /** UC-PIDX-49: null = sem ver o relatório de estoque ou produto sem controle de estoque. */
+  lotes?: LotesDoProdutoNoPainel | null;
   /** Só vem para quem vê o preço de venda (ausência ≠ lista vazia). */
   precos_propostos?: PrecoPropostoDoProduto[];
   /** UC-PIDX-30: ausente sem permissão de ver requisições; null = nenhuma aberta. */
@@ -345,6 +386,8 @@ export interface ContextoLista {
   rotulos_campos: Record<string, string | null>;
   /** O filtro "Natureza fiscal" existe (módulo Fiscal ligado). */
   natureza_fiscal?: boolean;
+  /** UC-PIDX-44 — opções do filtro "Uso" que a empresa tem; com uma só, o filtro não aparece. */
+  usos?: Uso[];
   /** Chave `useV2ProdutoCadastro` ligada para a empresa: as ações abrem as telas React prontas. */
   telas_react?: boolean;
 }
@@ -359,6 +402,8 @@ export interface PermissoesLista {
   etiquetas?: boolean;
   view_purchase_price?: boolean;
   access_default_selling_price?: boolean;
+  /** `product.armazenagem` (#10765): só os locais de armazenagem do produto. */
+  armazenagem?: boolean;
 }
 
 /** Rótulos do protótipo (TYPE_LABEL do produto-blade.jsx). */
@@ -419,7 +464,7 @@ export function subLinhaProduto(l: LinhaProduto): string {
   return [
     l.controla_estoque ? 'Estoque gerenciado' : 'Sem controle de estoque',
     l.nao_para_venda ? 'não para venda' : null,
-    l.inativo ? 'inativo' : null,
+    l.excluido ? 'excluído' : l.inativo ? 'inativo' : null,
     l.tipo === 'variable' ? `${l.variacoes} ${l.variacoes === 1 ? 'variação' : 'variações'}` : null,
   ]
     .filter(Boolean)
@@ -464,7 +509,8 @@ export function colunasOpcionais(rotulos: Record<string, string | null>, temAliq
     { id: 'compra', rotulo: 'Preço de compra un.', padrao: true },
     { id: 'venda', rotulo: 'Preço de venda', padrao: true },
     { id: 'estoque', rotulo: 'Estoque atual', padrao: true },
-    { id: 'tipo', rotulo: 'Tipo', padrao: true },
+    // UC-PIDX-46 (resto da CV1): o Tipo sai do padrão — o painel já diz o que é; segue no menu Colunas.
+    { id: 'tipo', rotulo: 'Tipo', padrao: false },
     { id: 'categoria', rotulo: 'Categoria', padrao: true },
     { id: 'marca', rotulo: 'Marca', padrao: true },
     ...(temAliquota ? [{ id: 'imposto', rotulo: 'Imposto', padrao: false }] : []),
@@ -490,9 +536,30 @@ export const NATUREZAS_FISCAIS: Opcao[] = [
   { id: 'servico', nome: 'Serviço (NFS-e)' },
   { id: 'pendente', nome: 'A decidir pelo contador' },
 ];
+/** UC-PIDX-44 (CV1): o "Uso" do produto na consulta. */
+export type Uso = 'vender' | 'material' | 'servico';
+export const USOS: Array<Opcao & { id: Uso }> = [
+  { id: 'vender', nome: 'Para vender' },
+  { id: 'material', nome: 'Material' },
+  { id: 'servico', nome: 'Serviço' },
+];
+/**
+ * UC-PIDX-46 (resto da CV1): o "O que é" do painel — o uso, e a forma do cadastro só quando ela muda
+ * alguma coisa: "Para vender · com 8 variações", "Material · kit com 4 itens". Produto único não diz
+ * "único": é o caso comum e não acrescenta nada.
+ */
+export function oQueE(uso: Uso[] | undefined, tipo: TipoProduto, variacoes: number, itensDoKit: number): string {
+  const nomes = (uso && uso.length > 0 ? uso : (['vender'] as Uso[])).map((u) => USOS.find((x) => x.id === u)?.nome ?? u);
+  const partes = [nomes.join(' e ')];
+  if (tipo === 'variable') partes.push(`com ${variacoes} ${variacoes === 1 ? 'variação' : 'variações'}`);
+  if (tipo === 'combo') partes.push(`kit com ${itensDoKit} ${itensDoKit === 1 ? 'item' : 'itens'}`);
+  return partes.join(' · ');
+}
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },
+  // UC-PIDX-45 (AR-PROD-022): o excluído some da lista e aparece só aqui.
+  { id: 'excluido', nome: 'Excluídos' },
 ];
 
 /** Colunas que nascem ligadas (PB_COLS_PADRAO do protótipo). */
@@ -532,8 +599,16 @@ export function chipsDosFiltros(
   if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: `Natureza fiscal: ${nome(NATUREZAS_FISCAIS, f.natureza_fiscal)}` });
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
   if (f.abaixo_do_alerta) out.push({ chave: 'abaixo_do_alerta', rotulo: 'Abaixo do alerta' });
+  if (f.falta_ncm) out.push({ chave: 'falta_ncm', rotulo: 'Falta NCM' });
+  if (f.uso) out.push({ chave: 'uso', rotulo: `Uso: ${nome(USOS, f.uso)}` });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
   if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });
   return out;
+}
+
+/** UC-PIDX-43: só os dígitos, se formarem um NCM válido (8 dígitos, não 00000000); senão null. */
+export function ncmDigitado(texto: string): string | null {
+  const d = texto.replace(/[^0-9]/g, '');
+  return d.length === 8 && d !== '00000000' ? d : null;
 }

@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: reprogramar para máquina que o operador não opera, ou por cima de outra OS, para a fábrica; ver a máquina de outra empresa é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-22"
-last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoLinhaContratoTest."
+last_run: "2026-11-16"
+last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
 # Casos de Uso & Aceite — Produção · Linha do tempo (`/producao/linha`)
@@ -23,7 +23,7 @@ termina depois do fim do turno da empresa, ou depois da entrega prometida, tem b
 útil" mostra o dia seguinte do calendário de produção, pulando folga e feriado · etapa de outro dia ou de outra
 empresa não aparece. Ver a linha pede `producao.access`.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-09 · Gargalo com sugestão aplicável · `should`
 
@@ -33,7 +33,7 @@ primeiro livre depois dele · **Quando** aplico **Então** a etapa muda de máqu
 "Desfazer" volta a etapa para onde estava · máquina dentro da capacidade não gera sugestão. Regra simples (D5):
 nunca move sozinho.
 
-Status: 🧪
+Status: ✅
 
 ## UC-PCV-30 · Reprogramar arrastando na linha do tempo · `must`
 
@@ -44,4 +44,22 @@ não se move · passar do fim do turno move e avisa · trocando para máquina co
 incluem o responsável, a tela pergunta quem faz e só grava com um operador dela (UC-FLX-08) · cada
 reprogramação vira evento e avisa o responsável no app. Pede `producao.etapa.mover`; etapa de outra empresa → 404.
 
-Status: 🧪
+Status: ✅
+
+## UC-PCLIN-01 · Agrupar por mídia na impressão · `could`
+
+**Âncora:** alerta "Mesma mídia: dá para agrupar" da vista `Linha` de `producao-cv-page.jsx` ("Regra simples; o encaixe
+na bobina é da versão 2") e lote 4.3 da auditoria, aprovado por [W] em 2026-11-05.
+
+**Dado** hoje, numa máquina do setor de impressão, duas OS de orçamento que usam a mesma mídia (uma só cada) separadas
+por bloco de outra mídia, a segunda ainda na fila, e o horário logo depois da primeira livre e dentro do
+turno **Então** a tela avisa a mídia, a máquina e o horário, com "Agrupar" para quem tem `producao.etapa.mover` ·
+**Quando** agrupo **Então** a etapa vai para esse horário pela mesma reprogramação do UC-PCV-30 e o aviso vira
+"Agrupado por mídia" · sem bloco de outra mídia entre as duas, em máquina de outro setor, com a segunda já iniciada
+ou sem caber, ou com horário já passado, não há aviso. Dado de outra empresa não entra. Nunca move sozinho.
+
+Status: ✅
+
+## Trilha do tempo
+- 2026-11-09 · [W+C] Auditoria lote 4.3: aviso de mesma mídia na Linha (UC-PCLIN-01). O Non-Goal do charter passa a valer só para o encaixe na bobina.
+- 2026-11-06 · [W+C] Auditoria lote 3.5: clicar no bloco sem arrastar (ou Enter) abre a Ficha da OS por item; o arrastar para reprogramar segue igual. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.

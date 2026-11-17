@@ -1,18 +1,12 @@
 <?php
 
-use Illuminate\Http\Request;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
+| O módulo não expõe API. O RouteServiceProvider ainda carrega este arquivo,
+| por isso ele existe vazio. A rota de scaffold `GET /api/productcatalogue`
+| (devolvia o usuário autenticado) foi removida em 2026-11-12: nenhum consumidor.
 |
 */
-
-Route::middleware('auth:api')->get('/productcatalogue', function (Request $request) {
-    return $request->user();
-});

@@ -19,6 +19,8 @@ use Tests\Support\WithSeededTenant;
  * US-COM-024 · UC-FLX-38 — "Método de custo" no cadastro do produto (formulário Blade de editar),
  * gravado pelo gancho `after_product_saved` do módulo Compras no `PUT /products/{id}` real.
  * Cobre UC-INSMET-10..16 (resources/js/Pages/Manufacturing/Insumos.casos.md).
+ * Cobre também UC-PEDIT-17 (resources/js/Pages/Produto/Edit.casos.md): as props que a tela React
+ * do Editar recebe (`metodoCusto`), as mesmas do formulário Blade.
  *
  * Âncora de contrato: memory/requisitos/Compras/SPEC.md US-COM-024. Vale para qualquer item
  * comprado (matéria-prima ou revenda): o app não marca tipo de produto.
@@ -238,4 +240,44 @@ it('UC-INSMET-16 · UC-FLX-38 · o campo só vai ao formulário de quem tem o m�
     expect($parte['template_path'] ?? null)->toBe('compras::partials.metodo_custo_produto')
         ->and($parte['template_data']['compras_metodo_custo_atual'])->toBe('ultimo')
         ->and($parte['template_data']['compras_metodo_custo_editavel'])->toBeTrue();
+});
+
+/** GET /products/{id}/edit como visita do Inertia: devolve as props da tela React Produto/Edit. */
+function propsDaTelaDeEditar($teste, int $productId): array
+{
+    $resposta = $teste->get("/products/{$productId}/edit", [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+    ]);
+    expect($resposta->status())->toBe(200, 'PRÉ-CONDIÇÃO: a visita Inertia ao Editar não abriu a tela React.');
+    expect($resposta->json('component'))->toBe('Produto/Edit');
+
+    return (array) $resposta->json('props');
+}
+
+it('UC-PEDIT-17 · UC-FLX-38 · a tela React do Editar recebe o método, a regra da empresa e se pode editar, como o Blade', function () {
+    foreach ($this->variacoes as $v) {
+        DB::table('compras_insumo_metodo_custo')->insert([
+            'business_id' => $this->biz->id, 'variation_id' => $v, 'metodo' => 'ultimo',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+    // Só o gate do pacote é fixado; o resto do ModuleUtil segue real (a tela usa outros métodos dele).
+    $this->partialMock(ModuleUtil::class)->shouldReceive('hasThePermissionInSubscription')->andReturn(true);
+
+    $metodo = propsDaTelaDeEditar($this, $this->produto->productId)['metodoCusto'] ?? null;
+
+    expect($metodo)->toBeArray()
+        ->and($metodo['atual'])->toBe('ultimo')
+        ->and($metodo['editavel'])->toBeTrue()
+        ->and($metodo['empresa'])->toBe(app(\App\Contracts\Compras\CustoDoInsumo::class)->metodoDaEmpresa($this->biz->id));
+});
+
+it('UC-PEDIT-17 · UC-FLX-38 · sem o módulo Compras no pacote a tela React não recebe o método (o campo não aparece)', function () {
+    $this->partialMock(ModuleUtil::class)->shouldReceive('hasThePermissionInSubscription')->andReturn(false);
+
+    $props = propsDaTelaDeEditar($this, $this->produto->productId);
+
+    expect($props)->toHaveKey('metodoCusto')
+        ->and($props['metodoCusto'])->toBeNull();
 });

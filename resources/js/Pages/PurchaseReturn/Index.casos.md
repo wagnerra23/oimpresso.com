@@ -49,9 +49,19 @@ last_run: "2026-10-13"
   quantidade de cada status igual à contagem das linhas · E o rótulo de `paid` é o "recebido" da Blade.
 - **Status: 🧪**
 
+## UC-DEVC-06 · Editar a devolução só alcança linha dela mesma · `[T0]`
+- **Aceite:** Dado uma linha de compra de outra empresa · Quando a edição da devolução (`/purchase-return/update`)
+  chega com o `purchase_line_id` dela · Então nada é gravado: a linha continua na compra de origem, com a quantidade
+  devolvida de antes, e a devolução não ganha linha. A linha da própria devolução é editada normalmente. O mesmo vale
+  no ponto de uso das compras e pedidos (`ProductUtil::createOrUpdatePurchaseLines`): só linha da transação gravada.
+- **Teste:** `tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php`
+- **Contrato:** ADR 0093. Auditoria Compras 2026-11-05, achado A4.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Total devolvido e total devido (rodapé/KPIs) — decisão [W], com dupla prova.
 - [BACKLOG] Registrar pagamento, editar e excluir pela tela nova (PR próprio, regra mestre de valor).
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] criado com a F3 da thread `compras/playbook/08`.
+- 2026-11-05 · [CL] UC-DEVC-06 (lote 0 da auditoria de Compras, PR 0.5).

@@ -5,6 +5,7 @@ namespace Modules\Fiscal\Http\Controllers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Fiscal\Services\NotasUnifiedService;
@@ -99,9 +100,10 @@ class CockpitController extends Controller
             // Onda 2 — drawers do header (Eventos + Enviar p/ contabilidade)
             'eventosMock'    => $this->mockEventos(),
             'contabilData'   => $this->mockContabilData(),
-            // Onda 3 L — auditoria mensal (write-off candidatos determinístico, sem IA)
-            'writeOffSummary' => $this->mockWriteOffSummary(),
             'procedencia'     => $this->procedencia(),
+            // Atalho "Naturezas de operação" no topo (RUNBOOK-tributacao §Naturezas): a seção
+            // mora na Tributação; aqui é só o caminho até ela. null = botão não aparece.
+            'naturezasUrl'    => $this->naturezasUrl($businessId),
         ]);
     }
 
@@ -169,28 +171,6 @@ class CockpitController extends Controller
                 'origem'  => 'demonstracao',
                 'explica' => 'Números do pacote e histórico de envios são fixos no código, e o envio por e-mail/SFTP ainda não existe.',
             ],
-            'writeoff' => [
-                'origem'  => 'demonstracao',
-                'explica' => 'Candidatos e valores são fixos no código. Ser real depende de consultar fin_titulos vencidos há mais de 365 dias sem pagamento.',
-            ],
-        ];
-    }
-
-    /**
-     * Mock summary write-off candidatos. Onda 3 L. Determinístico (sem IA).
-     * TODO[CL]: substituir por WriteOffAuditService::analyzeMonth() —
-     * query fin_titulos WHERE due_at < now()-365d AND payment_count=0.
-     *
-     * @return array<string, mixed>|null
-     */
-    protected function mockWriteOffSummary(): ?array
-    {
-        return [
-            'totalCandidates' => 2470,
-            'totalValor'      => 770_000.00,
-            'oldestAge'       => 1847, // ~5 anos
-            'category'        => 'incobravel',
-            'scopeLabel'      => 'Inadimplência >365d',
         ];
     }
 
@@ -275,6 +255,23 @@ class CockpitController extends Controller
     }
 
     /** Empresa ativa — a mesma chave de sessão que o ScopeByBusiness lê. 0 = sem empresa. */
+    /**
+     * URL da seção Naturezas de operação, ou null quando o atalho não deve aparecer: flag
+     * `useV2NfeNaturezas` desligada para a empresa, usuário sem `nfe.tributacao.manage`
+     * (a mesma permissão que a rota da Tributação exige) ou rota ausente.
+     */
+    protected function naturezasUrl(int $businessId): ?string
+    {
+        $user = auth()->user();
+        $podeTributacao = $user->can('superadmin') || $user->can('nfe.tributacao.manage');
+        $liberado = app(\App\Services\FeatureFlagService::class)
+            ->isOn('useV2NfeNaturezas', ['business_id' => $businessId]);
+
+        return $podeTributacao && $liberado && Route::has('nfe-brasil.tributacao.index')
+            ? route('nfe-brasil.tributacao.index').'#naturezas'
+            : null;
+    }
+
     protected function businessIdDaSessao(): int
     {
         return (int) (session('user.business_id') ?? 0);
@@ -486,6 +483,20 @@ class CockpitController extends Controller
             ];
         }
 
+        // Crit: a venda cancelou e a NF-e não (CancelarNfeJob::failed). O prazo legal maior é de
+        // 7 dias: depois disso cancelar já não é opção e o alerta para de aparecer.
+        $falhaCancelamento = $this->ultimaFalhaCancelamentoNfe($this->businessIdDaSessao());
+        if ($falhaCancelamento !== null) {
+            $alerts[] = [
+                'level'  => 'crit',
+                'icon'   => 'receipt',
+                'title'  => 'Venda cancelada com NF-e ainda autorizada',
+                'sub'    => mb_strimwidth((string) $falhaCancelamento->descricao, 0, 140, '…'),
+                'action' => 'Abrir notas',
+                'goto'   => 'nfe',
+            ];
+        }
+
         // Info: DF-e pendente manifestação (reusa $dfeCount do contexto)
         $dfeCount = $contexto['dfeCount'];
         if ($dfeCount > 0) {
@@ -514,6 +525,22 @@ class CockpitController extends Controller
             ->where('tipo', \Modules\NfeBrasil\Jobs\BuscarDfesRecebidosJob::TIPO_ALERTA)
             ->whereIn('status', ['aberto', 'notificado'])
             ->where('criado_em', '>=', now()->subDays(3))
+            ->orderByDesc('criado_em')
+            ->first(['descricao', 'criado_em']);
+    }
+
+    /** Alerta aberto mais recente de NF-e que não cancelou depois da venda cancelada, só da empresa. */
+    protected function ultimaFalhaCancelamentoNfe(int $businessId): ?object
+    {
+        if ($businessId <= 0 || ! \Illuminate\Support\Facades\Schema::hasTable('mcp_alertas_eventos')) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\DB::table('mcp_alertas_eventos')
+            ->where('business_id', $businessId)
+            ->where('tipo', \Modules\NfeBrasil\Jobs\CancelarNfeJob::TIPO_ALERTA)
+            ->whereIn('status', ['aberto', 'notificado'])
+            ->where('criado_em', '>=', now()->subDays(7))
             ->orderByDesc('criado_em')
             ->first(['descricao', 'criado_em']);
     }

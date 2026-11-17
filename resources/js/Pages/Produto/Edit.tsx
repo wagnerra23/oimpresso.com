@@ -6,24 +6,37 @@
 // Create.tsx. Esta tela segue dona do cabeçalho, do useForm e do envio.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { Deferred, Head, Link, useForm } from '@inertiajs/react';
+import { useRef, useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { AcoesDoCadastro } from './_components/formulario/AcoesDoCadastro';
+import { BlocoProducao } from './_components/formulario/BlocoProducao';
+import { EditarSoArmazenagem } from './_components/EditarSoArmazenagem';
+import type { ProdutoSoArmazenagem } from './_components/EditarSoArmazenagem';
+import type { ProducaoDoProduto } from './_components/formulario/BlocoProducao';
 import { tipoDeEnvio } from './_components/formulario/envio';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
+import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
+import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
+import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
+import type { EnderecoNoEstoque, SaldoPorLocal } from './_components/formulario/armazenagem';
+import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
+import { semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
+import type { Folheto } from './_components/formulario/envioMidia';
 import type {
   NaturezaFiscalProduto,
   NumeroCampoPersonalizado,
   OptionMap,
   OptionStringMap,
+  CampoDaEmpresa,
+  SubUnidade,
 } from './_components/formulario/tipos';
 
 
@@ -34,7 +47,10 @@ interface ProdutoEditModel {
   type: 'single' | 'variable' | 'combo';
   brandId: number | null;
   unitId: number | null;
-  subUnitIds: string | null;
+  /** As sub-unidades ligadas (o model faz o cast da coluna JSON para lista). */
+  subUnitIds: Array<number | string> | null;
+  /** UC-PEDIT-27: IMEI / nº de série. */
+  enableSrNo?: boolean;
   categoryId: number | null;
   subCategoryId: number | null;
   tax: number | null;
@@ -51,11 +67,18 @@ interface ProdutoEditModel {
   naturezaFiscal?: NaturezaFiscalProduto | null;
   barcodeType: string;
   enableStock: boolean;
+  /** CU-PROD-20: o local padrão de armazenagem (null = sem padrão). */
+  localPadraoId?: number | null;
+  /** CU-PROD-21: a política de preço gravada (`fixo` · `acompanha` · `margem`) e a margem alvo. */
+  politicaPreco?: string | null;
+  margemAlvoPct?: number | null;
   alertQuantity: string | null;
   weight: number | null;
   productDescription: string | null;
   productLocations: number[];
   image: string | null;
+  /** UC-PEDIT-29: o folheto gravado. */
+  folheto?: Folheto | null;
   warrantyId: number | null;
   /** O valor gravado dos 20 campos personalizados (1 → 20). */
   camposPersonalizados: Partial<Record<NumeroCampoPersonalizado, string | null>>;
@@ -84,9 +107,45 @@ export interface ProdutoEditPageProps {
     opening_stock: boolean;
     delete: boolean;
   };
+  /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
+  metodoCusto?: MetodoCustoDoFormulario | null;
+  /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
+  margemMinima?: number | null;
+  /** CU-PROD-22: card "Produção" (deferido). Null sem o módulo Produção, em composição e em serviço. */
+  producao?: ProducaoDoProduto | null;
+  /** CU-PROD-20: quais partes do endereço no estoque a empresa usa. */
+  enderecoNoEstoque?: EnderecoNoEstoque;
+  /** CU-PROD-20: o saldo do produto em cada local (coluna "Em estoque", só leitura). */
+  saldoPorLocal?: SaldoPorLocal;
+  /**
+   * UC-PEDIT-23: a pessoa tem `product.armazenagem` sem `product.update`. O servidor manda só o que
+   * o bloco de locais precisa, e a tela mostra só ele.
+   */
+  somenteArmazenagem?: boolean;
+  /** UC-PEDIT-24: os campos personalizados com o nome que a empresa deu. */
+  camposDaEmpresa?: CampoDaEmpresa[];
+  /** UC-PEDIT-25: categoria => {subcategoria => nome}; vazio sem subcategoria na empresa. */
+  subcategoriasPorCategoria?: Record<string, Record<string, string>>;
+  /** UC-PEDIT-26: unidade => sub-unidades; vazio sem sub-unidades na empresa. */
+  subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
 }
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
+  if (props.somenteArmazenagem) {
+    return (
+      <EditarSoArmazenagem
+        product={props.product as unknown as ProdutoSoArmazenagem}
+        rackDetails={props.rackDetails}
+        businessLocations={props.businessLocations}
+        enderecoNoEstoque={props.enderecoNoEstoque}
+        saldoPorLocal={props.saldoPorLocal}
+      />
+    );
+  }
+  return <EditarCompleto {...props} />;
+}
+
+function EditarCompleto(props: ProdutoEditPageProps) {
   const p = props.product;
   // UC-PEDIT-11: o NCM gravado, só dígitos. Só vai no envio se a pessoa mexeu nele: um NCM antigo
   // fora do formato não pode impedir a edição de outro campo.
@@ -100,6 +159,15 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
   const [preco, setPreco] = useState<PrecoSimples | null>(() =>
     precoGravado ? { compra: precoGravado.compra, margem: precoGravado.margem, venda: precoGravado.venda } : null,
   );
+  const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
+  // CU-PROD-20: os locais de armazenagem gravados e o padrão. Só com o estoque controlado.
+  const [armazenagem, setArmazenagem] = useState(() =>
+    armazenagemInicial(props.rackDetails as never, { salvo: true, padrao: p.localPadraoId ?? null }),
+  );
+  // CU-PROD-21: a política de preço gravada. Só vai no envio quando muda.
+  const [politicaGravada] = useState(() => politicaInicial({ politica: p.politicaPreco, margemAlvoPct: p.margemAlvoPct }));
+  const [politica, setPolitica] = useState(politicaGravada);
+  const endereco: EnderecoNoEstoque = props.enderecoNoEstoque ?? { prateleira: false, fileira: false, posicao: false };
   const { data, setData, put, transform, processing, errors } = useForm({
     name: p.name,
     sku: p.sku,
@@ -107,6 +175,11 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     unit_id: p.unitId ?? '',
     category_id: p.categoryId ?? '',
     sub_category_id: p.subCategoryId ?? '',
+    // UC-PEDIT-26: as sub-unidades gravadas voltam no envio. Sem elas o update() gravava nulo
+    // (`sub_unit_ids` ausente → null) e salvar pelo Editar React desligava as sub-unidades.
+    sub_unit_ids: (p.subUnitIds ?? []).map(Number),
+    // UC-PEDIT-27: o IMEI / nº de série gravado.
+    enable_sr_no: p.enableSrNo ? 1 : 0,
     tax: p.tax ?? '',
     tax_type: p.taxType,
     origem_mercadoria: p.origemMercadoria ?? 0,
@@ -130,6 +203,12 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     expiry_period_type: p.expiryPeriodType ?? '',
   });
 
+  // UC-PEDIT-30: aviso ao sair com alterações não salvas (o Editar não guarda rascunho).
+  const retrato = JSON.stringify({ form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto });
+  const retratoInicial = useRef<string | null>(null);
+  if (retratoInicial.current === null) retratoInicial.current = retrato;
+  const aviso = useAvisoAoSair(retrato !== retratoInicial.current);
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // O botão do rodapé diz a tela seguinte (submit_type, o mesmo do Blade); sem ele, volta à lista.
@@ -142,9 +221,13 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
         ...(ncm !== ncmGravado ? { ncm } : {}),
         ...(cest !== cestGravado ? { cest } : {}),
         ...camposDoPrecoEditado(precoGravado, preco, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
+        ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
+        ...(p.enableStock ? camposDaArmazenagem(armazenagem) : {}),
+        ...camposDaPolitica(politica, politicaGravada),
       };
     });
-    put(`/products/${p.id}`);
+    aviso.liberar();
+    put(`/products/${p.id}`, { onError: () => aviso.travar() });
   };
 
   return (
@@ -190,8 +273,22 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             opcoes={props}
             tipoAtual={props.productTypes[p.type] ?? p.type}
             naturezaFiscal={p.naturezaFiscal ?? null}
-            preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) } : undefined}
+            preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes), margemMinima: props.margemMinima ?? null } : undefined}
+            metodoCusto={
+              props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
+            }
+            armazenagem={
+              p.enableStock ? { valor: armazenagem, mudar: setArmazenagem, endereco, saldos: props.saldoPorLocal ?? {} } : undefined
+            }
+            politica={{ valor: politica, mudar: setPolitica }}
+            midia={{ produtoId: p.id, imagem: p.image, folheto: p.folheto ?? null }}
           />
+          {/* CU-PROD-22: só leitura, fora do <form>. A prop é deferida: o card aparece quando ela chega,
+              sem esqueleto (é o último antes do rodapé). Null sem o módulo Produção, em composição e
+              em serviço. */}
+          <Deferred data="producao" fallback={null}>
+            <ProducaoDoEditar producao={props.producao} />
+          </Deferred>
           {/* "Salvar e adicionar preços por grupo" fica fora: o Editar não recebe a contagem de grupos. */}
           <AcoesDoCadastro
             form="produto-edit-form"
@@ -203,6 +300,14 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
       </div>
     </>
   );
+}
+
+function ProducaoDoEditar({ producao }: { producao?: ProducaoDoProduto | null }) {
+  return producao ? (
+    <div className="mt-6">
+      <BlocoProducao producao={producao} />
+    </div>
+  ) : null;
 }
 
 ProdutoEdit.layout = (page: ReactNode) => (

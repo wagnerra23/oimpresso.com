@@ -51,6 +51,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack, Inline, Grid } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
+import FalhaDeCarga from './_shared/FalhaDeCarga';
+import ConfirmarExclusao from './_shared/ConfirmarExclusao';
+import { toast } from 'sonner';
+import { useFalhaDeferida } from './_shared/falhaDeferida';
 import type { ColumnDef } from '@tanstack/react-table';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
@@ -215,18 +219,14 @@ function SeloGarantia({ garantia }: { garantia: Garantia | null }) {
  * dentro do `.tsx`. O resíduo (quem tem só `view_own` pode editar a de outro) está declarado
  * no charter e no §9 do RUNBOOK: é decisão de [W], não conserto silencioso.
  *
- * Excluir usa `router.delete` porque `destroy` é rota `resource` (verbo DELETE) — link `<a>`
- * não a alcançaria, e botão que parece excluir sem excluir é afordância falsa.
+ * Excluir só PEDE a confirmação: quem abre o `AlertDialog` (`_shared/ConfirmarExclusao.tsx`) e
+ * fala com o `destroy` é a Page — mesmo desenho de Bens (UC-BENS-13). Até 2026-11-16 era
+ * `window.confirm` + `router.delete`, e o `destroy` só responde sob `request()->ajax()` com JSON:
+ * o Inertia manda `X-Requested-With` em toda visita, recebia `{success, msg}` e mostrava o
+ * diálogo de resposta crua, sem tirar a linha da lista (UC-MANU-08/09).
  */
-function AcoesDaLinha({ manutencao }: { manutencao: Manutencao }) {
-  const excluir = () => {
-    // Nomeia a manutenção: confirmação genérica não deixa perceber que clicou na linha errada.
-    const alvo = manutencao.codigo ? `${manutencao.codigo} — ${manutencao.bem}` : manutencao.bem;
-    if (!window.confirm(`Excluir a manutenção "${alvo}"? Esta ação não pode ser desfeita.`)) {
-      return;
-    }
-    router.delete(`/asset/asset-maintenance/${manutencao.id}`, { preserveScroll: true });
-  };
+function AcoesDaLinha({ manutencao, onExcluir }: { manutencao: Manutencao; onExcluir: (m: Manutencao) => void }) {
+  const excluir = () => onExcluir(manutencao);
 
   const editar = () =>
     router.get(`/asset/asset-maintenance/${manutencao.id}/edit`, {}, { preserveScroll: true });
@@ -272,14 +272,14 @@ function AcoesDaLinha({ manutencao }: { manutencao: Manutencao }) {
 // Até 2026-09-30 ela ficava sem largura para ser a fluida, com `minTableWidth={1280}` — mas as
 // outras 9 já somavam 1332px: sob layout fixo sobrava ZERO pra ela, o mesmo defeito medido em
 // produção na tela irmã de Bens ("Bategoria"). Travado por `tests/js/patrimonio-manutencoes-colunas.test.tsx`.
-function colunas(): ColumnDef<Manutencao, unknown>[] {
+function colunas(onExcluir: (m: Manutencao) => void): ColumnDef<Manutencao, unknown>[] {
   return [
     {
       id: 'acoes',
       header: 'Ações',
       // Ação primeiro, como no protótipo (`:486`): a tabela é mais larga que a janela e o
       // controle não pode nascer fora do viewport.
-      cell: ({ row }) => <AcoesDaLinha manutencao={row.original} />,
+      cell: ({ row }) => <AcoesDaLinha manutencao={row.original} onExcluir={onExcluir} />,
       meta: { width: 96 },
     },
     {
@@ -756,9 +756,21 @@ function EsqueletoTabela() {
 }
 
 export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, cadastro = null, edicao = null }: Props) {
+  // Lista deferida: carga que falha vira erro com "Tentar de novo", não esqueleto eterno.
+  const falhaManutencoes = useFalhaDeferida(['manutencoes']);
   // Distingue "não há manutenção nenhuma" de "não há manutenção PARA ESTE RECORTE" — dois
   // vazios diferentes, e oferecer a mensagem errada a quem só filtrou demais é ruído.
   const temFiltroAtivo = Boolean(filtros.q || filtros.status || filtros.priority || filtros.assigned_to);
+  const [excluindo, setExcluindo] = useState<Manutencao | null>(null);
+
+  // Excluída: a linha sai por partial reload só da lista. O nome no texto pela mesma razão do
+  // diálogo — confirmação genérica não deixa perceber que clicou na linha errada.
+  const aoExcluir = () => {
+    const nome = excluindo?.bem;
+    setExcluindo(null);
+    toast.success(`Manutenção de "${nome}" excluída.`);
+    router.reload({ only: ['manutencoes'] });
+  };
 
   return (
     <AppShellV2>
@@ -801,6 +813,9 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, 
         <BarraDeFiltros filtros={filtros} opcoes={opcoes} />
 
         <div data-contract="tabela">
+{falhaManutencoes.falhou ? (
+            <FalhaDeCarga titulo="Não consegui carregar as manutenções" falha={falhaManutencoes} />
+          ) : (
           <Deferred data="manutencoes" fallback={<EsqueletoTabela />}>
             {manutencoes && manutencoes.data.length === 0 && !temFiltroAtivo ? (
               <EmptyState
@@ -818,7 +833,7 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, 
               />
             ) : manutencoes ? (
               <DataTable<Manutencao>
-                columns={colunas()}
+                columns={colunas(setExcluindo)}
                 data={manutencoes.data}
                 pagination={manutencoes}
                 endpoint="/asset/asset-maintenance"
@@ -834,6 +849,7 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, 
               />
             ) : null}
           </Deferred>
+          )}
         </div>
 
         {/* Rodapé da âncora (`patrimonio-page.jsx:534-537`): o CTA de envio, sem a frase do
@@ -855,6 +871,19 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, 
         // `key`: trocar de manutenção na URL remonta o drawer — o form não herda o anterior.
         <ManutencaoDrawer key={edicao ? `e${edicao.id}` : 'novo'} cadastro={cadastro} edicao={edicao} opcoes={opcoes} />
       ) : null}
+      <ConfirmarExclusao
+        alvo={
+          excluindo
+            ? {
+                titulo: excluindo.codigo ? `Excluir a manutenção ${excluindo.codigo}?` : 'Excluir a manutenção?',
+                descricao: `${excluindo.bem}. A manutenção sai da lista com os anexos; a trilha de auditoria continua registrada. Não dá pra desfazer.`,
+                url: `/asset/asset-maintenance/${excluindo.id}`,
+              }
+            : null
+        }
+        onFechar={() => setExcluindo(null)}
+        onExcluido={aoExcluir}
+      />
     </AppShellV2>
   );
 }

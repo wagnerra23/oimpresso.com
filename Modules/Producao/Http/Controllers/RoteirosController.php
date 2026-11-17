@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -21,10 +22,12 @@ use Modules\Producao\Http\Requests\SalvarRoteiroRequest;
  */
 class RoteirosController extends Controller
 {
+    use ExigePacoteProducao;
+
     public function index(Request $request): Response
     {
         abort_unless($request->user()->can('producao.access'), 403);
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
 
         return Inertia::render('Producao/Roteiros/Index', [
             'roteiros' => Inertia::defer(fn () => Roteiro::query()->where('business_id', $biz)->with('etapas')->orderBy('familia')->orderBy('nome')
@@ -36,7 +39,7 @@ class RoteirosController extends Controller
 
     public function store(SalvarRoteiroRequest $request): RedirectResponse
     {
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
         DB::transaction(function () use ($request, $biz) {
             $roteiro = Roteiro::create(['business_id' => $biz, 'familia' => $request->input('familia'), 'nome' => $request->input('nome')]);
             $this->gravarEtapas($roteiro, $biz, $request->input('etapas'));
@@ -47,7 +50,7 @@ class RoteirosController extends Controller
 
     public function update(SalvarRoteiroRequest $request, int $id): RedirectResponse
     {
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
         $roteiro = Roteiro::query()->where('business_id', $biz)->findOrFail($id);
         DB::transaction(function () use ($request, $biz, $roteiro) {
             $roteiro->update(['familia' => $request->input('familia'), 'nome' => $request->input('nome')]);
@@ -66,7 +69,7 @@ class RoteirosController extends Controller
     public function produtos(Request $request, int $id): RedirectResponse
     {
         abort_unless($request->user()->can('producao.access'), 403);
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
         $roteiro = Roteiro::query()->where('business_id', $biz)->findOrFail($id);
         $ids = $request->validate([
             'product_ids' => ['present', 'array'],
@@ -94,7 +97,7 @@ class RoteirosController extends Controller
     public function buscarProdutos(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('producao.access'), 403);
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
         $q = trim((string) $request->query('q', ''));
         if (mb_strlen($q) < 2) {
             return response()->json([]);

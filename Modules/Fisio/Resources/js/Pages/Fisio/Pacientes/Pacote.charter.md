@@ -36,6 +36,7 @@ Mostrar quantas sessões do pacote o paciente já usou, registrar e devolver ses
 - Mostrar o status da NFS-e da venda, lido do NFSe — UC-FPK-06.
 - Ligar ao pacote a venda já feita na tela de venda do núcleo, e levar à venda nova — UC-FPK-07, UC-FPK-08 (US-FISIO-022).
 - Venda cancelada no núcleo tira do saldo as sessões que sobraram e encerra o pacote — UC-FPK-09.
+- Imprimir o comprovante (voucher) do pacote em PDF para entregar ao paciente: contratadas, usadas, saldo, validade e sessões, sem valor em dinheiro — UC-FPK-10 (pedido do [W] em 2026-11-12).
 
 ## Non-Goals (não faz)
 

@@ -35,6 +35,7 @@ class PagamentoBancoService
         $destino = $this->normalizarDestino($meio, $destino);
 
         $pagamento = DB::transaction(function () use ($businessId, $tituloId, $userId, $meio, $destino, $contaId, $valorConfirmado) {
+            // SUPERADMIN: também roda no comando de sincronização, sem sessão; o filtro é o where business_id explícito
             $titulo = Titulo::withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $businessId)->lockForUpdate()->findOrFail($tituloId);
 
@@ -47,12 +48,14 @@ class PagamentoBancoService
                 throw new \DomainException('O valor confirmado não confere com o aberto do título.');
             }
 
+            // SUPERADMIN: também roda no comando de sincronização, sem sessão; o filtro é o where business_id explícito
             $conta = ContaBancaria::withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $businessId)->find($contaId);
             if (! $conta) {
                 throw new \DomainException('Conta bancária inválida.');
             }
 
+            // SUPERADMIN: também roda no comando de sincronização, sem sessão; o filtro é o where business_id explícito
             $emAberto = PagamentoBanco::withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $businessId)->where('titulo_id', $titulo->id)
                 ->whereIn('status', PagamentoBanco::STATUS_EM_ABERTO)->exists();
@@ -60,6 +63,7 @@ class PagamentoBancoService
                 throw new \DomainException('Já existe um pagamento deste título aguardando o banco.');
             }
 
+            // SUPERADMIN: também roda no comando de sincronização, sem sessão; o business_id é preenchido explicitamente
             return PagamentoBanco::withoutGlobalScope(BusinessScopeImpl::class)->create([
                 'business_id' => $businessId,
                 'titulo_id' => $titulo->id,
@@ -88,6 +92,7 @@ class PagamentoBancoService
     /** Consulta o banco de um pedido que ainda aguarda resposta. */
     public function sincronizar(int $businessId, int $pagamentoId): PagamentoBanco
     {
+        // SUPERADMIN: chamado pelo comando de sincronização, sem sessão; o filtro é o where business_id explícito
         $pagamento = PagamentoBanco::withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $businessId)->findOrFail($pagamentoId);
 
@@ -121,12 +126,14 @@ class PagamentoBancoService
     private function baixar(PagamentoBanco $pagamento, array $dados): PagamentoBanco
     {
         return DB::transaction(function () use ($pagamento, $dados) {
+            // SUPERADMIN: chamado pelo comando de sincronização, sem sessão; o filtro é o business_id do pagamento
             $pag = PagamentoBanco::withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $pagamento->business_id)->lockForUpdate()->findOrFail($pagamento->id);
             if ($pag->baixa_id) {
                 return $pag;
             }
 
+            // SUPERADMIN: chamado pelo comando de sincronização, sem sessão; o filtro é o business_id do pagamento
             $titulo = Titulo::withoutGlobalScope(BusinessScopeImpl::class)
                 ->where('business_id', $pag->business_id)->lockForUpdate()->findOrFail($pag->titulo_id);
 
@@ -162,6 +169,7 @@ class PagamentoBancoService
 
     private function conta(PagamentoBanco $pagamento): ContaBancaria
     {
+        // SUPERADMIN: chamado pelo comando de sincronização, sem sessão; o filtro é o business_id do pagamento
         return ContaBancaria::withoutGlobalScope(BusinessScopeImpl::class)
             ->where('business_id', $pagamento->business_id)->findOrFail($pagamento->conta_bancaria_id);
     }

@@ -5,7 +5,7 @@ irmaos: Portal.charter.md (lei) · Portal.tsx (tela) + _components/Entrada.tsx, 
 tecnica: Caso de uso = narrativa do paciente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o portal é público na internet e mostra dado de saúde. Sem PIN/lockout é força bruta; sem consentimento é LGPD; sem telemonitoramento o check-in não vale como prontuário (Res. COFFITO 619/2025); conduta calculada pelo software vira dispositivo médico (Anvisa/SaMD); XP que premia exceder o prescrito incentiva lesão.
 owner: wagner
-last_run: "2026-11-05"
+last_run: "2026-11-12"
 last_run_ci: "_pendente_ — a US-FISIO-007b põe FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest e FisioPortalAparelhoTest na lane Verticais (MySQL); o veredito por UC entra quando o manifesto da lane for regenerado."
 related_us: [US-FISIO-007, US-FISIO-008]
 ---
@@ -60,6 +60,23 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-53 | pré-anamnese só com valores das listas, uma por paciente | must | `FisioPreAnamneseTest` |
 | UC-FPP-54 | sinal de alerta na pré-anamnese avisa o profissional | must | `FisioPreAnamneseTest` |
 | UC-FPP-55 | pré-anamnese só depois do PIN e da autorização, na clínica do link | must | `FisioPreAnamneseTest` |
+| UC-FPP-56 | pesquisa por estudo, com o TCLE do estudo; `pesquisa_ia` sem valor; `treino_ia` à parte | must | `FisioConsentimentoPesquisaTest` |
+| UC-FPP-57 | revogar a pesquisa de um estudo pelo portal | must | `FisioConsentimentoPesquisaTest` |
+| UC-FPP-58 | estudo de outra clínica não existe para o paciente | must | `FisioConsentimentoPesquisaTest` |
+| UC-FPP-59 | o portal avisa a avaliação do estudo em aberto | must | `FisioCobrancaAvaliacaoTest` |
+| UC-FPP-60 | o WhatsApp avisa uma vez por momento, com consentimento | must | `FisioCobrancaAvaliacaoTest` |
+| UC-FPP-61 | o aviso de uma empresa não alcança paciente de outra | must | `FisioCobrancaAvaliacaoTest` |
+| UC-FPP-62 | Configurações mostra o estudo aceito e o treino de IA; o paciente sai do estudo por ali | must | `FisioConsentimentoPesquisaTest` |
+
+> **Laudo biopsicossocial (US-FISIO-060, 2026-11-12):** o cartão "Seu laudo biopsicossocial" na tela Hoje e o download
+> do PDF têm o caso em `memory/requisitos/Fisio/_telas/laudo-biopsicossocial.casos.md` (UC-FBP-16, testado em
+> `FisioLaudoBpsPdfTest`): só o laudo finalizado e vigente do próprio paciente, com os portões do portal.
+
+> **Enviar exame, receita ou atestado (US-FISIO-063, 2026-11-11; atestado em 2026-11-12):** a tela nova do portal tem os casos em
+> `memory/requisitos/Fisio/_telas/exames-e-receitas.casos.md` (UC-FER-17..21, testados em
+> `FisioPortalDocumentosTest`): consentimento próprio `documentos`, portões do envio, envio pendente que
+> só entra no prontuário quando a clínica aceita, e isolamento entre empresas. Ficam lá porque o envio
+> tem tabela e conferência próprias, compartilhadas com a ficha.
 
 ---
 
@@ -92,7 +109,7 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Status: 🧪**
 
 ## UC-FPP-06 · Cada consentimento por si · `must`
-- **Aceite:** WhatsApp, câmera, imagem, marketing e pesquisa são independentes do teleatendimento; purpose fora da lista é recusado. Revogar WhatsApp não fecha o portal; revogar teleatendimento fecha (o registro fica com `revoked_at`).
+- **Aceite:** WhatsApp, câmera, imagem, marketing e treino de IA são independentes do teleatendimento; purpose fora da lista é recusado. Revogar WhatsApp não fecha o portal; revogar teleatendimento fecha (o registro fica com `revoked_at`).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php`
 - **Status: 🧪**
 
@@ -296,7 +313,50 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPreAnamneseTest.php`
 - **Status: 🧪**
 
+
+## UC-FPP-56 · Pesquisa é por estudo, separada do treino de IA · `must`
+- **Persona:** paciente convidado para o estudo de fibromialgia da clínica com a universidade (etapa 07 P-02).
+- **Aceite:** O consentimento `pesquisa` grava o estudo (`study_id`) e a versão do TCLE aprovada pelo CEP daquele estudo, nunca do request. Aceitar de novo não duplica; outro estudo não herda o aceite; TCLE em versão nova pede aceite de novo. O antigo `pesquisa_ia` não faz ninguém participante nem vale como `treino_ia`, que é outra finalidade e começa desligada.
+- **Regressão que defende:** um aceite valendo para "pesquisa e IA" juntos; participante incluído por aceite antigo.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FPP-57 · O paciente revoga a pesquisa de um estudo pelo portal · `must`
+- **Aceite:** As rotas genéricas recusam `pesquisa` e `pesquisa_ia` (422) e aceitam `treino_ia`. `DELETE consentimentos/pesquisa/{estudo}` revoga só aquele estudo; a linha fica com `revoked_at` e o tratamento continua aberto.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
+
+## UC-FPP-58 · Estudo de outra clínica não existe para o paciente `[T0]` · `must`
+- **Aceite:** Estudo da 99 não recebe aceite de paciente da 98, e o portal da 98 responde 404 ao revogá-lo. Estudo encerrado não recebe aceite novo.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
+## UC-FPP-59 · A avaliação do estudo que vence aparece no Hoje · `must`
+- **Persona:** participante do estudo de fibromialgia (etapa 07 P-05).
+- **Aceite:** Com o momento de avaliação em aberto (janela aberta, questionário não respondido), o Hoje traz o momento, o último dia e os questionários. Futuro e vencido não aparecem. Quando a clínica registra o questionário, o aviso some. Quem não está no estudo não recebe aviso. O paciente não responde pelo portal: enquanto o texto validado não está no catálogo, a clínica aplica na sessão (ADR 0437 §8).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-60 · Aviso pelo WhatsApp, uma vez por momento · `must`
+- **Aceite:** Sem consentimento de WhatsApp vigente, nada sai. Com ele, sai um aviso do momento aberto; no dia seguinte o mesmo momento não é avisado de novo; quando abre a janela do próximo momento, sai o aviso dele. Teto por hora e silêncio são os do lembrete diário.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-61 · O aviso fica na empresa `[T0]` · `must`
+- **Aceite:** O job da 99 não avisa participante da 98.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioCobrancaAvaliacaoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-62 · Em Configurações o paciente vê o estudo e sai dele · `must`
+- **Persona:** participante do estudo de fibromialgia (etapa 07 P-02).
+- **Aceite:** A seção Pesquisa lista cada estudo com aceite vigente (título, versão do termo, onde e quando assinou) e a chave do treino de IA, desligada por padrão. Desligar o estudo pede confirmação e chama `DELETE consentimentos/pesquisa/{estudo}`; depois disso o estudo some da lista. Estudo de outra empresa nunca aparece, mesmo com linha de consentimento apontando para ele.
+- **Regressão que defende:** a saída do estudo existir só como rota, sem nenhum caminho na tela (achado no smoke de staging de 2026-11-11).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioConsentimentoPesquisaTest.php`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · etapa 07 P-02 — seção Pesquisa nas Configurações do portal (estudo aceito com saída confirmada e treino de IA), conforme `PacienteConfig.dc.html` (#10761). Achado no smoke de staging: a rota de saída existia, a tela não.
+- 2026-11-11 · etapa 07 P-05 — aviso da avaliação do estudo no Hoje e pelo WhatsApp (uma vez por momento, com consentimento). Protótipo: `PacienteHoje.dc.html` (#10761). A resposta pelo portal fica para quando o texto validado entrar no catálogo.
+- 2026-11-11 · etapa 07 P-02 — `pesquisa_ia` separado em `pesquisa` (por estudo, `fisio_studies`, versão do TCLE do estudo) e `treino_ia`. A tela de Configurações ainda não mostra o estudo: entra com a área do estudo (P-04). UC-FPP-56..58 entram com `FisioConsentimentoPesquisaTest`.
 - 2026-11-04 · Lote 5 — pré-anamnese no portal (`_components/PreAnamnese.tsx`, tabela `fisio_pre_anamneses`, US-FISIO-051). Regiões e faixas de tempo são rascunho do protótipo, pendentes da responsável técnica. UC-FPP-52..55 entram com `FisioPreAnamneseTest`.
 - 2026-11-04 · Lote 5 — tela de Configurações do paciente (`_components/Configuracoes.tsx`), só as autorizações por finalidade; horário do lembrete, acessibilidade e "meus dados" do protótipo ficam fora até o servidor sustentar. UC-FPP-50..51 entram com `FisioPortalConfiguracoesTest`.
 - 2026-10-19 · T-08c (parte com fonte) — missões de hoje, desafio da semana e medalhas na tela Hoje (`_components/Constancia.tsx`, rota `fisio.portal.desafio`). UC-FPP-33..34 entram com `FisioJogoConstanciaTest`.

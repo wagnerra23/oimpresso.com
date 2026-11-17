@@ -95,3 +95,24 @@ describe('UC-PCAD-18 · Novo produto — rodapé de ações na forma do protóti
     expect(clicar('Salvar e adicionar outro')).toHaveProperty('single_dpp')
   })
 })
+
+describe('UC-PCAD-21 · Novo produto — "Salvar e adicionar estoque inicial"', () => {
+  it('sem product.opening_stock o botão não aparece, como o @can do Blade', () => {
+    render(<ProdutoCreate {...base} />)
+    expect(screen.queryByRole('button', { name: 'Salvar e adicionar estoque inicial' })).toBeNull()
+  })
+
+  it('com a permissão, envia submit_type=submit_n_add_opening_stock', () => {
+    render(<ProdutoCreate {...base} podeEstoqueInicial />)
+    expect(clicar('Salvar e adicionar estoque inicial')).toMatchObject({
+      submit_type: 'submit_n_add_opening_stock',
+    })
+  })
+
+  it('produto que não controla estoque deixa o botão desligado', () => {
+    render(<ProdutoCreate {...base} podeEstoqueInicial />)
+    fireEvent.click(document.querySelector('#enable_stock') as HTMLElement)
+    const botao = screen.getByRole('button', { name: 'Salvar e adicionar estoque inicial' }) as HTMLButtonElement
+    expect(botao.disabled).toBe(true)
+  })
+})

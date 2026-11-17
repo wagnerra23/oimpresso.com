@@ -9,23 +9,28 @@ use App\Support\BR\Cnpj;
 use App\Transaction;
 use App\Util\OtelHelper;
 use Closure;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Events\NFCeAutorizada;
+use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Exceptions\AliquotaInternaNaoCadastradaException;
 use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeIcmsUf;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
+use Modules\NfeBrasil\Exceptions\NaturezaDoLancamentoInvalidaException;
 use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
+use NFePHP\NFe\Complements;
 use NFePHP\NFe\Factories\Contingency;
 use NFePHP\NFe\Make;
 use NFePHP\NFe\Tools;
@@ -155,6 +160,8 @@ class NfeService
             ufOrigem:   $ufOrigem,
             ufDestino:  $ufDestino,
         );
+        $pisInv    = $this->pisCofinsDoItem($tributo->cst_pis, (float) $invoice->valor, $tributo->aliquota_pis, $tributo->valor_pis);
+        $cofinsInv = $this->pisCofinsDoItem($tributo->cst_cofins, (float) $invoice->valor, $tributo->aliquota_cofins, $tributo->valor_cofins);
 
         $dadosNfe = [
             'transaction_id' => $invoice->id,
@@ -197,17 +204,18 @@ class NfeService
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
+                // R-NFE-025b: CST da regra; sem ele, '07' (isenta) como antes.
                 'pis'     => [
-                    'cst'   => '07', // 07 = isenta — default seguro Simples Nacional
-                    'vbc'   => 0,
-                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
-                    'vpis'  => $tributo->valor_pis,
+                    'cst'   => $pisInv['cst'],
+                    'vbc'   => $pisInv['vbc'],
+                    'ppis'  => $pisInv['p'],
+                    'vpis'  => $pisInv['v'],
                 ],
                 'cofins'  => [
-                    'cst'      => '07',
-                    'vbc'      => 0,
-                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
-                    'vcofins'  => $tributo->valor_cofins,
+                    'cst'      => $cofinsInv['cst'],
+                    'vbc'      => $cofinsInv['vbc'],
+                    'pcofins'  => $cofinsInv['p'],
+                    'vcofins'  => $cofinsInv['v'],
                 ],
                 // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
                 // está em modo full/hybrid (schema PL_010); Simples/legado → alíquota 0 +
@@ -227,8 +235,8 @@ class NfeService
                 'v_prod'    => (float) $invoice->valor,
                 'v_bc_icms' => $this->baseIcmsDoItem($tributo, (float) $invoice->valor), // R-NFE-040
                 'v_icms'    => $tributo->valor_icms,
-                'v_pis'     => $tributo->valor_pis,
-                'v_cofins'  => $tributo->valor_cofins,
+                'v_pis'     => $pisInv['v'],
+                'v_cofins'  => $cofinsInv['v'],
                 'v_nf'      => (float) $invoice->valor,
                 'v_desc'    => 0,
                 'v_frete'   => 0,
@@ -284,6 +292,8 @@ class NfeService
      *        pedido de marketplace), com as chaves de `contacts`; vence o cliente da venda. Só NF-e (55).
      * @param string|null $cfop R-NFE-046 · CFOP de 4 dígitos que vence o da regra em todos os itens (ex. o do pedido
      *        de marketplace, configurável lá). Null = o CFOP da regra, como antes.
+     * @param int|null $operacaoId Onda 5 das naturezas (RUNBOOK-tributacao §Naturezas): natureza de operação escolhida
+     *        no lançamento. Dá a tributação (motor) e o natOp, e fica na metadata para a retransmissão. Null = como antes.
      */
     public function emitirParaTransaction(
         Transaction $tx,
@@ -291,6 +301,7 @@ class NfeService
         bool $separada = false,
         ?array $destinatarioExterno = null,
         ?string $cfop = null,
+        ?int $operacaoId = null,
     ): NfeEmissao
     {
         $businessId = (int) $tx->business_id;
@@ -386,6 +397,9 @@ class NfeService
         // cadastrada a nota é recusada com a saída — nunca sai com DIFAL zero por falta de dado.
         $this->garantirInternaDoDifal($destReal !== null, $ufOrigem, $ufDestino, $contribuinte, $interna);
 
+        // Onda 5: natureza escolhida no lançamento — só as criadas pela tela, de saída normal (ver o método).
+        $natureza = $operacaoId === null ? null : $this->naturezaDoLancamento($businessId, $operacaoId, (string) $modelo, $bonificacao);
+
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
@@ -398,7 +412,7 @@ class NfeService
             internaDestino: $interna,
             destinatarioContribuinte: $contribuinte,
             crtEmitente:    $emitente['crt'] ?? null,
-            operacaoId:     $bonificacao ? $this->operacaoDaBonificacao($businessId) : null,
+            operacaoId:     $natureza?->id ?? ($bonificacao ? $this->operacaoDaBonificacao($businessId) : null),
         );
         if ($cfop !== null) {
             $itens['dets'] = self::comCfop($itens['dets'], $cfop);
@@ -407,7 +421,9 @@ class NfeService
         $dadosNfe = [
             'transaction_id' => $tx->id,
             'modelo'         => $modelo,
-            'nat_op'         => $destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA',
+            'nat_op'         => $natureza !== null
+                ? mb_substr(trim((string) $natureza->nome), 0, 60)
+                : ($destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA'),
             'dest' => $destReal ?? [
                 // NFC-e B2C anônimo: doc é opcional. Se Transaction tiver contact_id
                 // com CPF, fase 2B preenche. Por ora, default anônimo.
@@ -446,6 +462,10 @@ class NfeService
             $dadosNfe['emit']        = $emitente['emit'];
             $dadosNfe['serie']       = $emitente['serie'];
             $dadosNfe['location_id'] = $emitente['location_id'];
+        }
+
+        if ($natureza !== null) {
+            $dadosNfe['metadata'] = array_merge((array) $dadosNfe['metadata'], ['operacao_id' => $natureza->id]);
         }
 
         // Sabor Brasil 2026-11-04: CST/CFOP incoerente não impede a nota — fica registrado nela
@@ -515,6 +535,41 @@ class NfeService
      * Item 2 Sabor Brasil · a operação fiscal "bonificacao" da empresa, se ela cadastrou. Sem ela a
      * bonificação tributa como a venda (o P-154 de antes, byte a byte).
      */
+    /**
+     * Onda 5 das naturezas: a natureza escolhida no lançamento, validada.
+     *
+     * Aceita só a natureza criada pela tela da Tributação (`config_tela`), ativa, de SAÍDA e finalidade
+     * normal, na NF-e (55), numa venda que não é bonificação. Devolução e nota referenciada têm fluxo
+     * próprio (DevolucaoService); complementar/ajuste e entrada não saem de uma venda.
+     *
+     * @throws NaturezaDoLancamentoInvalidaException com o motivo, que o controller devolve como 422
+     */
+    public function naturezaDoLancamento(int $businessId, int $operacaoId, string $modelo, bool $bonificacao): NfeOperacaoFiscal
+    {
+        $n = NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: emissão roda também em fila; o escopo é o where explícito
+            ->where('business_id', $businessId)
+            ->where('id', $operacaoId)
+            ->whereNull('deleted_at')
+            ->first();
+
+        $motivo = match (true) {
+            $n === null                                  => 'Natureza de operação não encontrada nesta empresa.',
+            $modelo !== '55'                             => 'Natureza de operação só se escolhe na NF-e (modelo 55).',
+            $bonificacao                                 => 'Venda marcada como bonificação já usa a natureza da bonificação.',
+            empty($n->config_tela)                       => 'Esta natureza não foi configurada na tela de naturezas.',
+            ! (bool) ($n->ativa ?? true)                 => "A natureza \"{$n->nome}\" está inativa.",
+            ($n->tipo ?? 'saida') === 'entrada'          => "A natureza \"{$n->nome}\" é de entrada e não sai de uma venda.",
+            (int) $n->finalidade !== 1                   => "A natureza \"{$n->nome}\" não é de finalidade normal; devolução, complemento e ajuste têm fluxo próprio.",
+            (bool) ($n->pede_nota_referenciada ?? false) => "A natureza \"{$n->nome}\" pede nota referenciada, que a emissão da venda não informa.",
+            default                                      => null,
+        };
+        if ($motivo !== null) {
+            throw new NaturezaDoLancamentoInvalidaException($motivo);
+        }
+
+        return $n;
+    }
+
     private function operacaoDaBonificacao(int $businessId): ?int
     {
         if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_operacoes_fiscais')) {
@@ -659,6 +714,35 @@ class NfeService
             'cep'           => preg_replace('/\D/', '', (string) ($c->zip_code ?? '')),
             'email'         => ($c->email ?? '') ?: null,
         ], fn ($v) => $v !== null);
+    }
+
+    /** R-NFE-025b · CST de PIS/COFINS que não tributam: o grupo PISNT/COFINSNT não leva base nem valor. */
+    private const CST_PIS_COFINS_SEM_TRIBUTO = ['04', '05', '06', '07', '08', '09'];
+
+    /**
+     * R-NFE-025b · PIS (ou COFINS) do item com o CST da regra.
+     *
+     * Leiaute NF-e 4.00 (MOC, grupos Q e S): CST 01 e 02 vão no grupo de alíquota, com
+     * vBC × pPIS; 04 a 09 vão no grupo "não tributado", sem base nem valor; 49 e 99 vão no
+     * grupo "outras", aqui também por alíquota. O valor do item é o do motor (base × alíquota),
+     * e o total da nota soma esse mesmo valor, para o ICMSTot bater com os itens.
+     *
+     * Regra sem CST: '07' com os números de antes (fallback, logado por quem chama). O XML de
+     * quem nunca cadastrou CST não muda.
+     *
+     * @return array{cst:string, vbc:float, p:float, v:float, fallback:bool}
+     */
+    private function pisCofinsDoItem(?string $cst, float $base, float $aliquota, float $valor): array
+    {
+        $cst = trim((string) $cst);
+        if ($cst === '') {
+            return ['cst' => '07', 'vbc' => 0.0, 'p' => round($aliquota * 100, 4), 'v' => $valor, 'fallback' => true];
+        }
+        if (in_array($cst, self::CST_PIS_COFINS_SEM_TRIBUTO, true)) {
+            return ['cst' => $cst, 'vbc' => 0.0, 'p' => 0.0, 'v' => 0.0, 'fallback' => false];
+        }
+
+        return ['cst' => $cst, 'vbc' => round($base, 2), 'p' => round($aliquota * 100, 4), 'v' => $valor, 'fallback' => false];
     }
 
     /** R-NFE-043 · grava no grupo ICMS do item os campos do ST (modBCST, pMVAST, vBCST, pICMSST, vICMSST). */
@@ -889,6 +973,7 @@ class NfeService
         // 2. motor por item
         $dets = [];
         $ncmPadraoUsado = [];
+        $itensFallback = 0; // R-NFE-025b
         $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0,
             'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0, 'v_bc_st' => 0.0, 'v_st' => 0.0];
         $temDifal = $internaDestino !== null && $destinatarioContribuinte === false && $ufOrigem !== $ufDestino;
@@ -907,6 +992,7 @@ class NfeService
                 // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
                 fiscal_rule_override_id: null,
                 description: (string) $it['xprod'],
+                origem_mercadoria: isset($it['origem']) ? (int) $it['origem'] : null,
             );
             // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
             // P-155: local com regime próprio usa o cálculo com o CRT dele; sem CRT, como antes.
@@ -948,6 +1034,10 @@ class NfeService
             $codigoIcms = $crtEmitente === 3
                 ? ($tributo->cst ?? $tributo->csosn ?? '102')
                 : ($tributo->csosn ?? $tributo->cst ?? '102');
+            // R-NFE-025b: PIS/COFINS do item com o CST da regra (helper pisCofinsDoItem).
+            $pis    = $this->pisCofinsDoItem($tributo->cst_pis, $base, $tributo->aliquota_pis, $tributo->valor_pis);
+            $cofins = $this->pisCofinsDoItem($tributo->cst_cofins, $base, $tributo->aliquota_cofins, $tributo->valor_cofins);
+            $itensFallback += ($pis['fallback'] || $cofins['fallback']) ? 1 : 0;
             $dets[] = [
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
                 'xprod'   => substr((string) $it['xprod'], 0, 120),
@@ -987,19 +1077,18 @@ class NfeService
                     // R-NFE-043: ICMS-ST do motor (R-NFE-015) no grupo do CST/CSOSN com ST.
                     'st'        => $this->stDoItem($tributo, $internaDestino, $codigoIcms),
                 ],
-                // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
-                // motor não devolve. '07' segue como fallback, logado abaixo.
+                // R-NFE-025b: CST de PIS/COFINS da regra; sem ele, '07' como antes (logado abaixo).
                 'pis'     => [
-                    'cst'   => '07',
-                    'vbc'   => 0,
-                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
-                    'vpis'  => $tributo->valor_pis,
+                    'cst'   => $pis['cst'],
+                    'vbc'   => $pis['vbc'],
+                    'ppis'  => $pis['p'],
+                    'vpis'  => $pis['v'],
                 ],
                 'cofins'  => [
-                    'cst'      => '07',
-                    'vbc'      => 0,
-                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
-                    'vcofins'  => $tributo->valor_cofins,
+                    'cst'      => $cofins['cst'],
+                    'vbc'      => $cofins['vbc'],
+                    'pcofins'  => $cofins['p'],
+                    'vcofins'  => $cofins['v'],
                 ],
                 'ibscbs'  => [
                     'cst'          => $tributo->cst_ibs,
@@ -1034,17 +1123,19 @@ class NfeService
 
             $tot['v_bc_icms'] += $this->baseIcmsDoItem($tributo, $base, $crtEmitente); // R-NFE-040 (thread 25: benefício)
             $tot['v_icms']   += $tributo->valor_icms;
-            $tot['v_pis']    += $tributo->valor_pis;
-            $tot['v_cofins'] += $tributo->valor_cofins;
+            $tot['v_pis']    += $pis['v'];
+            $tot['v_cofins'] += $cofins['v'];
             $tot['v_ibs']    += $tributo->valor_ibs;
             $tot['v_cbs']    += $tributo->valor_cbs;
         }
 
-        Log::info('pis_cofins_cst_fallback', [
-            'business_id' => $businessId,
-            'itens'       => count($dets),
-            'cst'         => '07',
-        ]);
+        if ($itensFallback > 0) {
+            Log::info('pis_cofins_cst_fallback', [
+                'business_id' => $businessId,
+                'itens'       => $itensFallback,
+                'cst'         => '07',
+            ]);
+        }
 
         return [
             'dets'  => $dets,
@@ -1137,13 +1228,46 @@ class NfeService
 
         // D9.a OTel — span envolve TUDO (validação, idempotência, reserva número,
         // HTTP SEFAZ sefazEnviaLote, processamento retorno). p99 crítico SEFAZ.
-        return OtelHelper::spanBiz('nfe.emitir', function () use ($businessId, $dadosNfe, $modelo, $transactionId): NfeEmissao {
+        return $this->comTravaDaVenda($businessId, $transactionId, fn (): NfeEmissao => OtelHelper::spanBiz('nfe.emitir', function () use ($businessId, $dadosNfe, $modelo, $transactionId): NfeEmissao {
             return $this->emitirInterno($businessId, $dadosNfe, $modelo, $transactionId);
         }, [
             'module'         => 'NfeBrasil',
             'modelo'         => (string) $modelo,
             'transaction_id' => $transactionId,
-        ]);
+        ]));
+    }
+
+    /** Segundos que a trava da venda dura se o processo morrer sem soltá-la. */
+    public const TRAVA_EMISSAO_SEGUNDOS = 300;
+
+    /**
+     * N4-16 (lote 1.2): uma venda, uma emissão de cada vez. A checagem de emissão existente
+     * (`emitirInterno` passo 1) lê sem trava; dois workers com a mesma venda passariam juntos
+     * por ela e cada um pegaria um número. Quem chega com a trava ocupada recebe erro e a fila
+     * tenta de novo depois — aí a checagem já encontra a emissão do primeiro.
+     *
+     * @template T
+     * @param  Closure(): T  $emitir
+     * @return T
+     */
+    private function comTravaDaVenda(int $businessId, ?int $transactionId, Closure $emitir): mixed
+    {
+        if ($transactionId === null) {
+            return $emitir();
+        }
+
+        $trava = Cache::lock("nfebrasil:emitir:{$businessId}:{$transactionId}", self::TRAVA_EMISSAO_SEGUNDOS);
+        if (! $trava->get()) {
+            throw new RuntimeException(
+                "Emissão da venda {$transactionId} já está em andamento. Aguarde o resultado antes de tentar de novo."
+            );
+        }
+
+        try {
+            return $emitir();
+        } finally {
+            $trava->release();
+        }
     }
 
     /**
@@ -1168,7 +1292,18 @@ class NfeService
                 ->first();
 
             if ($existente) {
-                if (in_array($existente->status, ['autorizada', 'pendente'], true)) {
+                // Envio que caiu no meio pode ter sido autorizado na SEFAZ: pergunta antes de
+                // liberar o número. Sem resposta, para aqui e a venda não ganha nota nova.
+                if (in_array($existente->status, ['erro_envio', 'enviando'], true) && ArquivoFiscal::existe($this->caminhoXmlEnviado($existente))) {
+                    if ($this->reconciliarComSefaz($existente, $dadosNfe['emit'] ?? []) === 'indefinida') {
+                        throw new RuntimeException(
+                            "Não foi possível confirmar na SEFAZ se a nota {$existente->numero} foi autorizada. Tente de novo em instantes."
+                        );
+                    }
+                    $existente->refresh();
+                }
+
+                if (in_array($existente->status, ['autorizada', 'pendente', 'contingencia'], true)) {
                     Log::info('NfeService: idempotência — emissão existente positiva', [
                         'business_id'    => $businessId,
                         'transaction_id' => $transactionId,
@@ -1191,9 +1326,9 @@ class NfeService
                     );
                 }
 
-                // rejeitada / denegada / erro_envio: número não foi declarado.
-                // Marca como `inutilizado` preservando registro pra rastreabilidade.
-                // Inutilização formal SEFAZ via NfeInutilizacaoService (US-SELL-030).
+                // rejeitada / erro_envio: número não foi declarado. Marca como `inutilizado`
+                // preservando registro pra rastreabilidade (formal via NfeInutilizacaoService).
+                // Denegada está registrada na SEFAZ: mantém o status e só solta a venda.
                 Log::info('NfeService: emissão rejeitada — marcando inutilizado pra preservar sequencial', [
                     'business_id'      => $businessId,
                     'transaction_id'   => $transactionId,
@@ -1209,7 +1344,7 @@ class NfeService
                 // canônica do retransmitirInterno() (CONFAZ Art. 14 — nunca hard-delete;
                 // metadata.original_transaction_id preserva o vínculo pra audit).
                 $existente->update([
-                    'status' => 'inutilizada',
+                    'status' => $existente->status === 'denegada' ? 'denegada' : 'inutilizada',
                     'transaction_id' => null,
                     'metadata' => array_merge((array) ($existente->metadata ?? []), [
                         'original_transaction_id'   => $transactionId,
@@ -1306,6 +1441,10 @@ class NfeService
                 return $emissao->refresh();
             }
 
+            // Guarda o XML ANTES de enviar: se o socket cair depois de a SEFAZ processar, é por
+            // este arquivo que a retentativa descobre a chave e recupera a nota autorizada.
+            ArquivoFiscal::gravar($this->caminhoXmlEnviado($emissao), $xmlSigned);
+
             $idLote  = str_pad((string) $emissao->id, 15, '0', STR_PAD_LEFT);
 
             // Retry-with-backoff em erro de TRANSPORTE transitório (connection reset,
@@ -1353,6 +1492,8 @@ class NfeService
         DB::transaction(function () use ($emissao, $response, $xmlSigned, $businessId, $serie, $numero) {
             $this->processarRetorno($emissao, $response, $xmlSigned, $businessId, $serie, $numero);
         });
+
+        $this->reconciliarSeDuplicidade($emissao, $tools);
 
         return $emissao->refresh();
     }
@@ -1796,6 +1937,18 @@ class NfeService
         $modelo = (string) $emissao->modelo;
         $numeroOriginal = $emissao->numero;
         $serieOriginal = $emissao->serie;
+        if ($emissao->status === 'erro_envio' && ArquivoFiscal::existe($this->caminhoXmlEnviado($emissao))) {
+            $desfecho = $this->reconciliarComSefaz($emissao, []);
+            if ($desfecho === 'indefinida') {
+                throw new RuntimeException(
+                    "Não foi possível confirmar na SEFAZ se a nota {$emissao->numero} foi autorizada. Tente de novo em instantes."
+                );
+            }
+            if ($desfecho === 'registrada') {
+                return $emissao->refresh();
+            }
+        }
+
         $statusOriginal = $emissao->status;
         $cstatOriginal = $emissao->cstat;
         // US-NFE-069: a NF-e da parte mercadoria re-emite também separada (senão a recusa de serviço barra).
@@ -1820,7 +1973,8 @@ class NfeService
         // automaticamente; metadata.original_transaction_id mantém referência
         // pra recuperação caso preciso futuramente.
         $emissao->update([
-            'status' => 'inutilizada',
+            // Denegada está registrada na SEFAZ: o número não volta a ser livre.
+            'status' => $statusOriginal === 'denegada' ? 'denegada' : 'inutilizada',
             'transaction_id' => null,
             'metadata' => array_merge((array) ($emissao->metadata ?? []), [
                 'original_transaction_id' => $tx->id,
@@ -1834,7 +1988,9 @@ class NfeService
         // ── 6. Re-emite via fluxo canon emitirParaTransaction ──────────────
         // Cria NfeEmissao NOVA com próximo número (proximoNumeroLocked
         // withTrashed = sequencial monotônico — não reusa numero antigo).
-        $nova = $this->emitirParaTransaction($tx, $modelo, $separada);
+        // Onda 5: a natureza escolhida no lançamento vale também na retransmissão (senão sairia como venda).
+        $operacaoDaNota = ((array) ($emissao->metadata ?? []))['operacao_id'] ?? null;
+        $nova = $this->emitirParaTransaction($tx, $modelo, $separada, operacaoId: $operacaoDaNota !== null ? (int) $operacaoDaNota : null);
 
         Log::info('NfeService.retransmitir: retransmissão concluída', [
             'business_id'    => $businessId,
@@ -1906,14 +2062,14 @@ class NfeService
         }
 
         // O XML assinado é a ÚNICA fonte: reconstruir mudaria a chave de acesso.
-        if (! $emissao->xml_path || ! Storage::exists($emissao->xml_path)) {
+        if (! ArquivoFiscal::existe($emissao->xml_path)) {
             throw new RuntimeException(
                 "NfeEmissao {$emissaoId} em contingência sem XML persistido ({$emissao->xml_path}). "
                 . 'Não é possível transmitir sem reconstruir o documento — o que geraria outra chave.'
             );
         }
 
-        $xmlSigned = (string) Storage::get($emissao->xml_path);
+        $xmlSigned = (string) ArquivoFiscal::ler($emissao->xml_path);
 
         $business = DB::table('business')->where('id', $businessId)->first();
         if (! $business) {
@@ -1940,6 +2096,8 @@ class NfeService
                 (int) $emissao->numero,
             );
         });
+
+        $this->reconciliarSeDuplicidade($emissao, $tools);
 
         Log::info('NfeService: contingência transmitida', [
             'business_id' => $businessId,
@@ -2263,7 +2421,7 @@ class NfeService
         int $numero,
     ): void {
         $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
-        Storage::put($xmlPath, $xmlSigned);
+        ArquivoFiscal::gravar($xmlPath, $xmlSigned);
 
         $emissao->update([
             'xml_path' => $xmlPath,
@@ -2894,7 +3052,8 @@ class NfeService
         // cStat 100 = Autorizado NF-e; 150 = Autorizado fora do prazo
         if (in_array($cstat, ['100', '150'], true)) {
             $xmlPath = sprintf('nfe-brasil/%d/notas/%s-%s.xml', $businessId, $serie, $numero);
-            Storage::put($xmlPath, $xmlSigned);
+            $xmlAutorizado = $this->comProtocolo($xmlSigned, $responseXml, (int) $emissao->id);
+            ArquivoFiscal::gravar($xmlPath, $xmlAutorizado ?? $xmlSigned);
 
             $emissao->update([
                 'status'     => 'autorizada',
@@ -2903,14 +3062,15 @@ class NfeService
                 'chave_44'   => $chNFe,
                 'xml_path'   => $xmlPath,
                 'emitido_em' => $dhRecbto ? \Carbon\Carbon::parse($dhRecbto) : now(),
-                'metadata'   => ['nProt' => $nProt, 'cstat_lote' => $loteStatus],
+                'metadata'   => ['nProt' => $nProt, 'cstat_lote' => $loteStatus]
+                    + ($xmlAutorizado === null ? ['xml_sem_protocolo' => true] : []),
             ]);
 
             // US-ARQ-021 (ADR 0123) — double-write XML pra Modules/Arquivos backbone.
-            // Mantém Storage::put + xml_path coluna legacy (fallback). Cria row em
+            // Mantém a gravação + xml_path coluna legacy (fallback). Cria row em
             // arquivos table polimórfica pra futuro NfeService::xmlArquivo() consumir.
             // Try/catch graceful — falha aqui NÃO bloqueia fluxo emit fiscal.
-            $this->writeArquivoXml($emissao, $xmlPath, $xmlSigned);
+            $this->writeArquivoXml($emissao, $xmlPath, $xmlAutorizado ?? $xmlSigned);
 
             // Atualiza contador fiscal no business — CRÍTICO pra evitar duplicidade.
             // BUG FIX P0 2026-05-10: catch silencioso (Log::warning) deixava contador
@@ -2955,6 +3115,11 @@ class NfeService
             // US-NFE-044 — gera DANFE PDF (defensivo: falha não derruba a emissão)
             app(DanfeService::class)->salvar($emissao->refresh());
 
+            // N4-09 (lote 1.1): o aviso sai daqui, o único lugar onde a nota vira autorizada —
+            // emissão da venda, manual, retransmissão, contingência e reconciliação passam por
+            // aqui. Só depois do commit, para o ouvinte nunca ver nota que voltou atrás.
+            DB::afterCommit(fn () => $this->avisarAutorizacao($emissao));
+
             return;
         }
 
@@ -2990,6 +3155,125 @@ class NfeService
             'status'     => 'rejeitada',
             'emissao_id' => $emissao->id,
         ]);
+    }
+
+    private function caminhoXmlEnviado(NfeEmissao $emissao): string
+    {
+        return sprintf('nfe-brasil/%d/notas/%s-%s.xml', $emissao->business_id, $emissao->serie, $emissao->numero);
+    }
+
+    /**
+     * Dispara NFeAutorizada (modelo 55) ou NFCeAutorizada (65). Falha de ouvinte síncrono
+     * (WhatsApp, cache do cockpit) não desfaz a nota, que já está autorizada na SEFAZ.
+     */
+    private function avisarAutorizacao(NfeEmissao $emissao): void
+    {
+        try {
+            event((int) $emissao->modelo === 65 ? new NFCeAutorizada($emissao) : new NFeAutorizada($emissao));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    /** SEFAZ respondeu duplicidade (204/539): a nota desta chave pode já estar autorizada. */
+    private function reconciliarSeDuplicidade(NfeEmissao $emissao, Tools $tools): void
+    {
+        $emissao->refresh();
+        if ($emissao->status !== 'rejeitada' || ! in_array((string) $emissao->cstat, ['204', '539'], true)) {
+            return;
+        }
+
+        if ($this->consultarNaSefaz($emissao, $tools) === 'indefinida') {
+            $emissao->update([
+                'status' => 'erro_envio',
+                'motivo' => 'Duplicidade na SEFAZ sem confirmação da chave: ' . substr((string) $emissao->motivo, 0, 400),
+            ]);
+        }
+    }
+
+    /**
+     * @param array<string,mixed> $emitOverride
+     * @return 'registrada'|'livre'|'indefinida'
+     */
+    private function reconciliarComSefaz(NfeEmissao $emissao, array $emitOverride): string
+    {
+        try {
+            $business = DB::table('business')->where('id', $emissao->business_id)->first();
+            if ($business === null) {
+                return 'indefinida';
+            }
+            $certData = $this->certificadoService->carregarParaSefaz((int) $emissao->business_id);
+            $tools = $this->criarTools($business, $certData, $emitOverride, (string) $emissao->modelo);
+        } catch (\Throwable $e) {
+            Log::warning('nfe.reconciliacao.sem_tools', ['emissao_id' => $emissao->id, 'erro' => $e::class]);
+
+            return 'indefinida';
+        }
+
+        return $this->consultarNaSefaz($emissao, $tools);
+    }
+
+    /**
+     * Pergunta à SEFAZ pela chave do XML enviado e grava o que ela responder. A chamada fica
+     * fora de transação: o processamento do retorno abre a dele, curta.
+     *
+     * @return 'registrada'|'livre'|'indefinida'
+     */
+    private function consultarNaSefaz(NfeEmissao $emissao, Tools $tools): string
+    {
+        $xmlAssinado = (string) ArquivoFiscal::ler($this->caminhoXmlEnviado($emissao));
+        if (! preg_match('/<infNFe[^>]*\bId="NFe(\d{44})"/', $xmlAssinado, $m)) {
+            return 'indefinida';
+        }
+
+        try {
+            $retorno = $tools->sefazConsultaChave($m[1]);
+            $cstat = (string) ((new Standardize($retorno))->toStd()->cStat ?? '');
+        } catch (\Throwable $e) {
+            Log::warning('nfe.reconciliacao.consulta_falhou', ['emissao_id' => $emissao->id, 'erro' => $e::class]);
+
+            return 'indefinida';
+        }
+
+        if (in_array($cstat, ['100', '150', '110', '205', '301', '302'], true)) {
+            DB::transaction(fn () => $this->processarRetorno(
+                $emissao,
+                $retorno,
+                $xmlAssinado,
+                (int) $emissao->business_id,
+                (string) $emissao->serie,
+                (int) $emissao->numero,
+            ));
+
+            return 'registrada';
+        }
+
+        if (in_array($cstat, ['101', '151', '155'], true)) {
+            // Nota cancelada continua registrada: só status, nunca apagada.
+            $emissao->update(['status' => 'cancelada', 'cstat' => $cstat, 'chave_44' => $m[1]]);
+
+            return 'registrada';
+        }
+
+        // 217: a SEFAZ não conhece esta chave, então este número não foi usado por ela.
+        return $cstat === '217' ? 'livre' : 'indefinida';
+    }
+
+    /**
+     * Junta a NF-e assinada e o protocolo no `nfeProc`, que é o documento fiscal válido para o
+     * destinatário e para a escrituração. Devolve null se a SEFAZ não trouxe protocolo que case
+     * com a assinatura: a nota segue autorizada e o XML assinado é guardado, com a falta marcada
+     * em `metadata.xml_sem_protocolo`.
+     */
+    private function comProtocolo(string $xmlAssinado, string $retornoSefaz, int $emissaoId): ?string
+    {
+        try {
+            return Complements::toAuthorize($xmlAssinado, $retornoSefaz);
+        } catch (\Throwable $e) {
+            Log::error('nfe.xml_sem_protocolo', ['emissao_id' => $emissaoId, 'erro' => $e::class]);
+
+            return null;
+        }
     }
 
     private function resolverIdDest(array $emitOverride, array $dest, object $business): int
@@ -3043,7 +3327,7 @@ class NfeService
                 'business_id'         => $emissao->business_id,
                 'arquivable_type'     => $arquivableType,
                 'arquivable_id'       => $emissao->id,
-                'disk'                => 'local',
+                'disk'                => ArquivoFiscal::DISCO,
                 'storage_path'        => $xmlPath,
                 'original_name'       => basename($xmlPath),
                 'mime_type'           => 'application/xml',

@@ -47,6 +47,16 @@ beforeEach(function () {
         Schema::dropIfExists($t);
     }
 
+    // O código lê a empresa (fuso, config); sem linha ele usa o padrão do app.
+    Schema::dropIfExists('business');
+    Schema::create('business', function ($table) {
+        $table->bigIncrements('id');
+        $table->uuid('uuid')->nullable();
+        $table->string('name')->nullable();
+        $table->string('time_zone')->nullable();
+        $table->timestamps();
+    });
+
     Schema::create('channels', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');

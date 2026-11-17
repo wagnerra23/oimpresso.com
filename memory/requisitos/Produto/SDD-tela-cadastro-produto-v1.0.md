@@ -989,6 +989,30 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
      (`CU-PROD-18`). Quando é **serviço**, o aviso pede o item da LC 116 (`CU-PROD-19`), não o NCM.
   4. A NF-e já recusa produto marcado como serviço (`NfeService::recusarItensDeServico`); a regra
      acima só antecipa para o cadastro o que a emissão já cobra.
+- 🔶 **CFOP padrão de venda no cadastro — decisão do [W] (proposta de 2026-11-06).** O protótipo do
+  cadastro (`produto-blade-forms.jsx`, card Fiscal) mostra um campo **CFOP padrão de venda** (5102 no
+  exemplo). Ele ficou fora da etapa 1 (#10380) porque o sistema já decide o CFOP em outro lugar.
+  Medido em 2026-11-06:
+  1. **O emissor atual não lê CFOP do produto.** O motor tributário do NfeBrasil
+     (`MotorTributarioService`) escolhe a regra fiscal em quatro níveis: (1) a regra ligada ao próprio
+     produto (`fiscal_rule_override_id`, na tela de Tributação), (2) a regra do NCM para a UF de destino,
+     (3) a regra padrão do NCM e (4) a regra geral da operação. O CFOP sai dessa regra ou da operação.
+  2. **`products` já tem `cfop_interno` e `cfop_externo`** (padrão 5101 e 6101). Quem lê são só os
+     emissores antigos do núcleo (`app/Services/NFeService.php` e `NFCeService.php`). Quem grava é o
+     cadastro do aplicativo (`Api/App/NovoProdutoController`) e a importação de XML de compra
+     (`PurchaseXmlController`). A ficha do produto mostra os dois ("CFOP dentro do estado" e "fora do
+     estado"). O cadastro Blade não tem campo de CFOP.
+  3. **Já existe CFOP por produto**, pelo nível 1: quem precisa que um produto saia com outro CFOP liga
+     uma regra a ele na Tributação, com o contador.
+  - **Opções:** **(A)** não pôr CFOP no cadastro, porque a regra fiscal decide, e o protótipo perde o
+    campo; **(B)** mostrar `cfop_interno` e `cfop_externo` no cadastro, sabendo que só o emissor antigo
+    os lê e que a nota do NfeBrasil não muda; **(C)** criar um CFOP do produto que o motor leia, o que
+    muda a nota emitida e precisa do contador.
+  - **Recomendação: (A).** Um campo que a nota não usa engana quem preenche (B), e (C) duplica o
+    nível 1, que já faz isso com regra versionada.
+  - **Se o [W] mergear o PR desta proposta, vale (A):** o cadastro não ganha campo de CFOP, e o card
+    Fiscal do protótipo deve trocar o campo por uma linha que leve à Tributação. Para escolher (B) ou
+    (C), basta comentar no PR.
 
 #### CU-PROD-17 — Peso e dimensões do produto `[should]` ✅ **no cadastro** (2026-10-21)
 
@@ -1125,8 +1149,75 @@ qual é o local padrão.
   3. ✅ **As duas seções ficam.** "Locais do negócio" diz onde o produto é vendido; "Locais de
      armazenagem" diz onde ele fica guardado. Podem ser diferentes (por exemplo, guardado no
      depósito e vendido na loja).
+- 🔶 **O que falta o [W] decidir para implementar — proposta de 2026-11-06.** Ficou fora da etapa 1 do
+  cadastro (#10380). As três decisões da [M] acima seguem. Medido em 2026-11-06: o cadastro React ainda
+  não mostra prateleira, fileira e posição (recebe `enableRacks`, mas nenhuma seção usa), e não existe
+  coluna de local padrão (`products` não tem, e `product_locations` não tem marca de padrão). Faltam
+  dois pontos, os dois de estoque:
+  1. **A Qtd. inicial por local fica dentro do cadastro?** Se ficar, o `store()` passa a gravar estoque
+     (exceção grande ao Non-Goal "NÃO modifica `store()`" do `Create.charter.md`, e REGRA MESTRE de
+     estoque). **Proposta:** não. O cadastro grava locais, padrão e endereço; a quantidade entra pela
+     tela de estoque inicial que já existe, aberta pelo botão "Salvar e adicionar estoque inicial"
+     (`UC-PCAD-21`, PR próprio). No Editar a coluna segue só leitura ("Em estoque"), como a [M] decidiu.
+  2. **Onde mora o local padrão.** **Proposta:** coluna nova `products.local_padrao_id` (nula, do mesmo
+     negócio, um dos locais de armazenagem do produto). Quem lê, em PRs seguintes: a compra, a
+     transferência e a separação, que já o sugerem preenchido. A venda não lê (baixa do local da venda),
+     como a decisão 1 da [M].
+  - **O que não precisa de decisão:** o endereço (prateleira, fileira e posição) usa o `product_racks`
+    que já existe e o mesmo campo `product_racks` do envio, e aparece só com `enable_racks`,
+    `enable_row` e `enable_position` ligados, como hoje.
+  - **Se o [W] mergear o PR desta proposta, valem as duas propostas acima.** A implementação começa
+    pelo endereço e pelo local padrão, sem tocar em saldo. Para mudar, basta comentar no PR.
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
+- **No servidor (2026-11-09):** o [W] mergeou a proposta (#10544), então valem as duas propostas. Coluna
+  `products.local_padrao_id`; o `store()` e o `update()` gravam o padrão e o endereço (`product_racks`)
+  sem mexer em saldo e recusam local de outra empresa. Casos `UC-PCAD-22` e `UC-PEDIT-19`. O bloco
+  "Locais de armazenagem" da tela vem no PR seguinte.
+- **Na tela (2026-11-10):** o bloco "Locais de armazenagem" está no Novo e no Editar (#10628). No
+  Editar entrou a coluna "Em estoque", só leitura, e o local gravado sai só sem saldo, como a [M]
+  decidiu: o envio leva `product_racks_remover`, e o servidor confere o saldo de novo, apaga só o
+  endereço e não mexe em quantidade. Caso `UC-PEDIT-21`.
+- 🔶 **Quem edita os locais de armazenagem — proposta de 2026-11-11.** Pergunta do [F]: quem deveria
+  mudar esse dado, o estoquista, o vendedor ou o administrador?
+  - **Hoje (medido em 2026-11-11):** quem tem `product.update` edita os locais, junto com o resto do
+    produto (nome, preço, impostos). O estoquista que só precisa acertar a prateleira teria de receber
+    acesso a preço e imposto. O dado em si não é sensível (não é dado pessoal nem valor em dinheiro); o
+    que pede controle é o acesso que vem junto com ele.
+  - **Proposta:**
+    1. **Permissão nova `product.armazenagem`**, "Editar locais de armazenagem do produto", na tela de
+       papéis junto das de Produtos. Nasce sem ninguém, como `sell.aprovar_margem_baixa`: o
+       administrador já passa por tudo, e cada empresa marca a permissão no papel do estoquista.
+    2. **`product.update` continua bastando.** Quem já edita produto segue editando os locais; ninguém
+       perde acesso no dia em que isto entrar.
+    3. **Só com `product.armazenagem`, só os locais.** O Editar abre com o resto bloqueado e o bloco
+       "Locais de armazenagem" liberado. O envio vai a uma rota própria, que grava só locais, endereço
+       e local padrão (as mesmas regras de `UC-PEDIT-19` e `UC-PEDIT-21`, incluindo a de saldo) e ignora
+       qualquer outro campo, mesmo que venha.
+    4. **Histórico de quem mudou.** Hoje o log do produto (`inventory.product`) não guarda o local padrão,
+       e o endereço fica em outra tabela (`product_racks`), sem log. A proposta registra no histórico
+       cada troca de endereço, de local padrão e cada local tirado, com quem fez e quando.
+    5. **O saldo segue só leitura para todos.** Estoque só muda por compra, venda, ajuste ou
+       transferência.
+  - **O vendedor** não recebe a permissão por padrão: ele usa o endereço para achar o produto, não
+    decide onde guardar. Cada empresa pode dar, se quiser.
+  - **Se o [W] mergear o PR desta proposta, vale a proposta** e a implementação vem num PR seguinte.
+    Para mudar, basta comentar no PR.
+  - **Valendo (2026-11-12):** o merge do #10765 foi autorizado pelo [F], não pelo [W] (registrado no PR).
+  - **No servidor (2026-11-12):** permissão `product.armazenagem` na tela de papéis; rota
+    `PATCH /products/{id}/armazenagem`, que grava só locais, endereço e local padrão; histórico
+    `armazenagem_alterada` no log do produto, com o antes e o depois, também quando a mudança vem do
+    Editar completo. Caso `UC-PEDIT-22`. A tela (Editar aberto só com o bloco liberado para quem tem só
+    a permissão nova) vem no PR seguinte.
+  - **Na tela (2026-11-12):** quem tem só `product.armazenagem` abre o Editar com o nome, o código e o
+    bloco "Locais de armazenagem". **Mudança em relação à proposta:** o resto do produto não aparece,
+    em vez de aparecer bloqueado, porque o Editar completo mostra preço de compra e de venda, e o
+    servidor mandaria esses valores mesmo com os campos travados. Assim o servidor nem envia preço e
+    imposto para quem não pode editá-los. Caso `UC-PEDIT-23`. Ainda falta o caminho até a tela: a lista e
+    a ficha só mostram "Editar" para quem tem `product.update`.
+  - **O caminho até a tela (2026-11-12):** para quem tem só `product.armazenagem`, o menu da linha e o
+    painel da lista (`UC-PIDX-47`) e a ficha (`UC-PSHOW-08`) mostram "Locais de armazenagem" no lugar de
+    "Editar", só em produto com estoque controlado.
 
 #### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1174,7 +1265,83 @@ volta para uma margem alvo.
 - **Ainda em aberto, sem presumir:** as outras respostas do [W] na US-PROD-030 (tabelas de preço,
   aviso na receita, vários níveis da composição) não falam dos três nomes novos; a migração do legado
   (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
+- 🔶 **Para implementar — o que o protótipo do [W] já decide e o que falta (2026-11-06).** Ficou fora
+  da etapa 1 do cadastro (#10380) porque precisa de coluna nova e mexe em valor (REGRA MESTRE de valor).
+  - **Já decidido no protótipo do [W] e em Fluxos, sem pergunta nova:**
+    1. **Os três nomes e o que cada um faz** (`produto-blade-forms.jsx`, `manufacturing-recipe.jsx`,
+       `fsm-regras.jsx`). A conta que o protótipo faz no recebimento (`calcular`, `fsm-regras.jsx`),
+       com custo anterior `cA`, custo novo `cN` e preço `P`:
+       - **Preço fixo:** o preço fica `P`, só a margem muda.
+       - **Acompanha o custo:** `P × cN ÷ cA`, que mantém o markup.
+       - **Margem alvo:** `cN ÷ (1 − alvo/100)`. A margem é sobre o **preço de venda**, não markup sobre o
+         custo.
+       - Nas duas que mudam o preço, o valor é arredondado para cima na casa de 0,10 (`up10`).
+    2. **Quem decide o quê.** A política do produto escolhe quais produtos seguem. A regra da compra em
+       Fluxos (`RegrasCompra.php`, parâmetro `preco`) decide o resto: só recalcula o custo, propõe o
+       preço novo para aprovação, ou aplica sozinho. Isso só vale quando "Quais produtos seguem" está em
+       "Política de preço do produto" (`regraEm = produto`), que hoje ninguém lê.
+    3. **Padrão Preço fixo** — resposta do [W] de 2026-10-06 na US-PROD-030 e o `{ tipo: "fixo" }` do
+       protótipo.
+  - **Escolha técnica (do Code, sem decisão do [W]):** coluna `politica_preco` em `products` (`fixo` ·
+    `acompanha` · `margem`, padrão `fixo`) e `margem_alvo_pct`. Uma escolha por produto vale para todas
+    as variações, como o método de custo (`UC-FLX-38`). O protótipo mostra o campo em dois lugares, no
+    cadastro do produto e na receita da Fabricação (`manufacturing-recipe.jsx`). Como a receita fabrica
+    um produto, os dois editam o mesmo valor, que fica no produto.
+  - **Migração do legado — também já respondida pelo [W]** (US-PROD-030, pergunta 1, 2026-10-06): a flag
+    `TEM_MARGEM_FIXA_CONTIBUICAO = S` (mantém a margem e sobe o preço) migra como Acompanha o custo;
+    `N` e nulo migram como Preço fixo. Antes de ligar a migração, medir a flag numa base de cliente de
+    comunicação visual. Com isso não sobra pergunta para o [W]: os quatro pontos estão respondidos.
+  - **Antes de ligar** (REGRA MESTRE de valor): a implementação mostra o antes e o depois do preço numa
+    compra de exemplo, conferido por dois caminhos, e só liga com a aprovação do [W].
+- **Casos de uso:** `UC-PCAD-23` (`Create.casos.md`) e `UC-PEDIT-20` (`Edit.casos.md`).
+- **Na tela e no servidor (2026-11-10), só a escolha:** colunas `products.politica_preco` (padrão
+  `fixo`) e `margem_alvo_pct`; o `store()` e o `update()` gravam as duas, e o campo "Política de preço"
+  entrou no card "Impostos e preços" do Novo e do Editar, com "Margem alvo (%)" só na opção Margem
+  alvo. **Nenhum preço muda neste passo:** o recebimento da compra ainda não lê a política. Isso é o
+  passo seguinte, que mexe em valor e liga só depois do antes e depois aprovado pelo [W]. Atenção para
+  ele: o padrão da regra da compra em Fluxos já é `regraEm = produto`, então, quando o recebimento
+  passar a ler a política, as empresas no padrão deixam de receber proposta de preço para todo produto
+  que estiver em Preço fixo, que é o que todo produto existente tem hoje.
+- **Decisão do [F] (2026-11-16) sobre o passo seguinte:** a compra segue o que o administrador
+  escolheu na regra da compra em Fluxos ("Quais produtos seguem", parâmetro `regraEm`). Os produtos
+  que já existem **não** são migrados: com "Política de preço do produto", o produto em Preço fixo
+  deixa de receber proposta de preço, porque foi isso que o administrador escolheu. Quem quiser outro
+  comportamento muda a regra em Fluxos ou a política do produto. Continua valendo a REGRA MESTRE: o
+  recebimento só passa a ler a política depois do antes e depois de uma compra de exemplo, conferido
+  por dois caminhos e aprovado pelo [W].
+
+#### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
+
+<!-- curado: ADR 0436 item 3 · Producao/Roteiros/Index.casos.md (UC-PCROT-02) · medição do código em 2026-11-06 -->
+
+*Dado* um produto que pode virar OS; *quando* abro o Editar; *então* vejo, só para ler, qual roteiro
+de produção ele segue, e um link para a tela de Roteiros.
+
+- **No protótipo** (`produto-blade-forms.jsx`, card "Produção", só no Editar): com roteiro, "Impressão
+  digital + acabamento · 4 etapas" e "Ver o roteiro"; sem roteiro, "Sem roteiro próprio · usa as etapas
+  de produção do modelo da empresa" e "Abrir Roteiros". Não aparece para composição nem para serviço.
+- **O que o sistema já tem (medido em 2026-11-06):**
+  1. ✅ A ligação produto → roteiro existe (`pcp_produto_roteiro`, por empresa) e é editada em Produção →
+     Roteiros (`RoteirosController`).
+  2. 🔴 **Sem roteiro, o produto não vira OS.** A ADR 0436 (item 3) diz que, sem roteiro, valem as
+     etapas do modelo da empresa, mas isso ainda não existe: o contrato de hoje é o `UC-PCROT-02`
+     ("produto sem roteiro não vira OS"). O texto do protótipo para o produto sem roteiro seria falso na
+     tela.
+- 🔶 **Decisão do [W] (proposta de 2026-11-06).** **Opções:** **(A)** o card entra já, só leitura, com o
+  texto de hoje para o produto sem roteiro: "Sem roteiro: este produto não vira OS. Para gerar OS, ligue
+  um roteiro em Produção → Roteiros"; quando a ADR 0436 item 3 entrar, o texto passa a ser o do
+  protótipo. **(B)** primeiro implementar a ADR 0436 item 3 (a OS usa as etapas do modelo da empresa) e
+  só depois pôr o card, com o texto do protótipo.
+  - **Recomendação: (A).** O card ajuda já, porque mostra a quem cadastra por que o produto não vira OS,
+    e não depende de mudar a criação da OS, que é do módulo Produção.
+  - O card aparece só no Editar, só para empresa com o módulo Produção no pacote, e não aparece para
+    composição nem para serviço, como no protótipo.
+  - **Se o [W] mergear o PR desta proposta, vale (A)** e o card entra num PR seguinte. Para (B), basta
+    comentar no PR.
 - **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+- **Na tela (2026-11-09):** o [W] mergeou a proposta (#10545), então vale (A). O card entrou no Editar
+  como `UC-PEDIT-18` (`Edit.casos.md`): prop deferida `producao` do `ProductController@edit`, componente
+  `BlocoProducao.tsx`. O texto para o produto sem roteiro é o de (A), não o do protótipo.
 
 ### 6.2 Vertical comunicação visual (`CV`)
 
@@ -1376,6 +1543,14 @@ volta para uma margem alvo.
 
 **Gate de entrada de cada item:** US no SPEC → CU/`casos.md` → Pest failing-first (`[V0]` onde toca valor) → implementação → gates visuais → smoke biz=1 → (se V0) dupla-confirmação + aprovação → canary.
 
+### 10.6 Pendências de decisão
+
+> 🖐 **curado** — foto datada; sai daqui quando a decisão entrar no caso de uso.
+
+| Desde | O quê | Quem decide | Estado hoje |
+|---|---|---|---|
+| 2026-11-16 | Editores de **variação** (grade) e de **composição** (kit) no Novo e no Editar React | [F], combinado para 2026-11-17 | O Novo React não salva produto variável nem composto e manda para o formulário clássico (`tipoSemEditor` em `_components/formulario/tipos.ts`); o protótipo `produto-blade-forms.jsx` tem os dois editores |
+
 ---
 
 ## 11. Referências
@@ -1396,6 +1571,8 @@ volta para uma margem alvo.
 
 **Histórico:**
 
+- 2026-11-16 — **`CU-PROD-21`: a compra segue a regra do administrador em Fluxos** (`regraEm`), sem migrar os produtos existentes; ligar ainda depende do antes e depois aprovado pelo [W]. Pendência registrada em §10.6: editores de variação e composição, a decidir pelo [F] em 2026-11-17. [F+C]
+- 2026-11-11 — **`CU-PROD-20`: proposta de quem edita os locais de armazenagem** (v1.0.18): permissão nova `product.armazenagem` só para os locais, sem dar acesso a preço e imposto; `product.update` continua bastando; rota própria que grava só os locais; histórico de quem mudou. Vale se o [W] mergear o PR. Pergunta do [F]. [F+C]
 - 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.17): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]
 - 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. Na mesma versão, revisão da [M] a partir de um caso do [L]: o **estoque máximo volta, opcional por produto**, como teto da compra (barra de pouco giro enferruja parada); substitui a decisão de 2026-10-22 de não ter máximo. [F+C] [M+C]
 - 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]

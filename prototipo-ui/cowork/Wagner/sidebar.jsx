@@ -165,9 +165,9 @@ function NfeCertBadgeRail({ onSelectRoute }) {
 // foco, Enter/Espaço e papel vêm do agente do usuário, não de código nosso.
 // UI-0011 (2026-09-10): SidebarTabs · SidebarChat · ConvRow removidos daqui — zero call sites,
 // e o vivo aposentou a aba Chat em 2026-05-05 (conv switcher vive em Pages/Copiloto/Chat.tsx).
-function ItemRow({ item, active, ghost, groupDot, onSelect, count, anchor, ghostCount }) {
+function ItemRow({ item, active, ghost, groupDot, onSelect, count, anchor, ghostCount, activeRoute }) {
   const Icon = I[item.icon];
-  if (item.children && item.children.length) return <ItemCascade item={item} onSelect={onSelect} />;
+  if (item.children && item.children.length) return <ItemCascade item={item} activeRoute={activeRoute} onSelect={onSelect} />;
   return (
     <button type="button"
       className={`sb-item sb-sub${ghost ? " sb-ghost" : ""}${active ? " active" : ""}`}
@@ -181,44 +181,30 @@ function ItemRow({ item, active, ghost, groupDot, onSelect, count, anchor, ghost
 
 }
 
-// ─── Item com filhos → cascata lateral (paridade Sidebar.tsx SidebarMenuItem hasChildren) ───
-// Botão com chevron; abre painel FIXO à direita do item (fixed pra não virar overflow do .sb-body).
-function ItemCascade({ item, onSelect }) {
-  const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState(null);
-  const btn = useRef(null);
-  const pop = useRef(null);
+// ─── Item com filhos → abre DENTRO do sidebar (paridade Sidebar.tsx SidebarMenuItem hasChildren) ───
+// [W] 2026-11-06: "todos como o Financeiro". Até aqui abria um painel fixo à direita do item
+// (`.sb-item-popover`). Os filhos usam as mesmas linhas `sb-ghost` das sub-telas; abre sozinho quando
+// a rota ativa é um dos filhos. Vivo: PR #10525 (UC-SB-15).
+function ItemCascade({ item, activeRoute, onSelect }) {
+  const temAtivo = item.children.some((c) => c.id === activeRoute);
+  const [open, setOpen] = useState(temAtivo);
   const Icon = I[item.icon];
-  useEffect(() => {
-    if (!open) {setPos(null);return;}
-    const r = btn.current?.getBoundingClientRect();
-    if (r) setPos({ top: r.top, left: r.right + 4 });
-    const h = (e) => {if (btn.current?.contains(e.target) || pop.current?.contains(e.target)) return;setOpen(false);};
-    const k = (e) => {if (e.key === "Escape") {setOpen(false);btn.current?.focus();}};
-    document.addEventListener("mousedown", h);
-    document.addEventListener("keydown", k);
-    return () => {document.removeEventListener("mousedown", h);document.removeEventListener("keydown", k);};
-  }, [open]);
   return (
     <React.Fragment>
-      <button type="button" ref={btn} className={"sb-item sb-sub" + (open ? " is-open" : "")}
-        aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+      <button type="button" className={"sb-item sb-sub" + (open ? " is-open" : "")}
+        aria-expanded={open} onClick={() => setOpen(!open)}>
         {Icon && <Icon className="ic" />}
         <span className="label">{item.label}</span>
-        <I.chevR className="ic sb-item-chev" />
+        <I.chevDown className="ic sb-item-chev" aria-hidden="true"
+          style={{ transform: open ? "rotate(0)" : "rotate(-90deg)", transition: "transform 120ms" }} />
       </button>
-      {open && pos &&
-      <div className="sb-item-popover" role="menu" ref={pop} aria-label={item.label} style={{ top: pos.top, left: pos.left }}>
-        {item.children.map((c) => {
-          const CI = I[c.icon];
-          return (
-            <button type="button" key={c.id} role="menuitem" className="sb-item"
-              onClick={() => {setOpen(false);(window.__selectRoute || onSelect)?.(c.id);}}>
-              {CI ? <CI className="ic" /> : <span className="ic dot" aria-hidden="true" />}
-              <span className="label">{c.label}</span>
-            </button>);
-        })}
-      </div>}
+      {open && item.children.map((c) =>
+        <button type="button" key={c.id} className="sb-item sb-sub sb-ghost"
+          aria-current={c.id === activeRoute ? "page" : undefined}
+          onClick={() => (window.__selectRoute || onSelect)?.(c.id)}>
+          <span className="label">{c.label}</span>
+        </button>
+      )}
     </React.Fragment>);
 }
 

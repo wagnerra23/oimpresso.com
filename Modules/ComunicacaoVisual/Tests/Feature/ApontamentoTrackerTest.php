@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\User;
 use Modules\ComunicacaoVisual\Entities\Apontamento;
 use Modules\ComunicacaoVisual\Entities\Os;
 use Modules\ComunicacaoVisual\Services\ApontamentoTracker;
+use Tests\Support\WithSeededTenant;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, WithSeededTenant::class);
 
 /**
  * Testes do ApontamentoTracker — spool plotter / apontamento de produção.
  *
  * US-COMVIS-004: iniciar/finalizar/cancelar + drift detection.
  *
- * Tests biz=1 (Wagner WR2) conforme ADR 0101 — nunca biz=4 (cliente ROTA LIVRE).
+ * Tenant fictício 98 (ADR 0358). O operador é um usuário novo a cada caso: o primeiro usuário
+ * da empresa podia herdar um spool aberto de outro teste no banco persistente do CT 100.
  * Multi-tenant Tier 0 (ADR 0093): global scope obrigatório.
  *
  * Contrato de tela que este arquivo defende (trio · ADR 0264 G-2):
@@ -27,42 +28,37 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-004
  * @see memory/requisitos/ComunicacaoVisual/SDD-tela-orcamento-m2-v1.0.md §6 CU-CV-06
  * @see resources/js/Pages/ComunicacaoVisual/Index.casos.md
- * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
+ * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
 // ------------------------------------------------------------------
-// Helper: setup de sessão biz=1 + OS fake via withoutGlobalScopes
+// Helper: setup de sessão da empresa de teste + OS fake via withoutGlobalScopes
 // ------------------------------------------------------------------
 
 function bootstrapTrackerTest(): array
 {
+    if (\Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite') {
+        test()->markTestSkipped('Requer MySQL com as tabelas comvis_* migradas.');
+    }
     try {
-        $business = Business::find(1) ?? Business::first();
+        $business = test()->seededTenant();
     } catch (\Throwable $e) {
         test()->markTestSkipped('Tabela business indisponível: ' . $e->getMessage());
     }
 
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco — rode seeder UltimatePOS antes.');
-    }
-
-    $user = User::where('business_id', $business->id)->first();
-    if (! $user) {
-        test()->markTestSkipped('Sem user no business_id=1.');
-    }
+    $user = test()->usuarioComPermissoes([], $business);
 
     session([
         'user.business_id' => $business->id,
         'user.id'          => $user->id,
         'business.id'      => $business->id,
-        'is_admin'         => true,
     ]);
 
     // Criar OS de teste via withoutGlobalScopes (SUPERADMIN: setup de teste)
     $os = Os::withoutGlobalScopes()->create([
         'business_id'  => $business->id,
-        'numero'       => 'OS-TEST-' . uniqid(),
+        'numero'       => 'OS-T-' . uniqid(),  // cabe nos 20 caracteres da coluna
         'status_etapa' => 'producao',
         'valor_total'  => 0,
     ]);
@@ -104,7 +100,7 @@ it('iniciar() cria apontamento com finalizado_em null e em_andamento=true', func
 // Teste 2: finalizar() calcula duracao_segundos correto
 // ------------------------------------------------------------------
 
-it('finalizar() calcula duracao_segundos correto', function () {
+it('UC-CV-06 · finalizar() calcula duracao_segundos correto', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -134,7 +130,7 @@ it('finalizar() calcula duracao_segundos correto', function () {
 // Orçado=10, Produzido=8 → drift = (8-10)/10 × 100 = -20%
 // ------------------------------------------------------------------
 
-it('finalizar() calcula drift_percent correto (orcado=10 prod=8 → drift=-20%)', function () {
+it('UC-CV-06 · finalizar() calcula drift_percent correto (orcado=10 prod=8 → drift=-20%)', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -160,7 +156,7 @@ it('finalizar() calcula drift_percent correto (orcado=10 prod=8 → drift=-20%)'
 // Impossível dividir por zero — drift fica null
 // ------------------------------------------------------------------
 
-it('finalizar() drift null quando m2_orcado=0 (divisão por zero evitada)', function () {
+it('UC-CV-06 · finalizar() drift null quando m2_orcado=0 (divisão por zero evitada)', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -183,7 +179,7 @@ it('finalizar() drift null quando m2_orcado=0 (divisão por zero evitada)', func
 // Teste 5: cancelar() seta finalizado_em + m2_produzido=0 + prefixo [CANCELADO]
 // ------------------------------------------------------------------
 
-it('cancelar() define finalizado_em + m2_produzido=0 + observacoes "[CANCELADO]"', function () {
+it('UC-CV-06 · cancelar() define finalizado_em + m2_produzido=0 + observacoes "[CANCELADO]"', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -209,7 +205,7 @@ it('cancelar() define finalizado_em + m2_produzido=0 + observacoes "[CANCELADO]"
 // Teste 6: iniciar() throw se operador já tem apontamento em andamento
 // ------------------------------------------------------------------
 
-it('iniciar() lança RuntimeException se operador já tem apontamento ativo', function () {
+it('UC-CV-06 · iniciar() lança RuntimeException se operador já tem apontamento ativo', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 
@@ -233,7 +229,7 @@ it('iniciar() lança RuntimeException se operador já tem apontamento ativo', fu
 // Teste 7: finalizar() throw se apontamento já finalizado
 // ------------------------------------------------------------------
 
-it('finalizar() lança RuntimeException se apontamento já finalizado', function () {
+it('UC-CV-06 · finalizar() lança RuntimeException se apontamento já finalizado', function () {
     [$business, $user, $os] = bootstrapTrackerTest();
     $tracker = new ApontamentoTracker();
 

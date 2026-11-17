@@ -142,3 +142,25 @@ it('US-WA-324 · não responde: flag desligada, conversa com atendente, históri
     ($this->cliente)($desligado, 'oi de novo');
     expect(($this->respostas)($desligado))->toHaveCount(1);
 });
+
+it('US-WA-324 · whatsapp_bot_menu_sessoes: a sessão de outra empresa na mesma conversa não é lida nem alterada', function () {
+    ($this->menu)($this->biz->id);
+    $conv = ($this->conversa)();
+    // Sessão da outra empresa já no meio do menu, com o mesmo conversation_id.
+    DB::table('whatsapp_bot_menu_sessoes')->insert([
+        'business_id' => $this->outra->id, 'conversation_id' => $conv, 'estado' => 'aguardando_opcao',
+        'tentativas' => 1, 'opcao' => null, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    ($this->cliente)($conv, 'oi');
+
+    // Se lesse a sessão alheia, "oi" seria a 2ª resposta inválida e passaria para atendente.
+    $r = ($this->respostas)($conv);
+    expect($r)->toHaveCount(1)
+        ->and($r[0])->toContain('Olá! Como podemos ajudar?');
+    $alheia = DB::table('whatsapp_bot_menu_sessoes')->where('business_id', $this->outra->id)->where('conversation_id', $conv)->first();
+    expect($alheia->estado)->toBe('aguardando_opcao')
+        ->and((int) $alheia->tentativas)->toBe(1);
+    expect(DB::table('whatsapp_bot_menu_sessoes')->where('business_id', $this->biz->id)->where('conversation_id', $conv)->value('estado'))
+        ->toBe('aguardando_opcao');
+});

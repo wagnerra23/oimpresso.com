@@ -8,11 +8,11 @@ use App\Transaction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Modules\NfeBrasil\Events\NFCeAutorizada;
 use Modules\NfeBrasil\Mail\DanfeNotaFiscalMail;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\DanfeService;
+use Modules\NfeBrasil\Support\ArquivoFiscal;
 use Throwable;
 
 /**
@@ -111,9 +111,7 @@ class EnviarDanfeNFCePorEmail implements ShouldQueue
             return;
         }
 
-        $xmlString = $emissao->xml_path && Storage::exists($emissao->xml_path)
-            ? Storage::get($emissao->xml_path)
-            : '';
+        $xmlString = ArquivoFiscal::ler($emissao->xml_path) ?? '';
 
         try {
             Mail::to($email)->send(new DanfeNotaFiscalMail(

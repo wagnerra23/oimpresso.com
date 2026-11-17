@@ -19,7 +19,7 @@ const FX_REJ_CODES = [110, 204, 220, 539, 691, 778];
 // Receita SEFAZ determinística (sefaz-actions.ts) — o que fazer por código.
 const FX_SEFAZ_ACTIONS = {
   110: { causa: "Rejeição de regra de validação no cadastro do destinatário.", passos: ["Confirmar IE do destinatário no SINTEGRA da UF", "Corrigir o cadastro do cliente", "Retransmitir a nota (mesma numeração)"] },
-  204: { causa: "Duplicidade de NF-e: chave já autorizada na SEFAZ.", passos: ["Consultar a chave na SEFAZ", "Se autorizada, vincular o XML existente à venda", "Não retransmitir — inutilizar a faixa se sobrar número"] },
+  204: { retransmitir: false, causa: "Duplicidade de NF-e: chave já autorizada na SEFAZ.", passos: ["Consultar a chave na SEFAZ", "Se autorizada, vincular o XML existente à venda", "Não retransmitir — inutilizar a faixa se sobrar número"] },
   539: { causa: "Destinatário inválido — CNPJ/CPF não confere com a IE.", passos: ["Revisar CNPJ e IE no cadastro", "Retransmitir"] },
   999: { causa: "Lote em processamento na SEFAZ.", passos: ["Aguardar retorno automático (até 5 min)", "Reconsultar recibo se passar de 15 min"] },
 };
@@ -27,8 +27,6 @@ const FX_SEFAZ_ACTIONS = {
 const FX_ALERTS = [
   { level: "crit", icon: "audit",   title: "NF-e 8425 rejeitada (cstat 110)", sub: "IE destinatário inválida no cadastro SP", action: "Abrir nota", goto: "fiscal-nfe", focus: "nfe-8425" },
   { level: "crit", icon: "audit",   title: "NFS-e 2103 rejeitada", sub: "Tomador sem IE municipal — Guarulhos", action: "Abrir nota", goto: "fiscal-nfse", focus: "nfse-2103" },
-  { level: "warn", icon: "shield",  title: "Certificado A1 vence em 47 dias", sub: "Agendar renovação com contador", action: "Abrir configuração", goto: "fiscal-config" },
-  { level: "info", icon: "receipt", title: "5 DF-e aguardando manifestação", sub: "Prazo legal: 90 dias da emissão", action: "Manifestar", goto: "fiscal-dfe" },
 ];
 
 const FX_SAVED_VIEWS = [
@@ -118,7 +116,7 @@ const FX_EVENTOS = [
   { id: "evt-5", tipo: "Cancelamento", kind: "cancel", nota: "NFC-e 9005", descricao: "Cliente devolveu mercadoria na mesma data", emit: "15/05 17:22", autor: "Larissa", sefaz: 101 },
 ];
 
-// DF-e recebidos (NF-e emitidas CONTRA o CNPJ — manifesto destinatário, prazo legal 90d)
+// DF-e recebidos (NF-e emitidas CONTRA o CNPJ — manifesto destinatário; o prazo de cada uma vem da SEFAZ)
 const FX_DFE = [
   { id: "dfe-982", emitente: "TechSupply Componentes Ltda", cnpj: "62.118.409/0001-77", chave: "35260562118409000177550010000009821994231145", num: "982", emitido: "12/05/2026", valor: 8420.00, status: "pendente", prazo: { label: "83d", urgency: "ok" } },
   { id: "dfe-1174", emitente: "Lona & Cia Distribuidora", cnpj: "08.552.164/0001-92", chave: "35260508552164000192550010000011741994230882", num: "1174", emitido: "28/04/2026", valor: 15300.00, status: "pendente", prazo: { label: "68d", urgency: "ok" } },
@@ -167,8 +165,6 @@ const FX_SPED_BLOCOS = [
   { id: "9", nome: "Controle e encerramento do arquivo", registros: 1, registrosIds: "9001 · 9900 · 9990 · 9999" },
 ];
 
-// Write-off de auditoria mensal (determinístico, sem IA — WriteOffAuditoriaCard do vivo)
-const FX_WRITEOFF = { totalCandidates: 2470, totalValor: 770000.00, oldestAge: 1847, category: "incobravel", scopeLabel: "Inadimplência >365d" };
 
 // Enviar p/ contabilidade (drawer do header)
 const FX_CONTABIL = {
@@ -178,7 +174,7 @@ const FX_CONTABIL = {
     { ok: true,   label: "184 NF-e autorizadas no período" },
     { ok: "warn", label: "3 NF-e rejeitadas — não entram no pacote", action: "Ver rejeitadas", goto: "fiscal-nfe" },
     { ok: true,   label: "5 DF-e manifestadas (4 confirmadas + 1 desconhecida)" },
-    { ok: "warn", label: "Certificado A1 vence em 47d — renovar antes do próximo fechamento", action: "Renovar", goto: "fiscal-config" },
+    { cert: true, action: "Renovar", goto: "fiscal-config" },
     { ok: true,   label: "SPED EFD ICMS/IPI pronto pra gerar (último: abr/2026)" },
   ],
   totais: { autorizadas: 184, nfse: 12, eventos: 5 },
@@ -200,7 +196,6 @@ const FX_PROC = {
   viewCounts:  { kind: "derivado", label: "derivado da lista", explica: "No vivo os contadores são fixos no código; aqui são calculados sobre a lista exibida." },
   sefaz:       { kind: "demo",     label: "demonstração",     explica: "Situação da SEFAZ é fixa. Real depende de consumir o webservice de status por UF." },
   contabil:    { kind: "demo",     label: "demonstração",     explica: "Pacote da contabilidade é mock; o envio real (e-mail/SFTP) não existe." },
-  writeoff:    { kind: "demo",     label: "demonstração",     explica: "Candidatos a baixa são mock. Real depende de consulta em fin_titulos >365d sem pagamento." },
   dfe:         { kind: "real",     label: "leitura real",     explica: "NfeDfeRecebido com escopo de business; prazo vem do valor calculado pela SEFAZ." },
   dfeHist:     { kind: "demo",     label: "demonstração",     explica: "Histórico de manifestações tem ator e observação inventados — decisão [W] pendente no vivo." },
   config:      { kind: "real",     label: "leitura real",     explica: "Certificado, regime e tributação vêm do NfeBrasil (escopo aplicado à mão a partir da sessão)." },
@@ -252,4 +247,4 @@ const FX_DEBITOS = [
   { tela: "fiscal-eventos", tom: "info", titulo: "Justificativa truncada em 200 caracteres", texto: "Corte feito no Controller para não vazar PII do xMotivo do XML; a tela não re-expande." },
 ];
 
-Object.assign(window, { FISCAL_DATA: { KPIS: FX_KPIS, SPARK: FX_SPARK, SEFAZ: FX_SEFAZ, STATUS_LABEL: FX_STATUS_LABEL, REJ_CODES: FX_REJ_CODES, SEFAZ_ACTIONS: FX_SEFAZ_ACTIONS, ALERTS: FX_ALERTS, SAVED_VIEWS: FX_SAVED_VIEWS, NOTAS: FX_NOTAS, EVENTOS: FX_EVENTOS, DFE: FX_DFE, DFE_STATUS: FX_DFE_STATUS, CONFIG: FX_CONFIG, SPED: FX_SPED, SPED_BLOCOS: FX_SPED_BLOCOS, WRITEOFF: FX_WRITEOFF, CONTABIL: FX_CONTABIL, PROC: FX_PROC, SERIES: FX_SERIES, DFE_HISTORICO: FX_DFE_HISTORICO, SPED_TXT: FX_SPED_TXT, DEBITOS: FX_DEBITOS } });
+Object.assign(window, { FISCAL_DATA: { KPIS: FX_KPIS, SPARK: FX_SPARK, SEFAZ: FX_SEFAZ, STATUS_LABEL: FX_STATUS_LABEL, REJ_CODES: FX_REJ_CODES, SEFAZ_ACTIONS: FX_SEFAZ_ACTIONS, ALERTS: FX_ALERTS, SAVED_VIEWS: FX_SAVED_VIEWS, NOTAS: FX_NOTAS, EVENTOS: FX_EVENTOS, DFE: FX_DFE, DFE_STATUS: FX_DFE_STATUS, CONFIG: FX_CONFIG, SPED: FX_SPED, SPED_BLOCOS: FX_SPED_BLOCOS, CONTABIL: FX_CONTABIL, PROC: FX_PROC, SERIES: FX_SERIES, DFE_HISTORICO: FX_DFE_HISTORICO, SPED_TXT: FX_SPED_TXT, DEBITOS: FX_DEBITOS } });

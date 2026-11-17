@@ -127,6 +127,7 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 | UC-PURSHW-09 | Recusar mantém o preço; aprovar exige `product.update`, a empresa certa e o preço de antes | must `[T0]` `[V0]` | SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 | UC-PURSHW-10 | Inspeção da compra recebida: o reprovado sai do estoque e vira devolução ao fornecedor | must `[V0]` | SPEC US-COM-034 | `InspecaoDoRecebimentoTest` | ⬜ não verificado (lane compras-pest sem veredito ainda) |
 | UC-PURSHW-11 | Inspeção desligada por padrão; soma errada, reprovado sem motivo, segunda inspeção e compra de outra empresa são recusados | must `[T0]` | SPEC US-COM-034 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `InspecaoDoRecebimentoTest` | ⬜ não verificado (lane compras-pest sem veredito ainda) |
+| UC-PURSHW-12 | Aprovar a proposta de preço deixa registro no `activity_log`, com o preço de antes e o de depois | must `[V0]` | SPEC US-COM-028 · auditoria Compras 2026-11-05 D4 | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 
 ---
 
@@ -323,6 +324,20 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - **Teste:** [`InspecaoDoRecebimentoTest`](../../../../Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php).
 - **Contrato:** SPEC US-COM-034 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Status: ⬜ não verificado** — a lane `compras-pest` ainda não deu veredito.
+
+---
+
+## UC-PURSHW-12 · Aprovar a proposta de preço deixa registro · `must` `[V0]`
+
+- **Persona:** quem aprova o preço proposto pelo recebimento (`product.update`).
+- **Aceite:** **Dado** uma proposta pendente, **quando** ela é aprovada, **então** o `activity_log` ganha uma
+  entrada `compras_preco_proposto_aprovado` na variação, na empresa da proposta, com quem aprovou, o id da
+  proposta e os preços de antes e de depois. A recusa grava `compras_preco_proposto_recusado` (código no mesmo PR; este teste exerce só a aprovação).
+- **Regressão que defende:** aprovar muda o preço de venda do produto, e até 2026-11-06 nada registrava quem
+  mudou nem qual era o preço anterior.
+- **Teste:** [`PropostasDePrecoContratoTest`](../../../../Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php).
+- **Contrato:** SPEC US-COM-028 · auditoria Compras 2026-11-05, achado D4 (lote 2.4).
+- **Status: 🧪 sem veredito**
 
 ---
 

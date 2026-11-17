@@ -33,6 +33,7 @@ related_us: []
 | UC-FPI-06 | busca de contato no servidor, só da empresa e sem ficha | must | `FisioPacienteContatoTest` |
 | UC-FPI-07 | criar o contato na hora, sem duplicar celular | must | `FisioPacienteContatoTest` |
 | UC-FPI-20 | coluna e filtro por fisioterapeuta responsável ("meus pacientes") | should | `FisioPacienteResponsavelTest` |
+| UC-FPI-21 | o cadastro diz o que falta (contato, nome, celular) em vez de só desabilitar o botão | should | `tests/js/fisio-novo-paciente-falta.test.ts` |
 
 ---
 
@@ -96,7 +97,14 @@ related_us: []
 - `[BACKLOG]` Atalhos J/K e N (novo) — sem teste de navegador.
 - `[BACKLOG]` Filtro "bloqueados" para consultar prontuário guardado — a regra de guarda está em UC-FPS-07; o filtro da lista ainda sem teste.
 
+## UC-FPI-21 · O cadastro diz o que falta · `should`
+- **Aceite:** Enquanto o botão "Cadastrar paciente" está desabilitado, aparece acima dele a frase do que falta: "Escolha o contato para continuar." ou "Falta o nome e/ou o celular do contato.". As regras são as do `PacientesController@store`; o botão usa a mesma função, então frase e botão não divergem.
+- **Regressão que defende:** celular obrigatório sem aviso — o botão só ficava cinza (smoke de staging de 2026-11-11).
+- **Teste:** `tests/js/fisio-novo-paciente-falta.test.ts`
+- **Status: 🧪**
+
 ## Trilha do tempo
+- 2026-11-11 · UC-FPI-21 — o cadastro de paciente diz o que falta (achado do smoke de staging).
 - 2026-10-18 · responsável pelo paciente — coluna e filtro por responsável (UC-FPI-20).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código.
 - 2026-10-18 · melhoria "novo contato na hora" — UC-FPI-05 (contato apagado recusado), UC-FPI-06 (busca de contato no servidor) e UC-FPI-07 (contato criado no cadastro). Veredito: lane Verticais.

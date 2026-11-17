@@ -108,7 +108,7 @@ final class ReservaDeInsumoDaOs implements ReservaDeInsumo
             if ($this->dezMilesimos($insumo['quantidade']) <= 0) {
                 continue;
             }
-            // Escopo global trocado por business_id explícito: roda em fila, sem sessão (ADR 0093).
+            // SUPERADMIN: roda no CriarOsDaVendaJob, em fila; a empresa vem do job (ADR 0093).
             $reserva = StockReservation::withoutGlobalScope(ScopeByBusiness::class)->firstOrCreate(
                 ['business_id' => $businessId, 'pcp_ordem_id' => $ordem->id, 'variation_id' => $insumo['variation_id']],
                 ['transaction_id' => $ordem->transaction_id, 'product_id' => $insumo['product_id'], 'location_id' => (int) $local,
@@ -129,7 +129,7 @@ final class ReservaDeInsumoDaOs implements ReservaDeInsumo
         if (! $this->pronta()) {
             return null;
         }
-        $reserva = StockReservation::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+        $reserva = StockReservation::query()->where('business_id', $businessId)
             ->where('pcp_ordem_id', $ordemId)->where('variation_id', $variationId)
             ->where('status', StockReservation::STATUS_ACTIVE)->lockForUpdate()->first();
         if (! $reserva) {
@@ -159,6 +159,7 @@ final class ReservaDeInsumoDaOs implements ReservaDeInsumo
     /** @return \Illuminate\Database\Eloquent\Builder<StockReservation> */
     private function ativas(int $businessId): \Illuminate\Database\Eloquent\Builder
     {
+        // SUPERADMIN: chamado pelos ganchos Ordem::updated e Transaction::updated; a empresa vem do registro, não da sessão.
         return StockReservation::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
             ->where('status', StockReservation::STATUS_ACTIVE);
     }

@@ -6,7 +6,8 @@
 import { Deferred } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -43,10 +44,14 @@ export default function DashboardIndex(props: PageProps) {
 
   return (
     <div className="container mx-auto space-y-6 p-4">
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190), mesmo padrão do JobSheet/Index.
+          Saiu do shared congelado (ADR 0409) para receber a barra de abas do módulo: a mesma
+          lista do sidebar, via ModuleTabs ([W] 2026-11-06). */}
       <PageHeader
-        icon="wrench"
+        leading={<Icon name="wrench" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Dashboard Repair"
-        description="Visão geral de OS, status, equipe e tendências (Repair)"
+        subtitle="Visão geral de OS, status, equipe e tendências (Repair)"
+        below={<ModuleTabs modulo="Assistência técnica" />}
       />
 
       <KpiGrid cols={2}>

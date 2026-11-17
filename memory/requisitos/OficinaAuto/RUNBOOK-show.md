@@ -9,6 +9,10 @@
 1. `resources/js/Pages/OficinaAuto/Vehicles/Show.tsx` — detalhe veículo + histórico OS
 2. `resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx` — detalhe OS
 
+> **2026-11-05:** o contrato atual de `ServiceOrders/Show.tsx` (itens, DVI, etapa, impressão,
+> onde fica a entrega) está em [`RUNBOOK-service-orders-show.md`](RUNBOOK-service-orders-show.md).
+> A seção `ServiceOrders/Show.tsx` abaixo é o V0 de 2026-05.
+
 ## Contrato (V0)
 
 ### Vehicles/Show.tsx

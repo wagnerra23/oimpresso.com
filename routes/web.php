@@ -457,12 +457,63 @@ if (app()->environment(['local', 'testing', 'staging'])) {
     })->middleware('web')->name('visreg.state');
 }
 
+// Uniafibro (União das Associações de Fibromiálgicos de Santa Catarina) — página da associação em
+// https://uniafibro.com.br, servida por este mesmo app (domínio-alias no hPanel). Sem login,
+// sem banco. Fica ANTES do `/` sem domínio: o roteador devolve a 1ª rota registrada que casa.
+// O portal do paciente continua em oimpresso.com/fisio — nada do Fisio vem para cá.
+// Ver memory/requisitos/Site/RUNBOOK-uniafibro.md.
+Route::domain('www.uniafibro.com.br')->group(function () {
+    Route::permanentRedirect('/{caminho?}', 'https://uniafibro.com.br/')
+        ->where('caminho', '.*')
+        ->name('uniafibro.www');
+});
+Route::domain('uniafibro.com.br')->middleware('throttle:60,1')->group(function () {
+    Route::get('/', [\App\Http\Controllers\UniafibroSiteController::class, 'home'])
+        ->name('uniafibro.home');
+    // Área da associada (ADR 0451 D6 · US-ASSOC-005): o link + PIN abre aqui, no site da rede.
+    // Mesmo caminho e mesmo controller da rota do módulo (que o app segue usando), então a tela
+    // não muda. Fica ANTES do caminho genérico abaixo, senão ele captura o link.
+    Route::prefix('associacoes/m/{token}')
+        ->where(['token' => '[A-Za-z0-9_\-\.]{1,512}'])
+        ->group(function () {
+            Route::get('/', [\Modules\Associacoes\Http\Controllers\PortalAssociadaController::class, 'show'])
+                ->name('uniafibro.membro.show');
+            Route::post('pin', [\Modules\Associacoes\Http\Controllers\PortalAssociadaController::class, 'pin'])
+                ->name('uniafibro.membro.pin');
+            Route::delete('consentimentos/{finalidade}', [\Modules\Associacoes\Http\Controllers\PortalAssociadaController::class, 'revogarConsentimento'])
+                ->where('finalidade', '[a-z_]{1,40}')
+                ->name('uniafibro.membro.consentimentos.destroy');
+        });
+    // Seus Direitos + Guias Práticos: páginas geradas de resources/uniafibro/direitos/*.md.
+    // O slug só aceita [a-z0-9-]; slug sem arquivo volta para /direitos (RUNBOOK §6).
+    Route::get('/direitos', [\App\Http\Controllers\UniafibroConteudoController::class, 'indice'])
+        ->name('uniafibro.direitos');
+    Route::get('/direitos/{slug}.pdf', [\App\Http\Controllers\UniafibroConteudoController::class, 'pdf'])
+        ->where('slug', \App\Support\Uniafibro\Conteudo::SLUG)
+        ->middleware('throttle:10,1')
+        ->name('uniafibro.direitos.pdf');
+    Route::get('/direitos/{slug}', [\App\Http\Controllers\UniafibroConteudoController::class, 'pagina'])
+        ->where('slug', \App\Support\Uniafibro\Conteudo::SLUG)
+        ->name('uniafibro.direitos.pagina');
+    // Qualquer outro caminho no domínio da associação volta para a página inicial, em vez de
+    // cair numa tela do ERP.
+    Route::redirect('/{caminho}', 'https://uniafibro.com.br/')
+        ->where('caminho', '.*')
+        ->name('uniafibro.outros');
+});
+
 // Política de privacidade PÚBLICA do app oimpresso (ERP + ponto) — sem login. As lojas
 // (Google Play / App Store) exigem URL estável. Só texto: não lê banco nem sessão.
 // Ver memory/requisitos/Site/RUNBOOK-privacidade.md.
 Route::middleware(['web', 'throttle:60,1'])->group(function () {
     Route::get('/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'app'])
         ->name('publico.privacidade');
+    // Portal do Paciente do Fisio + app Uniafibro (com.oimpresso.fisio): dado de saúde, política própria.
+    Route::get('/fisio/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'fisio'])
+        ->name('publico.privacidade.fisio');
+    // "Ajuda" do topo e do rodapé do site: ainda não há central de ajuda pública, então leva ao
+    // Fale conosco. 302 (temporário) porque a central vai existir — decisão [W] 2026-11-14.
+    Route::redirect('/ajuda', '/c/contact-us', 302)->name('publico.ajuda');
 });
 
 Route::middleware(['setData'])->group(function () {
@@ -635,6 +686,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/contacts/payments/{contact_id}', [ContactController::class, 'getContactPayments']);
     Route::get('/contacts/map', [ContactController::class, 'contactMap']);
     Route::get('/contacts/update-status/{id}', [ContactController::class, 'updateStatus']);
+    // A ficha React ativa/desativa por POST (com CSRF) mandando o estado pedido; o GET fica
+    // para o botão da lista Blade antiga, que só inverte.
+    Route::post('/contacts/update-status/{id}', [ContactController::class, 'updateStatus'])->whereNumber('id');
+    // UC-CIDX-16 — restaura cadastro excluído (filtro "Excluídos" da lista de clientes).
+    Route::post('/contacts/{id}/restore', [ContactController::class, 'restore'])->whereNumber('id');
     Route::get('/contacts/stock-report/{supplier_id}', [ContactController::class, 'getSupplierStockReport']);
     Route::get('/contacts/ledger', [ContactController::class, 'getLedger']);
     Route::post('/contacts/send-ledger', [ContactController::class, 'sendLedger']);
@@ -750,6 +806,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('products.unificado.index');
 
     Route::get('/products/stock-history/{id}', [ProductController::class, 'productStockHistory']);
+    // CU-PROD-20 (#10765): só os locais de armazenagem; product.update ou product.armazenagem.
+    Route::patch('/products/{id}/armazenagem', [ProductController::class, 'atualizarArmazenagem'])->whereNumber('id');
+    // UC-PEDIT-29: imagem e folheto do produto, gravados na hora pelo Editar React.
+    Route::post('/products/{id}/midia', [ProductController::class, 'atualizarMidia'])->whereNumber('id');
     Route::get('/delete-media/{media_id}', [ProductController::class, 'deleteMedia']);
     Route::post('/products/mass-deactivate', [ProductController::class, 'massDeactivate']);
     Route::get('/products/activate/{id}', [ProductController::class, 'activate']);
@@ -757,12 +817,16 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/products/add-selling-prices/{id}', [ProductController::class, 'addSellingPrices']);
     Route::post('/products/save-selling-prices', [ProductController::class, 'saveSellingPrices']);
     Route::post('/products/mass-delete', [ProductController::class, 'massDestroy']);
+    // UC-PIDX-45: devolve o produto excluído (AR-PROD-022).
+    Route::post('/products/restaurar/{id}', [ProductController::class, 'restaurar']);
     Route::get('/products/view/{id}', [ProductController::class, 'view']);
     Route::get('/products/list', [ProductController::class, 'getProducts']);
     Route::get('/products/list-no-variation', [ProductController::class, 'getProductsWithoutVariations']);
     Route::post('/products/bulk-edit', [ProductController::class, 'bulkEdit']);
     Route::post('/products/bulk-update', [ProductController::class, 'bulkUpdate']);
     Route::post('/products/bulk-update-location', [ProductController::class, 'updateProductLocation']);
+    // UC-PIDX-43: o mesmo NCM em vários produtos selecionados na consulta de produto.
+    Route::post('/products/bulk-update-ncm', [ProductController::class, 'bulkUpdateNcm']);
     Route::get('/products/get-product-to-edit/{product_id}', [ProductController::class, 'getProductToEdit']);
 
     Route::post('/products/get_sub_categories', [ProductController::class, 'getSubCategories']);

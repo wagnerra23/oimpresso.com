@@ -3,9 +3,18 @@ slug: nfebrasil-runbook-manifestacao
 title: "NfeBrasil — Runbook da tela Manifestação do Destinatário"
 type: runbook
 module: NfeBrasil
-status: spec
+owner: W
+status: historical
+last_validated: "2026-05-09"
 date: 2026-05-09
 ---
+
+> **Nota de 2026-11-11 (auditoria NfeBrasil, lote 5.2):** este é o plano F1 da tela, escrito antes de ela existir.
+> A tela está em produção (US-NFE-052) e o estado vivo dela é o charter e o casos ao lado do código:
+> `resources/js/Pages/NfeBrasil/Manifestacao/Index.charter.md` e `Index.casos.md`. Por isso o `status` passou de
+> `spec` (fora do schema) para `historical`. O `last_validated` é a data do próprio plano: ninguém rodou este
+> roteiro depois. Conferido no código hoje: as rotas citadas existem; desde [#10732](https://github.com/wagnerra23/oimpresso.com/pull/10732) elas exigem o pacote
+> `fiscal_module`; e o cursor do DF-e espera 1 h depois de "nada novo" (137) e trata o 656 ([#10729](https://github.com/wagnerra23/oimpresso.com/pull/10729)).
 
 # RUNBOOK — Manifestação do Destinatário (NF-e recebidas)
 

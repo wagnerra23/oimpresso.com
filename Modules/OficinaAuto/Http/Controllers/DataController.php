@@ -5,6 +5,7 @@ namespace Modules\OficinaAuto\Http\Controllers;
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
 use Menu;
+use Modules\OficinaAuto\Services\OficinaAutoAcesso;
 
 /**
  * DataController — Modules/OficinaAuto (vertical CNAEs 4520/2212/4581).
@@ -104,12 +105,8 @@ class DataController extends Controller
         if (auth()->user()->can('superadmin')) {
             $is_enabled = $module_util->isModuleInstalled('OficinaAuto');
         } else {
-            $business_id = session()->get('user.business_id');
-            $is_enabled  = (bool) $module_util->hasThePermissionInSubscription(
-                $business_id,
-                'oficina_auto_module',
-                'superadmin_package'
-            );
+            // Mesma regra do middleware das rotas (OficinaAutoLiberado): menu e rota não discordam.
+            $is_enabled = app(OficinaAutoAcesso::class)->pacoteAtivo(session()->get('user.business_id'));
         }
 
         if (! $is_enabled) {

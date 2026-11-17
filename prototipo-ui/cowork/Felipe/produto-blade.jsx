@@ -67,7 +67,7 @@ const PRODUCTS = [
     variations: [v("Cor - Ciano", "PRD-0006-1", 540, 44, 777.6), v("Cor - Magenta", "PRD-0006-2", 540, 44, 777.6), v("Cor - Amarelo", "PRD-0006-3", 540, 44, 777.6), v("Cor - Preto", "PRD-0006-4", 496, 44, 714.2)], stock: 11 },
   { id: 7, name: "Ilhós metálico nº 12 (mil)", sku: "PRD-0007", type: "single", cat: "Acabamento", sub: "Ilhós", brand: "Sem marca", unit: "cx", tax: "Nenhum", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 5, notForSelling: true, active: true, weight: "2,40", locs: [1, 2], desc: "", fiscal: { ncm: "8308.10.00", cest: "", cfop: "5102", origem: "2" }, racks: { 1: { rack: "A1", row: "1", pos: "09" } },
     variations: [v("Padrão", "PRD-0007", 118, 90, 224.2)], stock: 3 },
-  { id: 8, name: "Perfil de alumínio 30x30", sku: "PRD-0008", type: "single", cat: "Insumos", sub: "Mídias", brand: "Sem marca", unit: "m", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 30, notForSelling: true, active: true, weight: "0,90", locs: [1], desc: "", fiscal: { ncm: "7604.21.00", cest: "", cfop: "5102", origem: "2" }, racks: {},
+  { id: 8, name: "Perfil de alumínio 30x30", sku: "PRD-0008", type: "single", cat: "Insumos", sub: "Mídias", brand: "Sem marca", unit: "m", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 30, notForSelling: true, active: true, weight: "0,90", locs: [1], desc: "", fiscal: { ncm: "", cest: "", cfop: "5102", origem: "2" }, racks: {},
     variations: [v("Padrão", "PRD-0008", 22, 70, 37.4)], stock: 186 },
   { id: 9, name: "Adesivo de recorte — vinil colorido", sku: "PRD-0009", type: "variable", cat: "Adesivos", sub: "Recorte", brand: "Avery", unit: "m²", tax: "ICMS 18%", taxType: "exclusive", barcode: "C128", stockOn: true, alert: 20, notForSelling: false, active: true, weight: "0,16", locs: [1, 2], desc: "Vinil de recorte em 4 cores de estoque.", fiscal: { ncm: "3919.90.20", cest: "", cfop: "5102", origem: "2" }, racks: { 2: { rack: "C3", row: "2", pos: "05" } },
     variations: [v("Cor - Branco", "PRD-0009-1", 9.4, 320, 39.5), v("Cor - Preto", "PRD-0009-2", 9.4, 320, 39.5), v("Cor - Vermelho", "PRD-0009-3", 11.2, 300, 44.8), v("Cor - Azul", "PRD-0009-4", 11.2, 300, 44.8)], stock: 418 },
@@ -93,6 +93,20 @@ const priceSpan = (p, key) => {
 // (o mesmo teste do botão "Abrir no módulo Fiscal" na produção). `temAliquota` = a empresa cadastrou
 // alguma alíquota de imposto; sem nenhuma, todo produto fica em "Nenhum".
 const EMPRESA_PADRAO = { emiteNota: true, temAliquota: true };
+
+// UC-PIDX-42: NCM válido tem 8 dígitos e não é 00000000 (a regra da emissão e do card de Saúde fiscal).
+// UC-PIDX-44 (CV1): o "Uso" do produto. No exemplo, insumo e acabamento entram em receita (Material);
+// no sistema, Material vem da receita da Fabricação e Serviço da natureza fiscal.
+const USOS_PB = [{ id: "vender", name: "Para vender" }, { id: "material", name: "Material" }, { id: "servico", name: "Serviço" }];
+function usoDoProduto(p) {
+  if (p.servico) return "servico";
+  return p.cat === "Insumos" || p.cat === "Acabamento" ? "material" : "vender";
+}
+
+function ncmValido(ncm) {
+  const d = String(ncm || "").replace(/[^0-9]/g, "");
+  return d.length === 8 && d !== "00000000";
+}
 const impostoDe = (p, empresa) => (empresa.temAliquota ? p.tax : "Nenhum");
 const temImposto = (p, empresa) => taxRate(impostoDe(p, empresa)) > 0;
 // Preço com o imposto do produto: é o que a venda cobra, com nota ou sem (sell_price_inc_tax na
@@ -340,10 +354,17 @@ function Filtros({ f, setF, empresa }) {
           {empresa.temAliquota && <Fld label="Imposto"><Sel value={f.tax} onChange={set("tax")} options={TAXES.map((t) => t.name)} vazio="Todos" /></Fld>}
           <Fld label="Marca"><Sel value={f.brand} onChange={set("brand")} options={BRANDS} vazio="Todas" /></Fld>
           <Fld label="Local do negócio"><Sel value={f.loc} onChange={set("loc")} options={LOCATIONS} vazio="Todos" /></Fld>
-          <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }]} vazio="Todos" /></Fld>
+          <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }, { id: "excluido", name: "Excluídos" }]} vazio="Todos" /></Fld>
+          {/* UC-PIDX-44 (CV1): Material = entra em receita da Fabricação; Serviço = natureza fiscal. */}
+          <Fld label="Uso"><Sel value={f.uso} onChange={set("uso")} options={USOS_PB} vazio="Todos" /></Fld>
           <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
             <label className="pb-chk"><input type="checkbox" checked={f.nfs} onChange={(e) => setF({ ...f, nfs: e.target.checked })} /><b>Não para venda</b></label>
           </div>
+          {/* UC-PIDX-42: só para quem emite nota. Mesma regra do card de Saúde fiscal (8 dígitos, não 00000000). */}
+          {empresa.emiteNota &&
+            <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
+              <label className="pb-chk"><input type="checkbox" checked={f.semNcm} onChange={(e) => setF({ ...f, semNcm: e.target.checked })} /><b>Falta NCM</b></label>
+            </div>}
         </div>}
     </Widget>
   );
@@ -358,7 +379,8 @@ const PB_COLS = [
   { id: "sku", l: "SKU" }, { id: "serie", l: "IMEI / série" }, { id: "cf1", l: "Campo personalizado 1" },
 ];
 // Imposto nasce desligada ([F] 2026-10-26): quem precisa liga no menu Colunas.
-const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: true, categoria: true, marca: true, imposto: false, sku: true, serie: false, cf1: false };
+// UC-PIDX-46 (resto da CV1, 2026-11-12): o Tipo nasce desligado — o painel diz o que o produto é; segue no menu Colunas.
+const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: false, categoria: true, marca: true, imposto: false, sku: true, serie: false, cf1: false };
 // A coluna Imposto só existe se a empresa tem alíquota cadastrada — na grade, no menu Colunas e na
 // exportação. Não é permissão: imposto não é segredo, sai impresso na nota.
 const colunaExiste = (id, empresa) => id !== "imposto" || empresa.temAliquota;
@@ -786,6 +808,20 @@ function ModalLocalizacao({ modo, n, onClose, avisar }) {
     </Modal>
   );
 }
+// UC-PIDX-43: o mesmo NCM em todos os selecionados. Confirmar só com NCM válido (ncmValido).
+function ModalNcmEmLote({ n, onClose, avisar }) {
+  const [ncm, setNcm] = useState("");
+  const ok = ncmValido(ncm);
+  const erro = ncm.trim() !== "" && !ok;
+  return (
+    <Modal titulo="Informar NCM" onClose={onClose}
+      acoes={<><button className="os-btn ghost" onClick={onClose}>Cancelar</button>
+        <button className="os-btn primary" disabled={!ok} onClick={() => { onClose(); avisar(`${n} produto(s) com o NCM ${ncm.replace(/[^0-9]/g, "")}.`, "ok"); }}>Informar em {n}</button></>}>
+      <p className="pb-help">{n} produto(s) selecionado(s). Todos passam a ter este NCM; o que tinham antes é trocado.</p>
+      <Fld label="NCM" req dica="Os 8 dígitos do NCM, com ou sem pontos." erro={erro ? "O NCM tem 8 dígitos e não pode ser 0000.00.00." : null}><input placeholder="0000.00.00" value={ncm} onChange={(e) => setNcm(e.target.value)} /></Fld>
+    </Modal>
+  );
+}
 function ModalCadastroRapido({ onClose, avisar }) {
   return (
     <Modal titulo="Cadastro rápido de produto" onClose={onClose}
@@ -904,7 +940,7 @@ function exportarCsv(lista, empresa) {
 
 // ─────────── Tela lista (index.blade.php) ───────────
 function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
-  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false };
+  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
   const [busca, setBusca] = useState("");
@@ -912,6 +948,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   const [ver, setVer] = useState(null);
   const [inicial, setInicial] = useState(null);
   const [locModal, setLocModal] = useState(null);
+  const [ncmLote, setNcmLote] = useState(false);
   const [rapido, setRapido] = useState(false);
   const [confirmar, setConfirmar] = useState(null);
   const [cols, setCols] = useState(() => {
@@ -954,6 +991,8 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     if (f.active === "inactive" && p.active) return false;
     if (f.nfs && !p.notForSelling) return false;
     if (f.alerta && !(p.stockOn && p.alert != null && p.stock <= p.alert)) return false;
+    if (f.uso && usoDoProduto(p) !== f.uso) return false;
+    if (empresa.emiteNota && f.semNcm && ncmValido(p.fiscal && p.fiscal.ncm)) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
   }), [f, busca, empresa]);
@@ -973,8 +1012,10 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   if (f.active) chips.push({ k: "active", l: "Situação", v: f.active === "active" ? "Ativo" : "Inativo" });
   if (f.nfs) chips.push({ k: "nfs", l: "", v: "Não para venda" });
   if (f.alerta) chips.push({ k: "alerta", l: "", v: "Abaixo do alerta" });
+  if (f.uso) chips.push({ k: "uso", l: "Uso", v: (USOS_PB.find((u) => u.id === f.uso) || {}).name });
+  if (empresa.emiteNota && f.semNcm) chips.push({ k: "semNcm", l: "", v: "Falta NCM" });
   if (busca) chips.push({ k: "__busca", l: "Busca", v: busca });
-  const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" ? false : "" });
+  const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" || k === "semNcm" ? false : "" });
 
   const kpi = useMemo(() => ({
     total: PRODUCTS.length,
@@ -1002,9 +1043,9 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     });
     if (a === "excluir") return setConfirmar({
       titulo: "Excluir produto", perigo: true, cta: "Excluir",
-      corpo: `Excluir “${p.name}” (${p.sku}) apaga o cadastro, as variações e os preços por grupo.`,
-      aviso: p.stockOn && p.stock > 0 ? "Este produto tem estoque e movimento — o servidor vai recusar a exclusão. Desative em vez de excluir." : "Esta ação não tem volta.",
-      on: () => avisar(p.stockOn && p.stock > 0 ? "Exclusão recusada: produto com movimento de estoque." : "Produto excluído.", p.stockOn && p.stock > 0 ? "danger" : "warn"),
+      // UC-PIDX-45 (AR-PROD-022): excluir não apaga — vai para "Situação: Excluídos" e dá para restaurar.
+      corpo: `“${p.name}” (${p.sku}) sai da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.`,
+      on: () => avisar("Produto excluído. Ele fica em “Situação: Excluídos” e pode ser restaurado.", "warn"),
     });
   };
 
@@ -1076,7 +1117,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
             {chips.map((c) => (FilterChip
               ? <FilterChip key={c.k} label={c.l || c.v} value={c.l ? c.v : undefined} onRemove={() => tirarChip(c.k)} />
               : <button key={c.k} className="pb-chip" onClick={() => tirarChip(c.k)}>{c.v} ✕</button>))}
-            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false }); setBusca(""); }}>Limpar tudo</button>
+            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" }); setBusca(""); }}>Limpar tudo</button>
           </div>}
 
         {aba === "lista"
@@ -1101,9 +1142,10 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
           <button className="os-btn sm" disabled={!sel.length} onClick={() => onIr("massa")}><Ic name="pencil" size={12} /> Edição em massa</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("add")}>Adicionar ao local</button>
           <button className="os-btn sm" disabled={!sel.length} onClick={() => setLocModal("remove")}>Remover do local</button>
+          {empresa.emiteNota && <button className="os-btn sm" disabled={!sel.length} onClick={() => setNcmLote(true)}>Informar NCM</button>}
           <button className="os-btn sm" onClick={() => { window.__PBEtiquetas = PRODUCTS.filter((p) => sel.includes(p.id)); onIr("etiquetas"); }}><Ic name="print" size={12} /> Etiquetas</button>
           <button className="os-btn sm" onClick={() => setConfirmar({ titulo: "Desativar selecionados", perigo: true, cta: "Desativar " + sel.length, corpo: sel.length + " produto(s) saem da venda e do orçamento novo, mantendo histórico e estoque.", on: () => { avisar(sel.length + " produto(s) desativados.", "warn"); limparSel(); } })}>Desativar selecionados</button>
-          <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: "Vai apagar " + sel.length + " cadastro(s), com variações e preços por grupo.", aviso: "Produtos com movimento de estoque serão recusados pelo servidor.", on: () => { avisar("Exclusão enviada — itens com movimento foram recusados.", "danger"); limparSel(); } })}>Excluir selecionados</button>
+          <button className="os-btn sm ghost danger" onClick={() => setConfirmar({ titulo: "Excluir selecionados", perigo: true, cta: "Excluir " + sel.length, corpo: sel.length + " produto(s) saem da lista, da venda e da compra. O cadastro, o estoque e o histórico ficam guardados em “Situação: Excluídos”, e dá para restaurar.", on: () => { avisar(sel.length + " produto(s) excluído(s). Eles ficam em “Situação: Excluídos”.", "warn"); limparSel(); } })}>Excluir selecionados</button>
           <div className="sp" />
           <button className="icon-btn" title="Limpar seleção" onClick={limparSel}>✕</button>
         </div>}
@@ -1111,6 +1153,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
       {ver && <DetalheDrawer p={ver} onClose={() => setVer(null)} onIr={(a, p) => { setVer(null); onIr(a, p); }} empresa={empresa} />}
       {inicial && <ModalEstoqueInicial p={inicial} onClose={() => setInicial(null)} avisar={avisar} />}
       {locModal && <ModalLocalizacao modo={locModal} n={sel.length} onClose={() => setLocModal(null)} avisar={avisar} />}
+      {ncmLote && <ModalNcmEmLote n={sel.length} onClose={() => setNcmLote(false)} avisar={avisar} />}
       {rapido && <ModalCadastroRapido onClose={() => setRapido(false)} avisar={avisar} />}
       {confirmar && <ModalConfirmar pedido={confirmar} onClose={() => setConfirmar(null)} />}
     </>

@@ -221,6 +221,7 @@ window.InboxPalette = InboxPalette;
 // CHEAT-SHEET (?) — overlay com todos os atalhos
 // ─────────────────────────────────────────────────────────────────
 function InboxCheatSheet({ onClose }) {
+  const [single, setSingle] = React.useState(singleKeyOn);
   const groups = [
     { label: "Global", items: [
       { keys: ["⌘K"], desc: "Busca cross-module" },
@@ -245,13 +246,13 @@ function InboxCheatSheet({ onClose }) {
   return (
     <React.Fragment>
       <div className="om-palette-back" onClick={onClose}/>
-      <div className="om-cheat" role="dialog">
+      <div className="om-cheat" role="dialog" aria-modal="true" aria-labelledby="om-cheat-title" ref={window.omDialogRef}>
         <header className="om-cheat-h">
           <div>
             <small>Atalhos · Caixa unificada</small>
-            <h3>Teclado</h3>
+            <h3 id="om-cheat-title">Teclado</h3>
           </div>
-          <button className="om-x" onClick={onClose}>✕</button>
+          <button className="om-x" onClick={onClose} aria-label="Fechar atalhos de teclado">✕</button>
         </header>
         <div className="om-cheat-body">
           {groups.map((g, i) => (
@@ -269,7 +270,12 @@ function InboxCheatSheet({ onClose }) {
           ))}
         </div>
         <footer className="om-cheat-foot">
-          <small>Tecle <span className="om-kbd">?</span> a qualquer momento.</small>
+          <label className="om-cheat-toggle">
+            <input type="checkbox" checked={single}
+              onChange={(e) => { const on = e.target.checked; try { localStorage.setItem(SINGLE_KEY_LS, on ? "on" : "off"); } catch {} setSingle(on); }} />
+            Atalhos de uma tecla (j, k, b, r, e)
+          </label>
+          <small>Tecle <span className="om-kbd">?</span> a qualquer momento. Os atalhos de uma tecla só agem com o foco na lista ou na conversa.</small>
         </footer>
       </div>
     </React.Fragment>
@@ -304,17 +310,55 @@ window.InboxMobileTabs = InboxMobileTabs;
 // ─────────────────────────────────────────────────────────────────
 // HOOK: ATALHOS DE TECLADO
 // ─────────────────────────────────────────────────────────────────
+// Diálogo acessível (Lote 6): ao abrir, foco no primeiro controle; ao fechar, o foco
+// volta para quem abriu. Tab fica preso dentro do diálogo. Uso: ref={window.omDialogRef}.
+let omDialogPrev = null, omDialogTrap = null;
+window.omDialogRef = (el) => {
+  const FOC = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
+  if (el) {
+    omDialogPrev = document.activeElement;
+    const first = el.querySelector("input, textarea, select") || el.querySelector(FOC);
+    setTimeout(() => first && first.focus(), 0);
+    omDialogTrap = (e) => {
+      if (e.key !== "Tab") return;
+      const f = [...el.querySelectorAll(FOC)].filter((n) => !n.disabled);
+      if (!f.length) return;
+      const a = f[0], z = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+      else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+    };
+    el.addEventListener("keydown", omDialogTrap);
+  } else {
+    const p = omDialogPrev; omDialogPrev = null;
+    if (p && p.focus && document.contains(p)) setTimeout(() => p.focus(), 0);
+  }
+};
+
+// Interruptor "Atalhos de uma tecla" (cheat-sheet). Ligado por padrão.
+const SINGLE_KEY_LS = "oimpresso.inbox.singleKey";
+function singleKeyOn() { try { return localStorage.getItem(SINGLE_KEY_LS) !== "off"; } catch { return true; } }
+window.inboxSingleKeyOn = singleKeyOn;
+
 function useInboxKeyboard({ onPalette, onCheat, onNext, onPrev, onResolve, onToggleFav, onFocusInput, onEsc, deps = [] }) {
   useEffect(() => {
     const onKey = (e) => {
-      const tag = (document.activeElement || {}).tagName;
-      const inField = tag === "INPUT" || tag === "TEXTAREA";
+      // WCAG 2.1.4 (Lote 6, 2026-11-06): atalho de uma tecla só age com o foco na LISTA
+      // ou na THREAD — nunca num controle (botão, seletor, link, campo). Antes o filtro
+      // olhava só INPUT/TEXTAREA e "e" resolvia a conversa com o foco num botão.
+      const el = document.activeElement || document.body;
+      const inField = el.matches?.("input, textarea, select, [contenteditable=''], [contenteditable='true']");
+      const onControl = el.matches?.("button, a[href], select, [role='combobox'], [role='menuitem'], [role='tab']");
+      const inScope = el === document.body || !!el.closest?.(".om-list, .om-msgs, .om-thread-c");
       const mod = e.metaKey || e.ctrlKey;
       if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); onPalette && onPalette(); return; }
       if (e.key === "Escape") { onEsc && onEsc(); return; }
-      if (inField) return;
-      if (e.key === "?")  { e.preventDefault(); onCheat && onCheat(); }
-      else if (e.key === "j" || e.key === "ArrowDown") { e.preventDefault(); onNext && onNext(); }
+      if (inField || mod || e.altKey) return;
+      if (e.key === "?")  { e.preventDefault(); onCheat && onCheat(); return; }
+      if (!singleKeyOn() || onControl || !inScope) return;
+      // Setas só navegam dentro da lista — fora dela a página rola normalmente.
+      const inList = !!el.closest?.(".om-list");
+      if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !inList) return;
+      if (e.key === "j" || e.key === "ArrowDown") { e.preventDefault(); onNext && onNext(); }
       else if (e.key === "k" || e.key === "ArrowUp")   { e.preventDefault(); onPrev && onPrev(); }
       else if (e.key === "b") { e.preventDefault(); onToggleFav && onToggleFav(); }
       else if (e.key === "r") { e.preventDefault(); onFocusInput && onFocusInput(); }

@@ -47,6 +47,8 @@ vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: any) => <div>{c
 vi.mock('@inertiajs/react', () => ({
   Deferred: ({ children }: any) => <>{children}</>,
   usePage: () => ({ props: {} }),
+  // `on`: o estado de erro da carga deferida (`_shared/falhaDeferida.ts`) ouve os eventos do router.
+  router: { reload: vi.fn(), on: () => () => {} },
 }));
 vi.mock('@/Pages/Patrimonio/_shared/PatrimonioSubNav', () => ({ default: () => null }));
 // O header é canon (`@/Components/PageHeader`, export NOMEADO) desde a migração do

@@ -152,6 +152,7 @@ function modoLimpar(): void
 
 beforeEach(function () {
     Storage::fake('local');
+    Storage::fake('nfe_fiscal');
     modoLimpar();
 });
 
@@ -229,7 +230,7 @@ describe('US-NFE-071 · UC-FLX-32 · modos SVC-AN/SVC-RS e evento EPEC', functio
             ->and($evento->status)->toBe('autorizado')
             ->and($evento->cstat_evento)->toBe('136')
             ->and($emissao->metadata['epec_nprot'] ?? null)->toBe('891260000000001');
-        Storage::assertExists($emissao->xml_path);
+        Storage::disk('nfe_fiscal')->assertExists($emissao->xml_path);
     });
 
     it('UC-FNFE-20 · tenant que ativou antes da escolha (modo nulo) segue em EPEC', function () {
@@ -256,7 +257,7 @@ describe('US-NFE-071 · UC-FLX-32 · modos SVC-AN/SVC-RS e evento EPEC', functio
             ->and($evento->status)->toBe('rejeitado')
             ->and($evento->cstat_evento)->toBe('467')
             ->and($emissao->motivo)->toContain('O DANFE só vale com o EPEC registrado');
-        Storage::assertExists($emissao->xml_path);
+        Storage::disk('nfe_fiscal')->assertExists($emissao->xml_path);
     });
 
     it('UC-FNFE-30 · AN fora do ar (exceção no envio): a emissão não cai e o evento registra o erro', function () {

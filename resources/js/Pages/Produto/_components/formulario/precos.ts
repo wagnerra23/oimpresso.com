@@ -156,3 +156,12 @@ export function camposDoPrecoEditado(
   if (!mexeu && !impostoMudou) return {};
   return { single_variation_id: gravado.variacaoId, ...camposDePreco(atual, aliquota) };
 }
+
+/**
+ * O aviso do protótipo (produto-blade-forms.jsx, `avisos.margem`): com preço de compra lançado e a % de
+ * lucro abaixo da margem mínima da empresa. Só avisa: salvar continua liberado, e quem barra é a
+ * conversão do orçamento em venda (UC-FLX-35, `MargemAbaixoDoMinimo`).
+ */
+export function abaixoDaMargemMinima(valor: PrecoSimples, margemMinima: number | null | undefined): boolean {
+  return margemMinima != null && valor.compra > 0 && valor.margem < margemMinima;
+}

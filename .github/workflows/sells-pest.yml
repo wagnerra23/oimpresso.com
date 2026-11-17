@@ -35,8 +35,9 @@ on:
       - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
       - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
-      - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
-      - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
+      - 'Modules/ProductCatalogue/**'  # modulo inteiro: testes, rotas, Requests, Repository, views
+      - 'app/Http/Middleware/AdminSidebarMenu.php'  # ghost Catálogo QR do hub Vendas (CatalogueQrMenuContratoTest)
+      - 'resources/js/Pages/ProductCatalogue/**'
       - 'app/Transaction.php'
       - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
       - 'Modules/Compras/Providers/ComprasServiceProvider.php'
@@ -134,6 +135,8 @@ on:
       - 'app/Services/Sells/QuoteAccessRecorder.php'
       - 'app/Jobs/QuoteFollowUpJob.php'
       - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+      - 'app/Console/Commands/Sells/SmokeDailyCommand.php'
+      - 'Modules/Ponto/Config/config.php'
       - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
       # Sob teste em OrcamentoAceiteLinkContratoTest (US-SELL-074).
       - 'app/Services/Sells/AceiteDoOrcamentoVenda.php'
@@ -185,6 +188,8 @@ on:
       # Sob teste em SellsTravaAposNotaContratoTest (US-SELL-072): contrato e leitores de nota.
       - 'app/Contracts/Fiscal/**'
       - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
+      - 'Modules/NfeBrasil/Services/CancelamentoFiscalNfeBrasil.php'
+      - 'Modules/NfeBrasil/Jobs/CancelarNfeJob.php'
       - 'Modules/NFSe/Services/NotaDaVendaNfse.php'
       - 'app/Jobs/ImportarVendasJob.php'
       # Sob teste em VendasMwartCutoverTest (flags de cutover por empresa das telas de Vendas).
@@ -232,8 +237,9 @@ jobs:
               - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
               - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
-              - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
-              - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
+              - 'Modules/ProductCatalogue/**'  # mesmo escopo do push (as duas camadas mudam juntas)
+              - 'app/Http/Middleware/AdminSidebarMenu.php'  # idem push
+              - 'resources/js/Pages/ProductCatalogue/**'
               - 'app/Transaction.php'
               - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
               - 'Modules/Compras/Providers/ComprasServiceProvider.php'
@@ -255,6 +261,8 @@ jobs:
               - 'app/Services/Sells/QuoteAccessRecorder.php'
               - 'app/Jobs/QuoteFollowUpJob.php'
               - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+              - 'app/Console/Commands/Sells/SmokeDailyCommand.php'
+              - 'Modules/Ponto/Config/config.php'
               - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Http/Controllers/SalesOrderController.php'
@@ -291,6 +299,8 @@ jobs:
               - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
               - 'app/Contracts/Fiscal/**'
               - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
+              - 'Modules/NfeBrasil/Services/CancelamentoFiscalNfeBrasil.php'
+              - 'Modules/NfeBrasil/Jobs/CancelarNfeJob.php'
               - 'Modules/NFSe/Services/NotaDaVendaNfse.php'
               - 'app/Jobs/ImportarVendasJob.php'
               - 'config/mwart.php'
@@ -546,6 +556,11 @@ jobs:
         # 2026-10-20 — + SellsTravaAposNotaContratoTest (US-SELL-072, UC-SEDIT-13..18): nota autorizada
         # recusa itens/valores/cliente no PUT /pos/{id} e deixa a observação; nota cancelada não trava;
         # pagamento trava só valores; nota do 2º business não trava; sem nota nem pagamento, como antes.
+        # 2026-11-11 — + Modules/ProductCatalogue/Tests/Feature (diretório). Os 7 arquivos do módulo não
+        # rodavam em lane nenhuma (test-lane-coverage --modulo ProductCatalogue: 7 órfãos). Aqui e não na
+        # lista sqlite: lá a vitrine pública pula inteira. Nem na matrix de modules-pest.yml, que roda
+        # sqlite. O filtro passou a cobrir Modules/ProductCatalogue/** e a Page, para que Repository,
+        # rotas e views também disparem a lane (antes caíam no skip-as-pass).
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -559,6 +574,7 @@ jobs:
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php             tests/Feature/Sells/SellsPrazoEntregaContratoTest.php \
             tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
+            tests/Feature/Sells/SmokeDailyClientesVivosTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
             tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php \
@@ -614,6 +630,7 @@ jobs:
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
             tests/Feature/Sells/SellsShipmentsContratoTest.php \
             tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/BuscaProdutoVariasPalavrasTest.php \
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
@@ -642,12 +659,19 @@ jobs:
             tests/Feature/Sells/SellsIndexRascunhosContratoTest.php \
             tests/Feature/Sells/SellsIndexPilulaNotaContratoTest.php \
             tests/Feature/Sells/SellsDuplicarContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoSituacaoContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoVisivelContratoTest.php \
             tests/Feature/Sells/SellLinesOutraEmpresaContratoTest.php \
             tests/Feature/Sells/SellsBonificacaoNaoEReceitaContratoTest.php \
             tests/Feature/Sells/SellsCondicaoClienteContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
+            tests/Feature/Sells/CatalogueQrMenuContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoXssContratoTest.php \
+            Modules/ProductCatalogue/Tests/Feature \
+            tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoDescontoCriterioContratoTest.php \
+            tests/Feature/Sells/CatalogoPublicoFormatoContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 

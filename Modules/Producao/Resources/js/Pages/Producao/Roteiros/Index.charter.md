@@ -5,7 +5,7 @@ component: Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/producao-cv-os.jsx
 owner: wagner
 status: draft
-last_validated: "2026-10-21"
+last_validated: "2026-11-09"
 parent_module: Producao
 related_adrs: [93, 358, 431]
 alcance:
@@ -39,7 +39,7 @@ Cadastrar o roteiro de cada família de produto, que vira as etapas da OS quando
 ## Non-Goals — Features (NÃO faz)
 
 - ❌ Editor livre de fluxograma (regra do protótipo e do UC-PCV-13).
-- ❌ Criar a OS a partir do orçamento (UC-PCV-12/14, thread 08).
+- ❌ Criar a OS a partir do orçamento (UC-PCV-12/14): a OS nasce da venda, pelo `CriarOsDaVendaJob`, fora desta tela.
 
 ## UX Targets
 

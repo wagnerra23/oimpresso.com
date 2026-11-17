@@ -55,7 +55,7 @@ piloto_seguinte_candidatos: "Extreme (gráfica industrial PCP), Zoom, Fixar, Mhu
 
 > **Gate de saída:** 1 cliente real (Gold) rodando em prod cv_* + pagando módulo + canary 7d verde + Wagner aprova case interno.
 >
-> **Gate de entrada:** Fase 1 completa + Wagner cold-call Gold (CNPJ 03.348.254/0001-93 — confirmar identidade vs Mubisys post-mortem) ou Extreme se Gold já churned, recebe sinal formal "topamos piloto".
+> **Gate de entrada:** Fase 1 completa + Wagner cold-call Gold (CNPJ 11.222.333/0001-81 — confirmar identidade vs Mubisys post-mortem) ou Extreme se Gold já churned, recebe sinal formal "topamos piloto". <!-- pii-allowlist: CNPJ real do cliente substituído pelo fake canônico (oimpresso) — LGPD -->
 
 **Duração estimada:** 8 semanas wallclock (Q3/26 — set/26 conforme SPEC §7)
 

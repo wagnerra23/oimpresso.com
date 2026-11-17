@@ -34,7 +34,8 @@ use Modules\Whatsapp\Jobs\BackfillLidConversationsJob;
  *      Loop fechado.
  *
  * Trigger gate (evita re-fire em todo save):
- *   - Só dispara quando `phone_e164` mudou (Eloquent `wasChanged`).
+ *   - Só dispara quando `phone_e164` mudou (Eloquent `wasChanged`) ou quando o
+ *     mapa já nasce com telefone (hook `created` — wasChanged vem vazio no insert).
  *   - Ignora bump `last_seen_at` puro (caso comum — webhook re-vê LID
  *     já conhecido).
  *
@@ -48,8 +49,24 @@ use Modules\Whatsapp\Jobs\BackfillLidConversationsJob;
 class LidPhoneMapObserver
 {
     /**
-     * Hook saved (post-update e post-insert) — detecta descoberta/troca
-     * de phone e dispara backfill.
+     * Mapa que já NASCE com telefone — o caminho comum de LidPhoneResolver::record(),
+     * que cria a linha num firstOrCreate só. Na inserção o Eloquent não preenche
+     * wasChanged() (só o update sincroniza changes), então `saved` sozinho nunca via
+     * esse caso e as conversas órfãs do LID ficavam soltas. Pego pelo T2 do
+     * LidBackfillObserverTest quando o arquivo voltou a rodar na lane SQLite.
+     */
+    public function created(LidPhoneMap $map): void
+    {
+        if ($map->phone_e164 === null) {
+            return;
+        }
+
+        $this->dispararBackfill($map, false);
+    }
+
+    /**
+     * Hook saved — detecta descoberta/troca de phone num UPDATE e dispara backfill.
+     * Na inserção wasChanged() vem vazio, então quem cobre a criação é `created`.
      */
     public function saved(LidPhoneMap $map): void
     {
@@ -72,10 +89,15 @@ class LidPhoneMapObserver
             return;
         }
 
+        $this->dispararBackfill($map, $previousPhone !== null);
+    }
+
+    private function dispararBackfill(LidPhoneMap $map, bool $hadPrevious): void
+    {
         Log::info('[whatsapp.lid_map.phone_discovered]', [
             'business_id' => $map->business_id,
             'lid_prefix' => substr((string) $map->lid, 0, 6) . '...',
-            'had_previous' => $previousPhone !== null,
+            'had_previous' => $hadPrevious,
         ]);
 
         BackfillLidConversationsJob::dispatch(

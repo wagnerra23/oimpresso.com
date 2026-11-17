@@ -68,7 +68,7 @@
 
 > ⚠️ **`SubNav` (`@/Components/shared/SubNav`) NÃO entra aqui.** É papel DISTINTO — sub-navegação contextual in-page (seção abaixo), não navegação de topo por URL. Decisão DS [W] 2026-07-15.
 
-> **Como consumir:** não renderize `PageHeaderTabs` cru na tela — passe pelo `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve os ghosts + active a partir do `shell.menu`. Fidelidade da aba ativa (radius 0 · underline `var(--accent)` · pill accent-soft · font 600) travada por `tests/pageHeaderTabsFidelity.spec.tsx`.
+> **Como consumir:** não renderize `PageHeaderTabs` cru na tela. Use `ModuleTabs` (`@/Components/shared/ModuleTabs`, desde 2026-11-06), que acha o item do módulo no `shell.menu`, lê os ghosts dele e deduz a aba ativa pela rota — a mesma lista que o sidebar mostra. Vai no slot `below` do PageHeader canon. Os `*SubNav` por módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`) são a forma anterior, uma cópia por módulo: tela nova não cria outro. Fidelidade da aba ativa (radius 0 · underline `var(--accent)` · pill accent-soft · font 600) travada por `tests/pageHeaderTabsFidelity.spec.tsx`.
 >
 > **Catracas ativas:** regra `ds/no-inline-tablist` (barra `role="tablist"` hand-rolada) + `ds/no-inline-raw-color` (cor/borda/sombra crua em `style` inline — o buraco do dark) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory). Migração dos independentes = incremental por tela.
 

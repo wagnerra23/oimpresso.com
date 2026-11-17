@@ -20,16 +20,16 @@ uses(Tests\TestCase::class);
  * StageGateEvaluator deriva os requisitos data-driven por (process_key, action_key).
  *
  * Multi-tenant Tier 0 (ADR 0093): execute cross-tenant → 404 (route model binding scope).
- * MySQL-only (schema UltimatePOS · ADR 0101). User real biz=1 (HTTP passa middleware).
+ * MySQL-only (schema UltimatePOS · ADR 0358). User real biz=98 (HTTP passa middleware).
  */
 
-const BIZ_GATE5 = 1;
-const BIZ_GATE5_OUTRO = 2; // tenant que o seed da lane tem (1, 2, 98)
+const BIZ_GATE5 = 98;
+const BIZ_GATE5_OUTRO = 99;
 const PLATE_GATE5_PREFIX = 'WGAT5';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasColumn('service_orders', 'current_stage_id')) {
         $this->markTestSkipped('Wave 7 migration current_stage_id pendente');
@@ -75,7 +75,7 @@ it('UC-OSH-10 · bloqueia (422) enviar_orcamento sem DVI/foto/orçamento — gat
     session(['user.business_id' => BIZ_GATE5]);
     $user = sg5_user();
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
     $os = sg5_criaOs('A'); // order_type=mecanica → process oficina_mecanica_os
@@ -95,10 +95,10 @@ it('execute cross-tenant é 404 (Tier 0) — OS de outra biz não é alcançáve
     session(['user.business_id' => BIZ_GATE5]);
     $user = sg5_user();
     if ($user === null) {
-        $this->markTestSkipped('Sem user disponível em biz=1');
+        $this->markTestSkipped('Sem user disponível em biz=98');
     }
 
-    $os = sg5_criaOs('B', BIZ_GATE5_OUTRO); // OS pertence ao biz=2
+    $os = sg5_criaOs('B', BIZ_GATE5_OUTRO); // OS pertence ao biz=99
 
     $this->actingAs($user)
         ->postJson("/oficina-auto/service-orders/{$os->id}/fsm/execute", [

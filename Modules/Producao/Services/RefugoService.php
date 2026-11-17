@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Producao\Services;
 
-use App\Scopes\ScopeByBusiness;
 use App\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -65,7 +64,7 @@ final class RefugoService
 
         return DB::transaction(function () use ($businessId, $userId, $etapa, $motivoId, $motivo, $quantidade, $chave, $momento, $materiais, $retrabalho) {
             // Trava a OS: o refugo não passa pela conclusão que congela o custo.
-            $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')
+            $ordem = Ordem::query()->where('business_id', $businessId)->with('currentStage')
                 ->lockForUpdate()->find((int) $etapa->os_id)
                 ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
             if (! in_array($ordem->currentStage?->key, ConsumoMaterialService::SITUACOES, true)) {

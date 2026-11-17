@@ -32,6 +32,11 @@ related_adrs: [0104-processo-mwart-canonico-unico-caminho, 0143-fsm-pipeline-liv
 2. **Não portar as abas** do protótipo. `RepairPage` é uma página com 8 abas porque o shell
    do Cowork é um HTML único sem roteador; aqui o `AppShellV2` já roteia. Importar as abas
    seria trazer solução de um problema que não temos.
+   > **Revisado em 2026-11-06 ([W]).** O texto acima fica como registro da decisão de 2026-09-09.
+   > [W] pediu que o sidebar e as abas mostrem a mesma lista: a barra de abas do módulo entra no
+   > topo das telas do Repair via `ModuleTabs`, lida dos `ghosts` do `DataController`, na ordem do
+   > protótipo. Ela não substitui o roteamento: cada aba é uma rota. Detalhe em
+   > [`RUNBOOK-producao-oficina.md`](RUNBOOK-producao-oficina.md) §F1 nº 4.
 3. **A cor do selo vem do dado**, não do DS — `repair_statuses.color` é escolha do usuário
    por business. O protótipo é explícito nisso (comentário em `repair-page.jsx:28`).
 4. **"Coluna do kanban" fica FORA.** O protótipo mostra `coluna {s.coluna}`, mas

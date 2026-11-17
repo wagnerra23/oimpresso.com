@@ -2032,27 +2032,12 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Popover-2 cascata lateral pro segundo nível (item com children).
-   Mesmo estilo do popover-1, z-index 1100 pra ficar acima. */
-.cockpit .sb-item-popover {
-  min-width: 200px;
-  background: oklch(0.18 0.006 240);
-  border: 1px solid oklch(0.28 0.008 240);
-  border-radius: var(--radius);
-  box-shadow: 0 12px 32px -8px rgba(0,0,0,.5), 0 4px 8px -2px rgba(0,0,0,.3);
-  padding: 6px;
-  z-index: 1100;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  animation: sbGroupPopoverIn 160ms ease-out;
-  font-family: var(--font-sans);
-}
+/* Popover-2 (`.sb-item-popover`) removido em 2026-11-06: item com filhos
+   abre dentro do sidebar, nas linhas `.sb-ghost` ([W] "como o Financeiro"). */
 
 @media (max-width: 1023px) {
   /* Mobile: popovers empilham embaixo (não lateral) */
-  .cockpit .sb-group-popover,
-  .cockpit .sb-item-popover {
+  .cockpit .sb-group-popover {
     position: relative !important;
     top: auto !important; left: auto !important;
     margin-top: 4px;

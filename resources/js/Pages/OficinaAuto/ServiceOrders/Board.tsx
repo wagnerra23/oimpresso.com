@@ -96,6 +96,7 @@ import ServiceOrderKanbanColumn from './_components/board/ServiceOrderKanbanColu
 import BoardKpiCard from './_components/board/BoardKpiCard';
 import type { BoardDensity, ServiceOrderCardData } from './_components/board/ServiceOrderKanbanCard';
 import { toneForColor, gradeGlyph } from './_components/board/boardTone';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 
 // Info de etapa por card (do stageByCardId) — compartilhada pelas views Lista/Fila.
 type StageInfo = { key: string; name: string; color: string | null; index: number };
@@ -700,6 +701,12 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
             </Button>
           </div>
         </header>
+
+        {/* Abas do módulo: a mesma lista do sidebar ([W] 2026-11-06, ModuleTabs). A rota marca a
+            aba ativa: /ordens-servico → Ordens de Serviço, /ordens-servico/board → Quadro. */}
+        <div className="bg-card border-b border-border px-6 pt-1">
+          <ModuleTabs modulo="Oficina Auto" />
+        </div>
 
         {/* KPIs compactos — densidade @container (@1280 expande colunas).
             D-05: KPI clicável filtra os cards client-side (clicar de novo limpa). */}

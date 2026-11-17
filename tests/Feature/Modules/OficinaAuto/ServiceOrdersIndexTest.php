@@ -18,19 +18,19 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * (dívida P5 do RUNBOOK-erradicacao-locacao quitada — frontend não consome mais).
  * Usa Schema::hasColumn fallbacks porque colunas Wave 5-A podem não estar migradas.
  *
- * Convenção: biz=1 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0101).
+ * Convenção: biz=98 default (Wagner WR2), biz=99 cross-tenant fictício (ADR 0358).
  *
  * @see Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const BIZ_WAGNER_SOI = 1;
+const BIZ_WAGNER_SOI = 98;
 const BIZ_FICTICIO_SOI = 99;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('service_orders') || ! Schema::hasTable('vehicles')) {
         $this->markTestSkipped('service_orders/vehicles tables missing — rode OficinaAuto migrate primeiro');
@@ -194,7 +194,7 @@ it('Filter ?type=manutencao filtra apenas manutenções (mecanica fora)', functi
     cleanupSOI('SOI003');
 });
 
-it('Cross-tenant biz=99 NÃO vê OS biz=1 (Tier 0 ADR 0093)', function () {
+it('Cross-tenant biz=99 NÃO vê OS biz=98 (Tier 0 ADR 0093)', function () {
     session(['user.business_id' => BIZ_WAGNER_SOI]);
 
     $v = makeVehicleSOI('SOI004', BIZ_WAGNER_SOI);
@@ -204,7 +204,7 @@ it('Cross-tenant biz=99 NÃO vê OS biz=1 (Tier 0 ADR 0093)', function () {
         'status'      => 'em_servico',
     ]);
 
-    // Switch session pra biz=99 — global scope deve filtrar tudo de biz=1
+    // Switch session pra biz=99 — global scope deve filtrar tudo de biz=98
     session(['user.business_id' => BIZ_FICTICIO_SOI]);
     $resultado = ServiceOrder::where('id', $os->id)->get();
 

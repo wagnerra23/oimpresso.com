@@ -11,7 +11,9 @@ use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Services\RecipeBomService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Wave 33 — Insumos: impacto reverso + simulador de preço (Manufacturing/Insumos),
@@ -73,6 +75,28 @@ function mfgReceitaInsumoFake(array $attrs, array $ingredientes): MfgRecipe
     return $recipe;
 }
 
+if (! function_exists('mfgInsReceita')) {
+    /**
+     * Receita gravada na empresa com UM insumo de preço conhecido. Devolve [recipe_id, insumo_variation_id].
+     * `$attrs` sobrescreve os campos da receita (total_quantity, extra_cost, production_cost_type…).
+     */
+    function mfgInsReceita(int $biz, array $attrs, float $quantidade, float $preco): array
+    {
+        $dono = (int) DB::table('users')->min('id');
+        [$produto, $variacao] = mfgEmpProduto($biz, 'Produto acabado insumos', $dono);
+        [, $insumo] = mfgEmpProduto($biz, 'Insumo simulado', $dono, $preco);
+
+        $receita = MfgRecipe::create(array_merge([
+            'product_id' => $produto, 'variation_id' => $variacao, 'instructions' => 'wave33-insumos',
+            'waste_percent' => 0, 'ingredients_cost' => 0, 'extra_cost' => 0,
+            'total_quantity' => 1, 'final_price' => 0, 'production_cost_type' => 'fixed',
+        ], $attrs));
+        MfgRecipeIngredient::create(['mfg_recipe_id' => $receita->id, 'variation_id' => $insumo, 'quantity' => $quantidade]);
+
+        return [(int) $receita->id, (int) $insumo];
+    }
+}
+
 describe('UC-INS-02 — a simulação recalcula, não soma delta (DB-less)', function () {
 
     // UC-INS-02 — o ponto da onda. O protótipo aproxima com `total + qtd × preço × pct`;
@@ -126,23 +150,6 @@ describe('UC-INS-02 — a simulação recalcula, não soma delta (DB-less)', fun
 
         expect(round($recalculadoFix, 6))->toBe(round($atalhoFix, 6));
     });
-
-    // UC-INS-02 (2ª perna) — o código do Service tem que USAR o recálculo. O teste acima prova
-    // a aritmética; este prova que `usosDoInsumo` chama o caminho certo, e não soma delta.
-    it('UC-INS-02 usosDoInsumo delega ao recalculo, sem somar delta', function () {
-        $fonte = file_get_contents(base_path('Modules/Manufacturing/Services/RecipeBomService.php'));
-
-        $ini = strpos($fonte, 'public function usosDoInsumo');
-        $fim = strpos($fonte, 'public function listInsumosComUso');
-        expect($ini)->not->toBeFalse();
-        expect($fim)->not->toBeFalse();
-
-        $corpo = substr($fonte, $ini, $fim - $ini);
-
-        expect($corpo)->toContain('calculateCostComPrecoSimulado');
-        // O atalho do protótipo somaria o delta na cara do total — não pode aparecer aqui.
-        expect($corpo)->not->toContain('$custoAtual +');
-    });
 });
 
 describe('UC-INS-03/04 — consumo e divisão por zero (DB-less)', function () {
@@ -188,18 +195,7 @@ describe('UC-INS-03/04 — consumo e divisão por zero (DB-less)', function () {
     });
 });
 
-describe('UC-INS-05 — o clamp do variacao_pct (DB-less)', function () {
-
-    // UC-INS-05 — a faixa do §4.4 é do SERVIDOR, não do slider. Sem o clamp, uma URL com
-    // ?variacao_pct=999 simularia um aumento de 999%.
-    it('UC-INS-05 o controller clampa variacao_pct em -30..60', function () {
-        $fonte = file_get_contents(base_path('Modules/Manufacturing/Http/Controllers/RecipeController.php'));
-
-        expect($fonte)->toContain('max(-30.0, min(60.0, $pct))');
-    });
-});
-
-describe('UC-INS-01 — isolamento de tenant (schema MySQL real)', function () {
+describe('UC-INS-01/02/04/05 — executando usosDoInsumo e a rota (schema MySQL real)', function () {
     beforeEach(function () {
         if (DB::connection()->getDriverName() === 'sqlite') {
             $this->markTestSkipped('SQLite-incompatível: depende do schema MySQL UltimatePOS (variations/products).');
@@ -209,12 +205,68 @@ describe('UC-INS-01 — isolamento de tenant (schema MySQL real)', function () {
         }
     });
 
-    // UC-INS-01 — tenant fictício sem receita nenhuma: as duas leituras voltam vazias.
+    // UC-INS-01 — a empresa 99 tem receita com o insumo; a 98 não. A leitura pela 98 volta
+    // vazia e a pela 99 traz a receita (âncora positiva: a mesma chamada funciona na dona).
     it('UC-INS-01 listInsumosComUso e usosDoInsumo nao vazam de outro business', function () {
+        [$receitaOutra, $insumoOutra] = mfgInsReceita(MFG_EMP_OUTRO, [], 2.0, 7.5);
         $bom = new RecipeBomService();
 
-        expect($bom->listInsumosComUso(BIZ_FICTICIO_MFG))->toBe([]);
-        expect($bom->usosDoInsumo(999999, BIZ_FICTICIO_MFG, 10.0))->toBe([]);
+        expect($bom->usosDoInsumo($insumoOutra, MFG_EMP_BIZ, 10.0))->toBe([]);
+        expect(collect($bom->listInsumosComUso(MFG_EMP_BIZ))->pluck('variation_id')->all())
+            ->not->toContain($insumoOutra);
+
+        $usosNaDona = $bom->usosDoInsumo($insumoOutra, MFG_EMP_OUTRO, 10.0);
+        expect(collect($usosNaDona)->pluck('recipe_id')->all())->toBe([$receitaOutra]);
+        expect(collect($bom->listInsumosComUso(MFG_EMP_OUTRO))->pluck('variation_id')->all())
+            ->toContain($insumoOutra);
+    });
+
+    // UC-INS-02 (2ª perna) — `usosDoInsumo` devolve o RECÁLCULO. Mesmos números do caso DB-less
+    // acima (Insumos.casos.md): percentage 18%, 10 × 9,20, total 10, insumo +10%.
+    // Recalculado = 119,416 → unit 11,9416. O atalho aditivo daria 117,76 → 11,776.
+    it('UC-INS-02 usosDoInsumo devolve o custo recalculado, nao o atalho aditivo', function () {
+        [, $insumo] = mfgInsReceita(MFG_EMP_BIZ, [
+            'total_quantity' => 10, 'extra_cost' => 18, 'production_cost_type' => 'percentage',
+        ], 10.0, 9.20);
+
+        $usos = (new RecipeBomService())->usosDoInsumo($insumo, MFG_EMP_BIZ, 10.0);
+
+        expect($usos)->toHaveCount(1);
+        expect(round($usos[0]['unit_novo'], 4))->toBe(11.9416);
+        expect(round($usos[0]['unit_novo'], 4))->not->toBe(11.776);
+        expect(round($usos[0]['unit_atual'], 4))->toBe(10.856);
+    });
+
+    // UC-INS-04 — receita com total_quantity 0 e sem preço de venda: unit_novo e margem_nova
+    // saem 0, finitos, pelo caminho que a tela usa.
+    it('UC-INS-04 usosDoInsumo com denominador zero devolve unit_novo 0 e margem 0', function () {
+        [, $insumo] = mfgInsReceita(MFG_EMP_BIZ, ['total_quantity' => 0, 'final_price' => 0], 3.0, 10.0);
+
+        $usos = (new RecipeBomService())->usosDoInsumo($insumo, MFG_EMP_BIZ, 10.0);
+
+        expect($usos)->toHaveCount(1);
+        expect($usos[0]['unit_novo'])->toBe(0.0);
+        expect($usos[0]['margem_nova'])->toBe(0.0);
+        expect(is_finite($usos[0]['unit_novo']) && is_finite($usos[0]['margem_nova']))->toBeTrue();
+    });
+
+    // UC-INS-05 — a tela recebe o percentual CLAMPADO pelo servidor. Requisição real: 999 vira 60
+    // e -500 vira -30; dentro da faixa passa como veio (âncora positiva).
+    it('UC-INS-05 o servidor clampa variacao_pct em -30..60 na resposta da tela', function () {
+        $user = mfgEmpUsuario('mfg_insumos_clamp_test');
+        $user->givePermissionTo(Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'manufacturing.access_recipe', 'guard_name' => 'web']));
+        [, $insumo] = mfgInsReceita(MFG_EMP_BIZ, [], 1.0, 5.0);
+        $sessao = ['currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']];
+
+        foreach (['999' => 60, '-500' => -30, '15' => 15] as $pedido => $esperado) {
+            $this->actingAs($user)->withSession($sessao)
+                ->get("/manufacturing/insumos?insumo={$insumo}&variacao_pct={$pedido}")
+                ->assertOk()
+                ->assertInertia(fn (Inertia\Testing\AssertableInertia $p) => $p
+                    ->component('Manufacturing/Insumos')
+                    ->where('variacao_pct', fn ($v) => (float) $v === (float) $esperado)
+                    ->has('usos', 1));
+        }
     });
 
     // O endereço CANÔNICO existe e é do RecipeController — oráculo é o registry, não o arquivo.

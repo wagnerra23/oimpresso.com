@@ -1,5 +1,18 @@
 # Protótipo — Tributação · NF-e Brasil (4 telas)
 
+> **Errata datada — 2026-11-11 (auditoria NfeBrasil, lote 5.3, N2-09).** O texto abaixo é de 2026-09-11 e fica
+> como foi escrito. Três afirmações dele não valem mais:
+> - **"NÃO promover a `related_prototype`"** foi superado pela decisão [W] **D-ANCORA** (2026-10-06): o alvo da
+>   Tributação é o protótipo do Cowork, rota `fiscal-tributacao`
+>   (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/12-alvo-tributacao.md`). Desde a thread 12
+>   (#8832) os charters `Tributacao/Index` e `Tributacao/RegraForm` declaram
+>   `related_prototype: prototipo-ui/cowork/Wagner/fiscal-tributacao.jsx`; `ConfigDefault` e `ImportCsv` seguem
+>   com `n/a`. Este protótipo gerado virou só material de comparação.
+> - **"`status: live` desde 2026-05-10"**: os 4 charters estão `status: draft` hoje.
+> - **Os arquivos deste protótipo** (`prototipo-ui/prototipos/nfe-tributacao/`, #7145) saíram do repo em
+>   2026-09-11 (#7224, "separar fontes por dono"). Esta nota é o que restou deles; o `.jsx` e o `.css` não
+>   existem mais.
+
 > **Fonte de design GERADA pelo designer-agente** ([ADR 0282](../../../../../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) §0.1 — *"o agente gera, ancorado no DS canon"*), não importada do Cowork. Cobre o bloco `NfeBrasil/Tributacao` inteiro, que não tem fonte visual em nenhum dos dois donos do inventário.
 
 ## 1 · Status — PROPOSTA de forma, não lei

@@ -55,6 +55,19 @@ beforeEach(function () {
         Schema::dropIfExists($t);
     }
 
+    // O webhook tenta vincular a conversa a um contato do CRM.
+    Schema::dropIfExists('contacts');
+    Schema::create('contacts', function ($table) {
+        $table->increments('id');
+        $table->unsignedInteger('business_id');
+        $table->string('name', 191)->nullable();
+        $table->string('mobile', 191)->nullable();
+        $table->string('landline', 191)->nullable();
+        $table->string('alternate_number', 191)->nullable();
+        $table->timestamp('deleted_at')->nullable();
+        $table->timestamps();
+    });
+
     Schema::create('channels', function ($table) {
         $table->bigIncrements('id');
         $table->unsignedInteger('business_id');

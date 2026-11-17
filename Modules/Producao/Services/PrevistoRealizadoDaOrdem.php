@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Producao\Services;
 
-use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Facades\DB;
 use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
@@ -32,7 +31,7 @@ final class PrevistoRealizadoDaOrdem
     /** @return array<string, mixed> */
     public function daOrdem(int $businessId, int $ordemId): array
     {
-        $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->find($ordemId)
+        $ordem = Ordem::query()->where('business_id', $businessId)->with('currentStage')->find($ordemId)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
 
         return $this->apresentar($this->linha($businessId, $ordem));
@@ -46,7 +45,7 @@ final class PrevistoRealizadoDaOrdem
             throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'Venda não encontrada.');
         }
 
-        $ordens = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+        $ordens = Ordem::query()->where('business_id', $businessId)
             ->where('transaction_id', $transactionId)->with('currentStage')->orderBy('id')->get();
 
         $linhas = $ordens->map(fn (Ordem $o) => $this->linha($businessId, $o))->all();

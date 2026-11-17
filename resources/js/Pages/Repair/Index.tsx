@@ -10,6 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import { Icon } from '@/Components/Icon';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -194,6 +195,7 @@ function Index({ repairs, filters, meta, permissions }: Props) {
           (deprecated) fixava text-2xl = 24px — thread 02 do playbook Repair, 2026-10-02. */}
       <div data-contract="repair-header">
         <PageHeader
+          below={<ModuleTabs modulo="Assistência técnica" />}
           leading={<Icon name="wrench" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
           title="Ordens de Serviço"
           subtitle="Listagem MWART (Sprint 2). Port 1:1 da tela Blade — mesmos filtros, mesmos dados."

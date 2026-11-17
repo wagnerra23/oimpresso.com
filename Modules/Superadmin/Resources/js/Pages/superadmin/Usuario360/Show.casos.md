@@ -107,6 +107,24 @@ Status: 🧪
 
 ---
 
+## UC-SAUX-07 · Trancar e destrancar deixam rastro para o dono do negócio · `must` `[T0]`
+
+**Dado** que sou superadmin autenticado e há um usuário ativo de outro business
+**Quando** eu o tranco com motivo e depois o destranco
+**Então** ficam **dois** registros a mais na trilha de acesso — `usuario360_trancado` (com o número
+do trancamento) e `usuario360_destrancado` —, cada um com quem fez (eu), quem foi afetado (o id do
+usuário) e o `business_id` **do usuário afetado**.
+**E** o motivo do trancamento não vai para o payload (é texto livre sobre o titular; ele fica no
+próprio trancamento).
+
+> Achado da auditoria do Superadmin (2026-11-05, eixo 5 §6): só a abertura do raio-X era
+> registrada; trancar e destrancar, que mudam o acesso de alguém da casa de outro negócio, não.
+> Mesma trilha do UC-SAUX-06 (`activity_log`, log `superadmin_acesso`).
+
+Status: 🧪
+
+---
+
 ## Ainda sem teste (prosa honesta — viram UC quando ganharem teste que os cite)
 
 - [BACKLOG] Unlock confirmado por AlertDialog DS, nunca `window.confirm` (UX targets) — front, pede E2E.

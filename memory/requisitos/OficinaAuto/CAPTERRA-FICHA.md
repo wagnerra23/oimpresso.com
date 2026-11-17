@@ -4,20 +4,27 @@ id: requisitos-oficina-auto-capterra-ficha
 
 # CAPTERRA-FICHA — OficinaAuto
 
+> **Errata 2026-11-05 (auditoria do módulo, lote 5.6):** esta ficha é de 2026-05 (Wave 23) e
+> vendia "dual mode locação + manutenção" como diferencial. A [ADR 0265](../../decisions/0265-oficina-reparo-erradica-locacao.md)
+> erradicou locação do domínio: o diferencial foi retirado abaixo. O módulo é piloto LIVE do
+> Martinho desde 2026-05-13 (ADR 0171), não "V0 em construção". A nota e os gaps abaixo não foram
+> remedidos; o estado atual está no [BRIEFING](BRIEFING.md). Recalibrar a ficha é pendência da
+> ADR 0194 (checklist pós-aceite).
+
 > Ficha canônica de benchmark do módulo vertical OficinaAuto.
-> **Bucket**: `vertical_client_facing` ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md))
+> **Bucket**: `vertical_client_facing` ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md))
 > **Wave 23** — saturação 63 → ≥85 (rubrica scoped vertical_client_facing.yaml)
-> ADR governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) + [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7 + [0137](../../decisions/0137-modules-oficina-auto-v0-qualificada-por-sinal.md)
+> ADR governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) + [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7 + [0137](../../decisions/0137-modules-oficinaauto-qualificada.md)
 
 ---
 
 ## Identidade do módulo
 
 - **Nome interno**: `OficinaAuto`
-- **CNAEs**: 4520-0/01 (manutenção/reparação automotiva), 2212-9/00 (reforma pneus), 4581-4/00 (lavagem/lubrificação)
-- **Estado lifecycle** (ADR 0121): **V0 em construção** (ADR 0137 — qualificada por sinal Vargas + Martinho)
+- **CNAEs**: 4520-0/01 (manutenção/reparação automotiva), 2212-9/00 (reforma pneus), (4581-4/00 removido — locação erradicada, ADR 0265)
+- **Estado lifecycle** (ADR 0121): **piloto LIVE** (Martinho desde 2026-05-13, ADR 0171). _Até 2026-11-05: "V0 em construção — Vargas + Martinho"._
 - **Candidato piloto**: Martinho Caçambas LTDA biz=164 **Tubarão SC Humaitá de Cima** (Discovery 2026-05-13 · endereço confirmado smoke prod 2026-05-26 errata — anterior dizia Capivari de Baixo) — **mecânica pesada caminhão basculante + loja peça hidráulica + oficina autorizada** (sub-vertical 4 CNAE 4520 · ADR 0194 — pré-correção dizia "modo aluguel + manutenção caçambas")
-- **Diferencial-chave**: dual mode locação + manutenção em UI única + FSM canon multi-stage + WhatsApp aprovação token+PIN
+- **Diferencial-chave**: FSM canon multi-stage + WhatsApp aprovação token+PIN. _(O "dual mode locação + manutenção" saiu em 2026-11-05: ADR 0265.)_
 
 ## Concorrentes-alvo
 
@@ -39,7 +46,7 @@ capacidades_v0:
     onde: "VehicleController + Vehicle entity (HasBusinessScope)"
 
   - us: US-OFICINA-002
-    nome: "CRUD ServiceOrder dual-mode (locacao | manutencao)"
+    nome: "CRUD ServiceOrder (order_type manutencao | mecanica — locacao erradicada, ADR 0265)"
     score: P0
     onde: "ServiceOrderController + ServiceOrder entity"
     evidencia: "Schema::hasColumn fallback Wave 5-A (order_type/daily_rate/expected_return_date)"
@@ -69,7 +76,7 @@ capacidades_v0:
 
 ## Diferenciais oimpresso vs concorrentes
 
-1. **Dual mode locação + manutenção** em UI única — concorrente nenhum integra
+1. ~~Dual mode locação + manutenção em UI única~~ — retirado em 2026-11-05: locação erradicada do domínio (ADR 0265)
 2. **FSM canon multi-stage** (ADR 0143) — auditoria append-only de cada transição
 3. **WhatsApp aprovação cliente token+PIN** (paridade Repair) — reduz chamada
 4. **Multi-tenant Tier 0** com PII redactor (plate/chassis/renavam) — LGPD Art. 18 III
@@ -93,7 +100,7 @@ capacidades_v0:
 ## Status lifecycle (ADR 0121)
 
 - ✅ `V0 em construção` — Sprint 1-2 entregue (CRUD + FSM placeholder + WhatsApp tests)
-- ⏳ `piloto` (meta 2026-Q3) — Martinho Caçambas após Discovery 13/maio
+- ✅ `piloto` — Martinho LIVE desde 2026-05-13 (ADR 0171); a meta "2026-Q3" desta linha ficou para trás
 - ⏳ `ativo` (meta 2027) — 3+ clientes pagantes (Vargas + Martinho + 1)
 
 ## Anti-padrões (Tier 0 IRREVOGÁVEIS)

@@ -157,14 +157,14 @@ it('UC-PCAPA-01 · a linha rodando traz a última arte aprovada da OS; sem aprov
     $abrir($aprovada, $pessoa, 'pessoa', $progA);
     $abrir($esperando, $maquina, 'maquina', $progB);
     $abrir($semArte, $maquina, 'maquina', $progC);
-    $pedido = fn (int $biz, int $os, int $prog, string $arquivo, ?string $decisao, ?string $em) => DB::table('pcp_aprovacoes_arte')->insert([
+    $pedido = fn (int $biz, int $os, int $prog, string $arquivo, ?string $decisao, ?string $em, int $v = 1) => DB::table('pcp_aprovacoes_arte')->insert([
         'business_id' => $biz, 'ordem_id' => $os, 'programacao_id' => $prog, 'arte_programacao_id' => $prog, 'token_hash' => hash('sha256', uniqid('', true)),
-        'arquivo' => $arquivo, 'expira_em' => '2026-10-30 09:00:00', 'decisao' => $decisao, 'decidido_em' => $em, 'created_by' => $this->diego->id,
+        'arquivo' => $arquivo, 'versao' => $v, 'expira_em' => '2026-10-30 09:00:00', 'decisao' => $decisao, 'decidido_em' => $em, 'created_by' => $this->diego->id,
         'created_at' => now(), 'updated_at' => now()]);
     // v1 aprovada, v2 aprovada (vale), v3 em prova esperando o cliente: a troca não derruba a v2 (UC-PCV-11).
     $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v1.pdf', 'aprovada', '2026-10-14 10:00:00');
-    $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v2.pdf', 'aprovada', '2026-10-14 15:00:00');
-    $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v3.pdf', null, null);
+    $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v2.pdf', 'aprovada', '2026-10-14 15:00:00', 2);
+    $pedido($this->biz->id, $aprovada, $progA, 'https://arquivos.exemplo.test/arte-v3.pdf', null, null, 3);
     $pedido($this->biz->id, $esperando, $progB, 'https://arquivos.exemplo.test/prova.pdf', null, null);
     // Adversário: aprovação gravada na empresa 99 apontando para a OS da 98, mais nova que a v2. Não pode valer.
     $pedido((int) $this->seededSupportClientTenant()->id, $aprovada, $progA, 'https://arquivos.exemplo.test/outra-empresa.pdf', 'aprovada', '2026-10-15 09:00:00');
@@ -176,6 +176,7 @@ it('UC-PCAPA-01 · a linha rodando traz a última arte aprovada da OS; sem aprov
 
     expect($artes[$aprovada]['estado'])->toBe('aprovada')
         ->and($artes[$aprovada]['arquivo'])->toBe('https://arquivos.exemplo.test/arte-v2.pdf')
-        ->and($artes[$esperando])->toBe(['estado' => 'aguardando', 'arquivo' => null, 'aprovada_em' => null])
+        ->and($artes[$aprovada]['versao'])->toBe(2) // UC-PCART-09: a tela mostra "v2 · arte-v2.pdf"
+        ->and($artes[$esperando])->toBe(['estado' => 'aguardando', 'arquivo' => null, 'versao' => null, 'aprovada_em' => null])
         ->and(array_key_exists($semArte, $artes))->toBeFalse();
 });

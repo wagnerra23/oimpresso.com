@@ -21,7 +21,7 @@ uses(Tests\TestCase::class);
  *     → Transaction derivada `final_total` = sum(valor_total) (substitui hardcode 0.0)
  *   - Observer backward compat: OS manutenção SEM items → Transaction.final_total = 0
  *   - Controller HTTP `POST /oficina-auto/ordens-servico/{order}/items` autenticado retorna 201
- *   - Multi-tenant Tier 0 [ADR 0093]: user biz=1 tentando criar item em OS biz=2 → 422
+ *   - Multi-tenant Tier 0 [ADR 0093]: user biz=98 tentando criar item em OS biz=99 → 422
  *     (Service::addItem rejeita "OS não pertence ao business")
  *   - PUT/DELETE: abort_unless item.service_order_id === order.id (404 se cross-OS)
  *
@@ -34,13 +34,13 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/OficinaAuto/SPEC.md US-OFICINA-027
  */
 
-const BIZ_US027_A = 1;
-const BIZ_US027_B = 2; // tenant que o seed da lane tem (1, 2, 98)
+const BIZ_US027_A = 98;
+const BIZ_US027_B = 99;
 const PLATE_US027_PREFIX = 'US027';
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0101)');
+        $this->markTestSkipped('SQLite-incompatível: requer schema MySQL UltimatePOS (ADR 0358)');
     }
     if (! Schema::hasTable('oficina_service_order_items')) {
         $this->markTestSkipped('Rode migration 2026_05_17_000010 primeiro');
@@ -153,7 +153,7 @@ it('Observer: OS manutenção SEM items lançados → Transaction.final_total = 
 // Wave 1.3 — Controller HTTP CRUD items
 // ---------------------------------------------------------------------------
 
-it('HTTP POST /items autenticado biz=1 → 201 com item criado', function () {
+it('HTTP POST /items autenticado biz=98 → 201 com item criado', function () {
     session(['user.business_id' => BIZ_US027_A]);
     $os = us027_criaOs('C');
 
@@ -178,7 +178,7 @@ it('HTTP POST /items autenticado biz=1 → 201 com item criado', function () {
     expect($count)->toBe(1);
 })->after(fn () => us027_cleanup('C'));
 
-it('HTTP POST /items cross-tenant biz=1 tentando OS biz=2 → 422 (Service rejeita)', function () {
+it('HTTP POST /items cross-tenant biz=98 tentando OS biz=99 → 422 (Service rejeita)', function () {
     session(['user.business_id' => BIZ_US027_A]);
     $osBizOutro = us027_criaOs('D', BIZ_US027_B);
 

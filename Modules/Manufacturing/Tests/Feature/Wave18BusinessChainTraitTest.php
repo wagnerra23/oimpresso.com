@@ -7,7 +7,9 @@ use Modules\Manufacturing\Concerns\AssertsBusinessChain;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
+
+require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 
 /**
  * Wave 18 — Pest reflection-only do trait AssertsBusinessChain (D1 boost).
@@ -86,19 +88,11 @@ describe('Wave 18 — comportamento DB-dependent (MySQL only)', function () {
     });
 
     it('forBusinessViaProductChain retorna Builder e filtra biz=99 sem vazar biz=1', function () {
-        $variationBiz1 = \Illuminate\Support\Facades\DB::table('variations as v')
-            ->join('products as p', 'p.id', '=', 'v.product_id')
-            ->where('p.business_id', 1)
-            ->select('v.id', 'v.product_id')
-            ->first();
-
-        if (! $variationBiz1) {
-            $this->markTestSkipped('Sem variation em biz=1 — base sem seed UltimatePOS Demo.');
-        }
+        $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
         $recipe = MfgRecipe::create([
-            'product_id'       => $variationBiz1->product_id,
-            'variation_id'     => $variationBiz1->id,
+            'product_id'       => $variacao->product_id,
+            'variation_id'     => $variacao->id,
             'instructions'     => 'wave18-trait-chain-test',
             'waste_percent'    => 0,
             'ingredients_cost' => 0,
@@ -108,19 +102,19 @@ describe('Wave 18 — comportamento DB-dependent (MySQL only)', function () {
         ]);
 
         // Scope retorna Builder
-        $query = MfgRecipe::query()->forBusinessViaProductChain(1);
+        $query = MfgRecipe::query()->forBusinessViaProductChain(MFG_EMP_BIZ);
         expect($query)->toBeInstanceOf(Builder::class);
 
         // Filtro biz=99 NÃO retorna recipe biz=1
         $vazamento = MfgRecipe::query()
-            ->forBusinessViaProductChain(99)
+            ->forBusinessViaProductChain(MFG_EMP_OUTRO)
             ->where('id', $recipe->id)
             ->count();
         expect($vazamento)->toBe(0);
 
         // Filtro biz=1 retorna a recipe
         $proprio = MfgRecipe::query()
-            ->forBusinessViaProductChain(1)
+            ->forBusinessViaProductChain(MFG_EMP_BIZ)
             ->where('id', $recipe->id)
             ->count();
         expect($proprio)->toBe(1);
@@ -129,19 +123,11 @@ describe('Wave 18 — comportamento DB-dependent (MySQL only)', function () {
     });
 
     it('belongsToBusinessChain protege contra modelId cross-tenant', function () {
-        $variationBiz1 = \Illuminate\Support\Facades\DB::table('variations as v')
-            ->join('products as p', 'p.id', '=', 'v.product_id')
-            ->where('p.business_id', 1)
-            ->select('v.id', 'v.product_id')
-            ->first();
-
-        if (! $variationBiz1) {
-            $this->markTestSkipped('Sem variation biz=1.');
-        }
+        $variacao = mfgEmpVariacao(MFG_EMP_BIZ);
 
         $recipe = MfgRecipe::create([
-            'product_id'       => $variationBiz1->product_id,
-            'variation_id'     => $variationBiz1->id,
+            'product_id'       => $variacao->product_id,
+            'variation_id'     => $variacao->id,
             'instructions'     => 'wave18-belongs-chain-test',
             'waste_percent'    => 0,
             'ingredients_cost' => 0,
@@ -152,9 +138,9 @@ describe('Wave 18 — comportamento DB-dependent (MySQL only)', function () {
 
         $instance = new MfgRecipe();
 
-        expect($instance->belongsToBusinessChain($recipe->id, 1))->toBeTrue();
-        expect($instance->belongsToBusinessChain($recipe->id, 99))->toBeFalse();
-        expect($instance->belongsToBusinessChain(9999999, 1))->toBeFalse('ID inexistente jamais pertence.');
+        expect($instance->belongsToBusinessChain($recipe->id, MFG_EMP_BIZ))->toBeTrue();
+        expect($instance->belongsToBusinessChain($recipe->id, MFG_EMP_OUTRO))->toBeFalse();
+        expect($instance->belongsToBusinessChain(9999999, MFG_EMP_BIZ))->toBeFalse('ID inexistente jamais pertence.');
     })->after(function () {
         MfgRecipe::where('instructions', 'wave18-belongs-chain-test')->delete();
     });

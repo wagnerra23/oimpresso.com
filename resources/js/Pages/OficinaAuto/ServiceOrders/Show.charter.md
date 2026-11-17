@@ -2,13 +2,14 @@
 id: resources-js-pages-oficina-auto-service-orders-show-charter
 page: /oficina-auto/service-orders/{id}
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
+related_runbook: memory/requisitos/OficinaAuto/RUNBOOK-service-orders-show.md
 related_visual_comparison: memory/requisitos/OficinaAuto/oficina-os-nova-prototipo-visual-comparison.md
 visual_source: oficina-os-page.jsx
 owner: wagner
 status: live
-last_validated: "2026-05-26"
+last_validated: "2026-11-05"
 parent_module: OficinaAuto
-related_us: [US-OFICINA-006, US-OFICINA-035, US-OFICINA-038, US-OFICINA-014, US-OFICINA-017, US-OFICINA-018]
+related_us: [US-OFICINA-006, US-OFICINA-035, US-OFICINA-038, US-OFICINA-014, US-OFICINA-017, US-OFICINA-018, US-OFICINA-027, US-OFICINA-037, US-OFICINA-040, US-OFICINA-041, US-OFICINA-042]
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
@@ -20,7 +21,7 @@ related_adrs:
   - 0192-auto-faturar-os-venda-jobsheet-observer
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 tier: A
-charter_version: 3
+charter_version: 4
 ---
 
 # Page Charter — /oficina-auto/service-orders/{id}
@@ -29,23 +30,41 @@ charter_version: 3
 >
 > **Sub-vertical 4 ([ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) — 2026-05-26):** OS Martinho biz=164 é sub-vertical 4 mecânica pesada. Card "Valor a receber" `daily_rate × dias_locacao` aplica primariamente pra schema sub-vertical 3 hipotético preservado nullable — V0 OS mecânica retorna R$ [redacted Tier 0] hoje (Wagner edita manual). Recalc canon V1 = `peça×qty + hora-trabalho×horas` via US-OFICINA-027 P0 8h ([levantamento 2026-05-26](../../../../../memory/sessions/2026-05-26-levantamento-martinho-ready.md) §B2). Card "Esta OS gerou venda #V-NNNN" LIVE (ADR 0192 ext + Onda 7 PR #1534 componente shared `@/Components/shared/VendaDerivadaCard.tsx`).
 
+> **Conferido contra o código em 2026-11-05 (v4, lote 5.5 da auditoria):** Goals, Tests e Refs
+> reescritos para o que `Show.tsx` renderiza hoje. O parágrafo acima é de 2026-05 e cita locação,
+> erradicada pela ADR 0265. Non-Goals e UX Anti-patterns **não foram alterados** — só o [W]
+> preenche; as divergências medidas estão anotadas logo antes de cada seção.
+
 ## Mission
 
 Tela única-fonte-da-verdade sobre 1 OS — mecânico/atendente acompanha estado FSM, próximas ações disponíveis, histórico append-only de transições, valor acumulado (locação ativa).
 
+> Nota 2026-11-05: "locação ativa" é texto de 2026-05 (ADR 0265 erradicou locação). Reescrever a Mission é do [W].
+
 ## Goals — Features (faz)
 
-- `<PageHeader>` com OS#{id} + status badge + ações contextuais (Imprimir, Voltar, Editar)
-- Resumo: vehicle.plate, vehicle_type, contact, order_type, entered_at, expected_completion
-- **ServiceOrderFsmActionPanel** — botões dinâmicos por stage atual (ADR 0143 pipeline canon) com RBAC role-aware
-- **Timeline** append-only de `sale_stage_history` (transição, ator, timestamp, side-effects)
-- Locação: card "Valor a receber" = daily_rate × dias_locacao (accessor `valor_receber`) + flag `is_overdue` vermelho se atrasada
-- Manutenção complexa: lista itens (peças + serviços) com subtotal
-- **Wave 5 US-OFICINA-005-bis (2026-05-26):** seção inline "Itens da OS" com hover-row Editar/Excluir + CTA "Adicionar item" (PageHeaderPrimary roxo 295 ADR 0190) abre Sheet lateral 480px com form radio(tipo)+descrição+qty+valor+total client-side. Optimistic UI nos save/delete. Backend consome `ServiceOrderItemController` (PR #1624)
-- Multi-tenant Tier 0 — 404 se OS de outro business
-- Inertia::defer em items aggregated + timeline > 20 entries
+Conferido em `Show.tsx` e `ServiceOrderController@show` (2026-11-05):
+
+- `PageHeader` com o número da OS e ações Voltar, Editar e Imprimir (A4 via `printServiceOrder`, US-OFICINA-037).
+- Resumo da OS: veículo, cliente, tipo, datas e check-in de entrada (combustível, avarias).
+- **Etapa FSM só leitura**: `ServiceOrderStagePipeline`. O painel de ações FSM e a linha do tempo
+  ficam no drawer do quadro (`ServiceOrderRichSheet`), não nesta página.
+- **Gate de aprovação do cliente**: `ApprovalGateCard` (US-OFICINA-041).
+- **Vistoria → orçamento**: `DviBudgetSection` (US-OFICINA-035/040).
+- **Itens da OS** inline (peça, mão de obra, serviço) com editar/excluir por linha e
+  `ServiceOrderItemFormSheet` para adicionar (US-OFICINA-027).
+- **Split fiscal presentacional**: `FiscalSplitCard` (US-OFICINA-042; não emite documento).
+- Multi-tenant Tier 0: OS de outra empresa → 404; a venda derivada só vem se for da mesma
+  empresa (#10146, UC-OSH-11).
+- **Entrega (foto + assinatura)**: a regra é do servidor (`StageGateEvaluator`, ação `entregar`);
+  os casos UC-OSH-12..22 estão no `Show.casos.md`, mas a interface (checklist + quadro de
+  assinatura) é montada no drawer do quadro. Ver o RUNBOOK da tela.
 
 ## Non-Goals — Features (NÃO faz)
+
+> Nota 2026-11-05 (sem alterar a lista — só o [W] edita): "Edição de items inline (vai pra Edit
+> page)" diverge do código: a página edita e exclui itens inline desde a Wave 5 (US-OFICINA-027).
+
 
 - UPDATE direto em `current_stage_id` (PROIBIDO — usar `ExecuteStageActionService`)
 - Comentários livres (vai pra `notes` field ou audit log via action)
@@ -61,6 +80,11 @@ Tela única-fonte-da-verdade sobre 1 OS — mecânico/atendente acompanha estado
 
 ## UX Anti-patterns
 
+> Nota 2026-11-05 (sem alterar a lista — só o [W] edita): "Edição direta de status via select
+> (PROIBIDO)" — o select de status existe no `Edit.tsx` e é ele que dispara a venda derivada
+> (`status = concluida`). É a decisão D1 do [W], descrita em `RUNBOOK-fsm-pipeline.md`.
+
+
 - Botão FSM sem checagem RBAC (canon = `sale_stage_action_roles`)
 - Submit FSM sem confirm dialog em ações críticas (`is_critical=true`)
 - Edição direta de status via select (PROIBIDO — usar action panel)
@@ -68,13 +92,15 @@ Tela única-fonte-da-verdade sobre 1 OS — mecânico/atendente acompanha estado
 
 ## Tests anti-regressão
 
-- [Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php](../../../../../Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php)
-- [Modules/OficinaAuto/Tests/Feature/ServiceOrderCrudTest.php](../../../../../Modules/OficinaAuto/Tests/Feature/ServiceOrderCrudTest.php)
+`Modules/OficinaAuto/Tests/Feature/`: `ServiceOrderCrudTest`, `ServiceOrderItemHttpIntegrationTest`,
+`ServiceOrderPrintTest`, `ServiceOrderStagePipelineTest`, `ServiceOrderEntregaFotoTest`,
+`ServiceOrderEntregaAssinaturaTest`, `FsmTransitionTest`. Casos: [`Show.casos.md`](Show.casos.md).
 
 ## Refs
 
 - [SPEC.md US-OFICINA-001 + US-OFICINA-003](../../../../../memory/requisitos/OficinaAuto/SPEC.md)
-- [RUNBOOK-show.md](../../../../../memory/requisitos/OficinaAuto/RUNBOOK-show.md)
+- [RUNBOOK-service-orders-show.md](../../../../../memory/requisitos/OficinaAuto/RUNBOOK-service-orders-show.md) (substitui, para esta tela, o V0 [RUNBOOK-show.md](../../../../../memory/requisitos/OficinaAuto/RUNBOOK-show.md))
+- [RUNBOOK-fsm-pipeline.md](../../../../../memory/requisitos/OficinaAuto/RUNBOOK-fsm-pipeline.md) — os dois donos do estado da OS (D1)
 - [ADR 0143 FSM pipeline LIVE prod](../../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
 - [ADR 0129 FSM canônica tabular](../../../../../memory/decisions/0129-state-machine-canonica-fsm-rbac.md)
 

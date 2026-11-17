@@ -43,19 +43,66 @@ class CatalogueService
      */
     public function buildIndexPayload(int $businessId, int $locationId): array
     {
-        return OtelHelper::spanBiz('product_catalogue.build_index_payload', fn () => [
-            'products' => $this->repository->listProductsByLocation($businessId, $locationId),
-            'business' => $business = $this->repository->findBusinessWithCurrency($businessId),
-            'business_location' => $this->repository->findLocationForBusiness($businessId, $locationId),
-            'discounts' => $this->formatDiscountAmounts(
-                $this->repository->activeDiscounts($businessId, $locationId),
-                $business,
-            ),
-            'categories' => $this->repository->categoriesDropdown($businessId),
-        ], [
+        return OtelHelper::spanBiz('product_catalogue.build_index_payload', function () use ($businessId, $locationId): array {
+            $products = $this->repository->listProductsByLocation($businessId, $locationId);
+            $business = $this->repository->findBusinessWithCurrency($businessId);
+            $discounts = $this->repository->activeDiscounts($businessId, $locationId);
+
+            $this->anexarDescontoDoPdv($products, $business, $businessId, $locationId, $discounts->isNotEmpty());
+
+            return [
+                'products' => $products,
+                'business' => $business,
+                'business_location' => $this->repository->findLocationForBusiness($businessId, $locationId),
+                'discounts' => $discounts,
+                'categories' => $this->repository->categoriesDropdown($businessId),
+                // A rota é anônima (sem SetSessionData): número sai pela moeda da empresa.
+                'formato' => new FormatoVitrine($business),
+            ];
+        }, [
             'business_id'  => $businessId,
             'location_id'  => $locationId,
         ]);
+    }
+
+    /**
+     * Põe em cada produto da listagem (`desconto_vitrine`) o desconto que o PDV aplicaria.
+     *
+     * Usa o próprio ProductUtil::getProductDiscount, sem grupo de preço (o mesmo que o detalhe
+     * chama): marca e categoria juntas, prioridade, `spg` nulo e desconto por variação. Para
+     * produto não variável passa a variação única, como o PDV ao vender; produto variável fica
+     * com o desconto do produto e o detalhe mostra o de cada variação.
+     *
+     * Uma consulta por produto — só quando há algum desconto vigente no local. Sem desconto
+     * vigente (o caso comum) a listagem não paga nada.
+     */
+    private function anexarDescontoDoPdv(
+        \Illuminate\Support\Collection $porCategoria,
+        \App\Business $business,
+        int $businessId,
+        int $locationId,
+        bool $haDescontoVigente,
+    ): void {
+        if (! $haDescontoVigente) {
+            return;
+        }
+
+        $formato = new FormatoVitrine($business);
+        foreach ($porCategoria as $produtos) {
+            foreach ($produtos as $product) {
+                $variationId = $product->type !== 'variable' ? $product->variations->first()?->id : null;
+                // getProductDiscount devolve o Discount ou null (é um `->first()`), mas o docblock
+                // dele declara `obj`, que o PHPStan lê como classe inexistente.
+                /** @var \App\Discount|null $desconto */
+                $desconto = $this->productUtil->getProductDiscount($product, $businessId, $locationId, false, null, $variationId);
+                if ($desconto instanceof \App\Discount) {
+                    $desconto->setAttribute('selo', $formato->seloDesconto($desconto));
+                    $product->desconto_vitrine = $desconto;
+                } else {
+                    $product->desconto_vitrine = null;
+                }
+            }
+        }
     }
 
     /**
@@ -68,7 +115,7 @@ class CatalogueService
     public function buildShowPayload(int $businessId, int $productId, ?int $locationId): array
     {
         return OtelHelper::spanBiz('product_catalogue.build_show_payload', function () use ($businessId, $productId, $locationId): array {
-            $product = $this->repository->findProductWithDetails($businessId, $productId);
+            $product = $this->repository->findProductWithDetails($businessId, $productId, $locationId);
             $priceGroups = $this->repository->activePriceGroups($product->business_id);
 
             $allowedGroupPrices = [];
@@ -82,6 +129,7 @@ class CatalogueService
             );
 
             $comboVariations = $this->collectComboVariations($product);
+            $this->anexarSelo($discounts, $this->repository->findBusinessWithCurrency($businessId));
 
             return [
                 'product' => $product,
@@ -98,12 +146,16 @@ class CatalogueService
     }
 
     /**
-     * Formata `discount_amount` de cada Discount usando ProductUtil + currency do business.
+     * Anexa a cada desconto o texto do selo (`selo`), conforme o tipo: porcentagem ou dinheiro.
+     * Não reescreve `discount_amount`: o número segue cru para quem precisar calcular.
      */
-    private function formatDiscountAmounts(\Illuminate\Support\Collection $discounts, \App\Business $business): \Illuminate\Support\Collection
+    private function anexarSelo(iterable $discounts, \App\Business $business): iterable
     {
-        foreach ($discounts as $key => $value) {
-            $discounts[$key]->discount_amount = $this->productUtil->num_f($value->discount_amount, false, $business);
+        $formato = new FormatoVitrine($business);
+        foreach ($discounts as $discount) {
+            if (! empty($discount)) {
+                $discount->selo = $formato->seloDesconto($discount);
+            }
         }
 
         return $discounts;

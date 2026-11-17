@@ -855,9 +855,21 @@ class ServiceOrderController extends Controller
             );
         }
 
+        // Só diz "enviado" quando o envio de fato entra na fila: as mesmas pré-condições que o
+        // Job confere (cliente desta empresa, celular, consentimento, número de saída). Antes a
+        // mensagem saía mesmo quando o Job ia pular em silêncio (auditoria 2026-11-05, M1).
+        // A entrega em si é assíncrona e segue com o módulo WhatsApp.
+        $diag = \Modules\OficinaAuto\Jobs\EnviarLinkAprovacaoWhatsappJob::diagnosticar((int) $order->business_id, $order);
+        if ($diag['motivo'] !== null) {
+            return back()->with('status', [
+                'success' => 0,
+                'msg'     => "OS em orçamento, mas o link de aprovação NÃO foi enviado: {$diag['motivo']}. Avise o cliente por outro meio.",
+            ]);
+        }
+
         return back()->with('status', [
             'success' => 1,
-            'msg'     => 'Orçamento enviado ao cliente para aprovação (WhatsApp).',
+            'msg'     => 'Link de aprovação e PIN na fila de envio do WhatsApp para o cliente.',
         ]);
     }
 

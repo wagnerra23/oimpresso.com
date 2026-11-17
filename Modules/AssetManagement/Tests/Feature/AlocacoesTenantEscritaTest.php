@@ -247,3 +247,50 @@ it('lista: linha com bem e pessoa de outra empresa nao mostra o nome deles', fun
         alocTenLimpar();
     }
 });
+
+/** Linhas da lista pelo mesmo partial reload que o browser faz. */
+function alocTenLista(User $u, int $businessId, string $situacao)
+{
+    return collect(data_get(alocTenComo($u, $businessId)->withHeaders([
+        'X-Inertia-Partial-Component' => 'Patrimonio/Alocacoes',
+        'X-Inertia-Partial-Data' => 'alocacoes',
+    ])->get('/asset/allocation?situacao='.$situacao)->assertStatus(200)->json(), 'props.alocacoes.data', []));
+}
+
+/*
+ * Lote 0.4 (REGRA MESTRE — quantidade). O `leftJoin asset_transactions as PT` da lista
+ * somava devolucao sem empresa. Numeros conferidos a mao:
+ *   alocacao A = 4, devolucao propria = 1, linha filha de OUTRA empresa = 2.
+ *     devolvido: antes 1 + 2 = 3 · depois 1 (o que a empresa devolveu de fato).
+ *   alocacao B = 2, devolucao propria = 0, linha filha de outra empresa = 2.
+ *     antes 2 >= 2 → aparecia em "devolvidas" · depois 0 → fica em "ativas".
+ * Segundo caminho (dry-run em producao, so leitura, 2026-11-05): 2 devolucoes, 0 filhas de
+ * outra empresa, 0 alocacoes mudam — o conserto nao altera nenhum numero que existe hoje.
+ */
+it('lista: devolvido conta so as devolucoes da propria empresa (4 alocado, 1 devolvido, 2 alheios → 1)', function () {
+    $dono = (int) $this->seededTenant()->id;
+    $adv = (int) $this->seededSupportClientTenant()->id;
+    $u = alocTenUsuario($dono);
+    $uAdv = alocTenUsuario($adv);
+
+    try {
+        $bem = alocTenBem($dono, $u->id, 10);
+        $a = alocTenTransacao($dono, $bem->id, $u->id, 4);
+        alocTenTransacao($dono, $bem->id, $u->id, 1, 'revoke', $a->id);
+        // Linha filha de outra empresa pendurada na alocacao do dono (o estado que o
+        // join sem empresa contava).
+        alocTenTransacao($adv, $bem->id, $uAdv->id, 2, 'revoke', $a->id);
+        $b = alocTenTransacao($dono, $bem->id, $u->id, 2);
+        alocTenTransacao($adv, $bem->id, $uAdv->id, 2, 'revoke', $b->id);
+
+        $todas = alocTenLista($u, $dono, 'todas')->keyBy('ref_no');
+        expect($todas->has($a->ref_no))->toBeTrue();
+        expect((float) $todas[$a->ref_no]['devolvido'])->toBe(1.0);
+        expect((float) $todas[$b->ref_no]['devolvido'])->toBe(0.0);
+
+        expect(alocTenLista($u, $dono, 'ativas')->pluck('ref_no')->all())->toContain($b->ref_no);
+        expect(alocTenLista($u, $dono, 'devolvidas')->pluck('ref_no')->all())->not->toContain($b->ref_no);
+    } finally {
+        alocTenLimpar();
+    }
+});

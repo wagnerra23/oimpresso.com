@@ -5,6 +5,8 @@ namespace Modules\Producao\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Modules\Producao\Http\Controllers\Concerns\ExigePacoteProducao;
+use Modules\Producao\Services\CustoHoraDecimal;
 use Illuminate\Validation\Rule;
 use Modules\Producao\Entities\ColaboradorCusto;
 
@@ -15,19 +17,21 @@ use Modules\Producao\Entities\ColaboradorCusto;
  */
 class ColaboradorCustoController extends Controller
 {
+    use ExigePacoteProducao;
+
     public function update(Request $request, int $userId): RedirectResponse
     {
         abort_unless($request->user()->can('producao.access') && $request->user()->can('producao.desempenho.ver'), 403);
-        $biz = (int) $request->session()->get('user.business_id');
+        $biz = $this->empresaComPacote($request);
         // O colaborador tem de ser da empresa: id de outra empresa é recusado na validação, nunca gravado.
         $request->merge(['user_id' => $userId]);
         $dados = $request->validate([
             'user_id' => [Rule::exists('users', 'id')->where('business_id', $biz)],
-            'custo_hora' => ['required', 'numeric', 'min:0', 'max:99999'],
+            'custo_hora' => ['required', 'numeric', 'not_regex:/e/i', 'min:0', 'max:99999'],
         ]);
         ColaboradorCusto::query()->updateOrCreate(
             ['business_id' => $biz, 'user_id' => $userId],
-            ['custo_hora' => round((float) $dados['custo_hora'], 2)],
+            ['custo_hora' => CustoHoraDecimal::comDuasCasas($dados['custo_hora'])],
         );
 
         return back()->with('status', ['success' => 1, 'msg' => 'Custo-hora salvo.']);

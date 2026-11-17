@@ -63,11 +63,14 @@ final class AprovacaoArteService
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::OS_NAO_LIBERADA, 'Conclua a etapa de arte antes de pedir a aprovação do cliente.');
 
         return DB::transaction(function () use ($businessId, $ordem, $aprovacao, $arte, $arquivo, $user) {
+            $anterior = AprovacaoArte::query()->where('business_id', $businessId)
+                ->where('ordem_id', $ordem->id)->orderByDesc('id')->lockForUpdate()->first();
             $this->expirarAbertos($businessId, (int) $ordem->id);
             $token = Str::random(48);
-            $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
+            $pedido = AprovacaoArte::create([
                 'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $aprovacao->id,
                 'arte_programacao_id' => $arte->id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
+                'versao' => VersaoDaArte::seguinte($anterior?->arquivo, $anterior !== null ? (int) $anterior->versao : null, $arquivo), // UC-PCART-09: sobe só se o arquivo mudou
                 'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
             ]);
             $this->evento($pedido, self::EV_SOLICITADA, $user->id, []);
@@ -88,7 +91,7 @@ final class AprovacaoArteService
             if (in_array($ordem->currentStage?->key, ['concluida', 'cancelada'], true)) {
                 throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ENCERRADA, 'Esta OS já foi encerrada.');
             }
-            $ultimo = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+            $ultimo = AprovacaoArte::query()->where('business_id', $businessId)
                 ->where('ordem_id', $ordem->id)->orderByDesc('id')->lockForUpdate()->first();
             if ($ultimo === null || $ultimo->decisao !== AprovacaoArte::APROVADA) {
                 throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, $ultimo === null || $ultimo->decisao === null
@@ -106,9 +109,10 @@ final class AprovacaoArteService
 
             $this->expirarAbertos($businessId, (int) $ordem->id);
             $token = Str::random(48);
-            $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
+            $pedido = AprovacaoArte::create([
                 'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $nova->id,
                 'arte_programacao_id' => $ultimo->arte_programacao_id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
+                'versao' => VersaoDaArte::seguinte((string) $ultimo->arquivo, (int) $ultimo->versao, $arquivo), // arquivo diferente (checado acima): versão seguinte
                 'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
             ]);
             $this->evento($pedido, self::EV_ARQUIVO_TROCADO, $user->id, ['aprovacao_anterior_id' => $ultimo->id]);
@@ -130,7 +134,7 @@ final class AprovacaoArteService
     {
         return DB::transaction(function () use ($businessId, $ordemId, $arquivo, $user) {
             $ordem = $this->situacao->ordem($businessId, $ordemId);
-            $ultimo = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+            $ultimo = AprovacaoArte::query()->where('business_id', $businessId)
                 ->where('ordem_id', $ordem->id)->orderByDesc('id')->lockForUpdate()->first()
                 ?? throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'Ainda não há prova enviada: peça a aprovação do cliente.');
             if ($ultimo->decisao === AprovacaoArte::APROVADA) {
@@ -154,14 +158,14 @@ final class AprovacaoArteService
      * UC-PCV-11 · a arte que vale para produzir: o arquivo do último pedido APROVADO, mesmo que haja
      * uma versão nova esperando o cliente. Null = OS ainda sem arte aprovada.
      *
-     * @return array{arquivo: string, aprovada_em: string}|null
+     * @return array{arquivo: string, versao: int, aprovada_em: string}|null
      */
     public function arteVigente(int $businessId, int $ordemId): ?array
     {
-        $p = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->where('ordem_id', $ordemId)
+        $p = AprovacaoArte::query()->where('business_id', $businessId)->where('ordem_id', $ordemId)
             ->where('decisao', AprovacaoArte::APROVADA)->orderByDesc('decidido_em')->orderByDesc('id')->first();
 
-        return $p === null ? null : ['arquivo' => (string) $p->arquivo, 'aprovada_em' => $p->decidido_em->toIso8601String()];
+        return $p === null ? null : ['arquivo' => (string) $p->arquivo, 'versao' => (int) $p->versao, 'aprovada_em' => $p->decidido_em->toIso8601String()];
     }
 
     /** Pedido ainda aberto para o token — vencido, decidido ou com a etapa fechada → recusa. */
@@ -217,7 +221,7 @@ final class AprovacaoArteService
      */
     private function expirarAbertos(int $businessId, int $ordemId): void
     {
-        AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->where('ordem_id', $ordemId)
+        AprovacaoArte::query()->where('business_id', $businessId)->where('ordem_id', $ordemId)
             ->whereNull('decisao')->where('expira_em', '>', now())->lockForUpdate()->update(['expira_em' => now()->subSecond()]);
     }
 

@@ -25,8 +25,13 @@ use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
  */
 class OrcamentoArquivoController extends Controller
 {
-    /** Formatos de arte e de foto que a gráfica recebe. Extensão, não MIME: `.cdr`/`.ai` não têm MIME confiável. */
-    public const EXTENSOES = ['pdf', 'jpg', 'jpeg', 'png', 'svg', 'ai', 'eps', 'cdr', 'tif', 'tiff', 'psd'];
+    /**
+     * Formatos de arte e de foto que a gráfica recebe. Extensão, não MIME: `.cdr`/`.ai` não têm MIME confiável.
+     *
+     * Sem `svg` (UC-CVARQ-07): o arquivo fica em `public/uploads/media`, na mesma origem do sistema e sem
+     * login, e o navegador executa o script de um SVG aberto pela URL. Arte vetorial segue por pdf, ai, eps ou cdr.
+     */
+    public const EXTENSOES = ['pdf', 'jpg', 'jpeg', 'png', 'ai', 'eps', 'cdr', 'tif', 'tiff', 'psd'];
 
     public function store(Request $request, int $id): JsonResponse
     {
@@ -46,7 +51,7 @@ class OrcamentoArquivoController extends Controller
             'arquivos.required'    => 'Escolha ao menos um arquivo.',
             'arquivos.max'         => 'Envie no máximo 10 arquivos de cada vez.',
             'arquivos.*.max'       => 'Cada arquivo pode ter no máximo ' . round($maxKb / 1024, 1) . ' MB.',
-            'arquivos.*.extensions' => 'Formato não aceito. Use: ' . implode(', ', self::EXTENSOES) . '.',
+            'arquivos.*.extensions' => 'Formato não aceito. Use: ' . implode(', ', self::EXTENSOES) . '. Arte em SVG: exporte em PDF.',
         ]);
 
         foreach ($request->file('arquivos') as $arquivo) {

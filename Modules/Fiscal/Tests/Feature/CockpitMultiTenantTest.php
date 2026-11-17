@@ -22,7 +22,7 @@ uses(Tests\TestCase::class);
  *  entao o "verde" declarado aqui e alcancavel; ver SDD Fiscal §8.1.)
  */
 
-const COCKPIT_BIZ_WAGNER   = 1;
+const COCKPIT_BIZ_TENANT   = 98;
 const COCKPIT_BIZ_FICTICIO = 99;
 const COCKPIT_TAG          = 'PR2-COCKPIT-ISO';
 
@@ -37,11 +37,11 @@ beforeEach(function () {
     // O global scope ScopeByBusiness só filtra com usuário AUTENTICADO — faz early-return
     // em `! auth()->check()` (app/Scopes/ScopeByBusiness.php:26) e lê a business
     // ativa de session('user.business_id'). Sem actingAs o scope no-opa e este guard de
-    // isolamento contava biz=1 + biz=99 (2 em vez de 1) — falha de TESTE, não vazamento de
+    // isolamento contava biz=98 + biz=99 (2 em vez de 1) — falha de TESTE, não vazamento de
     // produto: a rota /fiscal roda atrás do middleware `auth`, onde auth()->check() é sempre
-    // true. Autenticamos um usuário biz=1 (semeado pelo pest-mysql-setup; sem role → não é
+    // true. Autenticamos um usuário biz=98 (semeado pelo pest-mysql-setup; sem role → não é
     // superadmin) espelhando NfeBrasilMultiTenantIsolationTest. ADR 0093 + ADR 0101.
-    $this->actingAs(\App\User::where('business_id', COCKPIT_BIZ_WAGNER)->firstOrFail());
+    $this->actingAs(\App\User::where('business_id', COCKPIT_BIZ_TENANT)->firstOrFail());
 });
 
 afterEach(function () {
@@ -57,7 +57,7 @@ afterEach(function () {
         ->forceDelete();
 });
 
-it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts de biz=1', function () {
+it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts de biz=98', function () {
     $base = [
         'modelo'      => '55',
         'serie'       => '1',
@@ -68,7 +68,7 @@ it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts 
     ];
 
     NfeEmissao::withoutGlobalScopes()->create($base + [
-        'business_id' => COCKPIT_BIZ_WAGNER,
+        'business_id' => COCKPIT_BIZ_TENANT,
         'numero'      => 7001,
         'chave_44'    => str_pad('7001' . COCKPIT_TAG, 44, '0', STR_PAD_RIGHT),
     ]);
@@ -78,7 +78,7 @@ it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts 
         'chave_44'    => str_pad('7002' . COCKPIT_TAG, 44, '0', STR_PAD_RIGHT),
     ]);
 
-    session(['business.id' => COCKPIT_BIZ_WAGNER, 'user.business_id' => COCKPIT_BIZ_WAGNER]);
+    session(['business.id' => COCKPIT_BIZ_TENANT, 'user.business_id' => COCKPIT_BIZ_TENANT]);
 
     $controller = new \Modules\Fiscal\Http\Controllers\CockpitController();
 
@@ -93,7 +93,7 @@ it('UC-FCKP-05 · computeKpis scope per business: biz=99 não aparece em counts 
     $reflection->setAccessible(true);
     $kpis = $reflection->invoke($controller, $contexto);
 
-    // KPIs devem refletir SOMENTE biz=1 — autorizadas com tag
+    // KPIs devem refletir SOMENTE biz=98 — autorizadas com tag
     $countTagsBiz1 = NfeEmissao::query()
         ->where('chave_44', 'like', '%' . COCKPIT_TAG . '%')
         ->count();

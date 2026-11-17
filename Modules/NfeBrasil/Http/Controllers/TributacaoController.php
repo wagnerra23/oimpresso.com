@@ -60,6 +60,10 @@ class TributacaoController extends Controller
             ] : null,
 
             // EAGER (1 linha): local padrão pro autocomplete de produto do simulador (thread 08).
+            // EAGER (flag em cache 60s): seção Naturezas de operação (RUNBOOK-tributacao §Naturezas).
+            'naturezasLiberado' => app(\App\Services\FeatureFlagService::class)
+                ->isOn(\Modules\NfeBrasil\Http\Controllers\NaturezaOperacaoController::FLAG, ['business_id' => $businessId]),
+
             'localPadrao' => DB::table('business_locations')
                 ->where('business_id', $businessId)->orderBy('id')->value('id'),
 
@@ -107,7 +111,7 @@ class TributacaoController extends Controller
     {
         $saude = app(SaudeFiscalService::class)->avaliar($businessId);
         $saude['itens'] = array_map(
-            fn (array $i) => [...$i, 'url' => Route::has($i['rota']) ? route($i['rota']) : null],
+            fn (array $i) => [...$i, 'url' => Route::has($i['rota']) ? route($i['rota'], $i['parametros']) : null],
             $saude['itens'],
         );
 
@@ -133,6 +137,7 @@ class TributacaoController extends Controller
                 'id', 'ncm', 'uf_origem', 'uf_destino',
                 'cfop', 'csosn', 'cst',
                 'aliquota_icms', 'aliquota_pis', 'aliquota_cofins', 'aliquota_ipi',
+                'cst_pis', 'cst_cofins',
                 'mva', 'fcp',
                 'created_at',
             ])
@@ -148,6 +153,8 @@ class TributacaoController extends Controller
                 'aliquota_pis'    => (float) $r->aliquota_pis,
                 'aliquota_cofins' => (float) $r->aliquota_cofins,
                 'aliquota_ipi'    => (float) $r->aliquota_ipi,
+                'cst_pis'         => $r->cst_pis,
+                'cst_cofins'      => $r->cst_cofins,
                 'mva'             => $r->mva !== null ? (float) $r->mva : null,
                 'fcp'             => $r->fcp !== null ? (float) $r->fcp : null,
             ])
@@ -283,6 +290,10 @@ class TributacaoController extends Controller
                 'aliquota_pis'    => (float) $regra->aliquota_pis,
                 'aliquota_cofins' => (float) $regra->aliquota_cofins,
                 'aliquota_ipi'    => (float) $regra->aliquota_ipi,
+                // R-NFE-025b: sem os dois na prop, o "Atualizar" gravaria nulo por cima (a mesma
+                // armadilha do UC-NFRF-08 com o IBS/CBS).
+                'cst_pis'         => $regra->cst_pis,
+                'cst_cofins'      => $regra->cst_cofins,
                 'mva'             => $regra->mva !== null ? (float) $regra->mva : null,
                 'fcp'             => $regra->fcp !== null ? (float) $regra->fcp : null,
                 // Reforma tributária (US-FISCAL-021 · thread 05). O form agora envia os 5 campos;

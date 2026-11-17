@@ -17,7 +17,7 @@ use Illuminate\Validation\Rule;
  * Multi-tenant Tier 0 (ADR 0093): business_id NUNCA aceito via request;
  * sempre derivado de session('business.id') no Controller.
  *
- * Permissao: checada no Controller (recurringbilling.assinatura.update).
+ * Permissao: checada no Controller (recurringbilling.subscriptions.manage).
  */
 class UpdateAssinaturaRequest extends FormRequest
 {

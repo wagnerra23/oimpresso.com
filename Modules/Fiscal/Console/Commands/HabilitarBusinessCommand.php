@@ -140,7 +140,11 @@ class HabilitarBusinessCommand extends Command
         }
 
         foreach (self::PERMS_SEGURAS as $permName) {
-            if ($role->hasPermissionTo($permName)) {
+            // Permissão que ainda não existe na tabela conta como "o role não tem". No --dry-run o
+            // PASSO 1 não a cria, e `hasPermissionTo` de permissão inexistente lança
+            // PermissionDoesNotExist (achado da auditoria Fiscal lote 2.2, 2026-11-06).
+            $existe = Permission::where('name', $permName)->where('guard_name', 'web')->exists();
+            if ($existe && $role->hasPermissionTo($permName)) {
                 $this->line("  ✓ {$role->name} já tem {$permName}");
                 continue;
             }

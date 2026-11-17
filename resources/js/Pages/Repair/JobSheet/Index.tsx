@@ -9,6 +9,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import ModuleTabs from '@/Components/shared/ModuleTabs';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { Icon } from '@/Components/Icon';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -119,6 +120,7 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
           deprecated fixava 24px) — thread 02 do playbook Repair, 2026-10-02. */}
       <div data-contract="repair-jobsheet-header">
         <PageHeader
+          below={<ModuleTabs modulo="Assistência técnica" />}
           leading={<Icon name="clipboard-list" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
           title="Ordens de serviço"
           subtitle="Gestão de OS de reparo por status, cliente, equipe e local."

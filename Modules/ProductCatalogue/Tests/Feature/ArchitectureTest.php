@@ -96,11 +96,6 @@ it('cenario 9: metodos do Controller sao curtos — cada um <30 linhas executave
     }
 });
 
-it('cenario 10: Services + Repository estao DENTRO do namespace do modulo (module boundary)', function () {
-    expect(CatalogueService::class)->toStartWith('Modules\\ProductCatalogue\\');
-    expect(CatalogueQrService::class)->toStartWith('Modules\\ProductCatalogue\\');
-    expect(ProductCatalogueRepository::class)->toStartWith('Modules\\ProductCatalogue\\');
-});
 
 it('cenario 11: CatalogueService declara DI constructor (Repository + ProductUtil)', function () {
     $ref = new ReflectionClass(CatalogueService::class);

@@ -27,6 +27,8 @@ O ERP oimpresso aplica `PiiRedactor` em logs/comentários/exceções pra evitar 
 
 XML fiscal original armazenado em `arquivos` table (ADR 0123 trait `HasArquivos`) com `sub_destination='nfe-xml'` ou `'nfe-danfe'` — **bucket `active` durante prazo legal, depois archive S3/Glacier**.
 
+O arquivo físico fica no disco `nfe_fiscal` (`storage/app/nfe-fiscal`), fora da pasta pública. O disco `local` tem raiz `public/uploads` e não recebe documento fiscal; o que já estiver lá sai com `nfe:mover-arquivos-fiscais` (dry-run por padrão).
+
 ## 3. Como conformidade LGPD é preservada (D7.b — audit trail)
 
 Mesmo sem `PiiRedactor`, o módulo cumpre LGPD via:

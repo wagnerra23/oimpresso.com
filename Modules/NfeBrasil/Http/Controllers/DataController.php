@@ -20,13 +20,13 @@ use Menu;
  *    criados, trocar pelas chaves `nfebrasil::lang.*` (ou
  *    `nfebrasil::nfebrasil.*` conforme a convenção escolhida).
  *
- *  - Rotas web (Modules/NfeBrasil/Routes/web.php) hoje têm apenas:
- *      - prefix `nfebrasil/install` (Install/uninstall/update)
- *      - resource `nfebrasil` (named `nfebrasil.*`) — placeholder das
- *        próximas sub-ondas, ainda CRUD vazio.
- *    Os itens "Emitir NF-e", "Consultar", "SPED" abaixo são placeholders
- *    apontando para rotas que ainda não existem; vão habilitar conforme
- *    o roadmap (NFC-e em 1 clique, NF-e B2B, SPED).
+ *  - Rotas web: o mapa vivo é Modules/NfeBrasil/Routes/web.php (e o
+ *    `url_prefixes` do SCOPE.md). Este docblock não repete a lista, para
+ *    não envelhecer de novo. Fato datado: até 2026-11-11 ele dizia que só
+ *    havia o install e um `resource nfebrasil` vazio, e que "Emitir NF-e",
+ *    "Consultar" e "SPED" eram placeholders. O resource saiu em 2026-10-27
+ *    e as entradas de sidebar saíram em 2026-05-25 (ver o fim de
+ *    modifyAdminMenu). Auditoria NfeBrasil, lote 5.3 (N2-08).
  *
  * @see Modules/PontoWr2/Http/Controllers/DataController.php   (template)
  * @see Modules/NfeBrasil/module.json                          (descrição)
@@ -178,9 +178,10 @@ class DataController extends Controller
         // /nfe-brasil/* ainda existem pra superadmin troubleshooting + ações
         // cross-fiscal que delegam ManifestacaoService/CertificadoService).
         //
-        // Rotas /nfe-brasil/manifestacao + /nfe-brasil/configuracao/certificado
-        // permanecem funcionais — só não há link visível no sidebar do user comum.
-        // Quem chega lá: superadmin via URL direta OU /fiscal/config "Editar" link
-        // que delega upload cert pra NfeBrasil (Fiscal é read-only).
+        // As rotas /nfe-brasil/* seguem de pé, sem link no sidebar. Em 2026-11-11:
+        // o GET /nfe-brasil/configuracao/certificado só redireciona (302) para
+        // /fiscal/config; os POSTs de certificado são chamados pela tela do Fiscal.
+        // /nfe-brasil/manifestacao responde com permissão nfe.manifestacao.view.
+        // Todo /nfe-brasil/* com login exige o pacote fiscal_module (lote 3.3, #10732).
     }
 }
