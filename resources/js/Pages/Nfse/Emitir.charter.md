@@ -17,6 +17,8 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters (telas sem contrato). Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
+> **Errata 2026-11-16 (lote 3 da auditoria NFSe, PRs #11041 · #11044 · este):** os itens marcados *(errata 2026-11-16)* foram medidos contra o código e corrigidos. O texto anterior de cada um fica citado no próprio item.
+>
 > Backend: `Modules/NFSe/Http/Controllers/NfseController@create` (GET, form) + `@store` (POST → `NfseEmissaoService::montarPayload` + `despacharEmissaoAsync`). Gate `nfse.emit`. Pode pré-preencher a partir de uma venda (`?transaction_id=`). US-NFSE-009.
 
 ---
@@ -33,10 +35,10 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 - Marcação "Serviço sujeito à retenção de PIS/COFINS/CSLL (Lei 10.833/2003, art. 30)", desligada por padrão; quem emite decide (decisão [W] 2026-10-13, R-NFSE-003)
 - Seletor "Desdobro nacional do serviço" quando o item LC 116 tem mais de um código na lista nacional (Anexo B oficial, R-NFSE-006); com um só, nada a escolher
 - Cálculo local em tempo real de ISS (`valor × alíquota`) e valor líquido (líquido = valor − ISS quando retido)
-- Pré-preenchimento a partir de uma venda (`venda` prop, via `?transaction_id=`) — contato, total e descrição default
+- Pré-preenchimento a partir de uma venda (`venda` prop, via `?transaction_id=`, só venda da própria empresa) — contato, total e descrição default
 - Defaults do provider (`config`): código LC 116, alíquota, ambiente (produção/homologação)
 - Alerta quando o módulo não está configurado (`semConfig`) ou o certificado está inválido/expirado (`certAlerta`)
-- Submit `POST /nfse/emitir` → redireciona pra listagem com flash de "enviada para processamento"
+- Submit `POST /nfse/emitir` → redireciona pra listagem; o "enviada para processamento" sai pelo toast global (flash compartilhado). O `store` recusa `transaction_id` de venda de outra empresa (lote 0, #10972)
 - Erros de validação server-side por campo (`errors`), AppShellV2 + PageHeader canon (`@/Components/PageHeader`, migrado em 2026-10-13 — ADR 0409: tocar a tela exigiu a cura)
 
 ---
@@ -47,7 +49,7 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 - ❌ NÃO configura certificado / provider / município (isso é setup do módulo, não desta tela)
 - ❌ NÃO edita nota já emitida (NFS-e autorizada é imutável)
 - ❌ NÃO calcula na tela tributos além de ISS: a retenção de PIS/COFINS/CSLL é marcada aqui e calculada no envio pelo backend (regime da empresa). IRRF e INSS seguem fora. *(Revisado em 2026-10-13 por decisão [W]: "Marcação na nota". Antes dizia "sem IR/PIS/COFINS retidos nesta tela".)*
-- ❌ NÃO permite emitir sem certificado válido / módulo configurado (bloqueia com alerta)
+- ❌ NÃO permite emitir sem certificado válido / módulo configurado — **na tela**: alerta e botão de envio desabilitado. O `store` não recusa o POST por isso. Medido no `main` de 2026-11-16: o job falhava **antes** de gravar a nota (`getConfig`/`validarCertificado` vinham antes do `create`), e nenhuma nota aparecia na lista. O #11025 (lote 2) passa a gravar a nota antes, em `erro` com o motivo, visível em `/nfse` *(errata 2026-11-16: dizia só "bloqueia com alerta")*
 - ❌ NÃO cria/edita o cadastro do tomador (usa o que veio da venda ou digitado; não persiste contato)
 
 ---
@@ -71,7 +73,7 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 
 ## Anti-hooks (NÃO faz automaticamente)
 
-- ❌ NÃO reenvia/retenta emissão automaticamente em erro (reemissão é ação explícita no detalhe)
+- ❌ NÃO emite **nota nova** automaticamente depois de um erro ("Nova emissão" é ação explícita no detalhe). A fila retenta a emissão até 3 vezes, 60 s entre tentativas (`EmitirNfseJob::$tries`/`$backoff`); o que cada tentativa reenvia (linha e nº de DPS) é do serviço de emissão — ver lote 2, #11025 *(errata 2026-11-16: dizia "NÃO reenvia/retenta emissão automaticamente em erro", e a fila retenta)*
 - ❌ NÃO salva rascunho automático do formulário
 - ❌ NÃO dispara emissão sem submit explícito do operador
 

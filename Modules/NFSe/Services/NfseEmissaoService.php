@@ -58,6 +58,7 @@ class NfseEmissaoService
         // business_id explícito como param garante scope correto
         $config = NfseProviderConfig::withoutGlobalScopes()
             ->where('business_id', $businessId)
+            ->whereNull('deleted_at') // config apagada não conta (ver getConfig)
             ->with('certificado')
             ->first();
 
@@ -148,7 +149,9 @@ class NfseEmissaoService
      */
     public function despacharEmissaoAsync(NfseEmissaoPayload $payload): void
     {
-        EmitirNfseJob::dispatch($payload)->onQueue('nfse');
+        // Sem o certificado: o job é serializado na fila. O envio resolve de novo pelo
+        // business_id (lote 2, PR 2.3).
+        EmitirNfseJob::dispatch($payload->semCertificado())->onQueue('nfse');
     }
 
     /**
@@ -156,36 +159,37 @@ class NfseEmissaoService
      *
      * @throws NfseException se a emissão falhar após todas as tentativas
      */
-    public function emitir(NfseEmissaoPayload $payload): NfseEmissao
+    /**
+     * @param bool $retomarPendente true só na retentativa do próprio EmitirNfseJob: a linha
+     *        `processando` que ficou de um timeout é reenviada com o MESMO nº de DPS (lote 2,
+     *        PR 2.2). Sem a flag, `processando` é emissão em andamento e é devolvida intacta.
+     */
+    public function emitir(NfseEmissaoPayload $payload, bool $retomarPendente = false): NfseEmissao
     {
         // OtelHelper::spanBiz — observability webservice prefeitura (HTTP externo p99 crítico).
         // D9.a Wave 14: span por emissão envolve adapter HTTP + idempotência + retries.
-        return OtelHelper::spanBiz('nfse.emissao', function () use ($payload) {
-            return $this->emitirInterno($payload);
+        return OtelHelper::spanBiz('nfse.emissao', function () use ($payload, $retomarPendente) {
+            return $this->emitirInterno($payload, $retomarPendente);
         }, ['nfse.business_id' => $payload->businessId]);
     }
 
-    private function emitirInterno(NfseEmissaoPayload $payload): NfseEmissao
+    private function emitirInterno(NfseEmissaoPayload $payload, bool $retomarPendente): NfseEmissao
     {
-        // Idempotência: retorna nota existente se já foi emitida com mesmo payload
+        // Idempotência por chave (UNIQUE na tabela): a mesma nota tem uma linha só.
         // SUPERADMIN: service de emissão NFSe sem context tenant — business_id vem do payload (DTO recebido); idempotência cross-session
         $existente = NfseEmissao::withoutGlobalScopes()
             ->where('idempotency_key', $payload->idempotencyKey())
             ->where('business_id', $payload->businessId)
-            ->whereIn('status', ['emitida', 'processando'])
+            ->whereIn('status', ['emitida', 'processando', 'erro'])
+            ->latest('id')
             ->first();
 
-        if ($existente) {
+        if ($existente && ($existente->isEmitida() || ($existente->isPendente() && ! $retomarPendente))) {
             return $existente;
         }
 
-        $config = $this->getConfig($payload->businessId);
-        $this->validarCertificado($config);
-
-        $emissao = NfseEmissao::create([
-            'business_id'     => $payload->businessId,
+        $dados = [
             'serie'           => $payload->serieDps,
-            'rps_numero'      => $payload->rpsNumero,
             'competencia'     => $payload->competencia,
             'tomador_cnpj'    => $payload->tomadorCnpj,
             'tomador_cpf'     => $payload->tomadorCpf,
@@ -193,7 +197,6 @@ class NfseEmissaoService
             'tomador_email'   => $payload->tomadorEmail,
             'lc116_codigo'    => $payload->lc116Codigo,
             'ctrib_nac'       => $payload->cTribNac,
-            'cnae'            => $config->cnae,
             'descricao'       => $payload->descricao,
             'valor_servicos'  => $payload->valorServicos,
             'aliquota_iss'    => $payload->aliquotaIss,
@@ -204,16 +207,57 @@ class NfseEmissaoService
             'valor_ret_pis'    => $payload->retPisCentavos / 100,
             'valor_ret_cofins' => $payload->retCofinsCentavos / 100,
             'valor_ret_csll'   => $payload->retCsllCentavos / 100,
-            'status'          => 'processando',
-            'idempotency_key' => $payload->idempotencyKey(),
             'transaction_id'  => $payload->transactionId,
-        ]);
+        ];
+
+        if ($existente === null) {
+            $emissao = NfseEmissao::create($dados + [
+                'business_id'     => $payload->businessId,
+                'rps_numero'      => $payload->rpsNumero,
+                'status'          => 'processando',
+                'idempotency_key' => $payload->idempotencyKey(),
+            ]);
+        } elseif ($existente->isErro()) {
+            // Reenvio de nota recusada (Sefin, config ou certificado): a MESMA linha volta a
+            // `processando`. Criar outra estourava o UNIQUE de idempotency_key.
+            $existente->update($dados + ['status' => 'processando', 'erro_mensagem' => null]);
+            $emissao = $existente;
+        } else {
+            // Retentativa do job depois de timeout: a Sefin pode ter recebido a DPS. Reenvia
+            // a mesma linha com o mesmo nº de DPS — se já existir lá, volta duplicada e é
+            // tratada em resolverDuplicado(), sem virar uma segunda nota.
+            $emissao = $existente;
+        }
 
         // R-NFSE-005: nDPS = id da emissão (único, sequencial, cabe nos 15 dígitos do
         // leiaute). O número provisório YmdHis+contador tinha 18 dígitos e não é único.
         $payload = $payload->comNumeroDps((string) $emissao->id);
         $emissao->update(['rps_numero' => $payload->rpsNumero]);
 
+        // Config e certificado depois de gravar a linha: sem eles a nota fica `erro` com o
+        // motivo e aparece em /nfse. Antes a validação vinha antes do create e a nota sumia.
+        try {
+            $config = $this->getConfig($payload->businessId);
+            $this->validarCertificado($config);
+        } catch (NfseException $e) {
+            $this->marcarErro($emissao, $e);
+            throw $e;
+        }
+        $emissao->update(['cnae' => $config->cnae]);
+        $payload = $this->comCertificadoDaEmpresa($payload, $config);
+
+        return $this->enviar($emissao, $payload);
+    }
+
+    /**
+     * Envia a DPS da linha, com retentativa só em timeout e sempre com o nº de DPS da linha.
+     *
+     * Erro terminal (certificado, ISS, tomador, código de serviço...) marca `erro` e sobe:
+     * o job não retenta. Timeout esgotado deixa a linha `processando` — a nota pode ter
+     * sido aceita — para a retentativa do job reenviar o mesmo nº de DPS.
+     */
+    private function enviar(NfseEmissao $emissao, NfseEmissaoPayload $payload): NfseEmissao
+    {
         $tentativa = 0;
         $ultimoErro = null;
 
@@ -241,17 +285,17 @@ class NfseEmissaoService
 
                 return $emissao->fresh();
             } catch (RpsDuplicadoException $e) {
-                // Duplicado = nota já foi aceita; atualiza e retorna sem retry
-                $emissao->update(['status' => 'emitida', 'erro_mensagem' => $e->getMessage()]);
-                throw $e;
+                // A Sefin já tem uma nota para este nº de DPS (típico do reenvio depois de
+                // timeout). Antes a linha virava `emitida` sem número. Agora consulta a nota.
+                return $this->resolverDuplicado($emissao, $payload);
             } catch (CertificadoInvalidoException $e) {
                 // Cert inválido = não adianta retry
                 $this->marcarErro($emissao, $e);
                 throw $e;
             } catch (ProviderTimeoutException $e) {
                 $ultimoErro = $e;
-                // Backoff exponencial: 1s, 2s, 4s
-                sleep(2 ** ($tentativa - 1));
+                // Backoff exponencial: 1s, 2s, 4s (base em config; os testes usam 0).
+                sleep((int) config('nfse.backoff_base_segundos', 1) * 2 ** ($tentativa - 1));
                 continue;
             } catch (NfseException $e) {
                 $this->marcarErro($emissao, $e);
@@ -259,9 +303,55 @@ class NfseEmissaoService
             }
         }
 
-        // Esgotou retries de timeout
-        $this->marcarErro($emissao, $ultimoErro);
-        throw $ultimoErro ?? new ProviderTimeoutException($tentativa);
+        // Esgotou as retentativas de timeout. A nota pode ter sido aceita: fica `processando`
+        // (não `erro`), e a retentativa do job reenvia o mesmo nº de DPS.
+        $timeout = $ultimoErro ?? new ProviderTimeoutException($tentativa);
+        $emissao->update([
+            'status'        => 'processando',
+            'erro_mensagem' => app(PiiRedactor::class)->redact($timeout->getMessage()),
+        ]);
+        Log::channel('nfse')->warning('NFSe sem resposta da Sefin', [
+            'business_id' => $emissao->business_id,
+            'emissao_id'  => $emissao->id,
+            'tentativas'  => $tentativa,
+        ]);
+
+        throw $timeout;
+    }
+
+    /**
+     * DPS duplicada: a nota existe na Sefin. Com a chave de acesso da linha, consulta e grava
+     * número e status reais. Sem a chave, a linha fica `processando` com o aviso — nunca
+     * `emitida` sem número. A consulta pelo nº de DPS depende do endpoint do manual da Sefin,
+     * que não está no repo (lote 2, PR 2.2).
+     */
+    private function resolverDuplicado(NfseEmissao $emissao, NfseEmissaoPayload $payload): NfseEmissao
+    {
+        $chave = (string) $emissao->provider_protocolo;
+        if ($chave !== '') {
+            $consulta = $this->provider->consultar($chave);
+            if ($consulta->sucesso && ! empty($consulta->numero)) {
+                $emissao->update([
+                    'status'        => 'emitida',
+                    'numero'        => $consulta->numero,
+                    'pdf_url'       => $consulta->pdfUrl ?? $emissao->pdf_url,
+                    'erro_mensagem' => null,
+                ]);
+
+                return $emissao->fresh();
+            }
+        }
+
+        $emissao->update([
+            'status'        => 'processando',
+            'erro_mensagem' => "A Sefin já recebeu a DPS nº {$payload->rpsNumero}. Consulte a nota antes de emitir de novo.",
+        ]);
+        Log::channel('nfse')->warning('NFSe com DPS duplicada', [
+            'business_id' => $emissao->business_id,
+            'emissao_id'  => $emissao->id,
+        ]);
+
+        return $emissao->fresh();
     }
 
     public function cancelar(NfseEmissao $emissao, string $motivo): void
@@ -323,15 +413,50 @@ class NfseEmissaoService
         Log::channel('nfse')->info('NFSe cancelada', [
             'business_id' => $emissao->business_id,
             'numero'      => $emissao->numero,
-            'motivo'      => $motivo,
+            // O motivo é texto livre do usuário e pode trazer CPF/CNPJ do tomador.
+            'motivo'      => app(PiiRedactor::class)->redact($motivo),
         ]);
+    }
+
+    /**
+     * Certificado da empresa da nota, lido do disco do dono (NfeBrasil) na hora de enviar.
+     * O job chega sem ele (despacharEmissaoAsync, lote 2 PR 2.3); quem chama de forma
+     * síncrona com o certificado no payload segue usando o que passou.
+     *
+     * Se o arquivo não carrega, o payload segue sem certificado e quem precisa dele recusa:
+     * o SnNfseAdapter lança CertificadoInvalidoException ("Nenhum certificado A1 no payload").
+     */
+    private function comCertificadoDaEmpresa(NfseEmissaoPayload $payload, NfseProviderConfig $config): NfseEmissaoPayload
+    {
+        if ($payload->certPfxBase64 !== null && $payload->certSenha !== null) {
+            return $payload;
+        }
+        $certificado = $config->certificado;
+        if (! $certificado instanceof NfeCertificado) {
+            return $payload;
+        }
+        try {
+            $cert = app(CertificadoService::class)->carregarCertificado($certificado);
+        } catch (\RuntimeException $e) {
+            Log::channel('nfse')->warning('NFSe sem certificado legível no envio', [
+                'business_id' => $payload->businessId,
+                'mensagem'    => app(PiiRedactor::class)->redact($e->getMessage()),
+            ]);
+
+            return $payload;
+        }
+
+        return $payload->comCertificado(base64_encode($cert['pfx_binary']), (string) $cert['senha']);
     }
 
     private function getConfig(int $businessId): NfseProviderConfig
     {
         // SUPERADMIN: service chamado por job sem session — business_id explícito como param
+        // withoutGlobalScopes() tira também o filtro do SoftDeletes: sem o whereNull, a
+        // config que a empresa apagou continuava sendo usada para emitir.
         $config = NfseProviderConfig::withoutGlobalScopes()
             ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (! $config) {

@@ -65,7 +65,7 @@ class TransactionNfseObserver
             // Nunca bloqueia a geração do invoice — apenas loga
             Log::channel('nfse')->error('Erro ao criar rascunho NFSe para recurring', [
                 'transaction_id' => $transaction->id,
-                'error'          => $e->getMessage(),
+                'error'          => app(\App\Support\Privacy\PiiRedactor::class)->redact($e->getMessage()),
             ]);
         }
     }

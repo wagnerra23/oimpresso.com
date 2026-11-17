@@ -34,7 +34,7 @@ declare(strict_types=1);
  * `tests/Browser/visreg-screens.json`, que o `A11yAxeBrowserTest` deriva (uma declaração,
  * dois consumidores — ver o docblock dele).
  *
- * Contrato: `resources/js/Pages/Arquivos/Index.casos.md` (UC-INDEX-01 acervo · 02 trilha ·
+ * Contrato: `resources/js/Pages/Arquivos/Index.casos.md` (UC-ARQIDX-01 acervo · 02 trilha ·
  * 03 cofre · 04 retenção) e `governance/design/contracts/arquivos-index.contract.json`.
  */
 
@@ -100,7 +100,7 @@ function arqAbrir(string $vista): object
  *
  * O texto volta em MINÚSCULAS, e os marcadores comparam em minúsculas. `innerText` devolve o
  * texto já com `text-transform` aplicado: o cabeçalho "Base legal" chega como "BASE LEGAL".
- * Medido no 1º run do CI (2026-11-16), em que o UC-INDEX-04 reprovou por isso com a tela certa.
+ * Medido no 1º run do CI (2026-11-16), em que o UC-ARQIDX-04 (então UC-INDEX-04) reprovou por isso com a tela certa.
  *
  * @param  list<string>  $sequencias  sequências de âncoras aceitas
  * @param  list<string>  $marcadores  copy que prova que o Deferred resolveu
@@ -127,7 +127,7 @@ function arqEstavel($page, string $ancoraTexto, array $sequencias, array $marcad
     return [$seq, $texto];
 }
 
-it('UC-INDEX-01 · Arquivos/Index ACERVO: filtros e lista chegam ao DOM, na ordem do contrato', function () {
+it('UC-ARQIDX-01 · Arquivos/Index ACERVO: filtros e lista chegam ao DOM, na ordem do contrato', function () {
     $page = arqAbrir('acervo');
     [$seq, $texto] = arqEstavel($page, 'acervo', ['cabecalho,abas,acervo-filtros,acervo'], ['Vinculado a', 'Nenhum arquivo guardado ainda.']);
 
@@ -138,7 +138,7 @@ it('UC-INDEX-01 · Arquivos/Index ACERVO: filtros e lista chegam ao DOM, na orde
     $page->assertSee('Descartar');
 });
 
-it('UC-INDEX-04 · Arquivos/Index RETENÇÃO: KPIs, política com base legal e regras chegam ao DOM', function () {
+it('UC-ARQIDX-04 · Arquivos/Index RETENÇÃO: KPIs, política com base legal e regras chegam ao DOM', function () {
     $page = arqAbrir('retencao');
     $esperado = 'cabecalho,abas,retencao,retencao-kpis,retencao-politica,retencao-regras';
     [$seq, $texto] = arqEstavel($page, 'retencao', [$esperado], ['Base legal']);
@@ -150,7 +150,7 @@ it('UC-INDEX-04 · Arquivos/Index RETENÇÃO: KPIs, política com base legal e r
     expect($texto)->not->toContain('não foi possível medir a retenção.');
 });
 
-it('UC-INDEX-03 · Arquivos/Index COFRE: espaço por disco e achados, ou o vazio declarado', function () {
+it('UC-ARQIDX-03 · Arquivos/Index COFRE: espaço por disco e achados, ou o vazio declarado', function () {
     $page = arqAbrir('cofre');
     $comDisco = 'cabecalho,abas,cofre,cofre-discos,cofre-achados';
     $semDisco = 'cabecalho,abas,cofre';
@@ -165,7 +165,7 @@ it('UC-INDEX-03 · Arquivos/Index COFRE: espaço por disco e achados, ou o vazio
     }
 });
 
-it('UC-INDEX-02 · Arquivos/Index TRILHA: filtro e trilha read-only chegam ao DOM', function () {
+it('UC-ARQIDX-02 · Arquivos/Index TRILHA: filtro e trilha read-only chegam ao DOM', function () {
     $page = arqAbrir('trilha');
     [$seq, $texto] = arqEstavel($page, 'trilha', ['cabecalho,abas,trilha-filtros,trilha'], ['Detalhe', 'Nenhum evento registrado ainda.']);
 

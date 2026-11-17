@@ -119,15 +119,18 @@ describe('Wave 26 NFSe SATURATION', function () {
 
     // ---------- D6: NfseController preserva Inertia (rollback PR #963 lição) ----------
 
-    it('D6 — NfseController NÃO usa Inertia::defer ATIVO (preserva rollback PR #963)', function () {
+    it('D6 — toda prop deferida do NfseController tem o <Deferred> na tela (preserva rollback PR #963)', function () {
         $src = file_get_contents(base_path('Modules/NFSe/Http/Controllers/NfseController.php'));
 
         // Wave 23 D3 NOTA: defer SEM <Deferred> wrap React quebrou.
-        // Wave 26 confirma pattern até PR companion Index.tsx. Comment "candidata a
-        // Inertia::defer()" PODE existir, mas chamada ativa não.
-        expect($src)->not->toMatch('/=>\s*Inertia::defer\(/');
+        // O "PR companion Index.tsx" que este teste esperava veio no lote 3.1 da auditoria NFSe
+        // (#11041, 2026-11-16). O teste passa a cobrar: cada prop deferida tem o seu <Deferred>.
+        preg_match_all("/'(\w+)'\s*=>\s*Inertia::defer\(/", $src, $m);
+        expect($m[1])->toBe(['notas']);
+
+        $tsx = file_get_contents(base_path('resources/js/Pages/Nfse/Index.tsx'));
+        expect($tsx)->toMatch('/<Deferred\s+data="notas"/');
         expect($src)->toContain('Inertia::render');
-        expect($src)->toContain('NÃO migrado neste PR');
     });
 
     it('D6 — NfseController index() autoriza nfse.view (RBAC canon)', function () {
@@ -156,7 +159,9 @@ describe('Wave 26 NFSe SATURATION', function () {
 
         foreach ([
             'emissoes_table', 'provider_config_table', 'certificado_table',
-            'providers_ativos', 'cert_vencimento_alarme', 'rejeitadas_recentes',
+            // erros_recentes: até 2026-11-16 era 'rejeitadas_recentes', que contava um
+            // status que o módulo nunca grava. O comportamento está em NfseHealthCommandTest.
+            'providers_ativos', 'cert_vencimento_alarme', 'erros_recentes',
         ] as $check) {
             expect($src)->toContain($check);
         }

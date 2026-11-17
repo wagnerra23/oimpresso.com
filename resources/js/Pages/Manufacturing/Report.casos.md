@@ -122,6 +122,30 @@ last_run: "2026-10-06"
 
 ---
 
+## UC-REPORT-07 · Sem `view_purchase_price`, o relatório não traz custo
+- **Persona:** quem tem acesso à produção, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre o relatório (ou pede o JSON de totais) · Então custo total, custo médio, percentual e o total do período vêm vazios · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** o relatório de custo entregue a quem só acompanha a produção.
+- **Status: 🧪**
+
+---
+
+## UC-REPORT-06 · O relatório exige acesso à produção, em todos os ramos
+- **Persona:** usuário da empresa com o pacote, mas sem `manufacturing.access_production`.
+- **Aceite:** Dado esse usuário · Quando abre `/manufacturing/report`, pede o JSON de totais (AJAX) ou abre
+  `?legacy=1` · Então recebe 403 nos três · Dado o mesmo usuário com `access_production` · Então os três
+  respondem.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (auditoria do Manufacturing): Configurações e Relatório usam
+  `access_production`, sem permissão nova.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** custo total e médio por produto entregue a qualquer usuário da empresa, e o
+  ramo AJAX e o legado sem gate nenhum.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Custo **congelado** por ordem finalizada (`custoSnap`) — não existe ainda;

@@ -340,7 +340,7 @@ const COB = {
     ["parcial", "A rejeição vira status erro com a mensagem (NfseEmissaoService::marcarErro), mas a nota não volta para correção: não pode ser editada."],
     ["nao", "Não há rota de corrigir ou reemitir a nota rejeitada (Modules/NFSe/Routes/web.php só tem listar, emitir, emitir por venda, ver, cancelar e PDF); \"Nova emissão\" cria outra do zero."],
     ["nao", "Não existe substituição de NFS-e: nenhuma rota, campo ou vínculo com a nota substituta."],
-    ["parcial", "NfseController@cancelar → NfseEmissaoService::cancelar (POST /nfse/{nfse}/cancelar) marca cancelada sem olhar a resposta da Sefin (fica cancelada mesmo se ela recusar). Não confere regra nem prazo e não cancela o título."],
+    ["parcial", "NfseController@cancelar → NfseEmissaoService::cancelar (POST /nfse/{nfse}/cancelar) só grava cancelada se o provedor confirmar, no ambiente e com o certificado da empresa da nota (sem confirmação, a nota segue emitida). Não confere regra nem prazo e não cancela o título."],
   ],
   "cobranca": [
     ["parcial", "UnificadoController@emitirBoletoTitulo (POST /financeiro/unificado/{tituloId}/boleto) registra o boleto no Inter com conta ativa para boleto. Não envia ao cliente (CobrancaEmitida não é disparado), não muda o estado do título e não gera PIX por esse caminho."],

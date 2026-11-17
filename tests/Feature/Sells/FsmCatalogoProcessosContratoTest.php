@@ -288,8 +288,9 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
         ->and(class_exists(\Modules\Financeiro\Services\RetencaoNfseTituloService::class))->toBeTrue()
         ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->isNotEmpty())->toBeTrue()
         ->and(collect(flxChamadores('renegoci'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
-        // NfseEmissaoService::cancelar chama o provedor como instrução solta: a resposta não é usada.
-        ->and(str_contains($nfseService, "\n        \$this->provider->cancelar(\$emissao->numero, \$motivo);\n"))->toBeTrue()
+        // NfseEmissaoService::cancelar só grava cancelada com a confirmação do provedor (#10987).
+        ->and(str_contains($nfseService, '$confirmado = $this->provider->cancelarNoAmbiente('))->toBeTrue()
+        ->and(str_contains($nfseService, "'CANCELAMENTO_NAO_CONFIRMADO'"))->toBeTrue()
         // A tela calcula o atraso ao ler; o título não tem estado vencido.
         ->and(method_exists(\Modules\Financeiro\Http\Controllers\UnificadoController::class, 'deriveStatus'))->toBeTrue();
 

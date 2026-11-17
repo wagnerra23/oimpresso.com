@@ -46,7 +46,11 @@ function requiresSuperadminMySQL(): void
     }
 }
 
-const BIZ_WAGNER_W23 = 1;
+// Tenant fictício de teste (ADR 0358): 98. Era 1 (WR2 Sistemas, empresa real) até 2026-11-16.
+const BIZ_TENANT_W23 = 98;
+// Business #1 como ALVO do canDestroy: é o id que o código protege (BusinessAuditService),
+// usado só como argumento de função pura, sem gravar nada nele.
+const BIZ_PROTEGIDO_W23 = 1;
 const BIZ_FICTICIO_W23 = 99;
 
 beforeEach(function () {
@@ -99,7 +103,7 @@ it('BusinessAuditService::canDestroy bloqueia biz=1 (Wagner) sempre', function (
     $svc = new BusinessAuditService();
 
     // Mesmo com session biz=99 (outro user superadmin tentando deletar Wagner)
-    $result = $svc->canDestroy(BIZ_WAGNER_W23, BIZ_FICTICIO_W23);
+    $result = $svc->canDestroy(BIZ_PROTEGIDO_W23, BIZ_FICTICIO_W23);
 
     expect($result['can_destroy'])->toBeFalse();
     expect($result['reason'])->toContain('Wagner');
@@ -119,12 +123,12 @@ it('BusinessAuditService::canDestroy permite destroy quando target ≠ session �
     requiresSuperadminMySQL();
 
     // Garante ao menos 2 businesses existentes (biz=1 + biz=99)
-    Business::firstOrCreate(['id' => BIZ_WAGNER_W23], ['name' => 'Wagner W23', 'currency_id' => 1]);
+    Business::firstOrCreate(['id' => BIZ_TENANT_W23], ['name' => 'Wagner W23', 'currency_id' => 1]);
     Business::firstOrCreate(['id' => BIZ_FICTICIO_W23], ['name' => 'Ficticio W23', 'currency_id' => 1]);
 
     $svc = new BusinessAuditService();
     // session=biz=1 (Wagner admin) deletando biz=99 (fictício)
-    $result = $svc->canDestroy(BIZ_FICTICIO_W23, BIZ_WAGNER_W23);
+    $result = $svc->canDestroy(BIZ_FICTICIO_W23, BIZ_TENANT_W23);
 
     expect($result['can_destroy'])->toBeTrue();
     expect($result['reason'])->toContain('ok pra destroy');
@@ -190,7 +194,7 @@ it('Services Wave 23 D4 não filtram business_id (cross-tenant intencional docum
 
     $dashSvc = new SuperadminDashboardService();
 
-    session(['user.business_id' => BIZ_WAGNER_W23]);
+    session(['user.business_id' => BIZ_TENANT_W23]);
     $countBiz1 = $dashSvc->countBusinessesByStatus()['total'];
 
     session(['user.business_id' => BIZ_FICTICIO_W23]);

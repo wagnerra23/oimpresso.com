@@ -252,6 +252,16 @@ Status: 🧪
 
 ---
 
+## UC-INS-07 · Sem `view_purchase_price`, Insumos não traz custo
+- **Persona:** quem tem acesso a receitas, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre Insumos e escolhe um insumo · Então o custo do insumo e o custo e a margem por receita vêm vazios · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** a tela de impacto de preço entregar o preço de compra a quem não pode vê-lo.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** O drawer fecha com `Esc`, com o ✕ e com clique no scrim — comportamento de

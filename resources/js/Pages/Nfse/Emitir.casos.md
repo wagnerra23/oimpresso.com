@@ -5,7 +5,7 @@ irmaos: Emitir.charter.md (lei) · Emitir.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
 related_us: [US-NFSE-009, US-NFSE-006]
-last_run: "2026-10-13"
+last_run: "2026-11-16"
 last_run_ci: "2026-10-13 — UC-NFSEM-04 verde na lane PHP / Pest (NfeBrasil · MySQL), run 38414970371 (NfseRetencoesDpsTest); UC-NFSEM-01..03 na lane PHP / Pest (Unit), NfseTelasContratoTest; UC-NFSEM-05 nasce no PR do R-NFSE-006, veredito pendente da lane NfeBrasil MySQL (ListaServicoNacionalTest)"
 ---
 
@@ -40,6 +40,7 @@ Nunca biz=4.
 | UC-NFSEM-03 | Só quem tem `nfse.emit` envia a emissão | must `[T0]` | charter (*"Gate `nfse.emit`"*) · US-NFSE-006 | `NfseTelasContratoTest` | 🧪 |
 | UC-NFSEM-04 | Marcar "serviço sujeito à retenção" retém PIS/COFINS/CSLL na DPS; desmarcado não muda nada | must `[V0]` `[T0]` | charter Goals (marcação art. 30, decisão [W] 2026-10-13) · R-NFSE-003 | `NfseRetencoesDpsTest` | 🧪 |
 | UC-NFSEM-05 | Item LC 116 com vários desdobros nacionais exige escolher o desdobro; com um só, resolve sozinho | must | charter Goals (desdobro nacional) · R-NFSE-006 · Anexo B oficial | `ListaServicoNacionalTest` | 🧪 |
+| UC-NFSEM-06 | A NFS-e só se liga a venda da própria empresa | must `[T0]` | charter Automation hooks (*"`transaction_id` resolve uma `Transaction` do tenant"*) · ADR 0093 | `NfseVendaDaPropriaEmpresaTest` | 🧪 |
 
 ## UC-NFSEM-01 · Emissão exige os dados fiscais mínimos · `must`
 
@@ -89,9 +90,18 @@ Nunca biz=4.
 - **Teste:** `ListaServicoNacionalTest` (lane `nfebrasil-pest`).
 - **Status: 🧪**
 
+## UC-NFSEM-06 · A NFS-e só se liga a venda da própria empresa · `must` `[T0]`
+
+- **Persona:** operador fiscal do business 98; o business 99 como contraparte.
+- **Aceite:** Dado uma venda do business 98 e uma do 99 · Quando a emissão chega com
+  `transaction_id` · Então a venda do 99 é recusada em `transaction_id` e a do 98 passa.
+- **Teste:** `NfseVendaDaPropriaEmpresaTest` — *"[T0] emitir NFS-e recusa venda de outra empresa e aceita a da propria (controle positivo)"* (lane `nfse-pest`, MySQL; lote 0, #10972).
+- **Regressão que defende:** `StoreNfseRequest` aceitava `transaction_id` só como inteiro, e
+  `App\Transaction` não tem escopo de empresa.
+- **Status: 🧪**
+- **Id combinado com o lote 2:** UC-NFSEM-07 em diante fica para os casos do lote 2 (2026-11-16).
+
 ## Fora do contrato por enquanto
 
-- `[BACKLOG]` pré-preenchimento a partir de venda só resolve `Transaction` do próprio business
-  (`create()` filtra `business_id` + `type=sell`) — exige banco; entra quando houver lane NFSe MySQL.
-- `[BACKLOG]` o job assíncrono recebe `business_id` no payload (charter Automation hooks) — idem.
+- `[BACKLOG]` o job assíncrono recebe `business_id` no payload (charter Automation hooks) — exige banco; a lane `nfse-pest` (MySQL) existe desde 2026-11-16 (#10964), falta o teste.
 - `[BACKLOG]` alerta de módulo sem configuração / certificado inválido — comportamento de cliente.
