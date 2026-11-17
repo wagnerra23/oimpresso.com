@@ -190,7 +190,7 @@ it('superadmin NÃO pode deletar próprio business_id (self-destroy guard)', fun
     session(['user.id' => $admin->id]);
 
     // Tenta deletar o próprio biz=1 — Controller responde 4xx ou redirect, NUNCA hard delete
-    $response = $this->actingAs($admin)->get('/superadmin/business/'.BIZ_WAGNER_POLICY.'/destroy');
+    $response = $this->actingAs($admin)->delete('/superadmin/business/'.BIZ_WAGNER_POLICY); // o alias GET /destroy saiu (2026-11-16)
 
     // Aceita: 302 (redirect com status erro), 403, 200 (com mensagem) — desde que biz=1 ainda exista
     $stillExists = Business::find(BIZ_WAGNER_POLICY) !== null;

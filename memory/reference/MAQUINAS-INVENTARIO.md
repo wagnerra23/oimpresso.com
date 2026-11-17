@@ -52,7 +52,7 @@ lifecycle: ativo
 | `catalog-graph.yml` | pr+manual | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +26 | Catalog graph — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exerci… |
 | `charter-refs-gate.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256) |
 | `charter-us-gate.yml` | pr+cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Charter ↔ US join (advisory · related_us nos Page Charters · charter-us-lint.mjs --check diff-aware no PR + cobertura full-tree no cron) |
-| `ci.yml` | pr+push+manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +47 | CI |
+| `ci.yml` | pr+push+manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +48 | CI |
 | `ciclo-completo.yml` | pr+manual | `memory/requisitos/Jana/Index-visual-comparison.md` +2 | ciclo-completo (advisory) — catraca do CICLO-DE-TELA por tela: quantas telas roteadas têm o conjunto obrigatório (charter + Padrão de Tela declarado + pt-conforme via pt-… |
 | `cliente-pest.yml` | pr+push+manual | `memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md` +5 | Cliente · Pest (MySQL) |
 | `cobranca-filtros-gate.yml` | pr+push+manual | — | Cobrança filtros gate — precedência localStorage × querystring (UC-COB-03). Trava o comportamento reescrito com prova em 2026-09-03: o servidor filtra pela querystring e … |
@@ -134,7 +134,7 @@ lifecycle: ativo
 | `mv-metabolismo.yml` | cron+manual | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +20 | MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch) |
 | `negocio-vs-governanca-ratio.yml` | pr+cron+manual | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +4 | Ratio negócio × governança (sentinela anti-atrofia) — mede o FLUXO de merges (first-parent, janela 4 semanas) classificado em NEGÓCIO (A+B) × GOVERNANÇA-META (C) × INFRA,… |
 | `nfebrasil-pest.yml` | pr+push+manual | `memory/decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md` +26 | NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b |
-| `nfse-pest.yml` | pr+push+manual | `memory/requisitos/NFSe/RUNBOOK-show.md` | NFSe · Pest (MySQL) |
+| `nfse-pest.yml` | pr+push+manual | `memory/requisitos/NFSe/RUNBOOK-show.md` +1 | NFSe · Pest (MySQL) |
 | `no-mock-gate.yml` | pr+push | (só sessão/handoff · 5) | No-mock-in-prod ratchet (stub/mock em controller) |
 | `officeimpresso-pest.yml` | pr+push+manual | `memory/requisitos/Officeimpresso/logs-parity.md` +4 | Officeimpresso · Pest (MySQL) |
 | `oficinaauto-pest.yml` | pr+push+manual | `memory/requisitos/_Governanca/programa-ondas/passo-5-sdd-por-modulo.md` +6 | OficinaAuto · Pest (MySQL) |

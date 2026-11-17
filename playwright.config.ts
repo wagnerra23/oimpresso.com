@@ -50,7 +50,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium-1280',
-      testIgnore: 'publico/**',
+      testIgnore: ['publico/**', 'portal-associada-limite/**'],
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
     {
@@ -75,6 +75,15 @@ export default defineConfig({
         storageState: semSessao,
         launchOptions: publicoLaunch,
       },
+    },
+    {
+      // Rajada que estoura o `throttle:60,1` da área da associada. Para visitante o Laravel conta por
+      // domínio + IP, então ela bloquearia por um minuto os outros testes que saem do mesmo runner:
+      // só começa depois que todos os outros projetos terminaram.
+      name: 'portal-associada-limite',
+      testMatch: 'portal-associada-limite/**/*.spec.ts',
+      dependencies: ['chromium-1280', 'publico-desktop', 'publico-mobile'],
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 }, storageState: semSessao },
     },
   ],
 });

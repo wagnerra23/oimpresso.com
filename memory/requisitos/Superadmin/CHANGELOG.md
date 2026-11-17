@@ -2,6 +2,10 @@
 
 Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 linha na entrada do Wave/data.
 
+## 2026-11-16 — Lote 0 da auditoria (rotas que apagam)
+
+- Desativar empresa (`toggle-active`) passa a POST com `is_active` só 0 ou 1; excluir empresa e excluir pacote só pelo DELETE do resource (os aliases `GET .../destroy` saíram); `BusinessController::destroy` consulta `BusinessAuditService::canDestroy` (empresa 1, a própria e a última não se excluem) e registra `negocio_excluido` em `activity_log` — o que é apagado não mudou (B5 com o [W]); resources de pacote, assinatura do superadmin e `/subscription` deixam de expor métodos sem view ou sem corpo (`SuperadminRotasDestrutivasContratoTest`).
+
 ## 2026-11-16 — Lote L2 da auditoria (cobrança)
 
 - `Listeners/OnCobrancaPagaUpdateSubscription.php` só aprova a assinatura quando o valor pago (`valorPagoCentavos`) é igual ao valor cobrado (`package_price`, ou o preço do pacote se ele for zero — a regra das duas origens da cobrança); divergiu, registra warning e não aprova nem desbloqueia. A aprovação passa pelo `SubscriptionLifecycleService::approve()`, que ganhou fim e campos extras opcionais (sem o fim, pacote anual cairia no default de 1 mês, porque `package_details` não guarda `interval`); assinatura cancelada ou recusada não é mais aprovada por pagamento. Teste: `Tests/Feature/OnCobrancaPagaUpdateSubscriptionTest.php` (entra na lane `verticais-pest` pelo PR da lane do lote L1).
@@ -14,6 +18,7 @@ Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 li
 
 - As 7 notificações de `Notifications/` passam a ir para a fila própria `superadmin-mail`, com payload criptografado (`ShouldQueue` + `ShouldBeEncrypted`, trait `NaFilaDoSuperadmin`); o worker da fila é agendado no `registerScheduleCommands()` (só `live`). O Comunicador deixa de mandar um e-mail por dono dentro do request. Teste: `Tests/Feature/SuperadminNotificacoesNaFilaTest.php`.
 - `superadmin:health --notify` passa a ser agendado às 06:20 BRT (só `live`). Estava registrado desde a Wave 23 e o `schedule:list` de produção não o listava; o comando só lê, então roda sozinho. Os crons do módulo foram para `SuperadminServiceProvider::agendar()`. Teste: `Tests/Feature/SuperadminAgendamentoTest.php`.
+- O `SuperadminNotificacoesNaFilaTest` passa a declarar `uses(Tests\TestCase::class)`. Sem isso o app não subia nos testes de `Modules/` (o `tests/Pest.php` só aplica o TestCase em `tests/Feature`), e 9 dos 10 testes do arquivo caíam em `BindingResolutionException` na lane Verticais · MySQL do `main`. Com o app de pé, os 7 casos do dataset ainda caíam: `QueueFake` não tem `assertNotPushedOn()`, e a checagem passou a ser `Queue::pushed(...)` filtrado pela fila.
 
 ## 2026-05-18 → 2026-11-16 — reconstituído do `git log` (registrado em 2026-11-16, lote L6)
 
