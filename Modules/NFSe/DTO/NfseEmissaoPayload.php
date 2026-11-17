@@ -51,6 +51,23 @@ final class NfseEmissaoPayload
         return new self(...array_merge(get_object_vars($this), ['rpsNumero' => $numero]));
     }
 
+    /**
+     * Mesma nota sem o certificado. É o que vai para a fila: o EmitirNfseJob é serializado
+     * em `jobs`/`failed_jobs` quando a fila é banco, e o PFX e a senha decifrados não podem
+     * ficar ali (lote 2, PR 2.3). O NfseEmissaoService resolve o certificado pelo
+     * business_id na hora de enviar.
+     */
+    public function semCertificado(): self
+    {
+        return new self(...array_merge(get_object_vars($this), ['certPfxBase64' => null, 'certSenha' => null]));
+    }
+
+    /** Mesma nota com o certificado resolvido na hora do envio. */
+    public function comCertificado(string $pfxBase64, string $senha): self
+    {
+        return new self(...array_merge(get_object_vars($this), ['certPfxBase64' => $pfxBase64, 'certSenha' => $senha]));
+    }
+
     public function retencaoFederalCentavos(): int
     {
         return $this->retPisCentavos + $this->retCofinsCentavos + $this->retCsllCentavos;

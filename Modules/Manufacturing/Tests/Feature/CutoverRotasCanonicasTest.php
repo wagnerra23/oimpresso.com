@@ -278,17 +278,10 @@ it('a tela de Insumos é alcançável a partir das telas irmãs', function () {
     );
 });
 
-it('o menu lateral tem entrada pra Insumos', function () {
-    // O menu é Blade e é por onde o usuário realmente entra — a aba só ajuda quem já está
-    // dentro do módulo. Sem esta entrada, Insumos volta a ser inalcançável pelo caminho normal.
-    $sidebar = (string) file_get_contents(
-        base_path('Modules/Manufacturing/Resources/views/layouts/partials/sidebar.blade.php')
-    );
-
-    expect(str_contains($sidebar, "'insumos'"))->toBeTrue(
-        'O menu lateral do módulo não referencia a ação de Insumos.'
-    );
-});
+// "O menu lateral tem entrada pra Insumos" saiu daqui no lote 2.4 da auditoria: lia a
+// `layouts/partials/sidebar.blade.php`, que nenhuma tela inclui (o menu do AppShell vem do
+// `DataController::modifyAdminMenu`). O caso agora é o UC-RECIPE-24, pelo `shell.menu` que o React
+// recebe: `MenuPorPermissaoTest.php`.
 
 it('toda tela que usa classes mfg-* importa o bundle CSS do módulo', function () {
     // ACHADO NO SMOKE de 2026-09-04 (sessão com [M] logada em prod): `/manufacturing/v2/settings`

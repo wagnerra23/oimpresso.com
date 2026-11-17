@@ -24,16 +24,8 @@ class NfseController extends Controller
 {
     public function __construct(private readonly NfseEmissaoService $service) {}
 
-    // US-NFSE-008: listagem
-    //
-    // Wave 23 D3 Performance NOTA: `notas` candidata a `Inertia::defer()`
-    // (paginate 25 caro). NÃO migrado neste PR porque resources/js/Pages/Nfse/Index.tsx
-    // consome `notas.data.length` direto no render inicial (sem `<Deferred>` wrap)
-    // — Rollback W7 PR #963 já comprovou que ativar defer SEM wrapper React quebra.
-    //
-    // Pré-req pra defer: PR companion atualizar Index.tsx pra `<Deferred data="notas">`
-    // + skeleton fallback (skill `inertia-defer-default` Tier B). Tarefa rastreada
-    // em handoff Wave 23.
+    // US-NFSE-008: listagem. `notas` vai deferida (paginate + filtro): a tela abre com o
+    // esqueleto e a lista chega no 2º pedido. Index.tsx envolve a tabela em <Deferred>.
     public function index(IndexNfseRequest $request)
     {
         // D8.c Security Wave 17 — IndexNfseRequest valida whitelist status + date_format
@@ -43,23 +35,33 @@ class NfseController extends Controller
         $filters = $request->validated();
 
         return Inertia::render('Nfse/Index', [
-            'notas'   => $this->buildNotasPayload($filters),
+            'notas'   => Inertia::defer(fn () => $this->buildNotasPayload($filters)),
             'filters' => $filters,
         ]);
     }
 
     private function buildNotasPayload(array $filters)
     {
-        $query = NfseEmissao::latest('competencia');
+        // Só as colunas que a tabela mostra. xml_envio/xml_retorno (a DPS e a resposta da
+        // Receita) e o resto da nota ficam fora da prop — charter Non-Goal "NÃO mostra
+        // XML/RPS bruto na listagem" (UC-NFSL-05).
+        $query = NfseEmissao::query()
+            ->select([
+                'id', 'numero', 'status', 'tomador_nome', 'valor_servicos', 'valor_iss',
+                'competencia', 'pdf_url', 'erro_mensagem', 'created_at',
+            ])
+            ->latest('competencia')
+            ->latest('id');
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
+        // Competência é mês: o filtro chega como AAAA-MM (o <input type="month"> da tela).
         if (!empty($filters['de'])) {
-            $query->where('competencia', '>=', Carbon::parse($filters['de'])->startOfMonth());
+            $query->where('competencia', '>=', Carbon::createFromFormat('!Y-m', $filters['de'])->startOfMonth()->toDateString());
         }
         if (!empty($filters['ate'])) {
-            $query->where('competencia', '<=', Carbon::parse($filters['ate'])->endOfMonth());
+            $query->where('competencia', '<=', Carbon::createFromFormat('!Y-m', $filters['ate'])->endOfMonth()->toDateString());
         }
         if (!empty($filters['q'])) {
             $q = $filters['q'];
@@ -69,7 +71,20 @@ class NfseController extends Controller
             });
         }
 
-        return $query->paginate(25)->withQueryString();
+        return $query->paginate(25)->withQueryString()->through(fn (NfseEmissao $n) => [
+            // valor_iss é anulável na coluna; o cast decimal:2 esconde isso do Larastan,
+            // por isso a leitura crua.
+            'id'             => $n->id,
+            'numero'         => $n->numero,
+            'status'         => $n->status,
+            'tomador_nome'   => $n->tomador_nome,
+            'valor_servicos' => (float) $n->valor_servicos,
+            'valor_iss'      => $n->getRawOriginal('valor_iss') === null ? null : (float) $n->getRawOriginal('valor_iss'),
+            'competencia'    => $n->competencia?->format('m/Y'),
+            'pdf_url'        => $n->pdf_url,
+            'erro_mensagem'  => $n->erro_mensagem,
+            'created_at'     => $n->created_at?->format('d/m/Y H:i'),
+        ]);
     }
 
     // US-NFSE-009: formulário de emissão

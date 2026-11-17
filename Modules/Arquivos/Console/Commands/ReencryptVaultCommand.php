@@ -15,8 +15,15 @@ use Illuminate\Support\Facades\Storage;
  * arquivos:reencrypt-vault — Sprint 2 ADR 0123 (APP_KEY rotation).
  *
  * Quando Wagner rotacionar APP_KEY, todos arquivos encrypted com a chave VELHA
- * ficam ilegíveis. Este command decrypta cada arquivo com a chave VELHA
- * (passada via --old-key) e re-encrypta com a chave NOVA (APP_KEY atual).
+ * ficam ilegíveis. Este command decrypta cada arquivo com a chave VELHA e
+ * re-encrypta com a chave NOVA (APP_KEY atual).
+ *
+ * De onde vem a chave velha (auditoria Arquivos 2026-11-05, L2 2.6):
+ * - Caminho normal: APP_PREVIOUS_KEYS no .env (config app.previous_keys), a mesma
+ *   lista que o Encrypter do Laravel usa para continuar lendo o que foi cifrado
+ *   antes da rotação. A chave não passa pela linha de comando.
+ * - --old-key continua aceito para quem já tem receita com ele, mas expõe a chave
+ *   no histórico do shell e na lista de processos. Quando presente, tem prioridade.
  *
  * Design decisions:
  * - Idempotent: se decrypt com old-key falha (já re-encrypted), skip sem erro
@@ -26,10 +33,8 @@ use Illuminate\Support\Facades\Storage;
  * - --dry-run: simula sem escrever em disk
  *
  * Uso:
- *   php artisan arquivos:reencrypt-vault \
- *     --old-key="base64:chave-antiga-em-base64..." \
- *     --limit=1000 \
- *     --dry-run
+ *   # .env: APP_KEY=<nova>  APP_PREVIOUS_KEYS=base64:<antiga>
+ *   php artisan arquivos:reencrypt-vault --limit=1000 --dry-run
  *
  * ATENCAO: operacao administrativa (CLI). Roda sem session, itera todos businesses.
  * Nao expor como rota web. Executar imediatamente apos rotacionar APP_KEY.
@@ -40,7 +45,7 @@ use Illuminate\Support\Facades\Storage;
 class ReencryptVaultCommand extends Command
 {
     protected $signature = 'arquivos:reencrypt-vault
-        {--old-key= : APP_KEY antiga no formato base64:... (obrigatorio)}
+        {--old-key= : APP_KEY antiga no formato base64:... (sem ela, usa APP_PREVIOUS_KEYS)}
         {--limit=1000 : Cap rows a processar (default 1000)}
         {--dry-run : Nao escreve em disk, so simula}';
 
@@ -57,32 +62,33 @@ class ReencryptVaultCommand extends Command
         $limit  = (int) $this->option('limit');
         $dryRun = (bool) $this->option('dry-run');
 
-        // 1. Validar --old-key presente e formato correto
-        if (empty($oldKey)) {
-            $this->error('--old-key e obrigatorio. Formato: base64:<chave-em-base64>');
-            $this->line('  Exemplo: --old-key="base64:AbCdEfGhIjKlMnOpQrStUvWxYz..."');
+        // 1. Chaves antigas: --old-key (se veio) ou APP_PREVIOUS_KEYS.
+        $fonte = $oldKey !== null && $oldKey !== '' ? '--old-key' : 'APP_PREVIOUS_KEYS';
+        $chaves = $fonte === '--old-key'
+            ? [$oldKey]
+            : array_values(array_filter(
+                (array) config('app.previous_keys', []),
+                fn ($k) => is_string($k) && $k !== ''
+            ));
+
+        if ($chaves === []) {
+            $this->error('Nenhuma chave antiga: defina APP_PREVIOUS_KEYS no .env (formato base64:<chave>) ou passe --old-key.');
+            $this->line('  Preferir APP_PREVIOUS_KEYS: --old-key deixa a chave no historico do shell.');
             return 1;
         }
 
-        if (! str_starts_with($oldKey, 'base64:')) {
-            $this->error('--old-key invalido: deve comecar com "base64:". Formato: base64:<chave-em-base64>');
-            return 1;
+        // 2. Um Encrypter por chave antiga (mesmo cipher do app)
+        $oldEncrypters = [];
+        foreach ($chaves as $i => $chave) {
+            $rotulo = $fonte === '--old-key' ? '--old-key' : "APP_PREVIOUS_KEYS[{$i}]";
+            $encrypter = $this->encrypterDaChave($chave, $rotulo);
+            if ($encrypter === null) {
+                return 1;
+            }
+            $oldEncrypters[] = $encrypter;
         }
 
-        $rawOldKey = base64_decode(substr($oldKey, 7), true);
-        if ($rawOldKey === false) {
-            $this->error('--old-key invalido: a parte apos "base64:" nao e base64 valido.');
-            return 1;
-        }
-
-        // 2. Construir Encrypter com chave velha (mesmo cipher do app)
-        try {
-            $oldEncrypter = new Encrypter($rawOldKey, config('app.cipher', 'AES-256-CBC'));
-        } catch (\RuntimeException $e) {
-            $this->error('Falha ao construir Encrypter com old-key: ' . $e->getMessage());
-            $this->line('  Verifique o tamanho da chave (AES-256-CBC exige 32 bytes / 256 bits).');
-            return 1;
-        }
+        $this->line('  Chave(s) antiga(s): ' . count($oldEncrypters) . " via {$fonte}");
 
         // 3. Query rows encrypted=true
         $query = DB::table('arquivos')
@@ -108,7 +114,7 @@ class ReencryptVaultCommand extends Command
         // 4. Processar em chunks de 200 (mesmo padrao RecalcularMetadataCommand)
         $query->orderBy('id')
             ->limit($limit)
-            ->chunk(200, function ($rows) use ($oldEncrypter, $dryRun, &$stats) {
+            ->chunk(200, function ($rows) use ($oldEncrypters, $dryRun, &$stats) {
                 $batchIds = $rows->pluck('id')->all();
 
                 Log::info('arquivos.reencrypt_vault.batch_start', [
@@ -119,7 +125,7 @@ class ReencryptVaultCommand extends Command
                 ]);
 
                 foreach ($rows as $row) {
-                    $this->processRow($row, $oldEncrypter, $dryRun, $stats);
+                    $this->processRow($row, $oldEncrypters, $dryRun, $stats);
                 }
             });
 
@@ -145,14 +151,40 @@ class ReencryptVaultCommand extends Command
     }
 
     /**
+     * Valida uma chave no formato base64:... e devolve o Encrypter dela, ou null
+     * depois de imprimir o erro. A mensagem cita só o rótulo, nunca a chave.
+     */
+    private function encrypterDaChave(string $chave, string $rotulo): ?Encrypter
+    {
+        if (! str_starts_with($chave, 'base64:')) {
+            $this->error("{$rotulo} invalido: deve comecar com \"base64:\". Formato: base64:<chave-em-base64>");
+            return null;
+        }
+
+        $raw = base64_decode(substr($chave, 7), true);
+        if ($raw === false) {
+            $this->error("{$rotulo} invalido: a parte apos \"base64:\" nao e base64 valido.");
+            return null;
+        }
+
+        try {
+            return new Encrypter($raw, config('app.cipher', 'AES-256-CBC'));
+        } catch (\RuntimeException $e) {
+            $this->error("Falha ao construir Encrypter com {$rotulo}: " . $e->getMessage());
+            $this->line('  Verifique o tamanho da chave (AES-256-CBC exige 32 bytes / 256 bits).');
+            return null;
+        }
+    }
+
+    /**
      * Processa uma row: decrypt com chave velha e encrypt com chave nova.
      *
      * @param \stdClass          $row         Row da tabela arquivos
-     * @param Encrypter          $oldEncrypter Encrypter construido com APP_KEY velha
+     * @param list<Encrypter>    $oldEncrypters Um Encrypter por chave antiga, na ordem
      * @param bool               $dryRun       Se true, nao escreve em disk
      * @param array<string,int>  $stats        Stats mutaveis por referencia
      */
-    private function processRow(\stdClass $row, Encrypter $oldEncrypter, bool $dryRun, array &$stats): void
+    private function processRow(\stdClass $row, array $oldEncrypters, bool $dryRun, array &$stats): void
     {
         try {
             $diskName = $row->disk ?: 'local';
@@ -175,9 +207,17 @@ class ReencryptVaultCommand extends Command
                 return;
             }
 
-            try {
-                $plain = $oldEncrypter->decryptString($cipher);
-            } catch (DecryptException) {
+            $plain = null;
+            foreach ($oldEncrypters as $oldEncrypter) {
+                try {
+                    $plain = $oldEncrypter->decryptString($cipher);
+                    break;
+                } catch (DecryptException) {
+                    // tenta a próxima chave antiga
+                }
+            }
+
+            if ($plain === null) {
                 $stats['skipped']++;
                 Log::info('arquivos.reencrypt_vault.already_reencrypted', [
                     'arquivo_id'  => $row->id,

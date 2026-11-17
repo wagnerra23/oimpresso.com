@@ -136,6 +136,16 @@ return [
     'cipher' => 'AES-256-CBC',
 
     /*
+    | Chaves antigas (APP_PREVIOUS_KEYS, separadas por vírgula, formato base64:...).
+    | O Encrypter do Laravel tenta a atual e depois estas ao decifrar, então o que
+    | foi cifrado antes de uma rotação de APP_KEY continua legível até ser recifrado
+    | (php artisan arquivos:reencrypt-vault). Vazia por padrão: sem efeito.
+    */
+    'previous_keys' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('APP_PREVIOUS_KEYS', '')))
+    )),
+
+    /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver
     |--------------------------------------------------------------------------
