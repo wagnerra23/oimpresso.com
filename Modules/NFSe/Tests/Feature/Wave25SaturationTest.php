@@ -175,14 +175,16 @@ describe('Wave 25 NFSe POLISH', function () {
             ->and($config['enabled'])->toBeFalse(); // pending job
     });
 
-    it('D6: NfseController index não usa Inertia::defer (rollback PR #963 lição)', function () {
-        $ctrlPath = base_path('Modules/NFSe/Http/Controllers/NfseController.php');
-        $src = file_get_contents($ctrlPath);
+    it('D6: NfseController index só defere notas com o <Deferred> no Index.tsx (lição rollback PR #963)', function () {
+        $src = file_get_contents(base_path('Modules/NFSe/Http/Controllers/NfseController.php'));
+        $tsx = file_get_contents(base_path('resources/js/Pages/Nfse/Index.tsx'));
 
         // Rollback PR #963: defer SEM <Deferred> wrap React quebrou.
-        // Wave 25 mantém pattern. Quando Index.tsx receber <Deferred>, ativar defer.
-        expect($src)->toContain('NÃO migrado neste PR')
-            ->and($src)->toContain('paginate(25)');
+        // A condição que este teste esperava ("quando Index.tsx receber <Deferred>, ativar defer")
+        // foi cumprida no lote 3.1 da auditoria NFSe (#11041, 2026-11-16): o teste passa a cobrar o par.
+        expect($src)->toMatch("/'notas'\s*=>\s*Inertia::defer\(/")
+            ->and($src)->toContain('paginate(25)')
+            ->and($tsx)->toMatch('/<Deferred\s+data="notas"/');
     });
 
     it('D6: NfseController declara permissions canon nfse.view + nfse.emit + nfse.cancel', function () {
