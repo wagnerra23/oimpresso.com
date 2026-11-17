@@ -1,7 +1,7 @@
 ---
 id: modules-producao-pages-producao-os-show-charter
 page: /producao/ordens/{id}
-component: Modules/Producao/Resources/js/Pages/Producao/Os/Show.tsx
+component: Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.tsx
 related_prototype: prototipo-ui/cowork/Wagner/producao-cv-os.jsx
 owner: wagner
 status: draft
@@ -20,9 +20,14 @@ charter_version: 1
 
 # Page Charter — /producao/ordens/{id} (DRAFT · Ficha da OS por item)
 
-> Auditoria do módulo Produção, lote 3 (thread 08 do playbook). Casos: [`Show.casos.md`](Show.casos.md).
+> Auditoria do módulo Produção, lote 3 (thread 08 do playbook). Casos: [`FichaDaOs.casos.md`](FichaDaOs.casos.md).
 > Âncora visual: `FichaOs` de `producao-cv-os.jsx` (classes `pcv-*` do bundle, recopiado na pcv15 no lote 3.1).
 > Non-Goals e Anti-hooks além dos abaixo são de [W] — não se inferem aqui.
+>
+> **Desde 2026-11-17 (UC-PCOSF-10):** a Ficha abre só no painel lateral do Quadro e da Linha do tempo (decisão [W] no
+> #10850). Esta rota confere os portões (403 sem acesso, 404 OS de outra empresa) e leva a `/producao/quadro?os={id}`.
+> O conteúdo é o `FichaDaOs.tsx`, ao lado deste charter; a página `Os/Show.tsx` foi apagada e este charter e os casos
+> vieram de `Os/` para cá.
 
 ## Mission
 

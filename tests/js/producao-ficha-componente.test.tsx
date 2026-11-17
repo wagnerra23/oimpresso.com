@@ -1,5 +1,5 @@
 // UC-PCOSF-05 · o conteúdo da Ficha da OS (FichaDaOs) pede cada aba uma vez, quando ela é aberta e ainda não chegou.
-// Fonte: Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md. O componente é o mesmo da página e do painel
+// Fonte: Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.casos.md. O componente é o mesmo da página e do painel
 // lateral do Quadro (decisão [W] no #10850); o painel pede as abas sob demanda, por isso o `carregar`.
 //
 // O que mede: abrir a aba Arte sem as versões chama `carregar('artes')` uma vez e mostra o esqueleto; com as versões

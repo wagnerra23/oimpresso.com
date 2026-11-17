@@ -1,7 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCV-10, UC-PCOSF-01..05 (Producao/Os/Show.casos.md) — a Ficha da OS por item.
+// Cobre UC-PCV-10, UC-PCOSF-01..05, 07, 09 e 10 (Producao/_components/FichaDaOs.casos.md) — a Ficha da OS por item. Desde o
+// UC-PCOSF-10 a Ficha só abre no painel (Quadro/Linha, `?os=`); `/producao/ordens/{id}` leva ao Quadro com ela aberta.
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -52,25 +53,30 @@ beforeEach(function () {
     $this->e1 = $et(1, 'Impressão', '08:00', '10:00');
     $this->e2 = $et(2, 'Recorte', '10:00', '10:30');
     $this->url = "/producao/ordens/{$this->ordem->id}";
-    $this->parcial = function ($user, string $props) {
+    $this->os = $this->ordem->id;
+    // A Ficha abre no painel do Quadro (UC-PCOSF-10): a base vem em `ficha` (os, etapas, pode) e cada aba em `ficha_<aba>`.
+    $this->daFicha = function ($user, string $prop) {
         $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+        $nome = in_array($prop, ['os', 'etapas', 'pode'], true) ? 'ficha' : 'ficha_'.$prop;
+        $r = $this->actingAs($user)->get("/producao/quadro?os={$this->os}", ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
+            'X-Inertia-Version' => (string) $versao, 'X-Inertia-Partial-Data' => $nome, 'X-Inertia-Partial-Component' => 'Producao/Quadro/Index'])->assertOk();
 
-        return $this->actingAs($user)->get($this->url, ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
-            'X-Inertia-Version' => (string) $versao, 'X-Inertia-Partial-Data' => $props, 'X-Inertia-Partial-Component' => 'Producao/Os/Show']);
+        return $r->json($nome === 'ficha' ? "props.ficha.{$prop}" : "props.{$nome}");
     };
 });
 
 it('UC-PCV-10 · a Ficha mostra a situação e as etapas com previsto × apontado', function () {
-    $this->actingAs($this->pcp)->get($this->url)->assertOk()
-        ->assertInertia(fn (AssertableInertia $p) => $p->component('Producao/Os/Show', false)
-            ->where('os.numero', 'OP '.$this->ordem->id)->where('os.situacao', 'aguardando_liberacao'));
+    // UC-PCOSF-10: o endereço antigo leva ao Quadro com a Ficha aberta no painel.
+    $this->actingAs($this->pcp)->get($this->url)->assertRedirect("/producao/quadro?os={$this->ordem->id}");
+    $os = ($this->daFicha)($this->pcp, 'os');
+    expect($os['numero'])->toBe('OP '.$this->ordem->id)->and($os['situacao'])->toBe('aguardando_liberacao');
 
     app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [$this->e1->id => $this->op->id, $this->e2->id => $this->op->id]);
     $svc = app(ApontamentoOperadorService::class);
     $ap = $svc->iniciar($this->b98, $this->op->id, $this->e1->id, 'i-'.uniqid(), now()->subMinutes(90));
     $svc->concluir($this->b98, $this->op->id, $ap->id, 'c-'.uniqid(), now());
 
-    $etapas = ($this->parcial)($this->pcp, 'etapas,os')->assertOk()->json('props.etapas');
+    $etapas = ($this->daFicha)($this->pcp, 'etapas');
     expect(array_column($etapas, 'id'))->toBe([$this->e1->id, $this->e2->id])
         ->and($etapas[0]['previsto_h'])->toEqual(2.0)->and($etapas[1]['previsto_h'])->toEqual(0.5)
         // Discriminante: a etapa apontada tem 1,5 h; a outra, nenhuma.
@@ -80,23 +86,24 @@ it('UC-PCV-10 · a Ficha mostra a situação e as etapas com previsto × apontad
 });
 
 it('UC-PCOSF-01 · os botões seguem o papel: Liberar para producao.liberar, Cancelar item para vendas.gerente', function () {
-    $pode = fn ($u) => ($this->parcial)($u, 'pode')->assertOk()->json('props.pode');
+    $pode = fn ($u) => ($this->daFicha)($u, 'pode');
     expect($pode($this->pcp))->toBe(['liberar' => true, 'cancelar' => false, 'custo' => false])
         ->and($pode($this->gerente))->toBe(['liberar' => false, 'cancelar' => true, 'custo' => false])
         ->and($pode($this->op))->toBe(['liberar' => false, 'cancelar' => false, 'custo' => false]);
 
     // Quem escolhe os responsáveis recebe a lista; quem não libera recebe vazia.
-    $ids = array_column(($this->parcial)($this->pcp, 'pessoas')->assertOk()->json('props.pessoas.pessoas'), 'id');
+    $ids = array_column(($this->daFicha)($this->pcp, 'pessoas')['pessoas'], 'id');
     expect($ids)->toContain($this->op->id);
-    expect(($this->parcial)($this->op, 'pessoas')->assertOk()->json('props.pessoas.pessoas'))->toBe([]);
+    expect(($this->daFicha)($this->op, 'pessoas')['pessoas'])->toBe([]);
 });
 
-it('UC-PCOSF-02 · Tier 0 e portões: OS de outra empresa 404; sem acesso ou sem o pacote 403', function () {
+it('UC-PCOSF-02 · UC-PCOSF-10 · Tier 0 e portões: OS de outra empresa 404; sem acesso ou sem o pacote 403; a própria vai ao Quadro com a OS aberta', function () {
     // SUPERADMIN: fixture da empresa 99.
     $os99 = Ordem::withoutGlobalScopes()->create(['business_id' => $this->b99, 'transaction_id' => 990022,
         'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => 1, 'quantidade' => '1.0000']);
     $this->actingAs($this->pcp)->get("/producao/ordens/{$os99->id}")->assertNotFound();
-    $this->actingAs($this->pcp)->get($this->url)->assertOk(); // controle: a OS da própria empresa abre
+    // controle: a OS da própria empresa leva ao Quadro com ela aberta (UC-PCOSF-10)
+    $this->actingAs($this->pcp)->get($this->url)->assertRedirect("/producao/quadro?os={$this->ordem->id}");
 
     $this->actingAs($this->usuarioComPermissoes([], $this->B98))->get($this->url)->assertForbidden();
     $this->pacote = false;
@@ -112,7 +119,7 @@ it('UC-PCOSF-03 · aba Custo só leitura: o mesmo número da Ficha e do previsto
     $antes = [DB::table('pcp_ordens')->where('id', $this->ordem->id)->value('custo_real'), DB::table('pcp_apontamentos')->where('os_id', $this->ordem->id)->count()];
 
     // Caminho 1: a prop da Ficha. Conta à mão: 90 min × 80,00 por hora de máquina = 120,00; sem material.
-    $c = ($this->parcial)($gestor, 'custo')->assertOk()->json('props.custo');
+    $c = ($this->daFicha)($gestor, 'custo');
     expect($c['composicao'])->toBe(['maquina' => '120.00', 'pessoa' => '0.00', 'material' => '0.00', 'terceiros' => '0.00', 'total' => '120.00'])
         ->and($c['previsto_realizado']['realizado'])->toBe('120.0000')->and($c['previsto_realizado']['status'])->toBe('em_andamento');
     // Caminho 2: o endpoint JSON do previsto × realizado devolve o mesmo realizado.
@@ -121,8 +128,8 @@ it('UC-PCOSF-03 · aba Custo só leitura: o mesmo número da Ficha e do previsto
     expect([DB::table('pcp_ordens')->where('id', $this->ordem->id)->value('custo_real'), DB::table('pcp_apontamentos')->where('os_id', $this->ordem->id)->count()])->toBe($antes);
 
     // Controle: sem producao.desempenho.ver a prop vem nula e a aba não aparece.
-    expect(($this->parcial)($this->pcp, 'custo')->assertOk()->json('props.custo'))->toBeNull();
-    expect(($this->parcial)($gestor, 'pode')->json('props.pode.custo'))->toBeTrue();
+    expect(($this->daFicha)($this->pcp, 'custo'))->toBeNull();
+    expect(($this->daFicha)($gestor, 'pode')['custo'])->toBeTrue();
 });
 
 it('UC-PCOSF-04 · aba Materiais: previsto pela receita × apontado, e o saldo que estoura aparece', function () {
@@ -151,8 +158,8 @@ it('UC-PCOSF-04 · aba Materiais: previsto pela receita × apontado, e o saldo q
         'product_id' => $pid, 'variation_id' => $vid, 'quantidade' => '133.4000', 'custo' => '0.0000', 'transaction_id' => $venda,
         'transaction_sell_line_id' => $ordem->transaction_sell_line_id, 'user_id' => $this->op->id, 'momento' => now(), 'created_at' => now(), 'updated_at' => now()]);
 
-    $this->url = "/producao/ordens/{$ordem->id}";
-    $m = ($this->parcial)($this->pcp, 'materiais')->assertOk()->json('props.materiais');
+    $this->os = $ordem->id;
+    $m = ($this->daFicha)($this->pcp, 'materiais');
     // 124,0000 − 133,4000 = −9,4000 (conta à mão; o PHP faz em décimos de milésimo inteiros).
     expect($m['itens'])->toHaveCount(1)
         ->and($m['itens'][0]['previsto'])->toBe('124.0000')->and($m['itens'][0]['saldo'])->toBe('-9.4000')->and($m['itens'][0]['estourou'])->toBeTrue()
@@ -171,7 +178,7 @@ it('UC-PCOSF-05 · aba Arte: versões da mais nova à mais antiga, e a que vale 
         'arte_programacao_id' => $this->e1->id, 'token_hash' => hash('sha256', uniqid()), 'arquivo' => 'https://ex.test/de-outra.pdf',
         'expira_em' => now()->addDays(7), 'created_by' => $this->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
 
-    $a = ($this->parcial)($this->op, 'artes')->assertOk()->json('props.artes');
+    $a = ($this->daFicha)($this->op, 'artes');
     expect(array_column($a, 'arquivo'))->toBe(['https://ex.test/arte-v2.pdf', 'https://ex.test/arte-v1.pdf'])
         ->and(array_column($a, 'versao'))->toBe([2, 1])->and(array_column($a, 'vigente'))->toBe([false, true])
         ->and($a[1]['decidida_em'])->toBe('2026-11-05 16:40');
@@ -186,7 +193,7 @@ it('UC-PCOSF-05 · UC-PCART-09 · aba Arte mostra a versão gravada: o reenvio d
         'created_at' => now(), 'updated_at' => now()]);
     $ids = [$arte('https://ex.test/arte-a.pdf', 1), $arte('https://ex.test/arte-a.pdf', 1), $arte('https://ex.test/arte-b.pdf', 2)];
 
-    $a = ($this->parcial)($this->op, 'artes')->assertOk()->json('props.artes');
+    $a = ($this->daFicha)($this->op, 'artes');
     expect(array_column($a, 'versao'))->toBe([2, 1, 1])
         // A linha da tela é chaveada pelo envio: duas linhas da mesma versão não podem colidir.
         ->and(array_column($a, 'id'))->toBe(array_reverse($ids));

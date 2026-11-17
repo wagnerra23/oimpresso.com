@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 189 arquivos em 17 papéis.
+**Total mapeado:** 188 arquivos em 17 papéis.
 
 ## Controllers — 25
 
@@ -157,11 +157,10 @@ module: Producao
 - [aprovacao-arte.blade.php](../../../Modules/Producao/Resources/views/aprovacao-arte.blade.php)
 - [etiqueta-os.blade.php](../../../Modules/Producao/Resources/views/etiqueta-os.blade.php)
 
-## Telas (Inertia/React) — 7
+## Telas (Inertia/React) — 6
 
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx)
-- [Show.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
@@ -183,21 +182,21 @@ module: Producao
 
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.charter.md)
-- [Show.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.charter.md)
+- [FichaDaOs.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.charter.md)
 
 ## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.casos.md)
-- [Show.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
+- [FichaDaOs.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.casos.md)
 
 ## Testes (Pest) — 38
 
