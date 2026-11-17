@@ -15,6 +15,8 @@ use Modules\Superadmin\Notifications\SendSubscriptionExpiryAlert;
 use Modules\Superadmin\Notifications\SubscriptionOfflinePaymentActivationConfirmation;
 use Modules\Superadmin\Notifications\SuperadminCommunicator;
 
+uses(Tests\TestCase::class);
+
 /**
  * As notificações do Superadmin saem do request HTTP e vão pra fila própria (lote L4, 2026-11-16).
  *
@@ -50,7 +52,10 @@ test('cada notificação do Superadmin é empurrada para a fila superadmin-mail,
         // O NotificationSender CLONA a notificação por canal: compara a classe, não a instância.
         return $job->notification instanceof $notificacao && $job->shouldBeEncrypted === true;
     });
-    Queue::assertNotPushedOn('default', SendQueuedNotifications::class);
+    // QueueFake não tem assertNotPushedOn(): pergunta o mesmo pelo pushed(), cujo callback recebe
+    // (job, fila). Nenhum job desta notificação pode ter ido para outra fila.
+    $foraDaFila = Queue::pushed(SendQueuedNotifications::class, fn ($job, $queue) => $queue !== 'superadmin-mail');
+    expect($foraDaFila)->toHaveCount(0);
 })->with([
     // Lista literal, não array_keys(notificacoesDoSuperadmin()): o dataset é avaliado antes de o
     // app subir, e o construtor do alerta de expiração chama Carbon::now().

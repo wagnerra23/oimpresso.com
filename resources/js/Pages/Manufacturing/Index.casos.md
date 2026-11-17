@@ -375,6 +375,16 @@ last_run: "2026-10-07"
 - **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
 - **Teste:** `CustoPorPermissaoTest.php`
 - **Regressão que defende:** o custo da produção entregue a quem só acompanha as ordens.
+## UC-OP-23 · Excluir o rascunho leva a ordem inteira e deixa trilha
+- **Persona:** quem descarta um rascunho de ordem.
+- **Aceite:** Dado um rascunho · Quando é excluído · Então somem a ordem e a venda de produção filha (o consumo,
+  com as linhas), e a exclusão fica na trilha com a empresa · Dado uma ordem finalizada ou um id que não existe ·
+  Então a resposta não diz "excluído", e a finalizada continua.
+- **Fonte:** SDD Fabricação §4 (a ordem é a compra de produção mais o consumo dos insumos) · charter de Index (ordem
+  finalizada não se exclui) · trilha por empresa (ADR 0127) · auditoria do Manufacturing, lote 2.7.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/ExcluirRascunhoTrilhaTest.php`
+- **Regressão que defende:** venda de produção órfã depois de excluir o rascunho, exclusão sem registro, e "excluído"
+  respondido para ordem que não foi apagada.
 - **Status: 🧪**
 
 ---

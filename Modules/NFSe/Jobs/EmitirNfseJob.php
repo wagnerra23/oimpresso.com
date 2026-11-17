@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use App\Support\Privacy\PiiRedactor;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\Exceptions\NfseException;
@@ -21,6 +22,10 @@ class EmitirNfseJob implements ShouldQueue
     public int $tries = 3;
     public int $backoff = 60; // segundos entre tentativas
 
+    /**
+     * Recebe o payload SEM certificado (NfseEmissaoService::despacharEmissaoAsync): o job é
+     * serializado na fila. O business_id vem no payload e o serviço resolve o certificado.
+     */
     public function __construct(public readonly NfseEmissaoPayload $payload) {}
 
     public function handle(NfseProviderInterface $provider): void
@@ -56,7 +61,8 @@ class EmitirNfseJob implements ShouldQueue
             ->where('status', 'processando')
             ->update([
                 'status'        => 'erro',
-                'erro_mensagem' => $exception->getMessage(),
+                // A mensagem pode ecoar CPF/CNPJ do tomador (resposta da Sefin).
+                'erro_mensagem' => app(PiiRedactor::class)->redact($exception->getMessage()),
             ]);
     }
 }

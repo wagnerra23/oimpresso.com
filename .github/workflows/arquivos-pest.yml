@@ -247,6 +247,7 @@ jobs:
             Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
             Modules/Arquivos/Tests/Feature/Wave28ArquivosSaturationTest.php \
             Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
+            Modules/Arquivos/Tests/Feature/DownloadVaultDecryptFalhaTest.php \
             Modules/Arquivos/Tests/Feature/AuditLogAppendOnlyTest.php \
             Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
             Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
