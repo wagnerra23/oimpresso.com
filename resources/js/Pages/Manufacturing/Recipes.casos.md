@@ -347,6 +347,10 @@ last_run: "2026-10-27"
   Manufacturing, lote 2.4 (item que dá 403 ao clicar).
 - **Teste:** `MenuPorPermissaoTest.php` (menu, pelo `shell.menu`) · `tests/js/manufacturing-abas.test.tsx` (abas).
 - **Regressão que defende:** item visível que dá 403 ao clicar, e Insumos só alcançável pela aba.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-25 · A trilha da receita leva a empresa
 - **Persona:** quem consulta a auditoria (/auditoria) da empresa.
 - **Aceite:** Dado uma alteração na receita ou num ingrediente · Quando o registro da trilha é gravado · Então ele leva
