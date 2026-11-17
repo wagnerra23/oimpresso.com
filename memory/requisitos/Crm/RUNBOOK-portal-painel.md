@@ -50,7 +50,7 @@ Mostrar ao contato quanto ele deve e quanto já pagou — e só dele. Os blocos 
 
 ## 4. Divergências declaradas
 
-- **Aviso de OS (UC-CRMPO-17) não entra.** O `main` não tem regra que diga, para o portal, quando uma OS está "pronta para retirada" ou com "orçamento aguardando aprovação" — é a mesma derivação que a aba Assistência (thread 25, UC-COS-24) precisa criar. Escrever a regra aqui seria inventá-la antes da fonte.
+- **Aviso de OS (UC-CRMPO-17) não entra.** O `main` não tem regra que diga, para o portal, quando uma OS está "pronta para retirada" ou com "orçamento aguardando aprovação" — é a mesma derivação que a aba Assistência (thread 25, UC-COS-52) precisa criar. Escrever a regra aqui seria inventá-la antes da fonte.
 - **Assistência não aparece na navegação** até a thread 25 criar a rota.
 - Atalho "Agendar retirada" só aparece com o módulo `booking` ligado; "Pedir de novo" e "Acompanhar pedidos", só com `crm_settings.enable_order_request` — as mesmas condições do menu da Blade.
 
