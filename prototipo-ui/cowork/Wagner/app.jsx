@@ -91,7 +91,7 @@ const MIGRATION_INFO = {
   vendas: { phase: 3, status: "queue", blade: "Modules/Officeimpresso/Resources/views/vendas/", routes: ["/vendas"], priority: "Alta freq.", desc: "Pedidos confirmados, faturamento e nota fiscal. Inclui Sells/Create P0.", actions: ["Hoje", "Mês", "Por cliente"] },
   cv: { phase: 1, status: "queue", blade: "Modules/ComunicacaoVisual/Resources/views/", routes: ["/cv"], priority: "Núcleo", desc: "Módulo Comunicação Visual: banners, lonas, adesivos, fachadas. Especialização do catálogo Officeimpresso.", actions: ["Novo job CV", "Templates", "Histórico"] },
   catalogue: { phase: 1, status: "later", blade: "Modules/ProductCatalogue/Resources/views/", routes: ["/catalogue"], priority: "Suporte", desc: "Catálogo umbrella reusável entre módulos. Especificações técnicas de insumos e produtos.", actions: ["Famílias", "Insumos", "SKUs"] },
-  portalos: { phase: 1, status: "later", blade: "Modules/ConsultaOs/Resources/views/", routes: ["/portal/consulta"], priority: "Externo", desc: "Portal cliente-facing para acompanhar status de OS sem login no ERP.", actions: ["Buscar OS", "Histórico cliente", "Configurar"] },
+  portalos: { phase: 1, status: "later", blade: "Modules/ConsultaOs/Resources/views/", routes: ["/consulta-os", "/os/{codigo}"], priority: "Externo", desc: "Portal público do Repair para acompanhar a OS sem login (repair-portal.jsx). Mostra só o andamento: sem valores, peças ou dados do cliente.", actions: ["Abrir pelo link", "Digitar o código", "Nº da OS + série"] },
 
   // ─────── COMERCIAL ───────
   crm: { phase: 1, status: "later", blade: "Modules/Crm/Resources/views/", routes: ["/crm"], priority: "Comercial", desc: "Funil de leads, oportunidades, follow-ups. Integra com Tarefas (TaskProvider crm_ligar).", actions: ["Leads", "Oportunidades", "Funil"] },
@@ -971,13 +971,16 @@ function App() {
   if (route === "suporte-visao") content = <window.SuportePage view="visao" estado={tweaks.supEstado} papel={tweaks.supPapel} dense={tweaks.supDensidade === "compacto"} />;else
   if (route === "vestuario" || route === "vest-etiquetas") content = <window.VestuarioPage estado={tweaks.vstEstado} papel={tweaks.vstPapel} dense={tweaks.vstDensidade === "compacto"} toque={tweaks.vstToque} previa={tweaks.vstPrevia} hardBlock={tweaks.vstHardBlock} />;else
   if (route === "catalogo-qr") content = <window.CatalogoQrPage estado={tweaks.cqrEstado} papel={tweaks.cqrPapel} dense={tweaks.cqrDensidade === "compacto"} logoCadastrado={tweaks.cqrLogo} />;else
+  // portalos = portal público do Repair (repair-portal.jsx, D-PORTAL). Era MockupPage com um mockup de gráfica
+  // (busca por e-mail, nome do cliente) que contradizia o Non-Goal do charter ConsultaOs — trocado em 2026-11-17.
+  if (route === "portalos") content = (window.RepPortal && window.RepPortal.PortalConsulta) ? <window.RepPortal.PortalConsulta /> : <ModuleStub routeId={route} />;else
   if (route === "relatorios") content = <window.RelatoriosPage />;else
   if (route === "relatorio-montavel") content = <window.RelatorioMontavelPage />;else
   if (typeof route === "string" && route.indexOf("rel-") === 0) content = <window.RelatoriosPage grupo={{ "rel-financeiro": "Financeiro", "rel-comercial": "Comercial", "rel-estoque": "Estoque", "rel-fiscal": "Fiscal" }[route]} />;else
   if ([
   "inbox", "equipe",
   "catalogue", "brief", "manufacturing", "ads",
-  "portalos", "auditoria"].
+  "auditoria"].
   includes(route)) content = <window.MockupPage route={route} />;else
   content = <ModuleStub routeId={route} />;
   if (PUBLICAS[route]) content = <><window.ProtoPublicasBar itens={PUBLICAS[route]} />{content}</>;
