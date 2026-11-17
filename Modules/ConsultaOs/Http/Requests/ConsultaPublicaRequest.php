@@ -35,7 +35,8 @@ class ConsultaPublicaRequest extends FormRequest
         return [
             'tipo' => ['required', 'string', Rule::in(RepairConsultaOsRepository::tiposHabilitados())],
             'numero' => ['required', 'string', 'max:20', 'regex:'.self::FORMATO],
-            'serie' => ['nullable', 'string', 'max:50', 'regex:'.self::FORMATO],
+            // Celular só com série (decisão [W] 2026-11-17): celular é compartilhado e fácil de adivinhar.
+            'serie' => ['nullable', 'required_if:tipo,mobile_num', 'string', 'max:50', 'regex:'.self::FORMATO],
         ];
     }
 
@@ -47,6 +48,7 @@ class ConsultaPublicaRequest extends FormRequest
             'numero.required' => 'Informe o número para buscar.',
             'numero.max' => 'O número não pode ter mais de 20 caracteres.',
             'numero.regex' => 'Use só letras, números e os sinais / . -',
+            'serie.required_if' => 'Para buscar pelo celular, informe também o número de série do aparelho.',
             'serie.max' => 'O número de série não pode ter mais de 50 caracteres.',
             'serie.regex' => 'Use só letras, números e os sinais / . -',
         ];

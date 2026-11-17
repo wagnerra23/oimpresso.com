@@ -77,5 +77,5 @@ Status: ✅
 Status: ✅
 
 ## Trilha do tempo
-- 2026-11-17 · [M+C] O número do cartão de uma OS por item abre a Ficha no painel lateral, com `?os=` na URL (UC-PCOSF-08, em `../Os/Show.casos.md`). Os casos desta tela foram relidos e seguem valendo; o filtro na URL (UC-PCV-06) continua igual e convive com o `?os=`.
-- 2026-11-06 · [W+C] Auditoria lote 3.5: o número do cartão de uma OS por item é link para a Ficha. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.
+- 2026-11-17 · [M+C] O número do cartão de uma OS por item abre a Ficha no painel lateral, com `?os=` na URL (UC-PCOSF-08, em `../_components/FichaDaOs.casos.md`). Os casos desta tela foram relidos e seguem valendo; o filtro na URL (UC-PCV-06) continua igual e convive com o `?os=`.
+- 2026-11-06 · [W+C] Auditoria lote 3.5: o número do cartão de uma OS por item é link para a Ficha. O caso é o UC-PCOSF-06, em `../_components/FichaDaOs.casos.md`; os casos desta tela foram relidos e seguem valendo.

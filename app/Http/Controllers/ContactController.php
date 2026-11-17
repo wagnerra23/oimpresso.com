@@ -171,7 +171,7 @@ class ContactController extends Controller
         $business_id = request()->session()->get('user.business_id');
 
         // 404 cross-tenant: o contato precisa existir DENTRO do business.
-        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
 
         return response()->json(
             $this->buildClienteSalesPaginator((int) $id, (int) $business_id, request())
@@ -199,7 +199,7 @@ class ContactController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
 
         $payments = TransactionPayment::leftJoin('transactions as t', 'transaction_payments.transaction_id', '=', 't.id')
             ->leftJoin('transaction_payments as parent_payment', 'transaction_payments.parent_id', '=', 'parent_payment.id')
@@ -266,7 +266,7 @@ class ContactController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
         $contact = $this->contactUtil->getContactInfo($business_id, $id);
         // Não acontece depois do findOrFail acima, mas getContactInfo devolve Contact|null.
         if ($contact === null) {
@@ -326,7 +326,7 @@ class ContactController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
 
         return response()->json(
             Transaction::where('transactions.business_id', $business_id)
@@ -1863,7 +1863,7 @@ class ContactController extends Controller
         $business_id = request()->session()->get('user.business_id');
 
         // 404 cross-tenant: o contato precisa existir DENTRO do business.
-        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
 
         $noteIds = \App\DocumentAndNote::where('business_id', $business_id)
             ->where('notable_type', \App\Contact::class)
@@ -1921,6 +1921,7 @@ class ContactController extends Controller
         $user_id = request()->session()->get('user.id');
 
         $contact = \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirAcessoAoContato($contact);
 
         $file = $request->file('file');
         $heading = $file instanceof \Illuminate\Http\UploadedFile
@@ -1980,7 +1981,7 @@ class ContactController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        \App\Contact::where('business_id', $business_id)->findOrFail($id);
+        $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
 
         $noteIds = \App\DocumentAndNote::where('business_id', $business_id)
             ->where('notable_type', \App\Contact::class)
@@ -2723,6 +2724,17 @@ class ContactController extends Controller
     }
 
     /**
+     * Quem só pode ver os próprios contatos (X.view_own sem X.view) não abre o contato de
+     * outro pelo número: a mesma regra da lista (PessoaEscopo). 403, como o show() antigo.
+     */
+    private function exigirAcessoAoContato(Contact $contact): void
+    {
+        if (! \App\Services\Pessoas\PessoaEscopo::podeVerContato($contact, auth()->user())) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
      * O que impede excluir o cadastro: registros de negócio ou financeiros que apontam para ele.
      * Antes só se contavam os lançamentos (`transactions`); OS, assinatura, cobrança, veículo e
      * crédito do cliente ficavam apontando para um cadastro excluído. Tabela de módulo que não
@@ -3377,6 +3389,7 @@ class ContactController extends Controller
         if ($contact === null) {
             abort(404);
         }
+        $this->exigirAcessoAoContato($contact);
 
         try {
             $business_id = request()->session()->get('business.id');

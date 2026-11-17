@@ -25,14 +25,22 @@ use Modules\Repair\Entities\JobSheet;
  * PortalStatusReparoSemVazamentoTest.php usava até o cutover de 2026-10-27. Tenants fictícios 98 e 99 (ADR 0358) — nunca o 4.
  * Fora de SQLite o teste pula (cria tabelas; não pode rodar contra banco persistente).
  *
+ * Decisão [W] 2026-11-17 — "empresa na URL, celular só com série": a busca é
+ * /consulta-os/{codigo}/buscar e só olha a empresa do código. Os códigos fictícios das empresas 98 e
+ * 99 ficam em consulta_os_empresas (EMPRESA_98 / EMPRESA_99), criada por consultaOsEmpresas().
+ *
  * Asserts de ausência usam assertArrayNotHasKey / not->toContain com 1 argumento, nunca
  * `->not->toHaveKey($k, $msg)` (proibicoes §5 2026-09-22, LC-31).
  */
 
 const CONSULTA_OS_TABELAS = [
     'activity_log', 'repair_job_sheets', 'transactions', 'contacts',
-    'repair_statuses', 'brands', 'repair_device_models', 'categories',
+    'repair_statuses', 'brands', 'repair_device_models', 'categories', 'consulta_os_empresas',
 ];
+
+/** Códigos públicos fictícios (formato EmpresaPublica::FORMATO) das empresas 98 e 99. */
+const CONSULTA_OS_EMPRESA_98 = 'emprsa98bb';
+const CONSULTA_OS_EMPRESA_99 = 'emprsa99bb';
 
 /** Chaves que o payload público de cada OS pode ter — e nenhuma outra. */
 const CONSULTA_OS_CHAVES_OS = [
@@ -177,9 +185,29 @@ afterEach(function () {
     }
 });
 
-function consultaOsBuscar(array $q): \Illuminate\Testing\TestResponse
+/** Tabela-ponte com o código público das empresas 98 e 99 (idempotente). */
+function consultaOsEmpresas(): void
 {
-    return test()->getJson('/consulta-os/buscar?'.http_build_query($q));
+    if (! Schema::hasTable('consulta_os_empresas')) {
+        Schema::create('consulta_os_empresas', function (Blueprint $t) {
+            $t->increments('id');
+            $t->unsignedInteger('business_id')->unique();
+            $t->string('codigo', 16)->unique();
+            $t->timestamps();
+        });
+    }
+    foreach ([98 => CONSULTA_OS_EMPRESA_98, 99 => CONSULTA_OS_EMPRESA_99] as $biz => $codigo) {
+        DB::table('consulta_os_empresas')->updateOrInsert(['business_id' => $biz], ['codigo' => $codigo]);
+    }
+}
+
+/** Busca pública pelo link da empresa (98 ou 99). */
+function consultaOsBuscar(array $q, int $biz): \Illuminate\Testing\TestResponse
+{
+    consultaOsEmpresas();
+    $codigo = $biz === 99 ? CONSULTA_OS_EMPRESA_99 : CONSULTA_OS_EMPRESA_98;
+
+    return test()->getJson("/consulta-os/{$codigo}/buscar?".http_build_query($q));
 }
 
 /** Linhas por tabela que o portal lê — para provar que nenhuma busca grava (UC-COS-06). */
@@ -211,31 +239,38 @@ function consultaOsCapturarLogs(): \ArrayObject
     return $logs;
 }
 
-it('UC-COS-01 portal abre sem login e renderiza a tela ConsultaOs/Index', function () {
-    $this->assertGuest();
-
-    // Visita Inertia de verdade: o @inertiajs/core manda X-Inertia E X-Requested-With.
+/** Visita Inertia de verdade: o @inertiajs/core manda X-Inertia E X-Requested-With. */
+function consultaOsVisitar(string $url): \Illuminate\Testing\TestResponse
+{
     // A versão vem do próprio HandleInertiaRequests::version() — senão o middleware devolve 409.
     $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
-    $response = $this->withHeaders([
+    return test()->withHeaders([
         'X-Inertia' => 'true',
         'X-Inertia-Version' => $versao,
         'X-Requested-With' => 'XMLHttpRequest',
-    ])->get('/consulta-os');
+    ])->get($url);
+}
+
+it('UC-COS-01 portal abre sem login e renderiza a tela ConsultaOs/Index', function () {
+    $this->assertGuest();
+    consultaOsEmpresas();
+
+    $response = consultaOsVisitar('/consulta-os/'.CONSULTA_OS_EMPRESA_98);
 
     $response->assertOk();
     $response->assertHeader('X-Inertia', 'true');
     $response->assertJsonPath('component', 'ConsultaOs/Index');
-    // Única prop: se a busca por celular está ligada (config do Repair). Nada de dado de OS.
+    // Props: se a busca por celular está ligada (config do Repair) e o código da URL. Nada de dado de OS.
     expect(array_keys($response->json('props') ?? []))->toContain('buscaPorCelular');
     expect($response->json('props.buscaPorCelular'))->toBeBool();
+    $response->assertJsonPath('props.empresa', CONSULTA_OS_EMPRESA_98);
 });
 
 it('UC-COS-02 busca pelo nº da OS devolve o status daquela OS', function () {
     consultaOsSemear();
 
-    $a = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B']);
+    $a = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 99);
     $a->assertOk()->assertJsonPath('found', true);
     expect($a->json('ordens'))->toHaveCount(1);
     $a->assertJsonPath('ordens.0.numero', 'OS-B');
@@ -248,14 +283,14 @@ it('UC-COS-02 busca pelo nº da OS devolve o status daquela OS', function () {
     $a->assertJsonPath('ordens.0.previsao_entrega', '2026-10-10T14:00:00');
 
     // Caso discriminante: outra OS devolve outro status (um status fixo passaria com uma só).
-    $b = consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-98-1']);
+    $b = consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-98-1'], 98);
     $b->assertOk()->assertJsonPath('ordens.0.status.nome', 'Em reparo');
 });
 
 it('UC-COS-03 OS não encontrada devolve 404 só com found=false, sem pista nem texto técnico', function () {
     consultaOsSemear();
 
-    $response = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1']);
+    $response = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1'], 98);
 
     $response->assertNotFound();
     $response->assertExactJson(['found' => false]);
@@ -264,7 +299,7 @@ it('UC-COS-03 OS não encontrada devolve 404 só com found=false, sem pista nem 
 it('UC-COS-04 [T0] payload público é a whitelist — nada interno, financeiro ou do cliente', function () {
     consultaOsSemear();
 
-    $response = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B']);
+    $response = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 99);
     $response->assertOk();
 
     // Controle positivo: o valor secreto existe no banco (senão a ausência abaixo é vácuo).
@@ -283,6 +318,8 @@ it('UC-COS-04 [T0] payload público é a whitelist — nada interno, financeiro 
     foreach (CONSULTA_OS_SEGREDOS as $segredo) {
         expect($corpo)->not->toContain($segredo);
     }
+    // O código público da empresa também não volta no corpo (ele já está na URL).
+    expect($corpo)->not->toContain(CONSULTA_OS_EMPRESA_99);
     $this->assertArrayNotHasKey('business_id', $os);
     $this->assertArrayNotHasKey('estimated_cost', $os);
     $this->assertArrayNotHasKey('contact_id', $os);
@@ -291,21 +328,23 @@ it('UC-COS-04 [T0] payload público é a whitelist — nada interno, financeiro 
 it('UC-COS-05 sem critério válido não há busca nem lista', function () {
     consultaOsSemear();
 
-    consultaOsBuscar([])->assertStatus(422);
-    consultaOsBuscar(['tipo' => 'job_sheet_no'])->assertStatus(422);
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => ''])->assertStatus(422);
-    consultaOsBuscar(['numero' => 'OS-B'])->assertStatus(422);
-    consultaOsBuscar(['tipo' => 'qualquer', 'numero' => 'OS-B'])->assertStatus(422);
+    consultaOsBuscar([], 99)->assertStatus(422);
+    consultaOsBuscar(['tipo' => 'job_sheet_no'], 99)->assertStatus(422);
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => ''], 99)->assertStatus(422);
+    consultaOsBuscar(['numero' => 'OS-B'], 99)->assertStatus(422);
+    consultaOsBuscar(['tipo' => 'qualquer', 'numero' => 'OS-B'], 99)->assertStatus(422);
     // Só o nº de série, sem tipo nem número, não lista nada.
-    consultaOsBuscar(['serie' => 'SERIE-B'])->assertStatus(422);
+    consultaOsBuscar(['serie' => 'SERIE-B'], 99)->assertStatus(422);
 
     // Defesa em profundidade: o repositório recusa sozinho, sem depender do FormRequest.
     $repo = app(RepairConsultaOsRepository::class);
-    expect($repo->buscar('qualquer', 'OS-B'))->toBe([]);
-    expect($repo->buscar('', 'OS-B'))->toBe([]);
-    expect($repo->buscar('job_sheet_no', '   '))->toBe([]);
+    expect($repo->buscar(99, 'qualquer', 'OS-B'))->toBe([]);
+    expect($repo->buscar(99, '', 'OS-B'))->toBe([]);
+    expect($repo->buscar(99, 'job_sheet_no', '   '))->toBe([]);
+    // Sem empresa também não há busca.
+    expect($repo->buscar(0, 'job_sheet_no', 'OS-B'))->toBe([]);
     // Controle: com critério válido o mesmo repositório acha.
-    expect($repo->buscar('job_sheet_no', 'OS-B'))->toHaveCount(1);
+    expect($repo->buscar(99, 'job_sheet_no', 'OS-B'))->toHaveCount(1);
 });
 
 it('UC-COS-06 as rotas públicas do portal são só leitura (GET) e nenhuma busca grava', function () {
@@ -315,26 +354,26 @@ it('UC-COS-06 as rotas públicas do portal são só leitura (GET) e nenhuma busc
     $publicas = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($r) => str_starts_with((string) $r->getName(), 'consulta-os.'));
 
-    // Anti-vácuo: as duas rotas do charter existem.
+    // Anti-vácuo: as três rotas do charter existem (aviso sem empresa, tela da empresa, busca).
     expect($publicas->map->getName()->sort()->values()->all())
-        ->toBe(['consulta-os.buscar', 'consulta-os.index']);
+        ->toBe(['consulta-os.buscar', 'consulta-os.empresa', 'consulta-os.index']);
 
     foreach ($publicas as $rota) {
         expect(array_values(array_diff($rota->methods(), ['GET', 'HEAD'])))->toBe([]);
     }
 
-    // Comportamento, não só o verbo (Anti-hook "NÃO grava nada em GET"): uma busca que acha,
+    // Comportamento, não só o verbo (Anti-hook "NÃO grava dado de negócio nem altera a OS em GET"): uma busca que acha,
     // uma que não acha e uma recusada não mudam nenhuma linha das tabelas que o portal lê.
     $antes = consultaOsContagens();
     // Anti-vácuo: há o que gravar nessas tabelas (3 OS, 3 vendas, 6 atividades no seed).
     expect($antes['repair_job_sheets'])->toBe(3);
     expect($antes['activity_log'])->toBe(6);
 
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'])->assertOk();
-    consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-98-1'])->assertOk();
-    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990003'])->assertOk();
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1'])->assertNotFound();
-    consultaOsBuscar(['tipo' => 'qualquer', 'numero' => 'OS-B'])->assertStatus(422);
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 99)->assertOk();
+    consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-98-1'], 98)->assertOk();
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990003', 'serie' => 'SERIE-C'], 99)->assertOk();
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1'], 98)->assertNotFound();
+    consultaOsBuscar(['tipo' => 'qualquer', 'numero' => 'OS-B'], 99)->assertStatus(422);
 
     expect(consultaOsContagens())->toBe($antes);
 });
@@ -342,61 +381,74 @@ it('UC-COS-06 as rotas públicas do portal são só leitura (GET) e nenhuma busc
 it('UC-COS-07 anti-enumeração: throttle nas rotas e número fora do formato é recusado', function () {
     consultaOsSemear();
 
-    foreach (['consulta-os.index', 'consulta-os.buscar', 'repair-status'] as $nome) {
+    foreach (['consulta-os.index', 'consulta-os.empresa', 'consulta-os.buscar', 'repair-status'] as $nome) {
         $middleware = Route::getRoutes()->getByName($nome)->gatherMiddleware();
         $temThrottle = collect($middleware)->contains(fn ($m) => is_string($m) && str_starts_with($m, 'throttle:'));
         expect($temThrottle)->toBeTrue();
     }
 
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => "1' OR '1'='1"])->assertStatus(422);
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => str_repeat('9', 21)])->assertStatus(422);
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => '%'])->assertStatus(422);
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => "1' OR '1'='1"], 98)->assertStatus(422);
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => str_repeat('9', 21)], 98)->assertStatus(422);
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => '%'], 98)->assertStatus(422);
     // Controle: o formato real do nº de OS do Repair (com barra) é aceito.
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001'])->assertOk();
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001'], 98)->assertOk();
 });
 
-it('UC-COS-08 busca por nº da venda e por celular; o nº de série só estreita', function () {
+it('UC-COS-08 busca por nº da venda e por celular com série; o nº de série estreita', function () {
     consultaOsSemear();
     config(['repair.enable_repair_check_using_mobile_num' => true]);
 
-    consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-99-1'])
+    consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-99-1'], 99)
         ->assertOk()->assertJsonPath('ordens.0.numero', 'OS-B');
-    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002'])
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002', 'serie' => 'SERIE-B'], 99)
         ->assertOk()->assertJsonPath('ordens.0.numero', 'OS-B');
 
-    $ambas = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001']);
+    // Segunda OS da empresa 98 com o mesmo nº (aparelho diferente): sem série vêm as duas.
+    $agora = now();
+    DB::table('repair_job_sheets')->insert([
+        'business_id' => 98, 'contact_id' => 1, 'job_sheet_no' => 'JS2026/0001',
+        'serial_no' => 'SERIE-A2', 'created_at' => $agora, 'updated_at' => $agora,
+    ]);
+
+    $ambas = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001'], 98);
     expect($ambas->json('ordens'))->toHaveCount(2);
 
-    $estreita = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001', 'serie' => 'SERIE-C']);
+    $estreita = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001', 'serie' => 'SERIE-A2'], 98);
     expect($estreita->json('ordens'))->toHaveCount(1);
-    $estreita->assertJsonPath('ordens.0.serie', 'SERIE-C');
+    $estreita->assertJsonPath('ordens.0.serie', 'SERIE-A2');
 
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B', 'serie' => 'SERIE-ERRADA'])->assertNotFound();
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B', 'serie' => 'SERIE-ERRADA'], 99)->assertNotFound();
 });
 
-it('UC-COS-09 [T0] busca cruza empresas: comportamento atual documentado (pendência [W])', function () {
+it('UC-COS-09 [T0] mesmo nº de OS em duas empresas: cada link só vê a sua', function () {
     consultaOsSemear();
 
-    // A OS "OS-B" é da empresa 99; buscar a "JS2026/0001" não a traz (o critério isola).
-    $resposta = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001']);
-    $numeros = collect($resposta->json('ordens'))->pluck('numero')->unique()->values()->all();
-    expect($numeros)->toBe(['JS2026/0001']);
+    // Anti-vácuo: o mesmo nº existe nas duas empresas.
+    expect(DB::table('repair_job_sheets')->where('job_sheet_no', 'JS2026/0001')->pluck('business_id')->sort()->values()->all())
+        ->toBe([98, 99]);
 
-    // O portal NÃO sabe a empresa do cliente: o mesmo nº em 98 e 99 volta das duas. É o
-    // comportamento do /repair-status hoje. Fechar exige identificar a empresa na URL —
-    // decisão do dono (US-CONSULTA-001, _saida-04). Quando decidir, ESTE assert inverte.
-    $status = collect($resposta->json('ordens'))->pluck('status.nome')->sort()->values()->all();
-    expect($status)->toBe(['Aguardando peça', 'Em reparo']);
+    $da98 = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001'], 98);
+    $da98->assertOk();
+    expect(collect($da98->json('ordens'))->pluck('status.nome')->all())->toBe(['Em reparo']);
+    expect($da98->getContent())->not->toContain('Aguardando peça');
+
+    $da99 = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'JS2026/0001'], 99);
+    $da99->assertOk();
+    expect(collect($da99->json('ordens'))->pluck('status.nome')->all())->toBe(['Aguardando peça']);
+    expect($da99->getContent())->not->toContain('Em reparo');
+
+    // A OS-B só existe na 99: pelo link da 98 ela não aparece.
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 98)->assertNotFound();
 });
 
 it('UC-COS-10 busca por celular desligada na config do Repair é recusada', function () {
     consultaOsSemear();
     config(['repair.enable_repair_check_using_mobile_num' => false]);
 
-    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002'])->assertStatus(422);
-    expect(app(RepairConsultaOsRepository::class)->buscar('mobile_num', '48999990002'))->toBe([]);
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002', 'serie' => 'SERIE-B'], 99)->assertStatus(422);
+    expect(app(RepairConsultaOsRepository::class)->buscar(99, 'mobile_num', '48999990002', 'SERIE-B'))->toBe([]);
     // Controle: os outros tipos seguem valendo.
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'])->assertOk();
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 99)->assertOk();
 });
 
 it('UC-COS-11 o portal antigo /repair-status leva ao /consulta-os', function () {
@@ -407,6 +459,80 @@ it('UC-COS-11 o portal antigo /repair-status leva ao /consulta-os', function () 
     expect(Route::has('post-repair-status'))->toBeFalse();
     $this->post('/post-repair-status', ['search_type' => 'job_sheet_no', 'search_number' => 'OS-B'])
         ->assertNotFound();
+});
+
+it('UC-COS-59 [T0] nº da venda: cada link só acha a venda da própria empresa', function () {
+    consultaOsSemear();
+    $agora = now();
+    $osDa98 = (int) DB::table('repair_job_sheets')->where('business_id', 98)->value('id');
+
+    // O mesmo nº de venda nas duas empresas: a 98 também tem uma "VND-99-1", ligada à OS dela.
+    DB::table('transactions')->insert([
+        'business_id' => 98, 'repair_job_sheet_id' => $osDa98, 'invoice_no' => 'VND-99-1',
+        'created_at' => $agora, 'updated_at' => $agora,
+    ]);
+    // Venda da 99 apontando para a OS da 98 (vínculo cruzado): não pode abrir a OS pelo link da 98.
+    DB::table('transactions')->insert([
+        'business_id' => 99, 'repair_job_sheet_id' => $osDa98, 'invoice_no' => 'VND-CRUZADA',
+        'created_at' => $agora, 'updated_at' => $agora,
+    ]);
+
+    $da98 = consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-99-1'], 98);
+    $da98->assertOk();
+    expect(collect($da98->json('ordens'))->pluck('numero')->all())->toBe(['JS2026/0001']);
+    $da98->assertJsonPath('ordens.0.status.nome', 'Em reparo');
+
+    $da99 = consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-99-1'], 99);
+    $da99->assertOk();
+    expect(collect($da99->json('ordens'))->pluck('numero')->all())->toBe(['OS-B']);
+
+    consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-CRUZADA'], 98)->assertNotFound();
+    // A venda própria da 98 continua achando a OS dela (controle positivo).
+    consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-98-1'], 98)->assertOk();
+});
+
+it('UC-COS-60 [T0] celular só com nº de série, e só dentro da empresa do link', function () {
+    consultaOsSemear();
+    config(['repair.enable_repair_check_using_mobile_num' => true]);
+
+    // Sem série: 422, com a mensagem que a tela mostra.
+    $sem = consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002'], 99);
+    $sem->assertStatus(422)->assertJsonValidationErrors('serie');
+    expect(app(RepairConsultaOsRepository::class)->buscar(99, 'mobile_num', '48999990002'))->toBe([]);
+
+    // Com série, pelo link da empresa certa: acha.
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002', 'serie' => 'SERIE-B'], 99)
+        ->assertOk()->assertJsonPath('ordens.0.numero', 'OS-B');
+    // O mesmo celular e série pelo link da outra empresa: nada.
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002', 'serie' => 'SERIE-B'], 98)->assertNotFound();
+
+    // Contato da 99 ligado a uma OS da 98 (vínculo cruzado): o celular dele não abre a OS da 98.
+    $osDa98 = DB::table('repair_job_sheets')->where('business_id', 98)->first();
+    $contatoDa99 = (int) DB::table('contacts')->where('mobile', '48999990002')->value('id');
+    DB::table('repair_job_sheets')->where('id', $osDa98->id)->update(['contact_id' => $contatoDa99]);
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002', 'serie' => $osDa98->serial_no], 98)->assertNotFound();
+});
+
+it('UC-COS-61 [T0] a empresa vem da URL: sem código não há busca, código desconhecido dá 404', function () {
+    consultaOsSemear();
+    consultaOsEmpresas(); // a tabela-ponte existe antes da 1ª requisição (em produção vem da migration)
+
+    // /consulta-os sem empresa: a tela abre, mas sem empresa para buscar.
+    $aviso = consultaOsVisitar('/consulta-os');
+    $aviso->assertOk()->assertJsonPath('component', 'ConsultaOs/Index');
+    $aviso->assertJsonPath('props.empresa', null);
+
+    // A busca antiga, sem empresa, não existe mais.
+    $this->getJson('/consulta-os/buscar?'.http_build_query(['tipo' => 'job_sheet_no', 'numero' => 'OS-B']))
+        ->assertNotFound();
+
+    // Código no formato certo mas sem empresa: 404 na tela e na busca, só com found=false.
+    $this->get('/consulta-os/semdna2345')->assertNotFound();
+    $this->getJson('/consulta-os/semdna2345/buscar?'.http_build_query(['tipo' => 'job_sheet_no', 'numero' => 'OS-B']))
+        ->assertNotFound()->assertExactJson(['found' => false]);
+
+    // Controle positivo: o código da 99 acha a OS dela.
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 99)->assertOk();
 });
 
 it('UC-COS-34 [T0] a resposta traz no máximo 20 OS, mesmo quando mais casam', function () {
@@ -423,13 +549,13 @@ it('UC-COS-34 [T0] a resposta traz no máximo 20 OS, mesmo quando mais casam', f
     // Anti-vácuo: as 25 existem no banco.
     expect(DB::table('repair_job_sheets')->where('job_sheet_no', 'LOTE-25')->count())->toBe(25);
 
-    $resposta = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'LOTE-25']);
+    $resposta = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'LOTE-25'], 98);
     $resposta->assertOk()->assertJsonPath('found', true);
     expect($resposta->json('ordens'))->toHaveCount(20);
 
     // O teto do charter é o mesmo número que o contrato do repositório declara.
     expect(ConsultaOsRepositoryInterface::LIMITE)->toBe(20);
-    expect(app(RepairConsultaOsRepository::class)->buscar('job_sheet_no', 'LOTE-25'))->toHaveCount(20);
+    expect(app(RepairConsultaOsRepository::class)->buscar(98, 'job_sheet_no', 'LOTE-25'))->toHaveCount(20);
 });
 
 it('UC-COS-35 [T0] a 31ª busca do mesmo IP no mesmo minuto recebe 429', function () {
@@ -438,15 +564,15 @@ it('UC-COS-35 [T0] a 31ª busca do mesmo IP no mesmo minuto recebe 429', functio
 
     // Busca sem critério (422) também conta: o limite vale antes da validação.
     for ($i = 1; $i <= 30; $i++) {
-        consultaOsBuscar([])->assertStatus(422);
+        consultaOsBuscar([], 98)->assertStatus(422);
     }
-    consultaOsBuscar([])->assertStatus(429);
+    consultaOsBuscar([], 98)->assertStatus(429);
     // A tela do portal divide o mesmo limite.
-    $this->get('/consulta-os')->assertStatus(429);
+    $this->get('/consulta-os/'.CONSULTA_OS_EMPRESA_98)->assertStatus(429);
 
     // Controle: outro IP, no mesmo minuto, ainda é atendido — o limite é por visitante.
     $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.32']);
-    consultaOsBuscar([])->assertStatus(422);
+    consultaOsBuscar([], 98)->assertStatus(422);
 });
 
 it('UC-COS-36 cada busca registra log com IP truncado e número redigido, sem dado da OS', function () {
@@ -457,8 +583,8 @@ it('UC-COS-36 cada busca registra log com IP truncado e número redigido, sem da
     $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.57'])
         ->withHeaders(['User-Agent' => str_repeat('Navegador-de-teste/1.0 ', 10)]);
 
-    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002'])->assertOk();
-    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1'])->assertNotFound();
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002', 'serie' => 'SERIE-B'], 99)->assertOk();
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1'], 98)->assertNotFound();
 
     $buscas = collect($logs)->filter(fn (MessageLogged $e) => $e->message === 'consultaos.busca_publica')->values();
     // Uma linha por busca, com o resultado de cada uma (caso discriminante: found × not_found).
@@ -482,13 +608,13 @@ it('UC-COS-36 cada busca registra log com IP truncado e número redigido, sem da
 it('UC-COS-37 falha interna na busca devolve 500 só com found=false, sem detalhe técnico', function () {
     $logs = consultaOsCapturarLogs();
     $this->app->instance(ConsultaOsRepositoryInterface::class, new class implements ConsultaOsRepositoryInterface {
-        public function buscar(string $tipo, string $numero, ?string $serie = null): array
+        public function buscar(int $businessId, string $tipo, string $numero, ?string $serie = null): array
         {
             throw new \RuntimeException('SQLSTATE-DETALHE-TECNICO-42');
         }
     });
 
-    $resposta = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B']);
+    $resposta = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 99);
 
     $resposta->assertStatus(500);
     $resposta->assertExactJson(['found' => false]);

@@ -9,7 +9,7 @@ const D = () => window.RepData;
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const agora = () => new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
-// Código de acompanhamento (Repair 06, UC-COS-20): o mesmo do repair-portal.jsx; aqui só lido.
+// Código de acompanhamento (Repair 06, UC-COS-48): o mesmo do repair-portal.jsx; aqui só lido.
 const codigo = (f) => (window.RepPortal && window.RepPortal.codigoDe ? window.RepPortal.codigoDe(f) : String(f.os).replace(/[^0-9A-Z]/gi, "").slice(-8).toUpperCase());
 const fmtCodigo = (f) => { const c = codigo(f); return c.slice(0, 4) + "-" + c.slice(4); };
 

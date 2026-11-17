@@ -3,9 +3,11 @@
 // e-mail) e vê a OS sem login e SEM cadastro no portal. O código é aleatório e único no sistema, então
 // resolve OS + empresa juntas — fecha o [T0] do _saida-04 (nº de OS sequencial cruzava empresas).
 // Três entradas: link /os/<código> (abre direto) · código digitado em /consulta-os · nº da OS + série
-// (legado, mantido). Casos: cowork-inbox/repair/ConsultaOs-link.casos.md (UC-COS-12..24).
+// (legado, mantido). Casos: cowork-inbox/repair/ConsultaOs-link.casos.md (UC-COS-40..52).
 // Payload = whitelist do RepairConsultaOsRepository (UC-COS-04): sem custo, senha, defeitos, cliente.
-// A tira .rpl-preview é controle do protótipo. Expõe window.RepPortal.
+// Estados de rede (2026-11-17, auditoria ConsultaOs lote 5): carregando, falha do servidor/sem conexão,
+// 429 (mesma mensagem para código certo ou errado) e várias OS do mesmo celular (lista → cartão).
+// A tira .rpl-preview é controle do protótipo. Expõe window.RepPortal. Também é a rota `portalos`.
 (() => {
 const { useState } = React;
 const R = () => window.RepData;
@@ -50,7 +52,7 @@ function Acompanhamento({ f, origem, semCadastro, onAcesso, aprovar, avisar }) {
 
 function PortalConsulta({ folhas, avisar }) {
   const D = R();
-  const { Alert, Button, Input, Select, EmptyState, Switch, Logo } = DS();
+  const { Alert, Button, Input, Select, EmptyState, Switch, Logo, Skeleton } = DS();
   const base = folhas && folhas.length ? folhas : D.FOLHAS;
   const exemplo = base.find((f) => !D.statusDe(f.status).concluido && (D.ATIVIDADES[f.id] || []).length) || base[0];
   const concluida = base.find((f) => D.statusDe(f.status).concluido) || base[base.length - 1];
@@ -66,13 +68,18 @@ function PortalConsulta({ folhas, avisar }) {
   const [erro, setErro] = useState(null);
   const [acesso, setAcesso] = useState(null);
   const [aprovar, setAprovar] = useState(true);
+  const [lista, setLista] = useState(null);
+  const [carregando, setCarregando] = useState(false);
   const [tema, setTema] = useState(document.documentElement.dataset.theme === "light" ? "light" : "dark");
   const trocarTema = (t) => { setTema(t); window.__setTweak ? window.__setTweak("theme", t) : (document.documentElement.dataset.theme = t); };
   const orcamento = base.find((f) => f.status === 3) || exemplo;
 
   const aplicar = (c) => {
-    setCenario(c); setErro(null); setAcesso(null);
-    if (c === "link") setRes({ f: exemplo, origem: "link" });
+    setCenario(c); setErro(null); setAcesso(null); setLista(null); setCarregando(false);
+    if (c === "carregando") { setRes(null); setEntrada("codigo"); setCod(fmtCod(codigoDe(exemplo))); setCarregando(true); }
+    else if (c === "falha" || c === "limite") { setRes(null); setEntrada("codigo"); setCod(fmtCod(codigoDe(exemplo))); setErro(c); }
+    else if (c === "varias") { setRes(null); setLista(base.slice(0, 4)); }
+    else if (c === "link") setRes({ f: exemplo, origem: "link" });
     else if (c === "pronto") setRes({ f: concluida, origem: "link" });
     else if (c === "orcamento") setRes({ f: orcamento, origem: "link" });
     else if (c === "entregue") setRes({ f: base.find((x) => x.status === 8) || concluida, origem: "link" });
@@ -100,7 +107,12 @@ function PortalConsulta({ folhas, avisar }) {
   const MSG = { formato: ["Confira o código", "O código tem 8 letras e números, como está no recibo (ex.: K7PM-4QXR)."],
     invalido: ["Não encontramos esta OS", "Confira o código no recibo ou na mensagem da loja. Se o link veio de nós, peça um novo no balcão."],
     expirado: ["Este link expirou", "O acompanhamento fica disponível até 90 dias depois da entrega. Para uma OS antiga, fale com a loja."],
-    "legado-incompleto": ["Faltam dados", "Informe o número da OS e o número de série que estão no recibo."] };
+    "legado-incompleto": ["Faltam dados", "Informe o número da OS e o número de série que estão no recibo."],
+    // 500 / sem rede: não é "OS não encontrada" — dizer isso faria o cliente achar que o código está errado.
+    falha: ["Não foi possível consultar agora", "O serviço não respondeu. Sua OS continua registrada na loja: tente de novo em instantes ou ligue para o balcão."],
+    // 429 (throttle 30/min): mesma mensagem para código certo ou errado, para não confirmar que a OS existe.
+    limite: ["Muitas consultas seguidas", "Por segurança, aguarde 1 minuto antes de consultar de novo."] };
+  const verBusca = cenario === "digitar" || cenario === "carregando" || cenario === "falha" || cenario === "limite" || (!res && erro && erro !== "expirado" && cenario !== "invalido");
 
   return (
     <div className="rp-wrap rpl-wrap">
@@ -115,6 +127,10 @@ function PortalConsulta({ folhas, avisar }) {
             <option value="entregue">OS entregue (na garantia)</option>
             <option value="expirado">Link expirado</option>
             <option value="invalido">Link com código errado</option>
+            <option value="carregando">Consultando (carregando)</option>
+            <option value="falha">Servidor fora do ar ou sem conexão</option>
+            <option value="limite">Muitas consultas seguidas (429)</option>
+            <option value="varias">Celular com várias OS</option>
           </select>
         </label>
         {window.CliSeg && <window.CliSeg size="sm" ariaLabel="Tamanho da prévia" value={modo} onChange={setModo} options={[{ key: "celular", label: "Celular 390" }, { key: "tela", label: "Tela cheia" }]} />}
@@ -127,7 +143,7 @@ function PortalConsulta({ folhas, avisar }) {
           <div className="rpl-page">
             <header className="rpl-top">{Logo && <Logo size={24} />}<div><b>{LOJA}</b><small>Acompanhamento de OS</small></div></header>
             <div className="rpl-body">
-              {(cenario === "digitar" || (!res && erro && erro !== "expirado" && cenario !== "invalido")) && (
+              {verBusca && (
                 <section className="rpl-card" data-contract="consulta-os-busca">
                   {React.createElement(res ? "h2" : "h1", { className: "rpl-h1" }, "Acompanhe sua OS")}
                   <p className="rpl-sub">Use o código que está no recibo ou na mensagem da loja. Não precisa de cadastro.</p>
@@ -136,18 +152,39 @@ function PortalConsulta({ folhas, avisar }) {
                     {entrada === "codigo" && Input && <Input label="Código de acompanhamento" value={cod} placeholder="K7PM-4QXR" onChange={(e) => setCod(val(e))} help="8 letras e números. Sem 0, O, 1 ou I." />}
                     {entrada === "numero" && Input && <><Input label="Número da OS" value={num} placeholder="JS-2026-0412" onChange={(e) => setNum(val(e))} /><Input label="Número de série" value={serie} placeholder="Como está na etiqueta" onChange={(e) => setSerie(val(e))} /></>}
                     {entrada === "celular" && Input && <Input label="Celular do cadastro" placeholder="(14) 99999-9999" help="Enviamos um código pelo WhatsApp para confirmar." />}
-                    {Button && <Button variant="primary" onClick={buscar}>Consultar</Button>}
+                    {Button && <Button variant="primary" onClick={buscar} disabled={carregando} aria-disabled={carregando}>{carregando ? "Consultando…" : "Consultar"}</Button>}
                   </div>
                   <p className="rpl-tip"><Ic name="info" size={13} /> Para a sua OS de teste, use <button className="rpl-link mono" onClick={() => { setEntrada("codigo"); setCod(fmtCod(codigoDe(exemplo))); }}>{fmtCod(codigoDe(exemplo))}</button> ou <span className="mono">{exemplo.os}</span> + <span className="mono">{exemplo.serie}</span>.</p>
                 </section>
               )}
-              {erro && Alert && <Alert tone={erro === "expirado" ? "warn" : "danger"} title={MSG[erro][0]}>{MSG[erro][1]}</Alert>}
+              {erro && Alert && <Alert tone={erro === "expirado" || erro === "limite" ? "warn" : "danger"} title={MSG[erro][0]}>{MSG[erro][1]}</Alert>}
               {(erro === "expirado" || cenario === "invalido") && Button && <div className="rpl-bar"><Button onClick={() => aplicar("digitar")}>Digitar outro código</Button></div>}
+              {erro === "falha" && Button && <div className="rpl-bar"><Button onClick={() => { setErro(null); buscar(); }}>Tentar de novo</Button><a className="rpl-link" href="tel:+551436220000">Ligar para a loja</a></div>}
+              {carregando && Skeleton && (
+                <section className="rpl-card" aria-busy="true" aria-label="Carregando a OS" data-contract="consulta-os-carregando">
+                  <Skeleton variant="caption" /><Skeleton variant="title" /><Skeleton variant="row" /><Skeleton variant="text" count={3} />
+                </section>
+              )}
+              {lista && !res && (
+                <section className="rpl-card" data-contract="consulta-os-lista">
+                  <h1 className="rpl-h1">{lista.length} OS neste celular</h1>
+                  <p className="rpl-sub">Celular confirmado pelo código do WhatsApp. Mostramos até 20 OS, as mais recentes primeiro.</p>
+                  <ul className="rpl-lista">
+                    {lista.map((f) => { const st = D.statusDe(f.status); const m = D.modeloDe(f.modelo); return (
+                      <li key={f.id}><button type="button" className="rpl-lista-item" onClick={() => setRes({ f, origem: "celular" })}>
+                        <span className="mono rpl-lista-os">{f.os}</span>
+                        <span className="rpl-lista-eq">{m.dispositivo + " · " + m.marca + " " + m.nome}</span>
+                        <span className="rpl-lista-st"><span aria-hidden="true" className="rpl-dot" style={{ background: st.cor }} />{st.nome}</span>
+                      </button></li>); })}
+                  </ul>
+                </section>
+              )}
+              {lista && res && Button && <div className="rpl-bar"><Button onClick={() => setRes(null)}>Voltar para as {lista.length} OS</Button></div>}
               {res && <Acompanhamento key={res.f.id + cenario} f={res.f} origem={res.origem} semCadastro={semCadastro && !acesso} onAcesso={() => setAcesso("enviado")} aprovar={aprovar} avisar={avisar} />}
               {acesso && Alert && <Alert tone="info" title="Código enviado">Digite o código de 6 dígitos que chegou pelo WhatsApp. Ele vale 10 minutos. Se o celular da OS não for mais o seu, fale com a loja.</Alert>}
               {!res && !erro && cenario === "digitar" && EmptyState && <EmptyState variant="first" title="Nada consultado ainda" description="O código fica no recibo, abaixo do QR, e na mensagem de WhatsApp da loja." />}
             </div>
-            <div role="status" aria-live="polite" className="osc-sr">{res ? "OS " + res.f.os + " aberta." : erro ? MSG[erro][0] + "." : ""}</div>
+            <div role="status" aria-live="polite" className="osc-sr">{carregando ? "Consultando a OS." : res ? "OS " + res.f.os + " aberta." : lista ? lista.length + " OS encontradas." : erro ? MSG[erro][0] + "." : ""}</div>
             <footer className="rpl-foot">{LOJA} · <a href="tel:+551436220000">(14) 3622-0000</a> · seg a sex, 8h às 18h</footer>
           </div>
         </div>

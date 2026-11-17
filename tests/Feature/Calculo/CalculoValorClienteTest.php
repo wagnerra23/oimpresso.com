@@ -38,7 +38,7 @@ use Tests\TestCase;
  *
  *   2. `TransactionUtil::getLedgerDetails(...)['all_balance_due']` — o saldo do EXTRATO
  *      exibido na tela `resources/js/Pages/Cliente/Ledger.tsx` (servida por
- *      `Modules/Crm/Http/Controllers/ClienteOssDataController::ledger`). Método próprio,
+ *      `app/Http/Controllers/ContactController::getLedger`). Método próprio,
  *      independente do #1, que reconcilia is_return da mesma forma. [app/Utils/TransactionUtil.php:5156]
  *
  * O saldo NÃO é mera reutilização de `getTotalPaid` (já coberto pela Onda 1.4 #3695):
@@ -299,7 +299,7 @@ class CalculoValorClienteTest extends TestCase
      * Os DOIS caminhos independentes de "quanto o cliente me deve" têm que convergir
      * pro MESMO número. É a "dupla confirmação por dois caminhos independentes" da
      * REGRA MESTRE, e cobre de quebra o método que a tela Cliente/Ledger.tsx usa de
-     * verdade (getLedgerDetails, via ClienteOssDataController::ledger).
+     * verdade (getLedgerDetails, via ContactController::getLedger).
      *
      * Cenário: venda 227.90 + opening_balance 500 + pagou 100 + devolveu 30.
      *   getContactDue        = 500 + 227.90 − (100 − 30) = 657.90

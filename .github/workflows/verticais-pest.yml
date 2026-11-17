@@ -65,6 +65,10 @@ on:
       # UC-COS-31/32 — o aviso de OS do Repair mora no módulo Whatsapp; sem o listener no
       # trigger, mexer nele não rodaria o contrato que o cobre.
       - 'Modules/Whatsapp/Listeners/NotifyRepairCustomer.php'
+      # UC-COS-12 — /consulta-os/buscar em MySQL real (ClienteAcompanhaStatusContratoTest) é o
+      # único teste que roda o RepairConsultaOsRepository fora do schema sintético do sqlite.
+      # Sem o módulo aqui, PR que só mexe no repositório não roda esse teste.
+      - 'Modules/ConsultaOs/**'
       - 'resources/js/Pages/Repair/**'
       - 'Modules/Vestuario/**'
       - 'resources/js/Pages/Vestuario/**'
@@ -224,6 +228,8 @@ jobs:
               - 'resources/js/Pages/ComunicacaoVisual/**'
               - 'Modules/Repair/**'
               - 'Modules/Whatsapp/Listeners/NotifyRepairCustomer.php'
+              # UC-COS-12 (MySQL real do RepairConsultaOsRepository) — mesmo motivo do trigger `push`.
+              - 'Modules/ConsultaOs/**'
               - 'resources/js/Pages/Repair/**'
               - 'Modules/Vestuario/**'
               - 'resources/js/Pages/Vestuario/**'
