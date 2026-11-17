@@ -3,6 +3,7 @@
 // próxima linha); o nome da variação vem do modelo da empresa, como no Blade (decisão do [F] em
 // 2026-11-17). A conta e o envio moram em grade.ts e precos.ts.
 import type { KeyboardEvent } from 'react';
+import { Grid, Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -54,7 +55,7 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
 
   return (
     <div className="col-span-full" role="group" aria-label="Grade da variação">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <Grid cols={1} gap={4} className="md:grid-cols-2">
         <div>
           <Label htmlFor="variacao_modelo">Variação *</Label>
           <Select value={grade.modeloId ? String(grade.modeloId) : undefined} onValueChange={(v) => mudar({ ...grade, modeloId: Number(v) })}>
@@ -73,22 +74,24 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
         <div>
           <span className="cw-label">Formato do SKU da variação</span>
           <RadioGroup
-            className="mt-2 flex gap-4"
+            className="mt-2"
             value={grade.formato}
             onValueChange={(v) => mudar({ ...grade, formato: v as FormatoSubSku })}
             aria-label="Formato do SKU da variação"
           >
-            <div className="flex items-center gap-2">
-              <RadioGroupItem id="sku_type_numero" value="with_out_variation" />
-              <Label htmlFor="sku_type_numero" className="text-[13px] font-normal">Número do SKU</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <RadioGroupItem id="sku_type_variacao" value="with_variation" />
-              <Label htmlFor="sku_type_variacao" className="text-[13px] font-normal">SKU + número da variação</Label>
-            </div>
+            <Inline gap={4}>
+              <Inline gap={2}>
+                <RadioGroupItem id="sku_type_numero" value="with_out_variation" />
+                <Label htmlFor="sku_type_numero" className="text-[13px] font-normal">Número do SKU</Label>
+              </Inline>
+              <Inline gap={2}>
+                <RadioGroupItem id="sku_type_variacao" value="with_variation" />
+                <Label htmlFor="sku_type_variacao" className="text-[13px] font-normal">SKU + número da variação</Label>
+              </Inline>
+            </Inline>
           </RadioGroup>
         </div>
-      </div>
+      </Grid>
 
       <datalist id="variacao_valores">
         {(modelo?.valores ?? []).map((v) => (
@@ -178,12 +181,12 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
           </tbody>
         </table>
       </div>
-      <div className="mt-2 flex items-center gap-3">
+      <Inline gap={3} className="mt-2">
         <Button type="button" variant="outline" size="sm" onClick={acrescentar}>
           <Plus className="mr-1 h-4 w-4" /> Adicionar valor
         </Button>
         <span className="text-[12px] text-muted-foreground">Enter na última linha abre a seguinte. Valor novo entra no modelo ao salvar.</span>
-      </div>
+      </Inline>
       {erro && (
         <p role="alert" className="mt-1 text-[12px] text-destructive">
           {erro}
