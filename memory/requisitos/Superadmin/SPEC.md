@@ -154,4 +154,4 @@ Origem: levantamento de lacunas 2026-10-25 (P2 Plataforma — onboarding guiado 
 
 Medido em 2026-11-16 (`git ls-files Modules/Superadmin/Tests`): 28 arquivos em `Modules/Superadmin/Tests/Feature/`. Os que declaram `@covers-us` estão nas linhas `**Testado em:**` de cada US. A lista "Wave B" que ficava aqui (`MultiTenantIsolationTest`, `ScaffoldTest`) citava arquivos que não existem mais.
 
-Quais desses arquivos rodam numa lane de PR é pergunta para `node scripts/governance/test-lane-coverage.mjs --json`, não para este SPEC (a auditoria de 2026-11-05 contou 15 de 27 fora de lane; o lote L1 trata disso).
+Quais desses arquivos rodam numa lane de PR é pergunta para `node scripts/governance/test-lane-coverage.mjs --json`, não para este SPEC. A auditoria de 2026-11-05 contou 15 de 27 fora de lane; depois do lote L1 (#11056 e #11057), a mesma medição em 2026-11-17 dá 5 de 32.

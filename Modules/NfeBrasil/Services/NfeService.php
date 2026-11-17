@@ -975,7 +975,7 @@ class NfeService
         $ncmPadraoUsado = [];
         $itensFallback = 0; // R-NFE-025b
         $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0,
-            'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0, 'v_bc_st' => 0.0, 'v_st' => 0.0];
+            'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0, 'v_bc_st' => 0.0, 'v_st' => 0.0, 'v_ipi' => 0.0];
         $temDifal = $internaDestino !== null && $destinatarioContribuinte === false && $ufOrigem !== $ufDestino;
         foreach ($itens as $i => $it) {
             $ncm = preg_replace('/\D/', '', (string) $it['ncm']);
@@ -1101,6 +1101,15 @@ class NfeService
                     'valor_ibs'    => $tributo->valor_ibs,
                     'valor_cbs'    => $tributo->valor_cbs,
                 ],
+                // Grupo IPI só quando o motor diz o CST (natureza da tela). Tributado (IPITrib) leva
+                // base, alíquota e valor; os demais CST vão sem valor (IPINT).
+                'ipi' => $tributo->cst_ipi === null ? null : [
+                    'cst'   => $tributo->cst_ipi,
+                    'c_enq' => $tributo->c_enq_ipi ?? '999',
+                    'vbc'   => $tributo->valor_ipi > 0 ? $base : 0.0,
+                    'pipi'  => round($tributo->aliquota_ipi * 100, 4),
+                    'vipi'  => $tributo->valor_ipi,
+                ],
                 'nivel_tributacao' => $tributo->nivel_usado,
                 // R-NFE-037: DIFAL da venda a não contribuinte de outra UF (grupo ICMSUFDest).
                 // Os valores são os do motor (R-NFE-017/035); o vNF não muda.
@@ -1116,6 +1125,9 @@ class NfeService
             if ($temDifal) {
                 $tot['v_icms_uf_dest'] += $tributo->valor_difal;
                 $tot['v_fcp_uf_dest']  += $tributo->valor_fcp;
+            }
+            if ($tributo->cst_ipi !== null) {
+                $tot['v_ipi'] += $tributo->valor_ipi;
             }
             if ($tributo->valor_st > 0) {
                 $tot['v_bc_st'] += $tributo->base_st;
@@ -1152,9 +1164,11 @@ class NfeService
                 'v_fcp_uf_dest'  => round($tot['v_fcp_uf_dest'], 2),
                 'v_bc_st'   => round($tot['v_bc_st'], 2),
                 'v_st'      => round($tot['v_st'], 2),
+                'v_ipi'     => round($tot['v_ipi'], 2),
                 // R-NFE-043 · leiaute W16: vNF = vProd − vDesc + vST + vFrete + vSeg + vOutro + vII + vIPI.
-                // O ST entra por cima do total da venda (o comprador paga o imposto retido).
-                'v_nf'      => ($totalCent + (int) round($tot['v_st'] * 100)) / 100.0,
+                // O ST e o IPI entram por cima do total da venda (o comprador paga os dois). Sem IPI
+                // (tudo que não é natureza da tela), v_ipi = 0 e o vNF é o de antes.
+                'v_nf'      => ($totalCent + (int) round($tot['v_st'] * 100) + (int) round($tot['v_ipi'] * 100)) / 100.0,
                 'v_desc'    => array_sum($descontos) / 100.0,
                 'v_frete'   => array_sum($fretes) / 100.0,
                 'v_outro'   => array_sum($outros) / 100.0,
@@ -2781,7 +2795,7 @@ class NfeService
         $stdICMSTot->vSeg        = 0.00;
         $stdICMSTot->vDesc       = $this->fmt($total['v_desc'] ?? 0);
         $stdICMSTot->vII         = 0.00;
-        $stdICMSTot->vIPI        = 0.00;
+        $stdICMSTot->vIPI        = (float) ($total['v_ipi'] ?? 0) > 0 ? $this->fmt((float) $total['v_ipi']) : 0.00;
         $stdICMSTot->vIPIDevol   = 0.00;
         $stdICMSTot->vPIS        = $this->fmt($total['v_pis'] ?? 0);
         $stdICMSTot->vCOFINS     = $this->fmt($total['v_cofins'] ?? 0);
@@ -2964,6 +2978,19 @@ class NfeService
         $stdCOFINS->pCOFINS = $this->fmt((float) ($cofins['pcofins'] ?? 0));
         $stdCOFINS->vCOFINS = $this->fmt((float) ($cofins['vcofins'] ?? 0));
         $nfe->tagCOFINS($stdCOFINS);
+
+        // IPI (grupo O). Só com a chave (natureza da tela); sem ela o item sai como antes, sem IPI.
+        if (! empty($det['ipi'])) {
+            $ipi           = $det['ipi'];
+            $stdIPI        = new \stdClass();
+            $stdIPI->item  = $item;
+            $stdIPI->cEnq  = (string) $ipi['c_enq'];
+            $stdIPI->CST   = (string) $ipi['cst'];
+            $stdIPI->vBC   = $this->fmt((float) $ipi['vbc']);
+            $stdIPI->pIPI  = $this->fmt((float) $ipi['pipi'], 4);
+            $stdIPI->vIPI  = $this->fmt((float) $ipi['vipi']);
+            $nfe->tagIPI($stdIPI);
+        }
 
         // R-NFE-037: grupo NA (ICMSUFDest) — alíquotas em percentual, partilha 100% para o destino
         // desde 2019 (EC 87/2015, art. 99 do ADCT). Sem a chave, o item sai como antes.
