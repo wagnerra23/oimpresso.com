@@ -515,6 +515,7 @@ it('UC-COS-60 [T0] celular só com nº de série, e só dentro da empresa do lin
 
 it('UC-COS-61 [T0] a empresa vem da URL: sem código não há busca, código desconhecido dá 404', function () {
     consultaOsSemear();
+    consultaOsEmpresas(); // a tabela-ponte existe antes da 1ª requisição (em produção vem da migration)
 
     // /consulta-os sem empresa: a tela abre, mas sem empresa para buscar.
     $aviso = consultaOsVisitar('/consulta-os');
