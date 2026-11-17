@@ -380,6 +380,10 @@ last_run: "2026-10-07"
 - **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemValidacaoTest.php`
 - **Regressão que defende:** quantidade 0 dividindo o total (erro 500) e consumo negativo somando estoque em vez
   de baixar.
+- **Status: 🧪**
+
+---
+
 ## UC-OP-23 · Excluir o rascunho leva a ordem inteira e deixa trilha
 - **Persona:** quem descarta um rascunho de ordem.
 - **Aceite:** Dado um rascunho · Quando é excluído · Então somem a ordem e a venda de produção filha (o consumo,
