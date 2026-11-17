@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 93 |
-| UC com teste que os cita | 93 |
+| UC declarados | 98 |
+| UC com teste que os cita | 98 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -94,6 +94,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-MCFG-02 | Settings | 🧪 aguarda veredito da lane |
 | UC-MCFG-03 | Settings | 🧪 aguarda veredito da lane |
 | UC-MCFG-04 | Settings | 🧪 aguarda veredito da lane |
+| UC-MCFG-05 | Settings | 🧪 aguarda veredito da lane |
+| UC-MCFG-06 | Settings | 🧪 aguarda veredito da lane |
 | UC-OP-01 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-02 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-03 | Index | 🧪 aguarda veredito da lane |
@@ -114,6 +116,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-OP-18 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-19 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-20 | Index | 🧪 aguarda veredito da lane |
+| UC-OP-22 | Index | 🧪 aguarda veredito da lane |
 | UC-RECIPE-00 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-01 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-02 | Recipes | 🧪 aguarda veredito da lane |
@@ -135,6 +138,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RECIPE-19 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-20 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-21 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-22 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-23 | Recipes | 🧪 aguarda veredito da lane |
 | UC-REPORT-00 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-01 | Report | 🧪 aguarda veredito da lane |
@@ -142,6 +146,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-REPORT-03 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-04 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-05 | Report | 🧪 aguarda veredito da lane |
+| UC-REPORT-06 | Report | 🧪 aguarda veredito da lane |
 
 ---
 

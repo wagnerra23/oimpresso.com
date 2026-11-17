@@ -5,8 +5,8 @@ irmaos: Show.charter.md (lei) · Show.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
 related_us: [US-NFSE-006, US-NFSE-010]
-last_run: "2026-09-30"
-last_run_ci: "0 UC executado — casos nascem neste PR; veredito pendente da lane PHP / Pest (Unit)"
+last_run: "2026-11-16"
+last_run_ci: "UC-NFSD-01..04 na lane sqlite do ci.yml; UC-NFSD-05/06 na lane nfse-pest (MySQL) — veredito pendente deste PR"
 ---
 
 # Casos de Uso & Aceite — Detalhe da NFS-e (`/nfse/{id}`)
@@ -38,6 +38,8 @@ Nunca biz=4.
 | UC-NFSD-02 | Cancelar exige motivo de 15 a 255 caracteres | must | charter Non-Goals (*"NÃO cancela sem motivo"*) · US-NFSE-006 | `NfseTelasContratoTest` | 🧪 |
 | UC-NFSD-03 | Só quem tem `nfse.cancel` cancela, e só por POST | must `[T0]` | charter (*"Gates … `nfse.cancel`"*) · Anti-hooks | `NfseTelasContratoTest` | 🧪 |
 | UC-NFSD-04 | Emitida, cancelada e erro têm rótulo e cor distintos | should | charter Goals (*"`StatusBadge`"*) · UX targets | `NfseTelasContratoTest` | 🧪 |
+| UC-NFSD-05 | Nota cancelada mostra quando foi cancelada | should | charter Goals (pós-emissão) · US-NFSE-006 | `NfseShowTelaTest` | 🧪 |
+| UC-NFSD-06 | O detalhe diz o ambiente do provedor da empresa | should | charter Mission (*"resolve o destino de uma nota"*) · ADR 0093 | `NfseShowTelaTest` | 🧪 |
 
 ## UC-NFSD-01 · O id da URL só resolve nota do business da sessão · `must` `[T0]`
 
@@ -68,6 +70,27 @@ Nunca biz=4.
 - **Aceite:** Dado uma nota `emitida`, uma `cancelada` e uma `erro` · Então cada uma tem rótulo
   próprio e as três cores são diferentes.
 - **Teste:** `NfseTelasContratoTest` — *"UC-NFSD-04 · emitida, cancelada e erro tem rotulo e cor distintos"*.
+- **Status: 🧪**
+
+## UC-NFSD-05 · Nota cancelada mostra quando foi cancelada · `should`
+
+- **Aceite:** Dado uma nota cancelada e uma emitida do business 98 com o mesmo `updated_at` ·
+  Quando o detalhe abre · Então a cancelada traz `cancelada_em` (`DD/MM/AAAA HH:MM`) e a emitida
+  traz `null`.
+- **Fonte:** cancelada é terminal; depois da troca de status nada grava na linha, então o
+  `updated_at` é o momento do cancelamento. O **motivo** não é guardado em coluna nenhuma — mostrá-lo
+  depende do evento de cancelamento (lote 2, PR 2.4).
+- **Teste:** `NfseShowTelaTest` — *"UC-NFSD-05 · nota cancelada mostra quando foi cancelada; emitida nao"* (lane `nfse-pest`, MySQL).
+- **Status: 🧪**
+
+## UC-NFSD-06 · O detalhe diz o ambiente do provedor da empresa · `should`
+
+- **Persona:** operador do business 98; o business 99, em produção, como contraparte.
+- **Aceite:** Dado o provedor do 98 em homologação e o do 99 em produção · Quando o detalhe de uma
+  nota do 98 abre · Então `ambiente` é `homologacao`; trocar o 98 para produção troca o valor.
+- **Limite declarado:** a nota não grava o ambiente em que saiu (`xml_envio` nunca é preenchido).
+  A tela mostra o configurado **hoje** e diz isso no rótulo.
+- **Teste:** `NfseShowTelaTest` — *"UC-NFSD-06 · o detalhe diz o ambiente do provedor da empresa da nota"*.
 - **Status: 🧪**
 
 ## Fora do contrato por enquanto

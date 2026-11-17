@@ -52,7 +52,7 @@ lifecycle: ativo
 | `catalog-graph.yml` | pr+manual | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +26 | Catalog graph — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exerci… |
 | `charter-refs-gate.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256) |
 | `charter-us-gate.yml` | pr+cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Charter ↔ US join (advisory · related_us nos Page Charters · charter-us-lint.mjs --check diff-aware no PR + cobertura full-tree no cron) |
-| `ci.yml` | pr+push+manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +46 | CI |
+| `ci.yml` | pr+push+manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +47 | CI |
 | `ciclo-completo.yml` | pr+manual | `memory/requisitos/Jana/Index-visual-comparison.md` +2 | ciclo-completo (advisory) — catraca do CICLO-DE-TELA por tela: quantas telas roteadas têm o conjunto obrigatório (charter + Padrão de Tela declarado + pt-conforme via pt-… |
 | `cliente-pest.yml` | pr+push+manual | `memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md` +5 | Cliente · Pest (MySQL) |
 | `cobranca-filtros-gate.yml` | pr+push+manual | — | Cobrança filtros gate — precedência localStorage × querystring (UC-COB-03). Trava o comportamento reescrito com prova em 2026-09-03: o servidor filtra pela querystring e … |
@@ -134,7 +134,7 @@ lifecycle: ativo
 | `mv-metabolismo.yml` | cron+manual | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +20 | MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch) |
 | `negocio-vs-governanca-ratio.yml` | pr+cron+manual | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +4 | Ratio negócio × governança (sentinela anti-atrofia) — mede o FLUXO de merges (first-parent, janela 4 semanas) classificado em NEGÓCIO (A+B) × GOVERNANÇA-META (C) × INFRA,… |
 | `nfebrasil-pest.yml` | pr+push+manual | `memory/decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md` +26 | NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b |
-| `nfse-pest.yml` | pr+push+manual | — | NFSe · Pest (MySQL) |
+| `nfse-pest.yml` | pr+push+manual | `memory/requisitos/NFSe/RUNBOOK-show.md` | NFSe · Pest (MySQL) |
 | `no-mock-gate.yml` | pr+push | (só sessão/handoff · 5) | No-mock-in-prod ratchet (stub/mock em controller) |
 | `officeimpresso-pest.yml` | pr+push+manual | `memory/requisitos/Officeimpresso/logs-parity.md` +4 | Officeimpresso · Pest (MySQL) |
 | `oficinaauto-pest.yml` | pr+push+manual | `memory/requisitos/_Governanca/programa-ondas/passo-5-sdd-por-modulo.md` +6 | OficinaAuto · Pest (MySQL) |
@@ -180,7 +180,7 @@ lifecycle: ativo
 | `tier0-guards-advisory.yml` | pr+push | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +3 | Tier-0 guards (WithoutGlobalScopes + BusinessId) |
 | `typecheck-gate.yml` | pr+push+manual | — | TypeScript (ratchet vs baseline) — catraca de erros do `tsc --noEmit` por par arquivo\|codigoTS vs config/typecheck-baseline.json. Congela o debito atual e reprova so REGR… |
 | `ui-architecture-gate.yml` | pr+push+manual | `memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md` +12 | UI architecture gate |
-| `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Producao/SPEC.md` +29 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
+| `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Producao/SPEC.md` +30 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
 | `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +155 | Browser E2E (Pest 4 Browser) |
 | `whatsapp-pest.yml` | pr+push+manual | `memory/requisitos/AppMobile/api/tela-41-atendimento.md` +2 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
@@ -265,7 +265,7 @@ lifecycle: ativo
 | `automem-pending` | B | `memory/decisions/0131-tiering-memoria-canonico-local-segredo.md` +8 | BLOQUEADOR — quando user mencionar tópico/módulo OU Edit/Read em path com auto-mem stale pendente migração (ADR 0061), esta skill carrega manifesto AU… |
 | `avaliar-modulo` | B | `memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md` +14 | ⚰️ APOSENTADA (ADR 0399, 2026-09-15) — NÃO ATIVAR: `php artisan module:grade` não existe mais; para estado de módulo use o BRIEFING, `module-surface.m… |
 | `brief-first` | B | `memory/decisions/0091-daily-brief.md` +64 | BLOQUEADOR — antes de qualquer outra tool MCP, Read, Glob, Grep ou ação no |
-| `brief-update` | B | `memory/decisions/0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento.md` +45 | Use SEMPRE depois de commit/merge de PR que altere capacidades, diferenciais, score Capterra, UX visível, ou gaps de um módulo do oimpresso. |
+| `brief-update` | B | `memory/decisions/0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento.md` +46 | Use SEMPRE depois de commit/merge de PR que altere capacidades, diferenciais, score Capterra, UX visível, ou gaps de um módulo do oimpresso. |
 | `charter-first` | B | `memory/decisions/0102-s6-charter-capterra-postmortem-s7-backlog.md` +62 | BLOQUEADOR — ANTES de editar qualquer .tsx que tenha .charter.md ao lado (ex Index.tsx + Index.charter.md), chame tool MCP `charter-fetch <page-id>` p… |
 | `charter-write` | B | `memory/decisions/0102-s6-charter-capterra-postmortem-s7-backlog.md` +47 | ATIVAR quando user pedir "criar charter da tela X", "escrever charter pra /caminho", "gerar charter de Index.tsx Y", "novo charter Page", "/charter-wr… |
 | `cliente-discovery` | B | `memory/requisitos/_DesignSystem/RUNBOOK-design-deep.md` +5 | ATIVAR quando Wagner pedir /cliente-discovery, "entrevistar cliente X", "fazer discovery do cliente Y", "criar persona pra <pessoa>", "vou visitar cli… |
@@ -659,7 +659,7 @@ lifecycle: ativo
 | `maquinas-inventario.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +21 | DERIVA um índice único e legível de TODAS as "máquinas" |
 | `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +7 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
-| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +119 | GERADOR determinístico da "Superfície de código" de um módulo. |
+| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +120 | GERADOR determinístico da "Superfície de código" de um módulo. |
 | `negocio-vs-governanca-ratio.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md` +11 | o alarme anti-atrofia da inteligência de negócio. |
 | `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +13 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | 🔴 disco | — | `memory/decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md` +1 | normaliza status/lifecycle de ADR pro enum canônico. |
@@ -699,7 +699,7 @@ lifecycle: ativo
 | `system-map.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +52 | a MATRIZ gerada do painel do sistema oimpresso. |
 | `tasks-index-generate.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/_BACKLOG-GENERATED.md` +11 | GERADOR determinístico de BACKLOG + CHANGELOG indexados. |
 | `tema-owner.mjs` | agente | 🟢 só lê | test | `memory/proibicoes.md` +5 | detector ADVISORY de DONO-DE-TEMA por sobreposição de ENTIDADE. |
-| `test-lane-coverage.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +27 | quais testes EXISTEM × quais o CI realmente EXECUTA. |
+| `test-lane-coverage.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +28 | quais testes EXISTEM × quais o CI realmente EXECUTA. |
 | `uc-sem-lane.mjs` | ci, script | 🟢 só lê | — | (só sessão/handoff · 2) | UC com o id no TÍTULO de um teste que LANE NENHUMA executa. |
 | `ui-impact.mjs` | ci | 🔴 disco | — | `memory/decisions/0445-comparacao-de-pixel-sai-do-projeto.md` +13 | Fonte única do skip-as-pass do visual-regression. |
 | `visual-comparison-staleness.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0329-doutrina-documentacao-de-processo-executavel.md` +15 | sentinela: o `<tela>-visual-comparison.md` ficou atrás da TELA? |

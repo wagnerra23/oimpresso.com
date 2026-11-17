@@ -250,7 +250,8 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
         $src = file_get_contents((new ReflectionClass(NfseEmissaoService::class))->getFileName());
 
         expect($src)->toContain('MAX_RETRIES = 3')
-            ->and($src)->toContain('sleep(2 ** ($tentativa - 1))'); // backoff exponencial canon
+            // backoff exponencial canon; a base vem de config('nfse.backoff_base_segundos') (lote 2, PR 2.2)
+            ->and($src)->toContain("config('nfse.backoff_base_segundos', 1) * 2 ** (\$tentativa - 1)");
     });
 
     it('D9 spans: NfseEmissaoService trata 4 exceptions diferenciadas (RPS / Cert / Timeout / Generic)', function () {
@@ -285,9 +286,10 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
     it('D9 spans: NfseEmissaoService idempotência preserva 1ª nota (anti-duplicação fiscal)', function () {
         $src = file_get_contents((new ReflectionClass(NfseEmissaoService::class))->getFileName());
 
-        // Status 'emitida' OU 'processando' já existe → retorna sem duplicar fiscal
-        expect($src)->toContain("whereIn('status', ['emitida', 'processando'])")
-            ->and($src)->toContain('if ($existente)');
+        // Lote 2 PR 2.2: a chave é UNIQUE — emitida/processando/erro reusam a linha, nunca
+        // criam outra (emitida devolve; erro volta a processando com o mesmo nº de DPS).
+        expect($src)->toContain("whereIn('status', ['emitida', 'processando', 'erro'])")
+            ->and($src)->toContain('if ($existente === null)');
     });
 
     // ---- Tier 0 imutabilidade fiscal ----
