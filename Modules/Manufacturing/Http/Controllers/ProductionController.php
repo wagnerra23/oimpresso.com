@@ -948,17 +948,42 @@ class ProductionController extends Controller
         }
 
         if (request()->ajax()) {
+            // UC-OP-23 (lote 2.7 da auditoria): o rascunho é a compra de produção mais a venda de produção
+            // que consome os insumos. Antes só a compra saía, por Builder (sem registro na trilha), e a venda
+            // ficava órfã; e o "excluído" vinha mesmo quando nada era apagado (ordem finalizada ou id que não
+            // existe). Rascunho não movimenta estoque (compra `pending`, venda `draft`).
+            $nivelTransacao = DB::transactionLevel();
             try {
-                $transaction = Transaction::where('id', $id)
+                $ordem = Transaction::where('id', $id)
                             ->where('business_id', $business_id)
                             ->where('type', 'production_purchase')
                             ->where('mfg_is_final', 0)
-                            ->delete();
+                            ->first();
+                if ($ordem === null) {
+                    // Finalizada ou id que não existe: nada foi apagado, a resposta não diz que foi.
+                    throw new ModelNotFoundException();
+                }
+
+                DB::beginTransaction();
+                // Model a model (não Builder): o `LogsActivity` registra cada exclusão.
+                $vendas = Transaction::where('business_id', $business_id)
+                            ->where('type', 'production_sell')
+                            ->where('mfg_parent_production_purchase_id', $ordem->id)
+                            ->get();
+                foreach ($vendas as $venda) {
+                    $venda->delete();
+                }
+                $ordem->delete();
+                DB::commit();
+
                 $output = [
                     'success' => true,
                     'msg' => __('lang_v1.deleted_success'),
                 ];
+            } catch (ModelNotFoundException $e) {
+                $output = ['success' => false, 'msg' => trans('messages.something_went_wrong')];
             } catch (\Exception $e) {
+                $this->desfazerTransacaoDaOrdem($nivelTransacao);
                 $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
 
                 $output['success'] = false;
