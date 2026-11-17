@@ -18,7 +18,6 @@
     "resources/js/Pages/Cliente/_components/KpiStripClickable.tsx": 2,
     "resources/js/Components/CommandPalette.tsx": 1,
     "resources/js/Pages/ConsultaOs/_components/OsLookupForm.tsx": 5,
-    "resources/js/Pages/ConsultaOs/_components/OsPipeline.tsx": 2,
     "resources/js/Pages/ConsultaOs/_components/OsResultCard.tsx": 3,
     "resources/js/Pages/Jana/_components/AssistantUiChat.tsx": 9,
     "resources/js/Pages/Jana/_components/JanaCockpit.tsx": 29,
