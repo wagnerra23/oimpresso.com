@@ -338,6 +338,30 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-25 · A trilha da receita leva a empresa
+- **Persona:** quem consulta a auditoria (/auditoria) da empresa.
+- **Aceite:** Dado uma alteração na receita ou num ingrediente · Quando o registro da trilha é gravado · Então ele leva
+  a empresa da receita (pelo produto), e aparece na auditoria da empresa.
+- **Fonte:** trilha por empresa (`ActivityCauserKindObserver`, ADR 0127): a tela filtra por `business_id` ·
+  auditoria do Manufacturing, lote 2.7.
+- **Teste:** `ExcluirRascunhoTrilhaTest.php`
+- **Regressão que defende:** a receita não tem coluna de empresa, e o registro nascia sem ela — sumia da auditoria.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-22 · Perguntar se o produto tem receita exige acesso ao módulo
+- **Persona:** quem monta ordem de produção pela tela legada.
+- **Aceite:** Dado um usuário sem `access_recipe` nem `access_production` · Quando pergunta
+  `/manufacturing/is-recipe-exist/{variação}` · Então recebe 403 · Dado o mesmo pedido com `access_recipe`
+  ou com `access_production` · Então recebe a resposta (1 quando a receita existe).
+- **Fonte:** auditoria do Manufacturing, lote 2.1: todas as rotas do módulo checam pacote e permissão.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** a única rota do módulo sem gate nenhum.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-23 · A receita sempre tem forma de custo extra, e a lista mostra a forma que a conta usou
 - **Persona:** Wagner — lê "Custo extra (…)" no painel da receita.
 - **Aceite:** Dado o salvar sem `production_cost_type` (ausente ou vazio) · Então volta com erro no campo e a

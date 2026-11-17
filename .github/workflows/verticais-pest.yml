@@ -722,6 +722,10 @@ jobs:
         # ENTRA 2026-11-11 — Fisio/FisioCobrancaAvaliacaoTest (etapa 07 P-05 · UC-FPP-59..61): aviso da avaliação
         # do estudo no portal e pelo WhatsApp (uma vez por momento, com consentimento), 98×99.
         #
+        # ENTRA 2026-11-16 — Superadmin/SuperadminRotasDestrutivasContratoTest (lote 0 · UC-SARD-01..07):
+        # desativar empresa, excluir empresa e excluir pacote só por POST/DELETE; GET antigo não apaga;
+        # `is_active` fora de 0/1 → 404; excluir o próprio negócio é recusado sem gravar; `show` inexistente sai.
+        #
         # ENTRA 2026-11-11 — Fisio/FisioConsentimentoPesquisaTest (etapa 07 P-02 · UC-FPP-56..58): pesquisa
         # por estudo com a versão do TCLE do estudo, `pesquisa_ia` antigo sem valor, `treino_ia` à parte,
         # revogação pelo portal e estudo da 99 invisível para o token da 98.
@@ -823,6 +827,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminAssinaturasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPacotesContratoTest.php \
             Modules/Superadmin/Tests/Feature/Usuario360ContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminEmpresaOperadoraTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminComunicadorContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPaginasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
@@ -832,6 +837,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
             Modules/Superadmin/Tests/Feature/Wave26SaturationTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminRotasDestrutivasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminAgendamentoTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \

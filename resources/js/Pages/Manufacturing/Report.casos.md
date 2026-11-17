@@ -122,6 +122,20 @@ last_run: "2026-10-06"
 
 ---
 
+## UC-REPORT-06 · O relatório exige acesso à produção, em todos os ramos
+- **Persona:** usuário da empresa com o pacote, mas sem `manufacturing.access_production`.
+- **Aceite:** Dado esse usuário · Quando abre `/manufacturing/report`, pede o JSON de totais (AJAX) ou abre
+  `?legacy=1` · Então recebe 403 nos três · Dado o mesmo usuário com `access_production` · Então os três
+  respondem.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (auditoria do Manufacturing): Configurações e Relatório usam
+  `access_production`, sem permissão nova.
+- **Teste:** `GateDoModuloTest.php`
+- **Regressão que defende:** custo total e médio por produto entregue a qualquer usuário da empresa, e o
+  ramo AJAX e o legado sem gate nenhum.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Custo **congelado** por ordem finalizada (`custoSnap`) — não existe ainda;
