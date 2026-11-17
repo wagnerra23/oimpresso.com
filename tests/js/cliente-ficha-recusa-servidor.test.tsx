@@ -1,7 +1,7 @@
 // Ficha do cliente (`Pages/Cliente/_show/*`, também na gaveta da lista de clientes): o desconto no
 // extrato e a anotação da aba Documentos passam a conferir a recusa do servidor.
 //
-// Cobre UC-CIDX-13, UC-CIDX-14, UC-CIDX-15 e UC-CIDX-17 (resources/js/Pages/Cliente/Index.casos.md). Os dois endpoints
+// Cobre UC-CIDX-13, UC-CIDX-14, UC-CIDX-15, UC-CIDX-17 e UC-CIDX-18 (resources/js/Pages/Cliente/Index.casos.md). Os dois endpoints
 // (LedgerDiscountController@store e DocumentAndNoteController@store) respondem 200 com
 // {success: false|0, msg} quando não gravam; a tela olhava só o status HTTP.
 //
@@ -30,6 +30,40 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+});
+
+describe('UC-CIDX-18 · o desconto vai ao servidor com data e hora e valor com 2 casas', () => {
+  function enviar(valorDigitado: string) {
+    const fetchFalso = responderEmOrdem({ success: true, msg: 'Sucesso' });
+    render(<AddDiscountModal contactId={7} contactName="Cliente Teste" contactType="customer" onClose={() => {}} onSuccess={() => {}} />);
+    fireEvent.change(document.getElementById('discount-date')!, { target: { value: '2026-11-17' } });
+    fireEvent.change(document.getElementById('discount-amount')!, { target: { value: valorDigitado } });
+    fireEvent.click(screen.getByTestId('discount-submit-btn'));
+    return fetchFalso;
+  }
+
+  it('UC-CIDX-18 a data vai com hora (o servidor recusava só a data)', async () => {
+    const fetchFalso = enviar('25');
+
+    await waitFor(() => expect(fetchFalso).toHaveBeenCalledTimes(1));
+    const corpo = fetchFalso.mock.calls[0][1].body as FormData;
+    expect(String(corpo.get('date'))).toMatch(/^2026-11-17 \d{2}:\d{2}$/);
+    expect(corpo.get('amount')).toBe('25.00');
+  });
+
+  it('UC-CIDX-18 "25.000" digitado vai como 25.00, não como vinte e cinco mil', async () => {
+    const fetchFalso = enviar('25.000');
+
+    await waitFor(() => expect(fetchFalso).toHaveBeenCalledTimes(1));
+    expect((fetchFalso.mock.calls[0][1].body as FormData).get('amount')).toBe('25.00');
+  });
+
+  it('UC-CIDX-18 valor zero não chega ao servidor e a tela avisa', async () => {
+    const fetchFalso = enviar('0');
+
+    expect((await screen.findByRole('alert')).textContent).toContain('maior que zero');
+    expect(fetchFalso).not.toHaveBeenCalled();
+  });
 });
 
 describe('UC-CIDX-13 · desconto no extrato', () => {

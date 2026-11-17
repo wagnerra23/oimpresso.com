@@ -5,9 +5,12 @@ declare(strict_types=1);
 // @covers-us US-CONSULTA-001
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
 use Modules\ConsultaOs\Repositories\RepairConsultaOsRepository;
 use Modules\Repair\Entities\JobSheet;
 
@@ -179,6 +182,35 @@ function consultaOsBuscar(array $q): \Illuminate\Testing\TestResponse
     return test()->getJson('/consulta-os/buscar?'.http_build_query($q));
 }
 
+/** Linhas por tabela que o portal lê — para provar que nenhuma busca grava (UC-COS-06). */
+function consultaOsContagens(): array
+{
+    $contagem = [];
+    foreach (['repair_job_sheets', 'activity_log', 'transactions', 'contacts'] as $tabela) {
+        $contagem[$tabela] = DB::table($tabela)->count();
+    }
+
+    return $contagem;
+}
+
+/**
+ * Registros de log com a mensagem pedida, capturados pelo evento MessageLogged
+ * (o controller escreve em Log::channel(...) e Log::error(...); os dois disparam o evento).
+ *
+ * @return \ArrayObject<int, MessageLogged>
+ */
+function consultaOsCapturarLogs(): \ArrayObject
+{
+    $logs = new \ArrayObject();
+    Event::listen(MessageLogged::class, function (MessageLogged $e) use ($logs) {
+        if (str_starts_with($e->message, 'consultaos.')) {
+            $logs[] = $e;
+        }
+    });
+
+    return $logs;
+}
+
 it('UC-COS-01 portal abre sem login e renderiza a tela ConsultaOs/Index', function () {
     $this->assertGuest();
 
@@ -276,7 +308,10 @@ it('UC-COS-05 sem critério válido não há busca nem lista', function () {
     expect($repo->buscar('job_sheet_no', 'OS-B'))->toHaveCount(1);
 });
 
-it('UC-COS-06 as rotas públicas do portal são só leitura (GET)', function () {
+it('UC-COS-06 as rotas públicas do portal são só leitura (GET) e nenhuma busca grava', function () {
+    consultaOsSemear();
+    config(['repair.enable_repair_check_using_mobile_num' => true]);
+
     $publicas = collect(Route::getRoutes()->getRoutes())
         ->filter(fn ($r) => str_starts_with((string) $r->getName(), 'consulta-os.'));
 
@@ -287,6 +322,21 @@ it('UC-COS-06 as rotas públicas do portal são só leitura (GET)', function () 
     foreach ($publicas as $rota) {
         expect(array_values(array_diff($rota->methods(), ['GET', 'HEAD'])))->toBe([]);
     }
+
+    // Comportamento, não só o verbo (Anti-hook "NÃO grava nada em GET"): uma busca que acha,
+    // uma que não acha e uma recusada não mudam nenhuma linha das tabelas que o portal lê.
+    $antes = consultaOsContagens();
+    // Anti-vácuo: há o que gravar nessas tabelas (3 OS, 3 vendas, 6 atividades no seed).
+    expect($antes['repair_job_sheets'])->toBe(3);
+    expect($antes['activity_log'])->toBe(6);
+
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'])->assertOk();
+    consultaOsBuscar(['tipo' => 'invoice_no', 'numero' => 'VND-98-1'])->assertOk();
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990003'])->assertOk();
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1'])->assertNotFound();
+    consultaOsBuscar(['tipo' => 'qualquer', 'numero' => 'OS-B'])->assertStatus(422);
+
+    expect(consultaOsContagens())->toBe($antes);
 });
 
 it('UC-COS-07 anti-enumeração: throttle nas rotas e número fora do formato é recusado', function () {
@@ -357,4 +407,98 @@ it('UC-COS-11 o portal antigo /repair-status leva ao /consulta-os', function () 
     expect(Route::has('post-repair-status'))->toBeFalse();
     $this->post('/post-repair-status', ['search_type' => 'job_sheet_no', 'search_number' => 'OS-B'])
         ->assertNotFound();
+});
+
+it('UC-COS-34 [T0] a resposta traz no máximo 20 OS, mesmo quando mais casam', function () {
+    consultaOsSemear();
+
+    // 25 OS da empresa 98 com o mesmo nº (ex.: celular compartilhado, nº reaproveitado).
+    $agora = now();
+    for ($i = 1; $i <= 25; $i++) {
+        DB::table('repair_job_sheets')->insert([
+            'business_id' => 98, 'contact_id' => 1, 'job_sheet_no' => 'LOTE-25',
+            'serial_no' => "LOTE-SERIE-{$i}", 'created_at' => $agora, 'updated_at' => $agora,
+        ]);
+    }
+    // Anti-vácuo: as 25 existem no banco.
+    expect(DB::table('repair_job_sheets')->where('job_sheet_no', 'LOTE-25')->count())->toBe(25);
+
+    $resposta = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'LOTE-25']);
+    $resposta->assertOk()->assertJsonPath('found', true);
+    expect($resposta->json('ordens'))->toHaveCount(20);
+
+    // O teto do charter é o mesmo número que o contrato do repositório declara.
+    expect(ConsultaOsRepositoryInterface::LIMITE)->toBe(20);
+    expect(app(RepairConsultaOsRepository::class)->buscar('job_sheet_no', 'LOTE-25'))->toHaveCount(20);
+});
+
+it('UC-COS-35 [T0] a 31ª busca do mesmo IP no mesmo minuto recebe 429', function () {
+    // IP só deste caso: o contador do throttle é por IP e não pode herdar de outro teste.
+    $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.31']);
+
+    // Busca sem critério (422) também conta: o limite vale antes da validação.
+    for ($i = 1; $i <= 30; $i++) {
+        consultaOsBuscar([])->assertStatus(422);
+    }
+    consultaOsBuscar([])->assertStatus(429);
+    // A tela do portal divide o mesmo limite.
+    $this->get('/consulta-os')->assertStatus(429);
+
+    // Controle: outro IP, no mesmo minuto, ainda é atendido — o limite é por visitante.
+    $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.32']);
+    consultaOsBuscar([])->assertStatus(422);
+});
+
+it('UC-COS-36 cada busca registra log com IP truncado e número redigido, sem dado da OS', function () {
+    consultaOsSemear();
+    config(['repair.enable_repair_check_using_mobile_num' => true]);
+    $logs = consultaOsCapturarLogs();
+
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.57'])
+        ->withHeaders(['User-Agent' => str_repeat('Navegador-de-teste/1.0 ', 10)]);
+
+    consultaOsBuscar(['tipo' => 'mobile_num', 'numero' => '48999990002'])->assertOk();
+    consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'NAO-EXISTE-1'])->assertNotFound();
+
+    $buscas = collect($logs)->filter(fn (MessageLogged $e) => $e->message === 'consultaos.busca_publica')->values();
+    // Uma linha por busca, com o resultado de cada uma (caso discriminante: found × not_found).
+    expect($buscas)->toHaveCount(2);
+    expect($buscas->map(fn ($e) => $e->context['resultado'])->all())->toBe(['found', 'not_found']);
+
+    $achou = $buscas[0]->context;
+    expect($achou['tipo'])->toBe('mobile_num');
+    expect($achou['ip_truncado'])->toBe('203.0.113.0');
+    expect(strlen($achou['user_agent']))->toBeLessThanOrEqual(80);
+    expect($achou['numero_redacted'])->not->toBe('48999990002');
+    $this->assertArrayNotHasKey('business_id', $achou);
+
+    // Nada identificável nem da OS em lugar nenhum do registro.
+    $serializado = json_encode($buscas->map->context->all());
+    foreach (['48999990002', '203.0.113.57', 'OS-B', 'Pronto', 'Cliente Sigiloso', 'SERIE-B'] as $proibido) {
+        expect($serializado)->not->toContain($proibido);
+    }
+});
+
+it('UC-COS-37 falha interna na busca devolve 500 só com found=false, sem detalhe técnico', function () {
+    $logs = consultaOsCapturarLogs();
+    $this->app->instance(ConsultaOsRepositoryInterface::class, new class implements ConsultaOsRepositoryInterface {
+        public function buscar(string $tipo, string $numero, ?string $serie = null): array
+        {
+            throw new \RuntimeException('SQLSTATE-DETALHE-TECNICO-42');
+        }
+    });
+
+    $resposta = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B']);
+
+    $resposta->assertStatus(500);
+    $resposta->assertExactJson(['found' => false]);
+    expect($resposta->getContent())->not->toContain('SQLSTATE-DETALHE-TECNICO-42');
+
+    $falha = collect($logs)->firstWhere('message', 'consultaos.busca_falhou');
+    expect($falha)->not->toBeNull();
+    // Só o tipo do erro vai para o log, nunca a mensagem (pode carregar SQL ou dado).
+    expect($falha->context['erro'])->toBe('RuntimeException');
+    expect(json_encode($falha->context))->not->toContain('SQLSTATE-DETALHE-TECNICO-42');
+    $auditoria = collect($logs)->firstWhere('message', 'consultaos.busca_publica');
+    expect($auditoria->context['resultado'])->toBe('erro');
 });

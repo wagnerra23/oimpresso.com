@@ -2,17 +2,16 @@
 id: requisitos-consulta-os-spec
 module: ConsultaOs
 version: "1.0"
-last_updated: "2026-10-20"
+last_updated: "2026-11-17"
 anchor_format: "v1"
 status: rascunho
 owner: wagner
 related_adrs: [0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci]
 na_justified:
-  D3.b: "ConsultaOs é módulo público de consulta OS (cliente final consulta status via número). Desde 2026-10-02 lê as folhas de OS reais do Repair (US-CONSULTA-001 parcial — falta captcha e identificar a empresa). BRIEFING pós-migração é a US-CONSULTA-003."
   D6.a: "Portal público client-side state + fetch JSON API (não usa Inertia partial reload). `Inertia::render('ConsultaOs/Index')` leva só `buscaPorCelular` (leitura de config — exceção do defer pra config static); a busca vem de fetch('/consulta-os/buscar') retornando JsonResponse. Sem props paginadas/count()/with() eager — `Inertia::defer` inaplicável (análogo ao Connector REST API backend citado em ADR 0155 §188)."
 ---
 
-<!-- schema-allowlist: US sob "## Roadmap (TODO migrar pra real)"; módulo mock-only/stub sem backlog ativo — as US-CONSULTA-NNN são itens de roadmap (migração futura pra real), não há "## User stories"/"## Backlog ativo" porque o módulo ainda não entrega valor de produto. Heading preservado pra não reestruturar o corpo. -->
+<!-- schema-allowlist: as US ficam sob o heading "## Roadmap (TODO migrar pra real)", nome que vem de quando o módulo era mock (até 2026-10-02). Hoje o módulo lê o Repair e as US são o backlog real; o heading foi preservado pra não reestruturar o corpo. -->
 
 # SPEC — Modules/ConsultaOs
 
@@ -49,7 +48,7 @@ Canary 7d em ROTA LIVRE antes de outros tenants.
 
 Criar `BRIEFING.md` após migração real (`na_justified D3.b` cai).
 
-**Implementado em:** _pendente_ — a precondição (migração real US-CONSULTA-001) não ocorreu; o `na_justified.D3.b` segue vigente até a busca real entregar valor de produto. (Existe um `BRIEFING.md` de estado mock no módulo, mas esta US pede o briefing pós-migração-real, ainda não cabível.)
+**Implementado em:** _pendente_ — a precondição ocorreu em 2026-10-02 (fonte real do Repair) e o `BRIEFING.md` do módulo já descreve o estado real (revisto em 2026-11-17, inclui a US-CONSULTA-004); o `na_justified.D3.b` saiu. A US segue `_pendente_` só porque o gate de entrada (anchor-lint `--check-entry`) exige teste `@covers-us` para marcar implementada, e um briefing não tem teste que o prove. Fechar ou remover esta US é higiene, não trabalho de produto.
 
 ### US-CONSULTA-004 · Cliente acompanha o status: aviso a cada mudança + portal atualizado `parcial`
 
@@ -57,14 +56,13 @@ UC-FLX-24 do catálogo `/fluxos` ("Cliente acompanha o status"): a cada mudança
 
 **Aceite:** Dado uma OS do Repair com cliente que tem celular e um número de WhatsApp da empresa que atende aviso de OS · Quando o status muda na edição da OS · Então o cliente certo recebe o aviso (job do WhatsApp para o celular dele, pelo número da empresa) · E `/consulta-os/buscar` devolve a OS com o status novo, sem nada de outra empresa. Casos: `UC-COS-12..14` em `resources/js/Pages/ConsultaOs/Index.casos.md`.
 
-**Implementado em:** _parcial_ · `Modules/Repair/Http/Controllers/JobSheetController.php` · `Modules/Repair/Events/RepairStatusChanged.php` · `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/ConsultaOs/Repositories/RepairConsultaOsRepository.php` · `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` · verificado@83e7f7f (2026-10-20) — medido 2026-10-20. O caminho edição → evento → WhatsApp → portal existe. Dois limites, travados como estado de hoje: **(1)** o aviso só sai para status de nome literal `ready`/`waiting_parts`; com nome da empresa ("Pronto para retirada") o portal muda e o WhatsApp não — `repair_statuses` não tem sinal limpo de "pronto" (`is_completed_status` vale como "Pronto" no kanban e "Entregue" no `startPipeline`), escolher o sinal é decisão [W] (UC-COS-13); **(2)** a transição pela FSM (`RepairFsmActionController::execute`) não dispara `RepairStatusChanged` nem muda o `status_id` que o portal lê (UC-COS-14). Follow-up: evento genérico de transição da FSM.
+**Implementado em:** _parcial_ · `Modules/Repair/Http/Controllers/JobSheetController.php` · `Modules/Repair/Events/RepairStatusChanged.php` · `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/ConsultaOs/Repositories/RepairConsultaOsRepository.php` · `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` · verificado@83e7f7f (2026-10-20) — medido 2026-10-20. O caminho edição → evento → WhatsApp → portal existe. O limite **(1)** registrado em 2026-10-20 (o aviso só saía para status de nome literal `ready`/`waiting_parts`) **foi resolvido em 2026-10-21** (decisão [W], #9740): quem decide é a marca `repair_statuses.whatsapp_template_aviso` (`ready` | `waiting_parts` | vazio), configurada em `/repair/status`; o nome do status não decide (`NotifyRepairCustomer::handleEvent`, UC-COS-13 e UC-COS-33). Desde 2026-10-27 (#9817) o envio sai pelo `NotificadorClienteWhatsapp` (US-WA-319), que filtra a empresa do cliente e respeita o opt-out (UC-COS-31, UC-COS-32). Segue aberto o limite **(2)**: a transição pela FSM (`RepairFsmActionController::execute`) não dispara `RepairStatusChanged` nem muda o `status_id` que o portal lê (UC-COS-14). Follow-up: evento genérico de transição da FSM.
 
-**Testado em:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` (UC-COS-12, UC-COS-13, UC-COS-31, UC-COS-32) · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` (UC-COS-14)
+**Testado em:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` (UC-COS-12, UC-COS-13, UC-COS-31, UC-COS-32, UC-COS-33) · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` (UC-COS-14)
 
 ## N/A justificado
 
-- **D3.b BRIEFING.md** — prematuro enquanto mock-only. Briefing canônico (1 página executiva) pressupõe capacidade de produto real entregando valor; mock não atende esse critério. Quando US-CONSULTA-001 for done, criar BRIEFING e remover N/A.
-- **D6.a Inertia::defer** — portal público com client-side state + fetch JSON API. `index()` retorna `Inertia::render('ConsultaOs/Index')` SEM props (página React gerencia tudo via `useState`, busca dispara `fetch('/consulta-os/buscar')` retornando `JsonResponse`). Sem props pesadas pra deferir (sem `paginate()`, `count()`, `with()` eager-load, Service-DB call). Pattern análogo ao Connector REST API backend documentado em [ADR 0155 §188](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md). Reavaliar após US-CONSULTA-001 caso payload passe a vir via Inertia props (em vez de JSON).
+- **D6.a Inertia::defer** — portal público com client-side state + fetch JSON API. `index()` retorna `Inertia::render('ConsultaOs/Index')` com uma prop só, `buscaPorCelular` (leitura de config); a página React gerencia o resto via `useState`, busca dispara `fetch('/consulta-os/buscar')` retornando `JsonResponse`). Sem props pesadas pra deferir (sem `paginate()`, `count()`, `with()` eager-load, Service-DB call). Pattern análogo ao Connector REST API backend documentado em [ADR 0155 §188](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md). Reavaliar após US-CONSULTA-001 caso payload passe a vir via Inertia props (em vez de JSON).
 
 ## Arquitetura — separation of concerns
 

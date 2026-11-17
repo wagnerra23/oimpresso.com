@@ -37,6 +37,7 @@ on:
     # está aqui: sem ele, mexer no controller não dispararia a lane (gate mudo).
     paths:
       - 'app/Http/Controllers/ContactController.php'
+      - 'app/Http/Controllers/LedgerDiscountController.php'
       - 'app/Http/Requests/Cliente/**'
       - 'app/Utils/ContactUtil.php'
       - 'app/Contact.php'
@@ -83,6 +84,7 @@ jobs:
           filters: |
             cli:
               - 'app/Http/Controllers/ContactController.php'
+              - 'app/Http/Controllers/LedgerDiscountController.php'
               - 'app/Http/Requests/Cliente/**'
               - 'app/Utils/ContactUtil.php'
               - 'app/Contact.php'

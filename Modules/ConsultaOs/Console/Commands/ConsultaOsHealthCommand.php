@@ -7,6 +7,7 @@ namespace Modules\ConsultaOs\Console\Commands;
 use App\Util\OtelHelper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
 use Modules\ConsultaOs\Services\ConsultaOsService;
 
@@ -16,12 +17,13 @@ use Modules\ConsultaOs\Services\ConsultaOsService;
  * Verifica saúde dos componentes minimos do portal publico:
  *   - Repository bindado (ConsultaOsRepositoryInterface — RepairConsultaOsRepository, US-CONSULTA-001)
  *   - Service resolvel via container
- *   - Config retention.php declarado (D7 LGPD compliance)
+ *   - (informativo, nao entra no OK) quantas tabelas declaradas no retention.php existem
  *   - Smoke probe: criterio invalido (tipo fora da lista) e recusado sem consultar
  *   - Smoke probe: buscar numero inexistente retorna not_found limpo
  *   (Sem probe de "numero conhecido": com dados reais nao ha OS fixa garantida.)
  *
- * Default: silencioso + log estruturado (cron). `--detail`: tabela humano.
+ * Default: silencioso + log estruturado. `--detail`: tabela humano.
+ * NAO esta agendado no Kernel (medido 2026-11-17): roda so sob demanda.
  * NAO usa `--verbose` (Symfony reserved — .claude/rules/commands.md).
  *
  * Uso:
@@ -41,7 +43,7 @@ class ConsultaOsHealthCommand extends Command
                             {--detail : Tabela humano (default: log estruturado)}
                             {--notify : Loga ALERT em error channel se issue detectada}';
 
-    protected $description = 'Health-check ConsultaOs portal publico (Repository bind + Service + retention + smoke probes).';
+    protected $description = 'Health-check ConsultaOs portal publico (Repository bind + Service + smoke probes).';
 
     public function handle(): int
     {
@@ -62,7 +64,7 @@ class ConsultaOsHealthCommand extends Command
         $report = [
             'repository_bound'   => false,
             'service_resolvable' => false,
-            'retention_declared' => false,
+            'retention_tabelas'  => null,
             'smoke_invalid_ok'   => false,
             'smoke_unknown_ok'   => false,
         ];
@@ -84,13 +86,22 @@ class ConsultaOsHealthCommand extends Command
             Log::warning('consultaos.health.service_resolve_failed', ['err' => $e->getMessage()]);
         }
 
-        // 3) Config retention.php declarado (D7 LGPD)
+        // 3) Retencao — INFORMATIVO, fora do OK. Antes dava OK so porque as chaves
+        //    existiam no retention.php, mas as tabelas declaradas nao existem: mediria
+        //    presenca de texto, nao o dado. Agora reporta quantas existem de fato.
         $retentionPath = __DIR__ . '/../../Config/retention.php';
         if (file_exists($retentionPath)) {
             $cfg = require $retentionPath;
-            $report['retention_declared'] = isset($cfg['entities']['consulta_os_logs'])
-                && isset($cfg['entities']['consulta_os_tokens'])
-                && isset($cfg['strategy']);
+            $tabelas = array_keys($cfg['entities'] ?? []);
+            $existem = 0;
+            foreach ($tabelas as $tabela) {
+                try {
+                    $existem += Schema::hasTable($tabela) ? 1 : 0;
+                } catch (\Throwable $e) {
+                    Log::warning('consultaos.health.retention_schema_failed', ['err' => $e->getMessage()]);
+                }
+            }
+            $report['retention_tabelas'] = sprintf('%d/%d existem', $existem, count($tabelas));
         }
 
         // 4) Smoke probe — criterio invalido nao consulta e volta not_found (Tier 0)
@@ -113,7 +124,6 @@ class ConsultaOsHealthCommand extends Command
 
         $hasIssue = ! ($report['repository_bound']
             && $report['service_resolvable']
-            && $report['retention_declared']
             && $report['smoke_invalid_ok']
             && $report['smoke_unknown_ok']);
 

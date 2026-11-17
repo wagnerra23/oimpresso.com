@@ -264,7 +264,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > owner: eliana · priority: p2 · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — `SnNfseAdapter::consultar(string $protocolo)`/`cancelar(string $numero, string $motivo)` ainda usam ambiente do bind global; só a emissão resolve per-business (via `$payload->ambiente`)
+**Implementado em:** _pendente_ — o **cancelamento** já usa o ambiente e o certificado da empresa da nota (`NfseEmissaoService::cancelar` → `SnNfseAdapter::cancelarNoAmbiente`, lote 0, #10987, teste `NfseCancelamentoHonestoTest`); `SnNfseAdapter::consultar(string $protocolo)` segue no ambiente do bind global e sem mTLS (medido 2026-11-17). _Até 2026-11-16 esta linha dizia que consultar **e** cancelar usavam o bind global._
 
 Follow-up do cutover fiscal Martinho (biz=164, PR #2147 merge `77ced51`).
 
