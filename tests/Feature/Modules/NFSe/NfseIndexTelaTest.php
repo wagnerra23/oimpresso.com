@@ -52,12 +52,15 @@ function nfsidxLinhas($t, string $url): array
     $t->actingAs($t->user)->withSession($t->sessao)
         ->get($url)
         ->assertOk()
-        ->assertInertia(fn (AssertableInertia $p) => $p
-            ->component('Nfse/Index')
-            ->missing('notas') // deferida: não vem no 1º pedido
-            ->loadDeferredProps(function (AssertableInertia $r) use (&$linhas) {
-                $linhas = $r->toArray()['props']['notas']['data'];
-            }));
+        // Closure comum, não arrow fn: a arrow fn captura $linhas por valor, e o
+        // `use (&$linhas)` de dentro passaria a referenciar essa cópia.
+        ->assertInertia(function (AssertableInertia $p) use (&$linhas) {
+            $p->component('Nfse/Index')
+                ->missing('notas') // deferida: não vem no 1º pedido
+                ->loadDeferredProps(function (AssertableInertia $r) use (&$linhas) {
+                    $linhas = $r->toArray()['props']['notas']['data'];
+                });
+        });
 
     expect($linhas)->toBeArray('A prop deferida `notas` nao chegou no 2o pedido.');
 
