@@ -112,6 +112,7 @@ export interface NaturezaFiscalProduto {
 export type ErrosProduto = Partial<
   Record<
     | 'name'
+    | 'unit_id'
     | 'origem_mercadoria'
     | 'ncm'
     | 'cest'
