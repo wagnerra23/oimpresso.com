@@ -2,6 +2,10 @@
 
 Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 linha na entrada do Wave/data.
 
+## 2026-11-16 — Lote 0 da auditoria (rotas que apagam)
+
+- Desativar empresa (`toggle-active`) passa a POST com `is_active` só 0 ou 1; excluir empresa e excluir pacote só pelo DELETE do resource (os aliases `GET .../destroy` saíram); `BusinessController::destroy` consulta `BusinessAuditService::canDestroy` (empresa 1, a própria e a última não se excluem) e registra `negocio_excluido` em `activity_log` — o que é apagado não mudou (B5 com o [W]); resources de pacote, assinatura do superadmin e `/subscription` deixam de expor métodos sem view ou sem corpo (`SuperadminRotasDestrutivasContratoTest`).
+
 ## 2026-11-16 — Lote L2 da auditoria (cobrança)
 
 - `Listeners/OnCobrancaPagaUpdateSubscription.php` só aprova a assinatura quando o valor pago (`valorPagoCentavos`) é igual ao valor cobrado (`package_price`, ou o preço do pacote se ele for zero — a regra das duas origens da cobrança); divergiu, registra warning e não aprova nem desbloqueia. A aprovação passa pelo `SubscriptionLifecycleService::approve()`, que ganhou fim e campos extras opcionais (sem o fim, pacote anual cairia no default de 1 mês, porque `package_details` não guarda `interval`); assinatura cancelada ou recusada não é mais aprovada por pagamento. Teste: `Tests/Feature/OnCobrancaPagaUpdateSubscriptionTest.php` (entra na lane `verticais-pest` pelo PR da lane do lote L1).
