@@ -4,15 +4,21 @@
   "source": "superadmin-page.jsx",
   "target": "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
   "token": "superadmin",
-  "lado": "design",
-  "frescor": "sem veredito novo (última 2026-10-07)",
-  "contrato": null,
-  "compare": null,
-  "veredito": "MEDIDO · só design (sem comparação)",
-  "motivo": "",
-  "medido": true,
-  "designSha": "b1fffe426d88aec221bf36573a077367a33c5b7f12d33a650e40ce1adfbcc0cc",
-  "medidoEm": "2026-10-14T17:09:23.127Z",
-  "baseUrl": null,
-  "bundle": "0ee2464e450d6b8b8c82a0fb3840ac5760c339ed7dac978249089dab43f8fc2f"
+  "rota": "/superadmin",
+  "lado": "ambos",
+  "tema": "light",
+  "contrato": "governance/design/contracts/superadmin-dashboard.contract.json",
+  "compare": {
+    "rc": 1,
+    "divergeBug": 4,
+    "divergeFonte": 0,
+    "shellAClassificar": 28,
+    "naoMedi": 1
+  },
+  "veredito": "MEDIDO · divergência de tela",
+  "medidoEm": "2026-11-16T19:07:46.234Z",
+  "baseUrl": "https://oimpresso.com (sessão de superadmin no Chrome do [W]; lido, nada escrito)",
+  "metodo": "mesma sonda (design-diff --probe) nos dois lados, no mesmo Chrome; prod -> postMessage -> ponte 127.0.0.1 -> disco (sha256 conferido); design servido de prototipo-ui/ local. Texto de produção redigido na página: assinatura só com a copy do contrato; dígitos, e-mail e valor mascarados em label/texto/rotulo.",
+  "prodSha": "a73e7889b1be36fecd240ad446da575a888ab82fbf77518eb35044f45f2c6298",
+  "designSha": "f0b1e23504052bfb421648db2de5b7c29bf955e9c939008a92c0f943a352519a"
 }

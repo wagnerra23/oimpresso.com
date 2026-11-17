@@ -12,27 +12,69 @@ use Illuminate\Support\Facades\Storage;
 uses(Tests\TestCase::class);
 
 /**
- * arquivos:reencrypt-vault — Pest tests Sprint 2 ADR 0123 (APP_KEY rotation).
+ * arquivos:reencrypt-vault — contrato da rotação de APP_KEY.
  *
- * Cobertura (min 4 + extras):
- * 1. Command registrado em artisan list
- * 2. --dry-run nao modifica disk
- * 3. --old-key ausente -> exit 1 + mensagem clara
- * 4. Roundtrip: encrypt com key A -> reencrypt --old-key=A -> file decrypt com key atual (Crypt facade)
- * 5. Idempotent: segunda run (old-key invalida pra ja re-encrypted) -> skip sem erro
- * 6. File ausente -> skip (nao errored)
+ * O que prova: quando a APP_KEY gira, o comando lê cada arquivo `encrypted=true` com a
+ * chave ANTIGA (--old-key) e o regrava cifrado com a chave atual; --dry-run não toca o
+ * disco; rodar de novo pula o que já foi regravado; arquivo ausente conta em skipped,
+ * não em errored.
+ * Contrato: ADR 0126 (vault, "arquivos:reencrypt-vault ... re-criptografar quando
+ * APP_KEY rotacionar") + CHANGELOG 0.2.0 ("comando rotação APP_KEY").
  *
- * Nota: tests que exigem DB usam beforeEach com markTestSkipped se arquivos table ausente.
- * Tests de logica pura (Encrypter roundtrip) NAO dependem de DB schema.
- *
- * @see Modules/Arquivos/Console/Commands/ReencryptVaultCommand.php
+ * TENANT: 98 canônico (ADR 0358). NUNCA biz=4, NUNCA biz=1.
+ * O comando varre TODAS as linhas encrypted=true (é de plataforma). As de outros testes
+ * ficam em disco real e caem em skipped; por isso os asserts contam só o que este teste
+ * semeou no disco fake.
+ * Limpeza no afterEach de arquivo, por marcador de classified_by.
+ * NÃO RODADO LOCAL: Pest é CT 100/CI only (proibicoes.md §Ambiente).
  */
+const REENC_BIZ = Tests\TestCase::SEEDED_TENANT_ID;
+const REENC_TAG = 'test-l1-reencrypt-vault';
 
-// --- Tests sem DB ---
+function reencArquivo(string $path, int $sizeBytes, string $md5): int
+{
+    return DB::table('arquivos')->insertGetId([
+        'business_id'     => REENC_BIZ,
+        'arquivable_type' => 'TestModel',
+        'arquivable_id'   => 987650300,
+        'disk'            => 'vault-test',
+        'storage_path'    => $path,
+        'original_name'   => basename($path),
+        'mime_type'       => 'text/plain',
+        'size_bytes'      => $sizeBytes,
+        'md5'             => $md5,
+        'encrypted'       => true,
+        'classified_by'   => REENC_TAG,
+        'created_at'      => now(),
+        'updated_at'      => now(),
+    ]);
+}
+
+/** @return array{0: string, 1: Encrypter} chave antiga no formato do --old-key + encrypter dela */
+function reencChaveAntiga(): array
+{
+    $raw = random_bytes(32);
+
+    return ['base64:'.base64_encode($raw), new Encrypter($raw, 'AES-256-CBC')];
+}
+
+beforeEach(function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('arquivos table missing — rode Modules/Arquivos migrate primeiro');
+    }
+});
+
+afterEach(function () {
+    if (Schema::hasTable('arquivos')) {
+        DB::table('arquivos')
+            ->where('business_id', REENC_BIZ)
+            ->where('classified_by', REENC_TAG)
+            ->delete();
+    }
+});
 
 it('command arquivos:reencrypt-vault esta registrado em artisan list', function () {
-    $commands = Artisan::all();
-    expect($commands)->toHaveKey('arquivos:reencrypt-vault');
+    expect(Artisan::all())->toHaveKey('arquivos:reencrypt-vault');
 });
 
 it('--old-key ausente retorna exit 1 com mensagem clara', function () {
@@ -50,49 +92,19 @@ it('--old-key sem prefixo base64: retorna exit 1', function () {
 });
 
 it('logica Encrypter roundtrip — encrypt com key A e decrypt com key A preserva conteudo', function () {
-    $rawKey  = random_bytes(32);
-    $enc     = new Encrypter($rawKey, 'AES-256-CBC');
-    $plain   = 'conteudo-sensivel-CPF-fake-12345678901';
+    [, $enc] = reencChaveAntiga();
+    $plain = 'conteudo-ficticio-de-teste';
 
-    $cipher  = $enc->encryptString($plain);
-    $decoded = $enc->decryptString($cipher);
-
-    expect($decoded)->toBe($plain);
-});
-
-// --- Tests com DB + Storage::fake ---
-
-beforeEach(function () {
-    if (! Schema::hasTable('arquivos')) {
-        $this->markTestSkipped('arquivos table missing — rode Modules/Arquivos migrate primeiro');
-    }
+    expect($enc->decryptString($enc->encryptString($plain)))->toBe($plain);
 });
 
 it('--dry-run nao modifica bytes em disk', function () {
     Storage::fake('vault-test');
+    [$oldKey, $enc] = reencChaveAntiga();
+    $cipher = $enc->encryptString('dry-run-test-content');
 
-    $rawOldKey = random_bytes(32);
-    $oldKey    = 'base64:' . base64_encode($rawOldKey);
-    $enc       = new Encrypter($rawOldKey, 'AES-256-CBC');
-    $plaintext = 'dry-run-test-content';
-    $cipher    = $enc->encryptString($plaintext);
-
-    Storage::disk('vault-test')->put('biz-1/dry.txt', $cipher);
-
-    $arquivoId = DB::table('arquivos')->insertGetId([
-        'business_id'    => 1,
-        'arquivable_type' => 'TestModel',
-        'arquivable_id'  => 8001,
-        'disk'           => 'vault-test',
-        'storage_path'   => 'biz-1/dry.txt',
-        'filename'       => 'dry.txt',
-        'mime_type'      => 'text/plain',
-        'size_bytes'     => strlen($cipher),
-        'md5'            => md5($cipher),
-        'encrypted'      => true,
-        'created_at'     => now(),
-        'updated_at'     => now(),
-    ]);
+    Storage::disk('vault-test')->put('biz-98/dry.txt', $cipher);
+    reencArquivo('biz-98/dry.txt', strlen($cipher), md5($cipher));
 
     $exitCode = Artisan::call('arquivos:reencrypt-vault', [
         '--old-key' => $oldKey,
@@ -100,127 +112,64 @@ it('--dry-run nao modifica bytes em disk', function () {
     ]);
 
     expect($exitCode)->toBe(0);
-
-    // Bytes em disk INALTERADOS apos dry-run
-    $diskBytes = Storage::disk('vault-test')->get('biz-1/dry.txt');
-    expect($diskBytes)->toBe($cipher);
-
-    DB::table('arquivos')->where('id', $arquivoId)->delete();
+    expect(Storage::disk('vault-test')->get('biz-98/dry.txt'))->toBe($cipher);
 });
 
+// @covers-us US-ARQ-033
 it('roundtrip: encrypt com key A -> reencrypt --old-key=A -> file decryptavel com Crypt facade atual', function () {
     Storage::fake('vault-test');
-
-    $rawOldKey = random_bytes(32);
-    $oldKey    = 'base64:' . base64_encode($rawOldKey);
-    $enc       = new Encrypter($rawOldKey, 'AES-256-CBC');
-    $plaintext = 'arquivo-confidencial-roundtrip-' . uniqid();
+    [$oldKey, $enc] = reencChaveAntiga();
+    $plaintext = 'arquivo-ficticio-roundtrip-'.uniqid();
     $cipherOld = $enc->encryptString($plaintext);
 
-    Storage::disk('vault-test')->put('biz-1/roundtrip.txt', $cipherOld);
+    Storage::disk('vault-test')->put('biz-98/roundtrip.txt', $cipherOld);
+    reencArquivo('biz-98/roundtrip.txt', strlen($cipherOld), md5($cipherOld));
 
-    $arquivoId = DB::table('arquivos')->insertGetId([
-        'business_id'    => 1,
-        'arquivable_type' => 'TestModel',
-        'arquivable_id'  => 8002,
-        'disk'           => 'vault-test',
-        'storage_path'   => 'biz-1/roundtrip.txt',
-        'filename'       => 'roundtrip.txt',
-        'mime_type'      => 'text/plain',
-        'size_bytes'     => strlen($cipherOld),
-        'md5'            => md5($cipherOld),
-        'encrypted'      => true,
-        'created_at'     => now(),
-        'updated_at'     => now(),
-    ]);
-
-    $exitCode = Artisan::call('arquivos:reencrypt-vault', [
-        '--old-key' => $oldKey,
-    ]);
+    $exitCode = Artisan::call('arquivos:reencrypt-vault', ['--old-key' => $oldKey]);
 
     expect($exitCode)->toBe(0);
     expect(Artisan::output())->toContain('Re-encryptados: 1');
 
-    // File em disk foi substituido por novo ciphertext (APP_KEY atual)
-    $newCipher = Storage::disk('vault-test')->get('biz-1/roundtrip.txt');
+    $newCipher = Storage::disk('vault-test')->get('biz-98/roundtrip.txt');
     expect($newCipher)->not->toBe($cipherOld);
-
-    // Decrypt com Crypt facade atual deve funcionar
-    $decoded = Crypt::decryptString($newCipher);
-    expect($decoded)->toBe($plaintext);
-
-    DB::table('arquivos')->where('id', $arquivoId)->delete();
+    expect(Crypt::decryptString($newCipher))->toBe($plaintext);
 });
 
 it('idempotente — segunda run skipa rows ja re-encryptadas', function () {
     Storage::fake('vault-test');
-
-    $rawOldKey = random_bytes(32);
-    $oldKey    = 'base64:' . base64_encode($rawOldKey);
-    $enc       = new Encrypter($rawOldKey, 'AES-256-CBC');
-    $plaintext = 'idempotent-vault-' . uniqid();
+    [$oldKey, $enc] = reencChaveAntiga();
+    $plaintext = 'idempotent-vault-'.uniqid();
     $cipherOld = $enc->encryptString($plaintext);
 
-    Storage::disk('vault-test')->put('biz-1/idem.txt', $cipherOld);
+    Storage::disk('vault-test')->put('biz-98/idem.txt', $cipherOld);
+    reencArquivo('biz-98/idem.txt', strlen($cipherOld), md5($cipherOld));
 
-    $arquivoId = DB::table('arquivos')->insertGetId([
-        'business_id'    => 1,
-        'arquivable_type' => 'TestModel',
-        'arquivable_id'  => 8003,
-        'disk'           => 'vault-test',
-        'storage_path'   => 'biz-1/idem.txt',
-        'filename'       => 'idem.txt',
-        'mime_type'      => 'text/plain',
-        'size_bytes'     => strlen($cipherOld),
-        'md5'            => md5($cipherOld),
-        'encrypted'      => true,
-        'created_at'     => now(),
-        'updated_at'     => now(),
-    ]);
-
-    // 1a run: re-encrypta com nova key
     Artisan::call('arquivos:reencrypt-vault', ['--old-key' => $oldKey]);
-    $afterFirst = Storage::disk('vault-test')->get('biz-1/idem.txt');
+    $afterFirst = Storage::disk('vault-test')->get('biz-98/idem.txt');
 
-    // 2a run: old-key nao decripta o novo cipher — skip, nao erro
+    // Controle: a 1ª run regravou de fato (senão "não mudou na 2ª" seria verde por vácuo).
+    expect(Crypt::decryptString($afterFirst))->toBe($plaintext);
+
+    // 2ª run: a old-key não decifra o cipher novo — skip, não erro.
     $exitCode = Artisan::call('arquivos:reencrypt-vault', ['--old-key' => $oldKey]);
-    $afterSecond = Storage::disk('vault-test')->get('biz-1/idem.txt');
+    $output = Artisan::output();
 
     expect($exitCode)->toBe(0);
-    expect(Artisan::output())->toContain('Skipped');
-    expect($afterSecond)->toBe($afterFirst);
-
-    DB::table('arquivos')->where('id', $arquivoId)->delete();
+    expect($output)->toContain('Re-encryptados: 0');
+    expect(Storage::disk('vault-test')->get('biz-98/idem.txt'))->toBe($afterFirst);
 });
 
 it('file ausente no disk conta em skipped (nao errored)', function () {
     Storage::fake('vault-test');
+    [$oldKey] = reencChaveAntiga();
 
-    $rawOldKey = random_bytes(32);
-    $oldKey    = 'base64:' . base64_encode($rawOldKey);
+    reencArquivo('biz-98/inexistente-'.uniqid().'.txt', 100, str_repeat('a', 32));
 
-    $arquivoId = DB::table('arquivos')->insertGetId([
-        'business_id'    => 1,
-        'arquivable_type' => 'TestModel',
-        'arquivable_id'  => 8004,
-        'disk'           => 'vault-test',
-        'storage_path'   => 'biz-1/inexistente-' . uniqid() . '.txt',
-        'filename'       => 'inexistente.txt',
-        'mime_type'      => 'text/plain',
-        'size_bytes'     => 100,
-        'md5'            => 'abc',
-        'encrypted'      => true,
-        'created_at'     => now(),
-        'updated_at'     => now(),
-    ]);
-
-    $exitCode = Artisan::call('arquivos:reencrypt-vault', [
-        '--old-key' => $oldKey,
-    ]);
+    $exitCode = Artisan::call('arquivos:reencrypt-vault', ['--old-key' => $oldKey]);
+    // Artisan::output() esvazia o buffer na 1ª leitura (BufferedOutput::fetch): ler 1×.
+    $output = Artisan::output();
 
     expect($exitCode)->toBe(0);
-    expect(Artisan::output())->toContain('Skipped');
-    expect(Artisan::output())->toContain('Errored:        0');
-
-    DB::table('arquivos')->where('id', $arquivoId)->delete();
+    expect($output)->toContain('Re-encryptados: 0');
+    expect($output)->toContain('Errored:        0');
 });

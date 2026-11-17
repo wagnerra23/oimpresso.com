@@ -22,7 +22,9 @@ use Throwable;
  *   3. Inativos > 90d (não-bloqueante; relatório p/ outreach)
  *   4. Self-destroy guard funcional via BusinessAuditService::canDestroy(1, 1)
  *
- * Roda 06:20 BRT (após connector:health 06:15). Loga estruturado pra
+ * Roda 06:20 BRT (após connector:health 06:15), com --notify, agendado em
+ * SuperadminServiceProvider::agendar() — só em `live`. Até 2026-11-16 esta frase não
+ * era verdade: o comando estava registrado e nada o agendava. Loga estruturado pra
  * dashboard /copiloto/admin/qualidade. Exit 0 OK, 1 alerta.
  *
  * Uso:

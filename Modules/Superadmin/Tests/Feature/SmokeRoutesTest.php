@@ -32,7 +32,8 @@ beforeEach(function () {
     }
 });
 
-const BIZ_WAGNER_SMOKE = 1;
+// Tenant fictício de teste (ADR 0358): 98. Era 1 (WR2 Sistemas, empresa real) até 2026-11-16.
+const BIZ_TENANT_SMOKE = 98;
 
 /**
  * Cria usuário autenticado com permission `superadmin` no biz=1 pra smoke.
@@ -40,7 +41,7 @@ const BIZ_WAGNER_SMOKE = 1;
 function makeSuperadminParaSmoke(): User
 {
     Business::firstOrCreate(
-        ['id' => BIZ_WAGNER_SMOKE],
+        ['id' => BIZ_TENANT_SMOKE],
         ['name' => 'Wagner Teste Smoke', 'currency_id' => 1]
     );
 
@@ -49,7 +50,7 @@ function makeSuperadminParaSmoke(): User
         [
             'email'       => 'superadmin_smoke@test.local',
             'password'    => bcrypt('secret'),
-            'business_id' => BIZ_WAGNER_SMOKE,
+            'business_id' => BIZ_TENANT_SMOKE,
             'first_name'  => 'Smoke',
             'last_name'   => 'Superadmin',
         ]

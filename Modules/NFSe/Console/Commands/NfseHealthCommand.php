@@ -9,22 +9,36 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * nfse:health — Wave 23 D6 governance v3.
+ * nfse:health — 6 sinais do módulo NFSe.
  *
- * 6 sinais críticos NFSe:
  *   1. emissoes_table         — nfse_emissoes presente
  *   2. provider_config_table  — nfse_provider_configs presente
- *   3. certificado_table      — nfse_certificados presente
- *   4. providers_ativos       — businesses com NFSe configurada
- *   5. cert_vencimento_alarme — certificados vencendo nos próximos 30 dias
- *   6. rejeitadas_recentes    — NFSe rejeitadas nas últimas 24h
+ *   3. certificado_table      — nfe_certificados presente (o certificado da NFS-e
+ *                               mora na tabela do NfeBrasil; nfse_provider_configs.cert_id
+ *                               tem FK para ela)
+ *   4. providers_ativos       — empresas com config NFS-e (sem as apagadas)
+ *   5. cert_vencimento_alarme — por config: o certificado apontado por cert_id
+ *                               existe, é da mesma empresa e não está vencido nem
+ *                               vencendo em menos de 30 dias
+ *   6. erros_recentes         — emissões em status 'erro' nas últimas 24h
+ *
+ * Até 2026-11-16 o check 3 lia `nfse_certificados` (tabela que nunca existiu) e o 6
+ * contava status 'rejeitada' (que o módulo nunca grava; o enum de nfse_emissoes é
+ * rascunho/processando/emitida/cancelada/erro). Os dois sinais eram cegos.
+ *
+ * O alerta de vencimento olha o cert_id de CADA config NFS-e. O `nfe:health` do
+ * NfeBrasil olha o certificado ativo da empresa, que pode não ser o mesmo.
+ *
+ * "Vencido" segue a regra da emissão: NfeCertificado::isVencido() usa
+ * valido_ate->isPast(), e valido_ate é data — no próprio dia do vencimento a
+ * emissão já é bloqueada. Aqui: vencido ⇔ valido_ate <= hoje.
+ *
+ * Não é agendado. Quem recebe alerta hoje é o `nfe:health --notify` (NfeBrasil).
  *
  * Convenção `--detail` (NUNCA --verbose — Symfony reserved).
  *
- * Multi-tenant Tier 0 (ADR 0093): admin command read-only.
- *
- * @see Modules/NfeBrasil/Console/Commands/NfeHealthCommand.php (pattern irmão)
- * @see Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php
+ * Multi-tenant Tier 0 (ADR 0093): comando de leitura, CLI sem sessão. Usa DB::table
+ * para varrer todas as empresas (ou só a de --business); não escreve nada.
  */
 class NfseHealthCommand extends Command
 {
@@ -34,11 +48,13 @@ class NfseHealthCommand extends Command
         {--json : Output JSON}
         {--detail : Log detalhado (NUNCA --verbose: Symfony reserved)}';
 
-    protected $description = 'Health check Modules/NFSe — 6 sinais (Wave 23 D6).';
+    protected $description = 'Health check Modules/NFSe — 6 sinais (tabelas, configs, certificado por config, erros 24h).';
 
-    private const CERT_WARN_DIAS = 30;
+    public const CERT_WARN_DIAS = 30;
 
-    private const REJEICAO_LOOKBACK_HORAS = 24;
+    public const ERRO_LOOKBACK_HORAS = 24;
+
+    public const ERRO_LIMIAR = 5;
 
     public function handle(): int
     {
@@ -56,7 +72,7 @@ class NfseHealthCommand extends Command
             $this->checkCertificadoTable(),
             $this->checkProvidersAtivos($businessId),
             $this->checkCertVencimento($businessId),
-            $this->checkRejeitadasRecentes($businessId),
+            $this->checkErrosRecentes($businessId),
         ];
 
         if ($detail && ! $asJson) {
@@ -79,6 +95,7 @@ class NfseHealthCommand extends Command
                 'checks'          => $checks,
                 'summary'         => $summary,
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
             return $this->resolveExitCode($summary, $alert);
         }
 
@@ -115,9 +132,9 @@ class NfseHealthCommand extends Command
 
     private function checkCertificadoTable(): array
     {
-        return Schema::hasTable('nfse_certificados')
-            ? $this->makeCheck('certificado_table', 'OK', 'nfse_certificados presente')
-            : $this->makeCheck('certificado_table', 'WARN', 'nfse_certificados ausente — cert global usado?');
+        return Schema::hasTable('nfe_certificados')
+            ? $this->makeCheck('certificado_table', 'OK', 'nfe_certificados presente')
+            : $this->makeCheck('certificado_table', 'FAIL', 'nfe_certificados ausente — rode module:migrate NfeBrasil');
     }
 
     private function checkProvidersAtivos(?int $businessId): array
@@ -126,13 +143,13 @@ class NfseHealthCommand extends Command
             return $this->makeCheck('providers_ativos', 'WARN', 'Tabela ausente');
         }
 
-        $q = DB::table('nfse_provider_configs');
+        $q = DB::table('nfse_provider_configs')->whereNull('deleted_at');
         if ($businessId !== null) {
             $q->where('business_id', $businessId);
         }
 
         $count = (clone $q)->count();
-        $distintos = (clone $q)->distinct('business_id')->count('business_id');
+        $distintos = (clone $q)->distinct()->count('business_id');
 
         if ($count === 0) {
             return $this->makeCheck('providers_ativos', 'WARN', 'Nenhum provider configurado');
@@ -141,66 +158,100 @@ class NfseHealthCommand extends Command
         return $this->makeCheck('providers_ativos', 'OK', "{$count} config(s) em {$distintos} business(es)");
     }
 
+    /**
+     * Uma linha por config NFS-e ativa, com o certificado que ela aponta.
+     * Classifica cada config; o pior estado decide o status do check.
+     */
     private function checkCertVencimento(?int $businessId): array
     {
-        if (! Schema::hasTable('nfse_certificados')) {
-            return $this->makeCheck('cert_vencimento_alarme', 'WARN', 'Tabela ausente');
+        if (! Schema::hasTable('nfse_provider_configs') || ! Schema::hasTable('nfe_certificados')) {
+            return $this->makeCheck('cert_vencimento_alarme', 'WARN', 'Tabela ausente — não medido');
         }
 
-        if (! Schema::hasColumn('nfse_certificados', 'valido_ate')) {
-            return $this->makeCheck('cert_vencimento_alarme', 'WARN', 'coluna valido_ate ausente');
-        }
-
-        $cutoff = now()->addDays(self::CERT_WARN_DIAS);
-
-        $q = DB::table('nfse_certificados')
-            ->where('valido_ate', '<', $cutoff)
-            ->whereNull('deleted_at');
+        $q = DB::table('nfse_provider_configs as p')
+            ->leftJoin('nfe_certificados as c', function ($join) {
+                $join->on('c.id', '=', 'p.cert_id')->whereNull('c.deleted_at');
+            })
+            ->whereNull('p.deleted_at')
+            ->select('p.id', 'p.business_id', 'c.id as cert_id', 'c.business_id as cert_business_id', 'c.valido_ate');
 
         if ($businessId !== null) {
-            $q->where('business_id', $businessId);
+            $q->where('p.business_id', $businessId);
         }
 
-        $vencendo = $q->count();
+        $configs = $q->get();
 
-        if ($vencendo > 0) {
-            return $this->makeCheck(
-                'cert_vencimento_alarme',
-                'WARN',
-                "{$vencendo} certificado(s) vencendo em < " . self::CERT_WARN_DIAS . 'd — rotacione'
-            );
+        if ($configs->isEmpty()) {
+            return $this->makeCheck('cert_vencimento_alarme', 'OK', 'Nenhuma config NFS-e a verificar');
         }
 
-        return $this->makeCheck('cert_vencimento_alarme', 'OK', 'Certificados vigentes');
+        $hoje   = now()->toDateString();
+        $limite = now()->addDays(self::CERT_WARN_DIAS)->toDateString();
+
+        $grupos = ['outra_empresa' => [], 'vencido' => [], 'sem_cert' => [], 'vencendo' => []];
+
+        foreach ($configs as $c) {
+            if ($c->cert_id === null) {
+                $grupos['sem_cert'][] = $c->business_id;
+            } elseif ((int) $c->cert_business_id !== (int) $c->business_id) {
+                $grupos['outra_empresa'][] = $c->business_id;
+            } elseif (substr((string) $c->valido_ate, 0, 10) <= $hoje) {
+                $grupos['vencido'][] = $c->business_id;
+            } elseif (substr((string) $c->valido_ate, 0, 10) < $limite) {
+                $grupos['vencendo'][] = $c->business_id;
+            }
+        }
+
+        $rotulos = [
+            'outra_empresa' => 'certificado de outra empresa',
+            'vencido'       => 'certificado vencido',
+            'sem_cert'      => 'sem certificado',
+            'vencendo'      => 'vencendo em < ' . self::CERT_WARN_DIAS . 'd',
+        ];
+
+        $partes = [];
+        foreach ($grupos as $chave => $bizIds) {
+            if ($bizIds !== []) {
+                $partes[] = count($bizIds) . " config(s) {$rotulos[$chave]} (business " . implode(',', array_unique($bizIds)) . ')';
+            }
+        }
+
+        if ($partes === []) {
+            return $this->makeCheck('cert_vencimento_alarme', 'OK', "{$configs->count()} config(s) com certificado vigente");
+        }
+
+        $status = ($grupos['outra_empresa'] !== [] || $grupos['vencido'] !== []) ? 'FAIL' : 'WARN';
+
+        return $this->makeCheck('cert_vencimento_alarme', $status, implode('; ', $partes));
     }
 
-    private function checkRejeitadasRecentes(?int $businessId): array
+    private function checkErrosRecentes(?int $businessId): array
     {
         if (! Schema::hasTable('nfse_emissoes')) {
-            return $this->makeCheck('rejeitadas_recentes', 'WARN', 'Tabela ausente');
+            return $this->makeCheck('erros_recentes', 'WARN', 'Tabela ausente');
         }
 
-        $cutoff = now()->subHours(self::REJEICAO_LOOKBACK_HORAS);
+        $cutoff = now()->subHours(self::ERRO_LOOKBACK_HORAS);
 
         $q = DB::table('nfse_emissoes')
-            ->where('status', 'rejeitada')
+            ->where('status', 'erro')
             ->where('updated_at', '>=', $cutoff);
 
         if ($businessId !== null) {
             $q->where('business_id', $businessId);
         }
 
-        $rej = $q->count();
+        $erros = $q->count();
 
-        if ($rej >= 5) {
+        if ($erros >= self::ERRO_LIMIAR) {
             return $this->makeCheck(
-                'rejeitadas_recentes',
+                'erros_recentes',
                 'WARN',
-                "{$rej} rejeição(ões) nas últimas " . self::REJEICAO_LOOKBACK_HORAS . 'h — investigue motivos SEFAZ municipal'
+                "{$erros} emissão(ões) com erro nas últimas " . self::ERRO_LOOKBACK_HORAS . 'h — veja erro_mensagem'
             );
         }
 
-        return $this->makeCheck('rejeitadas_recentes', 'OK', "{$rej} rejeição(ões) em {$cutoff->diffForHumans()}");
+        return $this->makeCheck('erros_recentes', 'OK', "{$erros} emissão(ões) com erro nas últimas " . self::ERRO_LOOKBACK_HORAS . 'h');
     }
 
     /**

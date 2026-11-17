@@ -13,6 +13,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\ColunaDoQuadro;
+use Modules\Producao\Services\PropsDaFicha;
 use Modules\Producao\Services\QuadroDaProducao;
 
 /**
@@ -23,10 +24,14 @@ use Modules\Producao\Services\QuadroDaProducao;
  * Ver o quadro: `producao.access` + módulo no pacote. Alocar: `producao.etapa.mover`. Aceitar o
  * arranjo: o papel `producao.liberar` (o mesmo do romaneio). As flags só escondem botão — cada
  * endpoint confere de novo. A empresa vem da sessão (ADR 0093).
+ *
+ * Ficha da OS em painel lateral (UC-PCV-10, decisão [W] no #10850: segue o protótipo): `?os={id}` faz o
+ * Quadro entregar `ficha` (deferida, para o F5 abrir o painel sozinho) e as abas `ficha_*` como optional,
+ * que só rodam quando a tela pede a aba. OS de outra empresa ou inexistente → `ficha` nula, o Quadro abre.
  */
 class QuadroController extends Controller
 {
-    public function __construct(private readonly QuadroDaProducao $quadro, private readonly ModuleUtil $moduleUtil) {}
+    public function __construct(private readonly QuadroDaProducao $quadro, private readonly ModuleUtil $moduleUtil, private readonly PropsDaFicha $ficha) {}
 
     public function index(Request $request): Response
     {
@@ -47,6 +52,24 @@ class QuadroController extends Controller
         // UC-PCV-06: o filtro mora na URL (busca, responsável e setor também), para a Linha do tempo
         // abrir com o mesmo filtro. Só texto curto entra; o resto volta vazio.
         $texto = fn (string $k, int $max) => is_string($v = $request->query($k)) ? mb_substr(trim($v), 0, $max) : '';
+        // Ficha em painel: só id inteiro positivo; montada uma vez por pedido e só quando alguma prop dela é pedida.
+        $osId = is_string($v = $request->query('os')) && ctype_digit($v) ? (int) $v : 0;
+        $fichaMemo = null;
+        $ficha = function () use (&$fichaMemo, $osId, $biz, $user) {
+            if ($fichaMemo === null) {
+                try {
+                    $fichaMemo = $osId > 0 ? $this->ficha->montar($biz, $user, $osId) : false;
+                } catch (ApontamentoRecusado $e) {
+                    if ($e->codigo !== ApontamentoRecusado::NAO_ENCONTRADO) {
+                        throw $e;
+                    }
+                    $fichaMemo = false;
+                }
+            }
+
+            return $fichaMemo ?: null;
+        };
+        $aba = fn (string $nome) => Inertia::optional(fn () => ($f = $ficha()) ? ($f['abas'][$nome])() : null);
 
         return Inertia::render('Producao/Quadro/Index', [
             'hoje' => now()->toDateString(),
@@ -57,6 +80,11 @@ class QuadroController extends Controller
             'cartoes' => Inertia::defer($cartoes),
             'midias' => Inertia::defer(fn () => $this->quadro->midias($biz, $cartoes())),
             'pessoas' => Inertia::defer(fn () => $podeAlocar ? $this->quadro->pessoas($biz, array_column($postos, 'id')) : ['pessoas' => [], 'por_posto' => []]),
+            'ficha' => Inertia::defer(fn () => $ficha()['base'] ?? null),
+            'ficha_custo' => $aba('custo'),
+            'ficha_materiais' => $aba('materiais'),
+            'ficha_artes' => $aba('artes'),
+            'ficha_pessoas' => $aba('pessoas'),
         ]);
     }
 

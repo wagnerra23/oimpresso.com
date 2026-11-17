@@ -29,6 +29,34 @@ return [
     'upload_max_mb' => env('ARQUIVOS_UPLOAD_MAX_MB', 50),
 
     /**
+     * Tipos aceitos no upload compartilhado (ArquivosService::attach/attachNoNegocio), pelo
+     * MIME detectado no conteúdo. É a UNIÃO do que os consumidores aceitam hoje (medido em
+     * 2026-11-16): Fisio (foto, PDF, MP4), Associações (foto, PDF), OficinaAuto (foto com
+     * HEIC/HEIF, PNG da assinatura), app das lojas (foto, PDF), NFe (XML) e anexos de
+     * escritório. Cada consumidor continua com a lista própria, mais estreita; esta é a rede
+     * de baixo, para quem chamar o serviço sem validar.
+     */
+    'upload_mimes' => [
+        'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif',
+        'application/pdf',
+        'video/mp4', 'application/mp4',
+        'application/xml', 'text/xml',
+        'application/zip', 'application/x-zip-compressed',
+        'text/csv', 'text/plain',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
+    ],
+
+    /** Extensões recusadas mesmo que o conteúdo pareça de um tipo aceito (código executável). */
+    'upload_extensoes_bloqueadas' => [
+        'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml', 'pht', 'phar',
+        'exe', 'com', 'bat', 'cmd', 'sh', 'ps1', 'vbs', 'jar', 'js', 'mjs',
+        'html', 'htm', 'svg', 'py', 'pl', 'cgi',
+    ],
+
+    /**
      * Cap máximo para VaultEncryptionService::putEncrypted e putFileEncrypted.
      *
      * Crypt::encryptString carrega o arquivo inteiro em memória. Acima deste

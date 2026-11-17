@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
 related_us: [US-NFSE-008]
-last_run: "2026-09-30"
-last_run_ci: "0 UC executado — casos nascem neste PR; veredito pendente da lane PHP / Pest (Unit)"
+last_run: "2026-11-16"
+last_run_ci: "UC-NFSL-01..03 na lane sqlite do ci.yml; UC-NFSL-04/05 na lane nfse-pest (MySQL) — veredito pendente deste PR"
 ---
 
 # Casos de Uso & Aceite — NFS-e emitidas (`/nfse`)
@@ -36,8 +36,10 @@ Nunca biz=4.
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
 | UC-NFSL-01 | A listagem só mostra notas do business da sessão | must `[T0]` | charter Non-Goals (*"NÃO pagina além do escopo do tenant"*) · ADR 0093 | `NfseTelasContratoTest` | 🧪 |
-| UC-NFSL-02 | Filtros aceitam só status conhecido, data `Y-m-d` e busca curta | must | charter Goals (filtros status/período/busca) | `NfseTelasContratoTest` | 🧪 |
+| UC-NFSL-02 | Filtros aceitam só status conhecido, competência `AAAA-MM` e busca curta | must | charter Goals (filtros status/período/busca) | `NfseTelasContratoTest` | 🧪 |
 | UC-NFSL-03 | A listagem exige sessão autenticada e é só leitura | must | charter Anti-hooks (*"NÃO grava nada no backend em GET"*) | `NfseTelasContratoTest` | 🧪 |
+| UC-NFSL-04 | O filtro de competência da tela filtra a lista pelo mês | must | charter Goals (*"período (de/ate por competência)"*) · US-NFSE-008 | `NfseIndexTelaTest` | 🧪 |
+| UC-NFSL-05 | A lista não leva o XML da nota | must | charter Non-Goals (*"NÃO mostra XML/RPS bruto na listagem"*) | `NfseIndexTelaTest` | 🧪 |
 
 ## UC-NFSL-01 · A listagem só mostra notas do business da sessão · `must` `[T0]`
 
@@ -50,9 +52,10 @@ Nunca biz=4.
   `where business_id` próprio na listagem — depende inteiramente do scope).
 - **Status: 🧪**
 
-## UC-NFSL-02 · Filtros aceitam só status conhecido, data Y-m-d e busca curta · `must`
+## UC-NFSL-02 · Filtros aceitam só status conhecido, competência AAAA-MM e busca curta · `must`
 
-- **Aceite:** Dado um filtro de status fora da lista, data em outro formato, `ate` antes de `de`,
+- **Aceite:** Dado um filtro de status fora dos 5 que a coluna aceita (rascunho, processando,
+  emitida, cancelada, erro), competência fora do formato `AAAA-MM`, `ate` antes de `de`,
   ou busca com mais de 120 caracteres · Quando a listagem é pedida · Então o filtro é recusado; e
   a combinação válida (e a ausência de filtro) passa.
 - **Teste:** `NfseTelasContratoTest` — *"UC-NFSL-02 · filtros da lista aceitam so status conhecido…"*.
@@ -63,6 +66,28 @@ Nunca biz=4.
 - **Aceite:** Dado a rota `nfse.index` · Então ela passa pelo middleware `auth` e responde só a
   `GET`/`HEAD`.
 - **Teste:** `NfseTelasContratoTest` — *"UC-NFSL-03 · a listagem exige sessao autenticada e e somente leitura"*.
+- **Status: 🧪**
+
+## UC-NFSL-04 · O filtro de competência da tela filtra a lista pelo mês · `must`
+
+- **Persona:** operador fiscal do business 98; o business 99 como contraparte.
+- **Aceite:** Dado notas de setembro e outubro no business 98 e uma de setembro no 99 · Quando a
+  tela pede `/nfse?de=2026-09&ate=2026-09` (o valor do `<input type="month">`) · Então a lista
+  responde 200 com a nota de setembro do 98, sem a de outubro e sem a do 99; e outubro traz só a
+  de outubro.
+- **Teste:** `NfseIndexTelaTest` — *"UC-NFSL-04 · o filtro de competencia da tela (AAAA-MM) filtra a lista pelo mes"* (lane `nfse-pest`, MySQL).
+- **Regressão que defende:** até 2026-11-16 a regra pedia `Y-m-d` e todo filtro de competência
+  voltava com erro de validação (auditoria NFSe, lote 3).
+- **Status: 🧪**
+
+## UC-NFSL-05 · A lista não leva o XML da nota · `must`
+
+- **Aceite:** Dado uma nota com `xml_envio` e `xml_retorno` gravados · Quando a lista é carregada ·
+  Então a linha da nota não tem `xml_envio`, `xml_retorno` nem `descricao`, e a competência vem
+  como `MM/AAAA`.
+- **Teste:** `NfseIndexTelaTest` — *"UC-NFSL-05 · a lista nao leva o XML da nota e mostra a competencia como mes/ano"*.
+- **Regressão que defende:** a prop `notas` serializava o model inteiro, com a DPS e a resposta
+  da Receita de cada nota da página.
 - **Status: 🧪**
 
 ## Fora do contrato por enquanto

@@ -23,6 +23,9 @@ uses(Tests\TestCase::class);
  *
  * Schema requer MySQL UltimatePOS (subscriptions table custom UPOS).
  *
+ * Tenant: fictício 98 via `seededTenant()` (ADR 0358). Até 2026-11-16 gravava em biz=1
+ * (WR2 Sistemas, empresa real) — inofensivo no CI de banco descartável, não no CT 100.
+ *
  * @see Modules\Superadmin\Services\SubscriptionLifecycleService
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md §exceções
  */
@@ -43,7 +46,7 @@ it('SubscriptionLifecycleService é instanciável', function () {
 
 it('approve() transita waiting → approved com end_date calculado (months)', function () {
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'waiting',
@@ -70,7 +73,7 @@ it('approve() transita waiting → approved com end_date calculado (months)', fu
 
 it('approve() em sub já approved retorna false (idempotente)', function () {
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',
@@ -88,7 +91,7 @@ it('approve() em sub já approved retorna false (idempotente)', function () {
 
 it('cancel() transita approved → cancelled', function () {
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',
@@ -111,7 +114,7 @@ it('cancel() transita approved → cancelled', function () {
 
 it('expire() em sub com end_date no passado marca expired', function () {
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',
@@ -132,7 +135,7 @@ it('expire() em sub com end_date no passado marca expired', function () {
 
 it('expire() em sub com end_date no futuro retorna false (ainda válida)', function () {
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',
@@ -153,7 +156,7 @@ it('expire() em sub com end_date no futuro retorna false (ainda válida)', funct
 
 it('findOverdueApproved() retorna apenas approved com end_date < now', function () {
     $overdue = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',
@@ -182,7 +185,7 @@ it('cancel() grava a categoria quando o motivo bate com a lista', function () {
     }
 
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',
@@ -207,7 +210,7 @@ it('cancel() com texto livre vira `outro` e PRESERVA o que foi escrito', functio
     }
 
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',
@@ -234,7 +237,7 @@ it('cancel() SEM motivo deixa a categoria nula, não carimba `outro`', function 
     }
 
     $sub = Subscription::create([
-        'business_id' => 1,
+        'business_id' => $this->seededTenant()->id,
         'package_id' => 1,
         'package_price' => 0,
         'status' => 'approved',

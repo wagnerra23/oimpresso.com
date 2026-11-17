@@ -54,7 +54,7 @@ Medido em 2026-11-09, no `main` em `844a13c`. É fato datado; a tabela completa,
 | `RevertService` e `RevertCheck` | [`Modules/Auditoria/Services/`](../../../Modules/Auditoria/Services/RevertService.php) | Regras e undo, sem rota que os chame |
 | Telas Inertia | `resources/js/Pages/Auditoria/Index.tsx` e `Detail.tsx` | Filtros e diff |
 | Permissões Spatie | `auditoria.view`, `auditoria.revert.own`, `.any`, `.unlimited` | Cadastradas em `DataController` |
-| Gate das leituras | [`AuditoriaLiberado`](../../../Modules/Auditoria/Http/Middleware/AuditoriaLiberado.php) | `GET /auditoria` e `/auditoria/{id}`: pacote `auditoria_module` + `auditoria.view`, superadmin passa |
+| Gate das leituras | [`AuditoriaLiberado`](../../../Modules/Auditoria/Http/Middleware/AuditoriaLiberado.php) | `GET /auditoria` e `/auditoria/{id}`: `auditoria.view`, superadmin passa; o pacote `auditoria_module` vale só para o menu (desde 2026-11-16) |
 
 ## Comandos
 

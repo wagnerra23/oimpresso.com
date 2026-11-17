@@ -94,20 +94,27 @@ it('UC-NFSL-01 · a consulta da listagem sai filtrada pelo business da sessao [T
     expect($outra)->not->toContain(nfstelasBiz());
 });
 
-it('UC-NFSL-02 · filtros da lista aceitam so status conhecido, data Y-m-d e busca curta', function () {
+it('UC-NFSL-02 · filtros da lista aceitam so status conhecido, competencia AAAA-MM e busca curta', function () {
     $rules = (new IndexNfseRequest())->rules();
 
-    // Controle positivo: combinação válida passa.
+    // Controle positivo: combinação válida passa — competência no formato do <input type="month">.
     expect(Validator::make(
-        ['status' => 'erro', 'de' => '2026-01-01', 'ate' => '2026-09-30', 'q' => 'Tomador'],
+        ['status' => 'erro', 'de' => '2026-01', 'ate' => '2026-09', 'q' => 'Tomador'],
         $rules
     )->passes())->toBeTrue();
     expect(Validator::make([], $rules)->passes())->toBeTrue();
+    // Os 5 status que a coluna aceita passam, um a um.
+    foreach (IndexNfseRequest::STATUS as $st) {
+        expect(Validator::make(['status' => $st], $rules)->passes())->toBeTrue("status {$st} recusado");
+    }
 
     // Negativos — cada um isolado, pra o vermelho apontar a regra certa.
     expect(Validator::make(['status' => 'inventado'], $rules)->errors()->has('status'))->toBeTrue();
+    // 'autorizada' nunca é gravado (enum da coluna): filtrar por ele voltava sempre vazio.
+    expect(Validator::make(['status' => 'autorizada'], $rules)->errors()->has('status'))->toBeTrue();
     expect(Validator::make(['de' => '01/09/2026'], $rules)->errors()->has('de'))->toBeTrue();
-    expect(Validator::make(['de' => '2026-09-30', 'ate' => '2026-09-01'], $rules)->errors()->has('ate'))->toBeTrue();
+    expect(Validator::make(['de' => '2026-09-30'], $rules)->errors()->has('de'))->toBeTrue();
+    expect(Validator::make(['de' => '2026-09', 'ate' => '2026-08'], $rules)->errors()->has('ate'))->toBeTrue();
     expect(Validator::make(['q' => str_repeat('a', 121)], $rules)->errors()->has('q'))->toBeTrue();
     expect(Validator::make(['q' => str_repeat('a', 120)], $rules)->passes())->toBeTrue();
 });

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
+use Modules\Superadmin\Services\SubscriptionLifecycleService;
 
 /**
  * Renova licença SaaS quando cobrança 'subscription_license' é paga.
@@ -29,9 +30,15 @@ use Modules\Superadmin\Entities\Subscription;
  *   - Cobranca.business_id = 1 (Wagner — dono da cobrança)
  *   - Subscription.business_id = <tenant_id> (cross-tenant Wagner-only,
  *     pattern legacy UltimatePOS documentado em Subscription.php:30)
- *   - Business update usa withoutGlobalScopes() pra cross-tenant explícito.
+ *   - Business update busca pelo id da Subscription. `App\Business` não tem escopo
+ *     global, então não há escopo a tirar.
+ *
+ * Valor: aprova só se valorPagoCentavos == valor cobrado (valorEsperadoCentavos);
+ * divergiu → log warning e não aprova.
  *
  * Idempotência: se Subscription.status === 'approved' → return (não duplica).
+ * Status que o SubscriptionLifecycleService não aprova (cancelada, recusada…) →
+ * log warning e não aprova nem desbloqueia.
  * Race: se Subscription.id no event não bate em DB → log + return (Wagner
  * reconcilia manualmente).
  */
@@ -75,19 +82,49 @@ final class OnCobrancaPagaUpdateSubscription
             return;
         }
 
+        // O valor pago tem de ser o valor cobrado. Sem esta conferência, qualquer
+        // CobrancaPaga com a origem certa aprovava a assinatura — inclusive um pagamento
+        // parcial ou um evento reprocessado de outra cobrança. Divergiu: não aprova, e o
+        // log fica para conciliação manual.
+        $esperadoCentavos = self::valorEsperadoCentavos($subscription, $package);
+        if ($event->valorPagoCentavos !== $esperadoCentavos) {
+            Log::warning('[onda5] CobrancaPaga com valor diferente do preço da assinatura — não aprovada', [
+                'cobranca_id' => $event->cobrancaId,
+                'subscription_id' => $subscription->id,
+                'esperado_centavos' => $esperadoCentavos,
+                'pago_centavos' => $event->valorPagoCentavos,
+            ]);
+
+            return;
+        }
+
         $dates = $this->calcPackageDates((int) $subscription->business_id, $package);
 
-        $subscription->status = 'approved';
-        $subscription->start_date = $dates['start'];
-        $subscription->end_date = $dates['end'];
-        $subscription->trial_end_date = $dates['trial'];
-        $subscription->paid_via = 'paymentgateway_pix_automatico';
-        $subscription->payment_transaction_id = (string) $event->cobrancaId;
-        $subscription->save();
-        // Spatie LogsActivity append-only registra mudança (LGPD D7.b CC Art. 206)
+        // A transição passa pelo SubscriptionLifecycleService (RUNBOOK do módulo): é ele
+        // quem decide se o status atual aceita aprovação e grava tudo numa transação.
+        // Spatie LogsActivity append-only registra a mudança (LGPD D7.b CC Art. 206).
+        $aprovou = app(SubscriptionLifecycleService::class)->approve(
+            $subscription,
+            Carbon::parse($dates['start']),
+            Carbon::parse($dates['end']),
+            [
+                'trial_end_date' => $dates['trial'],
+                'paid_via' => 'paymentgateway_pix_automatico',
+                'payment_transaction_id' => (string) $event->cobrancaId,
+            ],
+        );
 
-        // SUPERADMIN: listener SaaS roda sem sessão de tenant; desbloqueia o Business do assinante pago cross-tenant
-        $business = Business::withoutGlobalScopes()->find($subscription->business_id);
+        if (!$aprovou) {
+            Log::warning('[onda5] CobrancaPaga para assinatura em status que não aceita aprovação', [
+                'cobranca_id' => $event->cobrancaId,
+                'subscription_id' => $subscription->id,
+                'status' => $subscription->status,
+            ]);
+
+            return;
+        }
+
+        $business = Business::find($subscription->business_id);
         if ($business && (bool) $business->officeimpresso_bloqueado === true) {
             $business->officeimpresso_bloqueado = false;
             $business->save();
@@ -97,6 +134,23 @@ final class OnCobrancaPagaUpdateSubscription
                 'subscription_id' => $subscription->id,
             ]);
         }
+    }
+
+    /**
+     * Centavos que a cobrança desta assinatura cobrou. Mesma regra das duas origens da
+     * cobrança `subscription_license`: `package_price` da assinatura e, se ele for zero,
+     * o preço do pacote (EmitTrialExpiredCobrancasCommand); o confirm do
+     * SubscriptionController usa `package->price`, que o `_add_subscription` acabou de
+     * copiar para `package_price`. Arredondamento igual ao das duas: round(preço × 100).
+     */
+    public static function valorEsperadoCentavos(Subscription $subscription, Package $package): int
+    {
+        $centavos = (int) round(((float) $subscription->package_price) * 100);
+        if ($centavos <= 0) {
+            $centavos = (int) round(((float) $package->price) * 100);
+        }
+
+        return $centavos;
     }
 
     /**

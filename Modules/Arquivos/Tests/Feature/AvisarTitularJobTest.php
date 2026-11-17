@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -12,7 +13,7 @@ use Modules\Arquivos\Mail\AvisoTitularMail;
 use Modules\Arquivos\Services\AvisoTitularCanais;
 use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Aviso ao titular — ENVIO. ADR 0422 (canal: [W] 2026-10-01 *"e-mail e whatsapp. pode ter
@@ -59,7 +60,6 @@ afterEach(function () {
     DB::table('business')->where('id', 98)->update(['common_settings' => $this->settings98]);
 
     $ids = DB::table('arquivos')->where('classified_by', AVISAR_TITULAR_MARCA)->pluck('id');
-    DB::table('arquivos_audit_log')->whereIn('arquivo_id', $ids)->delete();
     DB::table('arquivos')->whereIn('id', $ids)->delete();
     DB::table('contacts')->where('name', 'like', 'Titular ' . AVISAR_TITULAR_MARCA . '%')->delete();
     if (Schema::hasTable('whatsapp_business_phones')) {
@@ -135,6 +135,7 @@ it('aviso-envio 1 · canais desligados (default) → nada sai e nada é registra
     expect(DB::table('arquivos')->where('id', $id)->value('titular_avisado_at'))->toBeNull();
 });
 
+// @covers-us US-ARQ-030
 it('aviso-envio 2 · e-mail ligado + opt-in → e-mail ao titular e aviso registrado com canal=email', function () {
     app(AvisoTitularCanais::class)->definir(98, true, null);
     $id = avisarTitularArquivo(98, avisarTitularContato(98, $this->user98));

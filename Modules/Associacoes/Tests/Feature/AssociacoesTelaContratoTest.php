@@ -71,12 +71,16 @@ function assocTelaPdf(): UploadedFile
 /** @return list<int> ids da lista entregue pela prop deferida `associacoes`. */
 function assocTelaIdsDaLista($t): array
 {
-    $ids = [];
-    $t->get('/associacoes/lista')->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
-        ->component('Associacoes/Index')
-        ->loadDeferredProps(function (AssertableInertia $r) use (&$ids) {
-            $ids = array_map(fn ($l) => (int) $l['id'], $r->toArray()['props']['associacoes']);
-        }));
+    // Closure comum, não arrow fn: arrow fn captura $ids por valor, e o `use (&$ids)` de dentro
+    // escreveria na cópia dela — o helper devolvia [] com a lista certa no 2º pedido.
+    $ids = null;
+    $t->get('/associacoes/lista')->assertOk()->assertInertia(function (AssertableInertia $p) use (&$ids) {
+        $p->component('Associacoes/Index')
+            ->loadDeferredProps(function (AssertableInertia $r) use (&$ids) {
+                $ids = array_map(fn ($l) => (int) $l['id'], $r->toArray()['props']['associacoes']);
+            });
+    });
+    expect($ids)->toBeArray();
 
     return $ids;
 }

@@ -153,6 +153,7 @@ it('UC-APPANX-01: lista do mais novo para o mais antigo, com URL assinada de 10 
     expect($item['miniatura'])->toBe($item['url']);
 });
 
+// @covers-us US-ARQ-031
 it('UC-APPANX-02: envia foto → 201 com o item, etapa atual gravada pelo servidor e linha em arquivos', function () {
     $r = appAnxEnviar($this, $this->os, ['arquivo' => appAnxJpeg(), 'legenda' => 'Fachada · antes', 'origem' => 'galeria'])
         ->assertStatus(201);

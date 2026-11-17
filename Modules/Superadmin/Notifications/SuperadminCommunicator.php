@@ -3,11 +3,14 @@
 namespace Modules\Superadmin\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class SuperadminCommunicator extends Notification
+class SuperadminCommunicator extends Notification implements ShouldQueue, ShouldBeEncrypted
 {
+    use NaFilaDoSuperadmin;
     use Queueable;
 
     protected $input;
@@ -19,6 +22,7 @@ class SuperadminCommunicator extends Notification
      */
     public function __construct($input)
     {
+        $this->irParaFilaDoSuperadmin();
         $this->input = $input;
     }
 

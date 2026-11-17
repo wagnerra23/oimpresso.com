@@ -2,11 +2,14 @@
 
 namespace Modules\Arquivos\Http\Controllers;
 
+use App\Tenancy\ContextoEmpresa;
 use App\Util\OtelHelper;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Services\VaultEncryptionService;
@@ -20,10 +23,17 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *
  * 1. URL temporária (Laravel temporarySignedRoute) com expiração 60min default
  * 2. Multi-tenant Tier 0 ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
- *    Arquivo::find aplica global scope `business_id` automaticamente — usuário
- *    autenticado biz=1 NUNCA acessa arquivo biz=4 mesmo com URL signed válida
+ *    a empresa vem de `ContextoEmpresa::atual()` (ADR 0453: sessão, depois usuário autenticado)
+ *    e a busca filtra por ela de forma explícita. Arquivo de outra empresa → 404, mesmo
+ *    com URL signed válida. Sem empresa no contexto → 404, nada é servido.
+ *    O global scope de `Arquivo` sozinho não bastava: ele só filtra quando a sessão tem
+ *    `user.business_id`, e esta rota não roda `SetSessionData` (sessão restaurada por
+ *    "lembrar de mim" chegava aqui sem empresa e o `find` não filtrava nada).
  * 3. Audit log (`signed_url_consumed`) — toda download registra
  * 4. Disk routing: lê do disk `arquivos` ou `vault` baseado em `$arquivo->disk`
+ * 5. Vault que não decifra (APP_KEY rotacionada sem a antiga em APP_PREVIOUS_KEYS e sem
+ *    `arquivos:reencrypt-vault`, ou arquivo adulterado): 409 com mensagem clara, em vez
+ *    de deixar a DecryptException virar 500. Log sem nome do arquivo (auditoria L2 2.6).
  *
  * @see memory/decisions/0123-modules-arquivos-backbone.md §6+§8
  */
@@ -35,9 +45,18 @@ class DownloadController extends Controller
         // Atributos sem PII: arquivo_id + bucket + encrypted flag.
         return OtelHelper::spanBiz('arquivos.download', function () use ($request, $arquivo, $vault) {
             // Signed URL middleware (Laravel) já valida expiração + assinatura HMAC.
-            // Aqui foco em business_id scope + audit + stream.
+            // Aqui foco em business_id + audit + stream.
 
-            $row = Arquivo::find($arquivo);
+            // Empresa pelo contexto (ADR 0453), não pela sessão: a rota não tem
+            // SetSessionData. Sem empresa, não serve nada.
+            $businessId = app(ContextoEmpresa::class)->atual();
+            if ($businessId === null) {
+                abort(404);
+            }
+
+            // Filtro explícito: o global scope de Arquivo não filtra quando a sessão
+            // não tem empresa, então a checagem não pode depender só dele.
+            $row = Arquivo::where('arquivos.business_id', $businessId)->find($arquivo);
 
             if (! $row) {
                 abort(404);
@@ -55,7 +74,16 @@ class DownloadController extends Controller
             // Bucket=sensitive em disk=vault: encrypted-at-rest, decrypt antes de servir
             // (ADR 0123 §3). Storage::download serviria ciphertext direto pro cliente.
             if ($row->encrypted) {
-                $plain = $vault->getDecrypted($diskName, $row->storage_path);
+                try {
+                    $plain = $vault->getDecrypted($diskName, $row->storage_path);
+                } catch (DecryptException) {
+                    Log::error('arquivos.download.decrypt_failed', [
+                        'arquivo_id'  => $row->id,
+                        'business_id' => $row->business_id,
+                        'disk'        => $diskName,
+                    ]);
+                    abort(409, 'Não foi possível abrir este arquivo: ele foi cifrado com uma chave que o servidor não tem mais. Avise o administrador do sistema.');
+                }
                 if ($plain === null) {
                     abort(404, 'Arquivo não encontrado no storage (decrypt).');
                 }

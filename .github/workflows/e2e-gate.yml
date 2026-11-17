@@ -82,6 +82,8 @@ jobs:
               - 'composer.lock'
               - 'package.json'
               - 'package-lock.json'
+              - 'resources/uniafibro/**'
+              - 'public/uniafibro/**'
               - 'e2e/**'
               - 'playwright.config.ts'
               - '.github/workflows/e2e-gate.yml'
@@ -176,6 +178,10 @@ jobs:
           # Ponto e o PontoSubNav não desenha as abas que e2e/ponto-*.spec.ts afirmam. Fora do
           # VisregTenantSeeder de propósito: lá mudaria a sidebar das baselines de pixel (ADR 0411).
           php artisan db:seed --class=Database\\Seeders\\VisregPontoSubscriptionSeeder --force
+          # Associada de teste com link + PIN da área da associada (e2e/portal-associada). Depois do
+          # seeder do Ponto: acrescenta associacoes_module à MESMA assinatura ativa. Sem a área no
+          # código (antes do #10880) não grava nada e o spec se pula.
+          php artisan db:seed --class=Database\\Seeders\\VisregAssociacoesPortalSeeder --force
           # FSM da Oficina (oficina_mecanica_os) é per-business e o biz=1 nasce SÓ no
           # VisregTenantSeeder (acima) — sem este re-run, /fsm/start-pipeline responde 422
           # "Processo não cadastrado" e o UC-11 trava no gate (run 27275766546). Seeder

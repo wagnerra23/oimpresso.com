@@ -1,12 +1,12 @@
 {
-  "url": "http://127.0.0.1:64886/oimpresso.com.html",
+  "url": "http://127.0.0.1:47125/prototipo-ui/cowork/Wagner/oimpresso.com.html",
   "saude": {
     "folhasVazias": [],
     "tokensMortos": [],
-    "nFolhas": 77
+    "nFolhas": 87
   },
-  "theme": "dark",
-  "assinatura": "OI WR Assinaturas 10 registros · R$ 4.017 aprovados · 1 pendente de baixa Exportar Lançar assinatura Visão geral Negócios 10 Assinaturas 10 Pacotes 6 Usuário 360° Comunicador Configurações Ativas 5 Em trial 2 Pendentes 1 Vencidas ou canceladas 2 Pacote Status Criada em 10 de 10 Assinatura Negócio Status Vigência Valor Pagamento SUB-2249 criada 16/08/2026 Studio Lona Balcão Pendente — → — sem trial R$ 189 Boleto bol_781902 SUB-2271 criada 15/08/2026 Copiadora Central Legado 2024 Aprovada 15/08/2026 → 15/09/2026 sem trial R$ 149 Pix automático pix_7c02de41 SUB-2288 criada 13/08/2026 Fachadas Norte Gráfica Trial 13/08/2026 → 27/08/2026 trial até 27/08/2026 — — — SUB-2291 criada 12/08/2026 Martinho Oficina Gráfica Aprovada 12/08/2026 → 12/09/2026 sem trial R$ 389 Pix automático pix_9f31a7c2 SUB-2280 criada 03/08/2026 Print Ideal Balcão Aprovada 03/08/2026 → 03/09/2026 sem trial R$ 189 Boleto bol_774120 SUB-2284 criada 28/07/2026 Grupo Sinaliza (3 lojas) Rede Aprovada 28/07/2026 → 28/08/2026 sem trial R$ 890 Cartão (Stripe) ch_3PkQ8bL2 Anterior 1 2 Próxima 1 – 6 de 10",
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 5 CRM 16 G R Vendas 22 G V Oficina Auto 1 Vestuário 2 Fisio 11 Finanças 4 Caixa G X Financeiro 15 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 9 Produção 5 Painel de produção 7 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 7 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 5 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador Assinaturas 10 registros · R$ 4.017 aprovados · 1 pendente de baixa Exportar Lançar assinatura Visão geral Negócios 10 Assinaturas 10 Pacotes 6 Usuário 360° Comunicador Configurações Ativas 5 Em trial 2 Pendentes 1 Vencidas ou canceladas 2 Pacote Status Criada em 10 de 10 Assinatura Negócio Status Vigência Valor Pagamento SUB-2249 criada 16/08/2026 Studio Lona Balcão Pendente — → — sem trial R$ 189 Boleto bol_781902 SUB-2271 criada 15/08/2026 Copiadora Central Legado 2024 Aprovada 15/08/2026 → 15/09/2026 sem trial R$ 149 Pix automático pix_7c02de41 SUB-2288 criada 13/08/2026 Fachadas Norte Gráfica Trial 13/08/2026 → 27/08/2026 trial até 27/08/2026 — — — SUB-2291 criada 12/08/2026 Martinho Oficina Gráfica Aprovada 12/08/2026 → 12/09/2026 sem trial R$ 389 Pix automático pix_9f31a7c2 SUB-2280 criada 03/08/2026 Print Ideal Balcão Aprovada 03/08/2026 → 03/09/2026 sem trial R$ 189 Boleto bol_774120 SUB-2284 criada 28/07/2026 Grupo Sinaliza (3 lojas) Rede Aprovada 28/07/2026 → 28/08/2026 sem trial R$ 890 Cartão (Stripe) ch_3PkQ8bL2 Anterior 1 2 Próxima 1 – 6 de 10",
   "roles": {
     "kpi": {
       "count": 0,
@@ -17,12 +17,12 @@
     "title": {
       "fontPx": 22,
       "weight": "600",
-      "color": "oklch(0.94 0.005 90)"
+      "color": "oklch(0.22 0.01 80)"
     },
     "primary": {
-      "bg": "oklch(0.7 0.15 295)",
+      "bg": "oklch(0.55 0.15 295)",
       "color": "rgb(255, 255, 255)",
-      "border": "oklch(0.7 0.15 295)"
+      "border": "oklch(0.55 0.15 295)"
     },
     "filterRows": null,
     "contratos": [],
@@ -31,9 +31,9 @@
         "col": 0,
         "tag": null,
         "align": "center",
-        "larguraPct": 3.4,
+        "larguraPct": 3.6,
         "mono": false,
-        "corPropria": false,
+        "corPropria": null,
         "fontPx": 13,
         "weight": "400",
         "blocos": 0,
@@ -55,7 +55,7 @@
         "col": 2,
         "tag": null,
         "align": "left",
-        "larguraPct": 19.9,
+        "larguraPct": 19.8,
         "mono": false,
         "corPropria": true,
         "fontPx": 13,
@@ -76,7 +76,7 @@
         "pill": {
           "radius": "9999px",
           "borda": true,
-          "bg": "oklch(0.74 0.13 75)",
+          "bg": "oklch(0.7 0.13 75)",
           "dot": false
         }
       },
@@ -84,7 +84,7 @@
         "col": 4,
         "tag": null,
         "align": "left",
-        "larguraPct": 22.9,
+        "larguraPct": 22.8,
         "mono": true,
         "corPropria": true,
         "fontPx": 13,
@@ -96,7 +96,7 @@
         "col": 5,
         "tag": null,
         "align": "right",
-        "larguraPct": 9,
+        "larguraPct": 8.9,
         "mono": true,
         "corPropria": true,
         "fontPx": 12,
@@ -108,7 +108,7 @@
         "col": 6,
         "tag": null,
         "align": "left",
-        "larguraPct": 15.9,
+        "larguraPct": 15.8,
         "mono": true,
         "corPropria": true,
         "fontPx": 13,
@@ -120,9 +120,9 @@
         "col": 7,
         "tag": "BUTTON",
         "align": "right",
-        "larguraPct": 4.1,
+        "larguraPct": 4.3,
         "mono": false,
-        "corPropria": false,
+        "corPropria": true,
         "fontPx": 13,
         "weight": "400",
         "blocos": 0,
@@ -139,36 +139,139 @@
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-menu > .sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "233px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 233,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 2,
+          "texto": "IA3",
+          "textoProprio": false
         },
         "itemGrupo": {
           "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 36,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "233px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 233,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 2,
+          "texto": "ClientesG C",
+          "textoProprio": false
         },
         "grupoHeader": {
           "seletor": ".sb-group-h",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 9,
+          "ocultos": 0,
+          "css": {
+            "height": "26px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "10.5px",
+            "fontWeight": "600",
+            "lineHeight": "normal",
+            "letterSpacing": "0.63px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "233px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 233,
+            "h": 26
+          },
+          "icone": {
+            "w": 12,
+            "h": 12,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 2,
+          "texto": "Cadastro3",
+          "textoProprio": false
         },
         "containerMenu": {
           "seletor": ".sb-menu",
           "n": 1,
+          "ocultos": 0,
           "css": {
-            "height": "525px",
+            "height": "1632px",
             "minHeight": "0px",
-            "padding": "4px 0px",
+            "padding": "8px",
             "margin": "0px",
-            "gap": "2px",
-            "display": "flex",
-            "alignItems": "center",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
             "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
             "fontSize": "13.5px",
             "fontWeight": "400",
@@ -181,23 +284,44 @@
             "borderWidth": "0px",
             "borderColor": "oklch(0.8 0.008 295)",
             "opacity": "1",
-            "width": "55px",
+            "width": "249px",
             "boxShadow": "none",
             "textDecorationLine": "none"
           },
           "caixa": {
-            "w": 55,
-            "h": 525
+            "w": 249,
+            "h": 1632
           },
           "icone": {
-            "w": 18,
-            "h": 18,
+            "w": 16,
+            "h": 16,
             "strokeWidth": "1.6px"
-          }
+          },
+          "blocos": 92,
+          "texto": "IA3Visão geralG DAtendimento6Cadastro3ClientesG CProdutos12G PFabricação3Comerci",
+          "textoProprio": false
         }
       },
-      "atalhos": []
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA3",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geralG D",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento6",
+          "atual": null
+        }
+      ]
     },
-    "chart": null
-  }
+    "chart": null,
+    "drawer": null
+  },
+  "lazyDone": true
 }
