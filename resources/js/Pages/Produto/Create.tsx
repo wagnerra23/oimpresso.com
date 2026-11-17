@@ -26,6 +26,8 @@ import { armazenagemInicial, camposDaArmazenagem } from './_components/formulari
 import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 import { apagarRascunho, gravarRascunho, lerRascunho, semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
+import { camposDaGrade, erroDaGrade, gradeInicial } from './_components/formulario/grade';
+import type { ModeloVariacao } from './_components/formulario/grade';
 
 function localUnico(locais: OptionMap): number[] {
   const ids = opcoesDe(locais).map(([id]) => Number(id));
@@ -94,6 +96,8 @@ export interface ProdutoCreatePageProps {
   subcategoriasPorCategoria?: Record<string, Record<string, string>>;
   /** UC-PCAD-26: unidade => sub-unidades; vazio sem sub-unidades na empresa. */
   subUnidadesPorUnidade?: Record<string, SubUnidade[]>;
+  /** UC-PCAD-32: modelos de variação da empresa, com os valores. */
+  modelosVariacao?: ModeloVariacao[];
   /** UC-PCAD-30: a chave do rascunho no navegador, por empresa e usuário (o servidor manda). */
   rascunho?: string;
 }
@@ -108,6 +112,13 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
   // alíquota do imposto escolhido, no envio e na tela.
   const [preco, setPreco] = useState(() => precoInicial(Number(props.defaultProfitPercent)));
   const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
+  // UC-PCAD-32: grade do produto variável (grade.ts). O erro local some quando a grade muda.
+  const [grade, setGrade] = useState(() => gradeInicial(Number(props.defaultProfitPercent)));
+  const [erroGrade, setErroGrade] = useState<string | null>(null);
+  const mudarGrade = (g: typeof grade) => {
+    setGrade(g);
+    setErroGrade(null);
+  };
 
   const { data, setData, post, transform, processing, errors } = useForm({
     name: dup?.name ?? '',
@@ -170,20 +181,22 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     politica,
     armazenagem,
     metodoCusto,
+    grade,
     arquivos: [data.image?.name ?? null, data.product_brochure?.name ?? null],
   });
-  const inicial = useRef<{ retrato: string; form: Record<string, unknown>; preco: typeof preco; politica: typeof politica; armazenagem: typeof armazenagem; metodoCusto: typeof metodoCusto } | null>(null);
-  if (inicial.current === null) inicial.current = { retrato, form: { ...data }, preco, politica, armazenagem, metodoCusto };
+  const inicial = useRef<{ retrato: string; form: Record<string, unknown>; preco: typeof preco; politica: typeof politica; armazenagem: typeof armazenagem; metodoCusto: typeof metodoCusto; grade: typeof grade } | null>(null);
+  if (inicial.current === null) inicial.current = { retrato, form: { ...data }, preco, politica, armazenagem, metodoCusto, grade };
   const sujo = retrato !== inicial.current.retrato;
   const aviso = useAvisoAoSair(sujo);
   const [salvoAs, setSalvoAs] = useState<string | null>(null);
   const [recuperado, setRecuperado] = useState<string | null>(null);
-  const restaurar = (r: { form: Record<string, unknown>; preco?: unknown; politica?: unknown; armazenagem?: unknown; metodoCusto?: unknown }) => {
+  const restaurar = (r: { form: Record<string, unknown>; preco?: unknown; politica?: unknown; armazenagem?: unknown; metodoCusto?: unknown; grade?: unknown }) => {
     for (const [k, v] of Object.entries(r.form)) setData(k as never, v as never);
     if (r.preco !== undefined) setPreco(r.preco as typeof preco);
     if (r.politica !== undefined) setPolitica(r.politica as typeof politica);
     if (r.armazenagem !== undefined) setArmazenagem(r.armazenagem as typeof armazenagem);
     if (r.metodoCusto !== undefined) setMetodoCusto(r.metodoCusto as typeof metodoCusto);
+    if (r.grade !== undefined) setGrade(r.grade as typeof grade);
   };
   useEffect(() => {
     const r = lerRascunho(chaveRascunho);
@@ -196,7 +209,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
   useEffect(() => {
     if (!sujo) return;
     const t = window.setTimeout(() => {
-      const hora = gravarRascunho(chaveRascunho, { form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto });
+      const hora = gravarRascunho(chaveRascunho, { form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto, grade });
       if (hora) setSalvoAs(hora);
     }, 800);
     return () => window.clearTimeout(t);
@@ -212,13 +225,26 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Variável e composto sairiam sem variação/itens (tipos.ts tipoSemEditor): não salva.
+    // Composto sairia sem itens (tipos.ts tipoSemEditor): não salva.
     if (tipoSemEditor(data.type)) return;
+    // UC-PCAD-32: variável sem modelo ou sem valor não vai ao servidor.
+    const faltaNaGrade = data.type === 'variable' ? erroDaGrade(grade) : null;
+    if (faltaNaGrade) {
+      setErroGrade(faltaNaGrade);
+      return;
+    }
     // O botão do rodapé diz a tela seguinte (submit_type, o mesmo do Blade); sem ele, volta à lista.
     const envio = tipoDeEnvio(e);
-    // Variável e composto têm o próprio editor de preço; só o simples manda os cinco campos.
+    // O simples manda os cinco campos de preço; o variável manda a grade, com os cinco de cada valor.
     transform((d) => {
-      const comPreco = d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d;
+      const aliquota = aliquotaDoImposto(d.tax, props.taxAttributes);
+      const modelo = (props.modelosVariacao ?? []).find((m) => m.id === grade.modeloId);
+      const comPreco =
+        d.type === 'single'
+          ? { ...d, ...camposDePreco(preco, aliquota) }
+          : d.type === 'variable'
+            ? { ...d, ...camposDaGrade(grade, modelo, aliquota) }
+            : d;
       const comMetodo = {
         ...comPreco,
         ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
@@ -293,6 +319,17 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
             armazenagem={data.enable_stock === 1 ? { valor: armazenagem, mudar: setArmazenagem, endereco } : undefined}
+            grade={
+              data.type === 'variable'
+                ? {
+                    valor: grade,
+                    mudar: mudarGrade,
+                    aliquota: aliquotaDoImposto(data.tax, props.taxAttributes),
+                    margemPadrao: Number(props.defaultProfitPercent),
+                    erro: erroGrade ?? (errors as Record<string, string | undefined>).product_variation,
+                  }
+                : undefined
+            }
             politica={{ valor: politica, mudar: setPolitica }}
           />
           <AcoesDoCadastro
