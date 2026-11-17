@@ -59,6 +59,7 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-59 | Nº da venda: cada link só acha a venda da própria empresa | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" · ADR 0093 | 🧪 |
 | UC-COS-60 | Celular só com nº de série, e só na empresa do link | must `[T0]` | decisão [W] 2026-11-17 "celular só com série" · ADR 0093 | 🧪 |
 | UC-COS-61 | Sem código de empresa não há busca; código desconhecido dá 404 | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" | 🧪 |
+| UC-COS-62 | Quem mexeu na OS aparece como primeiro nome + inicial do sobrenome | must | decisão [W] 2026-11-17 "primeiro nome + inicial" · Non-Goals "NÃO expõe o nome completo de funcionário" | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -291,6 +292,17 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
   E a busca antiga `/consulta-os/buscar` não existe (404) · E um código no formato certo que não é de
   empresa nenhuma dá 404 na tela e na busca, só com `{"found": false}`.
 - **Teste:** contrato (API) + [`ConsultaOsIndexBrowserTest`](../../../../tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php) (tela).
+- **Status:** 🧪
+
+## UC-COS-62 · Quem mexeu na OS aparece como primeiro nome + inicial do sobrenome · `must`
+
+- **Aceite:** Dado uma troca de status feita por um funcionário cadastrado como "Sra. Maria
+  Aparecida Souza" · Quando o cliente consulta a OS · Então a atividade mostra "Maria S." · E o
+  corpo da resposta não traz o tratamento, o segundo nome nem o sobrenome · E funcionário sem
+  sobrenome aparece só com o primeiro nome · E sem nome nenhum a atividade sai sem "quem".
+- **Por quê:** decisão [W] 2026-11-17. Antes saía o nome completo do cadastro
+  (`surname + first_name + last_name`). A inicial separa duas pessoas com o mesmo primeiro nome;
+  o nome completo continua no histórico interno da OS.
 - **Status:** 🧪
 
 ---
