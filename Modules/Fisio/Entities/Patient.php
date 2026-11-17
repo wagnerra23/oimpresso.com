@@ -73,6 +73,16 @@ class Patient extends Model
         return PatientFactory::new();
     }
 
+    /**
+     * Paciente da empresa da sessão, ou 404. Filtro explícito por `business_id` além do escopo
+     * global: se o escopo não se aplicar, a busca continua presa à empresa (auditoria d8).
+     * Sem empresa na sessão, nada é encontrado.
+     */
+    public static function daSessaoOuFalha(int $id): self
+    {
+        return static::query()->where('business_id', (int) session('user.business_id'))->findOrFail($id);
+    }
+
     public function estaBloqueado(): bool
     {
         return $this->blocked_at !== null;

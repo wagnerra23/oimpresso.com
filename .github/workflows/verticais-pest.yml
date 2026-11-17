@@ -836,6 +836,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SubscriptionConfirmContratoTest.php \
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
+            Modules/Superadmin/Tests/Feature/Wave26SaturationTest.php \
             Modules/Superadmin/Tests/Feature/AssinaturaAtivaDeterministaTest.php \
             Modules/Superadmin/Tests/Feature/OnCobrancaPagaUpdateSubscriptionTest.php \
             Modules/Superadmin/Tests/Feature/OnCobrancaVencidaBloqueaSubscriptionTest.php \
