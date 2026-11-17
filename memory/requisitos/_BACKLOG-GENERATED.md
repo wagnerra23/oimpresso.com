@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1097 tarefas abertas** em **62 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1089 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -45,7 +45,6 @@
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
-| [`Manufacturing`](#manufacturing) | 8 | 0 | 0 | 0 | 8 |
 | [`Woocommerce`](#woocommerce) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
@@ -1348,20 +1347,6 @@
 - **US-KB-006** — Visualização-grafo (ONDA 5) — 🔴 **FACHADA: front sem backend**
 - **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
 - **US-KB-008** — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — ⬜ **não começou**
-
-## Manufacturing
-
-
-### todo
-
-- **US-MANU-001** — Quanto custa produzir, com o preço de insumo de hoje
-- **US-MANU-002** — Relatório de produção do período
-- **US-MANU-003** — Configurações do módulo
-- **US-MANU-004** — Ordens de produção — as 8 colunas e as duas marcas do §4.5
-- **US-MANU-005** — Insumos — impacto reverso e simulador de preço
-- **US-MANU-006** — Editor de ingredientes
-- **US-MANU-007** — Formulário de ordem de produção
-- **US-MANU-008** — Rotas legadas só tocam dado da própria empresa
 
 ## Woocommerce
 
