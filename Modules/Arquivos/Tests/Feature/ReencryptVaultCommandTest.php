@@ -115,6 +115,7 @@ it('--dry-run nao modifica bytes em disk', function () {
     expect(Storage::disk('vault-test')->get('biz-98/dry.txt'))->toBe($cipher);
 });
 
+// @covers-us US-ARQ-033
 it('roundtrip: encrypt com key A -> reencrypt --old-key=A -> file decryptavel com Crypt facade atual', function () {
     Storage::fake('vault-test');
     [$oldKey, $enc] = reencChaveAntiga();

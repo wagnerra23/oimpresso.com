@@ -169,6 +169,7 @@ it('superadmin passa: restaura arquivo do proprio business (98)', function () {
     expect(DB::table('arquivos')->where('id', $id)->value('deleted_at'))->toBeNull();
 })->group('arquivos', 'multi-tenant');
 
+// @covers-us US-ARQ-034
 it('arquivos:revogar-permissoes-superadmin · --dry-run lista e NAO escreve; sem flag remove; 2a vez e no-op', function () {
     $perm = Permission::findOrCreate('arquivos.governanca', 'web');
     $papel = Role::where('name', 'Admin#'.ASO_BIZ)->first();

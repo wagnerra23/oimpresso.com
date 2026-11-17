@@ -129,6 +129,7 @@ it('--business ausente retorna exit 1 com mensagem em PT-BR', function () {
 // 3. Cria ZIP com files do business + manifest JSON correto
 // ---------------------------------------------------------------------------
 
+// @covers-us US-ARQ-032
 it('cria ZIP com arquivos do business e manifest JSON correto', function () {
     Storage::fake('local');
 

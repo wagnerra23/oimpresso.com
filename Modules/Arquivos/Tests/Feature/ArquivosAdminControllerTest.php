@@ -1149,6 +1149,7 @@ it('UC-ARQIDX-07 · a Request recusa arquivo de OUTRO business (Tier 0, cross-te
     expect(arquivosClassificarRequest($doProprio, ['motivo' => 'teste cross'])->authorize())->toBeTrue();
 })->group('arquivos', 'multi-tenant');
 
+// @covers-us US-ARQ-027
 it('UC-ARQIDX-07 · classificar grava classified_at e a trilha guarda o MOTIVO no business do arquivo', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
@@ -1281,6 +1282,7 @@ it('UC-ARQIDX-08 · as Requests recusam arquivo de OUTRO business (Tier 0, cross
     expect(DB::table('arquivos')->where('id', $doAdversario)->value('deleted_at'))->not->toBeNull();
 })->group('arquivos', 'multi-tenant');
 
+// @covers-us US-ARQ-028
 it('UC-ARQIDX-08 · excluir e soft-delete com motivo na trilha; restaurar no grace PRESERVA a trilha', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
@@ -1423,6 +1425,7 @@ it('UC-ARQIDX-09 · o job recusa sozinho dry_run=false e purge (defesa em profun
         ->toThrow(LogicException::class);
 })->group('arquivos');
 
+// @covers-us US-ARQ-029
 it('UC-ARQIDX-09 · a simulacao lista so o proprio business, diz o porque e NAO escreve em arquivos nem na trilha', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
