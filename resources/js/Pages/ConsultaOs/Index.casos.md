@@ -49,6 +49,10 @@ last_run_ci: "2026-10-27: UC-COS-07 e UC-COS-11 mudam (cutover do portal antigo 
 | UC-COS-31 | Cliente que recusou WhatsApp não recebe o aviso da OS | must `[T0]` | US-CONSULTA-004 + LGPD opt-out | 🧪 |
 | UC-COS-32 | OS com cliente de outra empresa não avisa ninguém | must `[T0]` | US-CONSULTA-004 + ADR 0093 | 🧪 |
 | UC-COS-33 | Status sem marca não avisa, mesmo chamado `ready` | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | 🧪 |
+| UC-COS-34 | Resposta traz no máximo 20 OS | must `[T0]` | Non-Goals "NÃO lista todas as OS (… no máximo 20)" | 🧪 |
+| UC-COS-35 | 31ª busca do mesmo IP no minuto recebe 429 | must `[T0]` | Anti-hooks "NÃO expõe OS por enumeração" · SPEC US-CONSULTA-001 "rate-limit por IP (`throttle:30,1`)" | 🧪 |
+| UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | `Config/retention.php` `consulta_os_logs` (IP + número redigido, 365 dias) | 🧪 |
+| UC-COS-37 | Falha interna: 500 só com `found=false`, sem detalhe técnico | must | UX "sem jargão técnico" · UC-COS-03 | 🧪 |
 | UC-COS-38 | Falha do servidor na busca: a tela avisa e não diz "não encontrada" | must | UX "sem jargão técnico" · UC-COS-37 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
@@ -104,7 +108,10 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 ## UC-COS-06 · Só leitura: nada grava, nada edita · `must`
 
 - **Aceite:** Dado as rotas públicas do portal (`consulta-os.index`, `consulta-os.buscar`) · Então
-  as duas existem e aceitam só `GET`/`HEAD`.
+  as duas existem e aceitam só `GET`/`HEAD` · E uma busca que acha (por nº da OS, da venda e
+  celular), uma que não acha e uma recusada não mudam a contagem de `repair_job_sheets`,
+  `activity_log`, `transactions` e `contacts` (Anti-hook "NÃO grava nada em GET").
+- **Anti-vácuo:** o teste confere antes que as tabelas têm linhas.
 - **Status:** 🧪
 
 ## UC-COS-07 · Não deixa enumerar OS · `must` `[T0]`
@@ -204,6 +211,40 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 - **Aceite:** Dado um status com o nome literal `ready` e sem marca, e outro marcado com
   aguardando peças · Quando a OS vai para o primeiro · Então nenhum job sai · E quando vai para o
   segundo sai um job com o template de aguardando peças.
+- **Status:** 🧪
+
+## UC-COS-34 · Resposta traz no máximo 20 OS · `must` `[T0]`
+
+- **Aceite:** Dado 25 OS com o mesmo nº · Quando o cliente busca esse nº · Então recebe 20 OS
+  (Non-Goals do charter: "NÃO lista todas as OS … no máximo 20").
+- **Anti-vácuo:** o teste confere antes que as 25 existem no banco.
+- **Status:** 🧪
+
+## UC-COS-35 · 31ª busca do mesmo IP no minuto recebe 429 · `must` `[T0]`
+
+- **Aceite:** Dado um visitante · Quando faz 30 buscas no mesmo minuto · Então as 30 são atendidas
+  (422, sem critério) · E a 31ª busca e a abertura da tela recebem 429 · E outro IP, no mesmo
+  minuto, ainda é atendido (o limite é por visitante, não global).
+- **Por que comportamento:** o UC-COS-07 só confere que a rota declara `throttle:`; este prova que
+  o limite morde.
+- **Status:** 🧪
+
+## UC-COS-36 · Cada busca deixa log com IP truncado e número redigido · `must`
+
+- **Aceite:** Dado um visitante do IP `203.0.113.57` · Quando busca por celular (acha) e por um nº
+  inexistente · Então sai um registro `consultaos.busca_publica` por busca, com o resultado de cada
+  uma (`found`, `not_found`) · E o IP registrado é `203.0.113.0` · E o celular não aparece cru ·
+  E o User-Agent tem no máximo 80 caracteres · E não há `business_id`, IP completo nem dado da OS
+  (nº, status, série, cliente).
+- **Âncora:** a política de retenção declara `consulta_os_logs` com IP e número redigido.
+- **Status:** 🧪
+
+## UC-COS-37 · Falha interna: 500 só com `found=false`, sem detalhe técnico · `must`
+
+- **Aceite:** Dado uma falha na leitura das OS · Quando o cliente busca · Então recebe 500 com
+  corpo exatamente `{"found": false}` · E o texto do erro não aparece na resposta · E o log
+  `consultaos.busca_falhou` traz só o tipo do erro, não a mensagem · E a busca é registrada com
+  resultado `erro`.
 - **Status:** 🧪
 
 ## UC-COS-38 · Falha do servidor na busca: a tela avisa e não diz "não encontrada" · `must`

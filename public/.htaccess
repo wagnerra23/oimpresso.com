@@ -10,9 +10,13 @@
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
     # Redirect Trailing Slashes If Not A Folder...
+    # O caminho vem de %{THE_REQUEST} (a URL que o cliente pediu), não de %{REQUEST_URI}:
+    # no LiteSpeed da Hostinger o REQUEST_URI já chega como /public/x/ depois do rewrite
+    # interno do .htaccess raiz, e /x/ virava 301 → /public/x → 301 → /x (2 saltos, expondo /public/).
+    # NE: o THE_REQUEST já vem codificado (%20), não recodificar. A query string é anexada sozinha.
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ (/[^?\ ]+)/(\?[^\ ]*)?\ HTTP/ [NC]
+    RewriteRule ^ %1 [L,R=301,NE]
 
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d

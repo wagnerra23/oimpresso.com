@@ -24,7 +24,10 @@ beforeEach(function () {
     if (! $this->outro) {
         $this->markTestSkipped('Lane sem 2º business — contrato cross-tenant não exercitável.');
     }
-    $this->user = $this->usuarioComPermissoes([], $this->seededTenant());
+    // Desde 2026-11-17 o servidor exige `discount.manage` para lançar desconto (UC-CIDX-18,
+    // tests/Feature/Cliente/ClienteDescontoExtratoTest.php). Sem ela os dois casos daqui
+    // parariam no 403, antes da conferência de empresa que este arquivo prova.
+    $this->user = $this->usuarioComPermissoes(['discount.manage'], $this->seededTenant());
 });
 
 function descRazaoContato(int $biz, int $criador): int

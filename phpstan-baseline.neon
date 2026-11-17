@@ -2109,12 +2109,6 @@ parameters:
 			path: Modules/ConsultaOs/Config/retention.php
 
 		-
-			message: '#^Method Modules\\ConsultaOs\\Repositories\\MockConsultaOsRepository\:\:dataset\(\) should return array\<string, array\<string, mixed\>\> but returns array\<int, array\<string, list\<array\<string, int\|string\>\>\|string\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/ConsultaOs/Repositories/MockConsultaOsRepository.php
-
-		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2

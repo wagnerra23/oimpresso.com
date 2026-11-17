@@ -177,6 +177,14 @@ last_run: "2026-11-16"
 - **Teste:** `tests/Feature/Cliente/ClienteAcoesPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-17 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
 
+## UC-CIDX-18 · O desconto no extrato grava de verdade, e só com "Gerenciar descontos" `[T0]` `[must]`
+- **Persona:** quem lança desconto no extrato do cliente (permissão `discount.manage`); funcionário que não deveria mexer no saldo.
+- **Como usa:** ficha do cliente, botão **Aplicar desconto** (data, valor e observação).
+- **Aceite:** Dado quem tem `discount.manage` · Quando aplica 25,00 com data 17/11/2026 · Então a tela manda `2026-11-17 HH:MM` e `25.00` · E o servidor grava 25,00 nessa data, para a empresa da sessão · E a soma de descontos que o extrato usa lê 25,00 · E "25.000" digitado vai como 25,00, nunca como vinte e cinco mil · E valor zero não grava · E a tela antiga (data no formato da empresa, valor `10,50`) segue gravando · E sem `discount.manage` lançar ou editar desconto responde 403 e nada muda · E cliente de outra empresa não recebe desconto.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-17 ("corrige o 2 também") · `permissions.add_discount` da ficha (`ContactController`) já era `discount.manage` (D1 [W] 2026-10-02) · regra mestre de valor ([proibicoes.md](../../../../memory/proibicoes.md) §CÁLCULO DE VALOR): frontend nunca manda número com ponto ambíguo · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Até 2026-11-17 a ficha mandava só a data, o `uf_date` lançava exceção e o desconto nunca gravava.
+- **Teste:** `tests/Feature/Cliente/ClienteDescontoExtratoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-18 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
