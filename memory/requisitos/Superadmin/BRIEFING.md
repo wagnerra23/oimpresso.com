@@ -45,12 +45,12 @@ Seguem em Blade: o pagamento sem a flag (ou com `?classico=1`), `/pricing/old`, 
 
 ## Cobrança e acesso — como o código faz hoje
 
-Empresa nova → `BusinessAutoSubscriptionObserver` cria assinatura `waiting` com `trial_end_date` → cron `paymentgateway:emit-trial-expired` (08:00, só `live`) emite PIX Automático no trial vencido → `CobrancaPaga` → `OnCobrancaPagaUpdateSubscription` aprova e calcula a vigência → `ModuleUtil::hasThePermissionInSubscription` libera os módulos do `package_details`. Inadimplência: `CobrancaVencida` → `declined` + `officeimpresso_bloqueado`. Detalhe e buracos no SDD do fluxo (lote L6, PR 3).
+Empresa nova → `BusinessAutoSubscriptionObserver` cria assinatura `waiting` com `trial_end_date` → cron `paymentgateway:emit-trial-expired` (08:00, só `live`) emite PIX Automático no trial vencido → `CobrancaPaga` → `OnCobrancaPagaUpdateSubscription` confere o valor pago contra o preço e aprova pelo `SubscriptionLifecycleService` (lote L2, #11048) → `ModuleUtil::hasThePermissionInSubscription` libera os módulos do `package_details`. Inadimplência: `CobrancaVencida` → `declined` + `officeimpresso_bloqueado`. Detalhe e buracos no SDD do fluxo (lote L6, PR 3).
 
 **Pendências de decisão [W] (abertas em 2026-11-16, comportamento atual descrito, futuro não decidido):**
 - **B1 — trial sem módulos:** `active_subscription()` só conta `approved` (`Subscription.php:111-125`); a assinatura `waiting` do trial não libera módulo por pacote. Inferido do código, não medido em runtime.
-- **B2 — renovação:** `OnCobrancaPagaUpdateSubscription.php:65` ignora `CobrancaPaga` de assinatura já `approved`; nenhum cron emite a cobrança seguinte.
-- **B3 — expiração:** nenhum processo automático grava `expired`; só a ação "vencer" da tela (`SubscriptionLifecycleService.php:97`). `findOverdueApproved()` não tem chamador fora dos testes.
+- **B2 — renovação:** `OnCobrancaPagaUpdateSubscription.php:71` ignora `CobrancaPaga` de assinatura já `approved`; nenhum cron emite a cobrança seguinte.
+- **B3 — expiração:** nenhum processo automático grava `expired`; só a ação "vencer" da tela (`SubscriptionLifecycleService.php:104`). `findOverdueApproved()` não tem chamador fora dos testes.
 
 ## Gateways
 
@@ -64,7 +64,7 @@ A tela Pagar nova oferece **só PIX Automático e offline** (UC-SAPG-03). A Blad
 
 ## Testes
 
-`node scripts/governance/test-lane-coverage.mjs --json` (2026-11-16): **28** arquivos no módulo, **15 fora de qualquer lane de PR** — entre eles todo o fluxo de cobrança (Observer, os dois listeners, `AssinaturaAtivaDeterministaTest`, `PackageManagerServiceTest`). O lote L1 trata disso. Os `*ContratoTest` das telas declaram `@covers-us` e estão citados no SPEC. Rodar Pest só no CT 100.
+`node scripts/governance/test-lane-coverage.mjs --json` (2026-11-17, depois do lote L1): **32** arquivos no módulo, **5 fora de qualquer lane de PR**: `BusinessAutoSubscriptionObserverTest`, `SmokeRoutesTest` e os três `Wave2xCrossTenant*`. Os dois listeners, `AssinaturaAtivaDeterministaTest` e `PackageManagerServiceTest` passaram a rodar. Em 2026-11-16 eram 15 de 28. Os `*ContratoTest` das telas declaram `@covers-us` e estão citados no SPEC. Rodar Pest só no CT 100.
 
 ## Gaps reconhecidos
 
@@ -84,7 +84,7 @@ A tela Pagar nova oferece **só PIX Automático e offline** (UC-SAPG-03). A Blad
 
 ## Próximo passo sugerido
 
-Ondas da auditoria de 2026-11-05: L0 mergeado em 2026-11-16 (#10974 — ver Gaps); em curso L1 (testes em lane), L2 (cobrança), L3 (validação), L7 (medição das telas). B1/B2/B3 dependem de decisão [W].
+Ondas da auditoria de 2026-11-05, mergeadas até 2026-11-17: L0 (#10974, #11034), L1 (#11056, #11057), L2 PR 1 (#11048), L3 (#11033, #11037, #11040), L4 (#11022, #11046), L7 (#11049, #11051). Falta o PR 2 do L2; o PR 3 do L2 e B1/B2/B3 dependem de decisão [W]. O `BusinessAutoSubscriptionObserverTest` ainda está fora de lane.
 
 ---
 **Atualizado:** 2026-11-16 pelo lote L6 PR 2 (auditoria Superadmin) · **Mantenedor:** Claude (skill `brief-update`) + [W]
