@@ -10,7 +10,9 @@ import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 const { json } = vi.hoisted(() => ({ json: vi.fn() }));
-vi.mock('@inertiajs/react', () => ({ Deferred: ({ children }: { children: ReactNode }) => children, router: { reload: vi.fn(), visit: vi.fn() } }));
+// usePage: a Linha abre a Ficha no painel lateral e lê a OS aberta da URL (UC-PCOSF-09); aqui nenhuma OS está aberta.
+vi.mock('@inertiajs/react', () => ({ Deferred: ({ children }: { children: ReactNode }) => children, router: { reload: vi.fn(), visit: vi.fn() },
+  usePage: () => ({ url: '/producao/linha' }) }));
 vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: { children: ReactNode }) => children }));
 vi.mock('@/Components/PageHeader', () => ({ PageHeader: () => null }));
 vi.mock('../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas', () => ({ default: () => null }));
