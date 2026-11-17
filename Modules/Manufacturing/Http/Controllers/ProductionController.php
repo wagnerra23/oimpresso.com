@@ -1055,6 +1055,11 @@ class ProductionController extends Controller
             // mandam. Esta tela nasceu na Wave J SEM a barra de abas (era a única do módulo
             // na época) e ficou sem os dados dela; virou beco sem saída depois do cutover.
             'recipes_count' => $bomService->countRecipes($business_id),
+            // A barra de abas lê as duas (UC-RECIPE-24); esta tela já exige `access_production`.
+            'permissions' => [
+                'prod' => true,
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
+            ],
             // Painel lateral da ordem (`?ordem=ID`). Optional: só calcula no partial reload que
             // o pede — a carga da lista não paga o detalhe. Ordem de outra empresa vem null.
             'ordem_detalhe' => Inertia::optional(function () use ($ordemId, $productionService, $business_id, $podeVerCusto) {
@@ -1158,6 +1163,8 @@ class ProductionController extends Controller
             ],
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
+                // A barra de abas esconde Receitas e Insumos sem esta (UC-RECIPE-24).
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
             ],
             'producao' => [
                 'total'     => (int) $ordens['total_count'],

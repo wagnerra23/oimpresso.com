@@ -153,6 +153,7 @@ class RecipeController extends Controller
                 'custo'  => $podeVerCusto,
                 'editar' => auth()->user()->can('manufacturing.edit_recipe'),
                 'prod'   => auth()->user()->can('manufacturing.access_production'),
+                'receita' => true, // a rota já exige `access_recipe` (UC-RECIPE-24)
             ],
             'producao' => [
                 'total'       => (int) $ordens['total_count'],
@@ -203,6 +204,7 @@ class RecipeController extends Controller
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
                 'custo' => $podeVerCusto,
+                'receita' => true, // a rota já exige `access_recipe` (UC-RECIPE-24)
             ],
             'producao' => [
                 'total' => (int) $ordens['total_count'],
