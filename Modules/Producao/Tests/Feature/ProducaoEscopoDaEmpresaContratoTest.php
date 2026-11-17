@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCESC-01..03 (Producao/Os/Show.casos.md). O UC-PCESC-04 é o guard estático em
+// Cobre UC-PCESC-01..03 (Producao/_components/FichaDaOs.casos.md). O UC-PCESC-04 é o guard estático em
 // tests/Unit/Guards/WithoutGlobalScopesCommentGuardTest.php.
 
 use App\Domain\Fsm\Models\SaleProcess;

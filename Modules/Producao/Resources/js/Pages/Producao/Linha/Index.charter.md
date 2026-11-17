@@ -48,7 +48,7 @@ reprogramar arrastando, com a sugestão do gargalo pronta para aplicar e desfaze
   impressora e a segunda cabe logo depois da primeira — UC-PCLIN-01 (lote 4.3 da auditoria, aprovado por [W] em 2026-11-05).
 - Clicar no bloco (sem arrastar) ou Enter nele abre a Ficha da OS por item no painel lateral, com `?os={id}` na URL
   (decisão [W] no #10850); arrastar não abre; OS da Comunicação Visual não tem Ficha e não ganha link — UC-PCOSF-06 ·
-  UC-PCOSF-09 (`Os/Show.casos.md`).
+  UC-PCOSF-09 (`_components/FichaDaOs.casos.md`).
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
@@ -58,4 +58,4 @@ reprogramar arrastando, com a sugestão do gargalo pronta para aplicar e desfaze
 
 ## Refs
 
-- Playbook `07-linha.md` · ADR 0431 · UI-0013 · `Producao.casos.md` UC-PCV-08/09/30 · `Os/Show.casos.md` UC-PCOSF-06 · protótipo ajustado em #9763
+- Playbook `07-linha.md` · ADR 0431 · UI-0013 · `Producao.casos.md` UC-PCV-08/09/30 · `_components/FichaDaOs.casos.md` UC-PCOSF-06 · protótipo ajustado em #9763

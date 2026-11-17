@@ -1,5 +1,5 @@
 // UC-PCOSF-08/09 · o painel lateral (Quadro e Linha do tempo) mostra a Ficha da OS aberta e pede as abas à tela (props `ficha_*`).
-// Fonte: Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md (decisão [W] no #10850: a Ficha abre em painel).
+// Fonte: Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.casos.md (decisão [W] no #10850: a Ficha abre em painel).
 //
 // O que mede: a aba pedida vira um partial reload `async` só da prop dela; a resposta fica guardada com o id da OS, e
 // a aba de uma OS não aparece na seguinte. CONTROLE: OS que não veio (outra empresa) diz "OS não encontrada" e não

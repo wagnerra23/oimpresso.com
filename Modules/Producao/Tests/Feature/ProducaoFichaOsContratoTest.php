@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCV-10, UC-PCOSF-01..05, 07, 09 e 10 (Producao/Os/Show.casos.md) — a Ficha da OS por item. Desde o
+// Cobre UC-PCV-10, UC-PCOSF-01..05, 07, 09 e 10 (Producao/_components/FichaDaOs.casos.md) — a Ficha da OS por item. Desde o
 // UC-PCOSF-10 a Ficha só abre no painel (Quadro/Linha, `?os=`); `/producao/ordens/{id}` leva ao Quadro com ela aberta.
 
 use App\Utils\ModuleUtil;

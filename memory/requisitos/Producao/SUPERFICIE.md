@@ -182,21 +182,21 @@ module: Producao
 
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.charter.md)
-- [Show.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.charter.md)
+- [FichaDaOs.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.charter.md)
 
 ## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.casos.md)
-- [Show.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
+- [FichaDaOs.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.casos.md)
 
 ## Testes (Pest) — 38
 

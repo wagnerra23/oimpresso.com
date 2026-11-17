@@ -1,7 +1,7 @@
 ---
 id: modules-producao-pages-producao-os-show-casos
 casos: Produção · Ficha da OS · /producao/ordens/{id}
-irmaos: Show.charter.md (lei) · ../_components/FichaDaOs.tsx (conteúdo, no painel do Quadro e da Linha)
+irmaos: FichaDaOs.charter.md (lei) · FichaDaOs.tsx (conteúdo, no painel do Quadro e da Linha)
 tecnica: Caso de uso = narrativa do PCP + critério de aceite verificável (Dado/Quando/Então)
 por_que: a OS por item só tinha rota JSON para Liberar, Refazer e Cancelar; sem tela, a OS de empresa sem sinal mínimo ficava parada em Aguardando liberação.
 owner: wagner
@@ -161,7 +161,7 @@ Status: 🧪
 
 ## Trilha do tempo
 - 2026-11-17 · [M+C] `/producao/ordens/{id}` passa a levar ao Quadro com a Ficha aberta no painel (UC-PCOSF-10), com os portões de antes. Os testes da Ficha leem os dados pelo painel do Quadro.
-- 2026-11-17 · [M+C] A página `OsShow` (`Show.tsx`) foi apagada: ninguém mais a renderiza. O conteúdo da Ficha é o `../_components/FichaDaOs.tsx`, no painel; este arquivo e o charter seguem aqui.
+- 2026-11-17 · [M+C] A página `OsShow` (`Show.tsx`) foi apagada: ninguém mais a renderiza. O conteúdo da Ficha é o `FichaDaOs.tsx`, no painel; este arquivo e o charter vieram de `Os/` para o lado dele.
 - 2026-11-17 · [M+C] A Linha do tempo abre a Ficha no mesmo painel lateral do Quadro (UC-PCOSF-09). As props do painel ficam num lugar só, `PropsDaFicha::doPainel`.
 - 2026-11-17 · [M+C] O número da OS no Quadro abre a Ficha no painel lateral de 760px, com `?os=` na URL (UC-PCOSF-08, decisão [W] no #10850). A Linha segue abrindo a página.
 - 2026-11-16 · [M+C] O Quadro entrega a Ficha com `?os=` para o painel lateral (UC-PCOSF-07, decisão [W] no #10850).
