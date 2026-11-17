@@ -30,10 +30,12 @@ last_run: "2026-10-06"
 
 ---
 
-## UC-MCFG-01 · A rota `/manufacturing/v2/settings` serve a tela nova
-- **Persona:** Wagner — chega pela aba "Configurações" das telas v2.
+## UC-MCFG-01 · A rota `/manufacturing/settings` serve a tela nova
+- **Persona:** Wagner — chega pela aba "Configurações" da barra do módulo.
 - **Aceite:** Dado o app carregado · Quando se pergunta ao **registry de rotas** quem serve
-  `GET manufacturing/v2/settings` · Então existe rota e a ação é o `SettingsController`.
+  `GET manufacturing/settings` · Então existe rota e a ação é o `SettingsController`. *(Até o
+  cutover de 2026-09-04 o alvo era `/v2/settings`, que hoje é 301; corrigido em 2026-11-17 para
+  o que o teste prova.)*
 - **Fonte:** §4.7 do handoff + decisão de rota aditiva (`RUNBOOK-settings.md`).
 - **Teste:** `Wave31SettingsInertiaTest.php`
 - **Regressão que defende:** alguém remover a rota nova achando que duplica o Blade.
