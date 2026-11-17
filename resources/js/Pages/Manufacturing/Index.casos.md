@@ -375,6 +375,10 @@ last_run: "2026-10-07"
 - **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
 - **Teste:** `CustoPorPermissaoTest.php`
 - **Regressão que defende:** o custo da produção entregue a quem só acompanha as ordens.
+- **Status: 🧪**
+
+---
+
 ## UC-OP-23 · Excluir o rascunho leva a ordem inteira e deixa trilha
 - **Persona:** quem descarta um rascunho de ordem.
 - **Aceite:** Dado um rascunho · Quando é excluído · Então somem a ordem e a venda de produção filha (o consumo,
