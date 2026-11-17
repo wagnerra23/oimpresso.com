@@ -720,9 +720,8 @@ class TransactionUtil extends Util
     private function adjustQuantity($location_id, $product_id, $variation_id, $increment_qty)
     {
         if ($increment_qty != 0) {
-            $enable_stock = Product::find($product_id)->enable_stock;
-
-            if ($enable_stock == 1) {
+            // Kit não tem saldo próprio (D-30, Util::temSaldoProprio).
+            if ($this->temSaldoProprio(Product::find($product_id))) {
                 //Adjust Quantity in variations location table
                 VariationLocationDetails::where('variation_id', $variation_id)
                 ->where('product_id', $product_id)
@@ -3268,9 +3267,10 @@ class TransactionUtil extends Util
 
         $qty_selling = null;
         foreach ($transaction_lines as $line) {
-            //Check if stock is not enabled then no need to assign purchase & sell
+            //Check if stock is not enabled then no need to assign purchase & sell.
+            //Kit não é casado com compra: quem é casado são as linhas dos componentes (D-30).
             $product = Product::find($line->product_id);
-            if (empty($product) || $product->enable_stock != 1) {
+            if (empty($product) || ! $this->temSaldoProprio($product)) {
                 continue;
             }
 
