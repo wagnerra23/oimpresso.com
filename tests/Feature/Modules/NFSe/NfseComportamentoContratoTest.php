@@ -10,7 +10,8 @@ declare(strict_types=1);
 //
 //  1. Nota cancelada fica no banco: não há rota que a apague, e o delete() do model só
 //     marca deleted_at (Show.charter.md:73 — "cancelada permanece no banco").
-//  2. Certificado vencido bloqueia a emissão antes de criar nota e antes de qualquer HTTP.
+//  2. Certificado vencido bloqueia a emissão antes de qualquer HTTP; a nota fica `erro` com o
+//     motivo (lote 2 PR 2.2, #11025 — antes ela sumia).
 //  3. Senha errada do A1 bloqueia a emissão: nada sai para a Sefin e a nota fica em `erro`.
 //     Controle positivo: o MESMO PFX com a senha certa emite.
 //  4. Config da 98 apontando para certificado da 99 não usa o certificado alheio.
@@ -132,6 +133,20 @@ function nfsecompRecusa(callable $emitir): CertificadoInvalidoException
     throw new \RuntimeException('A emissão deveria ter sido recusada por certificado e passou.');
 }
 
+/** A recusa deixa UMA linha `erro` da 98 para este payload, com o motivo na mensagem. */
+function nfsecompNotaEmErro(NfseEmissaoPayload $payload, string $motivo): void
+{
+    // SUPERADMIN: teste confere a linha da própria empresa 98 sem depender da sessão.
+    $notas = NfseEmissao::withoutGlobalScopes()
+        ->where('business_id', NFSECOMP_TENANT)
+        ->where('idempotency_key', $payload->idempotencyKey())
+        ->get();
+    expect($notas)->toHaveCount(1);
+    expect($notas[0]->status)->toBe('erro');
+    expect((string) $notas[0]->erro_mensagem)->toContain($motivo);
+    expect($notas[0]->numero)->toBeNull();
+}
+
 function nfsecompNotaCancelada(): int
 {
     return (int) DB::table('nfse_emissoes')->insertGetId([
@@ -183,18 +198,20 @@ it('US-NFSE-006 · delete() do model so marca deleted_at: a linha da cancelada s
 
 // ── 2. Certificado vencido ───────────────────────────────────────────────────
 
-it('US-NFSE-004 · certificado vencido bloqueia a emissao antes de criar nota e de chamar a Sefin', function () {
+it('US-NFSE-004 · certificado vencido bloqueia a emissao antes de chamar a Sefin e a nota fica em erro', function () {
     Http::fake(['*' => Http::response(['chaveAcesso' => 'NAO-DEVIA'], 201)]);
     nfsecompConfig(NFSECOMP_TENANT, nfsecompCert(NFSECOMP_TENANT, vencido: true));
-    $antes = DB::table('nfse_emissoes')->where('business_id', NFSECOMP_TENANT)->count();
 
     $service = new NfseEmissaoService(new SnNfseAdapter('homologacao'));
+    $payload = nfsecompPayload(nfsecompPfx('senha'), 'senha');
 
-    $recusa = nfsecompRecusa(fn () => $service->emitir(nfsecompPayload(nfsecompPfx('senha'), 'senha')));
+    $recusa = nfsecompRecusa(fn () => $service->emitir($payload));
     expect((string) $recusa->detalhe)->toContain('expirado em');
 
     Http::assertNothingSent();
-    expect(DB::table('nfse_emissoes')->where('business_id', NFSECOMP_TENANT)->count())->toBe($antes);
+    // Desde o lote 2 PR 2.2 (#11025) a nota é gravada antes da validação e fica `erro` com
+    // o motivo, para aparecer em /nfse. Antes sumia sem rastro.
+    nfsecompNotaEmErro($payload, 'expirado em');
 });
 
 // ── 3. Senha errada ──────────────────────────────────────────────────────────
@@ -238,11 +255,12 @@ it('[T0] US-NFSE-004 · config da 98 apontando para certificado da 99 nao usa o 
     expect(NfseProviderConfig::find($config->id)->certificado)->toBeNull();
 
     $service = new NfseEmissaoService(new SnNfseAdapter('homologacao'));
-    $antes = DB::table('nfse_emissoes')->where('business_id', NFSECOMP_TENANT)->count();
-    $recusa = nfsecompRecusa(fn () => $service->emitir(nfsecompPayload(nfsecompPfx('senha'), 'senha')));
+    $payload = nfsecompPayload(nfsecompPfx('senha'), 'senha');
+    $recusa = nfsecompRecusa(fn () => $service->emitir($payload));
     expect((string) $recusa->detalhe)->toContain('Nenhum certificado');
-    expect(DB::table('nfse_emissoes')->where('business_id', NFSECOMP_TENANT)->count())->toBe($antes);
     Http::assertNothingSent();
+    // A nota da 98 fica `erro` com o motivo (lote 2 PR 2.2); nada foi assinado com o A1 da 99.
+    nfsecompNotaEmErro($payload, 'Nenhum certificado');
 
     // Controle positivo: com o certificado da própria empresa o relacionamento resolve.
     $config->update(['cert_id' => nfsecompCert(NFSECOMP_TENANT)]);

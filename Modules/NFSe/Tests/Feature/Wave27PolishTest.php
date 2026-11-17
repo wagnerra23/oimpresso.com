@@ -306,8 +306,9 @@ describe('Wave 27 NFSe POLISH FINAL', function () {
 
         expect($src)->toContain('cancelar(NfseEmissao $emissao, string $motivo)');
 
-        // Aceita alinhamento de espaços ('motivo'      => $motivo).
-        expect(preg_match('/[\'"]motivo[\'"]\s*=>\s*\$motivo/', $src))->toBe(1,
+        // Aceita alinhamento de espaços e o motivo passado pelo PiiRedactor (#10987):
+        // 'motivo' => app(PiiRedactor::class)->redact($motivo).
+        expect(preg_match('/[\'"]motivo[\'"]\s*=>\s*[^,\n]*\$motivo\b/', $src))->toBe(1,
             'cancelar() deve registrar motivo em log estruturado');
     });
 

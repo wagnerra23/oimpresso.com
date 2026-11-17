@@ -58,6 +58,7 @@ class NfseEmissaoService
         // business_id explícito como param garante scope correto
         $config = NfseProviderConfig::withoutGlobalScopes()
             ->where('business_id', $businessId)
+            ->whereNull('deleted_at') // config apagada não conta (ver getConfig)
             ->with('certificado')
             ->first();
 
@@ -451,8 +452,11 @@ class NfseEmissaoService
     private function getConfig(int $businessId): NfseProviderConfig
     {
         // SUPERADMIN: service chamado por job sem session — business_id explícito como param
+        // withoutGlobalScopes() tira também o filtro do SoftDeletes: sem o whereNull, a
+        // config que a empresa apagou continuava sendo usada para emitir.
         $config = NfseProviderConfig::withoutGlobalScopes()
             ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (! $config) {
