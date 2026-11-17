@@ -63,7 +63,7 @@ class PortalLinkController extends Controller
     /** Paciente de outra empresa não existe para esta: 404 pelo escopo (UC-FPS-35). */
     private function paciente(int $id): Patient
     {
-        return Patient::query()->findOrFail($id);
+        return Patient::daSessaoOuFalha($id);
     }
 
     private function exigirEdicao(Request $request): void
