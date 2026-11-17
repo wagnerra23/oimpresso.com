@@ -25,7 +25,7 @@ Saída medida em 2026-11-17 contra `main`. A âncora voltou de `Felipe/` para `W
 
 ## Medição 2026-11-17 (auditoria, lote 5.3)
 
-Produção em oimpresso.com (empresa 1, tema claro, 1600×900 num iframe), protótipo no espelho `Wagner/` gerado por `design-diff-lote.mjs --lado design --tema light`, comparação por `design-diff.mjs --compare --check`. Papéis do override [`roles/Manufacturing--Recipes.json`](../../../governance/design/targets/roles/Manufacturing--Recipes.json) (#11117). Os snapshots não foram commitados: o lado produção saiu sem shell e sem a `assinatura` (texto visível é dado real), e por isso o D0 (identidade da view) continua sem prova nesta rodada.
+Produção em oimpresso.com (empresa 1, tema claro, 1600×900 num iframe), protótipo no espelho `Wagner/` gerado por `design-diff-lote.mjs --lado design --tema light`, comparação por `design-diff.mjs --compare --check`. Papéis do override `governance/design/targets/roles/Manufacturing--Recipes.json` (arquivo novo do [#11117](https://github.com/wagnerra23/oimpresso.com/pull/11117)). Os snapshots não foram commitados: o lado produção saiu sem shell e sem a `assinatura` (texto visível é dado real), e por isso o D0 (identidade da view) continua sem prova nesta rodada.
 
 | dim | prod | design | veredito |
 |---|---|---|---|
