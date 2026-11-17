@@ -25,6 +25,11 @@ last_validated: "2026-06-08"
 >
 > O texto original fica abaixo, intacto — era verdade quando foi escrito, e apagar história não é
 > conserto (regra do projeto: *ponteiro podre atualiza, fato datado preserva*).
+>
+> **Atualização 2026-11-17:** as seções de operação deste runbook (§5 em diante) também ficaram
+> para trás — falam de provedor terceiro e de prazo municipal de cancelamento. A operação vigente
+> (Sefin fora do ar, certificado vencido, rejeição, cancelamento, nota presa, ligar produção) está em
+> [`RUNBOOK-operacao.md`](RUNBOOK-operacao.md), e o fluxo em [`SDD-emissao-nfse-v1.0.md`](SDD-emissao-nfse-v1.0.md).
 
 > **Owner**: Eliana[E]
 > **Cliente**: empresa **oimpresso** (Wagner) — **NÃO** ROTA LIVRE

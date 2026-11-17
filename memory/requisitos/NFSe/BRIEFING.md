@@ -4,8 +4,8 @@ module: NFSe
 status: piloto
 status_nota: "homologação SN-NFSe federal + cutover fiscal por-business habilitado (biz=164 Martinho — #2147); cert A1 pendente Wagner"
 piloto: oimpresso biz=1 (Wagner, Tubarão-SC) homologação + biz=164 (Martinho OficinaAuto) cutover por-business
-last_review: 2026-11-16
-updated_at: "2026-11-16"
+last_review: 2026-11-17
+updated_at: "2026-11-17"
 owner: E
 parent_adr: ARQ-0001
 related_adrs:
@@ -62,9 +62,9 @@ Este BRIEFING não guarda porcentagem. A tabela de % que estava aqui era de 2026
 - **Tela emissão**: `Nfse/Emitir.tsx` — form completo com pré-fill via `transaction_id` (vinculação venda → NFSe)
 - **Tela listagem**: `Nfse/Index.tsx` — filtros status/competência/tomador + paginate 25
 - **Tela detalhe**: `Nfse/Show.tsx` — status, cancelamento com motivo e reemissão de nota em `erro`. O botão "Baixar DANFSE" só aparece com `pdf_url`, e **hoje nenhuma nota nova tem DANFSe**: o `SnNfseAdapter` grava `pdfUrl: null` em toda emissão (medido em `origin/main` 2026-11-16; ver §5)
-- **Service `NfseEmissaoService`**: idempotência via `idempotency_key` (sha256 de empresa + tomador + valor + descrição + competência), log estruturado canal `nfse`. O retry é do `EmitirNfseJob`: 3 tentativas com intervalo **fixo** de 60s
+- **Service `NfseEmissaoService`**: idempotência via `idempotency_key` (sha256 de empresa + tomador + valor + descrição + competência), log estruturado canal `nfse`. Falha de conexão tem duas camadas de retentativa: 3 tentativas no serviço com espera de 1s, 2s e 4s, e depois o `EmitirNfseJob` (3 tentativas, 60s entre elas), sempre com o mesmo nº de DPS. _Errata 2026-11-17: em 2026-11-16 esta linha dizia que o retry era só do job, com 60s fixo. Estava errado: o serviço já esperava 1s/2s/4s (`sleep(2 ** …)` no `NfseEmissaoService`, commit `e2b0fa0451`); só o job tinha sido lido._
 - **Ambiente POR-BUSINESS (cutover fiscal)**: emissão resolve `homologacao`/`producao` de `nfse_provider_configs.ambiente` do tenant (`montarPayload` L76-80 + `SnNfseAdapter::resolveBaseUrl`), NÃO do bind global — ligar produção pra biz=164 não afeta os demais (#2147, teste `AmbientePorBusinessTest`)
-- **Job assíncrono**: `EmitirNfseJob` na fila `nfse` com payload DTO (cert A1 em base64 + senha decriptada)
+- **Job assíncrono**: `EmitirNfseJob` na fila `nfse`. Desde o lote 2.3 (#11032) o job vai **sem** o certificado; o serviço lê o certificado da empresa na hora de enviar. _Até 2026-11-16 o payload do job levava o PFX em base64 e a senha decifrada._ **Em produção nenhum `queue:work` agendado lê a fila `nfse`** (medido 2026-11-17, ver §5)
 - **Emissão a partir da venda**: `POST /nfse/transactions/{tx}/emitir` (`NfseController@emitirParaTransaction`, botão da tela de venda); venda separada emite só a parte serviço (US-NFE-069)
 - **Cert A1**: storage encriptado, delegado ao `CertificadoService` do NfeBrasil (schema unificado migration 2026_05_07_210000). Import via `php artisan nfse:importar-cert --pfx=<arquivo.pfx> --senha=<senha> --business=<id>` (`ImportarCertificadoCommand`)
 - **Health check**: `php artisan nfse:health` — 6 sinais (tabelas, providers ativos, **cert vencendo ≤30d**, rejeitadas 24h) — `NfseHealthCommand`, Wave 23 D6
@@ -80,7 +80,7 @@ Este BRIEFING não guarda porcentagem. A tabela de % que estava aqui era de 2026
 2. **Vinculação venda → NFSe nativa** — `transaction_id` no payload + pre-fill form (Bling/Tiny obrigam re-digitação)
 3. **Idempotência por `idempotency_key`** — duplo-submit não cria dupla nota
 4. **Multi-tenant Tier 0** — cada `business_id` com config + cert isolados (ADR 0093)
-5. **Job com retry** — 3 tentativas, 60s entre elas (o "backoff exponencial 1s/2s/4s" que estava aqui não é o que o código faz; corrigido 2026-11-16)
+5. **Retentativa sem nota em dobro** — falha de conexão retenta no serviço (1s, 2s, 4s) e depois no job (3×, 60s), sempre com o mesmo nº de DPS (lote 2.2, #11025). _Em 2026-11-16 este item dizia que o backoff 1s/2s/4s não existia; existia (errata em §3)._
 
 ## 5. Gaps remanescentes (próxima onda)
 
@@ -88,9 +88,11 @@ Este BRIEFING não guarda porcentagem. A tabela de % que estava aqui era de 2026
 |---|---|---|---|
 | 0a | DANFSe (US-NFSE-016) — o sistema emissor precisa gerar o PDF desde a NT 008/2026; hoje `pdf_url` fica nulo e o `/nfse/{id}/pdf` dá 404 | — | **bloqueia a 1ª emissão real** |
 | 0b | Rascunho da recorrência sem saída (US-NFSE-007) — o observer cria `rascunho`, mas nada o emite | — | aberto |
-| 0c | `consultar()`/`cancelar()` usam o ambiente global (US-NFSE-015) — empresa em produção cancelaria em homologação | — | aberto |
+| 0c | `consultar()` usa o ambiente global (US-NFSE-015). O cancelamento já usa o ambiente e o certificado da empresa da nota desde o lote 0 (#10987) | — | parcial |
+| 0e | Fila `nfse` sem consumidor em produção: nenhum `queue:work` agendado a lê (`schedule:list` em 2026-11-17). A primeira emissão ficaria parada na tabela `jobs` | — | **bloqueia a 1ª emissão real** |
+| 0f | Certificado da empresa 1 vencido em produção (`nfse:health` FAIL em 2026-11-17) | — | **bloqueia a 1ª emissão real** |
 | 0d | Emissão real em produção-restrita (US-NFSE-017, aceite 3) — a DPS já sai em XML v1.01 validado contra o XSD | — | aberto |
-| 1 | Pest emissão end-to-end com hit DB real (Waves 25/27/28 são reflection+source-grep, ZERO hit DB — CHANGELOG). Os testes de `Modules/NFSe/Tests/` não rodam em nenhuma lane de CI | 4h | cobertura de comportamento ainda não é DB-real |
+| 1 | Pest emissão end-to-end com hit DB real (Waves 25/27/28 são reflection+source-grep, ZERO hit DB — CHANGELOG). Desde 2026-11-16 os testes do módulo rodam na lane `nfse-pest` (MySQL, #10964), com testes de comportamento com banco (lote 1) | 4h | **parcial** |
 | 2 | Bulk emissão (recurring invoices mensais) | 6h | aberto |
 | 3 | Dashboard métricas NFSe (volume/erro/ISS pago) | 4h | **parcial** — `nfse:health` já dá 6 sinais CLI; falta tela |
 | 4 | UI configuração cert A1 + provider | 8h | **parcial** — `nfse:importar-cert` substituiu Tinker; falta UI web |
@@ -130,6 +132,7 @@ Este BRIEFING não guarda porcentagem. A tabela de % que estava aqui era de 2026
 
 - **biz=1** (Wagner/oimpresso, Tubarão-SC) — homologação SEFIN
 - **biz=164** (Martinho / OficinaAuto) — **cutover fiscal por-business habilitado no código** (#2147, 2026-06-03). O ambiente do tenant é lido de `nfse_provider_configs.ambiente`; se/qual business está de fato flipado pra `producao` em prod é fato de runtime (CT 100/prod DB) — não afirmar "LIVE emitindo" sem medir
+- **Medido em produção, 2026-11-17:** só a empresa 1 tem config de NFS-e (homologação, certificado vencido); a 164 não tem config; `nfse_emissoes` vazia
 - **Próximo canary:** ComunicacaoVisual (Vargas/Extreme/Gold/Zoom/Fixar/Mhundo) quando `Modules/ComunicacaoVisual` for a produção
 - **NUNCA biz=4 ROTA LIVRE** — Larissa é vestuário CNAE 4781-4/00, não emite NFSe (só NFCe)
 
@@ -146,13 +149,14 @@ Este BRIEFING não guarda porcentagem. A tabela de % que estava aqui era de 2026
 - Sprint A concluída 2026-05-01 — US-001/002/003 ✅ scaffold + migrations + pesquisa Tubarão
 - 2026-10-13 — R-NFSE-003…006 (retenção federal, certificado pelo `CertificadoService`, DPS em XML assinado, cTribNac do Anexo B)
 - 2026-11 — auditoria do módulo; lotes de correção em andamento (código e documentação)
+- 2026-11-17 — [SDD do fluxo de emissão](SDD-emissao-nfse-v1.0.md) e [runbook de operação](RUNBOOK-operacao.md) (lote 5.3)
 - _Em 2026-05 esta seção dizia "Sprint B em curso — US-004 parcial"; já não vale._
 
 ---
 
 ## 13. Último update
 
-**Atualizado:** 2026-11-16 BRT — auditoria NFSe, lote 5.4: datas internas alinhadas, tabela de % sem fonte removida (§2), DANFSe e backoff corrigidos pelo código (§3/§4), gaps P0/P1 da auditoria em §5, links de ADR apontados para os donos atuais. _(Antes: 2026-10-13 BRT — revisão restrita à retenção federal na emissão (R-NFSE-003) e ao achado do certificado (§3); 2026-08-01 BRT — catch-up 76d (#5153): cutover fiscal por-business biz=164 Martinho, nota de module-grade vira ponteiro; e 2026-05-16, Wave 18 saturation — D1 NfseCertificado cross-tenant Pest.)_
+**Atualizado:** 2026-11-17 BRT — auditoria NFSe, lote 5.3: errata do backoff (§3/§4), job sem certificado (§3), fila `nfse` sem consumidor e certificado vencido em §5, estado de produção medido em §10, links para o SDD e o runbook de operação (§12). _(Antes: 2026-11-16 BRT — lote 5.4: datas internas alinhadas, tabela de % sem fonte removida (§2), DANFSe e backoff "corrigidos pelo código" (§3/§4) — o do backoff estava errado, ver a errata de 2026-11-17 —, gaps P0/P1 da auditoria em §5, links de ADR apontados para os donos atuais; 2026-10-13 BRT — retenção federal na emissão (R-NFSE-003) e achado do certificado (§3); 2026-08-01 BRT — catch-up 76d (#5153): cutover fiscal por-business biz=164 Martinho, nota de module-grade vira ponteiro; e 2026-05-16, Wave 18 saturation — D1 NfseCertificado cross-tenant Pest.)_
 
 > **Carimbo único — não duplicar.** Este rodapé é a data que o `briefing-code-staleness` lê
 > (junto de `updated_at`/`distilled_at`/`reviewed_at`, pegando a MAIOR). O frontmatter
