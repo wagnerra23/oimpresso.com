@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1017,
-    "edges": 1369,
+    "nodes": 1020,
+    "edges": 1372,
     "by_node_type": {
       "module": 45,
       "table": 122,
       "adr": 157,
-      "component": 595,
-      "api": 98
+      "component": 597,
+      "api": 99
     },
     "by_edge_type": {
       "ownsTable": 111,
       "ownsLegacyView": 13,
       "consumesTable": 7,
-      "providesApi": 101,
+      "providesApi": 102,
       "charteredByAdr": 30,
       "governedByAdr": 84,
-      "hasComponent": 595,
+      "hasComponent": 597,
       "dependsOn": 152,
       "delegatesTo": 137,
       "migratesTo": 1,
@@ -1332,6 +1332,14 @@
       ]
     },
     {
+      "id": "api:/associacoes/m/{token}",
+      "type": "api",
+      "prefix": "/associacoes/m/{token}",
+      "providers": [
+        "Associacoes"
+      ]
+    },
+    {
       "id": "api:/atendimento/*",
       "type": "api",
       "prefix": "/atendimento/*",
@@ -2149,6 +2157,20 @@
       "module": "Associacoes",
       "name": "PendenciaDiretoria",
       "desc": "cálculo único da pendência de ata da diretoria (em dia, pendente, atrasada) — ADR 0451 D7"
+    },
+    {
+      "id": "component:Associacoes/PortalAssociadaController",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalAssociadaController",
+      "desc": "área da associada por link + PIN, no site uniafibro.com.br e no endereço do app: ver os dados e revogar consentimento — ADR 0451 D6, US-ASSOC-005"
+    },
+    {
+      "id": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "component",
+      "module": "Associacoes",
+      "name": "PortalLinkController + PortalAssociadaService",
+      "desc": "a diretoria gera e revoga o link + PIN da área da associada (só os hashes ficam no banco) — US-ASSOC-005"
     },
     {
       "id": "component:Auditoria/AuditEntryService",
@@ -9216,6 +9238,18 @@
     },
     {
       "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalAssociadaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "component:Associacoes/PortalLinkController + PortalAssociadaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Associacoes",
       "to": "api:/associacoes/associadas",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9229,6 +9263,12 @@
     {
       "from": "module:Associacoes",
       "to": "api:/associacoes/lista",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Associacoes",
+      "to": "api:/associacoes/m/{token}",
       "type": "providesApi",
       "source": "url_prefixes"
     },
