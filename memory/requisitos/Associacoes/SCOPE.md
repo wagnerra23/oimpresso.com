@@ -14,9 +14,11 @@ contains:
   - "AssociadasController — lista de associadas com celular mascarado, cadastro pelo contato do núcleo e desligamento (onda 4) — US-ASSOC-003"
   - "Consentimentos — conceder, revogar e vigente por finalidade e versão da config; usado pelo cadastro e pelo app da onda 6 — US-ASSOC-003"
   - "PainelDaRedeController + PendenciasDaRede — painel da rede em /associacoes: números por situação, cidades, associadas ativas e pendências de documentação, no alcance D4 — US-ASSOC-004"
+  - "PortalLinkController + PortalAssociadaService — a diretoria gera e revoga o link + PIN da área da associada (só os hashes ficam no banco) — US-ASSOC-005"
+  - "PortalAssociadaController — área da associada por link + PIN, no site uniafibro.com.br e no endereço do app: ver os dados e revogar consentimento — ADR 0451 D6, US-ASSOC-005"
 not_contains:
   - "Prontuário, laudo e programa de exercícios → Modules/Fisio (outra empresa: a clínica; sem ligação entre empresas)"
-  - "Site público uniafibro.com.br → resources/uniafibro + routes/web.php (HTML estático, sem banco)"
+  - "Site público uniafibro.com.br → resources/uniafibro + routes/web.php (HTML estático, sem banco); só a área da associada (/associacoes/m/{token}) é rota do módulo nesse domínio"
   - "Arquivo do documento (estatuto, ata, certidão) → Modules/Arquivos (chamado, não duplicado)"
   - "Mensalidade, repasse de dinheiro, eleição e votação → fora (ADR 0451 §Fora desta decisão)"
 depends_on:
@@ -28,6 +30,7 @@ url_prefixes:
   - /associacoes/lista (lista e ficha das associações, documentos — US-ASSOC-002)
   - /associacoes/associadas (associadas e consentimentos — US-ASSOC-003)
   - /associacoes (painel da rede — onda 5, US-ASSOC-004)
+  - /associacoes/m/{token} (área da associada por link + PIN, no app e em uniafibro.com.br — onda 6, US-ASSOC-005)
 ---
 
 # Modules/Associacoes

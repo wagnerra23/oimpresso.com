@@ -36,7 +36,11 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const BIZ_WAGNER_W25 = 1;
+// Tenant fictício de teste (ADR 0358): 98. Era 1 (WR2 Sistemas, empresa real) até 2026-11-16.
+const BIZ_TENANT_W25 = 98;
+// Business #1 como ALVO do canDestroy: é o id que o código protege (BusinessAuditService),
+// usado só como argumento de função pura, sem gravar nada nele.
+const BIZ_PROTEGIDO_W25 = 1;
 const BIZ_FICTICIO_W25 = 99;
 
 function requiresSuperadminMySQL_W25(): void
@@ -77,7 +81,7 @@ it('PackageManagerService::listForBusiness cross-tenant retorna mesmo set', func
     }
 
     $svc = new PackageManagerService();
-    $forBiz1 = $svc->listForBusiness(BIZ_WAGNER_W25);
+    $forBiz1 = $svc->listForBusiness(BIZ_TENANT_W25);
     $forBiz99 = $svc->listForBusiness(BIZ_FICTICIO_W25);
 
     // Cross-tenant intencional: catálogo é global.
@@ -160,7 +164,7 @@ it('SuperadminDashboardService::statsForPeriod cross-tenant intencional (mesma r
 
     $svc = new SuperadminDashboardService();
 
-    session(['user.business_id' => BIZ_WAGNER_W25]);
+    session(['user.business_id' => BIZ_TENANT_W25]);
     $statsBiz1 = $svc->statsForPeriod('2026-01-01', '2026-05-16');
 
     session(['user.business_id' => BIZ_FICTICIO_W25]);
@@ -198,7 +202,7 @@ it('BusinessAuditService::canDestroy bloqueia biz=1 com session=biz=1 (Wagner se
     $svc = new BusinessAuditService();
 
     // Wagner tentando deletar Wagner (cenário paranoia)
-    $r = $svc->canDestroy(BIZ_WAGNER_W25, BIZ_WAGNER_W25);
+    $r = $svc->canDestroy(BIZ_PROTEGIDO_W25, BIZ_PROTEGIDO_W25);
 
     expect($r['can_destroy'])->toBeFalse();
     // Razão pode ser Wagner protect OU self-destroy (depende da ordem da check)
@@ -299,11 +303,11 @@ it('BusinessAuditService::canDestroy bloqueia self quando target=session=biz=99'
 it('BusinessAuditService::canDestroy permite biz=99 quando session=biz=1 (cenário canônico)', function () {
     requiresSuperadminMySQL_W25();
 
-    Business::firstOrCreate(['id' => BIZ_WAGNER_W25], ['name' => 'Wagner W25', 'currency_id' => 1]);
+    Business::firstOrCreate(['id' => BIZ_TENANT_W25], ['name' => 'Wagner W25', 'currency_id' => 1]);
     Business::firstOrCreate(['id' => BIZ_FICTICIO_W25], ['name' => 'Ficticio W25', 'currency_id' => 1]);
 
     $svc = new BusinessAuditService();
-    $r = $svc->canDestroy(BIZ_FICTICIO_W25, BIZ_WAGNER_W25);
+    $r = $svc->canDestroy(BIZ_FICTICIO_W25, BIZ_TENANT_W25);
 
     expect($r['can_destroy'])->toBeTrue();
 });

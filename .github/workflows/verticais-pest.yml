@@ -837,6 +837,14 @@ jobs:
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
             Modules/Superadmin/Tests/Feature/Wave26SaturationTest.php \
+            Modules/Superadmin/Tests/Feature/AssinaturaAtivaDeterministaTest.php \
+            Modules/Superadmin/Tests/Feature/OnCobrancaPagaUpdateSubscriptionTest.php \
+            Modules/Superadmin/Tests/Feature/OnCobrancaVencidaBloqueaSubscriptionTest.php \
+            Modules/Superadmin/Tests/Feature/PackageManagerServiceTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminGateTest.php \
+            Modules/Superadmin/Tests/Feature/SecurityHardeningTest.php \
+            Modules/Superadmin/Tests/Feature/CrossTenantSuperadminTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminCrossTenantPolicyTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminRotasDestrutivasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminAgendamentoTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
@@ -954,6 +962,7 @@ jobs:
             Modules/Associacoes/Tests/Feature/AssociadasContratoTest.php \
             Modules/Associacoes/Tests/Feature/SemearRedeCommandTest.php \
             Modules/Associacoes/Tests/Feature/AssociacoesPainelContratoTest.php \
+            Modules/Associacoes/Tests/Feature/AssociacoesPortalMembroContratoTest.php \
             Modules/Captacao/Tests/Feature/CaptacaoEsquemaContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \

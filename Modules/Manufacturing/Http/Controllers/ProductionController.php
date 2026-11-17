@@ -21,6 +21,7 @@ use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
+use Modules\Manufacturing\Http\Requests\UpdateProductionRequest;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
@@ -670,10 +671,10 @@ class ProductionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Request  $request
+     * @param  UpdateProductionRequest  $request
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProductionRequest $request, $id)
     {
         $business_id = $request->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
@@ -685,11 +686,7 @@ class ProductionController extends Controller
         try {
             $nivelTransacao = DB::transactionLevel();
 
-            $request->validate([
-                'transaction_date' => 'required',
-                'location_id' => 'required',
-                'final_total' => 'required',
-            ]);
+            // Data, local, total e os números da ordem: `UpdateProductionRequest` (UC-OP-15, UC-OP-21).
 
             //Create Production purchase
             $transaction_data = $request->only(['ref_no', 'transaction_date', 'location_id']);
@@ -1020,24 +1017,31 @@ class ProductionController extends Controller
         ];
         $ordemId = (int) request()->get('ordem');
 
+        // Lote 2.6 (decisão B3 de [W], UC-OP-24): sem `view_purchase_price` o custo da lista, dos
+        // indicadores e do painel vem nulo.
+        $podeVerCusto = \Modules\Manufacturing\Support\OcultaCusto::podeVer();
+        $ordensDaLista = $productionService->enrichProductionRows(
+            $productionService->listProductions($business_id, $filters),
+            $business_id
+        );
+        $resumo = $productionService->summary($business_id);
+        $kpis = $productionService->summary($business_id, [
+            'location_id' => $filters['location_id'],
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
+        ]);
+
         // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Manufacturing/Index', [
             // US-MANU-004 — as 8 colunas do §4.5. O enriquecimento (produto, nº de
             // ingredientes, quem lançou, qtd, custo unit.) é feito em LOTE no Service.
-            'productions' => $productionService->enrichProductionRows(
-                $productionService->listProductions($business_id, $filters),
-                $business_id
-            ),
+            'productions' => $podeVerCusto ? $ordensDaLista : \Modules\Manufacturing\Support\OcultaCusto::ordens($ordensDaLista),
             // Todas as ordens da empresa: alimenta o contador da barra de abas e o subtítulo, que
             // as 5 telas do módulo mostram igual (as outras 4 não têm filtro de ordens).
-            'summary' => $productionService->summary($business_id),
+            'summary' => $podeVerCusto ? $resumo : \Modules\Manufacturing\Support\OcultaCusto::resumo($resumo),
             // UC-OP-10 (decisão [W] 2026-10-06): os 4 indicadores seguem local + período, como
             // no protótipo. "Só finalizadas" fica de fora de propósito — ver ProductionService::summary().
-            'kpis' => $productionService->summary($business_id, [
-                'location_id' => $filters['location_id'],
-                'start_date' => $filters['start_date'],
-                'end_date' => $filters['end_date'],
-            ]),
+            'kpis' => $podeVerCusto ? $kpis : \Modules\Manufacturing\Support\OcultaCusto::resumo($kpis),
             // Opções do filtro de local + estado dos filtros pra re-render (board uplift 50->70).
             // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
             'business_locations' => fn () => BusinessLocation::forDropdown($business_id),
@@ -1051,11 +1055,20 @@ class ProductionController extends Controller
             // mandam. Esta tela nasceu na Wave J SEM a barra de abas (era a única do módulo
             // na época) e ficou sem os dados dela; virou beco sem saída depois do cutover.
             'recipes_count' => $bomService->countRecipes($business_id),
+            // A barra de abas lê as duas (UC-RECIPE-24); esta tela já exige `access_production`.
+            'permissions' => [
+                'prod' => true,
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
+            ],
             // Painel lateral da ordem (`?ordem=ID`). Optional: só calcula no partial reload que
             // o pede — a carga da lista não paga o detalhe. Ordem de outra empresa vem null.
-            'ordem_detalhe' => Inertia::optional(fn () => $ordemId > 0 && $this->ordemEmLocalPermitido($business_id, $ordemId)
-                ? $productionService->detalheOrdem($business_id, $ordemId)
-                : null),
+            'ordem_detalhe' => Inertia::optional(function () use ($ordemId, $productionService, $business_id, $podeVerCusto) {
+                $detalhe = $ordemId > 0 && $this->ordemEmLocalPermitido($business_id, $ordemId)
+                    ? $productionService->detalheOrdem($business_id, $ordemId)
+                    : null;
+
+                return $podeVerCusto ? $detalhe : \Modules\Manufacturing\Support\OcultaCusto::detalheOrdem($detalhe);
+            }),
         ]);
     }
 
@@ -1091,7 +1104,8 @@ class ProductionController extends Controller
             $total_sold = $this->mfgUtil->getTotalSold($business_id, $location_id, $start_date, $end_date);
 
             $output['total_production'] = $production_totals['total_production'];
-            $output['total_production_cost'] = $production_totals['total_production_cost'];
+            // Lote 2.6 (UC-REPORT-07): sem `view_purchase_price` o custo do período vem nulo.
+            $output['total_production_cost'] = \Modules\Manufacturing\Support\OcultaCusto::podeVer() ? $production_totals['total_production_cost'] : null;
             $output['total_sold'] = $total_sold;
 
             return $output;
@@ -1137,8 +1151,11 @@ class ProductionController extends Controller
 
         $ordens = $productionService->summary($business_id);
 
+        // Lote 2.6 (decisão B3 de [W], UC-REPORT-07): sem `view_purchase_price` o custo vem nulo.
+        $relatorio = $productionService->reportByProduct($business_id, $filters);
+
         return Inertia::render('Manufacturing/Report', [
-            'relatorio' => $productionService->reportByProduct($business_id, $filters),
+            'relatorio' => \Modules\Manufacturing\Support\OcultaCusto::podeVer() ? $relatorio : \Modules\Manufacturing\Support\OcultaCusto::relatorio($relatorio),
             'filters'   => [
                 'start_date' => $filters['start_date'],
                 'end_date'   => $filters['end_date'],
@@ -1146,6 +1163,8 @@ class ProductionController extends Controller
             ],
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
+                // A barra de abas esconde Receitas e Insumos sem esta (UC-RECIPE-24).
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
             ],
             'producao' => [
                 'total'     => (int) $ordens['total_count'],

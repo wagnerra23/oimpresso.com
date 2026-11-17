@@ -39,7 +39,11 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 
-const BIZ_WAGNER_W27 = 1;
+// Tenant fictício de teste (ADR 0358): 98. Era 1 (WR2 Sistemas, empresa real) até 2026-11-16.
+const BIZ_TENANT_W27 = 98;
+// Business #1 como ALVO do canDestroy: é o id que o código protege (BusinessAuditService),
+// usado só como argumento de função pura, sem gravar nada nele.
+const BIZ_PROTEGIDO_W27 = 1;
 const BIZ_FICTICIO_W27 = 99;
 
 function requiresSuperadminMySQL_W27(): void
@@ -120,7 +124,7 @@ it('W27 Dashboard cross-tenant intencional — session biz=1 = session biz=99', 
     requiresSuperadminMySQL_W27();
     $svc = new SuperadminDashboardService();
 
-    session(['user.business_id' => BIZ_WAGNER_W27]);
+    session(['user.business_id' => BIZ_TENANT_W27]);
     $a = $svc->countBusinessesByStatus();
 
     session(['user.business_id' => BIZ_FICTICIO_W27]);
@@ -133,7 +137,7 @@ it('W27 Dashboard cross-tenant intencional — countNotSubscribed cross-session'
     requiresSuperadminMySQL_W27();
     $svc = new SuperadminDashboardService();
 
-    session(['user.business_id' => BIZ_WAGNER_W27]);
+    session(['user.business_id' => BIZ_TENANT_W27]);
     $a = $svc->countNotSubscribedBusinesses();
 
     session(['user.business_id' => BIZ_FICTICIO_W27]);
@@ -184,14 +188,14 @@ it('W27 BusinessAudit findInactiveSince rows com chaves canônicas', function ()
 
 it('W27 BusinessAudit canDestroy bloqueia biz=1 (Wagner self-protect com session=99)', function () {
     $svc = new BusinessAuditService();
-    $r = $svc->canDestroy(BIZ_WAGNER_W27, BIZ_FICTICIO_W27);
+    $r = $svc->canDestroy(BIZ_PROTEGIDO_W27, BIZ_FICTICIO_W27);
     expect($r['can_destroy'])->toBeFalse();
     expect($r['reason'])->toContain('Wagner');
 });
 
 it('W27 BusinessAudit canDestroy bloqueia biz=1 mesmo com session=biz=1 (paranoia)', function () {
     $svc = new BusinessAuditService();
-    $r = $svc->canDestroy(BIZ_WAGNER_W27, BIZ_WAGNER_W27);
+    $r = $svc->canDestroy(BIZ_PROTEGIDO_W27, BIZ_PROTEGIDO_W27);
     expect($r['can_destroy'])->toBeFalse();
 });
 
@@ -204,11 +208,11 @@ it('W27 BusinessAudit canDestroy bloqueia self-destroy biz=99=biz=99', function 
 
 it('W27 BusinessAudit canDestroy permite biz=99 com session=biz=1 (canônico)', function () {
     requiresSuperadminMySQL_W27();
-    Business::firstOrCreate(['id' => BIZ_WAGNER_W27], ['name' => 'Wagner W27', 'currency_id' => 1]);
+    Business::firstOrCreate(['id' => BIZ_TENANT_W27], ['name' => 'Wagner W27', 'currency_id' => 1]);
     Business::firstOrCreate(['id' => BIZ_FICTICIO_W27], ['name' => 'Ficticio W27', 'currency_id' => 1]);
 
     $svc = new BusinessAuditService();
-    $r = $svc->canDestroy(BIZ_FICTICIO_W27, BIZ_WAGNER_W27);
+    $r = $svc->canDestroy(BIZ_FICTICIO_W27, BIZ_TENANT_W27);
     expect($r['can_destroy'])->toBeTrue();
 });
 
@@ -285,7 +289,7 @@ it('W27 PackageManager listForBusiness cross-tenant — mesmo set biz=1 vs biz=9
         $this->markTestSkipped('packages ausente');
     }
     $svc = new PackageManagerService();
-    $a = $svc->listForBusiness(BIZ_WAGNER_W27)->pluck('id')->sort()->values()->all();
+    $a = $svc->listForBusiness(BIZ_TENANT_W27)->pluck('id')->sort()->values()->all();
     $b = $svc->listForBusiness(BIZ_FICTICIO_W27)->pluck('id')->sort()->values()->all();
     expect($a)->toBe($b);
 });
