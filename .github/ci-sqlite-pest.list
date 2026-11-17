@@ -812,6 +812,10 @@ tests/Feature/Site/UniafibroDireitosTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoTest.php
 tests/Unit/Tenancy/ContextoEmpresaJobTest.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoModulosTest.php
+Modules/Arquivos/Tests/Feature/ArquivosNoPacoteTest.php
 Modules/Arquivos/Tests/Feature/ValidacaoUploadTest.php
 Modules/Arquivos/Tests/Feature/ArquivosConsertosL2Test.php
 tests/Unit/Tenancy/ContextoEmpresaEscopoArquivoTest.php
+# Guarda dos listeners de pagamento por dispatcher (2026-11-16): sem banco, e o
+# caso repetido em 3 apps do mesmo processo prova que a ordem aleatoria nao tira o listener.
+Modules/Financeiro/Tests/Feature/ListenersPorDispatcherContratoTest.php
