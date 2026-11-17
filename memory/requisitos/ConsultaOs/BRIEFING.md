@@ -2,7 +2,7 @@
 id: requisitos-consulta-os-briefing
 module: ConsultaOs
 status: parcial
-updated_at: "2026-10-02"
+updated_at: "2026-11-17"
 ---
 
 # BRIEFING — ConsultaOs
@@ -18,13 +18,15 @@ Portal público (sem login) onde o cliente final acompanha o reparo informando o
 - Critério validado (`ConsultaPublicaRequest`) e revalidado no `RepairConsultaOsRepository` — sem tipo válido e número não vazio, não consulta.
 - Throttle `30,1` nas rotas; auditoria com `PiiRedactor` + IP truncado; spans OTel.
 - `GET /repair-status` (Repair) → 302 pro `/consulta-os`. O portal antigo do Repair (tela Blade + `POST /post-repair-status`) saiu no cutover de 2026-10-27: o ConsultaOs é a única consulta pública de OS.
-- Contrato: `tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php` (UC-COS-01..11, lane sqlite do `ci.yml`).
+- **Aviso de status por WhatsApp (US-CONSULTA-004):** quando a empresa muda o status da OS na edição (`JobSheetController::update`) para um status marcado com aviso (`repair_statuses.whatsapp_template_aviso` = `ready` ou `waiting_parts`, configurado em `/repair/status`), o `Modules/Whatsapp/Listeners/NotifyRepairCustomer` avisa o cliente e o portal já mostra o status novo. O nome do status não decide (decisão [W] 2026-10-21). O aviso filtra a empresa do cliente e respeita o opt-out de WhatsApp.
+- Contrato: `tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php` (UC-COS-01..11, lane sqlite do `ci.yml`) e `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` (UC-COS-12, 13, 31, 32, 33).
 
 ## Capacidades PLANEJADAS (NÃO construídas)
 - Identificar a empresa do cliente (hoje um nº válido é procurado em todas as empresas) — decisão [W].
 - Captcha (resto da US-CONSULTA-001). **US-CONSULTA-002:** canary 7d.
+- Transição de status pela FSM do Repair (`RepairFsmActionController::execute`) avisar o cliente e mudar o status que o portal lê — hoje não faz nenhum dos dois (limite da US-CONSULTA-004, UC-COS-14).
 
 ## Dependências
-- **Reais:** `Modules\Repair\Entities\JobSheet` + `activity_log`; `App\Support\Privacy\PiiRedactor`; `App\Util\OtelHelper`. Tier 0: rota pública **não** scopa por `business_id` (sem sessão) — escape comentado no código.
+- **Reais:** `Modules\Repair\Entities\JobSheet` + `activity_log`; `Modules\Whatsapp` (aviso de status); `App\Support\Privacy\PiiRedactor`; `App\Util\OtelHelper`. Tier 0: rota pública **não** scopa por `business_id` (sem sessão) — escape comentado no código.
 
 **SPEC:** [SPEC.md](SPEC.md)
