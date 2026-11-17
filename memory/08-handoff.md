@@ -1,5 +1,6 @@
 # 08 — Handoff (índice)
 
+- [2026-11-17 09:15 BRT — **Calendário de captação AREFI 2027**](handoffs/2026-11-17-0915-arefi-calendario-captacao-2027.md) (pesquisa web, zero código · emendas à LOA 2027 federal e Alesc fecham em 23/11 · FEAS/SC repassa direto a entidade com CNEAS · CMDPD Indaial, "pacote 10 mi" e consórcio sem fonte)
 - [2026-11-17 05:53 BRT — **Gerente de merge: fila de 28 PRs**](handoffs/2026-11-17-0553-gerente-merge-fila-28-prs.md) (17 mergeados por esta sessão + 3 paralelos · #11070 destrava a lane Sells MySQL no main · zero reverts · pendente [W]: #10888 .htaccess)
 - [2026-11-16 22:45 BRT — **Associações: 6 ondas no main (ADR 0451, Uniafibro)**](handoffs/2026-11-16-2245-associacoes-6-ondas-no-main.md) (#10862 #10878 #10883 #10882 #10881 #10880 · onda 6 em produção, smoke sem regressão · UC-ASSOC-01 era arrow fn capturando por valor → #11066 mergeado · mesmo defeito na NFSe, sessão avisada · pendente [W]: empresa Uniafibro + pacote associacoes_module)
 - [2026-11-14 12:00 BRT — **Captação: ADR 0452 e esqueleto do módulo**](handoffs/2026-11-14-1200-captacao-onda1-adr-esqueleto.md) (PR #10895 · 4 tabelas captacao_* + teste 98×99 · merge ratifica a ADR · próximo: fontes e projetos)
