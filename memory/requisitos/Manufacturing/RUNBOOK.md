@@ -19,16 +19,21 @@ last_validated: "2026-11-17"
 > Os RUNBOOKs de cada tela ficam ao lado: `RUNBOOK-recipes`, `-ingredientes-editor`, `-insumos`,
 > `-producao`, `-report`, `-settings`.
 
-## Problema: a ordem gravou mesmo com insumo faltando
+## Problema: finalizar a ordem falha por falta de insumo
 
-**Sintoma:** a ordem de produção foi gravada e o estoque do insumo ficou negativo.
+**Sintoma:** ao finalizar (ou gravar já finalizada), a ordem volta para a lista com mensagem de
+erro, sem ordem nova e sem baixa de estoque.
 
-**Causa:** é o comportamento previsto. O formulário avisa e não bloqueia (handoff §6.2, CU-MFG-19);
-o servidor não confere disponibilidade antes de gravar. A ADR ARQ-0002 do módulo dizia o
-contrário e é a que não confere com o código.
+**Causa:** o servidor não confere o saldo antes de gravar, mas ao finalizar o núcleo
+(`TransactionUtil::mapPurchaseSell`) liga o consumo aos lotes de compra; sem lote suficiente ele
+lança, e a transação inteira é desfeita (UC-OP-15). Se a empresa tem `allow_overselling` ligado
+nas configurações de venda, a ordem grava e o saldo do insumo fica negativo. O rascunho não mexe em
+estoque e grava sempre.
 
-**Correção:** dar entrada no insumo (compra ou transferência) e conferir o saldo no relatório de
-estoque. Pela D3 da ADR 0448, a trava de material passa a existir na ordem da Produção.
+**Correção:** dar entrada no insumo (compra ou transferência) no local da ordem e finalizar de novo;
+ou gravar como rascunho e finalizar depois. A ADR ARQ-0002 do módulo prometia checagem prévia com
+trava; não é o que o código faz (lote 4.4). Pela D3 da ADR 0448, a regra de material da ordem nova
+é da Produção.
 
 ## Problema: custo da ordem diferente do custo da receita
 
