@@ -72,5 +72,9 @@ final readonly class TributoCalculado
         // Null = o item sai sem o grupo IPI, como sempre saiu (regra por NCM e operação padrão).
         public ?string $cst_ipi = null,
         public ?string $c_enq_ipi = null,
+        // Base do PIS e da COFINS quando ela não é o valor do item (natureza da tela com "tirar o
+        // ICMS da base": valor − ICMS próprio destacado). Null = a base é o valor do item, como antes.
+        public ?float  $base_pis = null,
+        public ?float  $base_cofins = null,
     ) {}
 }

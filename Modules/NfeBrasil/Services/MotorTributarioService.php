@@ -684,7 +684,12 @@ class MotorTributarioService
                 'origem' => throw $recusa(strtoupper($k) . ' "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
                 default  => self::PIS_COFINS_DO_REGIME[$regime][$k] ?? 0.0,
             };
-            $pc[$k] = ['cst' => $cst, 'aliq' => $aliq];
+            // "Tirar o ICMS da base" (Tema 69 do STF): base = valor − ICMS próprio destacado. Só o
+            // ICMS próprio sai; o ICMS-ST não entra nesta conta.
+            $base = (bool) ($x['exclICMS'] ?? false) && $tributado && $valorIcms > 0
+                ? $this->fmt($produto->valor - $valorIcms)
+                : null;
+            $pc[$k] = ['cst' => $cst, 'aliq' => $aliq, 'base' => $base];
         }
 
         // IBS e CBS.
@@ -700,8 +705,8 @@ class MotorTributarioService
             aliquota_cofins: $pc['cofins']['aliq'],
             aliquota_ipi:    $aliqIpi,
             valor_icms:      $valorIcms,
-            valor_pis:       $this->fmt($produto->valor * $pc['pis']['aliq']),
-            valor_cofins:    $this->fmt($produto->valor * $pc['cofins']['aliq']),
+            valor_pis:       $this->fmt(($pc['pis']['base'] ?? $produto->valor) * $pc['pis']['aliq']),
+            valor_cofins:    $this->fmt(($pc['cofins']['base'] ?? $produto->valor) * $pc['cofins']['aliq']),
             valor_ipi:       $this->fmt($produto->valor * $aliqIpi),
             nivel_usado:     4,
             regra_id:        null,
@@ -725,6 +730,8 @@ class MotorTributarioService
             cst_cofins:      $this->cstPisCofins($pc['cofins']['cst']),
             cst_ipi:         $cstIpi,
             c_enq_ipi:       $ipiLigado ? ((string) ($ipi['cEnq'] ?? '') !== '' ? (string) $ipi['cEnq'] : '999') : null,
+            base_pis:        $pc['pis']['base'],
+            base_cofins:     $pc['cofins']['base'],
         );
     }
 

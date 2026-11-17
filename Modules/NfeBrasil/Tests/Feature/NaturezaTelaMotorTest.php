@@ -248,3 +248,32 @@ it('UC-NFTR-66 · IPI da natureza: CST tributado calcula e leva cEnq; CST isento
     $sem = ntmCalc(ntmNatureza(ntmTela(['icms' => $icms])), 'SC');
     expect($sem->cst_ipi)->toBeNull()->and($sem->valor_ipi)->toBe(0.0);
 });
+
+it('UC-NFTR-67 · "tirar o ICMS da base": PIS/COFINS sobre o valor menos o ICMS próprio; desligado, sobre o valor cheio', function () {
+    $tirar = ['pis' => ['exclICMS' => true], 'cofins' => ['exclICMS' => true]];
+
+    // SC→PR, ICMS 12% (tabela). À mão: ICMS 1.000 × 12% = 120,00 · base 1.000 − 120 = 880,00
+    //   PIS 880 × 0,65% = 5,72 · COFINS 880 × 3% = 26,40 (Presumido)
+    $t = ntmCalc(ntmNatureza(ntmTela($tirar)), 'PR');
+    expect($t->valor_icms)->toBe(120.0)
+        ->and($t->base_pis)->toBe(880.0)
+        ->and($t->base_cofins)->toBe(880.0)
+        ->and($t->valor_pis)->toBe(5.72)
+        ->and($t->valor_cofins)->toBe(26.4);
+
+    // Segundo caminho (a conta que a SEFAZ confere no XML): vPIS = vBC × pPIS e vCOFINS = vBC × pCOFINS.
+    expect(round($t->base_pis * $t->aliquota_pis, 2))->toBe($t->valor_pis)
+        ->and(round($t->base_cofins * $t->aliquota_cofins, 2))->toBe($t->valor_cofins);
+
+    // Desligado (como as naturezas sem a opção): base é o valor cheio — PIS 6,50 · COFINS 30,00.
+    $cheio = ntmCalc(ntmNatureza(ntmTela()), 'PR');
+    expect($cheio->base_pis)->toBeNull()
+        ->and($cheio->valor_pis)->toBe(6.5)
+        ->and($cheio->valor_cofins)->toBe(30.0);
+
+    // Sem ICMS próprio (CST 40, isenta): não há o que tirar, a base fica o valor cheio.
+    $isenta = ntmCalc(ntmNatureza(ntmTela(array_merge($tirar, ['icms' => ['cst' => '40']]))), 'PR');
+    expect($isenta->valor_icms)->toBe(0.0)
+        ->and($isenta->base_pis)->toBeNull()
+        ->and($isenta->valor_pis)->toBe(6.5);
+});

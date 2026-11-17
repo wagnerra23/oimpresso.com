@@ -783,6 +783,13 @@ last_run: "2026-11-15"
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela` (CST e cEnq do IPI) + `NfeService::montarItensNfe`/`adicionarItem` (grupo IPI, vIPI, vNF).
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-67 · "Tirar o ICMS da base" do PIS/COFINS vale no cálculo e no XML · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza com "tirar o ICMS da base" ligado no PIS e na COFINS **Quando** a nota tem ICMS próprio de 120 sobre 1.000 **Então** a base do PIS/COFINS é 880 (PIS 5,72 e COFINS 26,40 no Presumido) e o XML leva essa base; **Dado** a opção desligada **Então** a base é o valor cheio (6,50 e 30,00); **Dado** CST sem ICMS próprio **Então** não há o que tirar.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-67 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela` (`base_pis`/`base_cofins`) + `NfeService::montarItensNfe` (vBC do PIS/COFINS).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
