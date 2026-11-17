@@ -375,6 +375,17 @@ last_run: "2026-10-07"
 - **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
 - **Teste:** `CustoPorPermissaoTest.php`
 - **Regressão que defende:** o custo da produção entregue a quem só acompanha as ordens.
+## UC-OP-21 · A ordem recusa quantidade que não existe, antes de gravar
+- **Persona:** quem grava ou edita a ordem de produção.
+- **Aceite:** Dado um POST ou PUT com quantidade produzida zero ou negativa, perda negativa ou igual/maior que a
+  produção, custo extra negativo, ou consumo de insumo negativo · Quando a ordem é gravada · Então volta com erro
+  no campo e nada é gravado (nem ordem nova, nem mudança no rascunho) · Dado os mesmos dados com números válidos ·
+  Então a ordem grava.
+- **Fonte:** SDD Fabricação §4 (a ordem produz quantidade positiva; entra no estoque a produzida menos a perdida) ·
+  SPEC US-MANU-008 · auditoria do Manufacturing, lote 2.2.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemValidacaoTest.php`
+- **Regressão que defende:** quantidade 0 dividindo o total (erro 500) e consumo negativo somando estoque em vez
+  de baixar.
 - **Status: 🧪**
 
 ---

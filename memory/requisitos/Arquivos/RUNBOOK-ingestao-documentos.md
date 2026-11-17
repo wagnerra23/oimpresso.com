@@ -163,7 +163,7 @@ Logs em `storage/logs/laravel.log` channel `arquivos` com prefix `arquivos.attac
 | Detectar duplicatas | `php artisan arquivos:dedupe-stats` |
 | Hard-delete pós-retention | `php artisan arquivos:retention-cleanup --dry-run` |
 | Recalcular md5/size | `php artisan arquivos:recalcular-metadata --tag=backfill-...` |
-| Re-encrypt vault (rotation APP_KEY) | `php artisan arquivos:reencrypt-vault --old-key=...` |
+| Re-encrypt vault (rotation APP_KEY) | chave antiga em `APP_PREVIOUS_KEYS` no .env, depois `php artisan arquivos:reencrypt-vault` (`--old-key=...` ainda aceito, mas deixa a chave no histórico do shell) |
 | Export LGPD Art. 18 | `php artisan arquivos:export-zip --business=N --output=/path` |
 
 ## Histórico (origem do documento)
