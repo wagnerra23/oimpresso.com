@@ -1,5 +1,17 @@
 {
   "_medido_em": "2026-09-22",
   "_por_que": "A ancora desta tela e manufacturing-producao.jsx, que NAO e um -page.jsx: ele expoe window.MfgConfig (:330), nao window.ManufacturingPage. A derivacao do token cruza o 'window.YPage =' do mockup com a tabela de rotas do app.jsx e por isso sai 'sem rota derivavel' -- nao e defeito, e o arquivo nao ser o hub. O token abaixo foi LIDO do app.jsx do espelho do Felipe (:848-851), onde 'if (route === \"mfg-config\") content = <window.ManufacturingPage initialView=...' monta exatamente esta tela. Tres telas dividem o manufacturing-producao.jsx (Index/Report/Settings) em componentes diferentes; o token e o que as separa.",
-  "token": "mfg-config"
+  "token": "mfg-config",
+  "_pagina_medida_em": "2026-11-17",
+  "_pagina_por_que": "Papeis da pagina medidos no DOM dos dois lados em 2026-11-17, 1600x900, tema escuro: producao em oimpresso.com logada na empresa 1 (Chrome do [W]), prototipo no espelho Wagner/ servido pelo servirEspelho do lote. Sem estes papeis os defaults heuristicos saiam kpi=0 e primary/filtros nulos no prototipo, e o veredito ficava SEM-DADO em tudo. O primario e o Atualizar do formulario; os outros botoes do form sao os switches.",
+  "roles": {
+    "prod": {
+      "title": "[data-contract=cabecalho] h1",
+      "primary": "[data-contract=form] button:not([role=switch])"
+    },
+    "design": {
+      "title": "main h1",
+      "primary": ".mfg-ed-f.mfg-inline > button"
+    }
+  }
 }

@@ -1,0 +1,18 @@
+{
+  "_medido_em": "2026-11-17",
+  "_por_que": "Papeis da pagina medidos no DOM dos dois lados em 2026-11-17, 1600x900, tema escuro: producao em oimpresso.com logada na empresa 1 (Chrome do [W]), prototipo no espelho Wagner/ servido pelo servirEspelho do lote. Sem estes papeis os defaults heuristicos saiam kpi=0 e primary/filtros nulos no prototipo, e o veredito ficava SEM-DADO em tudo. Filtros (as fichas de categoria) ficam SEM papel de proposito: no prototipo o grupo e um div sem classe, so com estilo inline, e qualquer seletor seria posicional; na producao e o .cw-segmented. Medir os dois exigiria um seletor que quebra na proxima edicao do prototipo.",
+  "roles": {
+    "prod": {
+      "kpi": "[data-contract=kpis] > *",
+      "title": "[data-contract=cabecalho] h1",
+      "primary": "[data-contract=cabecalho] button",
+      "tableRow": "[data-contract=lista] tbody tr"
+    },
+    "design": {
+      "kpi": ".mfg-kpis > *",
+      "title": "main h1",
+      "primary": "main button",
+      "tableRow": "main table tbody tr"
+    }
+  }
+}
