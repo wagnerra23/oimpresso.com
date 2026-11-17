@@ -134,6 +134,29 @@ describe('Custo atrás de view_purchase_price (B3)', function () {
         }
     });
 
+    // UC-INS-06 — o "preço atual → preço simulado" da gaveta vem do servidor (Non-Goal "Não simula
+    // no cliente" do charter). Insumo a 7,50: +15% dá 8,625; 999% é clampado em 60% (12,00); -500%
+    // em -30% (5,25). A conta do servidor é a mesma que recalcula as receitas: o `unit_novo` da
+    // receita (2 un do insumo, rende 1) tem de ser 2 × o preço simulado. Sem `view_purchase_price`
+    // o preço simulado vem nulo, e sem insumo escolhido também.
+    it('UC-INS-06 Insumos: o preço simulado do insumo vem do servidor, com o percentual clampado', function () {
+        [, , $insumo] = mfgCustoFixture();
+        $comCusto = mfgCustoUsuario($this, true);
+
+        foreach (['15' => 8.625, '999' => 12.0, '-500' => 5.25] as $pedido => $esperado) {
+            $props = mfgCustoProps($this->actingAs($comCusto)->get("/manufacturing/insumos?insumo={$insumo}&variacao_pct={$pedido}"));
+            expect($props['preco_simulado'])->not->toBeNull('O preço simulado não veio do servidor.');
+            expect(round((float) $props['preco_simulado'], 4))->toBe($esperado);
+            expect(round((float) $props['usos'][0]['unit_novo'], 4))->toBe(round(2 * $esperado, 4));
+        }
+
+        expect(mfgCustoProps($this->actingAs($comCusto)->get('/manufacturing/insumos'))['preco_simulado'])->toBeNull();
+
+        $semCusto = mfgCustoProps($this->actingAs(mfgCustoUsuario($this, false))->get("/manufacturing/insumos?insumo={$insumo}&variacao_pct=15"));
+        expect($semCusto['preco_simulado'])->toBeNull();
+        expect($semCusto['usos'])->toHaveCount(1);
+    });
+
     it('UC-OP-24 Ordens: sem a permissão o total da ordem e o valor somado vêm vazios', function () {
         [, , , $ordem] = mfgCustoFixture();
 

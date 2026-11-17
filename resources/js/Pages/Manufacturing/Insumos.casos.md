@@ -107,6 +107,21 @@ last_run: "2026-10-21"
 
 ---
 
+## UC-INS-06 · O preço simulado do insumo vem do servidor
+- **Persona:** quem simula a variação de preço de um insumo na gaveta.
+- **Aceite:** Dado um insumo escolhido e um `variacao_pct` · Quando a tela recebe o payload · Então o
+  "preço atual → preço simulado" mostra o `preco_simulado` calculado pelo servidor, com o percentual
+  já clampado (UC-INS-05) e pela mesma fórmula que recalcula as receitas · Dado um usuário sem
+  `view_purchase_price` ou nenhum insumo escolhido · Então `preco_simulado` vem nulo e a tela mostra "—".
+- **Fonte:** Non-Goal "Não simula no cliente" do charter + §9 do handoff ("a autoridade é o servidor").
+- **Teste:** `CustoPorPermissaoTest.php` — `GET /manufacturing/insumos` com 15, 999 e −500, lendo
+  `preco_simulado` e o `unit_novo` da receita; o mesmo pedido sem a permissão e sem insumo.
+- **Regressão que defende:** a tela refazer a conta (antes `custo × (1 + pct/100)` no `.tsx`), que
+  sem permissão mostrava "R$ 0,00" no lugar de "—".
+- **Status: 🧪**
+
+---
+
 ## Método de custo por insumo (US-COM-024 · UC-FLX-38)
 
 > **Âncora:** US-COM-024 (`memory/requisitos/Compras/SPEC.md`) e o UC-FLX-38 do catálogo de fluxos
