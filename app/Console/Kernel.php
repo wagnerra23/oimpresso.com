@@ -1390,6 +1390,36 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `nfse` (auditoria NFSe, 2026-11-17): drena o EmitirNfseJob, que o
+        // NfseEmissaoService despacha com ->onQueue('nfse'). Em leitura de producao de
+        // 2026-11-17 nenhum dos queue:work acima lia esta fila: a primeira emissao real
+        // ficaria parada na tabela `jobs` e a nota nem chegaria a ser criada.
+        //
+        // POR QUE ENTRADA PROPRIA, e NAO `nfse` na lista do worker de backlog: aquele worker
+        // esta atras de `queue.backlog_worker_enabled` (default FALSE) — incluir `nfse` la
+        // deixaria a emissao parada do mesmo jeito. E, ligado, ele divide o processo com
+        // `default` e as filas de memoria; a nota esperaria atras desse backlog. Aqui o
+        // usuario espera a nota sair, entao a fila tem worker proprio, vivo os 55s (sem
+        // --stop-when-empty, como o `whatsapp`). NAO gated: so recebe job despachado por
+        // acao humana, sem backlog stale, e nao esta na lista do `jobs:purge-represados`.
+        //
+        // --timeout=85: a emissao tenta ate 3x com Http::timeout(30) e backoff 1+2+4s
+        // (pior caso ~97s). O default do worker (60s) cortaria o job na 2a tentativa; acima
+        // de 85 passaria o retry_after=90 da conexao database. Se o pior caso estourar, o job
+        // volta como tentativa seguinte e reenvia o MESMO nº de DPS (retomarPendente), sem
+        // nota em dobro. --tries=3 casa com o $tries do job. withoutOverlapping(5) cobre
+        // 55s + 85s de um job em curso: 1 processo por vez (respeita o LSPHP do Hostinger).
+        $schedule->command('queue:work database --queue=nfse --max-time=55 --timeout=85 --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(5)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work nfse FALHOU — emissao de NFS-e pode ficar parada na jobs table'
+                );
+            });
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria
