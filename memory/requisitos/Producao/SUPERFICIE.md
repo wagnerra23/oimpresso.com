@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 187 arquivos em 17 papéis.
+**Total mapeado:** 188 arquivos em 17 papéis.
 
 ## Controllers — 25
 
@@ -167,11 +167,12 @@ module: Producao
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx)
 
-## Componentes / apoio de tela — 8
+## Componentes / apoio de tela — 9
 
 - [AcaoDaProva.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/_components/AcaoDaProva.tsx)
 - [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
 - [Alocar.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/Alocar.tsx)
+- [PainelDaFicha.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/PainelDaFicha.tsx)
 - [SimuladorBobina.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx)
 - [EditorRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/EditorRoteiro.tsx)
 - [ProdutosDoRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/ProdutosDoRoteiro.tsx)

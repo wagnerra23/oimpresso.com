@@ -74,10 +74,11 @@ Status: 🧪
 
 ## UC-PCOSF-06 · Quadro e Linha abrem a Ficha · `must`
 
-**Dado** uma OS por item no Quadro e na Linha do tempo **Quando** clico no número do cartão do Quadro, ou clico (sem
-arrastar) ou dou Enter no bloco da Linha **Então** abre `/producao/ordens/{id}` · arrastar o bloco para reprogramar não
-abre a Ficha · a OS da Comunicação Visual (`comvis_os`) não tem Ficha e não ganha link. Teste:
-`tests/js/producao-ficha-link.test.ts` (endereço e controle); o clique no navegador se confere no smoke.
+**Dado** uma OS por item no Quadro e na Linha do tempo **Quando** clico (sem arrastar) ou dou Enter no bloco da Linha
+**Então** abre `/producao/ordens/{id}` · **Quando** clico no número do cartão do Quadro **Então** a Ficha abre no painel
+lateral (UC-PCOSF-08) · arrastar o bloco para reprogramar não abre a Ficha · a OS da Comunicação Visual (`comvis_os`)
+não tem Ficha e não ganha link. Teste: `tests/js/producao-ficha-link.test.ts` (endereço e controle); o clique no
+navegador se confere no smoke.
 
 Status: 🧪
 
@@ -87,6 +88,19 @@ Status: 🧪
 botões), a mesma da página, para o painel lateral do protótipo (decisão [W] no #10850) · as abas (`ficha_custo`,
 `ficha_materiais`, `ficha_artes`, `ficha_pessoas`) só são montadas quando a tela pede a aba · **Dado** `?os=` de outra
 empresa, inexistente ou ausente **Então** `ficha` vem nula e o Quadro abre normalmente.
+
+Status: 🧪
+
+## UC-PCOSF-08 · O Quadro abre a Ficha no painel lateral · `must`
+
+**Dado** o Quadro **Quando** clico no número de uma OS por item **Então** a Ficha abre num painel de 760px à direita, sem
+sair do quadro (decisão [W] no #10850, protótipo `FichaOs` de `producao-cv-os.jsx`) · a URL ganha `?os={id}` e mantém o
+filtro, para o F5 e o link copiado reabrirem o painel · fechar o painel tira o `?os=` · cada aba (Arte, Materiais,
+Custo, e quem pode ser responsável no Liberar) é pedida ao Quadro só quando é aberta, e a aba de uma OS não aparece na
+seguinte · depois de liberar, refazer, cancelar ou trocar a arte, o quadro se atualiza junto · **Dado** `?os=` de outra
+empresa ou inexistente **Então** o painel diz "OS não encontrada". Teste: `tests/js/producao-quadro-painel-ficha.test.tsx`
+(abas por OS, troca e controle) e `tests/js/producao-ficha-link.test.ts` (URL); o servidor é o UC-PCOSF-07; o clique
+no navegador se confere no smoke.
 
 Status: 🧪
 
@@ -124,6 +138,7 @@ Status: 🧪
 - **[BACKLOG]** Refugo e Histórico da OS — fora do lote 3.
 
 ## Trilha do tempo
+- 2026-11-17 · [M+C] O número da OS no Quadro abre a Ficha no painel lateral de 760px, com `?os=` na URL (UC-PCOSF-08, decisão [W] no #10850). A Linha segue abrindo a página.
 - 2026-11-16 · [M+C] O Quadro entrega a Ficha com `?os=` para o painel lateral (UC-PCOSF-07, decisão [W] no #10850).
 - 2026-11-16 · [M+C] O conteúdo da Ficha vira o componente `_components/FichaDaOs.tsx`, para o painel lateral do Quadro usar o mesmo (decisão [W] no #10850). A página não muda.
 - 2026-11-09 · [W+C] Dispensas de escopo revistas (lote 8.1): 21 removidas, 12 comentadas (UC-PCESC-01..04).
