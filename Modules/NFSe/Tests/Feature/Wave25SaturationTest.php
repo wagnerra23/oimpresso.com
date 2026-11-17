@@ -131,7 +131,8 @@ describe('Wave 25 NFSe POLISH', function () {
 
         expect($src)->toContain('MAX_RETRIES = 3')
             ->and($src)->toContain('idempotencyKey')
-            ->and($src)->toContain('whereIn(\'status\', [\'emitida\', \'processando\'])');
+            // `erro` entra no lote 2 PR 2.2 (#11025): o reenvio de nota recusada reusa a linha.
+            ->and($src)->toContain('whereIn(\'status\', [\'emitida\', \'processando\', \'erro\'])');
     });
 
     it('D6: NfseEmissaoService cancelar() bloqueia dupla cancelação (imutabilidade fiscal)', function () {
