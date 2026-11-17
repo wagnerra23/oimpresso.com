@@ -24,9 +24,10 @@ use RuntimeException;
  * `associacoes_module` ao package_details da assinatura ativa do biz=1, em vez de criar outra (uma
  * segunda assinatura esconderia o `ponto_module` do VisregPontoSubscriptionSeeder). Rode depois dele.
  *
- * DOIS LINKS: `aberto` (válido) e `vencido` (expires_at no passado, gravado direto na linha — o Service
- * não emite link vencido). Cada um numa associada própria: emitir de novo revoga o link anterior da
- * mesma associada.
+ * LINKS: `aberto` (válido) e `vencido` (expires_at no passado, gravado direto na linha — o Service
+ * não emite link vencido), lidos por acesso.spec.ts; `trava`, `revoga` e `filiacao`, um por teste de
+ * escrita.spec.ts, os dois últimos com todas as finalidades da config autorizadas. Cada link numa
+ * associada própria: emitir de novo revoga o link anterior da mesma associada.
  *
  * Nunca roda em produção (mesma trava dos outros seeders Visreg).
  */
@@ -66,12 +67,43 @@ class VisregAssociacoesPortalSeeder extends Seeder
             ->whereNull('revogado_em')
             ->update(['expires_at' => now()->subDay()]);
 
+        // Uma associada por teste que grava (escrita.spec.ts): a trava de um e a autorização retirada
+        // de outro não podem vazar para os demais.
+        $trava = $this->associada('Associada E2E Trava');
+        $revoga = $this->associada('Associada E2E Revoga');
+        $filiacao = $this->associada('Associada E2E Filiacao');
+        $this->consentimentos($revoga);
+        $this->consentimentos($filiacao);
+
         $destino = storage_path('app/' . self::ARQUIVO);
         File::ensureDirectoryExists(dirname($destino));
         File::put($destino, json_encode([
             'aberto' => ['token' => $link['token'], 'pin' => $link['pin'], 'nome' => $this->nome($aberta), 'associada_id' => (int) $aberta->id],
             'vencido' => ['token' => $velho['token']],
+            'trava' => $this->link($servico, $trava),
+            'revoga' => $this->link($servico, $revoga),
+            'filiacao' => $this->link($servico, $filiacao),
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /** @return array{token: string, pin: string, associada_id: int} */
+    private function link(object $servico, object $associada): array
+    {
+        $l = $servico->emitir($associada, 1);
+
+        return ['token' => $l['token'], 'pin' => $l['pin'], 'associada_id' => (int) $associada->id];
+    }
+
+    /** Todas as finalidades da config vigentes, como se aceitas no cadastro. */
+    private function consentimentos(object $associada): void
+    {
+        foreach ((array) config('associacoes.consentimento_versoes', []) as $finalidade => $versao) {
+            DB::table('assoc_consentimentos')->insert([
+                'business_id' => 1, 'associada_id' => $associada->id, 'finalidade' => $finalidade,
+                'versao' => (string) $versao, 'concedido_em' => now()->subMonth(), 'canal' => 'cadastro',
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
     }
 
     private function ligarPacote(): void
