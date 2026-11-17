@@ -38,7 +38,9 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
 
         // Global scope multi-tenant Tier 0. Desde 2026-11-16 (ADR 0453, auditoria L2) o scope
         // mora na trait EscopoDeEmpresa, não no fonte do Arquivo: confere o scope REGISTRADO,
-        // não a string no arquivo.
+        // não a string no arquivo. O `new` sobe o model: antes do boot o registro de scopes
+        // está vazio e `hasGlobalScope` responde false mesmo com a trait no lugar.
+        new Arquivo();
         expect(Arquivo::hasGlobalScope('business_id'))->toBeTrue();
     });
 
@@ -97,8 +99,9 @@ describe('Wave 26 Arquivos POLISH 74→85', function () {
 
         expect($src)->toContain('PiiRedactor');
         expect($src)->toContain('redactPayload');
-        // fail-open: audit > redaction (LGPD pragmatismo)
-        expect($src)->toContain('fail-open');
+        // Desde 2026-11-16 (auditoria L2, #10981) o redator falha FECHADO. O comportamento é
+        // provado em ArquivosConsertosL2Test ("redator do audit indisponível: payload cru NÃO passa").
+        expect($src)->not->toContain('fail-open');
     });
 
     it('D9: ArquivosService spans count >= 6 canon arquivos.* (Wave 18 + 26)', function () {
