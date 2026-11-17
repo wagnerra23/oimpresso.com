@@ -16,9 +16,11 @@ declare(strict_types=1);
  *   - UC-COS-02: buscar o nº de uma OS pinta o cartão com o nº e o status daquela OS.
  *   - UC-COS-03: um nº que não existe pinta "OS não encontrada", com o nº digitado.
  *   - UC-COS-38: resposta 500 pinta um alerta e mantém o
- *     formulário; não confunde com "não encontrada". O texto do alerta não é assertado — a
- *     mensagem por status é o item 3.1 do mesmo lote.
- *   - axe-core CRITICAL (level 0) nos quatro estados.
+ *     formulário; não confunde com "não encontrada". O texto do alerta fica com o UC-COS-39.
+ *   - UC-COS-39: resposta 429 pede para esperar um minuto; na mesma tela, o 500 troca para a
+ *     mensagem de falha do servidor.
+ *   - UC-COS-61: /consulta-os sem empresa mostra o aviso, sem formulário.
+ *   - axe-core CRITICAL (level 0) em cada caso.
  *
  * ── DADO ──────────────────────────────────────────────────────────────────────
  * Tenant fictício 98 (VisregEmptyTenantSeeder). O teste cria um contato, um status e uma folha
@@ -177,6 +179,26 @@ it('UC-COS-38 · resposta 500 da busca pinta um alerta, mantém o formulário e 
     $page->assertVisible('#os-numero')
         ->assertDontSee('OS não encontrada')
         ->assertDontSee(COS_STATUS);
+    $page->assertNoAccessibilityIssues(level: 0);
+});
+
+it('UC-COS-39 · resposta 429 da busca pede para esperar um minuto, e o 500 diz que o servidor falhou', function () {
+    $page = cosAbrir();
+    $page->script("window.fetch = () => Promise.resolve(new Response('', { status: 429 })); true");
+    $page->fill('#os-numero', COS_OS)->press('Pesquisar');
+
+    expect(cosEsperarTexto($page, 'Muitas buscas em pouco tempo'))->toBeTrue();
+    $page->assertVisible('#os-numero')
+        ->assertDontSee('O servidor não conseguiu fazer a busca')
+        ->assertDontSee('Não foi possível conectar')
+        ->assertDontSee('OS não encontrada');
+
+    // Mesma tela, agora o servidor falha: a mensagem troca e não fala em esperar.
+    $page->script("window.fetch = () => Promise.resolve(new Response('', { status: 500 })); true");
+    $page->press('Pesquisar');
+
+    expect(cosEsperarTexto($page, 'O servidor não conseguiu fazer a busca'))->toBeTrue();
+    $page->assertDontSee('Muitas buscas em pouco tempo');
     $page->assertNoAccessibilityIssues(level: 0);
 });
 

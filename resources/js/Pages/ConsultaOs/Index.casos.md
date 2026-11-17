@@ -56,6 +56,7 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-36 | Cada busca deixa log com IP truncado e número redigido | must | Anti-hooks "NÃO grava dado de negócio nem altera a OS em GET" (só o log redigido) · `Config/retention.php` `consulta_os_logs` | 🧪 |
 | UC-COS-37 | Falha interna: 500 só com `found=false`, sem detalhe técnico | must | UX "sem jargão técnico" · UC-COS-03 | 🧪 |
 | UC-COS-38 | Falha do servidor na busca: a tela avisa e não diz "não encontrada" | must | UX "sem jargão técnico" · UC-COS-37 | 🧪 |
+| UC-COS-39 | Muitas buscas (429): a tela pede para esperar, e o 500 tem mensagem própria | must | UX "sem jargão técnico" · UC-COS-35 · UC-COS-38 | 🧪 |
 | UC-COS-59 | Nº da venda: cada link só acha a venda da própria empresa | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" · ADR 0093 | 🧪 |
 | UC-COS-60 | Celular só com nº de série, e só na empresa do link | must `[T0]` | decisão [W] 2026-11-17 "celular só com série" · ADR 0093 | 🧪 |
 | UC-COS-61 | Sem código de empresa não há busca; código desconhecido dá 404 | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" | 🧪 |
@@ -265,6 +266,20 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
   visível para tentar de novo · E a tela não mostra "OS não encontrada" nem dado de OS.
 - **Lado da API:** UC-COS-37 (o 500 devolve `{"found": false}` sem texto técnico).
 - **Fora do teste:** o texto do alerta. A mensagem própria do 429 é o UC-COS-39.
+- **Teste:** [`ConsultaOsIndexBrowserTest`](../../../../tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php),
+  step `E2E de render · ConsultaOs/Index (ADVISORY)` do `visual-regression.yml`.
+- **Status:** 🧪
+
+## UC-COS-39 · Muitas buscas (429): a tela pede para esperar, e o 500 tem mensagem própria · `must`
+
+- **Persona:** cliente final que pesquisa várias vezes seguidas, ou pesquisa quando o servidor falha.
+- **Aceite:** Dado o link da empresa aberto no navegador · Quando a busca responde 429 · Então a
+  tela diz "Muitas buscas em pouco tempo" e pede para aguardar um minuto · E o formulário continua
+  visível · E a tela não diz que o servidor falhou nem que não conseguiu conectar · Quando, na mesma
+  tela, a busca responde 500 · Então a tela diz "O servidor não conseguiu fazer a busca" · E a
+  mensagem do 429 sai.
+- **Lado da API:** UC-COS-35 (a 31ª busca do mesmo IP no minuto recebe 429).
+- **Fora do teste:** a falha de rede (o `fetch` rejeita), que mantém "Não foi possível conectar ao servidor".
 - **Teste:** [`ConsultaOsIndexBrowserTest`](../../../../tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php),
   step `E2E de render · ConsultaOs/Index (ADVISORY)` do `visual-regression.yml`.
 - **Status:** 🧪
