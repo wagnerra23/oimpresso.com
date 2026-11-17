@@ -47,7 +47,7 @@ class LedgerDiscountController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed> JSON {success, msg} — a ficha e a Blade leem `success`.
      */
     public function store(Request $request)
     {
@@ -150,7 +150,7 @@ class LedgerDiscountController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed> JSON {success, msg} — a ficha e a Blade leem `success`.
      */
     public function update(Request $request, $id)
     {
