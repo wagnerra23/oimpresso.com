@@ -65,9 +65,11 @@ Página pública onde o cliente final informa o nº da OS, o nº da venda ou o c
 
 ## Anti-hooks (NÃO faz automaticamente)
 
-- ❌ NÃO indexa/expõe OS por enumeração (proteção de token público — ver testes de segurança do módulo)
+- ❌ NÃO facilita enumerar OS: `throttle:30,1` por IP nas rotas do portal e no `/repair-status`, tipo de busca em lista fechada, número com formato restrito (até 20 caracteres) e resposta "não encontrada" sem pista (UC-COS-03, UC-COS-07). Resíduo aberto: o nº da OS é sequencial por empresa e a busca procura em todas as empresas, então quem tenta números em sequência dentro do limite do throttle acha OS de qualquer empresa — decisão [W] pendente (UC-COS-09, ver Pendências)
 - ❌ NÃO dispara notificação ao cliente ao consultar
-- ❌ NÃO grava nada em GET
+- ❌ NÃO grava dado de negócio nem altera a OS em GET. Grava só o log de auditoria redigido da busca (`ConsultaOsController::auditarConsulta`: número via `PiiRedactor`, IP truncado, tipo, resultado) e o contador do throttle (UC-COS-06)
+
+> **Errata 2026-11-17** (o teste verde vence o charter — [proibicoes.md](../../../../memory/proibicoes.md) §Precedência): este bloco dizia (a) "NÃO indexa/expõe OS por enumeração (proteção de token público — ver testes de segurança do módulo)" — não existe token público, e o `PublicTokenSecurityTest` saiu com o mock em 2026-10-02; a defesa real é a descrita acima; e (b) "NÃO grava nada em GET" — toda busca grava a linha de auditoria e o contador do throttle. Status do charter não muda: aprovar é do Wagner.
 
 ---
 
