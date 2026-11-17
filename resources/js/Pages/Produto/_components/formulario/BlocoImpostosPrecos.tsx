@@ -13,7 +13,9 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { Grid } from '@/Components/layout';
+import { BlocoGrade } from './BlocoGrade';
 import { CamposPreco } from './CamposPreco';
+import type { Grade } from './grade';
 import { metodoDaEmpresa, opcoesDoMetodo } from './metodoCusto';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
 import { OPCOES_DE_POLITICA } from './politicaPreco';
@@ -31,6 +33,8 @@ interface Props {
   tipoAtual?: string;
   /** Produto simples: o preço. Sem ele (variável, composto) o card não mostra preço. */
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
+  /** UC-PCAD-32: a grade do produto variável no Novo. */
+  grade?: { valor: Grade; mudar: (g: Grade) => void; aliquota: number; margemPadrao: number; erro?: string };
   /** Método de custo (US-COM-024): só quando o módulo Compras está no pacote da empresa. */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
   /** Política de preço (CU-PROD-21) e os erros do servidor para os dois campos. */
@@ -43,7 +47,7 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, metodoCusto, politica }: Props) {
+export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, metodoCusto, politica }: Props) {
   const novo = modo === 'novo';
 
   return (
@@ -111,10 +115,10 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             </>
           )}
           {novo && tipoSemEditor(data.type) && (
-            // Sem o editor de grade/composição, o store() cria o variável sem variação nenhuma e o
-            // composto sem itens: o produto não entra em venda, compra, OS nem fabricação.
+            // Sem o editor de composição, o store() cria o composto sem itens: o produto não entra em
+            // venda, compra, OS nem fabricação (tipos.ts tipoSemEditor).
             <p role="alert" className="mt-1 text-[12px] text-destructive">
-              Produto {data.type === 'variable' ? 'variável' : 'composto'} ainda não tem editor nesta tela.{' '}
+              Produto composto ainda não tem editor nesta tela.{' '}
               {/* Página inteira (não Link do Inertia): com ?classico=1 o create() abre o Blade. */}
               <a href={URL_CADASTRO_CLASSICO} className="underline">
                 Cadastrar no formulário clássico
@@ -194,6 +198,18 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
         )}
         {preco && (
           <CamposPreco valor={preco.valor} mudar={preco.mudar} aliquota={preco.aliquota} margemMinima={preco.margemMinima} />
+        )}
+        {grade && (
+          <BlocoGrade
+            grade={grade.valor}
+            mudar={grade.mudar}
+            modelos={opcoes.modelosVariacao ?? []}
+            aliquota={grade.aliquota}
+            margemPadrao={grade.margemPadrao}
+            sku={data.sku}
+            tipoCodigo={String(data.barcode_type ?? '')}
+            erro={grade.erro}
+          />
         )}
         </Grid>
       </CardContent>

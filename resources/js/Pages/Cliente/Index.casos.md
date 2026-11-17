@@ -185,6 +185,14 @@ last_run: "2026-11-16"
 - **Teste:** `tests/Feature/Cliente/ClienteDescontoExtratoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-18 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
 
+## UC-CIDX-19 · "Só os próprios clientes" vale também ao abrir o cliente pelo número `[T0]` `[must]`
+- **Persona:** vendedor com permissão de ver só os próprios clientes (`customer.view_own` sem `customer.view`).
+- **Como usa:** abre a ficha do cliente; a ficha chama um endereço por aba (vendas, pagamentos, pontos, assinaturas, documentos, IA, auditoria, cadastro, endereços de entrega, extrato por e-mail).
+- **Aceite:** Dado um vendedor só-próprios · Quando pede qualquer desses endereços com o número de um cliente que outro vendedor cadastrou · Então recebe 403 e nada é alterado · E o próprio cliente abre normalmente · E o cliente compartilhado com ele (`user_contact_access`) abre · E quem tem `customer.view` abre o cliente de qualquer vendedor · E as 8 rotas `GET /cliente/{id}/{ledger,sales,payments,documents,activities,persons,subscriptions,rewards}`, que não conferiam permissão e nenhuma tela usava, respondem 404.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-17 ("corrige o 1, o 2 e o 3") · a regra da lista (`PessoaEscopo::viewOwn`, `tests/Feature/Roles/ContatosViewOwnTest.php`) · `ContactController::show()` antigo já recusava o cliente de outro vendedor com 403 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteSoPropriosPorNumeroTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-19 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ## UC-CIDX-20 · Endereços de entrega mostram quando o servidor recusa `[T1]` `[must]`
 - **Persona:** quem cuida do cadastro do cliente na gaveta (aba Endereço → endereços de entrega).
 - **Como usa:** clica em **Remover** ou em **Marcar como endereço de entrega** num endereço da lista.

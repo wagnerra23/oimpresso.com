@@ -18,6 +18,8 @@ export interface Rascunho {
   politica?: unknown;
   armazenagem?: unknown;
   metodoCusto?: unknown;
+  /** UC-PCAD-32: a grade do produto variável. */
+  grade?: unknown;
 }
 
 /** O formulário sem os arquivos: File não vira JSON e não volta. */
