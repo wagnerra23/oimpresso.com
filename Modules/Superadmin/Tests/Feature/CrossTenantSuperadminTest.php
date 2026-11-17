@@ -40,7 +40,8 @@ beforeEach(function () {
     }
 });
 
-const BIZ_WAGNER_CT = 1;
+// Tenant fictício de teste (ADR 0358): 98. Era 1 (WR2 Sistemas, empresa real) até 2026-11-16.
+const BIZ_TENANT_CT = 98;
 const BIZ_FICTICIO_CT = 99;
 
 // ---------- Validação 1: Package é entity global (sem business_id global scope) ----------
@@ -65,7 +66,7 @@ it('Package é entity global — sem BusinessScope, visível cross-tenant', func
     ]);
 
     // Visível independente de session business_id (não tem global scope BusinessScope)
-    session(['user.business_id' => BIZ_WAGNER_CT]);
+    session(['user.business_id' => BIZ_TENANT_CT]);
     $vistoBiz1 = Package::where('id', $pkg->id)->count();
 
     session(['user.business_id' => BIZ_FICTICIO_CT]);
@@ -81,7 +82,7 @@ it('Package é entity global — sem BusinessScope, visível cross-tenant', func
 
 it('Superadmin consulta cross-tenant business — vê biz=1 e biz=99 simultaneamente', function () {
     Business::firstOrCreate(
-        ['id' => BIZ_WAGNER_CT],
+        ['id' => BIZ_TENANT_CT],
         ['name' => 'Wagner Teste CT', 'currency_id' => 1]
     );
     Business::firstOrCreate(
@@ -90,7 +91,7 @@ it('Superadmin consulta cross-tenant business — vê biz=1 e biz=99 simultaneam
     );
 
     // SUPERADMIN: lista de businesses é uso intencional cross-tenant (sem global scope porque Business é a entidade-pai).
-    $count = Business::whereIn('id', [BIZ_WAGNER_CT, BIZ_FICTICIO_CT])->count();
+    $count = Business::whereIn('id', [BIZ_TENANT_CT, BIZ_FICTICIO_CT])->count();
 
     expect($count)->toBe(2, 'Superadmin deve enxergar businesses de tenants diferentes na mesma query');
 });
@@ -99,7 +100,7 @@ it('Superadmin consulta cross-tenant business — vê biz=1 e biz=99 simultaneam
 
 it('usuário biz=1 SEM permission superadmin é bloqueado em /superadmin', function () {
     Business::firstOrCreate(
-        ['id' => BIZ_WAGNER_CT],
+        ['id' => BIZ_TENANT_CT],
         ['name' => 'Wagner Teste CT', 'currency_id' => 1]
     );
 
@@ -108,7 +109,7 @@ it('usuário biz=1 SEM permission superadmin é bloqueado em /superadmin', funct
         [
             'email'       => 'normal_biz1_cross@test.local',
             'password'    => bcrypt('secret'),
-            'business_id' => BIZ_WAGNER_CT,
+            'business_id' => BIZ_TENANT_CT,
             'first_name'  => 'Normal',
             'last_name'   => 'Biz1',
         ]
@@ -155,7 +156,7 @@ it('usuário biz=99 SEM permission superadmin é bloqueado em /superadmin (mesmo
 
 it('usuário biz=1 COM permission superadmin recebe status válido em /superadmin', function () {
     Business::firstOrCreate(
-        ['id' => BIZ_WAGNER_CT],
+        ['id' => BIZ_TENANT_CT],
         ['name' => 'Wagner Teste CT', 'currency_id' => 1]
     );
 
@@ -164,7 +165,7 @@ it('usuário biz=1 COM permission superadmin recebe status válido em /superadmi
         [
             'email'       => 'admin_biz1_cross@test.local',
             'password'    => bcrypt('secret'),
-            'business_id' => BIZ_WAGNER_CT,
+            'business_id' => BIZ_TENANT_CT,
             'first_name'  => 'Admin',
             'last_name'   => 'Biz1',
         ]
