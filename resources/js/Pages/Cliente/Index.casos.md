@@ -193,6 +193,14 @@ last_run: "2026-11-16"
 - **Teste:** `tests/Feature/Cliente/ClienteSoPropriosPorNumeroTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-19 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## UC-CIDX-20 · Endereços de entrega mostram quando o servidor recusa `[T1]` `[must]`
+- **Persona:** quem cuida do cadastro do cliente na gaveta (aba Endereço → endereços de entrega).
+- **Como usa:** clica em **Remover** ou em **Marcar como endereço de entrega** num endereço da lista.
+- **Aceite:** Dado que o servidor recusa (403 sem permissão de editar, 404, 422 com motivo) · Quando clica · Então aparece o aviso com o motivo e o endereço continua na lista como estava · E quando o servidor aceita, a lista se atualiza sem aviso.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-17 ("corrige o 1, o 2 e o 3") · mesmo defeito corrigido no desconto do extrato e na anotação de documentos (UC-CIDX-13/14): até 2026-11-17 os dois botões não faziam nada quando o servidor recusava.
+- **Teste:** `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-20 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.

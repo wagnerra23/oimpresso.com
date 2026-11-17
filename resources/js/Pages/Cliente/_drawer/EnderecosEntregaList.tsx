@@ -92,6 +92,21 @@ function getCsrfToken(): string {
   );
 }
 
+/**
+ * Texto da recusa do servidor para Remover / Marcar como entrega. Sem ele o clique não fazia
+ * nada quando o servidor recusava (403 sem permissão de editar, 404, 422, erro).
+ */
+function mensagemDeRecusa(
+  status: number,
+  json: { message?: string; errors?: Record<string, string[]> },
+  padrao: string,
+): string {
+  if (status === 403) return 'Sem permissão para alterar este cliente.';
+  if (status === 404) return 'Endereço não encontrado. Recarregue a ficha.';
+  const primeiro = json.errors ? Object.values(json.errors)[0]?.[0] : null;
+  return primeiro ?? padrao;
+}
+
 const JSON_HEADERS = () => ({
   'Content-Type': 'application/json',
   Accept: 'application/json',
@@ -107,6 +122,7 @@ export default function EnderecosEntregaList({ contactId, disabled = false }: En
   const [saving, setSaving] = useState<boolean>(false);
   const [cepLoading, setCepLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -233,20 +249,28 @@ export default function EnderecosEntregaList({ contactId, disabled = false }: En
 
   const remove = async (id: number) => {
     if (!window.confirm('Remover este endereço?')) return;
+    setListError(null);
     try {
       const r = await fetch(`/cliente/${contactId}/enderecos/${id}`, {
         method: 'DELETE',
         headers: JSON_HEADERS(),
         credentials: 'same-origin',
       });
-      const json = (await r.json().catch(() => ({}))) as { addresses?: ContactAddress[] };
-      if (r.ok) setAddresses(Array.isArray(json.addresses) ? json.addresses : []);
+      const json = (await r.json().catch(() => ({}))) as {
+        addresses?: ContactAddress[]; message?: string; errors?: Record<string, string[]>;
+      };
+      if (!r.ok) {
+        setListError(mensagemDeRecusa(r.status, json, 'Não foi possível remover o endereço.'));
+        return;
+      }
+      setAddresses(Array.isArray(json.addresses) ? json.addresses : []);
     } catch {
-      /* noop */
+      setListError('Erro de rede ao remover o endereço.');
     }
   };
 
   const markShipping = async (id: number) => {
+    setListError(null);
     try {
       const r = await fetch(`/cliente/${contactId}/enderecos/${id}`, {
         method: 'PATCH',
@@ -254,10 +278,16 @@ export default function EnderecosEntregaList({ contactId, disabled = false }: En
         credentials: 'same-origin',
         body: JSON.stringify({ is_shipping: true }),
       });
-      const json = (await r.json().catch(() => ({}))) as { addresses?: ContactAddress[] };
-      if (r.ok) setAddresses(Array.isArray(json.addresses) ? json.addresses : addresses);
+      const json = (await r.json().catch(() => ({}))) as {
+        addresses?: ContactAddress[]; message?: string; errors?: Record<string, string[]>;
+      };
+      if (!r.ok) {
+        setListError(mensagemDeRecusa(r.status, json, 'Não foi possível marcar o endereço de entrega.'));
+        return;
+      }
+      setAddresses(Array.isArray(json.addresses) ? json.addresses : addresses);
     } catch {
-      /* noop */
+      setListError('Erro de rede ao marcar o endereço de entrega.');
     }
   };
 
@@ -276,6 +306,12 @@ export default function EnderecosEntregaList({ contactId, disabled = false }: En
           </Button>
         )}
       </div>
+
+      {listError && (
+        <p role="alert" className="text-sm text-destructive">
+          {listError}
+        </p>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground py-3">

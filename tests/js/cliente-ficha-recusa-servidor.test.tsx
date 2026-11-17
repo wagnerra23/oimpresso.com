@@ -1,7 +1,7 @@
 // Ficha do cliente (`Pages/Cliente/_show/*`, também na gaveta da lista de clientes): o desconto no
 // extrato e a anotação da aba Documentos passam a conferir a recusa do servidor.
 //
-// Cobre UC-CIDX-13, UC-CIDX-14, UC-CIDX-15, UC-CIDX-17 e UC-CIDX-18 (resources/js/Pages/Cliente/Index.casos.md). Os dois endpoints
+// Cobre UC-CIDX-13, UC-CIDX-14, UC-CIDX-15, UC-CIDX-17, UC-CIDX-18 e UC-CIDX-20 (resources/js/Pages/Cliente/Index.casos.md). Os dois endpoints
 // (LedgerDiscountController@store e DocumentAndNoteController@store) respondem 200 com
 // {success: false|0, msg} quando não gravam; a tela olhava só o status HTTP.
 //
@@ -14,6 +14,7 @@ import AddDiscountModal from '@/Pages/Cliente/_show/AddDiscountModal';
 import DocumentsTab from '@/Pages/Cliente/_show/DocumentsTab';
 import ActionsMenu from '@/Pages/Cliente/_show/ActionsMenu';
 import { router } from '@inertiajs/react';
+import EnderecosEntregaList from '@/Pages/Cliente/_drawer/EnderecosEntregaList';
 
 function responderEmOrdem(...corpos: unknown[]) {
   const fetchFalso = vi.fn();
@@ -191,5 +192,59 @@ describe('UC-CIDX-17 · ativar/desativar manda o estado confirmado', () => {
   it('UC-CIDX-17 "Reativar" manda status=active', async () => {
     const [, init] = await alternar(false);
     expect(((init as RequestInit).body as FormData).get('status')).toBe('active');
+  });
+});
+
+describe('UC-CIDX-20 · endereços de entrega mostram a recusa do servidor', () => {
+  const endereco = {
+    id: 31, label: 'Filial Centro', zip_code: null, address_line_1: null, numero: null,
+    address_line_2: null, neighborhood: null, city: null, state: null, city_code: null,
+    is_default: false, is_shipping: false, one_line: 'Rua Teste, 10',
+  };
+
+  function responder(...respostas: Array<[number, unknown]>) {
+    const fetchFalso = vi.fn();
+    for (const [status, corpo] of respostas) {
+      fetchFalso.mockResolvedValueOnce(
+        new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } }),
+      );
+    }
+    vi.stubGlobal('fetch', fetchFalso);
+    return fetchFalso;
+  }
+
+  async function abrir(...depois: Array<[number, unknown]>) {
+    const fetchFalso = responder([200, { addresses: [endereco] }], ...depois);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<EnderecosEntregaList contactId={7} />);
+    await screen.findByText('Filial Centro');
+    return fetchFalso;
+  }
+
+  it('UC-CIDX-20 "Remover" recusado (403) avisa e o endereço continua na lista', async () => {
+    const fetchFalso = await abrir([403, { message: 'Sem permissao' }]);
+
+    fireEvent.click(screen.getByTitle('Remover'));
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Sem permissão para alterar este cliente.');
+    expect(fetchFalso.mock.calls[1][1].method).toBe('DELETE');
+    expect(screen.queryByText('Filial Centro')).not.toBeNull();
+  });
+
+  it('UC-CIDX-20 controle: "Remover" aceito tira o endereço e não mostra aviso', async () => {
+    await abrir([200, { addresses: [] }]);
+
+    fireEvent.click(screen.getByTitle('Remover'));
+
+    await waitFor(() => expect(screen.queryByText('Filial Centro')).toBeNull());
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('UC-CIDX-20 "Marcar como entrega" recusado avisa com a mensagem do servidor (422)', async () => {
+    await abrir([422, { errors: { is_shipping: ['O endereço precisa ter CEP.'] } }]);
+
+    fireEvent.click(screen.getByTitle('Marcar como endereço de entrega'));
+
+    expect((await screen.findByRole('alert')).textContent).toBe('O endereço precisa ter CEP.');
   });
 });
