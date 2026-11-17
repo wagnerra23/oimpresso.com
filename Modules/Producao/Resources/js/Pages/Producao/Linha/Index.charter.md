@@ -46,8 +46,9 @@ reprogramar arrastando, com a sugestão do gargalo pronta para aplicar e desfaze
 - "Eventos das máquinas hoje", filtrável pela máquina clicada — UC-PCV-29.
 - "Mesma mídia: dá para agrupar": aviso com "Agrupar" quando duas OS da mesma mídia estão separadas na mesma
   impressora e a segunda cabe logo depois da primeira — UC-PCLIN-01 (lote 4.3 da auditoria, aprovado por [W] em 2026-11-05).
-- Clicar no bloco (sem arrastar) ou Enter nele abre a Ficha da OS por item (`/producao/ordens/{id}`); arrastar não
-  abre; OS da Comunicação Visual não tem Ficha e não ganha link — UC-PCOSF-06 (`Os/Show.casos.md`).
+- Clicar no bloco (sem arrastar) ou Enter nele abre a Ficha da OS por item no painel lateral, com `?os={id}` na URL
+  (decisão [W] no #10850); arrastar não abre; OS da Comunicação Visual não tem Ficha e não ganha link — UC-PCOSF-06 ·
+  UC-PCOSF-09 (`Os/Show.casos.md`).
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
