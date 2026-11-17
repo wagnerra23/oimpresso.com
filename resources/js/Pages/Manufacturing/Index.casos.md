@@ -380,6 +380,10 @@ last_run: "2026-10-07"
 - **Teste:** `Modules/Manufacturing/Tests/Feature/OrdemValidacaoTest.php`
 - **Regressão que defende:** quantidade 0 dividindo o total (erro 500) e consumo negativo somando estoque em vez
   de baixar.
+- **Status: 🧪**
+
+---
+
 ## UC-OP-22 · Quem só pode um local só vê e só grava ordem nesse local
 - **Persona:** operador com acesso a um local só (sem `access_all_locations`).
 - **Aceite:** Dado um usuário com o local A e sem o B · Quando grava ordem em B, ou edita o rascunho para B ·
