@@ -36,9 +36,11 @@ test('os comandos agendados pelo SuperadminServiceProvider existem no Artisan', 
         . 'sem falhar nada visível. Registre a classe no `commands([...])` do provider.'
     );
 })->with([
-    // Os dois que `registerScheduleCommands()` agenda (`if ($env === 'live')`).
+    // Os que `agendar()` agenda (chamado por `registerScheduleCommands()`) (`if ($env === 'live')`).
     'pos:sendSubscriptionExpiryAlert',
     'paymentgateway:emit-trial-expired',
+    // Agendado desde 2026-11-16 (lote L4); registrado no provider desde a Wave 23.
+    'superadmin:health',
 ]);
 
 /**
