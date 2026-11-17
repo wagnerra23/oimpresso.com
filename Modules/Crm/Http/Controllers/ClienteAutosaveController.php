@@ -597,6 +597,12 @@ class ClienteAutosaveController extends Controller
             return response()->json(['message' => 'Sem permissao'], 403);
         }
 
+        // Quem só vê os próprios contatos (X.view_own sem X.view) não abre o de outro pelo
+        // número: a mesma regra da lista (PessoaEscopo::viewOwn).
+        if (! \App\Services\Pessoas\PessoaEscopo::podeVerContato($contact, $user)) {
+            return response()->json(['message' => 'Sem permissao'], 403);
+        }
+
         return $contact;
     }
 

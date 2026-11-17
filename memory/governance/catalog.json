@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1026,
-    "edges": 1381,
+    "nodes": 1025,
+    "edges": 1380,
     "by_node_type": {
       "module": 45,
       "table": 122,
       "adr": 157,
-      "component": 602,
+      "component": 601,
       "api": 100
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 84,
-      "hasComponent": 602,
+      "hasComponent": 601,
       "dependsOn": 153,
       "delegatesTo": 138,
       "migratesTo": 1,
@@ -2956,13 +2956,6 @@
       "type": "component",
       "module": "Crm",
       "name": "\"ClienteLookupController\"      # Drawer 760 endpoint lookup CEP/CNPJ",
-      "desc": ""
-    },
-    {
-      "id": "component:Crm/\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
-      "type": "component",
-      "module": "Crm",
-      "name": "\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
       "desc": ""
     },
     {
@@ -10607,12 +10600,6 @@
     {
       "from": "module:Crm",
       "to": "component:Crm/\"ClienteLookupController\"      # Drawer 760 endpoint lookup CEP/CNPJ",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Crm",
-      "to": "component:Crm/\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
       "type": "hasComponent",
       "source": "contains"
     },

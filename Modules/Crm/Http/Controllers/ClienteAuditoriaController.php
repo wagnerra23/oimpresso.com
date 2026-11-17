@@ -77,7 +77,7 @@ class ClienteAuditoriaController extends Controller
             return $contact; // ja e JsonResponse 404
         }
 
-        $permissionCheck = $this->ensureCanView();
+        $permissionCheck = $this->ensureCanView($contact);
         if ($permissionCheck instanceof JsonResponse) {
             return $permissionCheck;
         }
@@ -126,7 +126,7 @@ class ClienteAuditoriaController extends Controller
             return $contact; // 404
         }
 
-        $permissionCheck = $this->ensureCanView();
+        $permissionCheck = $this->ensureCanView($contact);
         if ($permissionCheck instanceof JsonResponse) {
             return $permissionCheck;
         }
@@ -407,7 +407,7 @@ class ClienteAuditoriaController extends Controller
      *
      * Retorna null em sucesso, JsonResponse 403 em falha.
      */
-    private function ensureCanView(): ?JsonResponse
+    private function ensureCanView(Contact $contact): ?JsonResponse
     {
         $user = auth()->user();
         if ($user === null) {
@@ -420,6 +420,11 @@ class ClienteAuditoriaController extends Controller
             || $user->can('supplier.view_own');
 
         if (! $can) {
+            return response()->json(['message' => 'Sem permissao'], 403);
+        }
+
+        // Quem só vê os próprios contatos não abre o de outro pelo número (PessoaEscopo).
+        if (! \App\Services\Pessoas\PessoaEscopo::podeVerContato($contact, $user)) {
             return response()->json(['message' => 'Sem permissao'], 403);
         }
 
