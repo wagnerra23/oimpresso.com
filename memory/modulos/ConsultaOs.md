@@ -71,7 +71,7 @@
 | Chave | Valor |
 |---|---|
 | `name` | `ConsultaOs` |
-| `mock_enabled` | `true` (sem leitor desde 2026-10-02; o mock saiu) |
+| `mock_enabled` | `true` |
 
 ## Dependências cross-module detectadas
 
