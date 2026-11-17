@@ -6,7 +6,7 @@ tela: Manufacturing/Insumos
 owner: W
 status: rascunho
 inertia_target: resources/js/Pages/Manufacturing/Insumos.tsx
-last_updated: "2026-10-05"
+last_updated: "2026-11-17"
 ---
 
 # Comparação design × produção — `Manufacturing/Insumos`
@@ -17,21 +17,16 @@ last_updated: "2026-10-05"
 
 ```
 node scripts/design/ancora.mjs Manufacturing/Insumos --staging prototipo-ui/cowork
-  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Felipe/manufacturing-insumos.jsx
+  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Wagner/manufacturing-insumos.jsx
 ```
 
-`MfgInsumosView` (`:109` do protótipo) — *"impacto reverso: quais receitas usam cada insumo e o que
-acontece com custo/margem quando o preço de compra varia"*. Passou de `Wagner/` para `Felipe/` em
-2026-09-22 ([PR #7696](https://github.com/wagnerra23/oimpresso.com/pull/7696), decisão [W]).
+Saída medida em 2026-11-17 contra `main`. A âncora voltou de `Felipe/` para `Wagner/` em 2026-09-25 ([#7984](https://github.com/wagnerra23/oimpresso.com/pull/7984)). As medições de 2026-09-22 abaixo foram feitas contra `Felipe/` ([#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)) e ficam como registro datado.
 
-> ⚠️ **Saída medida com o [#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)
-> aplicado** (branch `claude/fabricacao-prototype-production-8fa4a8`, 2026-09-22). Enquanto ele
-> não mergear, `main` ainda resolve esta tela em `Wagner/` — o que este bloco registra é a
-> medição daquela branch, não o estado de `main`.
+## Medição 2026-11-17: segue sem `design-diff`
 
-⚠️ **Sem selo de frescor** — `ancora.mjs:93` fixa `LUGAR_FIXO = 'prototipo-ui/cowork/Wagner'`.
+A rodada do lote 5.3 da auditoria não incluiu esta tela. A medição de 2026-10-01/05 (seção abaixo) foi feita com o `style-fingerprint`, não com o `design-diff`. No shell do protótipo `Wagner/` não existe rota que monte a vista de Insumos (`design-diff-lote.mjs --dry` sai com *"sem rota derivável"*), então não há lado design para comparar. Fica "não medido" pelo `design-diff` até o lote 6 da auditoria pedir a rota ao Cowork.
 
-## ⚠️ Esta tela NUNCA foi medida
+## Até 2026-10-01 esta tela nunca tinha sido medida
 
 Não existe artefato em `governance/design/targets/medidas/Manufacturing--Insumos/`. A rodada de
 [#7503](https://github.com/wagnerra23/oimpresso.com/pull/7503) (18/09) mediu **2 das 5** telas da
@@ -144,7 +139,7 @@ receita pelo endereço.
 1. **Primeira medicao — TENTADA em 2026-09-22 e BLOQUEADA** (secao acima). O bloqueio nao e
    desta tela nem do driver: falta a rota `mfg-insumos` no shell do Cowork. Enquanto ela nao
    descer no bundle, nao ha lado design para sondar.
-2. **Calibrar o `__DD_ROLES`** desta familia (override em [`governance/design/targets/roles/`](../../../governance/design/targets/roles/)). E o que tira as regioes de `SEM-DADO` e faz o veredito falar da tela, nao de 4 celulas. O molde pronto e o [`Compras--Index.json`](../../../governance/design/targets/roles/Compras--Index.json), que ja mede papel no DOM dos dois lados em vez de adivinhar.
+2. **Calibrar o `__DD_ROLES`** desta tela — **bloqueado** pelo mesmo motivo do item 1: sem rota no shell do protótipo não há lado design onde medir os papéis. As outras 4 telas da família foram calibradas em 2026-11-17 ([#11117](https://github.com/wagnerra23/oimpresso.com/pull/11117)).
 2. Achados do [LAUDO](../../../prototipo-ui/cowork/Felipe/handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md)
    que caem aqui: o `--text-mute` do **SKU** e da **unidade** (*"unidade lida errada troca m² por m
    linear"*) e o vazamento da pílula `.mfg-pill` na coluna "Maior peso" (160px), achado MÉDIA.

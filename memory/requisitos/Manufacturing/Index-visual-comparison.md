@@ -10,7 +10,7 @@ status: rascunho
 # apontada (regex `^inertia_target:\s*["']?(\S+?\.tsx)`, datas em last_updated/date/updated_at).
 # Sem os dois campos, o doc cai no balde "nao-avaliado" e envelhece calado.
 inertia_target: resources/js/Pages/Manufacturing/Index.tsx
-last_updated: "2026-10-19"
+last_updated: "2026-11-17"
 ---
 
 # Comparação design × produção — `Manufacturing/Index` (Ordens de produção)
@@ -24,26 +24,28 @@ last_updated: "2026-10-19"
 
 ```
 node scripts/design/ancora.mjs Manufacturing/Index --staging prototipo-ui/cowork
-  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Felipe/manufacturing-producao.jsx
+  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Wagner/manufacturing-producao.jsx
 ```
 
-O desenho desta tela é o `MfgProducaoView` (`:31` do protótipo), declarado em `related_prototype`
-do [`Index.charter.md`](../../../resources/js/Pages/Manufacturing/Index.charter.md).
+Saída medida em 2026-11-17 contra `main`. O componente desta tela é o `MfgProducaoView`. A âncora voltou de `Felipe/` para `Wagner/` em 2026-09-25 ([#7984](https://github.com/wagnerra23/oimpresso.com/pull/7984)). As medições de 2026-09-22 abaixo foram feitas contra `Felipe/` ([#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)) e ficam como registro datado.
 
-**Mudou em 2026-09-22** ([PR #7696](https://github.com/wagnerra23/oimpresso.com/pull/7696), decisão
-[W]): a família passou a ancorar no `handoff_fabricacao` do Felipe. Antes desse PR esta tela era a
-**única** das 5 a resolver pelo `bundle_source` — que casa por **basename** (`ancora.mjs:512`,
-`mockupJsx` extrai só `*-page.jsx`) — e havia 3 cópias de `manufacturing-page.jsx` no staging, de
-modo que a âncora era o primeiro da varredura.
+## Medição 2026-11-17 (auditoria, lote 5.3)
 
-> ⚠️ **Saída medida com o [#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)
-> aplicado** (branch `claude/fabricacao-prototype-production-8fa4a8`, 2026-09-22). Enquanto ele
-> não mergear, `main` ainda resolve esta tela em `Wagner/` — o que este bloco registra é a
-> medição daquela branch, não o estado de `main`.
+Produção em oimpresso.com (empresa 1, tema claro, 1600×900 num iframe), protótipo no espelho `Wagner/` gerado por `design-diff-lote.mjs --lado design --tema light`, comparação por `design-diff.mjs --compare --check`. Papéis do override [`roles/Manufacturing--Index.json`](../../../governance/design/targets/roles/Manufacturing--Index.json) (#11117). Os snapshots não foram commitados: o lado produção saiu sem shell e sem a `assinatura` (texto visível é dado real), e por isso o D0 (identidade da view) continua sem prova nesta rodada.
 
-⚠️ **Sem selo de frescor, e é estrutural.** `ancora.mjs:93` tem
-`LUGAR_FIXO = 'prototipo-ui/cowork/Wagner'`; apontando para `Felipe/`, a linha
-`✓ frescor: verificado contra o Cowork vivo` **não é emitida**. Medido antes e depois do #7696.
+| dim | prod | design | veredito |
+|---|---|---|---|
+| D2 layout (KPI 4×4, filtros em 2 linhas) | ok | ok | IGUAL |
+| D4 tipografia (título 22px/600, valor do KPI) | ok | ok | IGUAL |
+| D6 cor (primário, texto do KPI) | ok | ok | IGUAL |
+| D8 alinhamento do KPI | ok | ok | IGUAL |
+| D6 coluna Situação, ponto na pílula | com ponto | sem ponto | DIVERGE (fonte), a classificar |
+| D9 texto por região | presente | sem `[data-contract]` | SEM-DADO |
+| SHELL | não medido | ok | SEM-DADO |
+
+**DIVERGE (bug): 0.** O Δ2px do título registrado em 2026-09-22 (24px × 22px) não aparece mais: os dois lados medem 22px.
+
+"DIVERGE (fonte)" é a diferença que a máquina reporta sem dizer de quem é a culpa. Classificar cada uma (decidida, deriva ou design andou) é trabalho de quem aplica a tela.
 
 ## O que este documento NÃO é
 
@@ -326,9 +328,8 @@ mesmo harness, contra 165 antes: a diferença é o botão primário ganhando a b
 
 1. ~~Re-medir com a âncora nova e `sameTheme: true`~~ — **FEITO em 2026-09-22** (secao acima).
    O veredito: o delta de 2px do titulo e **real**.
-2. **Decidir o titulo**: alinhar producao ao prototipo (24px -> 22px) ou registrar decisao [W]
-   de manter 24px e reescrever a banda. E decisao de forma, logo cadeia da [UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) — prototipo soberano.
-3. **Calibrar o `__DD_ROLES`** desta familia (override em [`governance/design/targets/roles/`](../../../governance/design/targets/roles/)). E o que tira as regioes de `SEM-DADO` e faz o veredito falar da tela, nao de 4 celulas. O molde pronto e o [`Compras--Index.json`](../../../governance/design/targets/roles/Compras--Index.json), que ja mede papel no DOM dos dois lados em vez de adivinhar.
+2. ~~Decidir o titulo~~ — em 2026-11-17 os dois lados medem **22px/600** (seção *Medição 2026-11-17*); o delta de 2026-09-22 não aparece mais. E decisao de forma, logo cadeia da [UI-0029](../_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md) — prototipo soberano.
+3. ~~Calibrar o `__DD_ROLES`~~ — **FEITO em 2026-11-17** ([#11117](https://github.com/wagnerra23/oimpresso.com/pull/11117), seção *Medição 2026-11-17*). O que segue SEM-DADO é D9 (o protótipo não tem `[data-contract]`) e o shell.
 2. Os 3 achados do [LAUDO do handoff](../../../prototipo-ui/cowork/Felipe/handoff_fabricacao/design/LAUDO-conferencia-fabricacao.md)
    valem para a família: 2 ALTA de contraste (`--text-mute` reprova AA; `--accent` como texto mede
    **2,64:1** no tema escuro) + 1 MÉDIA de layout. As duas ALTA são **token do DS** (ADRs 0410 e

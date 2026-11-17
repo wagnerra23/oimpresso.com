@@ -51,13 +51,17 @@ export function OsLookupForm({ onBuscar, loading, buscaPorCelular }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} aria-busy={loading}>
       <Stack gap={5}>
         <Stack gap={2}>
-          <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <Label
+            id="os-tipo-label"
+            className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
+          >
             Buscar por
           </Label>
           <RadioGroup
+            aria-labelledby="os-tipo-label"
             value={tipo}
             onValueChange={(v) => setTipo(v as TipoBusca)}
             className="grid-cols-3"
