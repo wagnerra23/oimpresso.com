@@ -49,6 +49,7 @@ last_run_ci: "2026-10-27: UC-COS-07 e UC-COS-11 mudam (cutover do portal antigo 
 | UC-COS-31 | Cliente que recusou WhatsApp não recebe o aviso da OS | must `[T0]` | US-CONSULTA-004 + LGPD opt-out | 🧪 |
 | UC-COS-32 | OS com cliente de outra empresa não avisa ninguém | must `[T0]` | US-CONSULTA-004 + ADR 0093 | 🧪 |
 | UC-COS-33 | Status sem marca não avisa, mesmo chamado `ready` | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | 🧪 |
+| UC-COS-38 | Falha do servidor na busca: a tela avisa e não diz "não encontrada" | must | UX "sem jargão técnico" · UC-COS-37 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -203,6 +204,18 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 - **Aceite:** Dado um status com o nome literal `ready` e sem marca, e outro marcado com
   aguardando peças · Quando a OS vai para o primeiro · Então nenhum job sai · E quando vai para o
   segundo sai um job com o template de aguardando peças.
+- **Status:** 🧪
+
+## UC-COS-38 · Falha do servidor na busca: a tela avisa e não diz "não encontrada" · `must`
+
+- **Persona:** cliente final que pesquisa a OS no momento em que o servidor falha.
+- **Aceite:** Dado `/consulta-os` aberto no navegador · Quando o cliente pesquisa um número e a
+  busca responde 500 · Então a tela mostra um alerta (`role="alert"`) · E o formulário continua
+  visível para tentar de novo · E a tela não mostra "OS não encontrada" nem dado de OS.
+- **Lado da API:** UC-COS-37 (o 500 devolve `{"found": false}` sem texto técnico).
+- **Fora do teste:** o texto do alerta. A mensagem própria do 429 é o UC-COS-39.
+- **Teste:** [`ConsultaOsIndexBrowserTest`](../../../../tests/Browser/ConsultaOs/ConsultaOsIndexBrowserTest.php),
+  step `E2E de render · ConsultaOs/Index (ADVISORY)` do `visual-regression.yml`.
 - **Status:** 🧪
 
 ---

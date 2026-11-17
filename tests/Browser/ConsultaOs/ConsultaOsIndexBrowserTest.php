@@ -15,10 +15,10 @@ declare(strict_types=1);
  *   - UC-COS-01: a página abre sem login, com o formulário e sem o shell do ERP (sidebar).
  *   - UC-COS-02: buscar o nº de uma OS pinta o cartão com o nº e o status daquela OS.
  *   - UC-COS-03: um nº que não existe pinta "OS não encontrada", com o nº digitado.
- *   - Falha do servidor (sem UC no casos.md ainda): resposta 500 pinta um alerta e mantém o
+ *   - UC-COS-38: resposta 500 pinta um alerta e mantém o
  *     formulário; não confunde com "não encontrada". O texto do alerta não é assertado — a
  *     mensagem por status é o item 3.1 do mesmo lote.
- *   - axe-core CRITICAL (level 0) nos três estados.
+ *   - axe-core CRITICAL (level 0) nos quatro estados.
  *
  * ── DADO ──────────────────────────────────────────────────────────────────────
  * Tenant fictício 98 (VisregEmptyTenantSeeder). O teste cria um contato, um status e uma folha
@@ -156,7 +156,7 @@ it('UC-COS-03 · um nº que não existe pinta "OS não encontrada" com o nº dig
     $page->assertNoAccessibilityIssues(level: 0);
 });
 
-it('ERRO · resposta 500 da busca pinta um alerta, mantém o formulário e não vira "não encontrada"', function () {
+it('UC-COS-38 · resposta 500 da busca pinta um alerta, mantém o formulário e não vira "não encontrada"', function () {
     $page = cosAbrir();
     // A SPA não recarrega entre a troca e o clique: o fetch da busca passa a responder 500.
     $page->script("window.fetch = () => Promise.resolve(new Response('', { status: 500 })); true");
