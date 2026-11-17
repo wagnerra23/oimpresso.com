@@ -149,6 +149,8 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
               <CardContent>
                 <div className="max-w-xs">
                   <Input
+                    id="competencia"
+                    aria-label="Competência"
                     type="month"
                     value={data.competencia}
                     onChange={(e) => setData('competencia', e.target.value)}
@@ -167,8 +169,9 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="sm:col-span-2">
-                    <Label className="text-xs">Nome / Razão Social *</Label>
+                    <Label htmlFor="tomador_nome" className="text-xs">Nome / Razão Social *</Label>
                     <Input
+                      id="tomador_nome"
                       value={data.tomador_nome}
                       onChange={(e) => setData('tomador_nome', e.target.value)}
                       placeholder="Ex.: Empresa ABC Ltda"
@@ -180,8 +183,9 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
                   </div>
 
                   <div>
-                    <Label className="text-xs">CNPJ</Label>
+                    <Label htmlFor="tomador_cnpj" className="text-xs">CNPJ</Label>
                     <Input
+                      id="tomador_cnpj"
                       value={data.tomador_cnpj}
                       onChange={(e) => setData('tomador_cnpj', e.target.value)}
                       placeholder="00.000.000/0000-00" // pii-allowlist máscara visual de input
@@ -191,8 +195,9 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
                   </div>
 
                   <div>
-                    <Label className="text-xs">CPF</Label>
+                    <Label htmlFor="tomador_cpf" className="text-xs">CPF</Label>
                     <Input
+                      id="tomador_cpf"
                       value={data.tomador_cpf}
                       onChange={(e) => setData('tomador_cpf', e.target.value)}
                       placeholder="000.000.000-00" // pii-allowlist máscara visual de input
@@ -202,8 +207,9 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
                   </div>
 
                   <div className="sm:col-span-2">
-                    <Label className="text-xs">E-mail</Label>
+                    <Label htmlFor="tomador_email" className="text-xs">E-mail</Label>
                     <Input
+                      id="tomador_email"
                       type="email"
                       value={data.tomador_email}
                       onChange={(e) => setData('tomador_email', e.target.value)}
@@ -223,8 +229,9 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <Label className="text-xs">Descrição *</Label>
+                  <Label htmlFor="descricao" className="text-xs">Descrição *</Label>
                   <Textarea
+                    id="descricao"
                     value={data.descricao}
                     onChange={(e) => setData('descricao', e.target.value)}
                     placeholder="Descreva o serviço prestado..."
@@ -240,8 +247,9 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
                 </div>
 
                 <div>
-                  <Label className="text-xs">Código LC 116/2003 *</Label>
+                  <Label htmlFor="lc116_codigo" className="text-xs">Código LC 116/2003 *</Label>
                   <Input
+                    id="lc116_codigo"
                     value={data.lc116_codigo}
                     onChange={(e) => {
                       setData('lc116_codigo', e.target.value);
@@ -290,8 +298,9 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs">Valor dos serviços (R$) *</Label>
+                    <Label htmlFor="valor_servicos" className="text-xs">Valor dos serviços (R$) *</Label>
                     <Input
+                      id="valor_servicos"
                       type="number"
                       step="0.01"
                       min="0.01"
@@ -305,9 +314,10 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
                   </div>
 
                   <div>
-                    <Label className="text-xs">Alíquota ISS *</Label>
+                    <Label htmlFor="aliquota_iss" className="text-xs">Alíquota ISS *</Label>
                     <div className="flex items-center gap-2 mt-1">
                       <Input
+                        id="aliquota_iss"
                         type="number"
                         step="0.0001"
                         min="0"

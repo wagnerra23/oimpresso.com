@@ -44,7 +44,7 @@ class SettingsController extends Controller
     public function index(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -76,7 +76,7 @@ class SettingsController extends Controller
     public function store(Request $request)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -113,7 +113,7 @@ class SettingsController extends Controller
     public function indexV2(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -129,6 +129,7 @@ class SettingsController extends Controller
             'version' => System::getProperty('manufacturing_version'),
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
             ],
             'producao' => [
                 'total' => (int) $ordens['total_count'],

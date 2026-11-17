@@ -14,6 +14,7 @@ parent_module: Superadmin
 related_us: [US-SUPER-010]
 tier: B
 charter_version: 1
+related_runbook: memory/requisitos/Superadmin/RUNBOOK-usuario360-index.md
 ---
 
 # Charter — Usuário 360 · Lista de busca

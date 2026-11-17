@@ -21,6 +21,7 @@ use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
+use Modules\Manufacturing\Http\Requests\UpdateProductionRequest;
 use Modules\Manufacturing\Services\ProductionService;
 use Modules\Manufacturing\Services\RecipeBomService;
 use Modules\Manufacturing\Utils\ManufacturingUtil;
@@ -422,6 +423,8 @@ class ProductionController extends Controller
                                     ->with(['purchase_lines', 'purchase_lines.variations', 'purchase_lines.variations.product_variation', 'purchase_lines.variations.product',
                                         'purchase_lines.sub_unit', 'purchase_lines.variations.product.unit', 'media', ])
                                     ->findOrFail($id);
+        // UC-OP-22 (lote 2.5 da auditoria): ordem de local que o usuário não pode é 403.
+        $this->exigirLocalPermitido($production_purchase->location_id);
 
         $production_sell = Transaction::where('business_id', $business_id)
                                     ->where('type', 'production_sell')
@@ -545,6 +548,8 @@ class ProductionController extends Controller
                                     ->where('type', 'production_purchase')
                                     ->with(['purchase_lines', 'purchase_lines.variations', 'purchase_lines.variations.product_variation', 'purchase_lines.variations.product', 'media'])
                                     ->findOrFail($id);
+        // UC-OP-22 (lote 2.5 da auditoria): ordem de local que o usuário não pode é 403.
+        $this->exigirLocalPermitido($production_purchase->location_id);
 
         //Finalized production should not be editable
         if ($production_purchase->mfg_is_final == 1) {
@@ -666,10 +671,10 @@ class ProductionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  Request  $request
+     * @param  UpdateProductionRequest  $request
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProductionRequest $request, $id)
     {
         $business_id = $request->session()->get('user.business_id');
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
@@ -681,11 +686,7 @@ class ProductionController extends Controller
         try {
             $nivelTransacao = DB::transactionLevel();
 
-            $request->validate([
-                'transaction_date' => 'required',
-                'location_id' => 'required',
-                'final_total' => 'required',
-            ]);
+            // Data, local, total e os números da ordem: `UpdateProductionRequest` (UC-OP-15, UC-OP-21).
 
             //Create Production purchase
             $transaction_data = $request->only(['ref_no', 'transaction_date', 'location_id']);
@@ -705,6 +706,8 @@ class ProductionController extends Controller
             $transaction = Transaction::where('business_id', $business_id)
                                     ->where('type', 'production_purchase')
                                     ->findOrFail($id);
+            // UC-OP-22: a ordem gravada também tem de estar num local permitido (o novo é conferido antes do `try`).
+            $this->exigirLocalPermitido($transaction->location_id);
 
             //Finalized production should not be editable
             if ($transaction->mfg_is_final == 1) {
@@ -942,17 +945,42 @@ class ProductionController extends Controller
         }
 
         if (request()->ajax()) {
+            // UC-OP-23 (lote 2.7 da auditoria): o rascunho é a compra de produção mais a venda de produção
+            // que consome os insumos. Antes só a compra saía, por Builder (sem registro na trilha), e a venda
+            // ficava órfã; e o "excluído" vinha mesmo quando nada era apagado (ordem finalizada ou id que não
+            // existe). Rascunho não movimenta estoque (compra `pending`, venda `draft`).
+            $nivelTransacao = DB::transactionLevel();
             try {
-                $transaction = Transaction::where('id', $id)
+                $ordem = Transaction::where('id', $id)
                             ->where('business_id', $business_id)
                             ->where('type', 'production_purchase')
                             ->where('mfg_is_final', 0)
-                            ->delete();
+                            ->first();
+                if ($ordem === null) {
+                    // Finalizada ou id que não existe: nada foi apagado, a resposta não diz que foi.
+                    throw new ModelNotFoundException();
+                }
+
+                DB::beginTransaction();
+                // Model a model (não Builder): o `LogsActivity` registra cada exclusão.
+                $vendas = Transaction::where('business_id', $business_id)
+                            ->where('type', 'production_sell')
+                            ->where('mfg_parent_production_purchase_id', $ordem->id)
+                            ->get();
+                foreach ($vendas as $venda) {
+                    $venda->delete();
+                }
+                $ordem->delete();
+                DB::commit();
+
                 $output = [
                     'success' => true,
                     'msg' => __('lang_v1.deleted_success'),
                 ];
+            } catch (ModelNotFoundException $e) {
+                $output = ['success' => false, 'msg' => trans('messages.something_went_wrong')];
             } catch (\Exception $e) {
+                $this->desfazerTransacaoDaOrdem($nivelTransacao);
                 $this->logSafeEmergency('production', $e); // D7.a Wave 17 LGPD
 
                 $output['success'] = false;
@@ -984,27 +1012,36 @@ class ProductionController extends Controller
             'start_date' => request()->get('start_date'),
             'end_date' => request()->get('end_date'),
             'is_final' => request()->has('is_final'),
+            // UC-OP-22 (lote 2.5 da auditoria): a lista só traz ordem de local que o usuário pode.
+            'locais_permitidos' => $this->locaisPermitidos(),
         ];
         $ordemId = (int) request()->get('ordem');
+
+        // Lote 2.6 (decisão B3 de [W], UC-OP-24): sem `view_purchase_price` o custo da lista, dos
+        // indicadores e do painel vem nulo.
+        $podeVerCusto = \Modules\Manufacturing\Support\OcultaCusto::podeVer();
+        $ordensDaLista = $productionService->enrichProductionRows(
+            $productionService->listProductions($business_id, $filters),
+            $business_id
+        );
+        $resumo = $productionService->summary($business_id);
+        $kpis = $productionService->summary($business_id, [
+            'location_id' => $filters['location_id'],
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
+        ]);
 
         // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Manufacturing/Index', [
             // US-MANU-004 — as 8 colunas do §4.5. O enriquecimento (produto, nº de
             // ingredientes, quem lançou, qtd, custo unit.) é feito em LOTE no Service.
-            'productions' => $productionService->enrichProductionRows(
-                $productionService->listProductions($business_id, $filters),
-                $business_id
-            ),
+            'productions' => $podeVerCusto ? $ordensDaLista : \Modules\Manufacturing\Support\OcultaCusto::ordens($ordensDaLista),
             // Todas as ordens da empresa: alimenta o contador da barra de abas e o subtítulo, que
             // as 5 telas do módulo mostram igual (as outras 4 não têm filtro de ordens).
-            'summary' => $productionService->summary($business_id),
+            'summary' => $podeVerCusto ? $resumo : \Modules\Manufacturing\Support\OcultaCusto::resumo($resumo),
             // UC-OP-10 (decisão [W] 2026-10-06): os 4 indicadores seguem local + período, como
             // no protótipo. "Só finalizadas" fica de fora de propósito — ver ProductionService::summary().
-            'kpis' => $productionService->summary($business_id, [
-                'location_id' => $filters['location_id'],
-                'start_date' => $filters['start_date'],
-                'end_date' => $filters['end_date'],
-            ]),
+            'kpis' => $podeVerCusto ? $kpis : \Modules\Manufacturing\Support\OcultaCusto::resumo($kpis),
             // Opções do filtro de local + estado dos filtros pra re-render (board uplift 50->70).
             // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
             'business_locations' => fn () => BusinessLocation::forDropdown($business_id),
@@ -1018,9 +1055,20 @@ class ProductionController extends Controller
             // mandam. Esta tela nasceu na Wave J SEM a barra de abas (era a única do módulo
             // na época) e ficou sem os dados dela; virou beco sem saída depois do cutover.
             'recipes_count' => $bomService->countRecipes($business_id),
+            // A barra de abas lê as duas (UC-RECIPE-24); esta tela já exige `access_production`.
+            'permissions' => [
+                'prod' => true,
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
+            ],
             // Painel lateral da ordem (`?ordem=ID`). Optional: só calcula no partial reload que
             // o pede — a carga da lista não paga o detalhe. Ordem de outra empresa vem null.
-            'ordem_detalhe' => Inertia::optional(fn () => $ordemId > 0 ? $productionService->detalheOrdem($business_id, $ordemId) : null),
+            'ordem_detalhe' => Inertia::optional(function () use ($ordemId, $productionService, $business_id, $podeVerCusto) {
+                $detalhe = $ordemId > 0 && $this->ordemEmLocalPermitido($business_id, $ordemId)
+                    ? $productionService->detalheOrdem($business_id, $ordemId)
+                    : null;
+
+                return $podeVerCusto ? $detalhe : \Modules\Manufacturing\Support\OcultaCusto::detalheOrdem($detalhe);
+            }),
         ]);
     }
 
@@ -1032,6 +1080,13 @@ class ProductionController extends Controller
     public function getManufacturingReport(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
+
+        // Gate ANTES dos três ramos (lote 2.1 da auditoria, UC-REPORT-06): o JSON de totais e o
+        // `?legacy=1` não passavam por gate nenhum. Decisão B3 de [W] (2026-11-09): o relatório usa
+        // `access_production`, sem permissão nova.
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
+            abort(403, 'Unauthorized action.');
+        }
 
         // ⚠️ `! request()->header('X-Inertia')` é OBRIGATÓRIO aqui (bug em prod 2026-09-04).
         // O cliente do Inertia manda `X-Requested-With: XMLHttpRequest`, então
@@ -1049,7 +1104,8 @@ class ProductionController extends Controller
             $total_sold = $this->mfgUtil->getTotalSold($business_id, $location_id, $start_date, $end_date);
 
             $output['total_production'] = $production_totals['total_production'];
-            $output['total_production_cost'] = $production_totals['total_production_cost'];
+            // Lote 2.6 (UC-REPORT-07): sem `view_purchase_price` o custo do período vem nulo.
+            $output['total_production_cost'] = \Modules\Manufacturing\Support\OcultaCusto::podeVer() ? $production_totals['total_production_cost'] : null;
             $output['total_sold'] = $total_sold;
 
             return $output;
@@ -1072,15 +1128,14 @@ class ProductionController extends Controller
      * `indexV2`), não o cutover-no-mesmo-endereço que a tela de Receitas usou (aquele foi
      * decisão [W] explícita — {@see RUNBOOK-report.md}).
      *
-     * Mesmo gate do Blade legado acima: só o pacote `manufacturing_module`, sem permissão
-     * Spatie granular própria (o legado nunca teve uma pra "relatório" — não inauguro
-     * restrição nova que o usuário de hoje não tem em `/manufacturing/report`).
+     * Gate: pacote `manufacturing_module` + `manufacturing.access_production` desde o lote 2.1 da
+     * auditoria (decisão B3 de [W], 2026-11-09; UC-REPORT-06). Até ali era só o pacote.
      */
     public function reportV2(ProductionService $productionService, RecipeBomService $bomService)
     {
         $business_id = request()->session()->get('user.business_id');
 
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module'))) {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_production')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -1096,8 +1151,11 @@ class ProductionController extends Controller
 
         $ordens = $productionService->summary($business_id);
 
+        // Lote 2.6 (decisão B3 de [W], UC-REPORT-07): sem `view_purchase_price` o custo vem nulo.
+        $relatorio = $productionService->reportByProduct($business_id, $filters);
+
         return Inertia::render('Manufacturing/Report', [
-            'relatorio' => $productionService->reportByProduct($business_id, $filters),
+            'relatorio' => \Modules\Manufacturing\Support\OcultaCusto::podeVer() ? $relatorio : \Modules\Manufacturing\Support\OcultaCusto::relatorio($relatorio),
             'filters'   => [
                 'start_date' => $filters['start_date'],
                 'end_date'   => $filters['end_date'],
@@ -1105,6 +1163,8 @@ class ProductionController extends Controller
             ],
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
+                // A barra de abas esconde Receitas e Insumos sem esta (UC-RECIPE-24).
+                'receita' => auth()->user()->can('manufacturing.access_recipe'),
             ],
             'producao' => [
                 'total'     => (int) $ordens['total_count'],
@@ -1138,5 +1198,47 @@ class ProductionController extends Controller
             && ! BusinessLocation::where('business_id', $business_id)->where('id', $request->input('location_id'))->exists()) {
             abort(404);
         }
+
+        // UC-OP-22 (lote 2.5 da auditoria): o local tem de ser um que o usuário pode. O dropdown já escondia
+        // os outros; o servidor não conferia.
+        if ($request->filled('location_id')) {
+            $this->exigirLocalPermitido($request->input('location_id'));
+        }
+    }
+
+    /**
+     * UC-OP-22: regra de local do sistema (`User::permitted_locations()`), a mesma do dropdown de local e do
+     * total de produção do módulo (`ManufacturingUtil::getProductionTotals`). Fora dela, 403.
+     */
+    private function exigirLocalPermitido($locationId): void
+    {
+        $permitidos = $this->locaisPermitidos();
+        if ($permitidos !== 'all' && ! in_array((int) $locationId, array_map('intval', (array) $permitidos), true)) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * `User::permitted_locations()`, com uma exceção: o superadmin da plataforma alcança todos os locais,
+     * como o papel `Admin#` da empresa já alcança pelo `Gate::before` (e como ele vê custo, lote 2.6).
+     * Devolve 'all' ou a lista de ids, como o `permitted_locations()` do núcleo.
+     */
+    private function locaisPermitidos()
+    {
+        $user = auth()->user();
+
+        return $user->can('superadmin') ? 'all' : $user->permitted_locations();
+    }
+
+    /** O painel lateral (`?ordem=`) não mostra ordem de local que o usuário não pode (UC-OP-22). */
+    private function ordemEmLocalPermitido(int $businessId, int $ordemId): bool
+    {
+        $permitidos = $this->locaisPermitidos();
+        if ($permitidos === 'all') {
+            return true;
+        }
+        $local = Transaction::where('business_id', $businessId)->where('id', $ordemId)->value('location_id');
+
+        return $local !== null && in_array((int) $local, array_map('intval', (array) $permitidos), true);
     }
 }

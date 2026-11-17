@@ -5,7 +5,9 @@
 // force destroy, scraping de DataTables ajax /get-ingredient-row, etc).
 // Stack canonica UltimatePOS preservada (web/CSRF/SetSessionData/auth/AdminSidebarMenu).
 // NUNCA desligar CSRF do grupo `web` — token enforced pelo VerifyCsrfToken middleware.
-Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->prefix('manufacturing')->group(function () {
+// `CheckUserLogin` (lote 2.1 da auditoria, UC-MCFG-06): barra contato com login de portal
+// (`user_type != 'user'`) e usuário sem `allow_login`. É a pilha canônica (`.claude/rules/modules.md`).
+Route::middleware(['throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])->prefix('manufacturing')->group(function () {
     Route::get('/install', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'index']);
     Route::post('/install', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'install']);
     Route::match(['get', 'post'], '/install/update', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'update']);

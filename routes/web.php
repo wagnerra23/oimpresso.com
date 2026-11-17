@@ -470,6 +470,31 @@ Route::domain('www.uniafibro.com.br')->group(function () {
 Route::domain('uniafibro.com.br')->middleware('throttle:60,1')->group(function () {
     Route::get('/', [\App\Http\Controllers\UniafibroSiteController::class, 'home'])
         ->name('uniafibro.home');
+    // Área da associada (ADR 0451 D6 · US-ASSOC-005): o link + PIN abre aqui, no site da rede.
+    // Mesmo caminho e mesmo controller da rota do módulo (que o app segue usando), então a tela
+    // não muda. Fica ANTES do caminho genérico abaixo, senão ele captura o link.
+    Route::prefix('associacoes/m/{token}')
+        ->where(['token' => '[A-Za-z0-9_\-\.]{1,512}'])
+        ->group(function () {
+            Route::get('/', [\Modules\Associacoes\Http\Controllers\PortalAssociadaController::class, 'show'])
+                ->name('uniafibro.membro.show');
+            Route::post('pin', [\Modules\Associacoes\Http\Controllers\PortalAssociadaController::class, 'pin'])
+                ->name('uniafibro.membro.pin');
+            Route::delete('consentimentos/{finalidade}', [\Modules\Associacoes\Http\Controllers\PortalAssociadaController::class, 'revogarConsentimento'])
+                ->where('finalidade', '[a-z_]{1,40}')
+                ->name('uniafibro.membro.consentimentos.destroy');
+        });
+    // Seus Direitos + Guias Práticos: páginas geradas de resources/uniafibro/direitos/*.md.
+    // O slug só aceita [a-z0-9-]; slug sem arquivo volta para /direitos (RUNBOOK §6).
+    Route::get('/direitos', [\App\Http\Controllers\UniafibroConteudoController::class, 'indice'])
+        ->name('uniafibro.direitos');
+    Route::get('/direitos/{slug}.pdf', [\App\Http\Controllers\UniafibroConteudoController::class, 'pdf'])
+        ->where('slug', \App\Support\Uniafibro\Conteudo::SLUG)
+        ->middleware('throttle:10,1')
+        ->name('uniafibro.direitos.pdf');
+    Route::get('/direitos/{slug}', [\App\Http\Controllers\UniafibroConteudoController::class, 'pagina'])
+        ->where('slug', \App\Support\Uniafibro\Conteudo::SLUG)
+        ->name('uniafibro.direitos.pagina');
     // Qualquer outro caminho no domínio da associação volta para a página inicial, em vez de
     // cair numa tela do ERP.
     Route::redirect('/{caminho}', 'https://uniafibro.com.br/')

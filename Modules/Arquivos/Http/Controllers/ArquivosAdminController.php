@@ -450,9 +450,10 @@ class ArquivosAdminController extends Controller
      * auditado: o `DownloadController` grava `signed_url_consumed` no consumo, que é o evento
      * que responde "quem baixou".
      *
-     * O link não afrouxa nada: o `DownloadController` roda com `auth` + `signed` e o
-     * `Arquivo::find()` de lá aplica o global scope por business (ADR 0093). URL vazada sem
-     * sessão do mesmo tenant não serve arquivo.
+     * O link não afrouxa nada: o `DownloadController` roda com `auth` + `signed` e busca o
+     * arquivo filtrando pela empresa do `ContextoEmpresa` (ADR 0093/0453). URL vazada só serve
+     * arquivo a usuário autenticado da mesma empresa; de outra empresa, ou sem empresa no
+     * contexto, a resposta é 404.
      */
     private function downloadUrl(Arquivo $a): ?string
     {

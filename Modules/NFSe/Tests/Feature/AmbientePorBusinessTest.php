@@ -17,7 +17,7 @@ uses(Tests\TestCase::class);
  * GAP detectado no Passo 0: o ambiente da emissão NFS-e era resolvido pelo
  * BIND GLOBAL `config('nfse.ambiente')` (env NFSE_AMBIENTE), não pelo campo
  * por-business `nfse_provider_configs.ambiente`. Ligar produção pra 1 tenant
- * afetaria TODOS (ROTA LIVRE etc) — viola o requisito "não tocar outros
+ * afetaria TODAS as empresas — viola o requisito "não tocar outros
  * clientes" do cutover controlado.
  *
  * Estes testes travam o comportamento correto: a EMISSÃO segue
@@ -46,7 +46,7 @@ function ambPfx(): string
 function makeNfsePayload(string $ambiente): NfseEmissaoPayload
 {
     return new NfseEmissaoPayload(
-        businessId: 164,
+        businessId: 98, // empresa fictícia de teste (ADR 0358)
         rpsNumero: '202606030001',
         competencia: Carbon::createFromFormat('Y-m', '2026-06'),
         tomadorNome: 'Cliente Teste',
@@ -71,7 +71,7 @@ it('emissao usa PRODUCAO do payload (por-business) mesmo com bind global homolog
 
     // Adapter bindado no GLOBAL homologacao (como o container faz hoje)...
     $adapter = new SnNfseAdapter('homologacao');
-    // ...mas o tenant biz=164 está em producao.
+    // ...mas a empresa do payload está em producao.
     $adapter->emitir(makeNfsePayload('producao'));
 
     Http::assertSent(function ($request) {
@@ -103,7 +103,7 @@ it('montarPayload propaga o ambiente por-business do NfseProviderConfig (wiring 
 
 it('DTO NfseEmissaoPayload default ambiente e fail-safe homologacao', function () {
     $p = new NfseEmissaoPayload(
-        businessId: 1,
+        businessId: 98,
         rpsNumero: '1',
         competencia: Carbon::createFromFormat('Y-m', '2026-06'),
         tomadorNome: 'x',

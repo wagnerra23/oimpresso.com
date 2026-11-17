@@ -7193,12 +7193,6 @@ parameters:
 			path: Modules/Manufacturing/Concerns/HasManufacturingProductChain.php
 
 		-
-			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
-			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 1
-			path: Modules/Manufacturing/Config/retention.php
-
-		-
 			message: '#^PHPDoc type array of property Modules\\Manufacturing\\Entities\\MfgIngredientGroup\:\:\$guarded is not covariant with PHPDoc type array\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$guarded\.$#'
 			identifier: property.phpDocType
 			count: 1

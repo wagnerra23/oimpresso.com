@@ -24,16 +24,8 @@ class NfseController extends Controller
 {
     public function __construct(private readonly NfseEmissaoService $service) {}
 
-    // US-NFSE-008: listagem
-    //
-    // Wave 23 D3 Performance NOTA: `notas` candidata a `Inertia::defer()`
-    // (paginate 25 caro). NÃO migrado neste PR porque resources/js/Pages/Nfse/Index.tsx
-    // consome `notas.data.length` direto no render inicial (sem `<Deferred>` wrap)
-    // — Rollback W7 PR #963 já comprovou que ativar defer SEM wrapper React quebra.
-    //
-    // Pré-req pra defer: PR companion atualizar Index.tsx pra `<Deferred data="notas">`
-    // + skeleton fallback (skill `inertia-defer-default` Tier B). Tarefa rastreada
-    // em handoff Wave 23.
+    // US-NFSE-008: listagem. `notas` vai deferida (paginate + filtro): a tela abre com o
+    // esqueleto e a lista chega no 2º pedido. Index.tsx envolve a tabela em <Deferred>.
     public function index(IndexNfseRequest $request)
     {
         // D8.c Security Wave 17 — IndexNfseRequest valida whitelist status + date_format
@@ -43,23 +35,33 @@ class NfseController extends Controller
         $filters = $request->validated();
 
         return Inertia::render('Nfse/Index', [
-            'notas'   => $this->buildNotasPayload($filters),
+            'notas'   => Inertia::defer(fn () => $this->buildNotasPayload($filters)),
             'filters' => $filters,
         ]);
     }
 
     private function buildNotasPayload(array $filters)
     {
-        $query = NfseEmissao::latest('competencia');
+        // Só as colunas que a tabela mostra. xml_envio/xml_retorno (a DPS e a resposta da
+        // Receita) e o resto da nota ficam fora da prop — charter Non-Goal "NÃO mostra
+        // XML/RPS bruto na listagem" (UC-NFSL-05).
+        $query = NfseEmissao::query()
+            ->select([
+                'id', 'numero', 'status', 'tomador_nome', 'valor_servicos', 'valor_iss',
+                'competencia', 'pdf_url', 'erro_mensagem', 'created_at',
+            ])
+            ->latest('competencia')
+            ->latest('id');
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
+        // Competência é mês: o filtro chega como AAAA-MM (o <input type="month"> da tela).
         if (!empty($filters['de'])) {
-            $query->where('competencia', '>=', Carbon::parse($filters['de'])->startOfMonth());
+            $query->where('competencia', '>=', Carbon::createFromFormat('!Y-m', $filters['de'])->startOfMonth()->toDateString());
         }
         if (!empty($filters['ate'])) {
-            $query->where('competencia', '<=', Carbon::parse($filters['ate'])->endOfMonth());
+            $query->where('competencia', '<=', Carbon::createFromFormat('!Y-m', $filters['ate'])->endOfMonth()->toDateString());
         }
         if (!empty($filters['q'])) {
             $q = $filters['q'];
@@ -69,7 +71,20 @@ class NfseController extends Controller
             });
         }
 
-        return $query->paginate(25)->withQueryString();
+        return $query->paginate(25)->withQueryString()->through(fn (NfseEmissao $n) => [
+            // valor_iss é anulável na coluna; o cast decimal:2 esconde isso do Larastan,
+            // por isso a leitura crua.
+            'id'             => $n->id,
+            'numero'         => $n->numero,
+            'status'         => $n->status,
+            'tomador_nome'   => $n->tomador_nome,
+            'valor_servicos' => (float) $n->valor_servicos,
+            'valor_iss'      => $n->getRawOriginal('valor_iss') === null ? null : (float) $n->getRawOriginal('valor_iss'),
+            'competencia'    => $n->competencia?->format('m/Y'),
+            'pdf_url'        => $n->pdf_url,
+            'erro_mensagem'  => $n->erro_mensagem,
+            'created_at'     => $n->created_at?->format('d/m/Y H:i'),
+        ]);
     }
 
     // US-NFSE-009: formulário de emissão
@@ -271,27 +286,37 @@ class NfseController extends Controller
     {
         $this->authorize('nfse.view');
 
-        $nfse->load('transaction.contact');
+        // Tier 0: Transaction não tem escopo de empresa. A venda só entra na tela se for da
+        // mesma empresa da nota — nota antiga gravada com venda alheia não a expõe.
+        $tx = $nfse->transaction_id
+            ? Transaction::query()
+                ->where('business_id', $nfse->business_id)
+                ->find($nfse->transaction_id)
+            : null;
 
         $vendaData = null;
-        if ($nfse->transaction) {
-            $tx = $nfse->transaction;
+        if ($tx) {
+            $contato = $tx->contact_id
+                ? \App\Contact::where('business_id', $nfse->business_id)->find($tx->contact_id)
+                : null;
             $vendaData = [
                 'id'              => $tx->id,
                 'invoice_no'      => $tx->invoice_no,
                 'transaction_date'=> optional($tx->transaction_date)->format('d/m/Y'),
                 'final_total'     => (float) $tx->final_total,
-                'contact_nome'    => $tx->contact?->name ?? $tx->contact?->supplier_business_name ?? null,
+                'contact_nome'    => $contato?->name ?? $contato?->supplier_business_name ?? null,
             ];
         }
+
+        // Ambiente do provedor da empresa da nota. A nota não grava o ambiente em que saiu
+        // (xml_envio nunca é preenchido), então a tela mostra o configurado HOJE e diz isso.
+        $ambiente = NfseProviderConfig::where('business_id', $nfse->business_id)->value('ambiente');
 
         return Inertia::render('Nfse/Show', [
             'nfse' => [
                 'id'             => $nfse->id,
                 'numero'         => $nfse->numero,
                 'status'         => $nfse->status,
-                'status_label'   => $nfse->statusLabel(),
-                'status_color'   => $nfse->statusColor(),
                 'tomador_nome'   => $nfse->tomador_nome,
                 'tomador_cnpj'   => $nfse->tomador_cnpj,
                 'tomador_cpf'    => $nfse->tomador_cpf,
@@ -304,10 +329,16 @@ class NfseController extends Controller
                 'pdf_url'        => $nfse->pdf_url,
                 'erro_mensagem'  => $nfse->erro_mensagem,
                 'created_at'     => $nfse->created_at?->format('d/m/Y H:i'),
+                // Cancelada é terminal: depois da troca de status nada mais grava na linha, então
+                // o updated_at é o momento do cancelamento. O MOTIVO não é guardado em coluna
+                // nenhuma (só no log do canal nfse) — fica para o evento de cancelamento (lote 2.4).
+                'cancelada_em'   => $nfse->isCancelada() ? $nfse->updated_at?->format('d/m/Y H:i') : null,
                 'transaction_id' => $nfse->transaction_id,
             ],
-            'venda' => $vendaData,
-            'flash' => session('status'),
+            'venda'    => $vendaData,
+            'ambiente' => $ambiente,
+            // Sem 'flash' próprio: o aviso de sucesso/erro do cancelamento sai pelo flash
+            // compartilhado (HandleInertiaRequests) e vira toast no app.tsx, como nas outras telas.
         ]);
     }
 

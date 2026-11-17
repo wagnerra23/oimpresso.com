@@ -72,7 +72,10 @@ it('schedule arquivos:health-check só roda em ambiente live', function () {
         $prop->setAccessible(true);
         $envs = $prop->getValue($event);
 
-        expect($envs)->toContain('live', 'deve rodar em live');
+        // assertContains: no Pest o toContain é variádico e a mensagem virava um 2º needle
+        // ("contém 'deve rodar em live'"), reprovando sempre (§5 2026-07-28). Este arquivo
+        // nunca tinha rodado em lane nenhuma, por isso o defeito não aparecia.
+        $this->assertContains('live', $envs, 'deve rodar em live');
         expect(in_array('testing', $envs, true))->toBeFalse('não deve rodar em testing (evita poluir CI)');
     }
 });

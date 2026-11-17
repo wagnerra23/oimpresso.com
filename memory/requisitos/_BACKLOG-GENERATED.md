@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1089 tarefas abertas** em **62 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1097 tarefas abertas** em **62 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -17,12 +17,12 @@
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 35 | 0 | 0 | 6 | 29 |
 | [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
+| [`Arquivos`](#arquivos) | 33 | 0 | 0 | 0 | 33 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`Fisio`](#fisio) | 28 | 0 | 0 | 0 | 28 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
 | [`Marketplaces`](#marketplaces) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
-| [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
@@ -645,6 +645,45 @@
 - **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
 - **US-PCP-032** — OS liberada sem material fica Aguardando material (D3) — **P1**
 
+## Arquivos
+
+
+### todo
+
+- **US-ARQ-001** — Scaffold `Modules/Arquivos/` (módulo nWidart, skill `criar-modulo`) `p1`
+- **US-ARQ-002** — Migration `arquivos` (22 colunas, 5 índices; FKs business/user comentadas até validação homolog) `p1`
+- **US-ARQ-003** — Migration `arquivos_audit_log` + `arquivos_dedupe` `p1`
+- **US-ARQ-004** — Service `ArquivosService` (attach, classify, signedUrl, softDelete, restore, dedupe) `p0`
+- **US-ARQ-005** — Trait `HasArquivos` + Pest test polimorfismo (anexa em 3 models diferentes) `p1`
+- **US-ARQ-006** — `CuradorEngine.php` (port das 15+ regras de `lib/rules.mjs`) `p1`
+- **US-ARQ-007** — ParityTest JS×PHP (mesmo MD5+path → mesmo bucket — 30 fixtures) `p1`
+- **US-ARQ-008** — Storage disks config (`arquivos`+`vault`) + signed URL controller (expiração 1h, audit log) `p0`
+- **US-ARQ-009** — Pest tests (multi-tenant isolation, sensitive blocking, dedupe, soft-delete, audit log) `p0`
+- **US-ARQ-010** — Migration backfill: 1 fixture XML real → ingest via `attach()` → smoke validation `p1`
+- **US-ARQ-011** — API `POST /arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
+- **US-ARQ-012** — Auth Bearer token com scope `arquivos:write` `p0`
+- **US-ARQ-013** — Page `resources/js/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
+- **US-ARQ-014** — Page `Pages/Arquivos/Review.tsx` (substitui markdown `[x]` — checkbox UI, search, bulk-approve) `p1`
+- **US-ARQ-015** — Page `Pages/Arquivos/Detail.tsx` (preview MIME-aware: PDF embed, image, code highlight, JSON tree) `p2`
+- **US-ARQ-016** — Job `ApplyBatchJob` Horizon (recebe approved IDs, move pro storage final + dispara classification) `p1`
+- **US-ARQ-017** — Refactor `scripts/curador/apply.mjs` → vira "submit pro endpoint do Arquivos" (deixa de mexer filesystem direto) `p2`
+- **US-ARQ-018** — Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
+- **US-ARQ-019** — `Modules/NfeBrasil/Models/NfeXml` adota trait `HasArquivos` `p1`
+- **US-ARQ-020** — Migration backfill: NFe XMLs existentes em `storage/nfe/` → `arquivos` table com `arquivable=NfeXml` `p1`
+- **US-ARQ-021** — Smoke: novo NFe import → XML em `/var/lib/oimpresso-arquivos/biz-1/...` + audit log linha `p0`
+- **US-ARQ-022** — Officeimpresso UI lê NFe XML via `arquivable->arquivos()` (não path direto) — backward compat preservada `p1`
+- **US-ARQ-023** — Migrar `Modules/Financeiro/FinBoletoRemessa` (PDFs boleto gerados — volume razoável, baixo cliente-facing) `p1`
+- **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
+- **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
+- **US-ARQ-027** — Classificar um arquivo pela tela `/arquivos`, com motivo na trilha `p1`
+- **US-ARQ-028** — Excluir (soft-delete) e restaurar dentro do grace pela tela `/arquivos` `p1`
+- **US-ARQ-029** — Simular a retenção em dry-run, só superadmin `p1`
+- **US-ARQ-030** — Aviso ao titular antes do vencimento, por e-mail e WhatsApp `p1`
+- **US-ARQ-031** — API de anexos da OS para o app (`/api/app/os/{id}/arquivos`) `p1`
+- **US-ARQ-032** — Exportar o acervo de uma empresa em ZIP (`arquivos:export-zip`) `p2`
+- **US-ARQ-033** — Re-cifrar o cofre após trocar a `APP_KEY` (`arquivos:reencrypt-vault`) `p1`
+- **US-ARQ-034** — Revogar de papéis e usuários as permissões que passaram a ser só de superadmin (`arquivos:revogar-permissoes-superadmin`) `p2`
+
 ## Fiscal
 
 
@@ -811,37 +850,6 @@
 - **US-RB-030** — Configurar régua de inadimplência
 - **US-RB-031** — Disparar régua quando cobrança falha
 - **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
-
-## Arquivos
-
-
-### todo
-
-- **US-ARQ-001** — Scaffold `Modules/Arquivos/` (módulo nWidart, skill `criar-modulo`) `p1`
-- **US-ARQ-002** — Migration `arquivos` (22 colunas, 5 índices; FKs business/user comentadas até validação homolog) `p1`
-- **US-ARQ-003** — Migration `arquivos_audit_log` + `arquivos_dedupe` `p1`
-- **US-ARQ-004** — Service `ArquivosService` (attach, classify, signedUrl, softDelete, restore, dedupe) `p0`
-- **US-ARQ-005** — Trait `HasArquivos` + Pest test polimorfismo (anexa em 3 models diferentes) `p1`
-- **US-ARQ-006** — `CuradorEngine.php` (port das 15+ regras de `lib/rules.mjs`) `p1`
-- **US-ARQ-007** — ParityTest JS×PHP (mesmo MD5+path → mesmo bucket — 30 fixtures) `p1`
-- **US-ARQ-008** — Storage disks config (`arquivos`+`vault`) + signed URL controller (expiração 1h, audit log) `p0`
-- **US-ARQ-009** — Pest tests (multi-tenant isolation, sensitive blocking, dedupe, soft-delete, audit log) `p0`
-- **US-ARQ-010** — Migration backfill: 1 fixture XML real → ingest via `attach()` → smoke validation `p1`
-- **US-ARQ-011** — API `POST /arquivos/api/upload-batch` recebe JSONL do `scripts/curador/discover.mjs` `p1`
-- **US-ARQ-012** — Auth Bearer token com scope `arquivos:write` `p0`
-- **US-ARQ-013** — Page `resources/js/Pages/Arquivos/Index.tsx` (lista batches/arquivos, filtro por bucket+business) `p1`
-- **US-ARQ-014** — Page `Pages/Arquivos/Review.tsx` (substitui markdown `[x]` — checkbox UI, search, bulk-approve) `p1`
-- **US-ARQ-015** — Page `Pages/Arquivos/Detail.tsx` (preview MIME-aware: PDF embed, image, code highlight, JSON tree) `p2`
-- **US-ARQ-016** — Job `ApplyBatchJob` Horizon (recebe approved IDs, move pro storage final + dispara classification) `p1`
-- **US-ARQ-017** — Refactor `scripts/curador/apply.mjs` → vira "submit pro endpoint do Arquivos" (deixa de mexer filesystem direto) `p2`
-- **US-ARQ-018** — Widget Admin Center "Arquivos" (count por bucket, sensitive aguardando vault, métricas saúde) `p2`
-- **US-ARQ-019** — `Modules/NfeBrasil/Models/NfeXml` adota trait `HasArquivos` `p1`
-- **US-ARQ-020** — Migration backfill: NFe XMLs existentes em `storage/nfe/` → `arquivos` table com `arquivable=NfeXml` `p1`
-- **US-ARQ-021** — Smoke: novo NFe import → XML em `/var/lib/oimpresso-arquivos/biz-1/...` + audit log linha `p0`
-- **US-ARQ-022** — Officeimpresso UI lê NFe XML via `arquivable->arquivos()` (não path direto) — backward compat preservada `p1`
-- **US-ARQ-023** — Migrar `Modules/Financeiro/FinBoletoRemessa` (PDFs boleto gerados — volume razoável, baixo cliente-facing) `p1`
-- **US-ARQ-024** — Migrar `Modules/Ponto/Importacao` (arquivos folha eSocial — médio risco compliance) `p1`
-- **US-ARQ-025** — Migrar `Modules/Jana/TaskAttachment` (consolida sha256 dedup com `arquivos_dedupe`) `p1`
 
 ## Inventory
 
@@ -1440,7 +1448,7 @@
 - **US-ASSOC-002** — Associações e documentos, com a pendência de 30 dias — **P0**
 - **US-ASSOC-003** — Associadas com consentimento — **P0**
 - **US-ASSOC-004** — Painel da rede — **P1**
-- **US-ASSOC-005** — Área da associada no app — **P1**
+- **US-ASSOC-005** — Área da associada no site da Uniafibro e no app — **P1**
 
 ## Captacao
 

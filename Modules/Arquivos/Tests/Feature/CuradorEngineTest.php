@@ -139,7 +139,11 @@ it('classifica CNAB Sicoob (basename only) como memory', function () {
 
 it('classifica fiscal SPED basename como NfeBrasil memory', function () {
     $engine = new CuradorEngine();
-    $result = $engine->classify(curadorStub('GUIA_PRATICO_EFD_ICMS_IPI.pdf'));
+    // Nome com ESPAÇOS: a regra (rules.mjs:384, porte em CuradorEngine) usa \b, e com
+    // `_` não há fronteira de palavra — nem no JS, que é a fonte de verdade. O nome antigo
+    // (GUIA_PRATICO_EFD_ICMS_IPI.pdf) caía no fallback nos dois runtimes; este teste nunca
+    // tinha rodado (pulava na lane sqlite) e por isso o erro da fixture não apareceu.
+    $result = $engine->classify(curadorStub('GUIA PRATICO EFD ICMS IPI.pdf'));
 
     expect($result['bucket'])->toBe('memory');
     expect($result['rule_matched'])->toBe('fiscal_sped');
