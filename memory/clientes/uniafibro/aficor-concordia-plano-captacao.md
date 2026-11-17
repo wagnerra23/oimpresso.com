@@ -17,7 +17,7 @@ related:
 > 🚨 **DESTAQUE — A AFICOR É A ÚNICA DA REDE NO SIGEF.**
 > Pode receber **União AGORA** (e também Estado e Município). Nenhuma outra associação da rede consegue isso hoje. **Prioridade máxima de edital federal** — e é a entidade que pode ser **interveniente** da rede em captação federal até o CNPJ da Uniafibro-SC sair.
 
-> **Contexto:** AFICOR — Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense, CNPJ 44.534.100/0001-73, fundada em 2021, ~70 membros. Avaliação da rede: 🟢 **Verde**.
+> **Contexto:** AFICOR — Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense, CNPJ ativo (número na planilha da rede), fundada em 2021, ~70 membros. Avaliação da rede: 🟢 **Verde**.
 > **Utilidade Pública Estadual:** Lei 19.025/2024 (PL 0113/2024, dep. Neodi Saretta). Organizou congresso de fibromialgia com a Alesc em Concórdia (14/11/2025).
 > ⚠️ **Liderança DIVERGE** na planilha: Marcia Beatriz Santana Gomes (Receita Federal) × Maristela Isganzela Schwingel (imprensa) — **confirmar quem preside** antes de qualquer ofício.
 > **Região:** Alto Uruguai Catarinense (Amauc). **ERE:** Unoesc Joaçaba.

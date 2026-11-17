@@ -14,7 +14,7 @@ related:
 # AGFESC (Criciúma) — plano exclusivo de captação
 ### executável pela presidente Giselli Cunha + diretoria
 
-> **Contexto:** AGFESC, CNPJ 56.934.082/0001-04, sede em Criciúma. Avaliação da rede: 🟡 **Amarelo**.
+> **Contexto:** AGFESC, CNPJ ativo (número na planilha da rede), sede em Criciúma. Avaliação da rede: 🟡 **Amarelo**.
 > Na conversão da rede ([ADR 0451](../../decisions/0451-associacoes-rede-uniafibro-area-de-membros.md)) a AGFESC **vira a "Filial Criciúma" da Uniafibro-SC** — o CNPJ e o histórico (inscrições municipais, parcerias) são o ativo que a federação herda. Por isso a Fase 0 vem antes de tudo.
 > **Ponto forte:** a Giselli montou a estrutura AMASF/Unesc em Criciúma desde 2020 (27 municípios, 10 mil+ atendimentos), antes da própria AGFESC existir. É a maior prova de experiência da rede — documentar com declaração da Unesc.
 > **Ponto fraco hoje:** **não está no SIGEF** (não recebe recurso estadual por convênio), ata precisa de retificação e o estatuto precisa de reforma.

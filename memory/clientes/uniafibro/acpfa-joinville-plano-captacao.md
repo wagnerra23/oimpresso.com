@@ -14,7 +14,7 @@ related:
 # ACPFA (Joinville) — plano de captação
 ### a ser oferecido à presidente Cléia Aparecida Clemente Giosole
 
-> **Contexto:** ACPFA — Associação Catarinense de Portadores de Fibromialgia e Amigos, CNPJ 50.254.951/0001-65, ativa desde 2023, sede em Joinville, **atuação declarada estadual**.
+> **Contexto:** ACPFA — Associação Catarinense de Portadores de Fibromialgia e Amigos, CNPJ ativo (número na planilha da rede), ativa desde 2023, sede em Joinville, **atuação declarada estadual**.
 > **Utilidade Pública Estadual:** Lei 19.406/2025 (origem: PL 108/2025). Pode receber Município + Estado + União (confirmar SIGEF).
 > **Avaliação da rede:** ⚫ **Cinza — FORA DA REDE.** **Nenhum contato foi feito ainda.**
 > **Região:** Nordeste (Joinville). Sem ERE listada para a região.

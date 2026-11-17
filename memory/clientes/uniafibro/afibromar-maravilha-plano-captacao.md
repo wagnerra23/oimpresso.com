@@ -14,7 +14,7 @@ related:
 # AFIBROMAR (Maravilha) — plano exclusivo de captação
 ### executável pela presidente Caciara Regina de Souza + diretoria
 
-> **Contexto:** AFIBROMAR, CNPJ 63.360.633/0001-20, ativo desde **09/2025**. Avaliação da rede: 🟡 **Amarelo**.
+> **Contexto:** AFIBROMAR, CNPJ na planilha da rede, ativo desde **09/2025**. Avaliação da rede: 🟡 **Amarelo**.
 > O estatuto atual foi copiado de uma entidade de vitimados do trabalho — precisa ser reformado pelo modelo unificado da Uniafibro-SC.
 > **Região:** Extremo Oeste (Amerios). **Sem ERE:** a ERE Grande Oeste está prevista em Chapecó, ainda sem prestador. O **Cisamerios** (consórcio de saúde da Amerios) tem **sede em Maravilha** e credencia fisioterapia e psicologia — é o principal ativo regional.
 > **Plano-base:** modelo AREFI (`arefi-indaial-plano-captacao.md`) + plano macro (`plano-macro-rede-sc.md`).
@@ -129,7 +129,7 @@ Meta realista: **60-120 mil** no ano 1. Ano 3 (a partir de 09/2027) soma estadua
 |---|---|
 | Estatuto atual (outra causa) bloqueia conselhos e utilidade pública | Reforma é a primeira ação, antes de qualquer protocolo |
 | Tentar captar no Estado antes de 09/2027 | Regra explícita no plano; usar o tempo para montar o histórico |
-| Duplicidade com a **Affibrobem** (Maravilha, CNPJ 64.104.704/0001-97) | Contato diplomático pela federação: cooperar, fundir ou dividir frentes — decisão das duas diretorias com a Uniafibro-SC |
+| Duplicidade com a **Affibrobem** (Maravilha, CNPJ próprio, número na planilha da rede) | Contato diplomático pela federação: cooperar, fundir ou dividir frentes — decisão das duas diretorias com a Uniafibro-SC |
 | Cidade pequena, poucos vereadores e empresas | Somar municípios da Amerios; consórcio regional como contrato principal |
 | Sem ERE na região | Federação pleiteia prestador da ERE Grande Oeste junto à SES/SC |
 
