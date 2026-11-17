@@ -563,6 +563,20 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Arquivos/ArquivosIndexRenderTest.php
 
+      # ── E2E DE RENDER — Superadmin, telas de plataforma (NASCE ADVISORY) ─────────
+      # Medido em 2026-11-16 (`npm run screen:files`): 0 das 12 telas do Superadmin com teste
+      # de navegador. As 6 telas atrás do middleware `superadmin` (Dashboard, Negócios,
+      # Assinaturas, Pacotes, Comunicador, Configurações) montam como o usuário 98 do
+      # VisregEmptyTenantSeeder, posto em `constants.administrator_usernames` pelo próprio
+      # teste — este workflow não define ADMINISTRATOR_USERNAMES, e sem isso a rota devolve
+      # 403. Prova render pós-`<Deferred>` + axe CRITICAL. Promover = 2 verdes que
+      # EXECUTARAM, lidos no log; flip [W].
+      - name: E2E de render · Superadmin plataforma (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-superadmin-plataforma
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Superadmin/SuperadminTelasPlataformaTest.php
+
       # ── E2E DE RENDER POR TELA — NfeBrasil (NASCE ADVISORY) ────────────────────────
       # Buraco medido em 2026-11-05 (auditoria NfeBrasil, N1-07/N1-08): das 6 Pages do
       # módulo nenhuma tinha axe, 4 não tinham teste de browser, e o NfceStatusTest existia
@@ -950,6 +964,7 @@ jobs:
           A_FISCAL_DAS: ${{ steps.e2e-fiscal-das.outcome }}
           A_SUPERADMIN_ASSINANTE: ${{ steps.e2e-superadmin-assinante.outcome }}
           A_ARQUIVOS_INDEX: ${{ steps.e2e-arquivos-index.outcome }}
+          A_SUPERADMIN_PLATAFORMA: ${{ steps.e2e-superadmin-plataforma.outcome }}
           A_NFSE: ${{ steps.e2e-nfse.outcome }}
         run: |
           resumo="$(mktemp)"
@@ -998,6 +1013,7 @@ jobs:
           registrar "E2E de render · Fiscal/Das" "$A_FISCAL_DAS"
           registrar "E2E de render · Superadmin assinante" "$A_SUPERADMIN_ASSINANTE"
           registrar "E2E de render · Arquivos/Index" "$A_ARQUIVOS_INDEX"
+          registrar "E2E de render · Superadmin plataforma" "$A_SUPERADMIN_PLATAFORMA"
           registrar "E2E de render + axe · NFSe" "$A_NFSE"
 
           {
