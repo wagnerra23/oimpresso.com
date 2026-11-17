@@ -40,7 +40,9 @@ beforeEach(function () {
     app()->instance(ModuleUtil::class, $mu);
 });
 
-const MFG_CUSTO_MODULO = ['manufacturing.access_recipe', 'manufacturing.access_production', 'manufacturing.add_recipe'];
+// `access_all_locations`: este arquivo mede o custo, não o local. A lista de ordens filtra por local
+// permitido (UC-OP-22); sem a permissão a ordem do teste, gravada sem local, nem chegaria na lista.
+const MFG_CUSTO_MODULO = ['manufacturing.access_recipe', 'manufacturing.access_production', 'manufacturing.add_recipe', 'access_all_locations'];
 
 function mfgCustoUsuario($teste, bool $veCusto): \App\User
 {
