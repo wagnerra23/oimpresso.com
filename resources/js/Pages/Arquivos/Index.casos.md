@@ -10,7 +10,9 @@ last_run: "2026-10-01"
 # Casos de Uso & Aceite — Arquivos/Index
 
 > Nascido de `criar-tela.mjs`. **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
-> Regra G-2: UC declarado sem teste citando o id = órfão. O E2E de browser é `tests/Browser/Arquivos/ArquivosIndexRenderTest.php` (4 vistas, cita UC-INDEX-01..04); o stub `e2e/arquivos-index.spec.ts` (`test.fixme`, nunca executou) saiu em 2026-11-16.
+> Regra G-2: UC declarado sem teste citando o id = órfão. O E2E de browser é `tests/Browser/Arquivos/ArquivosIndexRenderTest.php` (4 vistas, cita UC-ARQIDX-01..04); o stub `e2e/arquivos-index.spec.ts` (`test.fixme`, nunca executou) saiu em 2026-11-16.
+
+> **Ids renomeados em 2026-11-16:** `UC-INDEX-NN` → `UC-ARQIDX-NN`, mesmo número, mesmo caso. `UC-INDEX-01..03` também é usado por `tests/Feature/DocumentacaoRouteTest.php` (tela Documentacao), e o manifesto soma por id. O CHANGELOG e o playbook do protótipo, anteriores a essa data, citam o id antigo.
 
 > **Por que poucos UC com id aqui.** A tela nasceu no PR-1 ([#6216](https://github.com/wagnerra23/oimpresso.com/pull/6216),
 > 2026-08-24: rota `GET /arquivos` viva) só com a vista **Acervo**; o PR-2 acrescentou a
@@ -22,7 +24,7 @@ last_run: "2026-10-01"
 
 ---
 
-## UC-INDEX-01 · O acervo lista o que o sistema guardou, com prazo e base legal
+## UC-ARQIDX-01 · O acervo lista o que o sistema guardou, com prazo e base legal
 - **Persona:** Wagner (escritório, conformidade) — quer saber o que está guardado, de quem é,
   e até quando a lei manda guardar, sem abrir tela por tela.
 - **Aceite:** Dado um business com arquivos anexados via `HasArquivos` · Quando abre `/arquivos`
@@ -30,18 +32,20 @@ last_run: "2026-10-01"
   arquivo, dono (`arquivable`), bucket, disco, tamanho e data de vencimento — e nenhum arquivo
   de outro `business_id`.
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **8** `it()`
-  citando `UC-INDEX-01` no título (scope não quebrado · sem `storage_path`/hash ·
+  citando `UC-ARQIDX-01` no título (scope não quebrado · sem `storage_path`/hash ·
   leitura pura · `politica()` devolve prazo E base legal · todo bucket da Request existe no enum
   do banco · entrada no sidebar com as 3 camadas · o resumo conta o acervo do business, nunca a
   página · `index()` não estoura sem a tabela). _Recontado em 2026-11-16 com
-  `grep -E "^\s*(it|test)\(" … | grep -c UC-INDEX-01` — 8; o 6 abaixo é fato de 2026-08-25._
-  + `e2e/arquivos-index.spec.ts` (stub `test.fixme`, vira asserção quando a rota subir em prod).
+  `grep -E "^\s*(it|test)\(" … | grep -c UC-INDEX-01` — 8, então sob o id antigo; o 6 abaixo é fato de 2026-08-25._
+  + `tests/Browser/Arquivos/ArquivosIndexRenderTest.php` (Pest Browser, vista Acervo no DOM).
+  _O stub `e2e/arquivos-index.spec.ts` (`test.fixme`) que esta linha citava saiu em 2026-11-16._
   _Este número dizia **5** e estava stale desde 2026-08-25: a asserção do bucket entrou com o fix
   do filtro ([#6244](https://github.com/wagnerra23/oimpresso.com/pull/6244)) e a enumeração aqui
   não acompanhou. Recontado com `grep -c "^it('UC-INDEX-01"` — 6 —, não de memória._
 - **Regressão que defende:** vazamento cross-tenant no acervo (ADR 0093, Tier 0) e prazo
   exibido sem a lei que o sustenta.
-- **Status: 🧪** — fica em 🧪 de propósito, e não por falta de veredito. O manifesto de
+- **Status: 🧪** — o id é `UC-ARQIDX-01` desde 2026-11-16; era `UC-INDEX-01`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-01 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-01`:_ 🧪 — fica em 🧪 de propósito, e não por falta de veredito. O manifesto de
   2026-11-15 traz `UC-INDEX-01 → verdict pass · tests 9`, mas **9 = 8 deste arquivo + 1 de
   `tests/Feature/DocumentacaoRouteTest.php`**, que usa o mesmo id para outra tela. O manifesto
   agrega por id, então um ✅ aqui seria creditado em parte por teste de outro módulo (§5
@@ -57,7 +61,7 @@ last_run: "2026-10-01"
 
 ---
 
-## UC-INDEX-02 · A trilha mostra quem tocou em quê, sem deixar tocar nela
+## UC-ARQIDX-02 · A trilha mostra quem tocou em quê, sem deixar tocar nela
 - **Persona:** Wagner (escritório, conformidade) — precisa responder *"quem baixou esse
   arquivo, quando, e de onde"* sem abrir terminal, e precisa que ninguém possa reescrever
   essa resposta.
@@ -67,8 +71,8 @@ last_run: "2026-10-01"
   detalhe do payload), com filtro pelas ações que aquele business realmente registrou —
   e **nenhuma** ação de editar ou apagar linha em lugar nenhum da tela.
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6**
-  asserções citando `UC-INDEX-02` no título do `it()` (contadas com
-  `grep -c "^it('UC-INDEX-02"`, não de memória): o caminho da trilha filtra por
+  asserções citando `UC-ARQIDX-02` no título do `it()` (contadas com
+  `grep -c "^it('UC-ARQIDX-02"`, não de memória): o caminho da trilha filtra por
   `business_id` · fail-closed sem sessão · a linha expõe `#id` e nunca o nome · o payload
   vira resumo legível · **cross-tenant 98 vs 99** · o filtro de ação não apaga os outros
   chips. As 4 primeiras dispensam banco (valem nas duas lanes); as 2 últimas rodam na lane
@@ -80,7 +84,8 @@ last_run: "2026-10-01"
   acervo por causa disso — aplicado à trilha, ele proibiria a própria defesa (é a regra de
   precedência de 2026-07-06). Defende também: prazo/nome de arquivo vazando pra vista de
   governança, e a trilha ganhar caminho de escrita.
-- **Status: 🧪** — fica em 🧪 de propósito: o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-02 → verdict pass · tests 8`, mas 8 = 7 deste arquivo + 1 de `tests/Feature/DocumentacaoRouteTest.php`, que usa o mesmo id. Um ✅ seria creditado em parte por teste de outro módulo (§5 2026-09-04). Vira ✅ com o prefixo próprio do item 4.2 do lote L4.
+- **Status: 🧪** — o id é `UC-ARQIDX-02` desde 2026-11-16; era `UC-INDEX-02`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-02 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-02`:_ 🧪 — fica em 🧪 de propósito: o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-02 → verdict pass · tests 8`, mas 8 = 7 deste arquivo + 1 de `tests/Feature/DocumentacaoRouteTest.php`, que usa o mesmo id. Um ✅ seria creditado em parte por teste de outro módulo (§5 2026-09-04). Vira ✅ com o prefixo próprio do item 4.2 do lote L4.
   _Fato anterior, preservado:_ ⬜ — os testes existem e as asserções puras foram medidas fora do CI, mas
   ⬜ era o que o cabeçalho manda enquanto o veredito não veio da lane: 🧪 exige o manifesto
   (`scripts/casos-test-results.json`), não a minha leitura (G-7). Vira 🧪 com o run da
@@ -88,7 +93,7 @@ last_run: "2026-10-01"
 
 ---
 
-## UC-INDEX-03 · O cofre diz quanto está guardado e o que está errado — sem apagar nada
+## UC-ARQIDX-03 · O cofre diz quanto está guardado e o que está errado — sem apagar nada
 - **Persona:** Wagner (escritório, custo de disco e conformidade) — quer saber *"quanto o
   sistema está guardando, onde, e o que está fora do lugar"* sem abrir terminal, e precisa que
   a resposta não seja uma lista pra ele varrer à mão.
@@ -99,7 +104,7 @@ last_run: "2026-10-01"
   arquivos citados por achado, **nenhum hash**, **nenhum caminho de disco** e **nenhum botão que
   aja sobre eles**.
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **8** asserções
-  citando `UC-INDEX-03` no título do `it()` (contadas com `grep -c "^it('UC-INDEX-03"`, não de
+  citando `UC-ARQIDX-03` no título do `it()` (contadas com `grep -c "^it('UC-ARQIDX-03"`, não de
   memória): fail-closed sem sessão devolve `disponivel: false` e não "0 achados" · o leitor usa
   o model e **não** repete o `where` · **`toBase()` não derruba o global scope** · o cap vem da
   config que o vault cobra · o controller registra a prop de **uma** vista só · **cross-tenant
@@ -119,7 +124,8 @@ last_run: "2026-10-01"
   deixou de caber, porque o leitor precisa do hash pra agrupar; (c) o cap virar `50` escrito na
   tela, divergindo do que o `VaultEncryptionService` recusa em runtime; (d) mais de uma prop
   deferida registrada de uma vez, que faria a vista fechada custar.
-- **Status: 🧪** — fica em 🧪 de propósito: o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-03 → verdict pass · tests 9`, mas 9 = 8 deste arquivo + 1 de `tests/Feature/DocumentacaoRouteTest.php`, que usa o mesmo id. Um ✅ seria creditado em parte por teste de outro módulo (§5 2026-09-04). Vira ✅ com o prefixo próprio do item 4.2 do lote L4.
+- **Status: 🧪** — o id é `UC-ARQIDX-03` desde 2026-11-16; era `UC-INDEX-03`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-03 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-03`:_ 🧪 — fica em 🧪 de propósito: o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-03 → verdict pass · tests 9`, mas 9 = 8 deste arquivo + 1 de `tests/Feature/DocumentacaoRouteTest.php`, que usa o mesmo id. Um ✅ seria creditado em parte por teste de outro módulo (§5 2026-09-04). Vira ✅ com o prefixo próprio do item 4.2 do lote L4.
   _Fato anterior, preservado:_ ⬜ — os testes existem e as asserções puras foram medidas fora do CI, mas ⬜ era o
   que o cabeçalho manda enquanto o veredito não veio da lane: 🧪 exige o manifesto
   (`scripts/casos-test-results.json`), não a minha leitura (G-7). Vira 🧪 com o run da
@@ -127,7 +133,7 @@ last_run: "2026-10-01"
 
 ---
 
-## UC-INDEX-04 · A retenção mostra o que vence, sem apagar nada — e diz quem apaga
+## UC-ARQIDX-04 · A retenção mostra o que vence, sem apagar nada — e diz quem apaga
 - **Persona:** Wagner (escritório, conformidade) e Eliana (financeiro) — precisam responder
   *"o que está passando do prazo e o que a lei manda guardar por quanto tempo"* sem abrir
   terminal, e precisam saber que olhar a tela **não** dispara nada.
@@ -138,8 +144,8 @@ last_run: "2026-10-01"
   do **próprio** business, **sem nenhum botão que execute**, e com a tela declarando se o
   `arquivos:retention-cleanup` está agendado.
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **4**
-  asserções citando `UC-INDEX-04` no título do `it()` (contadas com
-  `grep -c "^it('UC-INDEX-04"`, não de memória): fail-closed sem sessão devolve
+  asserções citando `UC-ARQIDX-04` no título do `it()` (contadas com
+  `grep -c "^it('UC-ARQIDX-04"`, não de memória): fail-closed sem sessão devolve
   `disponivel: false` em vez de "tudo em dia" · grace/aviso/estratégia vêm da config
   registrada · o prazo **por linha** vence o da policy · o que está no grace **não** conta
   como vencido. As 2 primeiras dispensam banco; as 2 últimas rodam na lane MySQL.
@@ -152,13 +158,14 @@ last_run: "2026-10-01"
   operador correr atrás de arquivo que o job já tratou; (e) `Config/retention.php` seguir
   **não registrado** — era o caso até esta leva, e sem isso a tela mostraria defaults inline
   como se fossem a política.
-- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-04 → verdict pass · tests 4`, e 4 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+- **Status: 🧪** — o id é `UC-ARQIDX-04` desde 2026-11-16; era `UC-INDEX-04`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-04 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-04`:_ ✅ — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-04 → verdict pass · tests 4`, e 4 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
   _Antes:_ ⬜ — os testes existem, mas ⬜ era o que o cabeçalho manda enquanto o veredito não
   veio da lane: 🧪 exige o manifesto (G-7), não a minha leitura.
 
 ---
 
-## UC-INDEX-05 · Baixar sai da tela por link assinado — e o que não tem conteúdo não oferece
+## UC-ARQIDX-05 · Baixar sai da tela por link assinado — e o que não tem conteúdo não oferece
 - **Persona:** Wagner (escritório, conformidade) — achou o XML da NF-e no acervo e precisa do
   arquivo, sem abrir a tela do dono nem pedir a alguém que rode um comando.
 - **Aceite:** Dado um arquivo com conteúdo no storage · Quando a linha renderiza · Então há um
@@ -168,14 +175,15 @@ last_run: "2026-10-01"
   nos dois casos · E montar o link **não escreve** em `arquivos_audit_log`: a tela segue leitura
   pura, e quem baixa de fato continua auditado no consumo (`signed_url_consumed`).
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **3** asserções
-  citando `UC-INDEX-05` no título do `it()` (contadas com `grep -c "^it('UC-INDEX-05"`, não de
+  citando `UC-ARQIDX-05` no título do `it()` (contadas com `grep -c "^it('UC-ARQIDX-05"`, não de
   memória): destino + assinatura + prazo · os dois casos sem conteúdo, com controle negativo ·
   leitura pura, com **controle positivo** (o `ArquivosService::signedUrl()` DEVE escrever, e
   escreve — senão "o contador não subiu" seria verdade num contador que não mede nada).
 - **Regressão que defende:** servir arquivo do vault por `Storage::url` (Non-Goal do charter,
   ADR 0123 §6) · oferecer botão que leva a 404 · trocar o `URL::temporarySignedRoute` pelo
   `signedUrl()` do Service e passar a gravar 25 linhas de auditoria por render do acervo.
-- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-05 → verdict pass · tests 3`, e 3 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+- **Status: 🧪** — o id é `UC-ARQIDX-05` desde 2026-11-16; era `UC-INDEX-05`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-05 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-05`:_ ✅ — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-05 → verdict pass · tests 3`, e 3 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
   _Antes:_ 🧪 — a lane do CT 100 executou em 2026-08-27: **35 passed · 140 assertions**,
   contra **30 · 118** com o arquivo de teste anterior no mesmo código. O delta `+5/+22` é o
   contador provando que os testes novos rodaram, não o nome deles aparecendo no log.
@@ -183,7 +191,7 @@ last_run: "2026-10-01"
 
 ---
 
-## UC-INDEX-06 · "Vinculado a" mostra o dono em PT-BR e leva à tela dele quando ela existe
+## UC-ARQIDX-06 · "Vinculado a" mostra o dono em PT-BR e leva à tela dele quando ela existe
 - **Persona:** Wagner (escritório, conformidade) — quer saber **de quem é** o arquivo, e chegar
   lá num clique. `ServiceOrder #4` é o nome da classe Eloquent, não o nome da coisa.
 - **Aceite:** Dado um arquivo com `arquivable` · Quando a linha renderiza · Então a coluna mostra
@@ -193,7 +201,7 @@ last_run: "2026-10-01"
   no `class_basename` cru, que é o que a tela já fazia · E órfão continua ACHADO, sem rótulo nem
   destino.
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **2** asserções
-  citando `UC-INDEX-06` no título do `it()` (contadas com `grep -c "^it('UC-INDEX-06"`): os dois
+  citando `UC-ARQIDX-06` no título do `it()` (contadas com `grep -c "^it('UC-ARQIDX-06"`): os dois
   tipos COM rota (`ServiceOrder` → `/oficina-auto/ordens-servico/{id}`, `JobSheet` →
   `/repair/job-sheet/{id}`) · o tipo com rótulo e SEM rota (`NfeEmissao`), o tipo fora do mapa e
   o órfão.
@@ -201,13 +209,14 @@ last_run: "2026-10-01"
   negócio · gerar link pra rota que não existe (`RouteNotFoundException` derrubaria o `paginate`
   inteiro, não só a célula) · perder o valor técnico, que é o que resolve a ambiguidade entre as
   duas "Ordem de serviço" (OficinaAuto × Repair).
-- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-06 → verdict pass · tests 2`, e 2 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+- **Status: 🧪** — o id é `UC-ARQIDX-06` desde 2026-11-16; era `UC-INDEX-06`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-06 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-06`:_ ✅ — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-06 → verdict pass · tests 2`, e 2 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
   _Antes:_ 🧪 — mesma run de UC-INDEX-05. **Bite-test:** anular a rota do `ServiceOrder` no
   mapa deixa o UC vermelho (`1 failed`).
 
 ---
 
-## UC-INDEX-07 · Classificar re-aplica as regras e guarda o MOTIVO na trilha
+## UC-ARQIDX-07 · Classificar re-aplica as regras e guarda o MOTIVO na trilha
 - **Persona:** Wagner (escritório, conformidade) — achou um arquivo no bucket errado (acervo
   antigo, regra nova do curador) e quer refazer a classificação deixando escrito por quê.
 - **Fonte:** PR-6 do `PEDIDO-PARA-CODE.md` (onda 2) e ficha `playbook/02-classificar.md` —
@@ -221,19 +230,20 @@ last_run: "2026-10-01"
   `business_id` **do arquivo** · E arquivo de OUTRO business é recusado pela Request (403) ·
   E `force_bucket` é **recusado** com erro no campo — nada muda e nada vai pra trilha.
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **5** `it()`
-  citando `UC-INDEX-07` no título: rota POST numérica atrás de `arquivos.access` · corpo do
+  citando `UC-ARQIDX-07` no título: rota POST numérica atrás de `arquivos.access` · corpo do
   `classificar()` passa pela Request e pelo Service, sem gravar o model direto · Request recusa
   o business 99 com controle positivo no 98 · motivo na trilha no business do arquivo · 
   `force_bucket` recusado sem efeito.
 - **Regressão que defende:** motivo validado e jogado fora (a Request o exigia e nada o
   consumia) · `force_bucket` aceito em silêncio, prometendo uma classificação manual que o
   Service não faz · linha de trilha gravada com o business da entrada em vez do do arquivo.
-- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-07 → verdict pass · tests 5`, e 5 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+- **Status: 🧪** — o id é `UC-ARQIDX-07` desde 2026-11-16; era `UC-INDEX-07`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-07 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-07`:_ ✅ — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-07 → verdict pass · tests 5`, e 5 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
   _Antes:_ ⬜ — o veredito era da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 02.
 
 ---
 
-## UC-INDEX-08 · Excluir é soft-delete; restaurar só dentro do grace
+## UC-ARQIDX-08 · Excluir é soft-delete; restaurar só dentro do grace
 - **Persona:** Wagner (escritório, conformidade) — tirou do acervo um anexo duplicado e quer
   poder voltar atrás por um tempo, sem que nada seja apagado de verdade pela tela.
 - **Fonte:** PR-7 do `PEDIDO-PARA-CODE.md` (onda 2) e ficha `playbook/03-excluir-restaurar.md` —
@@ -250,7 +260,7 @@ last_run: "2026-10-01"
   botão não é desenhado e o POST é recusado sem efeito · E arquivo de OUTRO business é recusado
   pelas duas Requests (403) e não é alcançado pelo controller.
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** `it()`
-  citando `UC-INDEX-08` no título: rotas POST numéricas atrás de `arquivos.access` · corpo dos
+  citando `UC-ARQIDX-08` no título: rotas POST numéricas atrás de `arquivos.access` · corpo dos
   dois métodos passa pelo Service, sem `forceDelete`/purge/`->delete(` · `restauravel` só
   dentro do grace · **cross-tenant 98 × 99** nas duas Requests, com controle positivo e a
   segunda perna no controller · motivo na trilha e trilha preservada no restaurar · fora do
@@ -258,12 +268,13 @@ last_run: "2026-10-01"
 - **Regressão que defende:** exclusão virar apagamento (perda de dado + quebra da guarda legal) ·
   restaurar depois que a retenção já é dona do arquivo · botão de restaurar desabilitado em vez
   de ausente · exclusão de arquivo de outro business.
-- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-08 → verdict pass · tests 7`, e 7 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+- **Status: 🧪** — o id é `UC-ARQIDX-08` desde 2026-11-16; era `UC-INDEX-08`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-08 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-08`:_ ✅ — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-08 → verdict pass · tests 7`, e 7 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
   _Antes:_ ⬜ — o veredito era da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 03.
 
 ---
 
-## UC-INDEX-09 · Simular a retenção lista o que sairia e por quê — sem apagar nada
+## UC-ARQIDX-09 · Simular a retenção lista o que sairia e por quê — sem apagar nada
 - **Persona:** Wagner (escritório, conformidade) — quer saber *quais* arquivos a política
   removeria hoje antes de alguém rodar o `arquivos:retention-cleanup`, sem risco de apagar.
 - **Fonte:** PR-8 da proposta `arquivos-retencao-ui-aviso-titular` e ficha
@@ -280,16 +291,17 @@ last_run: "2026-10-01"
   pedir `purge` é recusado sem despachar nada · E pedir `dry_run=false` não muda nada: o job
   recebe `true` (e recusa sozinho se receber `false`).
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** `it()`
-  citando `UC-INDEX-09` no título: rota POST atrás de `can:superadmin` · as permissões
+  citando `UC-ARQIDX-09` no título: rota POST atrás de `can:superadmin` · as permissões
   `arquivos.restore` e `arquivos.governanca` **fora** do catálogo delegável · **canário**
   dry-run forçado + business da sessão (**98 × 99**) · purge recusado sem despacho · o job
   recusa `dry_run=false`/`purge` · a simulação lista só o 98, não o 99, e não escreve nada.
 - **Regressão que defende:** simulação virar execução (trocar o `true` do controller por
   `false` reprova o canário) · purge pela tela · simular o acervo de outro business · nome ou
   caminho de arquivo saindo no relatório.
-- **Status: ✅** — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-09 → verdict pass · tests 6`, e 6 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
+- **Status: 🧪** — o id é `UC-ARQIDX-09` desde 2026-11-16; era `UC-INDEX-09`. Renomeado no lote L4 (item 4.2) porque `tests/Feature/DocumentacaoRouteTest.php` usa `UC-INDEX-01..03` para outra tela, e o manifesto agrega por id. O manifesto ainda não tem entrada para o id novo, e o G-7 reprova ✅ sem ela. Volta a ✅ quando o `casos-results-publish` aterrissar `UC-ARQIDX-09 → pass`.
+  _Status até 2026-11-16, sob `UC-INDEX-09`:_ ✅ — o manifesto `scripts/casos-test-results.json` de 2026-11-15 traz `UC-INDEX-09 → verdict pass · tests 6`, e 6 é exatamente o número de `it()` deste arquivo que citam o id (o id não aparece em teste de outro módulo). Status derivado do veredito (G-7), alinhado em 2026-11-16 (auditoria, lote L4).
   _Antes:_ ⬜ — o veredito era da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 04.
-- **Sem botão ainda:** a vista de retenção (UC-INDEX-04) segue leitura pura. O relatório fica
+- **Sem botão ainda:** a vista de retenção (UC-ARQIDX-04) segue leitura pura. O relatório fica
   no cache (24h, por business); desenhar o botão e a leitura dele na tela é o próximo passo.
 
 ---
@@ -297,7 +309,7 @@ last_run: "2026-10-01"
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 Derivados do protótipo F1 (`arquivos-page.jsx`). A onda que implementar cada vista traz o teste
-e promove o item a `UC-INDEX-NN`.
+e promove o item a `UC-ARQIDX-NN`.
 
 **Onda 1 — ler**
 
@@ -329,7 +341,7 @@ e promove o item a `UC-INDEX-NN`.
 
 - **[BLOQUEADO]** Forçar um bucket escolhido à mão (`force_bucket`) → o `ArquivosService::classify()`
   só re-aplica as regras do curador, e o vocabulário da Request (`public/internal/sensitive/vault`)
-  não é o do banco (`active/sensitive/...`). Desde a thread 02 o `motivo` é consumido (UC-INDEX-07)
+  não é o do banco (`active/sensitive/...`). Desde a thread 02 o `motivo` é consumido (UC-ARQIDX-07)
   e `force_bucket` é **recusado** com erro no campo, em vez de aceito e ignorado. Forçar de verdade
   exige Service novo — fora do prefixo da thread 02 — e decisão sobre o vocabulário.
 
@@ -360,16 +372,16 @@ e promove o item a `UC-INDEX-NN`.
   `Config/retention.php` (são espelho declarado, e divergir é achado de auditoria).
 
 ## Trilha do tempo
-- 2026-10-01 · [CL] **Restaurar (UC-INDEX-08) e simular (UC-INDEX-09) passam a ser SÓ superadmin** — decisão [W] 2026-10-01, textual *"Superadmin"* (`playbook/_DECISOES-W-2026-10-01b.md`). `arquivos.restore` e `arquivos.governanca` saíram do `user_permissions()`; as rotas pedem `can:superadmin` (fora do bypass do `Admin#{biz}` no `Gate::before`); concessões feitas no intervalo são limpas por `arquivos:revogar-permissoes-superadmin --dry-run`. Prova HTTP: `ArquivosSuperadminOnlyTest` (admin do 98 → 403, superadmin passa).
-- 2026-08-27 · [CC] **UC-INDEX-05 (baixar) e UC-INDEX-06 (vinculado a) promovidos de `[BACKLOG]`/medição a UC** — a onda trouxe os testes que os defendem, que é a condição do G-2. O buraco foi MEDIDO com a mesma sonda nos dois lados (produção logada × protótipo vivo): a linha de produção tinha **6 colunas e 0 botões**, o protótipo tem **7** (a 7ª é a de ações) e `mono` em 5 delas contra **0 de 6** na produção. O item de backlog do `vault` saiu da lista — ele é exatamente o UC-INDEX-05. O que **não** entrou, e por quê: classificar e excluir **não têm endpoint** (varredura do `Routes/web.php` do módulo: só `index`, `download` e as 3 do Install) e o charter os agenda pra onda 2, travada na decisão [W] do PR-6. Refs: US-ARQ-013 · ADR 0123 §6 (signed URL 60 min) · ADR 0093 (o `find()` do DownloadController aplica o scope).
-- 2026-10-01 · [CL] **UC-INDEX-09 (simular retenção em dry-run) nasce** — thread 04 do playbook (PR-8): `POST arquivos/retencao/simular` atrás de `arquivos.governanca`, dry-run forçado no controller, purge recusado, job depois da resposta que só lista. Sem botão na tela ainda. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 16 e 37.
-- 2026-10-01 · [CL] **UC-INDEX-08 (excluir + restaurar no grace) nasce** — thread 03 do playbook (PR-7): `POST arquivos/{arquivo}/excluir` e `.../restaurar`, drawer PT-02, chip "Mostrar excluídos". Os 2 itens de backlog de restaurar saíram (são este UC); os 2 de copy por contexto (foto de OS · XML de NF-e) ficam. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · ADR 0123 §8 (trilha append-only).
-- 2026-09-30 · [CL] **UC-INDEX-07 (classificar) nasce** — thread 02 do playbook (PR-6): `POST arquivos/{arquivo}/classificar`, drawer PT-02 na linha do acervo. O `[BLOQUEADO]` de 24/08 encolheu: o motivo agora vai pra trilha (linha `classify`, ao lado da `reclassify` que o Service já grava); só `force_bucket` segue bloqueado, e passou de ignorado a recusado. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 37.
+- 2026-10-01 · [CL] **Restaurar (UC-ARQIDX-08) e simular (UC-ARQIDX-09) passam a ser SÓ superadmin** — decisão [W] 2026-10-01, textual *"Superadmin"* (`playbook/_DECISOES-W-2026-10-01b.md`). `arquivos.restore` e `arquivos.governanca` saíram do `user_permissions()`; as rotas pedem `can:superadmin` (fora do bypass do `Admin#{biz}` no `Gate::before`); concessões feitas no intervalo são limpas por `arquivos:revogar-permissoes-superadmin --dry-run`. Prova HTTP: `ArquivosSuperadminOnlyTest` (admin do 98 → 403, superadmin passa).
+- 2026-08-27 · [CC] **UC-ARQIDX-05 (baixar) e UC-ARQIDX-06 (vinculado a) promovidos de `[BACKLOG]`/medição a UC** — a onda trouxe os testes que os defendem, que é a condição do G-2. O buraco foi MEDIDO com a mesma sonda nos dois lados (produção logada × protótipo vivo): a linha de produção tinha **6 colunas e 0 botões**, o protótipo tem **7** (a 7ª é a de ações) e `mono` em 5 delas contra **0 de 6** na produção. O item de backlog do `vault` saiu da lista — ele é exatamente o UC-ARQIDX-05. O que **não** entrou, e por quê: classificar e excluir **não têm endpoint** (varredura do `Routes/web.php` do módulo: só `index`, `download` e as 3 do Install) e o charter os agenda pra onda 2, travada na decisão [W] do PR-6. Refs: US-ARQ-013 · ADR 0123 §6 (signed URL 60 min) · ADR 0093 (o `find()` do DownloadController aplica o scope).
+- 2026-10-01 · [CL] **UC-ARQIDX-09 (simular retenção em dry-run) nasce** — thread 04 do playbook (PR-8): `POST arquivos/retencao/simular` atrás de `arquivos.governanca`, dry-run forçado no controller, purge recusado, job depois da resposta que só lista. Sem botão na tela ainda. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 16 e 37.
+- 2026-10-01 · [CL] **UC-ARQIDX-08 (excluir + restaurar no grace) nasce** — thread 03 do playbook (PR-7): `POST arquivos/{arquivo}/excluir` e `.../restaurar`, drawer PT-02, chip "Mostrar excluídos". Os 2 itens de backlog de restaurar saíram (são este UC); os 2 de copy por contexto (foto de OS · XML de NF-e) ficam. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · ADR 0123 §8 (trilha append-only).
+- 2026-09-30 · [CL] **UC-ARQIDX-07 (classificar) nasce** — thread 02 do playbook (PR-6): `POST arquivos/{arquivo}/classificar`, drawer PT-02 na linha do acervo. O `[BLOQUEADO]` de 24/08 encolheu: o motivo agora vai pra trilha (linha `classify`, ao lado da `reclassify` que o Service já grava); só `force_bucket` segue bloqueado, e passou de ignorado a recusado. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 37.
 - 2026-07-11 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-08-24 · [CL] preenchido a partir do protótipo F1 exportado do Cowork (`arquivos-page.jsx`) + do rascunho `cowork-inbox/modulos-faltantes/arquivos.casos.md`. Os 14 cenários entraram como `[BACKLOG]` (sem id) pra não nascer órfão no G-2; o item de reclassificar foi marcado `[BLOQUEADO]` porque o Service não suporta o contrato da Request. Refs: US-ARQ-013 · ADR 0360.
-- 2026-08-25 · [CC] **UC-INDEX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.
-- 2026-08-26 · [CC] **UC-INDEX-04 (retenção) promovido de `[BACKLOG]` a UC** — a onda 1 FECHA aqui: as 4 vistas do charter existem. Os 2 itens de backlog que ele cobre (aba Retenção · banner do check #4) saíram da lista. Achado do caminho: `Config/retention.php` nunca foi registrado no provider — mesmo defeito do `config.php` em 24/08 —, então grace/aviso/estratégia eram inalcançáveis por `config()`. Refs: US-ARQ-013 · LGPD Art. 15-16.
-- 2026-08-25 · [CC] **UC-INDEX-03 (cofre) promovido de `[BACKLOG]` a UC** — a onda PR-4 trouxe os testes. Os 3 itens de backlog que ele cobre (aba Cofre · acima do cap · MD5 repetido) saíram da lista, e um item NOVO entrou no lugar, honesto sobre o que a vista **não** cobre: arquivo sem file físico no disco, que exige chamada de filesystem por linha. Nasce `⬜` pelo mesmo motivo do UC-INDEX-02. Refs: US-ARQ-013 · ADR 0093 (aqui o `where` repetido é que seria o defeito) · ADR 0126 (cap do vault) · LGPD Art. 37.
+- 2026-08-25 · [CC] **UC-ARQIDX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.
+- 2026-08-26 · [CC] **UC-ARQIDX-04 (retenção) promovido de `[BACKLOG]` a UC** — a onda 1 FECHA aqui: as 4 vistas do charter existem. Os 2 itens de backlog que ele cobre (aba Retenção · banner do check #4) saíram da lista. Achado do caminho: `Config/retention.php` nunca foi registrado no provider — mesmo defeito do `config.php` em 24/08 —, então grace/aviso/estratégia eram inalcançáveis por `config()`. Refs: US-ARQ-013 · LGPD Art. 15-16.
+- 2026-08-25 · [CC] **UC-ARQIDX-03 (cofre) promovido de `[BACKLOG]` a UC** — a onda PR-4 trouxe os testes. Os 3 itens de backlog que ele cobre (aba Cofre · acima do cap · MD5 repetido) saíram da lista, e um item NOVO entrou no lugar, honesto sobre o que a vista **não** cobre: arquivo sem file físico no disco, que exige chamada de filesystem por linha. Nasce `⬜` pelo mesmo motivo do UC-ARQIDX-02. Refs: US-ARQ-013 · ADR 0093 (aqui o `where` repetido é que seria o defeito) · ADR 0126 (cap do vault) · LGPD Art. 37.
 
 ## Revalidação — 2026-09-04 (PR #6767)
 
@@ -386,7 +398,7 @@ log pelo nome do teste + o contador, nunca pelo "0 failed" — §5 2026-07-24 ·
 A tela mudou só na FORMA de três células do Acervo (slug do contexto em `<code>` mono ·
 classificação como `StatusBadge kind="sla"` com dot + visibilidade em mono · cor própria no
 botão de baixar), então o G-6 marcou os casos como stale. Nenhum UC muda de aceite: o
-UC-INDEX-05 (baixar por link assinado) e o UC-INDEX-06 (dono em PT-BR, link só com rota
+UC-ARQIDX-05 (baixar por link assinado) e o UC-ARQIDX-06 (dono em PT-BR, link só com rota
 provada) seguem com o mesmo comportamento. **Revalidado pelo CI, não por leitura:** lane
 `PHP / Pest (Arquivos · MySQL)`, run
 [36801463339](https://github.com/wagnerra23/oimpresso.com/actions/runs/36801463339) —

@@ -83,7 +83,7 @@ if (! function_exists('arquivosCorpoDoMetodo')) {
 /**
  * Contrato da tela do acervo — US-ARQ-013 (onda 1 · PR-1).
  *
- * Defende o que o `Index.casos.md` declara em UC-INDEX-01 e na seção anti-regressão,
+ * Defende o que o `Index.casos.md` declara em UC-ARQIDX-01 e na seção anti-regressão,
  * e o que o `Index.charter.md` põe em Non-Goals.
  *
  * O alvo aqui é o CONTROLLER — que ele não quebre o scope e não vaze o que o charter
@@ -109,7 +109,7 @@ if (! function_exists('arquivosCorpoDoMetodo')) {
  * @see memory/requisitos/Arquivos/RUNBOOK-index.md
  */
 
-it('UC-INDEX-01 · o ACERVO nao quebra o global scope multi-tenant', function () {
+it('UC-ARQIDX-01 · o ACERVO nao quebra o global scope multi-tenant', function () {
     // Tier 0 (ADR 0093): o business_id vem da SESSÃO. Se alguém puser um
     // `withoutGlobalScopes` aqui, este teste é quem avisa.
     $arquivo = base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php');
@@ -131,7 +131,7 @@ it('UC-INDEX-01 · o ACERVO nao quebra o global scope multi-tenant', function ()
     expect($acervo)->not->toContain("where('arquivos.business_id'");
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-02 · a TRILHA filtra por business_id — a tabela nao tem global scope', function () {
+it('UC-ARQIDX-02 · a TRILHA filtra por business_id — a tabela nao tem global scope', function () {
     // O espelho do assert acima. `arquivos_audit_log` não tem model: nenhum scope roda
     // sozinho. Se o filtro sumir daqui, a trilha passa a listar evento de outro tenant —
     // e a prova comportamental está mais abaixo, com dois businesses de verdade.
@@ -142,7 +142,7 @@ it('UC-INDEX-02 · a TRILHA filtra por business_id — a tabela nao tem global s
     expect($trilha)->toContain('businessIdDaSessao');
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-01 · o controller NAO carrega storage_path nem md5 (LGPD Art. 37)', function () {
+it('UC-ARQIDX-01 · o controller NAO carrega storage_path nem md5 (LGPD Art. 37)', function () {
     // Non-Goal do charter: caminho de disco e hash não saem pra tela. Antes do PR-2 este
     // assert cobria do método `linha()` até o fim do arquivo; agora cobre o arquivo
     // INTEIRO — a superfície cresceu (trilha) e o corte por posição deixaria de fora
@@ -153,11 +153,11 @@ it('UC-INDEX-01 · o controller NAO carrega storage_path nem md5 (LGPD Art. 37)'
     expect($codigo)->not->toContain('md5');
 })->group('arquivos', 'lgpd');
 
-it('UC-INDEX-01 · nenhum caminho apaga, enfileira ou grava o model direto', function () {
+it('UC-ARQIDX-01 · nenhum caminho apaga, enfileira ou grava o model direto', function () {
     // Anti-regressão do casos.md: "Nenhum caminho de upload nesta tela" +
     // "Excluir nunca chama hard-delete direto". Na onda 1 nem existia mutação; desde a
     // thread 02 a única escrita é `classificar()`, e ela passa pelo `ArquivosService` —
-    // por isso a lista abaixo segue valendo pro arquivo INTEIRO (UC-INDEX-07).
+    // por isso a lista abaixo segue valendo pro arquivo INTEIRO (UC-ARQIDX-07).
     $codigo = arquivosCodigoSemComentarios(base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php'));
 
     foreach (['->delete(', '->save(', '->update(', 'dispatch(', 'forceDelete('] as $proibido) {
@@ -212,7 +212,7 @@ it('thread 06 · o GET de install/uninstall/update so confirma — nao chama o p
     }
 })->group('arquivos');
 
-it('UC-INDEX-01 · politica() devolve PRAZO e BASE LEGAL — nunca lista vazia', function () {
+it('UC-ARQIDX-01 · politica() devolve PRAZO e BASE LEGAL — nunca lista vazia', function () {
     // Este e o unico teste COMPORTAMENTAL do arquivo: ele invoca o metodo. Os outros
     // leem o fonte (presence-gate) e, por construcao, nao pegam defeito de runtime.
     //
@@ -245,7 +245,7 @@ it('a policy de retencao e ALCANCAVEL — o config do modulo esta registrado', f
     expect(config('arquivos.retention_days_policy.nfe-xml'))->toBe(1825);
 })->group('arquivos');
 
-it('UC-INDEX-01 · todo bucket que a Request aceita EXISTE no enum do banco', function () {
+it('UC-ARQIDX-01 · todo bucket que a Request aceita EXISTE no enum do banco', function () {
     // Comportamental, e nasceu de bug real. Ate 2026-08-25 havia QUATRO listas de bucket que
     // nao batiam: o enum do banco (7 valores, default `active`), o que o CuradorEngine grava
     // (4), o que a Request aceitava (`public`/`internal`/`sensitive`/`vault`) e os chips da
@@ -278,7 +278,7 @@ it('UC-INDEX-01 · todo bucket que a Request aceita EXISTE no enum do banco', fu
         expect($doBanco)->toContain($aceito);
     }
 })->group('arquivos');
-it('UC-INDEX-01 · a tela tem entrada no sidebar, com as 3 camadas de habilitação', function () {
+it('UC-ARQIDX-01 · a tela tem entrada no sidebar, com as 3 camadas de habilitação', function () {
     // Nasceu de defeito real: `modifyAdminMenu()` era `no-op` até 2026-08-25, com um
     // comentário dizendo que o módulo "não tem tela própria". A rota respondia 200 em
     // produção e NINGUÉM a alcançava pelo menu — só por URL direta. Nenhum gate pegaria:
@@ -340,7 +340,7 @@ if (! function_exists('arquivosTrilhaPayloadDe')) {
     }
 }
 
-it('UC-INDEX-02 · sem business_id na sessao a trilha devolve VAZIO — nunca tudo', function () {
+it('UC-ARQIDX-02 · sem business_id na sessao a trilha devolve VAZIO — nunca tudo', function () {
     // Fail-closed, e é onde a trilha diverge do model de propósito: o global scope do
     // `Arquivo` faz `if ($businessId !== null)` e, sem sessão, deixa a query passar SEM
     // filtro. Repetir essa aposta numa tabela sem scope seria servir o log inteiro do
@@ -355,7 +355,7 @@ it('UC-INDEX-02 · sem business_id na sessao a trilha devolve VAZIO — nunca tu
     expect($payload['acoes'])->toBe([]);
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-02 · a linha da trilha expoe id do arquivo, NUNCA o nome', function () {
+it('UC-ARQIDX-02 · a linha da trilha expoe id do arquivo, NUNCA o nome', function () {
     // Comportamental e sem banco: alimenta o formatador com uma linha crua e olha o que
     // sai. O charter proíbe filename em vista de governança, e o protótipo desenha a
     // coluna como `#id` — o contrato é o conjunto de chaves, não a intenção do docblock.
@@ -378,7 +378,7 @@ it('UC-INDEX-02 · a linha da trilha expoe id do arquivo, NUNCA o nome', functio
     expect($linha['detalhe'])->toBe('ip=10.0.0.7 · agent=Mozilla');
 })->group('arquivos', 'lgpd');
 
-it('UC-INDEX-02 · o detalhe resume o payload — bool vira palavra e lixo nao quebra a tela', function () {
+it('UC-ARQIDX-02 · o detalhe resume o payload — bool vira palavra e lixo nao quebra a tela', function () {
     // `payload` é campo livre: cada gravador escreve o seu. O formatador precisa aguentar
     // o que os 4 call-sites de hoje escrevem E o que o quinto vier a escrever.
     $c = new ArquivosAdminController();
@@ -394,7 +394,7 @@ it('UC-INDEX-02 · o detalhe resume o payload — bool vira palavra e lixo nao q
     expect($m->invoke($c, 'isto nao e json'))->toBe('isto nao e json');
 })->group('arquivos');
 
-it('UC-INDEX-02 · a trilha do tenant 98 NUNCA mostra evento do 99 (Tier 0, cross-tenant)', function () {
+it('UC-ARQIDX-02 · a trilha do tenant 98 NUNCA mostra evento do 99 (Tier 0, cross-tenant)', function () {
     if (! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('arquivos_audit_log ausente — a prova cross-tenant roda na lane MySQL.');
     }
@@ -433,7 +433,7 @@ it('UC-INDEX-02 · a trilha do tenant 98 NUNCA mostra evento do 99 (Tier 0, cros
     expect($somaFacetas)->toBe($payload['eventos']['total']);
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-02 · o filtro de acao restringe a lista sem apagar os outros chips', function () {
+it('UC-ARQIDX-02 · o filtro de acao restringe a lista sem apagar os outros chips', function () {
     if (! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('arquivos_audit_log ausente — roda na lane MySQL.');
     }
@@ -517,7 +517,7 @@ if (! function_exists('arquivosCofrePayload')) {
     }
 }
 
-it('UC-INDEX-03 · sem business_id na sessao o cofre nao diz "0 achados" — diz que NAO MEDIU', function () {
+it('UC-ARQIDX-03 · sem business_id na sessao o cofre nao diz "0 achados" — diz que NAO MEDIU', function () {
     // Portão fail-closed. O global scope do `Arquivo` faz `if ($businessId !== null)`,
     // logo sem sessão a query passaria SEM filtro e o cofre somaria o acervo de todos
     // os tenants. Devolver zeros também seria errado por outro motivo: zero é a
@@ -534,7 +534,7 @@ it('UC-INDEX-03 · sem business_id na sessao o cofre nao diz "0 achados" — diz
     expect($payload['duplicados']['grupos'])->toBe(0);
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-03 · o COFRE le pelo model e NAO repete o where de business_id', function () {
+it('UC-ARQIDX-03 · o COFRE le pelo model e NAO repete o where de business_id', function () {
     // Espelho do assert do acervo, um arquivo adiante: `arquivos` TEM model, logo TEM
     // global scope, logo repetir o filtro esconderia uma quebra dele. É o oposto da
     // trilha — e é por isso que os três asserts existem separados.
@@ -547,7 +547,7 @@ it('UC-INDEX-03 · o COFRE le pelo model e NAO repete o where de business_id', f
     expect($codigo)->not->toContain('withoutGlobalScopes');
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-03 · `toBase()` NAO derruba o global scope — o recorte por business sobrevive', function () {
+it('UC-ARQIDX-03 · `toBase()` NAO derruba o global scope — o recorte por business sobrevive', function () {
     // O leitor agrega com `->toBase()->get()` porque agregação hidratada em model devolve
     // `Arquivo` com aliases que a classe não declara (o PHPStan reprova, e com razão: alias
     // de agregação não é atributo). Mas o nome `toBase` sugere "desce pro query builder cru",
@@ -579,7 +579,7 @@ it('UC-INDEX-03 · `toBase()` NAO derruba o global scope — o recorte por busin
     expect($semSessao)->not->toContain('business_id');
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-03 · o cap do cofre vem da CONFIG que o vault cobra, nunca de um 50 escrito na tela', function () {
+it('UC-ARQIDX-03 · o cap do cofre vem da CONFIG que o vault cobra, nunca de um 50 escrito na tela', function () {
     // Se o cap virar literal aqui, a tela passa a mentir no dia em que alguém ajustar
     // ARQUIVOS_VAULT_MAX_FILE_SIZE_MB no .env — e o `VaultEncryptionService` seguiria
     // recusando por outro número. Comportamental: muda a config e olha o que sai.
@@ -596,7 +596,7 @@ it('UC-INDEX-03 · o cap do cofre vem da CONFIG que o vault cobra, nunca de um 5
     expect($m->invoke($reader))->toBe(50);
 })->group('arquivos');
 
-it('UC-INDEX-03 · o controller registra a prop de UMA vista so — a que esta aberta', function () {
+it('UC-ARQIDX-03 · o controller registra a prop de UMA vista so — a que esta aberta', function () {
     // O RUNBOOK declara isto e nada defendia: `Inertia::defer` adia a execução, mas o
     // cliente busca TODAS as props deferidas no segundo request — registrar duas faria
     // quem está no cofre pagar o `paginate` do acervo. Comportamental sem banco: o
@@ -624,7 +624,7 @@ it('UC-INDEX-03 · o controller registra a prop de UMA vista so — a que esta a
     expect($props(null))->toBe(['filtros', 'politica', 'resumo', 'pode_restaurar', 'acervo']);
 })->group('arquivos');
 
-it('UC-INDEX-03 · o cofre do tenant 98 NUNCA conta arquivo do 99 (Tier 0, cross-tenant)', function () {
+it('UC-ARQIDX-03 · o cofre do tenant 98 NUNCA conta arquivo do 99 (Tier 0, cross-tenant)', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — a prova cross-tenant roda na lane MySQL.');
     }
@@ -647,7 +647,7 @@ it('UC-INDEX-03 · o cofre do tenant 98 NUNCA conta arquivo do 99 (Tier 0, cross
     expect($card['bytes'])->toBe(1000);
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-03 · o duplicado separa registro repetido de disco ocupado duas vezes', function () {
+it('UC-ARQIDX-03 · o duplicado separa registro repetido de disco ocupado duas vezes', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
     }
@@ -688,7 +688,7 @@ it('UC-INDEX-03 · o duplicado separa registro repetido de disco ocupado duas ve
     expect($sep['caminhos'])->toBe(2);     // aí sim: dois arquivos físicos
 })->group('arquivos');
 
-it('UC-INDEX-03 · o payload do cofre NAO carrega hash nem caminho de disco (LGPD Art. 37)', function () {
+it('UC-ARQIDX-03 · o payload do cofre NAO carrega hash nem caminho de disco (LGPD Art. 37)', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
     }
@@ -726,7 +726,7 @@ it('UC-INDEX-03 · o payload do cofre NAO carrega hash nem caminho de disco (LGP
 // contadores das abas e a contagem dos chips.
 // =============================================================================
 
-it('UC-INDEX-01 · o resumo conta o ACERVO do business, nunca a pagina', function () {
+it('UC-ARQIDX-01 · o resumo conta o ACERVO do business, nunca a pagina', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
     }
@@ -752,7 +752,7 @@ it('UC-INDEX-01 · o resumo conta o ACERVO do business, nunca a pagina', functio
     expect($depois['por_bucket']['discard'] ?? 0)->toBe(($antes['por_bucket']['discard'] ?? 0) + 1);
 })->group('arquivos');
 
-it('UC-INDEX-01 · o index() NAO estoura quando a tabela nao existe — prop eager degrada', function () {
+it('UC-ARQIDX-01 · o index() NAO estoura quando a tabela nao existe — prop eager degrada', function () {
     // Nasceu de vermelho real (lane `Pest Arquivos`, sqlite sem migrate): o `resumo` é EAGER,
     // então executa DENTRO do `index()` — ao contrário das deferidas, que só são registradas.
     // Sem o guard de `Schema::hasTable`, a query estourava `QueryException` e derrubava a TELA
@@ -776,7 +776,7 @@ it('UC-INDEX-01 · o index() NAO estoura quando a tabela nao existe — prop eag
     ]);
 })->group('arquivos');
 
-it('UC-INDEX-02 · sem business na sessao o contador de eventos e 0, nunca o total do sistema', function () {
+it('UC-ARQIDX-02 · sem business na sessao o contador de eventos e 0, nunca o total do sistema', function () {
     // Mesmo fail-closed da trilha, agora no contador da aba: `arquivos_audit_log` não tem
     // model, então sem `business_id` na sessão o `count()` traria o log de TODOS os
     // tenants — e o número apareceria no pill da aba, que é onde ninguém desconfia.
@@ -808,7 +808,7 @@ if (! function_exists('arquivosRetencaoDe')) {
     }
 }
 
-it('UC-INDEX-04 · sem business na sessao a retencao nao diz "tudo em dia" — diz que NAO MEDIU', function () {
+it('UC-ARQIDX-04 · sem business na sessao a retencao nao diz "tudo em dia" — diz que NAO MEDIU', function () {
     // Mesmo portão do cofre, e pelo mesmo motivo: o global scope é fail-open, então sem
     // sessão a vista contaria o acervo de todos os tenants. E zero aqui seria pior que no
     // cofre — "0 passaram do prazo" numa tela de LGPD é a afirmação mais perigosa da tela.
@@ -822,7 +822,7 @@ it('UC-INDEX-04 · sem business na sessao a retencao nao diz "tudo em dia" — d
     expect($r['por_contexto'])->toBe([]);
 })->group('arquivos', 'multi-tenant', 'lgpd');
 
-it('UC-INDEX-04 · o grace e o aviso vem da CONFIG que o job cobra, nao de numero na tela', function () {
+it('UC-ARQIDX-04 · o grace e o aviso vem da CONFIG que o job cobra, nao de numero na tela', function () {
     // `Config/retention.php` NUNCA foi registrado no provider (achado desta leva): sem o
     // `mergeConfigFrom`, `config('arquivos_retention.*')` era null e a tela mostraria os
     // defaults inline como se fossem a política. Este teste morde os dois: o registro E o
@@ -832,7 +832,7 @@ it('UC-INDEX-04 · o grace e o aviso vem da CONFIG que o job cobra, nao de numer
     expect(config('arquivos_retention.strategy'))->toBe('hard_delete');
 })->group('arquivos');
 
-it('UC-INDEX-04 · o prazo por linha vence o da policy — a MESMA regra do acervo', function () {
+it('UC-ARQIDX-04 · o prazo por linha vence o da policy — a MESMA regra do acervo', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
     }
@@ -859,7 +859,7 @@ it('UC-INDEX-04 · o prazo por linha vence o da policy — a MESMA regra do acer
     expect($depois['passou_do_prazo'])->toBe($antes['passou_do_prazo'] + 1);
 })->group('arquivos');
 
-it('UC-INDEX-04 · o que esta no grace NAO conta como vencido — sao estados diferentes', function () {
+it('UC-ARQIDX-04 · o que esta no grace NAO conta como vencido — sao estados diferentes', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — roda na lane MySQL.');
     }
@@ -933,7 +933,7 @@ if (! function_exists('arquivosFixtureLinha')) {
     }
 }
 
-it('UC-INDEX-05 · a linha oferece link ASSINADO pro DownloadController, valido por 60 min', function () {
+it('UC-ARQIDX-05 · a linha oferece link ASSINADO pro DownloadController, valido por 60 min', function () {
     // O charter proíbe `Storage::url` (Non-Goal) e a ADR 0123 §6 manda passar pelo
     // `DownloadController` com link temporário. O endpoint JÁ existia — o que faltava era a
     // tela oferecer. O assert mede as TRÊS coisas que fazem o link ser o que ele diz ser:
@@ -953,7 +953,7 @@ it('UC-INDEX-05 · a linha oferece link ASSINADO pro DownloadController, valido 
     expect((int) $query['expires'])->toBeLessThan(now()->addMinutes(62)->timestamp);
 })->group('arquivos');
 
-it('UC-INDEX-05 · arquivo apagado ou sem conteudo NAO oferece download', function () {
+it('UC-ARQIDX-05 · arquivo apagado ou sem conteudo NAO oferece download', function () {
     // Os dois casos terminam em 404 no `DownloadController`, por caminhos diferentes:
     // o apagado morre no `Arquivo::find()` (sem `withTrashed`), o sem-conteúdo morre no
     // `$disk->exists()`. Oferecer o botão seria oferecer um 404 — e é o `a.anon` que o
@@ -969,7 +969,7 @@ it('UC-INDEX-05 · arquivo apagado ou sem conteudo NAO oferece download', functi
     expect(arquivosLinhaDe(arquivosFixtureLinha())['download_url'])->not->toBeNull();
 })->group('arquivos');
 
-it('UC-INDEX-05 · montar o link NAO escreve na trilha — a tela segue leitura pura', function () {
+it('UC-ARQIDX-05 · montar o link NAO escreve na trilha — a tela segue leitura pura', function () {
     if (! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabela arquivos_audit_log ausente — a prova comportamental roda na lane MySQL.');
     }
@@ -1000,7 +1000,7 @@ it('UC-INDEX-05 · montar o link NAO escreve na trilha — a tela segue leitura 
 
 })->group('arquivos');
 
-it('UC-INDEX-06 · "Vinculado a" mostra o nome de NEGOCIO e leva a tela do dono quando ela existe', function () {
+it('UC-ARQIDX-06 · "Vinculado a" mostra o nome de NEGOCIO e leva a tela do dono quando ela existe', function () {
     // A tela imprimia `ServiceOrder #4` — nome da classe Eloquent, não nome da coisa. Os
     // dois tipos abaixo são os ÚNICOS com rota provada em `php artisan route:list` (o
     // runtime é o oráculo, não o `Routes/web.php`, que num app modular tem várias fontes).
@@ -1020,7 +1020,7 @@ it('UC-INDEX-06 · "Vinculado a" mostra o nome de NEGOCIO e leva a tela do dono 
     expect($repair['dono_url'])->toContain('/repair/job-sheet/7');
 })->group('arquivos');
 
-it('UC-INDEX-06 · tipo SEM rota provada vira texto, nunca link morto', function () {
+it('UC-ARQIDX-06 · tipo SEM rota provada vira texto, nunca link morto', function () {
     // `NfeEmissao` tem rótulo de negócio mas nenhuma tela por id (o que existe é o
     // `danfe-pdf`, que devolve PDF). Ganha a tradução e NÃO ganha link.
     $nfe = arquivosLinhaDe(arquivosFixtureLinha([
@@ -1062,10 +1062,10 @@ afterEach(function () {
     // Fixtures do cofre — a âncora é o `disk`, NÃO o `sub_destination`.
     //
     // Ela já foi `sub_destination = '__fixture-cofre'` e isso vazou: os dois testes de
-    // UC-INDEX-04 precisam de um contexto REAL (`nfe-xml`, `ticket-anexo`) pra exercer a
+    // UC-ARQIDX-04 precisam de um contexto REAL (`nfe-xml`, `ticket-anexo`) pra exercer a
     // precedência do prazo, então sobrescrevem justamente o campo que a limpeza usava
     // como marcador. As linhas sobreviviam ao `afterEach` carregando o `disk` do helper —
-    // e como o cross-tenant de UC-INDEX-03 mede o card DESSE disco, ele passava a contar
+    // e como o cross-tenant de UC-ARQIDX-03 mede o card DESSE disco, ele passava a contar
     // 2 onde esperava 1. Pior sintoma possível: ordem aleatória do Pest decidindo se o
     // assert Tier 0 mais importante do arquivo é verde ou vermelho.
     //
@@ -1083,7 +1083,7 @@ afterEach(function () {
 });
 
 /*
-| UC-INDEX-07 · Classificar (onda 2 · PR-6 · thread 02 do playbook).
+| UC-ARQIDX-07 · Classificar (onda 2 · PR-6 · thread 02 do playbook).
 | O Request é montado à mão e o método chamado direto, como o resto do arquivo faz com a
 | trilha: o que se prova é o controller, não o kernel HTTP.
 */
@@ -1109,7 +1109,7 @@ if (! function_exists('arquivosFixtureId')) {
     }
 }
 
-it('UC-INDEX-07 · a rota de classificar e POST, numerica e atras de arquivos.access', function () {
+it('UC-ARQIDX-07 · a rota de classificar e POST, numerica e atras de arquivos.access', function () {
     $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
 
     expect($rotas)->toContain("Route::post('{arquivo}/classificar'");
@@ -1120,7 +1120,7 @@ it('UC-INDEX-07 · a rota de classificar e POST, numerica e atras de arquivos.ac
     expect($rotas)->toContain("->middleware(['can:arquivos.access', 'can:superadmin'])");
 })->group('arquivos');
 
-it('UC-INDEX-07 · classificar passa pela Request de motivo e pelo Service — nunca grava o model direto', function () {
+it('UC-ARQIDX-07 · classificar passa pela Request de motivo e pelo Service — nunca grava o model direto', function () {
     $corpo = arquivosCorpoDoMetodo(
         base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php'), 'classificar'
     );
@@ -1132,7 +1132,7 @@ it('UC-INDEX-07 · classificar passa pela Request de motivo e pelo Service — n
     expect($corpo)->not->toContain('withoutGlobalScope');
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-07 · a Request recusa arquivo de OUTRO business (Tier 0, cross-tenant)', function () {
+it('UC-ARQIDX-07 · a Request recusa arquivo de OUTRO business (Tier 0, cross-tenant)', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — a prova cross-tenant roda na lane MySQL.');
     }
@@ -1150,7 +1150,7 @@ it('UC-INDEX-07 · a Request recusa arquivo de OUTRO business (Tier 0, cross-ten
 })->group('arquivos', 'multi-tenant');
 
 // @covers-us US-ARQ-027
-it('UC-INDEX-07 · classificar grava classified_at e a trilha guarda o MOTIVO no business do arquivo', function () {
+it('UC-ARQIDX-07 · classificar grava classified_at e a trilha guarda o MOTIVO no business do arquivo', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
     }
@@ -1174,7 +1174,7 @@ it('UC-INDEX-07 · classificar grava classified_at e a trilha guarda o MOTIVO no
     expect(DB::table('arquivos_audit_log')->where('arquivo_id', $id)->where('action', 'reclassify')->count())->toBe(1);
 })->group('arquivos');
 
-it('UC-INDEX-07 · force_bucket e RECUSADO — nada muda e nada vai pra trilha', function () {
+it('UC-ARQIDX-07 · force_bucket e RECUSADO — nada muda e nada vai pra trilha', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
     }
@@ -1194,8 +1194,8 @@ it('UC-INDEX-07 · force_bucket e RECUSADO — nada muda e nada vai pra trilha',
 })->group('arquivos');
 
 /*
-| UC-INDEX-08 · Excluir (soft-delete) e restaurar dentro do grace (onda 2 · PR-7 · thread 03).
-| Mesmo desenho do UC-INDEX-07: Request montada à mão, controller chamado direto.
+| UC-ARQIDX-08 · Excluir (soft-delete) e restaurar dentro do grace (onda 2 · PR-7 · thread 03).
+| Mesmo desenho do UC-ARQIDX-07: Request montada à mão, controller chamado direto.
 */
 if (! function_exists('arquivosExcluirRequest')) {
     /** @param class-string<Illuminate\Foundation\Http\FormRequest> $classe */
@@ -1215,7 +1215,7 @@ if (! function_exists('arquivosExcluirRequest')) {
     }
 }
 
-it('UC-INDEX-08 · excluir e restaurar sao POST, numericos e atras de arquivos.access', function () {
+it('UC-ARQIDX-08 · excluir e restaurar sao POST, numericos e atras de arquivos.access', function () {
     $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
 
     expect($rotas)->toContain("Route::post('{arquivo}/excluir'");
@@ -1225,7 +1225,7 @@ it('UC-INDEX-08 · excluir e restaurar sao POST, numericos e atras de arquivos.a
     expect(substr_count($rotas, "->whereNumber('arquivo')"))->toBe(3);
 })->group('arquivos');
 
-it('UC-INDEX-08 · excluir e restaurar passam pelo Service — nunca hard-delete nem purge', function () {
+it('UC-ARQIDX-08 · excluir e restaurar passam pelo Service — nunca hard-delete nem purge', function () {
     $arquivo = base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php');
     $excluir   = arquivosCorpoDoMetodo($arquivo, 'excluir');
     $restaurar = arquivosCorpoDoMetodo($arquivo, 'restaurar');
@@ -1242,7 +1242,7 @@ it('UC-INDEX-08 · excluir e restaurar passam pelo Service — nunca hard-delete
     }
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-08 · a linha so e restauravel DENTRO do grace — fora dele nao ha botao', function () {
+it('UC-ARQIDX-08 · a linha so e restauravel DENTRO do grace — fora dele nao ha botao', function () {
     $dentro = arquivosLinhaDe(arquivosFixtureLinha(['deleted_at' => now()->subDays(5)]));
     $fora   = arquivosLinhaDe(arquivosFixtureLinha(['deleted_at' => now()->subDays(45)]));
     $vivo   = arquivosLinhaDe(arquivosFixtureLinha());
@@ -1254,7 +1254,7 @@ it('UC-INDEX-08 · a linha so e restauravel DENTRO do grace — fora dele nao ha
     expect($vivo['restaurar_ate'])->toBeNull();
 })->group('arquivos');
 
-it('UC-INDEX-08 · as Requests recusam arquivo de OUTRO business (Tier 0, cross-tenant 98 x 99)', function () {
+it('UC-ARQIDX-08 · as Requests recusam arquivo de OUTRO business (Tier 0, cross-tenant 98 x 99)', function () {
     if (! Schema::hasTable('arquivos')) {
         $this->markTestSkipped('tabela arquivos ausente — a prova cross-tenant roda na lane MySQL.');
     }
@@ -1283,7 +1283,7 @@ it('UC-INDEX-08 · as Requests recusam arquivo de OUTRO business (Tier 0, cross-
 })->group('arquivos', 'multi-tenant');
 
 // @covers-us US-ARQ-028
-it('UC-INDEX-08 · excluir e soft-delete com motivo na trilha; restaurar no grace PRESERVA a trilha', function () {
+it('UC-ARQIDX-08 · excluir e soft-delete com motivo na trilha; restaurar no grace PRESERVA a trilha', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
     }
@@ -1312,7 +1312,7 @@ it('UC-INDEX-08 · excluir e soft-delete com motivo na trilha; restaurar no grac
     expect(json_decode($restauro->payload, true)['motivo'])->toBe('excluido por engano');
 })->group('arquivos');
 
-it('UC-INDEX-08 · fora do grace restaurar e RECUSADO — o arquivo segue excluido e a trilha nao muda', function () {
+it('UC-ARQIDX-08 · fora do grace restaurar e RECUSADO — o arquivo segue excluido e a trilha nao muda', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
     }
@@ -1333,8 +1333,8 @@ it('UC-INDEX-08 · fora do grace restaurar e RECUSADO — o arquivo segue exclui
 })->group('arquivos');
 
 /*
-| UC-INDEX-09 · Simular a retenção em dry-run (onda 3 · PR-8 · thread 04). D4: a tela nunca apaga.
-| O controller é outro (`RetencaoSimulacaoController`) porque o UC-INDEX-01 proíbe `dispatch(`
+| UC-ARQIDX-09 · Simular a retenção em dry-run (onda 3 · PR-8 · thread 04). D4: a tela nunca apaga.
+| O controller é outro (`RetencaoSimulacaoController`) porque o UC-ARQIDX-01 proíbe `dispatch(`
 | no `ArquivosAdminController` inteiro.
 */
 if (! function_exists('arquivosSimularRequest')) {
@@ -1350,7 +1350,7 @@ if (! function_exists('arquivosSimularRequest')) {
     }
 }
 
-it('UC-INDEX-09 · simular e POST atras de can:superadmin, fora do controller do acervo', function () {
+it('UC-ARQIDX-09 · simular e POST atras de can:superadmin, fora do controller do acervo', function () {
     $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
 
     expect($rotas)->toContain("Route::post('retencao/simular', [RetencaoSimulacaoController::class, 'simular'])");
@@ -1358,12 +1358,12 @@ it('UC-INDEX-09 · simular e POST atras de can:superadmin, fora do controller do
     expect($rotas)->toContain("->middleware('can:superadmin')");
     expect($rotas)->not->toContain('can:arquivos.governanca');
     expect($rotas)->toContain("->name('arquivos.retencao.simular')");
-    // O controller do acervo segue sem enfileirar nada (UC-INDEX-01).
+    // O controller do acervo segue sem enfileirar nada (UC-ARQIDX-01).
     expect(arquivosCodigoSemComentarios(base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php')))
         ->not->toContain('SimularRetencaoJob');
 })->group('arquivos');
 
-it('UC-INDEX-09 · arquivos.restore e arquivos.governanca NAO sao delegaveis — saem do catalogo (so superadmin)', function () {
+it('UC-ARQIDX-09 · arquivos.restore e arquivos.governanca NAO sao delegaveis — saem do catalogo (so superadmin)', function () {
     $perms = collect((new Modules\Arquivos\Http\Controllers\DataController())->user_permissions())->keyBy('value');
 
     // Controle positivo: o catálogo é lido — senão o `false` abaixo viria de lista vazia.
@@ -1372,7 +1372,7 @@ it('UC-INDEX-09 · arquivos.restore e arquivos.governanca NAO sao delegaveis —
     expect($perms->has('arquivos.governanca'))->toBeFalse();
 })->group('arquivos');
 
-it('UC-INDEX-08 · a RestoreArquivoRequest NAO aceita arquivos.restore — so superadmin', function () {
+it('UC-ARQIDX-08 · a RestoreArquivoRequest NAO aceita arquivos.restore — so superadmin', function () {
     $req = Modules\Arquivos\Http\Requests\RestoreArquivoRequest::class;
     $codigo = arquivosCorpoDoMetodo(base_path('Modules/Arquivos/Http/Requests/RestoreArquivoRequest.php'), 'authorize');
 
@@ -1381,7 +1381,7 @@ it('UC-INDEX-08 · a RestoreArquivoRequest NAO aceita arquivos.restore — so su
     expect(class_exists($req))->toBeTrue();
 })->group('arquivos');
 
-it('UC-INDEX-09 · o controller FORCA dry_run=true e usa o business da SESSAO (canario 98 x 99)', function () {
+it('UC-ARQIDX-09 · o controller FORCA dry_run=true e usa o business da SESSAO (canario 98 x 99)', function () {
     Illuminate\Support\Facades\Bus::fake();
     session(['user' => ['business_id' => Tests\TestCase::SEEDED_TENANT_ID]]);
 
@@ -1401,7 +1401,7 @@ it('UC-INDEX-09 · o controller FORCA dry_run=true e usa o business da SESSAO (c
     );
 })->group('arquivos', 'multi-tenant');
 
-it('UC-INDEX-09 · purge e RECUSADO no controller — nada e despachado', function () {
+it('UC-ARQIDX-09 · purge e RECUSADO no controller — nada e despachado', function () {
     Illuminate\Support\Facades\Bus::fake();
     session(['user' => ['business_id' => Tests\TestCase::SEEDED_TENANT_ID]]);
 
@@ -1416,7 +1416,7 @@ it('UC-INDEX-09 · purge e RECUSADO no controller — nada e despachado', functi
     Illuminate\Support\Facades\Bus::assertNothingDispatched();
 })->group('arquivos');
 
-it('UC-INDEX-09 · o job recusa sozinho dry_run=false e purge (defesa em profundidade)', function () {
+it('UC-ARQIDX-09 · o job recusa sozinho dry_run=false e purge (defesa em profundidade)', function () {
     $servico = app(Modules\Arquivos\Services\ArquivosRetentionService::class);
 
     expect(fn () => (new Modules\Arquivos\Jobs\SimularRetencaoJob(98, 365, false, false))->handle($servico))
@@ -1426,7 +1426,7 @@ it('UC-INDEX-09 · o job recusa sozinho dry_run=false e purge (defesa em profund
 })->group('arquivos');
 
 // @covers-us US-ARQ-029
-it('UC-INDEX-09 · a simulacao lista so o proprio business, diz o porque e NAO escreve em arquivos nem na trilha', function () {
+it('UC-ARQIDX-09 · a simulacao lista so o proprio business, diz o porque e NAO escreve em arquivos nem na trilha', function () {
     if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
         $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
     }

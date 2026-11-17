@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Modules\Manufacturing\Http\Requests\StoreProductionRequest;
 use Modules\Manufacturing\Http\Requests\StoreRecipeRequest;
 use Modules\Manufacturing\Http\Requests\UpdateProductionRequest;
-use Modules\Manufacturing\Http\Requests\UpdateRecipeRequest;
 
 uses(Tests\TestCase::class);
 
@@ -20,33 +19,15 @@ uses(Tests\TestCase::class);
  * `user.business_id` + permission Spatie + subscription ModuleUtil.
  *
  * @see Modules\Manufacturing\Http\Requests\UpdateProductionRequest
- * @see Modules\Manufacturing\Http\Requests\UpdateRecipeRequest
+ * `UpdateRecipeRequest` saiu no lote 2.8 da auditoria (2026-11-16): nenhuma rota o usava (R-MANU-004).
  */
 describe('Wave 18 — Manufacturing FormRequests contract', function () {
-    it('UpdateRecipeRequest carrega e expõe rules+authorize', function () {
-        expect(class_exists(UpdateRecipeRequest::class))->toBeTrue();
-
-        $reflection = new ReflectionClass(UpdateRecipeRequest::class);
-        expect($reflection->hasMethod('rules'))->toBeTrue();
-        expect($reflection->hasMethod('authorize'))->toBeTrue();
-    });
-
     it('UpdateProductionRequest carrega e expõe rules+authorize', function () {
         expect(class_exists(UpdateProductionRequest::class))->toBeTrue();
 
         $reflection = new ReflectionClass(UpdateProductionRequest::class);
         expect($reflection->hasMethod('rules'))->toBeTrue();
         expect($reflection->hasMethod('authorize'))->toBeTrue();
-    });
-
-    it('UpdateRecipeRequest rules incluem variation_id + ingredients + production_cost_type', function () {
-        $req = new UpdateRecipeRequest();
-        $rules = $req->rules();
-
-        expect($rules)->toHaveKey('variation_id');
-        expect($rules)->toHaveKey('ingredients');
-        expect($rules)->toHaveKey('production_cost_type');
-        expect($rules['production_cost_type'])->toContain('in:fixed,percentage,per_unit');
     });
 
     it('UpdateProductionRequest rules incluem ref_no + lot_number + exp_date', function () {
@@ -63,7 +44,6 @@ describe('Wave 18 — Manufacturing FormRequests contract', function () {
         expect(class_exists(StoreProductionRequest::class))->toBeTrue();
         expect(class_exists(StoreRecipeRequest::class))->toBeTrue();
         expect(class_exists(UpdateProductionRequest::class))->toBeTrue();
-        expect(class_exists(UpdateRecipeRequest::class))->toBeTrue();
     });
 
     it('UpdateProductionRequest valida production_cost_type allow-list (security hardening D8)', function () {

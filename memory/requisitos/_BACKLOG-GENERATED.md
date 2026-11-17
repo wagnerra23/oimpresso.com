@@ -1448,7 +1448,7 @@
 - **US-ASSOC-002** — Associações e documentos, com a pendência de 30 dias — **P0**
 - **US-ASSOC-003** — Associadas com consentimento — **P0**
 - **US-ASSOC-004** — Painel da rede — **P1**
-- **US-ASSOC-005** — Área da associada no app — **P1**
+- **US-ASSOC-005** — Área da associada no site da Uniafibro e no app — **P1**
 
 ## Captacao
 

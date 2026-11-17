@@ -40,4 +40,17 @@ return [
             'obrigatorio' => false,
         ],
     ],
+
+    // D6 da ADR 0451 (onda 6): área da associada no app, por link + PIN. Mesmos números do
+    // portal do paciente do Fisio (config('fisio.portal')).
+    'portal' => [
+        'validade_dias' => 30,
+        'max_tentativas' => 5,
+        'lockout_minutos' => 30,
+        // Endereço em que o link abre (D6, emenda de 2026-11-14): o site da rede. A rota existe
+        // também no endereço do app; aqui só se escolhe qual vai no link que a diretoria envia.
+        // Literal, sem env(): o Larastan recusa env() fora de config/ da raiz
+        // (noEnvCallsOutsideOfConfig), e o endereço é decisão fixa da D6, não de ambiente.
+        'url_base' => 'https://uniafibro.com.br',
+    ],
 ];
