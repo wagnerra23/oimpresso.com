@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1045,
-    "edges": 1403,
+    "nodes": 1046,
+    "edges": 1404,
     "by_node_type": {
       "module": 45,
       "table": 136,
       "adr": 157,
-      "component": 607,
+      "component": 608,
       "api": 100
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 85,
-      "hasComponent": 607,
+      "hasComponent": 608,
       "dependsOn": 154,
       "delegatesTo": 139,
       "migratesTo": 1,
@@ -5409,6 +5409,13 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
+      "id": "component:Producao/OrdemFichaController",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemFichaController",
+      "desc": "leva /producao/ordens/{id} ao Quadro com a Ficha da OS aberta (UC-PCOSF-10)"
+    },
+    {
       "id": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "component",
       "module": "Producao",
@@ -5469,7 +5476,7 @@
       "type": "component",
       "module": "Producao",
       "name": "PropsDaFicha + FichaDaOrdem",
-      "desc": "Ficha da OS por item no painel lateral do Quadro e da Linha do tempo (?os={id}, decisão [W] no #10850, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404. OrdemFichaController leva /producao/ordens/{id} ao Quadro com ela aberta (UC-PCOSF-10)"
+      "desc": "Ficha da OS por item no painel lateral do Quadro e da Linha do tempo (?os={id}, decisão [W] no #10850, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404."
     },
     {
       "id": "component:Producao/QuadroController + QuadroDaProducao",
@@ -15520,6 +15527,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/OrdemCustoController + PrevisaoCustoDaOrdem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/OrdemFichaController",
       "type": "hasComponent",
       "source": "contains"
     },
