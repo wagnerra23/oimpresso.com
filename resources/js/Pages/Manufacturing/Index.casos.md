@@ -369,6 +369,20 @@ last_run: "2026-10-07"
 
 ---
 
+## UC-OP-23 · Excluir o rascunho leva a ordem inteira e deixa trilha
+- **Persona:** quem descarta um rascunho de ordem.
+- **Aceite:** Dado um rascunho · Quando é excluído · Então somem a ordem e a venda de produção filha (o consumo,
+  com as linhas), e a exclusão fica na trilha com a empresa · Dado uma ordem finalizada ou um id que não existe ·
+  Então a resposta não diz "excluído", e a finalizada continua.
+- **Fonte:** SDD Fabricação §4 (a ordem é a compra de produção mais o consumo dos insumos) · charter de Index (ordem
+  finalizada não se exclui) · trilha por empresa (ADR 0127) · auditoria do Manufacturing, lote 2.7.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/ExcluirRascunhoTrilhaTest.php`
+- **Regressão que defende:** venda de produção órfã depois de excluir o rascunho, exclusão sem registro, e "excluído"
+  respondido para ordem que não foi apagada.
+- **Status: 🧪**
+
+---
+
 ## UC-OP-22 · Quem só pode um local só vê e só grava ordem nesse local
 - **Persona:** operador com acesso a um local só (sem `access_all_locations`).
 - **Aceite:** Dado um usuário com o local A e sem o B · Quando grava ordem em B, ou edita o rascunho para B ·

@@ -26,7 +26,10 @@ Route::middleware(['web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin', 
     Route::get('/', [Modules\Superadmin\Http\Controllers\SuperadminController::class, 'index']);
     Route::get('/stats', [Modules\Superadmin\Http\Controllers\SuperadminController::class, 'stats']);
 
-    Route::get('/{business_id}/toggle-active/{is_active}', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'toggleActive']);
+    // POST com CSRF (era GET: um link visto por superadmin logado desativava empresa). `is_active`
+    // só 0 ou 1 — antes ia direto da URL para o UPDATE.
+    Route::post('/{business_id}/toggle-active/{is_active}', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'toggleActive'])
+        ->whereNumber('business_id')->whereIn('is_active', ['0', '1']);
 
     Route::get('/users/{business_id}', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'usersList']);
     Route::post('/update-password', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'updatePassword']);
@@ -40,16 +43,20 @@ Route::middleware(['web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin', 
     // nasce com charter e contrato — nao herdando estas.
     Route::resource('/business', Modules\Superadmin\Http\Controllers\BusinessController::class)
         ->except(['edit', 'update']);
-    Route::get('/business/{id}/destroy', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'destroy']);
+    // Excluir empresa e pacote: só o DELETE do resource (com CSRF). Os aliases
+    // `GET /business/{id}/destroy` e `GET /packages/{id}/destroy` saíram (auditoria 2026-11-05):
+    // apagavam por um link, sem tela nenhuma que os chamasse.
 
-    Route::resource('/packages', 'Modules\Superadmin\Http\Controllers\PackagesController');
-    Route::get('/packages/{id}/destroy', [Modules\Superadmin\Http\Controllers\PackagesController::class, 'destroy']);
+    // `show` renderizava `superadmin::show`, view que não existe (500).
+    Route::resource('/packages', Modules\Superadmin\Http\Controllers\PackagesController::class)->except(['show']);
 
     Route::get('/settings', [Modules\Superadmin\Http\Controllers\SuperadminSettingsController::class, 'edit']);
     Route::put('/settings', [Modules\Superadmin\Http\Controllers\SuperadminSettingsController::class, 'update']);
     Route::get('/edit-subscription/{id}', [Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'editSubscription']);
     Route::post('/update-subscription', [Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'updateSubscription']);
-    Route::resource('/superadmin-subscription', 'Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController');
+    // `show` renderizava `superadmin::show` (inexistente, 500); `destroy` tem corpo vazio.
+    Route::resource('/superadmin-subscription', Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class)
+        ->except(['show', 'destroy']);
 
     Route::get('/communicator', [Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'index']);
     Route::post('/communicator/send', [Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'send']);
@@ -83,7 +90,8 @@ Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'Admi
 
     Route::get('/subscription/{package_id}/register-pay', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'registerPay'])->name('register-pay');
 
-    Route::resource('/subscription', 'Modules\Superadmin\Http\Controllers\SubscriptionController');
+    // Só `index` e `show` existem no controller; os outros 5 métodos do resource davam 500.
+    Route::resource('/subscription', Modules\Superadmin\Http\Controllers\SubscriptionController::class)->only(['index', 'show']);
 });
 
 Route::get('/page/{slug}', [Modules\Superadmin\Http\Controllers\PageController::class, 'showPage'])->name('frontend-pages');
