@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1026,
-    "edges": 1381,
+    "nodes": 1025,
+    "edges": 1380,
     "by_node_type": {
       "module": 45,
       "table": 122,
       "adr": 157,
-      "component": 602,
+      "component": 601,
       "api": 100
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 84,
-      "hasComponent": 602,
+      "hasComponent": 601,
       "dependsOn": 153,
       "delegatesTo": 138,
       "migratesTo": 1,
@@ -2959,13 +2959,6 @@
       "desc": ""
     },
     {
-      "id": "component:Crm/\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
-      "type": "component",
-      "module": "Crm",
-      "name": "\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
-      "desc": ""
-    },
-    {
       "id": "component:Crm/\"ClienteVeiculosController\"    # Drawer 760 sub-tab Placas",
       "type": "component",
       "module": "Crm",
@@ -5374,13 +5367,6 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
-      "id": "component:Producao/OrdemFichaController + FichaDaOrdem",
-      "type": "component",
-      "module": "Producao",
-      "name": "OrdemFichaController + FichaDaOrdem",
-      "desc": "Ficha da OS por item, /producao/ordens/{id} (Inertia Producao/Os/Show, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404"
-    },
-    {
       "id": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "component",
       "module": "Producao",
@@ -5435,6 +5421,13 @@
       "module": "Producao",
       "name": "PrometerPrazoDaVenda",
       "desc": "na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/PropsDaFicha + FichaDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "PropsDaFicha + FichaDaOrdem",
+      "desc": "Ficha da OS por item no painel lateral do Quadro e da Linha do tempo (?os={id}, decisão [W] no #10850, lote 3): situação, etapas com previsto × apontado e as ações do OrdemSituacaoController; só leitura, pacote + producao.access, OS de outra empresa = 404. OrdemFichaController leva /producao/ordens/{id} ao Quadro com ela aberta (UC-PCOSF-10)"
     },
     {
       "id": "component:Producao/QuadroController + QuadroDaProducao",
@@ -10612,12 +10605,6 @@
     },
     {
       "from": "module:Crm",
-      "to": "component:Crm/\"ClienteOssDataController\"     # 7 endpoints JSON read-only sub-tabs OssTab drawer 760",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Crm",
       "to": "component:Crm/\"ClienteVeiculosController\"    # Drawer 760 sub-tab Placas",
       "type": "hasComponent",
       "source": "contains"
@@ -15202,12 +15189,6 @@
     },
     {
       "from": "module:Producao",
-      "to": "component:Producao/OrdemFichaController + FichaDaOrdem",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Producao",
       "to": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "hasComponent",
       "source": "contains"
@@ -15251,6 +15232,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PrometerPrazoDaVenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PropsDaFicha + FichaDaOrdem",
       "type": "hasComponent",
       "source": "contains"
     },

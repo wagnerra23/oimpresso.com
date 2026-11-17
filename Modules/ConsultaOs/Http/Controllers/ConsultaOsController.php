@@ -10,6 +10,7 @@ use Inertia\Response;
 use Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest;
 use Modules\ConsultaOs\Repositories\RepairConsultaOsRepository;
 use Modules\ConsultaOs\Services\ConsultaOsService;
+use Modules\ConsultaOs\Services\EmpresaPublica;
 use App\Support\Privacy\PiiRedactor;
 
 /**
@@ -19,14 +20,16 @@ use App\Support\Privacy\PiiRedactor;
  * reais do Modules/Repair — o mock de 4 OS fixas saiu. O antigo /repair-status passou a
  * redirecionar pra cá (CustomerRepairStatusController::index).
  *
- * - index(): boot do Inertia React. Uma prop só, `buscaPorCelular` — leitura de config,
- *   barata, eager (exceção do Inertia::defer pra config static).
- * - buscar(): JSON público (sem auth). Critério validado pelo ConsultaPublicaRequest
- *   (tipo em lista fechada + número não vazio) e revalidado no repositório; throttle 30/min.
+ * Decisão [W] 2026-11-17 — "empresa na URL, celular só com série":
+ * - index(): /consulta-os sem empresa. Não busca: a tela pede para abrir o link que a empresa
+ *   enviou. Links genéricos (SiteHeader, /repair-status) caem aqui.
+ * - empresa(): /consulta-os/{codigo}. Código desconhecido → 404. Props: `buscaPorCelular`
+ *   (config) e `empresa` (o próprio código da URL) — eager, ambas baratas.
+ * - buscar(): /consulta-os/{codigo}/buscar, JSON público (sem auth). Critério validado pelo
+ *   ConsultaPublicaRequest e revalidado no repositório; throttle 30/min.
  *
- * Tier 0 (ADR 0093): sem business_id — o portal não sabe a empresa do cliente; um nº válido
- * é procurado em todas as empresas (igual ao /repair-status). PENDENTE [W], ver o docblock do
- * RepairConsultaOsRepository. O payload é a whitelist montada no repositório.
+ * Tier 0 (ADR 0093): a busca só olha a empresa do código (EmpresaPublica). Até 2026-11-17 um nº
+ * válido era procurado em todas as empresas. O payload é a whitelist montada no repositório.
  *
  * @see memory/requisitos/ConsultaOs/SPEC.md
  * @see Modules\ConsultaOs\Repositories\RepairConsultaOsRepository
@@ -41,18 +44,36 @@ class ConsultaOsController extends Controller
     public function index(): Response
     {
         return Inertia::render('ConsultaOs/Index', [
-            'buscaPorCelular' => in_array('mobile_num', RepairConsultaOsRepository::tiposHabilitados(), true),
+            'buscaPorCelular' => $this->buscaPorCelular(),
+            'empresa' => null,
         ]);
     }
 
-    public function buscar(ConsultaPublicaRequest $request): JsonResponse
+    public function empresa(string $empresa): Response
+    {
+        abort_if(EmpresaPublica::empresaDe($empresa) === null, 404);
+
+        return Inertia::render('ConsultaOs/Index', [
+            'buscaPorCelular' => $this->buscaPorCelular(),
+            'empresa' => $empresa,
+        ]);
+    }
+
+    public function buscar(ConsultaPublicaRequest $request, string $empresa): JsonResponse
     {
         $tipo = (string) $request->input('tipo');
         $numero = (string) $request->input('numero');
         $serie = $request->filled('serie') ? (string) $request->input('serie') : null;
 
+        $businessId = EmpresaPublica::empresaDe($empresa);
+        if ($businessId === null) {
+            $this->auditarConsulta($request, $numero, $tipo, 'empresa_desconhecida');
+
+            return response()->json(['found' => false], 404);
+        }
+
         try {
-            $resultado = $this->service->buscar($tipo, $numero, $serie);
+            $resultado = $this->service->buscar($tipo, $numero, $serie, $businessId);
         } catch (\Throwable $e) {
             // Mesma postura do #8527: nada de detalhe técnico pro público.
             Log::error('consultaos.busca_falhou', ['erro' => class_basename($e)]);
@@ -73,6 +94,11 @@ class ConsultaOsController extends Controller
             'found' => true,
             'ordens' => $resultado['ordens'],
         ]);
+    }
+
+    private function buscaPorCelular(): bool
+    {
+        return in_array('mobile_num', RepairConsultaOsRepository::tiposHabilitados(), true);
     }
 
     /**

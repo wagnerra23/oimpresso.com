@@ -61,6 +61,6 @@ ou sem caber, ou com horário já passado, não há aviso. Dado de outra empresa
 Status: ✅
 
 ## Trilha do tempo
-- 2026-11-17 · [M+C] Clicar no bloco abre a Ficha no painel lateral, como no Quadro, com `?os=` na URL (UC-PCOSF-09, em `../Os/Show.casos.md`). O filtro e o dia continuam na URL junto do `?os=`; os casos desta tela foram relidos e seguem valendo.
+- 2026-11-17 · [M+C] Clicar no bloco abre a Ficha no painel lateral, como no Quadro, com `?os=` na URL (UC-PCOSF-09, em `../_components/FichaDaOs.casos.md`). O filtro e o dia continuam na URL junto do `?os=`; os casos desta tela foram relidos e seguem valendo.
 - 2026-11-09 · [W+C] Auditoria lote 4.3: aviso de mesma mídia na Linha (UC-PCLIN-01). O Non-Goal do charter passa a valer só para o encaixe na bobina.
-- 2026-11-06 · [W+C] Auditoria lote 3.5: clicar no bloco sem arrastar (ou Enter) abre a Ficha da OS por item; o arrastar para reprogramar segue igual. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.
+- 2026-11-06 · [W+C] Auditoria lote 3.5: clicar no bloco sem arrastar (ou Enter) abre a Ficha da OS por item; o arrastar para reprogramar segue igual. O caso é o UC-PCOSF-06, em `../_components/FichaDaOs.casos.md`; os casos desta tela foram relidos e seguem valendo.

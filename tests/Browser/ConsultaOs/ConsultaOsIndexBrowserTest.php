@@ -23,8 +23,9 @@ declare(strict_types=1);
  * ── DADO ──────────────────────────────────────────────────────────────────────
  * Tenant fictício 98 (VisregEmptyTenantSeeder). O teste cria um contato, um status e uma folha
  * de OS marcados com `E2E-COS`, e apaga os três antes e depois. Nenhum valor monetário.
- * A rota é pública e o repositório procura em todas as empresas (UC-COS-09); o nº escolhido
- * não existe em nenhum seeder.
+ * A rota é pública e, desde 2026-11-17 (decisão [W] "empresa na URL"), a tela abre pelo link da
+ * empresa 98 (`/consulta-os/{codigo}`, código de EmpresaPublica::codigoDe — a linha em
+ * consulta_os_empresas fica, é o código fixo da 98). O nº escolhido não existe em nenhum seeder.
  *
  * ── ONDE RODA ─────────────────────────────────────────────────────────────────
  * CI apenas (memory/proibicoes.md §Ambiente): step "E2E de render · ConsultaOs/Index (ADVISORY)"
@@ -32,6 +33,7 @@ declare(strict_types=1);
  */
 
 use Illuminate\Support\Facades\DB;
+use Modules\ConsultaOs\Services\EmpresaPublica;
 
 const COS_BIZ = 98;
 const COS_ADMIN = 98;
@@ -93,10 +95,10 @@ function cosLimpar(): void
     DB::table('contacts')->where('business_id', COS_BIZ)->where('contact_id', COS_CONTATO)->delete();
 }
 
-/** Abre /consulta-os sem login e espera o formulário montar. */
+/** Abre o link da empresa 98 sem login e espera o formulário montar. */
 function cosAbrir()
 {
-    $page = visit('/consulta-os')->resize(1280, 800);
+    $page = visit('/consulta-os/'.EmpresaPublica::codigoDe(COS_BIZ))->resize(1280, 800);
 
     for ($i = 0; $i < 40; $i++) {
         if ($page->script("!!document.querySelector('#os-numero')") === true) {
@@ -105,7 +107,7 @@ function cosAbrir()
         $page->wait(0.25);
     }
 
-    throw new RuntimeException('O formulário #os-numero não apareceu em /consulta-os.');
+    throw new RuntimeException('O formulário #os-numero não apareceu no link da empresa.');
 }
 
 /** Espera um texto aparecer no corpo (a busca é um fetch assíncrono). */
@@ -175,5 +177,14 @@ it('UC-COS-38 · resposta 500 da busca pinta um alerta, mantém o formulário e 
     $page->assertVisible('#os-numero')
         ->assertDontSee('OS não encontrada')
         ->assertDontSee(COS_STATUS);
+    $page->assertNoAccessibilityIssues(level: 0);
+});
+
+it('UC-COS-61 · /consulta-os sem empresa mostra o aviso e não mostra o formulário', function () {
+    $page = visit('/consulta-os')->resize(1280, 800);
+
+    $this->assertTrue(cosEsperarTexto($page, 'Abra o link de acompanhamento'));
+    $page->assertVisible('[data-testid="consulta-os-sem-empresa"]');
+    expect($page->script("!!document.querySelector('#os-numero')"))->toBeFalse();
     $page->assertNoAccessibilityIssues(level: 0);
 });

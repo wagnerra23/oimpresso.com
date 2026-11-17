@@ -148,10 +148,19 @@ it('a tela abre para o admin com o pacote e tem 0 violações axe CRITICAL', fun
     $page->assertNoAccessibilityIssues(level: 0);
 })->with('telas_producao');
 
-it('UC-PCV-10 · Producao/Os/Show · a Ficha da OS abre com o número da OS e tem 0 violações axe CRITICAL', function () {
+it('UC-PCV-10 · UC-PCOSF-10 · o endereço antigo da Ficha abre o Quadro com o painel da OS e tem 0 violações axe CRITICAL', function () {
     $id = pcbCriarOs();
-    $page = pcbAbrir("/producao/ordens/{$id}", "OP {$id}");
+    // /producao/ordens/{id} leva ao Quadro com a Ficha aberta no painel lateral (decisão [W] no #10850).
+    $page = pcbAbrir("/producao/ordens/{$id}", '· Quadro');
+    expect((string) $page->script('window.location.pathname + window.location.search'))->toBe("/producao/quadro?os={$id}");
 
-    $page->assertSee('Impressão');
+    // A Ficha (prop deferida) chega depois do cabeçalho: espera o painel mostrar a OS e a etapa.
+    $js = '(() => (document.querySelector("[data-contract=producao-quadro-ficha]")?.textContent ?? "").replace(/\\s+/g, " "))()';
+    $visto = '';
+    for ($i = 0; $i < 40 && ! (str_contains($visto, "OP {$id}") && str_contains($visto, 'Impressão')); $i++) {
+        $page->wait(0.25);
+        $visto = (string) $page->script($js);
+    }
+    expect($visto)->toContain("OP {$id}")->toContain('Impressão');
     $page->assertNoAccessibilityIssues(level: 0);
 });

@@ -14,9 +14,9 @@ module: Crm
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 325 arquivos em 18 papéis.
+**Total mapeado:** 324 arquivos em 18 papéis.
 
-## Controllers — 30
+## Controllers — 29
 
 - [CallLogController.php](../../../Modules/Crm/Http/Controllers/CallLogController.php)
 - [CampaignController.php](../../../Modules/Crm/Http/Controllers/CampaignController.php)
@@ -25,7 +25,6 @@ module: Crm
 - [ClienteAutosaveController.php](../../../Modules/Crm/Http/Controllers/ClienteAutosaveController.php)
 - [ClienteIaController.php](../../../Modules/Crm/Http/Controllers/ClienteIaController.php)
 - [ClienteLookupController.php](../../../Modules/Crm/Http/Controllers/ClienteLookupController.php)
-- [ClienteOssDataController.php](../../../Modules/Crm/Http/Controllers/ClienteOssDataController.php)
 - [ClienteVeiculosController.php](../../../Modules/Crm/Http/Controllers/ClienteVeiculosController.php)
 - [ContactAddressController.php](../../../Modules/Crm/Http/Controllers/ContactAddressController.php)
 - [ContactBookingController.php](../../../Modules/Crm/Http/Controllers/ContactBookingController.php)

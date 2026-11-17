@@ -12,9 +12,9 @@ use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 
 /**
- * O que a Ficha da OS por item recebe (UC-PCV-10), montado num lugar só para as entradas: a página
- * `/producao/ordens/{id}` e o painel lateral do Quadro e da Linha do tempo (`?os={id}`, decisão [W] no #10850:
- * a Ficha segue o protótipo e abre em painel). A página entrega as abas deferidas; o painel, por `doPainel()`.
+ * O que a Ficha da OS por item recebe (UC-PCV-10), montado num lugar só para o painel lateral do Quadro e da Linha do
+ * tempo (`?os={id}`, decisão [W] no #10850: a Ficha segue o protótipo e abre em painel), por `doPainel()`. O endereço
+ * antigo `/producao/ordens/{id}` usa `montar()` só para conferir a OS antes de levar ao Quadro (UC-PCOSF-10).
  *
  * `base` sai na hora; `abas` são closures, para só rodar a consulta da aba que a tela pedir. As flags `pode_*`
  * só escondem botão: as rotas de ação conferem o papel de novo. Tier 0 (ADR 0093): tudo pelo `$biz` da sessão;
