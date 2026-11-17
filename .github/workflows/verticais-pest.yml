@@ -823,6 +823,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminAssinaturasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPacotesContratoTest.php \
             Modules/Superadmin/Tests/Feature/Usuario360ContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminEmpresaOperadoraTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminComunicadorContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPaginasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
@@ -831,6 +832,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SubscriptionConfirmContratoTest.php \
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNotificacoesNaFilaTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminAgendamentoTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \

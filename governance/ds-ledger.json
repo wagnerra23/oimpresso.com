@@ -34,6 +34,17 @@
       }
     },
     {
+      "screen": "Associacoes",
+      "note": "5 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Auditoria",
       "note": "2 arquivo(s)",
       "cells": {
@@ -299,7 +310,7 @@
     },
     {
       "screen": "Producao",
-      "note": "21 arquivo(s)",
+      "note": "22 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -431,7 +442,7 @@
     },
     {
       "screen": "Sells",
-      "note": "83 arquivo(s)",
+      "note": "85 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -574,7 +585,7 @@
     },
     {
       "screen": "NfeBrasil",
-      "note": "12 arquivo(s)",
+      "note": "15 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -618,7 +629,7 @@
     },
     {
       "screen": "Produto",
-      "note": "68 arquivo(s)",
+      "note": "74 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -716,18 +727,18 @@
       }
     }
   ],
-  "progressPct": 63,
+  "progressPct": 64,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "20040dde34",
-  "generatedAt": "2026-11-15T16:31:54.183Z",
+  "measuredAgainstSha": "b3f7c20c3d",
+  "generatedAt": "2026-11-16T21:10:47.210Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 65,
-    "done": 41,
+    "screens": 66,
+    "done": 42,
     "references": 0
   }
 }
