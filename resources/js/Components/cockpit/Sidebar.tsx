@@ -666,8 +666,14 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
   const ativo = rotaAtiva(item.href);
   // Um único `aria-current="page"` por página: se a tela aberta é uma sub-tela
   // (ghost), é ela que carrega a marca — não o item pai, que só casa por prefixo.
+  const hasChildren = !!item.children?.length;
   const ghostAtivo = ativo && ghosts.some((g) => rotaAtiva(g.href));
-  const ghostMarcado = ativo ? hrefMaisEspecifico(ghosts.map((g) => g.href)) : undefined;
+  // Item com filhos: filhos e ghosts dividem UM aria-current. O pai chega sem
+  // href, então `ativo` é falso nele e a marca sai do conjunto inteiro — sem
+  // isso, em /product-catalogue/catalogue-qr nada ficava marcado no Vendas.
+  const ghostMarcado = hasChildren
+    ? hrefMaisEspecifico([...item.children!.map((c) => c.href), ...ghosts.map((g) => g.href)])
+    : ativo ? hrefMaisEspecifico(ghosts.map((g) => g.href)) : undefined;
   const [ghostsAbertos, setGhostsAbertos] = useState(false);
   // Espelha `GhostList` do protótipo (playbook sidebar/10): fechado, mostra o
   // teto; se a sub-tela ATIVA ficou além dele, ela é promovida pra última vaga
@@ -681,14 +687,18 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
     if (promovido) ghostsVisiveis = ghosts.slice(0, GHOST_TETO - 1).concat(promovido);
     ghostsOcultos = ghosts.length - ghostsVisiveis.length;
   }
-  const hasChildren = !!item.children?.length;
   // Item com filhos abre DENTRO do sidebar, como as sub-telas do Financeiro
   // ([W] 2026-11-06: "todos como o Financeiro"). Até aqui abria um popover
   // lateral (`.sb-item-popover`, UI-0011 2026-05-05). Os filhos usam as mesmas
   // linhas `sb-ghost` dos ghosts — um caminho só pra sub-tela no sidebar.
-  // Abre sozinho quando a rota atual é um dos filhos, sem gravar preferência.
-  const filhoAtivo = hasChildren && item.children!.some((c) => rotaAtiva(c.href));
-  const filhoMarcado = hasChildren ? hrefMaisEspecifico(item.children!.map((c) => c.href)) : undefined;
+  // Abre sozinho quando a rota atual é um dos filhos ou um dos ghosts, sem
+  // gravar preferência.
+  const filhoAtivo = hasChildren && (
+    item.children!.some((c) => rotaAtiva(c.href)) || ghosts.some((g) => rotaAtiva(g.href))
+  );
+  const filhoMarcado = ghostMarcado;
+  // Ghost com o mesmo href de um filho: a marca fica no filho, nunca nos dois.
+  const marcaNoFilho = hasChildren && item.children!.some((c) => c.href === ghostMarcado);
   const [isOpen, setIsOpen] = useState(filhoAtivo);
   const href = item.href ?? '#';
   const Icon = findMenuIcon(item.label);
@@ -710,7 +720,7 @@ function SidebarMenuItem({ item, atalhosUsaveis }: { item: ShellMenuItem; atalho
             key={g.key ?? g.href}
             href={g.href}
             className="sb-item sb-sub sb-ghost"
-            aria-current={g.href === ghostMarcado ? 'page' : undefined}
+            aria-current={g.href === ghostMarcado && !marcaNoFilho ? 'page' : undefined}
           >
             {GhostIcon && <GhostIcon size={14} strokeWidth={1.6} className="ic" aria-hidden="true" />}
             <span className="label">{g.label}</span>
