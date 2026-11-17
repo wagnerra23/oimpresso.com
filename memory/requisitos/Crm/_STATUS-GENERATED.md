@@ -44,7 +44,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 
 | UC | Tela | Status |
 |---|---|---|
-| UC-COS-24 | Portal/Painel/Index | 📝 sem_teste |
+| UC-COS-52 | Portal/Painel/Index | 📝 sem_teste |
 | UC-CRMACO-01 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-02 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-03 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |

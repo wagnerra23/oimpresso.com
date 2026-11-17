@@ -1178,7 +1178,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
           "padrao": "UC-CRMPO-16"
         }
       ],
-      "nota_provas": "UC-COS-24 (cowork-inbox/repair/ConsultaOs-link.casos.md); escopo contact_id + business_id · casos em handoff-crm/Portal.casos.md (UC-CRMPO-16); forma = design-diff contra crm--portal-assistencia--index (escuro+claro, 1280+390) no recibo"
+      "nota_provas": "UC-COS-52 (cowork-inbox/repair/ConsultaOs-link.casos.md); escopo contact_id + business_id · casos em handoff-crm/Portal.casos.md (UC-CRMPO-16); forma = design-diff contra crm--portal-assistencia--index (escuro+claro, 1280+390) no recibo"
     }
   ],
   "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @f97a0be9fa4d: provas 07/08 do _saida-07e/08b · D5 + thread 10 · 2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"

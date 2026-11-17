@@ -1,4 +1,4 @@
-// UC-PCOSF-08 · o painel lateral do Quadro mostra a Ficha da OS aberta e pede as abas ao Quadro (props `ficha_*`).
+// UC-PCOSF-08/09 · o painel lateral (Quadro e Linha do tempo) mostra a Ficha da OS aberta e pede as abas à tela (props `ficha_*`).
 // Fonte: Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md (decisão [W] no #10850: a Ficha abre em painel).
 //
 // O que mede: a aba pedida vira um partial reload `async` só da prop dela; a resposta fica guardada com o id da OS, e
@@ -12,7 +12,7 @@ type Reload = { only: string[]; async?: boolean; onSuccess?: (page: { props: Rec
 const reloads: Reload[] = [];
 vi.mock('@inertiajs/react', () => ({ router: { reload: (o: Reload) => { reloads.push(o); } } }));
 
-import PainelDaFicha from '../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/PainelDaFicha';
+import PainelDaFicha from '../../Modules/Producao/Resources/js/Pages/Producao/_components/PainelDaFicha';
 import type { FichaBase } from '../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs';
 import { act } from 'react';
 
@@ -28,7 +28,7 @@ beforeEach(() => { reloads.length = 0; });
 
 describe('UC-PCOSF-08 · painel da Ficha no Quadro', () => {
   it('abre a OS e pede a aba Arte só quando ela é aberta, como partial reload async', () => {
-    render(<PainelDaFicha osId={7} ficha={fichaDe(7)} carregando={false} onFechar={vi.fn()} />);
+    render(<PainelDaFicha osId={7} ficha={fichaDe(7)} carregando={false} onFechar={vi.fn()} atualizar={['cartoes']} />);
     expect(screen.getByRole('dialog', { name: 'OP 7' })).toBeTruthy();
     expect(reloads).toHaveLength(0);
     abrirArte();
@@ -38,10 +38,10 @@ describe('UC-PCOSF-08 · painel da Ficha no Quadro', () => {
   });
 
   it('a aba de uma OS não aparece na seguinte', () => {
-    const { rerender } = render(<PainelDaFicha osId={7} ficha={fichaDe(7)} carregando={false} onFechar={vi.fn()} />);
+    const { rerender } = render(<PainelDaFicha osId={7} ficha={fichaDe(7)} carregando={false} onFechar={vi.fn()} atualizar={['cartoes']} />);
     abrirArte();
     act(() => reloads[0].onSuccess?.({ props: { ficha_artes: [arte] } }));
-    rerender(<PainelDaFicha osId={8} ficha={fichaDe(8)} carregando={false} onFechar={vi.fn()} />);
+    rerender(<PainelDaFicha osId={8} ficha={fichaDe(8)} carregando={false} onFechar={vi.fn()} atualizar={['cartoes']} />);
     abrirArte();
     expect(screen.queryByText('v2 · arte-b.pdf')).toBeNull();
     expect(reloads.map((r) => r.only)).toEqual([['ficha_artes'], ['ficha_artes']]);
@@ -49,13 +49,13 @@ describe('UC-PCOSF-08 · painel da Ficha no Quadro', () => {
 
   it('controle: durante a troca a Ficha anterior não aparece; OS que não veio diz "OS não encontrada"', () => {
     // Fechou antes (`ficha` ficou nula) e clicou noutra OS: até a resposta, é "abrindo", não "não encontrada".
-    const { rerender } = render(<PainelDaFicha osId={8} ficha={null} carregando onFechar={vi.fn()} />);
+    const { rerender } = render(<PainelDaFicha osId={8} ficha={null} carregando onFechar={vi.fn()} atualizar={['cartoes']} />);
     expect(screen.getByRole('dialog', { name: 'Abrindo a OS…' })).toBeTruthy();
     // Reabrindo a mesma OS (F5 do painel, ação): a Ficha antiga não aparece enquanto a nova não chega.
-    rerender(<PainelDaFicha osId={7} ficha={fichaDe(7)} carregando onFechar={vi.fn()} />);
+    rerender(<PainelDaFicha osId={7} ficha={fichaDe(7)} carregando onFechar={vi.fn()} atualizar={['cartoes']} />);
     expect(screen.getByRole('dialog', { name: 'Abrindo a OS…' })).toBeTruthy();
     expect(screen.queryByText('Impressão', { selector: 'b' })).toBeNull();
-    rerender(<PainelDaFicha osId={8} ficha={null} carregando={false} onFechar={vi.fn()} />);
+    rerender(<PainelDaFicha osId={8} ficha={null} carregando={false} onFechar={vi.fn()} atualizar={['cartoes']} />);
     expect(screen.getByRole('dialog', { name: 'OS não encontrada' })).toBeTruthy();
     expect(screen.queryByRole('radio', { name: 'Arte e arquivos' })).toBeNull();
   });
