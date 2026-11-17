@@ -776,6 +776,13 @@ last_run: "2026-11-15"
 - **Contrato:** `config('nfebrasil.ibs_cbs_por_ano')` + `MotorTributarioService::ibsCbsDoAno` (LC 214/2025, transição).
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-66 · O IPI da natureza vai ao XML e soma no total da nota · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza com IPI ligado e CST tributado (50) **Quando** a NF-e é montada **Então** o item leva o grupo IPI com cEnq, base, alíquota e valor, e o IPI entra no vIPI e no vNF (1.000 + 100 = 1.100); **Dado** CST não tributado (53) **Então** o grupo sai sem valor (IPINT); **Dado** CST isento (52) **Então** o motor não calcula IPI mesmo com alíquota na regra do NCM; **Dado** item que não é de natureza da tela **Então** nenhum grupo IPI e vIPI 0,00, como antes.
+- **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) e [`IpiNaturezaXmlTest`](../../../../../Modules/NfeBrasil/Tests/Feature/IpiNaturezaXmlTest.php) — `UC-NFTR-66 …`.
+- **Contrato:** `MotorTributarioService::aplicarNaturezaTela` (CST e cEnq do IPI) + `NfeService::montarItensNfe`/`adicionarItem` (grupo IPI, vIPI, vNF).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).

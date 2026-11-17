@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 17 |
+| US no SPEC | 20 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 26 |
 | Telas com `casos.md` | 26 |
-| UC declarados | 140 |
-| UC com teste que os cita | 138 |
+| UC declarados | 152 |
+| UC com teste que os cita | 151 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -47,6 +47,7 @@ authority: generated
 | US-PONTO-014 | `todo` | Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; |
 | US-PONTO-016 | `desconhecido` | Painel de Conformidade CLT da competência (somente leitura) |
 | US-PONTO-017 | `desconhecido` | Presença do dia lida por outro módulo (somente leitura) |
+| US-PONTO-018 | `desconhecido` | Férias CLT: período aquisitivo, concessivo, dias de direito e alerta de férias v |
 
 ## UC por status
 
@@ -86,6 +87,7 @@ authority: generated
 | UC-CONF-07 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-08 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-CONF-09 | Conformidade | 🧪 aguarda veredito da lane |
+| UC-CONF-10 | Conformidade | 🧪 aguarda veredito da lane |
 | UC-ESCF-01 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-02 | Escalas/Form | 🧪 aguarda veredito da lane |
 | UC-ESCF-03 | Escalas/Form | 🧪 aguarda veredito da lane |
@@ -104,7 +106,7 @@ authority: generated
 | UC-ESPSH-03 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-04 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-05 | Espelho/Show | 🧪 aguarda veredito da lane |
-| UC-ESPSH-06 | Espelho/Show | 📝 sem_teste |
+| UC-ESPSH-06 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-EXCL-01 | Publico/Exclusao | 🧪 aguarda veredito da lane |
 | UC-EXCL-02 | Publico/Exclusao | 🧪 aguarda veredito da lane |
 | UC-EXCL-03 | Publico/Exclusao | 🧪 aguarda veredito da lane |
@@ -175,6 +177,10 @@ authority: generated
 | UC-RELIDX-10 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-11 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-RELIDX-12 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-13 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-14 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-15 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-RELIDX-16 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-00 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-01 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-02 | Mobile/Index | 🧪 aguarda veredito da lane |
@@ -192,6 +198,13 @@ authority: generated
 | UC-REPP-14 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-15 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-16 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-17 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-18 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-19 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-20 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-21 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-22 | Mobile/Index | 🧪 aguarda veredito da lane |
+| UC-REPP-23 | Mobile/Index | 🧪 aguarda veredito da lane |
 
 ---
 

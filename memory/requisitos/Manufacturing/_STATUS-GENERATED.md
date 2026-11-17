@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 100 |
-| UC com teste que os cita | 100 |
+| UC declarados | 107 |
+| UC com teste que os cita | 107 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -69,11 +69,13 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-INGRED-13 | IngredientesEditor | 🧪 aguarda veredito da lane |
 | UC-INGRED-14 | IngredientesEditor | 🧪 aguarda veredito da lane |
 | UC-INGRED-15 | IngredientesEditor | 🧪 aguarda veredito da lane |
+| UC-INGRED-16 | IngredientesEditor | 🧪 aguarda veredito da lane |
 | UC-INS-01 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INS-02 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INS-03 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INS-04 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INS-05 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INS-07 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INSMET-01 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INSMET-02 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INSMET-03 | Insumos | 🧪 aguarda veredito da lane |
@@ -116,8 +118,10 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-OP-18 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-19 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-20 | Index | 🧪 aguarda veredito da lane |
+| UC-OP-21 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-22 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-23 | Index | 🧪 aguarda veredito da lane |
+| UC-OP-24 | Index | 🧪 aguarda veredito da lane |
 | UC-RECIPE-00 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-01 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-02 | Recipes | 🧪 aguarda veredito da lane |
@@ -141,7 +145,9 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RECIPE-21 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-22 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-23 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-24 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-25 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-26 | Recipes | 🧪 aguarda veredito da lane |
 | UC-REPORT-00 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-01 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-02 | Report | 🧪 aguarda veredito da lane |
@@ -149,6 +155,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-REPORT-04 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-05 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-06 | Report | 🧪 aguarda veredito da lane |
+| UC-REPORT-07 | Report | 🧪 aguarda veredito da lane |
 
 ---
 

@@ -561,6 +561,9 @@ class MotorTributarioService
         'LR' => ['pis' => 0.0165, 'cofins' => 0.076],
     ];
 
+    /** CST do IPI que levam alíquota e valor (grupo IPITrib); os demais vão no IPINT, sem valor. */
+    private const CST_IPI_TRIBUTADO = ['00', '49', '50', '99'];
+
     /** CST/CSOSN sem ICMS próprio destacado (isento, não tributado, suspenso, ST retida antes, só ST…). */
     private const SEM_ICMS_PROPRIO = ['30', '40', '41', '50', '60', '102', '103', '202', '203', '300', '400', '500'];
 
@@ -634,9 +637,11 @@ class MotorTributarioService
         $baseIcms = $reducao > 0 ? $this->fmt($produto->valor * (1 - $reducao)) : null;
         $valorIcms = $this->fmt(($baseIcms ?? $produto->valor) * $aliqIcms);
 
-        // IPI.
+        // IPI. CST de saída tributada (50 e 99) leva alíquota; isenta, imune, suspensa e não tributada não.
         $ipiLigado = (bool) ($ipi['on'] ?? false);
-        $aliqIpi = ! $ipiLigado ? 0.0 : match ((string) ($ipi['origem'] ?? 'produto')) {
+        $cstIpi = $ipiLigado ? (string) ($ipi['cst'] ?? '') : null;
+        $ipiTributado = $ipiLigado && in_array($cstIpi, self::CST_IPI_TRIBUTADO, true);
+        $aliqIpi = ! $ipiTributado ? 0.0 : match ((string) ($ipi['origem'] ?? 'produto')) {
             'fixa'   => (float) ($ipi['p'] ?? 0) / 100,
             'origem' => throw $recusa('IPI "da nota de origem" só existe na devolução, que tem fluxo próprio.'),
             default  => (float) (($regraNcm() ?? throw $recusa('IPI "da regra do NCM", mas o NCM ' . $produto->ncm . ' não tem regra.'))->aliquota_ipi),
@@ -718,6 +723,8 @@ class MotorTributarioService
             base_icms:       $baseIcms,
             cst_pis:         $this->cstPisCofins($pc['pis']['cst']),
             cst_cofins:      $this->cstPisCofins($pc['cofins']['cst']),
+            cst_ipi:         $cstIpi,
+            c_enq_ipi:       $ipiLigado ? ((string) ($ipi['cEnq'] ?? '') !== '' ? (string) $ipi['cEnq'] : '999') : null,
         );
     }
 
