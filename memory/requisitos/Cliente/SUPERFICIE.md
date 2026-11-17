@@ -15,9 +15,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 402 arquivos em 18 papéis.
+**Total mapeado:** 401 arquivos em 18 papéis.
 
-## Controllers — 31
+## Controllers — 30
 
 - [CallLogController.php](../../../Modules/Crm/Http/Controllers/CallLogController.php)
 - [CampaignController.php](../../../Modules/Crm/Http/Controllers/CampaignController.php)
@@ -26,7 +26,6 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [ClienteAutosaveController.php](../../../Modules/Crm/Http/Controllers/ClienteAutosaveController.php)
 - [ClienteIaController.php](../../../Modules/Crm/Http/Controllers/ClienteIaController.php)
 - [ClienteLookupController.php](../../../Modules/Crm/Http/Controllers/ClienteLookupController.php)
-- [ClienteOssDataController.php](../../../Modules/Crm/Http/Controllers/ClienteOssDataController.php)
 - [ClienteVeiculosController.php](../../../Modules/Crm/Http/Controllers/ClienteVeiculosController.php)
 - [ContactAddressController.php](../../../Modules/Crm/Http/Controllers/ContactAddressController.php)
 - [ContactBookingController.php](../../../Modules/Crm/Http/Controllers/ContactBookingController.php)

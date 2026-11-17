@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Pessoas;
 
+use App\Contact;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -60,6 +61,67 @@ final class PessoaEscopo
                         ->where('user_contact_access.user_id', $uid);
                 });
         });
+    }
+
+    /**
+     * A regra "só os próprios" de viewOwn() para UM contato já localizado na empresa.
+     *
+     * A lista aplica viewOwn(); os endereços que a ficha chama para cada contato
+     * (/cliente/{id}/sales-json, anexos, IA, auditoria…) só conferiam se o usuário tinha
+     * alguma permissão de ver, e quem tinha só `X.view_own` lia qualquer contato trocando o
+     * número no endereço. Recusa apenas nesse caso: nenhum papel do contato é visível por
+     * inteiro (`X.view`), ao menos um é só-próprios, e o contato não é dele (`created_by`) nem
+     * compartilhado com ele (`user_contact_access`). Fornecedor usa supplier.*, os demais
+     * papéis customer.* (ADR 0188), como em viewOwn().
+     */
+    public static function podeVerContato(Contact $contact, ?User $u): bool
+    {
+        if (! $u) {
+            return false;
+        }
+
+        $temFornecedor = Schema::hasColumn('contacts', 'is_supplier')
+            ? (bool) $contact->is_supplier
+            : in_array($contact->type, ['supplier', 'both'], true);
+        $temOutroPapel = Schema::hasColumn('contacts', 'is_customer')
+            ? ($contact->is_customer || $contact->is_employee || $contact->is_representative || $contact->is_other)
+            : in_array($contact->type, ['customer', 'both'], true);
+        if (! $temFornecedor && ! $temOutroPapel) {
+            $temOutroPapel = true;
+        }
+
+        $grupos = [];
+        if ($temOutroPapel) {
+            $grupos[] = 'customer';
+        }
+        if ($temFornecedor) {
+            $grupos[] = 'supplier';
+        }
+
+        $soProprios = false;
+        foreach ($grupos as $g) {
+            if ($u->can("{$g}.view")) {
+                return true;
+            }
+            if ($u->can("{$g}.view_own")) {
+                $soProprios = true;
+            }
+        }
+        if (! $soProprios) {
+            // Sem view nem view_own para os papéis deste contato: a trava de entrada de cada
+            // endpoint decide, como antes. Esta função só acrescenta a regra do só-próprios.
+            return true;
+        }
+
+        $uid = (int) $u->id;
+        if ((int) $contact->created_by === $uid) {
+            return true;
+        }
+
+        return DB::table('user_contact_access')
+            ->where('contact_id', $contact->id)
+            ->where('user_id', $uid)
+            ->exists();
     }
 
     /**

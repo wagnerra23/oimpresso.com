@@ -116,6 +116,10 @@ class ClienteVeiculosController extends Controller
         if (! $contact) {
             return response()->json(['message' => 'Cliente nao encontrado'], 404);
         }
+        // Quem só vê os próprios contatos não abre o de outro pelo número (PessoaEscopo).
+        if (! \App\Services\Pessoas\PessoaEscopo::podeVerContato($contact, $user)) {
+            return response()->json(['message' => 'Sem permissao'], 403);
+        }
 
         $q = trim((string) $request->query('q', ''));
         $page = max(1, (int) $request->query('page', 1));
