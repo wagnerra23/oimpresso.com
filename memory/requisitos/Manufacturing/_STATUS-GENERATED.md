@@ -25,16 +25,7 @@ authority: generated
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-| Lacuna | O que falta escrever |
-|---|---|
-| `US-MANU-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Quanto custa produzir, com o preço de insumo de hoje |
-| `US-MANU-002` **entregue sem contrato** (`status: review`) | UC que prove o que foi entregue — Relatório de produção do período |
-| `US-MANU-003` **entregue sem contrato** (`status: review`) | UC que prove o que foi entregue — Configurações do módulo |
-| `US-MANU-004` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Ordens de produção — as 8 colunas e as duas marcas do §4.5 |
-| `US-MANU-005` **entregue sem contrato** (`status: review`) | UC que prove o que foi entregue — Insumos — impacto reverso e simulador de preço |
-| `US-MANU-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de ingredientes |
-| `US-MANU-008` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Rotas legadas só tocam dado da própria empresa |
-| `US-MANU-009` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel lateral da ordem de produção |
+_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
 
 ### Backlog — NÃO é lacuna
 

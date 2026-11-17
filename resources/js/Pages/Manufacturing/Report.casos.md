@@ -4,6 +4,7 @@ irmaos: Report.charter.md (lei) · memory/requisitos/Manufacturing/RUNBOOK-repor
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.6 — os UC abaixo DERIVAM dele
+related_us: [US-MANU-002]
 owner: wagner
 last_run: "2026-10-06"
 ---

@@ -4,6 +4,7 @@ irmaos: IngredientesEditor.charter.md (lei) · memory/requisitos/Manufacturing/R
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §5 e §9 (prototipo-ui/cowork/Felipe/handoff_fabricacao/README.md) — os UC DERIVAM dele
+related_us: [US-MANU-006]
 owner: wagner
 last_run: "2026-11-16"
 ---
