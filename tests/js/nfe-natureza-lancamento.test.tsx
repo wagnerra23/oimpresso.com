@@ -64,7 +64,12 @@ describe('Natureza da operação ao emitir', () => {
     await waitFor(() => expect(posts).toHaveLength(1));
     expect(posts[0]).toEqual({ modelo: '55', operacao_id: 7 });
 
-    fireEvent.click(screen.getByRole('button', { name: /Emitir NFC-e/ }));
+    // Os botões ficam disabled enquanto a 1ª emissão não termina (FiscalSection:
+    // emitting !== null). Clicar antes disso é ignorado e o 2º POST nunca sai —
+    // foi assim que este caso caiu no CI do PR #10957 e passou no main.
+    const nfce = screen.getByRole('button', { name: /Emitir NFC-e/ }) as HTMLButtonElement;
+    await waitFor(() => expect(nfce.disabled).toBe(false));
+    fireEvent.click(nfce);
     await waitFor(() => expect(posts).toHaveLength(2));
     expect(posts[1]).toEqual({ modelo: '65' });
   });

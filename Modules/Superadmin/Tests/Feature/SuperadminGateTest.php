@@ -37,7 +37,8 @@ beforeEach(function () {
     }
 });
 
-const BIZ_WAGNER_GATE = 1;
+// Tenant fictício de teste (ADR 0358): 98. Era 1 (WR2 Sistemas, empresa real) até 2026-11-16.
+const BIZ_TENANT_GATE = 98;
 
 /**
  * Cria usuário SEM permission `superadmin` no biz=1 (Wagner).
@@ -45,7 +46,7 @@ const BIZ_WAGNER_GATE = 1;
 function makeUserSemSuperadmin(): User
 {
     Business::firstOrCreate(
-        ['id' => BIZ_WAGNER_GATE],
+        ['id' => BIZ_TENANT_GATE],
         ['name' => 'Wagner Teste Gate', 'currency_id' => 1]
     );
 
@@ -54,7 +55,7 @@ function makeUserSemSuperadmin(): User
         [
             'email'       => 'sem_superadmin@test.local',
             'password'    => bcrypt('secret'),
-            'business_id' => BIZ_WAGNER_GATE,
+            'business_id' => BIZ_TENANT_GATE,
             'first_name'  => 'Sem',
             'last_name'   => 'Superadmin',
         ]
@@ -73,7 +74,7 @@ function makeUserSemSuperadmin(): User
 function makeUserComSuperadmin(): User
 {
     Business::firstOrCreate(
-        ['id' => BIZ_WAGNER_GATE],
+        ['id' => BIZ_TENANT_GATE],
         ['name' => 'Wagner Teste Gate', 'currency_id' => 1]
     );
 
@@ -82,7 +83,7 @@ function makeUserComSuperadmin(): User
         [
             'email'       => 'com_superadmin@test.local',
             'password'    => bcrypt('secret'),
-            'business_id' => BIZ_WAGNER_GATE,
+            'business_id' => BIZ_TENANT_GATE,
             'first_name'  => 'Com',
             'last_name'   => 'Superadmin',
         ]
