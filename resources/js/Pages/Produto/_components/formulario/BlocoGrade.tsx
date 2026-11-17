@@ -71,7 +71,7 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
           </Select>
         </div>
         <div>
-          <span className="text-sm font-medium leading-none">Formato do SKU da variação</span>
+          <span className="cw-label">Formato do SKU da variação</span>
           <RadioGroup
             className="mt-2 flex gap-4"
             value={grade.formato}
