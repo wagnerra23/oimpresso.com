@@ -338,6 +338,16 @@ last_run: "2026-10-27"
 
 ---
 
+## UC-RECIPE-26 · Sem `view_purchase_price`, a lista de receitas não traz custo
+- **Persona:** quem tem acesso a receitas, mas não pode ver preço de compra.
+- **Aceite:** Dado esse usuário · Quando abre Receitas · Então custo, custo unitário, margem, preço, subtotais e custo médio vêm vazios do servidor, e ordenar ou filtrar por eles não vale · Dado o mesmo usuário com `view_purchase_price` · Então os números vêm.
+- **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
+- **Teste:** `CustoPorPermissaoTest.php`
+- **Regressão que defende:** custo entregue a quem só tem acesso ao módulo, escondido só no navegador.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-24 · O menu e as abas da Fabricação só mostram o que a permissão abre
 - **Persona:** usuário que tem só receitas, ou só produção.
 - **Aceite:** Dado só `access_recipe` · Então o menu lateral e as abas mostram Receitas e Insumos, sem "Nova
