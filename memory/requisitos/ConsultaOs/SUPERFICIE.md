@@ -14,7 +14,7 @@ module: ConsultaOs
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ConsultaOs/**` + `resources/js/Pages/ConsultaOs/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 25 arquivos em 13 papéis.
+**Total mapeado:** 23 arquivos em 13 papéis.
 
 ## Controllers — 3
 
@@ -22,11 +22,9 @@ module: ConsultaOs
 - [DataController.php](../../../Modules/ConsultaOs/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/ConsultaOs/Http/Controllers/InstallController.php)
 
-## Requests (validação) — 3
+## Requests (validação) — 1
 
-- [ConsultaPorEstagioRequest.php](../../../Modules/ConsultaOs/Http/Requests/ConsultaPorEstagioRequest.php)
 - [ConsultaPublicaRequest.php](../../../Modules/ConsultaOs/Http/Requests/ConsultaPublicaRequest.php)
-- [FeedbackPublicoRequest.php](../../../Modules/ConsultaOs/Http/Requests/FeedbackPublicoRequest.php)
 
 ## Services — 1
 
