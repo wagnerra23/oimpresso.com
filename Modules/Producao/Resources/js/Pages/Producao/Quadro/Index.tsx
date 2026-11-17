@@ -13,10 +13,11 @@
 // `../_lib/filtro.ts`, a mesma que a Linha do tempo (thread 07) vai usar.
 // UC-PCV-07: no modo "Por setor" o PCP move a OS para outra coluna pelo menu ⋮ ("Mover para …", funciona no
 // teclado) ou arrastando o cartão, como no protótipo. Só a coluna muda; o evento fica no histórico da OS.
-// Fora deste corte: o painel de eventos ao lado do quadro.
+// UC-PCOSF-08: o número da OS por item abre a Ficha no painel lateral (decisão [W] no #10850) e a URL guarda a OS
+// (`?os={id}`), para o F5 e o link copiado reabrirem o painel. Fora deste corte: o painel de eventos ao lado do quadro.
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, router } from '@inertiajs/react';
+import { Deferred, router, usePage } from '@inertiajs/react';
 import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
@@ -32,22 +33,24 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
 import Alocar from './_components/Alocar';
 import SimuladorBobina from './_components/SimuladorBobina';
+import PainelDaFicha from './_components/PainelDaFicha';
+import type { FichaBase } from '../_components/FichaDaOs';
 import { SEM_SETOR, setorDe, vaiNaBobina, type Cartao, type Midia, type Pessoas, type Posto } from './_lib/tipos';
 import { LIMPO, colunaDe, filtrado as temFiltro, passa, paraUrl, type Filtro } from '../_lib/filtro';
 import { json } from './_lib/json';
-import { urlDaFicha } from '../_lib/ficha';
+import { osDoPainel, urlDaFicha, urlDoPainel } from '../_lib/ficha';
 
 interface Props {
   hoje: string; filtro: Filtro & { agrupar: 'setor' | 'maquina' }; pode_alocar: boolean; pode_aceitar_arranjo: boolean; postos: Posto[];
-  cartoes?: Cartao[]; midias?: Midia[]; pessoas?: Pessoas;
+  cartoes?: Cartao[]; midias?: Midia[]; pessoas?: Pessoas; ficha?: FichaBase | null;
 }
 const TODOS = '__todos__';
 const d2 = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
 
 interface Arraste { chave: string; x0: number; y0: number; x: number; y: number; moveu: boolean; sobre: string | null }
 
-function CartaoOs({ c, podeAlocar, marcado, onMarcar, onAlocar, destinos, onMover, onPegar, arrastando }: {
-  c: Cartao; podeAlocar: boolean; marcado: boolean; onMarcar: (v: boolean) => void; onAlocar: () => void;
+function CartaoOs({ c, podeAlocar, marcado, onMarcar, onAlocar, onAbrir, destinos, onMover, onPegar, arrastando }: {
+  c: Cartao; podeAlocar: boolean; marcado: boolean; onMarcar: (v: boolean) => void; onAlocar: () => void; onAbrir: () => void;
   destinos: string[]; onMover: ((setor: string) => void) | null; onPegar: ((ev: ReactPointerEvent) => void) | null; arrastando: boolean;
 }) {
   const e = c.etapa;
@@ -57,7 +60,9 @@ function CartaoOs({ c, podeAlocar, marcado, onMarcar, onAlocar, destinos, onMove
       onPointerDown={(ev) => { if (!onPegar || ev.button !== 0 || (ev.target as HTMLElement).closest('[data-sem-arrastar], button, [role="checkbox"]')) return; onPegar(ev); }}>
       <div className="pcv-card-h">
         {urlDaFicha(c.os_tipo, c.os_id)
-          ? <a className="pcv-link mono" data-sem-arrastar href={urlDaFicha(c.os_tipo, c.os_id) ?? undefined} aria-label={`Abrir a ficha da ${c.numero}`}>{c.numero}</a>
+          // O href serve para abrir em outra aba (Ctrl/meio); o clique simples abre o painel sem sair do quadro.
+          ? <a className="pcv-link mono" data-sem-arrastar href={urlDoPainel('', c.os_id)} aria-label={`Abrir a ficha da ${c.numero}`}
+              onClick={(ev) => { if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return; ev.preventDefault(); onAbrir(); }}>{c.numero}</a>
           : <b className="mono">{c.numero}</b>}
         {onMover && destinos.length > 0 && (
           <span data-sem-arrastar><DropdownMenu>
@@ -83,12 +88,16 @@ function CartaoOs({ c, podeAlocar, marcado, onMarcar, onAlocar, destinos, onMove
   );
 }
 
-function Conteudo({ p, cartoes, midias, pessoas }: { p: Props; cartoes: Cartao[]; midias: Midia[]; pessoas: Pessoas }) {
+function Conteudo({ p, cartoes, midias, pessoas, abrir }: { p: Props; cartoes: Cartao[]; midias: Midia[]; pessoas: Pessoas; abrir: (osId: number) => void }) {
   const [f, setFiltro] = useState<Filtro>({ q: p.filtro?.q ?? '', so: p.filtro?.so ?? 'todas', resp: p.filtro?.resp ?? '', setor: p.filtro?.setor ?? '' });
   const [agrupar, setAgruparEstado] = useState<'setor' | 'maquina'>(p.filtro?.agrupar ?? 'setor');
   // UC-PCV-06: cada mudança regrava a URL (sem navegar), para recarregar ou trocar de vista com o mesmo filtro.
-  const naUrl = (nf: Filtro, ag: 'setor' | 'maquina') =>
-    window.history.replaceState(window.history.state, '', window.location.pathname + paraUrl(nf, ag === 'maquina' ? { agrupar: ag } : {}));
+  // A OS aberta no painel (UC-PCOSF-08) continua na URL.
+  const naUrl = (nf: Filtro, ag: 'setor' | 'maquina') => {
+    const os = osDoPainel(window.location.search);
+    window.history.replaceState(window.history.state, '', window.location.pathname
+      + paraUrl(nf, { ...(ag === 'maquina' ? { agrupar: ag } : {}), ...(os ? { os: String(os) } : {}) }));
+  };
   const setF = (nf: Filtro) => { setFiltro(nf); naUrl(nf, agrupar); };
   const setAgrupar = (ag: 'setor' | 'maquina') => { setAgruparEstado(ag); naUrl(f, ag); };
   const [marcados, setMarcados] = useState<string[]>([]);
@@ -175,7 +184,7 @@ function Conteudo({ p, cartoes, midias, pessoas }: { p: Props; cartoes: Cartao[]
               className={'pcv-col' + (arrastado && arraste?.sobre === c.id ? (colunaDe(arrastado) === c.id ? ' is-origem' : ' is-alvo') : '')}>
               <header className="pcv-col-h"><span className="pcv-dot" />{c.nome}<b>{c.itens.length}</b></header>
               <div className="pcv-col-b">{c.itens.length ? c.itens.map((o) => (
-                <CartaoOs key={o.chave} c={o} podeAlocar={p.pode_alocar} marcado={marcados.includes(o.chave)} onAlocar={() => setAlocando(o)}
+                <CartaoOs key={o.chave} c={o} podeAlocar={p.pode_alocar} marcado={marcados.includes(o.chave)} onAlocar={() => setAlocando(o)} onAbrir={() => abrir(o.os_id)}
                   onMarcar={(v) => setMarcados((m) => (v ? [...m, o.chave] : m.filter((k) => k !== o.chave)))}
                   destinos={destinosDe(o)} onMover={podeMover ? (s) => void mover(o, s) : null} onPegar={podeMover ? pegar(o) : null}
                   arrastando={arrastado?.chave === o.chave} />
@@ -192,12 +201,24 @@ function Conteudo({ p, cartoes, midias, pessoas }: { p: Props; cartoes: Cartao[]
 }
 
 export default function QuadroIndex(props: Props) {
+  // UC-PCOSF-08: a OS aberta vem da URL da página; entre o clique e a resposta, do próprio clique (o painel abre na hora).
+  const { url } = usePage();
+  const [abrindo, setAbrindo] = useState<{ os: number | null } | null>(null);
+  const osAberta = abrindo ? abrindo.os : osDoPainel(new URL(url, window.location.origin).search);
+  const irPara = (os: number | null) => {
+    setAbrindo({ os });
+    router.visit(urlDoPainel(window.location.search, os), {
+      only: ['ficha'], preserveState: true, preserveScroll: true,
+      onFinish: () => setAbrindo((cur) => (cur?.os === os ? null : cur)),
+    });
+  };
   return (
     <div className="pcv-root" data-screen-label="Produção · Quadro">
       <div className="pcv-ph"><PageHeader title="Produção" suffix=" · Quadro" below={<ProducaoAbas ativa="/producao/quadro" />} /></div>
       <Deferred data={['cartoes', 'midias', 'pessoas']} fallback={<div className="pcv-body"><Skeleton className="h-64 w-full" /></div>}>
-        <Conteudo p={props} cartoes={props.cartoes ?? []} midias={props.midias ?? []} pessoas={props.pessoas ?? { pessoas: [], por_posto: {} }} />
+        <Conteudo p={props} cartoes={props.cartoes ?? []} midias={props.midias ?? []} pessoas={props.pessoas ?? { pessoas: [], por_posto: {} }} abrir={irPara} />
       </Deferred>
+      <PainelDaFicha osId={osAberta} ficha={props.ficha} carregando={abrindo !== null && abrindo.os !== null} onFechar={() => irPara(null)} />
     </div>
   );
 }

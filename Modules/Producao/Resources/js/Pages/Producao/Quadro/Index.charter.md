@@ -43,7 +43,7 @@ na bobina (UC-FLX-13).
 - "Alocar" no cartão da etapa pendente, só com `producao.etapa.mover` — UC-FLX-10 (US-PCP-029).
 - Marcar OS da CV com peça medida e "Simular bobina" em lote, com cadastro da largura útil quando falta e o
   desenho das faixas; "Aceitar e gerar romaneios" só com o papel `producao.liberar` — UC-FLX-13 (US-PCP-024).
-- O número da OS por item abre a Ficha (`/producao/ordens/{id}`); a OS da Comunicação Visual não ganha link — UC-PCOSF-06.
+- O número da OS por item abre a Ficha no painel lateral, com `?os={id}` na URL (decisão [W] no #10850); a OS da Comunicação Visual não ganha link — UC-PCOSF-06 · UC-PCOSF-08.
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 

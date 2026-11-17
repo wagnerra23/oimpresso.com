@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: OS em duas colunas ou na coluna errada engana o PCP; OS de outra empresa no quadro é vazamento Tier 0.
 owner: wagner
-last_run: "2026-11-16"
+last_run: "2026-11-17"
 last_run_ci: "2026-11-15 — Status por UC lido do manifesto scripts/casos-test-results.json (#10900, JUnit das lanes). UC sem entrada lá segue 🧪."
 ---
 
@@ -77,4 +77,5 @@ Status: ✅
 Status: ✅
 
 ## Trilha do tempo
+- 2026-11-17 · [M+C] O número do cartão de uma OS por item abre a Ficha no painel lateral, com `?os=` na URL (UC-PCOSF-08, em `../Os/Show.casos.md`). Os casos desta tela foram relidos e seguem valendo; o filtro na URL (UC-PCV-06) continua igual e convive com o `?os=`.
 - 2026-11-06 · [W+C] Auditoria lote 3.5: o número do cartão de uma OS por item é link para a Ficha. O caso é o UC-PCOSF-06, em `../Os/Show.casos.md`; os casos desta tela foram relidos e seguem valendo.
