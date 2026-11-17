@@ -15,11 +15,11 @@ use Modules\Arquivos\Jobs\SimularRetencaoJob;
  * `POST arquivos/retencao/simular` → `RetentionRunRequest`. Este controller:
  *   - RECUSA `purge` (D4) — erro na sessão, nada despachado;
  *   - FORÇA `dry_run = true`, ignorando o que vier no request (canário: trocar o `true`
- *     abaixo por `false` reprova o teste UC-INDEX-09);
+ *     abaixo por `false` reprova o teste UC-ARQIDX-09);
  *   - despacha `SimularRetencaoJob` DEPOIS da resposta — a simulação nunca roda no request.
  *
  * Vive fora do `ArquivosAdminController` de propósito: aquele arquivo tem um assert
- * (UC-INDEX-01) que proíbe `dispatch(` nele inteiro, e a tela do acervo segue sem enfileirar.
+ * (UC-ARQIDX-01) que proíbe `dispatch(` nele inteiro, e a tela do acervo segue sem enfileirar.
  *
  * Multi-tenant Tier 0 (ADR 0093): o business vem da SESSÃO, nunca do request.
  */

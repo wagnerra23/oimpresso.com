@@ -332,7 +332,7 @@ saem em `governance/design/targets/medidas/Arquivos--Index/`.
 | col0.mono | ✅ IGUAL (sumiu da lista) | #8323 |
 | col2.mono | ✅ IGUAL | #8323 |
 | col2 pílula com dot | ✅ IGUAL | #8323 |
-| col1.alcancavel | DIVERGE (bug) — **dado** | as 25 linhas do staging são `NfeEmissao`; `ArquivosAdminController::DONO` declara esse tipo sem página por id (só existe `emissoes.danfe-pdf`). UC-INDEX-06 defende o `null`. Some com uma linha `ServiceOrder`/`JobSheet` no acervo do staging. |
+| col1.alcancavel | DIVERGE (bug) — **dado** | as 25 linhas do staging são `NfeEmissao`; `ArquivosAdminController::DONO` declara esse tipo sem página por id (só existe `emissoes.danfe-pdf`). UC-ARQIDX-06 defende o `null`. Some com uma linha `ServiceOrder`/`JobSheet` no acervo do staging. |
 | col6.cor | DIVERGE (bug) — **cegueira da sonda** | os botões da prod são só ícone (`blocos 0`); a sonda decide a cor pelos elementos com TEXTO, e sem texto devolve "herda". Medido direto no DOM do staging: linha `oklch(0.22 0.01 80)`, `<a>` e `svg` `oklch(0.55 0.012 90)` — **cor própria**. |
 
 O `--check` ainda sai vermelho por esses dois. Nenhum deles muda com edição no `Index.tsx`: o primeiro

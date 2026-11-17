@@ -105,7 +105,7 @@ ele existe pra quando *alguém pede* um link. A tela renderiza 25 linhas por pá
 cada abertura do acervo escrever 25 linhas de auditoria, o que quebra a leitura pura e afoga a
 própria vista Trilha em ruído de renderização. Quem baixa de fato continua auditado: o
 `DownloadController` grava `signed_url_consumed` **no consumo**, que é o evento que responde
-"quem baixou". Há teste comportamental com controle positivo pra isso (UC-INDEX-05).
+"quem baixou". Há teste comportamental com controle positivo pra isso (UC-ARQIDX-05).
 
 **Quem NÃO oferece download:** arquivo soft-deleted (o `DownloadController` faz `Arquivo::find()`
 sem `withTrashed` → 404) e arquivo sem conteúdo no storage (a estratégia `anonymize` da retenção

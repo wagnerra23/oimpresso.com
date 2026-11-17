@@ -192,7 +192,7 @@ it('UC-PAINEL-04 · pendências de documento: estatuto, ata e certidão vencida;
 
 it('UC-PAINEL-00 · a tela tem entrada no menu "Associações", com a mesma regra do middleware', function () {
     // ⚠️ LIMITE: lê o CÓDIGO do DataController, não o menu renderizado (idioma do
-    // ArquivosAdminControllerTest UC-INDEX-01). Prova que o item continua no caminho e sob a
+    // ArquivosAdminControllerTest UC-ARQIDX-01). Prova que o item continua no caminho e sob a
     // regra única de acesso; a prova de que ele aparece é o smoke com olho humano.
     $codigo = (string) file_get_contents(base_path('Modules/Associacoes/Http/Controllers/DataController.php'));
     $metodo = substr($codigo, (int) strpos($codigo, 'function modifyAdminMenu'));
