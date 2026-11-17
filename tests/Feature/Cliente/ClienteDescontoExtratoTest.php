@@ -135,3 +135,15 @@ test('UC-CIDX-18 sem discount.manage, editar desconto responde 403 e o valor nã
 
     expect((float) cdeDescontos($id)->value('final_total'))->toBe(25.0);
 });
+
+test('UC-CIDX-18 Tier 0 — com discount.manage, desconto para cliente de outra empresa não grava', function () {
+    $user = cdeEntrar($this, ['customer.view', 'discount.manage']);
+    $outra = $this->seededSupportClientTenant();
+    $alheio = cdeContato((int) $outra->id, $user->id);
+
+    $this->postJson('/ledger-discount', [
+        'contact_id' => $alheio, 'date' => '2026-11-17 14:30', 'amount' => '25.00',
+    ])->assertOk()->assertJsonPath('success', 0);
+
+    expect(cdeDescontos($alheio)->exists())->toBeFalse();
+});
