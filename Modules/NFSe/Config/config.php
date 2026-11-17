@@ -43,4 +43,10 @@ return [
      * Código IBGE do município padrão (Tubarão-SC = 4218707)
      */
     'municipio_ibge_default' => env('NFSE_MUNICIPIO_IBGE', '4218707'),
+
+    /**
+     * Base do intervalo entre as retentativas de timeout no NfseEmissaoService
+     * (base, 2×base, 4×base segundos). Os testes usam 0.
+     */
+    'backoff_base_segundos' => 1,
 ];
