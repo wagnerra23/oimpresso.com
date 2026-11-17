@@ -91,12 +91,14 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               value={data.sku}
               onChange={(e) => definir('sku', e.target.value)}
               onBlur={() => setLeitorPronto(false)}
+              placeholder={leitorPronto ? 'Leitor pronto: bipe o produto' : undefined}
               className="font-mono"
             />
             <Button
               type="button"
               variant="outline"
               size="sm"
+              aria-pressed={leitorPronto}
               title="Ler código de barras (o leitor digita no campo)"
               onClick={() => {
                 skuRef.current?.focus();
@@ -107,8 +109,13 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               Bipar
             </Button>
           </Inline>
+          {/* O aviso não ocupa lugar na tela: some no blur do SKU, que acontece no mousedown do
+              próximo clique, e uma linha que sumisse ali faria a tela subir antes do mouseup (o 1º
+              clique depois de bipar se perdia, medido 2026-11-16). Posição absoluta cobria o título
+              das sub-unidades e, a 768px, o rótulo Marca. Na tela o aviso fica no próprio SKU
+              (placeholder); aqui, só para leitor de tela. */}
           {leitorPronto && (
-            <p role="status" className="text-[12px] text-muted-foreground mt-1">
+            <p role="status" className="sr-only">
               Leitor pronto: bipe o produto e o código cai no SKU.
             </p>
           )}
