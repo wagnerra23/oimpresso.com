@@ -195,11 +195,19 @@ class RecipeController extends Controller
         $insumos = $this->recipeBomService->listInsumosComUso($business_id);
         $usos = $variationId ? $this->recipeBomService->usosDoInsumo($variationId, $business_id, $pct) : [];
 
+        // UC-INS-06: o "preço atual → preço simulado" da gaveta vem daqui, com a mesma fórmula que
+        // recalcula as receitas. Nulo sem insumo escolhido e sem `view_purchase_price` (UC-INS-07).
+        $linhaInsumo = $variationId ? collect($insumos)->firstWhere('variation_id', $variationId) : null;
+        $precoSimulado = $podeVerCusto && $linhaInsumo !== null
+            ? \Modules\Manufacturing\Services\RecipeBomService::precoSimulado((float) $linhaInsumo['custo'], $pct)
+            : null;
+
         return Inertia::render('Manufacturing/Insumos', [
             'insumos' => $podeVerCusto ? $insumos : \Modules\Manufacturing\Support\OcultaCusto::insumos($insumos),
             'selecionado' => $variationId,
             'usos' => $podeVerCusto ? $usos : \Modules\Manufacturing\Support\OcultaCusto::usos($usos),
             'variacao_pct' => $pct,
+            'preco_simulado' => $precoSimulado,
             'metodo_custo' => $variationId ? $this->metodoCustoDoInsumo($business_id, $variationId) : null,
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),

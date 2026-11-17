@@ -958,6 +958,16 @@ class RecipeBomService implements ReceitaDoProduto
      * Clona receita, ingredientes e a variação alvo (para não sujar o objeto do chamador),
      * aplica o preço novo e delega a `calculateCost()` — a fórmula continua sendo UMA só.
      */
+    /**
+     * Preço do insumo com a variação simulada aplicada. Fórmula única: é a que a simulação usa para
+     * recalcular as receitas e a que a gaveta de Insumos mostra no "preço atual → preço simulado"
+     * (UC-INS-06). A tela não refaz a conta.
+     */
+    public static function precoSimulado(float $preco, float $variacaoPct): float
+    {
+        return $preco * (1 + $variacaoPct / 100);
+    }
+
     private function calculateCostComPrecoSimulado(MfgRecipe $recipe, int $variationId, float $variacaoPct): float
     {
         if ($variacaoPct == 0.0) {
@@ -973,7 +983,7 @@ class RecipeBomService implements ReceitaDoProduto
 
             $copia = clone $ingrediente;
             $variacao = clone $ingrediente->variation;
-            $variacao->dpp_inc_tax = (float) $ingrediente->variation->dpp_inc_tax * (1 + $variacaoPct / 100);
+            $variacao->dpp_inc_tax = self::precoSimulado((float) $ingrediente->variation->dpp_inc_tax, $variacaoPct);
             $copia->setRelation('variation', $variacao);
 
             return $copia;
