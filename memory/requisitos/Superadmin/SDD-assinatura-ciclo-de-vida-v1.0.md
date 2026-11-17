@@ -156,12 +156,13 @@ O comando exige uma config de gateway `bcb_pix` ativa no biz=1 (`:63-66`).
 
 `OnCobrancaPagaUpdateSubscription::handle`:
 1. ignora origem que não é `subscription_license` (`:43`);
-2. **retorna sem fazer nada se a assinatura já está `approved`** (`:65`, buraco B2);
-3. senão, calcula as datas (`calcPackageDates`, `:108`): início = maior `end_date` aprovado + 1 dia, ou hoje (`Subscription::end_date`, `Subscription.php:160-174`); fim = início + `interval_count` × `interval`;
-4. grava `status = approved`, as datas, `paid_via` e `payment_transaction_id` (`:80-87`);
-5. desbloqueia `officeimpresso_bloqueado` (`:90-93`).
+2. **retorna sem fazer nada se a assinatura já está `approved`** (`:71`, buraco B2);
+3. confere o valor pago (`valorPagoCentavos`) contra o preço da assinatura (`package_price`, ou o do pacote se for zero); divergiu, registra warning e não aprova (`:85-98`, lote L2, #11048);
+4. calcula as datas (`calcPackageDates`, `:162`): início = maior `end_date` aprovado + 1 dia, ou hoje (`Subscription::end_date`, `Subscription.php:160-174`); fim = início + `interval_count` × `interval`;
+5. aprova por `SubscriptionLifecycleService::approve()` (`:106`), que recusa status que não aceita aprovação (cancelada, recusada) e grava as datas, `paid_via` e `payment_transaction_id`;
+6. desbloqueia `officeimpresso_bloqueado` (`:128-131`).
 
-A escrita é direta no Model, **sem** passar pelo `SubscriptionLifecycleService`. O `OnCobrancaPagaCreateFinanceiroTitulo` (Financeiro) também escuta o evento.
+Até 2026-11-16 a escrita era direta no Model, sem o `SubscriptionLifecycleService` e sem conferir o valor; o lote L2 (#11048) mudou as duas coisas. O `OnCobrancaPagaCreateFinanceiroTitulo` (Financeiro) também escuta o evento.
 
 **F5 — Habilitação do módulo.**
 
@@ -173,7 +174,7 @@ Editar o pacote com `update_subscriptions` regrava o `package_details` das assin
 
 Não há processo que renove assinatura `approved`:
 - o cron do F3 só olha `waiting`;
-- o listener do F4 ignora `CobrancaPaga` de assinatura `approved` (`:65`).
+- o listener do F4 ignora `CobrancaPaga` de assinatura `approved` (`:71`).
 
 Se o mandato PIX do F3' gerar cobranças mensais, a 2ª cobrança paga **não estende** a vigência pelo caminho do listener, salvo se outro código criar uma nova assinatura `waiting` antes. Esse outro código não foi achado no módulo; não medido no PaymentGateway.
 
@@ -188,21 +189,21 @@ O flag é lido só pelo desktop (Connector/Officeimpresso). No ERP web o "bloque
 **F8 — Expiração (buraco B3).**
 
 Nenhum processo automático grava `expired`:
-- o único escritor é `SubscriptionLifecycleService::expire` (`:97`), chamado pela ação "vencer" da tela Assinaturas;
-- `findOverdueApproved()` (`:175`) não tem chamador fora dos testes, embora a migration de 2026-08-19 o chame de "o sweep de cron" (`2026_08_19_000001_widen_subscriptions_status_enum.php:22`).
+- o único escritor é `SubscriptionLifecycleService::expire` (`:104`), chamado pela ação "vencer" da tela Assinaturas;
+- `findOverdueApproved()` (`:193`) não tem chamador fora dos testes, embora a migration de 2026-08-19 o chame de "o sweep de cron" (`2026_08_19_000001_widen_subscriptions_status_enum.php:22`).
 
 Na prática a expiração é **implícita**: o `end_date` passa e `active_subscription` deixa de devolver a assinatura. O aviso antes do fim é o `pos:sendSubscriptionExpiryAlert`, com antecedência em `system.package_expiry_alert_days`.
 
 ### 5.4 Onde os mundos ainda não se conversam
 
-- **Dois escritores de status:** a tela passa pelo `SubscriptionLifecycleService`; os dois listeners escrevem direto no Model. O [RUNBOOK-assinaturas](RUNBOOK-assinaturas.md) diz que "toda escrita passa pelo Service": vale para a tela, não para o sistema.
+- **Dois escritores de status:** a tela e, desde o lote L2 (#11048), o `OnCobrancaPagaUpdateSubscription` passam pelo `SubscriptionLifecycleService`; o `OnCobrancaVencidaBloqueaSubscription` ainda escreve `declined` direto no Model (`:69`). O [RUNBOOK-assinaturas](RUNBOOK-assinaturas.md) diz que "toda escrita passa pelo Service": vale para a tela, não para o sistema.
 - **Dois bloqueios:** o do desktop (`officeimpresso_bloqueado`) e o do web (falta de `approved` vigente). Os dois mudam por caminhos diferentes.
 - **Connector cria uma segunda assinatura:** a API de cadastro (`Modules/Connector/Http/Controllers/Api/BusinessController.php:280-300`) cria assinatura `approved` depois do `Business::create`. Nesse ponto o Observer do F1 já criou a `waiting`, e o negócio fica com as duas. Lido do código; não medido.
 - **Rota citada em comentário que não existe:** o docblock do Observer (`:20`, `:101`) manda reconciliar em `/superadmin/business/{id}/subscriptions`, ausente de `Routes/web.php`. Hoje o caminho é o drawer Adicionar assinatura.
 
 ## 6. Casos de uso ⚙️+🖐 — agente propõe, **[W] confere**
 
-Estado de cada CU pelo veredito de teste numa lane de PR. Em 2026-11-16, `test-lane-coverage --json` lista os testes do fluxo (`BusinessAutoSubscriptionObserverTest`, `OnCobrancaPagaUpdateSubscriptionTest`, `OnCobrancaVencidaBloqueaSubscriptionTest`, `AssinaturaAtivaDeterministaTest`, `PackageManagerServiceTest`) **fora de qualquer lane**. Por isso os CU abaixo ficam `⬜` até o lote L1. O CU-SUPER-06 tem teste em lane (ver nota nele).
+Estado de cada CU pelo veredito de teste numa lane de PR. Em 2026-11-16, `test-lane-coverage --json` listava os testes do fluxo (`BusinessAutoSubscriptionObserverTest`, `OnCobrancaPagaUpdateSubscriptionTest`, `OnCobrancaVencidaBloqueaSubscriptionTest`, `AssinaturaAtivaDeterministaTest`, `PackageManagerServiceTest`) **fora de qualquer lane**. Depois do lote L1 (2026-11-17), só o `BusinessAutoSubscriptionObserverTest` segue fora. Os CU abaixo continuam `⬜` até alguém ler o veredito desses testes na lane e marcar cada um. O CU-SUPER-06 tem teste em lane (ver nota nele).
 
 #### CU-SUPER-01 — Empresa nova ganha assinatura de trial `[must]` ⬜
 *Dado* `default_saas_package_id` apontando para pacote ativo; *quando* um Business é criado; *então* nasce 1 assinatura `waiting` com `trial_end_date` = hoje + `trial_days`.
@@ -250,7 +251,7 @@ _vazio_
 
 ## 8. Estratégia de qualidade e rollout ⚙️ derivado
 
-- O dono de "este teste roda?" é `node scripts/governance/test-lane-coverage.mjs --json`. Em 2026-11-16 o Superadmin tinha 28 arquivos de teste e 15 fora de lane, incluindo todos os do fluxo F1-F5, F7. O lote L1 da auditoria trata disso.
+- O dono de "este teste roda?" é `node scripts/governance/test-lane-coverage.mjs --json`. Em 2026-11-16 o Superadmin tinha 28 arquivos de teste e 15 fora de lane, incluindo todos os do fluxo F1-F5, F7. Depois do lote L1, em 2026-11-17, são 32 e 5 fora de lane; do fluxo, só o `BusinessAutoSubscriptionObserverTest` (F1).
 - Pest só no CT 100 (`memory/proibicoes.md` §Ambiente).
 - As pendências humanas da ADR 0170 (credencial BCB, homologação, smoke em biz=1, smoke de inadimplência) não têm registro de conclusão em 2026-11-16.
 
@@ -259,15 +260,15 @@ _vazio_
 | # | Pendência | Estado atual (código) | Quem decide |
 |---|---|---|---|
 | **B1** | Trial sem módulos | `waiting` não conta como ativa (`Subscription.php:111-125`). Não medido em runtime | [W] |
-| **B2** | Renovação | `CobrancaPaga` de assinatura `approved` é ignorada (`OnCobrancaPagaUpdateSubscription.php:65`); nenhum cron emite a 2ª cobrança | [W] |
+| **B2** | Renovação | `CobrancaPaga` de assinatura `approved` é ignorada (`OnCobrancaPagaUpdateSubscription.php:71`); nenhum cron emite a 2ª cobrança | [W] |
 | **B3** | Expiração | nenhum processo automático grava `expired`; `findOverdueApproved()` sem chamador | [W] |
-| — | Dois escritores de status | listeners fora do `SubscriptionLifecycleService` | engenharia, depois de B2/B3 |
+| — | Dois escritores de status | `OnCobrancaVencidaBloqueaSubscription` fora do `SubscriptionLifecycleService` (o de pagamento entrou no #11048) | engenharia, depois de B2/B3 |
 | — | Segunda assinatura via Connector | `approved` + `waiting` no mesmo negócio | não medido |
 | — | Fluxo sem prova em prod | 0 cobranças `subscription_license` em 2026-09-09 | [W] (smoke ADR 0170) |
 
 ## 10. Roadmap 🖐 [W] prioriza
 
-Lote L2 da auditoria (Listeners, Observers, LifecycleService). O PR 3 do L2 espera B2/B3.
+Lote L2 da auditoria (Listeners, Observers, LifecycleService). PR 1 mergeado em 2026-11-17 (#11048). O PR 2 ainda não foi aberto; o PR 3 espera B2/B3.
 
 ## 11. Referências
 
