@@ -23,6 +23,11 @@ charter_version: 1
 > Auditoria do módulo Produção, lote 3 (thread 08 do playbook). Casos: [`Show.casos.md`](Show.casos.md).
 > Âncora visual: `FichaOs` de `producao-cv-os.jsx` (classes `pcv-*` do bundle, recopiado na pcv15 no lote 3.1).
 > Non-Goals e Anti-hooks além dos abaixo são de [W] — não se inferem aqui.
+>
+> **Desde 2026-11-17 (UC-PCOSF-10):** a Ficha abre só no painel lateral do Quadro e da Linha do tempo (decisão [W] no
+> #10850). Esta rota confere os portões (403 sem acesso, 404 OS de outra empresa) e leva a `/producao/quadro?os={id}`.
+> O conteúdo é o `_components/FichaDaOs.tsx`; o `Show.tsx` deixou de ser renderizado e sai num PR seguinte, junto
+> com a mudança de casa deste charter e dos casos.
 
 ## Mission
 
