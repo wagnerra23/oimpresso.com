@@ -2,14 +2,13 @@
 date: "2026-11-16"
 time: "2245 BRT"
 slug: "associacoes-6-ondas-no-main"
-tldr: "As 6 ondas do Modules/Associacoes (ADR 0451, Uniafibro) estão no main e em produção, sem regressão no smoke. O módulo segue desligado: falta o [W] criar a empresa Uniafibro e o pacote associacoes_module. O UC-ASSOC-01 vermelho era defeito do teste (arrow fn capturando por valor), consertado no #11066."
+tldr: "As 6 ondas do Modules/Associacoes (ADR 0451, Uniafibro) estão no main e em produção, sem regressão no smoke. O módulo segue desligado: falta o [W] criar a empresa Uniafibro e o pacote associacoes_module. O UC-ASSOC-01 vermelho era defeito do teste (arrow fn capturando por valor), consertado e mergeado no #11066."
 decided_by: [W]
 cycle: null
 prs: [10862, 10878, 10883, 10882, 10881, 10880, 11066]
 us: [US-ASSOC-001, US-ASSOC-002, US-ASSOC-003, US-ASSOC-004, US-ASSOC-005]
 next_steps:
   - "[W] criar a empresa Uniafibro no superadmin e o pacote associacoes_module; só depois ligar o módulo para ela"
-  - "Mergear o #11066 quando a lane Verticais · Pest (MySQL) confirmar o UC-ASSOC-01 verde"
   - "Sessão da NFSe: consertar o helper nfsidxLinhas (mesmo defeito, derruba UC-NFSL-04/05 na nfse-pest) — avisada"
 related_adrs:
   - "0130-handoff-append-only-mcp-first"
@@ -36,7 +35,7 @@ Detalhes do merge e do smoke: [session log](../sessions/2026-11-16-associacoes-m
 | Deploy da onda 6 | 43995018644 (`f6482e6b12`), success |
 | ADR 0451 | `aceito` desde a onda 1 (o schema não tem estado depois de `aceito`) |
 | US-ASSOC-001..005 | `done` no MCP; comentários na 005 (merge + smoke) e na 002 (UC-ASSOC-01) |
-| #11066 | aberto: conserto do UC-ASSOC-01, só arquivo de teste |
+| #11066 | mergeado (`15b8345544`): conserto do UC-ASSOC-01, só arquivo de teste; lane Verticais verde, 0 falhas |
 
 ## UC-ASSOC-01: a causa
 
@@ -44,7 +43,8 @@ A lista da diretoria chegava vazia ao teste. Quatro rodadas de diagnóstico na C
 a uma, permissão, sessão, escopo de empresa (ADR 0453, modo `aberto`) e a consulta: o servidor
 devolvia as 2 associações. O defeito estava no helper do teste. `assertInertia(fn (...) => ...)`
 é arrow function, que captura `$ids` por valor; o `use (&$ids)` do callback interno escrevia na
-cópia dela. O #11066 troca por closure comum e exige que a lista chegue.
+cópia dela. O #11066 troca por closure comum e exige que a lista chegue; na lane Verticais o
+UC-ASSOC-01 passou (1567 passed, 0 failed).
 
 O mesmo padrão está em `tests/Feature/Modules/NFSe/NfseIndexTelaTest.php` (#11041) e derruba o
 UC-NFSL-04 e o UC-NFSL-05 na `nfse-pest`. A sessão dona da NFSe foi avisada; o arquivo não foi
