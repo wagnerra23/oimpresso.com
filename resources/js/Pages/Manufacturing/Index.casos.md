@@ -379,6 +379,10 @@ last_run: "2026-10-07"
 - **Teste:** `Modules/Manufacturing/Tests/Feature/ExcluirRascunhoTrilhaTest.php`
 - **Regressão que defende:** venda de produção órfã depois de excluir o rascunho, exclusão sem registro, e "excluído"
   respondido para ordem que não foi apagada.
+- **Status: 🧪**
+
+---
+
 ## UC-OP-22 · Quem só pode um local só vê e só grava ordem nesse local
 - **Persona:** operador com acesso a um local só (sem `access_all_locations`).
 - **Aceite:** Dado um usuário com o local A e sem o B · Quando grava ordem em B, ou edita o rascunho para B ·

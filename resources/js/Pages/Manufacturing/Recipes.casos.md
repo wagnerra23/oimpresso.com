@@ -346,6 +346,10 @@ last_run: "2026-10-27"
   auditoria do Manufacturing, lote 2.7.
 - **Teste:** `ExcluirRascunhoTrilhaTest.php`
 - **Regressão que defende:** a receita não tem coluna de empresa, e o registro nascia sem ela — sumia da auditoria.
+- **Status: 🧪**
+
+---
+
 ## UC-RECIPE-22 · Perguntar se o produto tem receita exige acesso ao módulo
 - **Persona:** quem monta ordem de produção pela tela legada.
 - **Aceite:** Dado um usuário sem `access_recipe` nem `access_production` · Quando pergunta
