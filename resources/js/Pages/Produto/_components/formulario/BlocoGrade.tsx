@@ -2,6 +2,7 @@
 // protótipo do [W] (produto-blade-forms.jsx: formato do sub-SKU, tabela de valores, Enter abre a
 // próxima linha); o nome da variação vem do modelo da empresa, como no Blade (decisão do [F] em
 // 2026-11-17). A conta e o envio moram em grade.ts e precos.ts.
+import { useEffect, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Grid, Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
@@ -31,12 +32,28 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
   const modelo = modelos.find((m) => m.id === grade.modeloId);
   const exibir = (n: number) => formatDecimalPtBR(arredondar(n), CASAS_PRECO);
   const trocarValor = (i: number, v: ValorDaGrade) => mudar({ ...grade, valores: grade.valores.map((x, j) => (j === i ? v : x)) });
-  const acrescentar = () => mudar({ ...grade, valores: [...grade.valores, valorNovo(margemPadrao)] });
-  // Enter em qualquer campo da última linha abre a seguinte: a grade inteira sem o mouse.
+  // O cursor vai para o Valor da linha pedida depois que ela existir na tela.
+  const bloco = useRef<HTMLDivElement>(null);
+  const focarLinha = useRef<number | null>(null);
+  useEffect(() => {
+    if (focarLinha.current === null) return;
+    const n = focarLinha.current;
+    focarLinha.current = null;
+    bloco.current?.querySelector<HTMLInputElement>(`input[aria-label="Valor ${n}"]`)?.focus();
+  });
+  const acrescentar = () => {
+    focarLinha.current = grade.valores.length + 1;
+    mudar({ ...grade, valores: [...grade.valores, valorNovo(margemPadrao)] });
+  };
+  // Enter leva ao Valor da linha seguinte; na última, abre uma nova. A grade inteira sem o mouse.
   const enter = (i: number) => (e: KeyboardEvent<HTMLElement>) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    if (i === grade.valores.length - 1) acrescentar();
+    if (i === grade.valores.length - 1) {
+      acrescentar();
+    } else {
+      bloco.current?.querySelector<HTMLInputElement>(`input[aria-label="Valor ${i + 2}"]`)?.focus();
+    }
   };
   let posicao = 0;
 
@@ -54,11 +71,19 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
   }
 
   return (
-    <div className="col-span-full" role="group" aria-label="Grade da variação">
+    <div ref={bloco} className="col-span-full" role="group" aria-label="Grade da variação">
+      {/* Título e "Adicionar valor" lado a lado, como no protótipo (produto-blade-forms.jsx). */}
+      <Inline gap={2} className="mb-3">
+        <h4 className="m-0 text-[11px] font-medium uppercase tracking-[.06em] text-muted-foreground">Variações</h4>
+        <Button type="button" variant="outline" size="sm" onClick={acrescentar}>
+          <Plus className="mr-1 h-4 w-4" /> Adicionar valor
+        </Button>
+      </Inline>
       <Grid cols={1} gap={4} className="md:grid-cols-2">
         <div>
           <Label htmlFor="variacao_modelo">Variação *</Label>
-          <Select value={grade.modeloId ? String(grade.modeloId) : undefined} onValueChange={(v) => mudar({ ...grade, modeloId: Number(v) })}>
+          {/* "" e não undefined: o Select nasce controlado e mostra o placeholder até a escolha. */}
+          <Select value={grade.modeloId ? String(grade.modeloId) : ''} onValueChange={(v) => mudar({ ...grade, modeloId: Number(v) })}>
             <SelectTrigger id="variacao_modelo">
               <SelectValue placeholder="Escolha o modelo (ex.: Cor)" />
             </SelectTrigger>
@@ -181,12 +206,9 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
           </tbody>
         </table>
       </div>
-      <Inline gap={3} className="mt-2">
-        <Button type="button" variant="outline" size="sm" onClick={acrescentar}>
-          <Plus className="mr-1 h-4 w-4" /> Adicionar valor
-        </Button>
-        <span className="text-[12px] text-muted-foreground">Enter na última linha abre a seguinte. Valor novo entra no modelo ao salvar.</span>
-      </Inline>
+      <p className="mt-2 text-[12px] text-muted-foreground">
+        Enter leva à linha seguinte e, na última, abre uma nova. Valor novo entra no modelo ao salvar.
+      </p>
       {erro && (
         <p role="alert" className="mt-1 text-[12px] text-destructive">
           {erro}
