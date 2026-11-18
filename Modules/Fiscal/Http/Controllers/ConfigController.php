@@ -6,12 +6,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Services\ModoContingencia;
 use Modules\NfeBrasil\Services\Tributacao\ContadorService;
+use Modules\NFSe\Models\NfseProviderConfig;
 
 /**
  * Cert/Cfg fiscal — UNIFICADO (sub-página 6 do design KB-9.75).
@@ -131,6 +133,9 @@ class ConfigController extends Controller
             ],
             // Contador da empresa (playbook Fiscal thread 15c). Null = não cadastrado.
             'contador' => $this->contadorPayload($businessId),
+            // NFS-e: ambiente + prestador (nfse_provider_configs), editados em
+            // POST /nfse/configuracao. Null = módulo NFSe ausente neste deploy.
+            'nfse' => $this->nfsePayload($businessId),
             // Onda 2 I — séries fiscais (tab "Séries" do ModuleTopNav).
             // TODO[CL]: substituir por query real (business.numero_serie_nfe +
             // possíveis tabelas de séries auxiliares).
@@ -162,6 +167,34 @@ class ConfigController extends Controller
     }
 
     /** @return array{nome: string, email: string, crc: string|null, papel: string}|null */
+    /**
+     * Ambiente e prestador da NFS-e desta empresa — campo separado de `business.ambiente`,
+     * que é o da NF-e. `existe=false` = empresa ainda sem configuração (a emissão recusa).
+     */
+    private function nfsePayload(int $businessId): ?array
+    {
+        if (! class_exists(NfseProviderConfig::class) || ! Schema::hasTable('nfse_provider_configs')) {
+            return null;
+        }
+
+        // SUPERADMIN: business_id explícito da sessão, mesmo critério do NfseEmissaoService.
+        $c = NfseProviderConfig::withoutGlobalScopes()
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->first();
+
+        return [
+            'existe'        => (bool) $c,
+            'ambiente'      => $c?->ambiente ?? 'homologacao',
+            'municipioIbge' => $c?->municipio_codigo_ibge,
+            'prestadorCnpj' => $c?->prestador_cnpj,
+            'prestadorIm'   => $c?->prestador_im,
+            'serie'         => $c?->serie_default,
+            'cnae'          => $c?->cnae,
+            'temCertificado' => (bool) $c?->cert_id,
+        ];
+    }
+
     private function contadorPayload(int $businessId): ?array
     {
         $c = app(ContadorService::class)->doBusiness($businessId);
