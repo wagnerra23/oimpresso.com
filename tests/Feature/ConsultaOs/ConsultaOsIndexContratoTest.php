@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 // @covers-us US-CONSULTA-001
 
+use App\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,7 @@ use Modules\Repair\Entities\JobSheet;
 
 const CONSULTA_OS_TABELAS = [
     'activity_log', 'repair_job_sheets', 'transactions', 'contacts',
-    'repair_statuses', 'brands', 'repair_device_models', 'categories', 'consulta_os_empresas',
+    'repair_statuses', 'brands', 'repair_device_models', 'categories', 'consulta_os_empresas', 'users',
 ];
 
 /** Códigos públicos fictícios (formato EmpresaPublica::FORMATO) das empresas 98 e 99. */
@@ -627,4 +628,44 @@ it('UC-COS-37 falha interna na busca devolve 500 só com found=false, sem detalh
     expect(json_encode($falha->context))->not->toContain('SQLSTATE-DETALHE-TECNICO-42');
     $auditoria = collect($logs)->firstWhere('message', 'consultaos.busca_publica');
     expect($auditoria->context['resultado'])->toBe('erro');
+});
+
+it('UC-COS-62 quem mexeu na OS aparece como primeiro nome + inicial, nunca o nome completo', function () {
+    consultaOsSemear();
+
+    // Funcionário com tratamento, nome composto e sobrenome — o cadastro completo.
+    Schema::create('users', function (Blueprint $t) {
+        $t->increments('id');
+        $t->string('surname')->nullable();
+        $t->string('first_name')->nullable();
+        $t->string('last_name')->nullable();
+        $t->softDeletes();
+        $t->timestamps();
+    });
+    $funcionario = DB::table('users')->insertGetId([
+        'surname' => 'Sra.', 'first_name' => 'Maria Aparecida', 'last_name' => 'Souzaplena',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $folha = DB::table('repair_job_sheets')->where('business_id', 99)->where('job_sheet_no', 'OS-B')->value('id');
+    $alteradas = DB::table('activity_log')
+        ->where('subject_id', $folha)->where('description', 'status_changed')
+        ->update(['causer_type' => (new User)->getMorphClass(), 'causer_id' => $funcionario]);
+    // Controle positivo: a troca de status da OS-B tem mesmo esse funcionário como autor.
+    expect($alteradas)->toBe(1);
+
+    $response = consultaOsBuscar(['tipo' => 'job_sheet_no', 'numero' => 'OS-B'], 99);
+    $response->assertOk();
+
+    $porQuem = collect($response->json('ordens.0.atividades'))->pluck('por')->filter()->values()->all();
+    expect($porQuem)->toBe(['Maria S.']);
+
+    $corpo = $response->getContent();
+    foreach (['Souzaplena', 'Aparecida', 'Sra.'] as $parte) {
+        expect($corpo)->not->toContain($parte);
+    }
+
+    // Sem sobrenome sai só o primeiro nome; sem nome nenhum, nada.
+    expect(RepairConsultaOsRepository::nomePublico((new User)->forceFill(['first_name' => 'Joao'])))->toBe('Joao');
+    expect(RepairConsultaOsRepository::nomePublico((new User)->forceFill(['first_name' => ''])))->toBeNull();
+    expect(RepairConsultaOsRepository::nomePublico(null))->toBeNull();
 });

@@ -6,6 +6,7 @@ namespace Modules\ConsultaOs\Repositories;
 
 use App\Tenancy\ContextoEmpresa;
 use App\Util\OtelHelper;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
 use Modules\Repair\Entities\JobSheet;
@@ -35,7 +36,9 @@ use Spatie\Activitylog\Models\Activity;
  *  - só a empresa do link, nunca todas (até 2026-11-17 o portal procurava em todas);
  *  - nº da venda via `whereExists` (sem join que duplica linha);
  *  - celular só com a config `repair.enable_repair_check_using_mobile_num` ligada E com série;
- *  - no máximo LIMITE OS por resposta.
+ *  - no máximo LIMITE OS por resposta;
+ *  - quem mexeu na OS sai como primeiro nome + inicial do sobrenome ("Maria S."), nunca o nome
+ *    completo (decisão [W] 2026-11-17). O nome completo segue no histórico interno da OS.
  */
 class RepairConsultaOsRepository implements ConsultaOsRepositoryInterface
 {
@@ -179,7 +182,7 @@ class RepairConsultaOsRepository implements ConsultaOsRepositoryInterface
                 return [
                     'data' => $this->iso($a->created_at),
                     'acao' => (string) $acao,
-                    'por' => $a->causer?->getAttribute('user_full_name'),
+                    'por' => self::nomePublico($a->causer),
                     'nota' => $a->getExtraProperty('update_note') ?: null,
                     'conclusao_de' => $this->iso($a->getExtraProperty('completed_on_from')),
                     'conclusao_para' => $this->iso($a->getExtraProperty('completed_on_to')),
@@ -187,6 +190,27 @@ class RepairConsultaOsRepository implements ConsultaOsRepositoryInterface
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * Nome de quem mexeu na OS, como o público vê: primeiro nome + inicial do sobrenome
+     * ("Maria S."). Sem o tratamento (`surname`, ex. "Sr.") e sem o sobrenome inteiro
+     * (decisão [W] 2026-11-17). Sem primeiro nome devolve null e a tela omite o "· quem".
+     */
+    public static function nomePublico(?Model $pessoa): ?string
+    {
+        if ($pessoa === null) {
+            return null;
+        }
+
+        $primeiro = preg_split('/\s+/u', trim((string) $pessoa->getAttribute('first_name')))[0] ?? '';
+        if ($primeiro === '') {
+            return null;
+        }
+
+        $sobrenome = trim((string) $pessoa->getAttribute('last_name'));
+
+        return $sobrenome === '' ? $primeiro : $primeiro.' '.mb_strtoupper(mb_substr($sobrenome, 0, 1)).'.';
     }
 
     private function iso(mixed $valor): ?string
