@@ -1,0 +1,163 @@
+{
+  "url": "https://oimpresso.com/producao/painel",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "light",
+  "assinatura": "WS WR2 Sistemas Certificado vencido há 104 dias IA Visão geral Atendimento 15406 CADASTRO 3 Clientes Produtos 14 Fabricação 5 G P COMERCIAL 5 CRM 9 Vendas 13 Oficina Auto 3 G Y Vestuário 1 G V Fisio 11 FINANÇAS 4 Caixa 4 Financeiro 10 G F Cobrança 3 G B Cobrança Recorrente 4 FISCAL 3 Notas Fiscais Manifestação Certificado PRODUÇÃO 6 Painel de produção Comunicação Visual Assistência técnica 7 G O Reservas Cozinha Pedidos ESTOQUE 4 Compras 3 Transferências de ações 2 Ajuste de estoque 2 Patrimônio 6 RH 3 SISTEMA 9 Auditoria Fluxos e regras Usuários 3 Configurações 11 Relatórios 20 Arquivos Base de Conhecimento Planilhas Governança 7 G G PLATAFORMA 3 Forja Suporte Super Admin [ini] [usuário] Admin Produção · Painel Painel Quadro Linha do tempo Roteiros Postos e cadastros OS em produção 0 0 vencem hoje Atrasadas ou vencendo 0 nenhuma Arte travando 0 aguardando aprovação ou ajuste Refugo na semana 0 nenhuma ocorrência Fila de aprovação de arte O cliente aprova pelo link da prova, sem login. Nenhuma arte esperando o cliente. Acontecendo agora O que a produção fez por último: apontamento, cliente e PCP. Nada registrado ainda. Carga das máquinas hoje Horas das etapas previstas para hoje ÷ horas do dia do posto. Nenhuma máquina cadastrada em Postos e cadastros. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "A",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "OS em produção",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Atrasadas ou v",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Arte travando0",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Refugo na sema",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "producao-painel-fila-arte",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "producao-painel-eventos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "producao-painel-carga",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}

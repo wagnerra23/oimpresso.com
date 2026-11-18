@@ -1,0 +1,89 @@
+{
+  "url": "https://oimpresso.com/producao/apontamento",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "light",
+  "assinatura": "WS WR2 Sistemas Certificado vencido há 104 dias IA Visão geral Atendimento 15406 CADASTRO 3 Clientes Produtos 14 Fabricação 5 G P COMERCIAL 5 CRM 9 Vendas 13 Oficina Auto 3 G Y Vestuário 1 G V Fisio 11 FINANÇAS 4 Caixa 4 Financeiro 10 G F Cobrança 3 G B Cobrança Recorrente 4 FISCAL 3 Notas Fiscais Manifestação Certificado PRODUÇÃO 6 Painel de produção Comunicação Visual Assistência técnica 7 G O Reservas Cozinha Pedidos ESTOQUE 4 Compras 3 Transferências de ações 2 Ajuste de estoque 2 Patrimônio 6 RH 3 SISTEMA 9 Auditoria Fluxos e regras Usuários 3 Configurações 11 Relatórios 20 Arquivos Base de Conhecimento Planilhas Governança 7 G G PLATAFORMA 3 Forja Suporte Super Admin [ini] [usuário] Admin Apontamento [usuário] [usuário] Rodando agora Nada rodando. Leia o QR da OS ou escolha uma etapa abaixo. Ler QR da OS Abrir Minhas etapas de hoje na ordem da programação Nenhuma etapa sua hoje. Quando o PCP programar, ela aparece aqui. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(0.984 0.003 247.9)",
+      "border": "oklch(0.92 0.006 90)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}
