@@ -6,6 +6,7 @@ contains:
   - "NfseController — telas Index/Emitir/Show, cancelar, pdf e POST /nfse/transactions/{tx}/emitir (emissão a partir da venda)"
   - "DataController — menu e permissões nfse.view/emit/cancel"
   - "InstallController"
+  - "NfseConfiguracaoController — POST /nfse/configuracao: ambiente e prestador da NFS-e da empresa (tela em /fiscal/config, aba ambiente)"
   - "NfseEmissaoService — idempotência, retry e cancelamento"
   - "SnNfseAdapter (NfseProviderInterface) — chamada HTTP à Sefin Nacional; a DPS é serializada e assinada pela DpsXml do NfeBrasil"
   - "EmitirNfseJob (fila nfse)"

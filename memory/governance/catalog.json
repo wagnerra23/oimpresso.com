@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1048,
-    "edges": 1406,
+    "nodes": 1049,
+    "edges": 1407,
     "by_node_type": {
       "module": 45,
       "table": 136,
       "adr": 157,
-      "component": 610,
+      "component": 611,
       "api": 100
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 85,
-      "hasComponent": 610,
+      "hasComponent": 611,
       "dependsOn": 154,
       "delegatesTo": 139,
       "migratesTo": 1,
@@ -4812,6 +4812,13 @@
       "module": "NFSe",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:NFSe/NfseConfiguracaoController",
+      "type": "component",
+      "module": "NFSe",
+      "name": "NfseConfiguracaoController",
+      "desc": "POST /nfse/configuracao: ambiente e prestador da NFS-e da empresa (tela em /fiscal/config, aba ambiente)"
     },
     {
       "id": "component:NFSe/NfseController",
@@ -14591,6 +14598,12 @@
     {
       "from": "module:NFSe",
       "to": "component:NFSe/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "component:NFSe/NfseConfiguracaoController",
       "type": "hasComponent",
       "source": "contains"
     },
