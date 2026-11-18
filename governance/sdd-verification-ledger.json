@@ -2242,6 +2242,23 @@
       "pii_hits": 0,
       "veredito": "aprovado",
       "evidencia": "memory/sessions/2026-11-05-refutacao-gt-g5-lote-10376-r1.md"
+    },
+    {
+      "pr": 11161,
+      "lote_id": "gt-g5-lote-11161",
+      "data": "2026-11-18",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5-5 (Anthropic) — sessão do lote L5 da auditoria do Officeimpresso (docs)",
+      "refutador": "claude-opus-5-5 (Anthropic) — subagente em contexto próprio, zero contexto do gerador (§4.2: opus × opus no teto de política)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 44,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-11-18-refutacao-gt-g5-lote-11161-r1.md"
     }
   ]
 }

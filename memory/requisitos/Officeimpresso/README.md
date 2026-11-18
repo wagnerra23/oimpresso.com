@@ -1,75 +1,68 @@
 # Modules/Officeimpresso
 
-> Bridge sincronização desktop Delphi legacy (WR Sistemas) ↔ Laravel/UltimatePOS.
-> **Status:** Cross-cutting **internal_governance_active** (Wagner uso diário — ADR 0159).
-> **Tier 0:** Multi-tenant `business_id` global scope; PII redactor em audit log.
+> Administração do licenciamento do desktop Delphi legado (WR Sistemas / Office Impresso): máquinas, empresas bloqueadas, versão exigida, log de acesso e clients OAuth.
+> **Tier 0:** multi-tenant `business_id` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)); PII redigida antes de gravar no log.
+> **Fluxo ponta a ponta:** [SDD do licenciamento](SDD-licenciamento-delphi-v1.0.md).
 
 ## Por que existe
 
-26 anos de Office Impresso legacy Delphi → ~15+ clientes ativos sincronizam pra Hostinger. Sem este módulo, o ERP novo (oimpresso 6.7) não enxergaria essas empresas e bloquearia migração gradual.
+Os clientes que ainda rodam o Office Impresso desktop precisam de licença por máquina. O desktop chama a API do `Modules/Connector` ao abrir; este módulo guarda as máquinas (`licenca_computador`) e o histórico (`licenca_log`), e dá ao operador as telas para liberar e bloquear. Sem ele, máquina nova não seria liberada e cliente inadimplente não seria bloqueado no desktop.
 
-Drift detection + audit trail ([ADR 0021](../../decisions/0021-officeimpresso-connector-endpoints-restaurados.md)) é hoje a infraestrutura crítica que sustenta o piloto de migração Delphi → React.
+## Caminho real de uma máquina
 
-## Cliente piloto
+Lido do código em 2026-11-18; detalhe e linhas no SDD.
 
-- **Cross-cutting interno** — Wagner usa daily pra inspecionar drift do Delphi
-- 6 OfficeImpresso saudáveis sinalizados (Vargas, Extreme, Gold, Zoom, Fixar, Mhundo, Produart) — futuros candidatos Modules/ComunicacaoVisual
+| Passo | Onde | O que acontece |
+|-------|------|----------------|
+| 1. O desktop pede token (`POST /oauth/token`, password grant) | Passport + `Listeners/LogPassportAccessToken.php` | token emitido; `login_success` em `licenca_log` |
+| 2. O desktop registra a máquina (`POST /connector/api/processa-dados-cliente` ou `/connector/api/oimpresso/registrar`) | `Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php` / `OImpressoRegistroController.php` | máquina nova nasce bloqueada; resposta `N` |
+| 3. O operador libera em `/officeimpresso/licenca_computador` | `Http/Controllers/LicencaComputadorController.php::toggleBlock` → `Services/LicencaService.php::alternarBloqueio` | `bloqueado = false`; motivo do operador em `licenca_log` (`admin_action`) |
+| 4. A cada abertura o desktop repete o registro | Connector | `S` ou `N;<motivo>`; toda chamada vira `api_call` em `licenca_log` (`Http/Middleware/LogDelphiAccess.php`) |
+| 5. Cobrança da licença vence | `Modules/Superadmin/Listeners/OnCobrancaVencidaBloqueaSubscription.php` | `business.officeimpresso_bloqueado = true`; o desktop recebe `N` no próximo registro |
 
-## Journey real biz=1 (Wagner dev)
+## Telas
 
-| Passo | Onde | Resultado esperado |
-|-------|------|-------------------|
-| 1. Delphi POST `/api/officeimpresso/audit` com `{event:"login_success"}` | `AuditController` | `LicencaLog` persistido + PII redacted via `PiiRedactor` |
-| 2. Wagner abre `/superadmin/licenca-computador` | `LicencaComputadorController` | Tabela licenças biz=1 listadas via `LicencaService` |
-| 3. Wagner clica "bloquear máquina X" | `LicencaService::alternarBloqueio` | Toggle `bloqueado` + span OTel `officeimpresso.licenca.alternar_bloqueio` |
-| 4. Cron diário `mcp:brief-generate` lê drift via `LicencaLog` | DB → MCP table | Brief diário Wagner mostra clientes saudáveis × silenciados |
-| 5. Endpoint OAuth/token recebe payload com `hd` (serial HD) | `LogPassportAccessToken` | Match exato `licenca_computador.hd` (roadmap) |
+| Tela | Rota | RUNBOOK |
+|---|---|---|
+| `Licencas/Index` | `/officeimpresso/licenca_computador` | [RUNBOOK-licencas](RUNBOOK-licencas.md) |
+| `Empresas/Index` | `/officeimpresso/businessall` | [RUNBOOK-empresas](RUNBOOK-empresas.md) |
+| `Empresa/Show` | `/officeimpresso/computadores` · `/officeimpresso/licenca_computado/licencas/{id}` | [RUNBOOK-empresa](RUNBOOK-empresa.md) |
+| `Logs/Index` · `Logs/Timeline` | `/officeimpresso/licenca_log` · `/officeimpresso/licenca_log/timeline/{licenca_id}` | [RUNBOOK-logs](RUNBOOK-logs.md) |
+| `Clientes/Index` | `/officeimpresso/client` | [RUNBOOK-clientes](RUNBOOK-clientes.md) |
 
 ## Estrutura
 
+Os inventários vivos são derivados: [SUPERFICIE.md](SUPERFICIE.md) (`node scripts/governance/module-surface.mjs Officeimpresso`) e [_STATUS-GENERATED.md](_STATUS-GENERATED.md) (`node scripts/governance/requisitos-status.mjs Officeimpresso`). O resumo abaixo é só orientação.
+
 ```
 Modules/Officeimpresso/
-├── Config/                # retention.php (LGPD)
-├── Console/Commands/      # licenca-log:retention-purge (futuro)
-├── Database/Migrations/   # licenca_logs + licenca_computador
-├── Entities/
-│   ├── LicencaLog.php     # audit append-only
-│   └── Licenca_Computador.php
-├── Http/Controllers/
-│   ├── AuditController.php           # POST /api/officeimpresso/audit
-│   └── LicencaComputadorController.php
-├── Services/
-│   ├── LicencaService.php       # Wave 16 D4 — CRUD + bloqueio com OTel spans
-│   └── LicencaAuditService.php  # Wave 16 D4 — PII redaction defense in depth
-├── Routes/                # api.php (Delphi) + web.php (admin Inertia)
-└── Tests/Feature/         # ArchitectureTest, LgpdComplianceTest, MultiTenantIsolationTest, ScaffoldTest, SmokeRoutesTest
+├── Config/                # config.php; retention.php (ver LGPD abaixo)
+├── Console/               # licenca-log:parse, officeimpresso:inspect-api
+│   └── Commands/          # officeimpresso:health, officeimpresso:import, officeimpresso:alinhar-pacotes-catalogo
+├── Database/Migrations/   # licenca_computador, licenca_log
+├── Entities/              # Licenca_Computador, LicencaLog
+├── Http/Controllers/      # Audit, Client, Data, Install, LicencaComputador, LicencaLog, Officeimpresso
+├── Http/Middleware/       # LogDelphiAccess (alias log.delphi), LogDesktopAccess (alias log.desktop)
+├── Listeners/             # LogPassportAccessToken
+├── Resources/js/Pages/    # as 6 telas React
+├── Services/              # LicencaService, LicencaAuditService, AcessoOperador, FirebirdImporter/
+├── Routes/                # api.php (ping + /audit) · web.php (telas)
+└── Tests/Feature/         # lista: git ls-files 'Modules/Officeimpresso/Tests/Feature/*.php'
 ```
 
-## LGPD (ADR 0094 §4 + Wave 10 D7.c)
+Nenhum comando está agendado; todos rodam à mão.
 
-Retention por evento (`module.json.retention_days`):
+## LGPD
 
-| Evento | Janela | Justificativa |
-|--------|--------|---------------|
-| `api_call`, `error_logs` | 365d | Debug Delphi |
-| `login_success`, `login_error` | 730d | Auditoria acesso usuário |
-| `admin_action` (block/unblock/businessupdate) | 2555d (7a) | Audit trail legal CC Art. 206 |
-| `licenca_computador inativa` | 1825d (5a) | Suporte vitalício legacy |
+`module.json` (`retention_days`) e `Config/retention.php` descrevem janelas de retenção por evento e um expurgo do `licenca_log`. **Não existe comando que execute esse expurgo**, e as duas fontes divergem nas janelas. A proposta esbarra na lápide §5 de 2026-07-27 de `memory/proibicoes.md` (decisão [W]: num ERP não se apaga PII). Se o log técnico de acesso do desktop entra nessa lápide é decisão [W] em aberto; até lá, nada aqui deve ser lido como plano de expurgo.
 
 ## Observabilidade
 
-Spans canon `officeimpresso.*` (ver `Services/LicencaService.php` + `Services/LicencaAuditService.php`):
-- `officeimpresso.licenca.{listar,buscar,criar,atualizar,remover,alternar_bloqueio}`
-- `officeimpresso.empresa.{atualizar,alternar_bloqueio,listar_com_desktop}`
-- `officeimpresso.licenca_audit.registrar`
-
-Zero-cost quando `otel.enabled=false` (D9.a — ADR 0155).
+Spans `officeimpresso.*` em `Services/LicencaService.php` e `Services/LicencaAuditService.php`; os dois endpoints de registro do Connector têm span próprio (`connector.delphi.*`). Zero custo quando `otel.enabled=false`.
 
 ## Referências
 
-- SPEC: `memory/requisitos/Officeimpresso/SPEC.md`
-- Proposta vs Mubsys: `memory/requisitos/Officeimpresso/PROPOSTA-COMERCIAL-vs-mubsys.md`
-- Recuperação on-prem: `memory/requisitos/Officeimpresso/RUNBOOK-recuperacao-on-prem.md`
-- Migração React: `memory/requisitos/Officeimpresso/RUNBOOK-migracao-react.md`
-- Schema Firebird legacy: `memory/requisitos/Officeimpresso/OFFICEIMPRESSO-FIREBIRD-SCHEMA.md`
-- ADRs: [0021](../../decisions/0021-officeimpresso-connector-endpoints-restaurados.md), [0159](../../decisions/0159-modules-internal-governance-active.md)
+- [SPEC](SPEC.md) · [SDD](SDD-licenciamento-delphi-v1.0.md) · [BRIEFING](BRIEFING.md) · [SCOPE](SCOPE.md) · [CHANGELOG](CHANGELOG.md)
+- [Proposta vs Mubsys](PROPOSTA-COMERCIAL-vs-mubsys.md) · [Recuperação on-prem](RUNBOOK-recuperacao-on-prem.md) · [Migração React](RUNBOOK-migracao-react.md) · [Schema Firebird](OFFICEIMPRESSO-FIREBIRD-SCHEMA.md)
+- ADRs: [0017](../../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md) · [0018](../../decisions/0018-officeimpresso-log-acesso-passivo.md) · [0019](../../decisions/0019-officeimpresso-delphi-nao-autentica.md) · [0021](../../decisions/0021-officeimpresso-contrato-api-delphi.md) · [0203](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md)
+- _Até 2026-11-18 este README citava a rota `/superadmin/licenca-computador` e o cron `mcp:brief-generate`, que não existem, e linkava `0021-officeimpresso-connector-endpoints-restaurados.md` e `0159-modules-internal-governance-active.md`, arquivos que não existem._
