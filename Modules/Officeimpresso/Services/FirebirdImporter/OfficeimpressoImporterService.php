@@ -118,7 +118,7 @@ class OfficeimpressoImporterService
     /**
      * Importa CLIENTES → App\Contact (type=customer).
      *
-     * @return array{read: int, migrated: int, skipped: int}
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
      */
     public function importClientes(int $businessId, bool $dryRun = true): array
     {
@@ -136,7 +136,7 @@ class OfficeimpressoImporterService
     /**
      * Importa PRODUTOS → App\Product.
      *
-     * @return array{read: int, migrated: int, skipped: int}
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
      */
     public function importProdutos(int $businessId, bool $dryRun = true): array
     {
@@ -154,7 +154,7 @@ class OfficeimpressoImporterService
     /**
      * Importa VENDAS → App\Transaction (type=sell).
      *
-     * @return array{read: int, migrated: int, skipped: int}
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
      */
     public function importVendas(int $businessId, bool $dryRun = true): array
     {
@@ -172,7 +172,7 @@ class OfficeimpressoImporterService
     /**
      * Importa LICENCA_COMPUTADOR → licenca_computador.
      *
-     * @return array{read: int, migrated: int, skipped: int}
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
      */
     public function importLicencas(int $businessId, bool $dryRun = true): array
     {
@@ -201,7 +201,7 @@ class OfficeimpressoImporterService
      *
      * Filtro: só STATUS like 'ATIVO%' (não migra INATIVO/cancelados).
      *
-     * @return array{read: int, migrated: int, skipped: int}
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
      */
     public function importFinanceiros(int $businessId, bool $dryRun = true): array
     {
@@ -259,7 +259,7 @@ class OfficeimpressoImporterService
      * NFCe (modelo 65) detectada via NF_TIPO se presente. NF cancelada
      * (NF_DT_CANCELAMENTO not null) migra com status=cancelada.
      *
-     * @return array{read: int, migrated: int, skipped: int}
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
      */
     public function importNotasFiscais(int $businessId, bool $dryRun = true): array
     {
