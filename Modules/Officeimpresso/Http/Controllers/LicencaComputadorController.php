@@ -543,14 +543,39 @@ class LicencaComputadorController extends Controller
         return response()->json($computador, 201);
     }
 
+    /**
+     * Colunas que o `show` devolve. Lista de PERMISSÃO, não de exclusão: coluna nova na
+     * tabela não sai até alguém a pôr aqui. Ficam de fora `senha`, `contra_senha`, `serial`,
+     * `token`, `usuario`, `conexao`, `caminho_banco` e `exe_caminho_banco` — credencial e
+     * endereço do banco do cliente, que o suporte com `officeimpresso.access` não precisa ver.
+     */
+    private const CAMPOS_SHOW = [
+        'id', 'business_id', 'hostname', 'user_win', 'hd', 'sistema_operacional', 'ip_interno',
+        'processador', 'memoria', 'pasta_instalacao', 'versao_exe', 'versao_banco',
+        'dt_cadastro', 'dt_ultimo_acesso', 'dt_ultima_assistencia', 'dt_validade',
+        'bloqueado', 'motivo', 'created_at', 'updated_at',
+    ];
+
+    /**
+     * Uma máquina em JSON, em DTO explícito como as outras telas do controller.
+     * Antes (até 2026-11) devolvia o model cru — `Licenca_Computador` não tem `$hidden` —
+     * e a credencial do desktop saía para quem só tinha leitura.
+     *
+     * Sem filtro de empresa de propósito: `authorizeAccess()` só deixa passar usuário da
+     * empresa operadora (AcessoOperador), que vê todas por desenho.
+     */
     public function show($id)
     {
         $this->authorizeAccess();
 
-        $computador = Licenca_Computador::find($id);
+        $computador = DB::table('licenca_computador')->where('id', (int) $id)->first(self::CAMPOS_SHOW);
         if (! $computador) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
         }
+        $computador->id = (int) $computador->id;
+        $computador->business_id = (int) $computador->business_id;
+        $computador->bloqueado = (bool) $computador->bloqueado;
+
         return response()->json($computador, 200);
     }
 

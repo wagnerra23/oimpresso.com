@@ -2,32 +2,41 @@
 id: requisitos-officeimpresso-briefing
 module: Officeimpresso
 status: parcial
-updated_at: '2026-07-30'
+updated_at: '2026-11-18'
 ---
 
 # BRIEFING — Officeimpresso
 
-Officeimpresso é a **bridge legacy** entre o ERP desktop Delphi/Firebird histórico (**WR Comercial / WR Sistemas**) e o oimpresso Laravel, no contexto da migração "Martinho". Na prática, o que está em produção hoje é o **licenciamento e auditoria de máquinas desktop** dos clientes legacy: controla licenças por computador (HD/processador/versão), bloqueio/desbloqueio, e registra acessos do Delphi via Passport tokens. Sem produto novo — meio de transição, descomissionável quando o último cliente sair do Delphi (ADR 0136/0137). **Deixou de ser superadmin-only em 2026-07-29/30:** a gestão de licenças é delegável ao suporte por 5 permissões graduadas por risco (ver/mexer em máquina/clientes OAuth/empresa inteira/excluir), montadas na tela de Funções — o superadmin saiu do caminho da operação do dia a dia.
+O Officeimpresso administra o **licenciamento do desktop legado** (WR Comercial / WR Sistemas, Delphi + Firebird): quais máquinas de cada cliente podem rodar o executável, quais empresas estão bloqueadas, que versão o desktop deve ter, e o histórico de cada contato do desktop com o servidor. Também guarda o importador PHP do Firebird. Não é produto novo: é meio de transição, descomissionável quando o último cliente sair do Delphi.
 
-**Estado:** parcial. Licenciamento desktop = ativo em prod; importador Firebird PHP = construído mas mock-only (nunca rodou live).
+O fluxo ponta a ponta (token → registro no Connector → liberação → `S`/`N` → bloqueio manual ou por cobrança → log → importação) está no [SDD do licenciamento](SDD-licenciamento-delphi-v1.0.md).
 
-## Capacidades REAIS (no código)
-- **Licenciamento desktop legacy** (`LicencaComputadorController` + `LicencaService` + entidade `Licenca_Computador`): CRUD, toggle-block por máquina, bulk-revoke (cap 100), config de empresa. Rotas web `/officeimpresso/*`. Views Blade (14 telas) ainda legacy — migração React documentada mas **não executada**.
-- **Auditoria/log append-only** (`LicencaLog` + `LicencaAuditService` + `ParseLicencaLogCommand` + `InspectDelphiApiCommand`): registra acessos Delphi/Passport, parseia `laravel.log` (idempotente), retention LGPD. Endpoint `POST /api/officeimpresso/audit` (opt-in Delphi), PiiRedactor.
-- **Health check** (`officeimpresso:health`): tabelas presentes, pings desktop 24h, licenças bloqueadas.
-- **Importador Firebird→oimpresso** (`officeimpresso:import` + `OfficeimpressoImporterService` + `FirebirdConnector`): mapeia 6 tabelas (CLIENTES→contacts, PRODUTOS→products, VENDAS→transactions, LICENCA_COMPUTADOR, FINANCEIRO→fin_titulos, NOTA_FISCAL→nfe_emissoes), read-only one-way (ADR 0019), idempotente por `legacy_id`. **CAVEAT:** roda contra **mocks** — `pdo_firebird` ausente cai em `:mock:` automático; validado só em Pest. A migração Martinho REAL de prod é feita por **scripts Python separados** (`scripts/legacy-migration/import-*.py`), não por este comando PHP.
+**Estado:** parcial. Licenciamento e log em produção, com as telas de administração em React; o importador PHP não é confiável fora de `--dry-run`.
 
-## PLANEJADAS (só SPEC/RUNBOOK, não construído)
-- Importador PHP rodando **live** contra Firebird real (precisa ext `pdo_firebird` — hoje mock).
-- Migração das 14 telas Blade → Inertia/React (RUNBOOK existe, execução não).
-- Onboarding wizard, dashboard de saúde, webhooks/API REST de sync (gaps da CAPTERRA-FICHA).
+## Capacidades no código (`origin/main`, 2026-11-18)
+- **Telas React** (`Resources/js/Pages/Officeimpresso/`), cada uma com charter, casos e RUNBOOK:
+  - `Licencas/Index`: lista de máquinas, bloquear e liberar com motivo. Cutover em 2026-10-06 (#8783), sem flag e sem Blade.
+  - `Empresas/Index`: empresas licenciadas, com busca. Cutover em 2026-10-27 (#10035), sem flag e sem Blade.
+  - `Empresa/Show`: ficha da empresa, edita versão e caminho do banco, bloqueia a empresa e as máquinas. Flag `useV2OfficeimpressoEmpresa` com padrão ligado; o Blade `computadores` segue no repo como rota de fuga.
+  - `Logs/Index` e `Logs/Timeline`: o que cada máquina fez. Flag `useV2OfficeimpressoLogs` ligada para todas as empresas desde 2026-10-14 (#9412); os Blades seguem no repo.
+  - `Clientes/Index`: clients OAuth do desktop, atrás da flag `useV2OfficeimpressoClientes`, que não está nos padrões do `FeatureFlagService`; sem ligar, a Blade serve.
+- **Log de acesso** (`licenca_log`): login no Passport (`LogPassportAccessToken`), toda chamada do desktop à API do Connector (`LogDelphiAccess`, middleware `log.delphi`), a API própria do módulo (`LogDesktopAccess`), o evento opt-in `POST /api/officeimpresso/audit` e as ações do operador (`admin_action`). PII redigida antes de gravar.
+- **Acesso:** `superadmin` ou as permissões delegáveis `officeimpresso.*`, que desde 2026-10-01 só valem para usuário da empresa operadora (`Services/AcessoOperador.php`). A delegação ao suporte é de 2026-07-30.
+- **Comandos** (nenhum agendado): `officeimpresso:health`, `licenca-log:parse`, `officeimpresso:inspect-api`, `officeimpresso:alinhar-pacotes-catalogo`, `officeimpresso:import`.
+- **Catálogo:** as rotas antigas de catálogo e QR redirecionam para o `ProductCatalogue` desde 2026-10-01.
 
-## Dependências / integrações reais
-- **Firebird/Delphi WR Comercial** (`.fdb`, ISO-8859-1, read-only) — via PHP é mock; via Python é o canal real de prod.
-- **Modules/Connector** (sync legacy→Laravel, ADR 0137), **Modules/Financeiro** (`fin_titulos`), **Modules/NfeBrasil** (`nfe_emissoes`) — alvos do import.
-- **Laravel Passport** (auth desktop), **Jana/PiiRedactor** (LGPD), multi-tenant `business_id` (ADR 0093).
+## O que não está pronto
+- **Importador PHP** (`officeimpresso:import`): sem `pdo_firebird` ou sem `--source-fb` cai em modo mock e grava fixtures fora do `--dry-run`; o contador de migrados soma insert que falhou. As migrações de cliente usam os scripts Python de `scripts/legacy-migration/` ([ADR 0203](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md)). Lote L2 da auditoria de 2026-11-05.
+- **Cutover que falta:** a ficha da empresa e as duas telas de Logs ainda têm flag e Blade no repo; Clientes ainda é servida pela Blade.
+- **Decisões [W] pendentes:** a [ADR 0017](../../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md) ("superadmin exclusivo") segue aceita e sem sucessora, enquanto o código delega; e o expurgo do `licenca_log` descrito em `Config/retention.php` e na CAPTERRA esbarra na lápide §5 de 2026-07-27 (não há comando que o execute).
 
-**SPEC:** [SPEC.md](SPEC.md)
+## Dependências / integrações
+- **Modules/Connector:** é a API que o desktop chama (`processa-dados-cliente`, `oimpresso/registrar`, `check-update`). Ela grava em `licenca_computador` e `licenca_log`, tabelas criadas pelas migrations deste módulo, e usa o middleware `log.delphi`, que só o provider deste módulo registra.
+- **Modules/Superadmin:** os listeners de cobrança ligam e desligam `business.officeimpresso_bloqueado`; o desktop sente no próximo registro.
+- **Laravel Passport** (token do desktop), **PiiRedactor** (LGPD), multi-tenant `business_id` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **Firebird** do cliente, só leitura: pelo PHP (`FirebirdConnector`) ou pelos scripts Python.
+
+**SPEC:** [SPEC.md](SPEC.md) · **SDD:** [SDD-licenciamento-delphi-v1.0.md](SDD-licenciamento-delphi-v1.0.md) · **Escopo:** [SCOPE.md](SCOPE.md)
 
 ---
-**Tipo:** BRIEFING destilado (KL-E3). **Estado:** parcial (licenciamento desktop ativo em prod · importador Firebird PHP mock-only · migração React e import live planejados). **Fonte:** código real `Modules/Officeimpresso/` + `scripts/legacy-migration/*.py`, verificado 2026-06-15.
+**Tipo:** BRIEFING destilado (KL-E3). **Estado:** parcial. **Fonte:** código em `origin/main` lido em 2026-11-18 + auditoria do módulo de 2026-11-05 (lote L5).

@@ -5,7 +5,7 @@ id: requisitos-officeimpresso-capterra-ficha
 # CAPTERRA-FICHA — Officeimpresso
 
 > Ficha canônica de benchmark do módulo bridge Officeimpresso.
-> **Bucket**: `vertical_client_facing` ([ADR 0160](../../decisions/0160-scoped-scorecard-evaluator-v3.md))
+> **Bucket**: `vertical_client_facing` ([ADR 0160](../../decisions/0160-governance-v4-scoped-scorecards-buckets.md))
 > **Wave 23** — saturação 60 → ≥85 (rubrica scoped vertical_client_facing.yaml)
 > ADR governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) + [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) §P7
 
@@ -57,6 +57,8 @@ capacidades_operacao:
 | G1 | LicencaImporter idempotente (bulk import licenças legadas) | 12h | alto (migração 6 saudáveis) | nenhum tem |
 | G2 | Dashboard saúde clientes Delphi (heartbeat + alerta down) | 16h | alto (proativo suporte) | parcial Sigma |
 | G3 | Job artisan `licenca-log:retention-purge` (executa retention canon) | 8h | médio (LGPD operacional) | n/a |
+
+> **Nota de 2026-11-18 (G3):** o comando não existe e **não deve ser construído por esta ficha**. A lápide §5 de 2026-07-27 em `memory/proibicoes.md` recusa varredura automática por TTL que apague ou anonimize conteúdo do ERP (decisão [W]: num ERP não se apaga PII). Se o `licenca_log`, que é log técnico de acesso do desktop, cai ou não nessa lápide é decisão [W] em aberto. Até lá, G3 fica parado; a ficha não o endossa nem o descarta.
 | G4 | Onboarding wizard cliente Delphi → Laravel (1-click migration) | 24h | alto (reduz fricção piloto) | nenhum tem |
 | G5 | API REST/webhooks pra integrações externas (Bling/CRMs) | 20h | médio (paridade horizontal) | Bling, Mubisys |
 
