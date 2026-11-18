@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use App\User;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Laravel\Passport\Passport;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Routing\Route;
@@ -68,6 +70,12 @@ it('sem o alias (Officeimpresso desligado) a rota connector/api quebra ao montar
     // O throttle roda antes e chama $request->user(), que monta o servidor do Passport;
     // sem as chaves OAuth (CI) ele lança antes de o pipeline chegar ao log.delphi.
     $this->withoutMiddleware([ThrottleRequests::class, ThrottleRequestsWithRedis::class]);
+    // O auth:api roda antes de o pipeline resolver o log.delphi (medido no CI: sem
+    // usuário a requisição para em 'Unauthenticated.'). Sem login o cliente segue vendo
+    // 401; quem quebra é a requisição autenticada, que é a do Delphi.
+    $usuario = new User(['business_id' => 98]);
+    $usuario->id = 999999;
+    Passport::actingAs($usuario, [], 'api');
     $this->withoutExceptionHandling();
     expect(fn () => $this->getJson('/'.$rota->uri()))
         ->toThrow(BindingResolutionException::class, 'log.delphi');
