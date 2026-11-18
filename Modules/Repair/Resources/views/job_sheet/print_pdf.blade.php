@@ -106,6 +106,23 @@
 		</tr>
 	</table>
 </div>
+@if(!empty($consulta_os_link))
+{{-- Link + QR do portal de consulta de OS da empresa (decisão [W] 2026-11-18). --}}
+<div class="width-100 box mb-10 consulta-os-link">
+	<table class="no-border table-pdf">
+		<tr>
+			<td style="width: 90px;">
+				<img src="data:image/png;base64,{{DNS2D::getBarcodePNG($consulta_os_link, 'QRCODE', 3, 3)}}" alt="QR da consulta de OS">
+			</td>
+			<td class="font-12">
+				<strong>Acompanhe sua OS pela internet</strong><br>
+				Aponte a câmera para o código ou abra o link e digite o nº da OS:<br>
+				{{ $consulta_os_link }}
+			</td>
+		</tr>
+	</table>
+</div>
+@endif
 <div class="box mb-10">
 <table class="table-pdf">
 	<tr>

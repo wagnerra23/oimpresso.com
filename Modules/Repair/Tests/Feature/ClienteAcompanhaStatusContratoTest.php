@@ -354,3 +354,46 @@ it('UC-COS-32: OS que aponta para cliente de outra empresa não avisa ninguém',
     $avisos = flx24Avisos();
     expect($avisos)->toHaveCount(1)->and($avisos[0]->customer_external_id)->toBe('+5547900000598');
 });
+
+it('UC-COS-66 [T0]: a impressão da OS traz o link e o QR do portal da empresa da OS, nunca o de outra', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+    $user = Fx::usuario((int) $biz->id);
+    Fx::sessao((int) $biz->id, (int) $user->id);
+
+    $localId = DB::table('business_locations')->where('business_id', (int) $biz->id)->value('id');
+    if ($localId === null) {
+        $this->markTestSkipped('Tenant 98 sem business_location — a folha impressa precisa do endereço da loja.');
+    }
+
+    $contato = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 IMPRESSAO');
+    $status = Fx::status((int) $biz->id, 'Recebido');
+    $osId = Fx::os((int) $biz->id, $contato, $status, (int) $user->id, ['location_id' => (int) $localId]);
+
+    $linkVizinho = EmpresaPublica::linkDe((int) $vizinho->id);
+    $codigoVizinho = (string) DB::table('consulta_os_empresas')->where('business_id', (int) $vizinho->id)->value('codigo');
+
+    // Captura o que o controller entrega à view da folha (o PDF em si sai comprimido pelo mPDF).
+    $dados = null;
+    \Illuminate\Support\Facades\View::composer('repair::job_sheet.print_pdf', function ($view) use (&$dados) {
+        $dados ??= $view->getData();
+    });
+
+    ob_start();
+    try {
+        $this->actingAs($user)->get("/repair/job-sheet/print/{$osId}");
+    } finally {
+        ob_end_clean(); // o mPDF manda o PDF direto para a saída
+    }
+
+    expect($dados)->not->toBeNull();
+    $linkProprio = EmpresaPublica::linkDe((int) $biz->id);
+    expect($dados['consulta_os_link'] ?? null)->toBe($linkProprio);
+    expect($linkProprio)->not->toBe($linkVizinho);
+
+    // A folha renderizada mostra o link e o QR (imagem PNG gerada pelo DNS2D) — e nada da outra empresa.
+    $html = view('repair::job_sheet.print_pdf', $dados)->render();
+    expect($html)->toContain($linkProprio);
+    expect($html)->toContain('QR da consulta de OS');
+    expect($html)->not->toContain($codigoVizinho);
+});
