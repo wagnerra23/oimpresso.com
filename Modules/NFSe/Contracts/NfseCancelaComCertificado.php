@@ -11,14 +11,19 @@ namespace Modules\NFSe\Contracts;
  * certificado.
  *
  * Devolve true SÓ quando o provedor confirma o cancelamento. false = não cancelou.
+ *
+ * Desde 2026-11-18 o cancelamento é o evento e101101 assinado, que identifica a nota pela
+ * CHAVE DE ACESSO (50 dígitos, `nfse_emissoes.provider_protocolo`) e o autor pelo CNPJ do
+ * prestador. Antes o primeiro argumento era o número da nota e não havia CNPJ.
  */
 interface NfseCancelaComCertificado
 {
     public function cancelarNoAmbiente(
-        string $numero,
+        string $chaveAcesso,
         string $motivo,
         string $ambiente,
         string $certPfxBase64,
         string $certSenha,
+        string $cnpjAutor,
     ): bool;
 }

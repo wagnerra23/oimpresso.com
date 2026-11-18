@@ -30,6 +30,9 @@ uses(DatabaseTransactions::class);
 
 const NFSCANC_TENANT = 98;
 const NFSCANC_PFX = 'PFX-FICTICIO-98';
+// Chave de acesso (50 dígitos) e CNPJ sintéticos de fixture.
+const NFSCANC_CHAVE = '42187072112223330001810000000009000012610123456789';
+const NFSCANC_CNPJ = '11222333000181'; // pii-allowlist (CNPJ sintético de fixture)
 
 function nfscancNota(string $status = 'emitida', ?string $numero = '900001'): NfseEmissao
 {
@@ -37,6 +40,7 @@ function nfscancNota(string $status = 'emitida', ?string $numero = '900001'): Nf
         'business_id'     => NFSCANC_TENANT,
         'status'          => $status,
         'numero'          => $numero,
+        'provider_protocolo' => $numero === null ? null : NFSCANC_CHAVE,
         'rps_numero'      => '000001',
         'serie'           => '1',
         'competencia'     => '2026-10-01',
@@ -70,9 +74,9 @@ function nfscancProvider(bool $confirma): object
             throw new RuntimeException('o caminho sem ambiente/certificado não pode ser usado');
         }
 
-        public function cancelarNoAmbiente(string $numero, string $motivo, string $ambiente, string $certPfxBase64, string $certSenha): bool
+        public function cancelarNoAmbiente(string $chaveAcesso, string $motivo, string $ambiente, string $certPfxBase64, string $certSenha, string $cnpjAutor): bool
         {
-            $this->chamadas[] = compact('numero', 'motivo', 'ambiente', 'certPfxBase64', 'certSenha');
+            $this->chamadas[] = compact('chaveAcesso', 'motivo', 'ambiente', 'certPfxBase64', 'certSenha', 'cnpjAutor');
 
             return $this->confirma;
         }
@@ -107,7 +111,7 @@ beforeEach(function () {
     config(['nfse.ambiente' => 'homologacao']);
     $existentes = NfseProviderConfig::withoutGlobalScopes()->where('business_id', NFSCANC_TENANT);
     if ((clone $existentes)->exists()) {
-        $existentes->update(['ambiente' => 'producao', 'cert_id' => $cert->id]);
+        $existentes->update(['ambiente' => 'producao', 'cert_id' => $cert->id, 'prestador_cnpj' => NFSCANC_CNPJ]);
     } else {
         NfseProviderConfig::withoutGlobalScopes()->create([
             'business_id'           => NFSCANC_TENANT,
@@ -115,6 +119,7 @@ beforeEach(function () {
             'municipio_codigo_ibge' => '4218707',
             'ambiente'              => 'producao',
             'cert_id'               => $cert->id,
+            'prestador_cnpj'        => NFSCANC_CNPJ,
         ]);
     }
 
@@ -137,7 +142,9 @@ it('cancela no ambiente e com o certificado da empresa da nota quando o provedor
     expect($provider->chamadas[0]['ambiente'])->toBe('producao');
     expect($provider->chamadas[0]['certPfxBase64'])->toBe(base64_encode(NFSCANC_PFX));
     expect($provider->chamadas[0]['certSenha'])->toBe('senha-ficticia');
-    expect($provider->chamadas[0]['numero'])->toBe('900001');
+    // O evento identifica a nota pela chave de acesso (não pelo número) e o autor pelo CNPJ do prestador.
+    expect($provider->chamadas[0]['chaveAcesso'])->toBe(NFSCANC_CHAVE);
+    expect($provider->chamadas[0]['cnpjAutor'])->toBe(NFSCANC_CNPJ);
     // Controle positivo do espião: a transição real dispara o estorno.
     $this->retencao->shouldHaveReceived('estornar')->once();
 });
