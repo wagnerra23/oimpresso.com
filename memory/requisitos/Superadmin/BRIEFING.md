@@ -69,6 +69,7 @@ A tela Pagar nova oferece **só PIX Automático e offline** (UC-SAPG-03). A Blad
 ## Gaps reconhecidos
 
 - ✅ (2026-11-16) Fechado: desativar e excluir empresa ou pacote saía por GET (um link bastava) — agora POST/DELETE com CSRF, `is_active` só 0/1 e as travas de `canDestroy` na exclusão (`SuperadminRotasDestrutivasContratoTest`). O que a exclusão apaga continua como antes (B5).
+- ✅ (2026-11-18) Fechado (B5, decisão [W]): excluir empresa não apaga mais nada — só desativa (`is_active = 0`) e registra `negocio_desativado` em `activity_log`. Vendas, notas, financeiro e cadastros ficam guardados (`SuperadminRotasDestrutivasContratoTest` UC-SARD-08).
 - ✅ (2026-11-16) Fechado: `confirm` aprovava pacote pago com gateway inventado e por GET sem CSRF — agora só gateway configurado, POST, travas de pacote privado/uso único (`SubscriptionConfirmContratoTest`, #10974)
 - US-SUPER-006 (respeitar `requires` do `module.json`) e US-SUPER-007 (versão PHP/MySQL, disco, jobs com falha): parciais
 - US-SUPER-011: o MRR entrou na SA-O1b (#5955, delegado ao RecurringBilling no #5981; `SuperadminDashboardService::calcularMrr`); funil trial→pago e receita por pacote seguem sem query. O comentário em `SuperadminController.php:41-43` ainda diz que o MRR não tem query (é anterior ao #5955)
