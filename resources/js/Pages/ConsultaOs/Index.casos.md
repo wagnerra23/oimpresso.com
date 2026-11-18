@@ -63,6 +63,7 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-62 | Quem mexeu na OS aparece como primeiro nome + inicial do sobrenome | must | decisão [W] 2026-11-17 "primeiro nome + inicial" · Non-Goals "NÃO expõe o nome completo de funcionário" | 🧪 |
 | UC-COS-63 | O link da empresa nasce na 1ª vez que é pedido e depois é sempre o mesmo | must | decisão [W] 2026-11-18 "o link nasce sozinho" | 🧪 |
 | UC-COS-64 | O link de uma empresa nunca é o de outra, nem abre a outra | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" · ADR 0093 | 🧪 |
+| UC-COS-65 | O aviso de WhatsApp da OS leva o link do portal da empresa da OS | must `[T0]` | decisão [W] 2026-11-18 "link no aviso" · US-CONSULTA-004 · ADR 0093 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -338,6 +339,17 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
 - **Aceite:** Dado as empresas 98 e 99 pedindo o link · Então os dois links são diferentes e
   nenhum contém o código do outro · E cada código resolve para a própria empresa · E pedir de novo o
   link da 98 depois de criar o da 99 não muda nada.
+- **Status:** 🧪
+
+## UC-COS-65 · O aviso de WhatsApp da OS leva o link do portal da empresa da OS · `must` `[T0]`
+
+- **Aceite:** Dado a empresa 99 com o link dela já criado · Quando a OS da empresa 98 muda para um
+  status marcado para avisar · Então a mensagem ao cliente traz "pronta para retirada" e o link
+  `/consulta-os/{codigo}` da 98 · E não traz o código da 99.
+- **Onde:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` acrescenta "Acompanhe pelo link:
+  …" ao texto, com o `business_id` da OS. Sem o ConsultaOs ligado o aviso sai sem link (não falha).
+- **Teste:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php`, lane
+  `Verticais · MySQL`.
 - **Status:** 🧪
 
 ---

@@ -192,6 +192,43 @@ it('UC-COS-12: mudar o status da OS avisa o cliente certo e o portal mostra o st
     expect(json_encode($corpo))->not->toContain('Cliente Vizinho FLX-24');
 });
 
+it('UC-COS-65 [T0]: o aviso da OS leva o link do portal da empresa da OS, nunca o de outra', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+    $user = Fx::usuario((int) $biz->id);
+    Fx::sessao((int) $biz->id, (int) $user->id);
+
+    $contato = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 LINK');
+    DB::table('contacts')->where('id', $contato)->update(['mobile' => '+5547900000398']);
+    $statusInicial = Fx::status((int) $biz->id, 'Recebido');
+    $statusPronto = Fx::status((int) $biz->id, 'Pronto para retirada');
+    DB::table('repair_statuses')->where('id', $statusPronto)->update(['whatsapp_template_aviso' => 'ready']);
+    $osId = Fx::os((int) $biz->id, $contato, $statusInicial, (int) $user->id);
+    flx24Telefone((int) $biz->id);
+
+    // A outra empresa já tem o link dela: ele não pode aparecer no aviso desta.
+    $linkVizinho = EmpresaPublica::linkDe((int) $vizinho->id);
+    $codigoVizinho = (string) DB::table('consulta_os_empresas')->where('business_id', (int) $vizinho->id)->value('codigo');
+
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
+
+    $this->actingAs($user)->put("/repair/job-sheet/{$osId}", [
+        'contact_id' => $contato,
+        'status_id' => $statusPronto,
+        'service_type' => 'carry_in',
+        'serial_no' => 'SN-FLX24-LINK',
+    ]);
+
+    $linkProprio = EmpresaPublica::linkDe((int) $biz->id);
+    expect($linkProprio)->not->toBe($linkVizinho);
+
+    $avisos = flx24Avisos();
+    expect($avisos)->toHaveCount(1);
+    expect($avisos[0]->body)->toContain('pronta para retirada');
+    expect($avisos[0]->body)->toContain($linkProprio);
+    expect($avisos[0]->body)->not->toContain($codigoVizinho);
+});
+
 it('UC-COS-13: status com o nome que a empresa deu avisa pelo WhatsApp quando está marcado', function () {
     $biz = $this->seededTenant();
     $user = Fx::usuario((int) $biz->id);
