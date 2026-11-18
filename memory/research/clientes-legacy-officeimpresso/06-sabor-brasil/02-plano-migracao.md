@@ -210,12 +210,13 @@ Conta 11 do Delphi ("BANCO DO BRASIL - EDC FOODS"), única de boleto ativa (a co
 - **Baixa: arquivo de retorno CNAB 240.** Um arquivo de retorno em 14/10/2026 baixou os 45 títulos (`BAIXA_ORIGEM = RETORNO_CNAB`).
 - **oimpresso:** para o BB só existe o `BBCnabDriver` (remessa 240, PDF e retorno, P-157). Não há driver da API do BB. Inter, Sicoob, C6 e Asaas têm API; o BB não.
 - **Consequência:** dá para virar com o BB por CNAB, mas o Ricardo passa a subir o arquivo de remessa no portal do BB, o que hoje ele não faz. Manter o fluxo dele exige um driver da API de cobrança do BB. Decisão pendente: [W].
+- **Decisão [W] 2026-11-18: API.** Textual: *"vai ser api"*, *"arquivo é um pé no saco"*. A 199 vira com o boleto BB registrado pela API de cobrança do BB, como o Ricardo faz hoje; o `BBCnabDriver` não é o caminho da virada. Falta o driver da API do BB no oimpresso. A regra vale para toda empresa migrada: ver o pattern de migração, Fase 4.
 
 ### Decisões do [W] em 2026-11-13
 
 | Assunto | Decisão |
 |---|---|
-| Pacote fiscal | renovar a assinatura da 199 com o `fiscal_module` (o pacote 182 só tem `auditoria_module`; a assinatura venceu em 2026-04-23) |
+| Pacote fiscal | renovar a assinatura da 199 com o `fiscal_module` (o pacote 182 só tem `auditoria_module`; a assinatura venceu em 2026-04-23). Vale para toda empresa migrada que emite NF-e: ver o pattern de migração, §8 |
 | Empresa 4 (Regime Normal) | ainda emite: configurar os dois locais emissores, cada um com o seu regime (P-155) |
 | 581 títulos a receber em aberto (desde 2019) | importar como estão. Provavelmente o Ricardo esqueceu de baixar. **Lembrete:** na Etapa 8, a [M] confere a lista com o Ricardo e baixa o que já foi pago |
 | Balanço de estoque | não trava a virada: o Ricardo não controla estoque no oimpresso |
@@ -240,7 +241,7 @@ Conta 11 do Delphi ("BANCO DO BRASIL - EDC FOODS"), única de boleto ativa (a co
 | Quando | O quê | Dono |
 |---|---|---|
 | 13/11 | corrigir os 2.099 títulos | Claude · ok [W] dado |
-| 16–18/11 | renovar o pacote fiscal; decidir BB por CNAB ou por API; cópia nova do Delphi | [W] · Ricardo |
+| 16–18/11 | renovar o pacote fiscal; cópia nova do Delphi (BB decidido em 18/11: API) | [W] · Ricardo |
 | 16–20/11 | importadores: CEST, itens com imposto, tabelas de preço, clientes ligados aos títulos; dry-run com antes→depois | Claude · [W] |
 | 23–27/11 | reimportação aprovada; configuração da 199 (certificados dos dois CNPJs, dois locais, regras, usuários, BB) | Claude · [M] confere |
 | 30/11–04/12 | homologação SEFAZ nos dois CNPJs, com cancelamento; boleto BB de ponta a ponta | [M] · Ricardo |
@@ -248,7 +249,7 @@ Conta 11 do Delphi ("BANCO DO BRASIL - EDC FOODS"), única de boleto ativa (a co
 | **14/12** | virada (se a homologação falhar: 05/01/2027) | [W] · [M] |
 | até 15/01/2027 | acompanhamento; conferência dos 581 títulos abertos com o Ricardo | [M] |
 
-Se o [W] escolher a API do BB, ela entra antes da homologação e empurra a virada em cerca de uma semana.
+Se o [W] escolher a API do BB, ela entra antes da homologação e empurra a virada em cerca de uma semana. **O [W] escolheu a API em 2026-11-18.** O driver entra antes da homologação; as datas de homologação, paralelo e virada acima andam cerca de uma semana, e a data nova sai quando o driver tiver prazo.
 
 ### Conferência fiscal (2026-11-13, pedido da [M])
 

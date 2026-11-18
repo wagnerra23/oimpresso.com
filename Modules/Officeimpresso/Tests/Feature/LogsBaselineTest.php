@@ -34,6 +34,8 @@ uses(Tests\TestCase::class);
  * @covers-us US-OI-001
  * @covers-us US-OI-002
  * @covers-us US-OI-003
+ * @covers-us US-OI-004
+ * @covers-us US-OI-005
  * @covers-us US-OI-006
  * @see Modules\Officeimpresso\Http\Controllers\LicencaLogController
  * @see memory/requisitos/Officeimpresso/RUNBOOK-logs.md

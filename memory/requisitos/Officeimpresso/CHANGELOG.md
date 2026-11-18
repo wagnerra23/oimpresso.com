@@ -6,7 +6,36 @@ id: requisitos-officeimpresso-changelog
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
-## [Unreleased] - 2026-05-16 — Wave 23 saturação bucket vertical_client_facing
+## [2026-07-29 → 2026-11-03] Delegação ao suporte, migração React das telas e cutovers
+
+Reconstituído em 2026-11-18 a partir de `git log origin/main --since=2026-07-25 -- Modules/Officeimpresso`. O número do PR é o recibo de cada linha.
+
+### Acesso
+- 2026-07-29 — telas de licença passam a exigir permissão, não só login (#5044).
+- 2026-07-30 — gestão de licença delegável ao suporte por permissões graduadas (#5075); o menu Blade deixa de gatear por superadmin (#5078); `/officeimpresso` deixa de dar 404 (#5074).
+- 2026-10-01 — as permissões delegáveis e `officeimpresso.access` só valem para usuário da empresa operadora (#8388, #8389, #8399); o topnav esconde licenças de quem não é da operadora (#8395).
+
+### Segurança
+- 2026-10-01 — bloquear licença e empresa e as rotas `install/*` saem de `GET` (#8367); o segredo do client OAuth some da lista e aparece uma vez na criação (#8362); client do Passport volta a id inteiro (#8366).
+
+### Telas React
+- 2026-08-19/20 — Logs: baseline F2 (#5967), payload extraído (#5969), `Logs/Index` (#5977) e `Logs/Timeline` (#5978), F4 dos `alta` de paridade (#6049).
+- 2026-10-01 — `Licencas/Index` em Inertia (#8372) e drawer com bloquear por motivo (#8378).
+- 2026-10-06 — cutover da lista de Licenças, sem flag e sem Blade (#8783), travado por teste (#8753).
+- 2026-10-09 — `Clientes/Index` em Inertia atrás da flag `useV2OfficeimpressoClientes` (#9081).
+- 2026-10-12/13 — `Empresas/Index` (#9145) e `Empresa/Show` (#9153) em React; a ficha edita a configuração, bloqueia a empresa (#9178) e bloqueia e libera máquina com motivo (#9182); flags das telas prontas ligadas (#9192).
+- 2026-10-14 — Logs em React para todas as empresas, decisão [W] (#9412).
+- 2026-10-27 — cutover da lista de Empresas, sem flag e sem Blade (#10035).
+
+### Catálogo
+- 2026-10-01 — catálogo e QR redirecionam para o `ProductCatalogue` (#8346, #8403), com `officeimpresso:alinhar-pacotes-catalogo` para alinhar os pacotes antes (#8401). O cutover F5 do Catálogo QR é do `ProductCatalogue` (#9997, 2026-10-28).
+
+### Removido
+- 2026-08-21 — Blade morto `licencas_log/` (#6053).
+
+## [Wave 23 — 2026-05-16] Saturação bucket vertical_client_facing
+
+> _Até 2026-11-18 este bloco era o `[Unreleased]` do topo. O G3 citado abaixo (`retention-purge`) não foi construído e esbarra na lápide §5 de 2026-07-27; ver a nota na CAPTERRA-FICHA._
 
 ### Added
 

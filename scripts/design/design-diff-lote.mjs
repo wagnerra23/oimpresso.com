@@ -309,6 +309,11 @@ export function rotasDaAncora(src) {
  * cair na rota do grupo seria repetir o defeito que a tabela existe para evitar.
  */
 export function tokenDaTela(tela, { rotas, mockupSrc, override = {} }) {
+  // `sem_vista` (2026-11-18): a tela declara no charter um protótipo multi-vista que NÃO tem vista
+  // para ela (Officeimpresso/Empresa/Show). Sem isto ela caía na rota do grupo e colidia com a irmã
+  // que É dona daquela vista, travando a medição das duas. Token nulo: sai NÃO MEDI com o motivo e
+  // não colide (colisoesDeRota ignora nulo). Ganha do `token` de propósito: é decisão, não derivação.
+  if (typeof override.sem_vista === 'string' && override.sem_vista.trim()) return { token: null, via: `sem vista no protótipo — ${override.sem_vista.trim()}` };
   if (override.token) return { token: override.token, via: 'override' };
   const tab = rotasDaAncora(mockupSrc);
   if (tab && tab.size) {
@@ -1029,6 +1034,8 @@ async function selftest() {
   const rotasGrupo = [{ componente: 'SuperadminPage', tokens: ['superadmin', 'sa-negocios'], prefixos: [] }];
   ok('tokenDaTela: ROTAS ganha da rota do grupo', tokenDaTela({ id: 'R/Index', source: 'r-page.jsx' }, { rotas: [{ componente: 'RPage', tokens: ['repair'], prefixos: [] }], mockupSrc: 'window.RPage = 1;\n' + rotasFx }).token === 'rep-lista');
   ok('tokenDaTela MORDE: ROTAS sem a page desta tela → null (não cai no grupo)', tokenDaTela({ id: 'R/Outra', source: 'r-page.jsx' }, { rotas: [{ componente: 'RPage', tokens: ['repair'], prefixos: [] }], mockupSrc: 'window.RPage = 1;\n' + rotasFx }).token === null);
+  ok('tokenDaTela: sem_vista → null com o motivo (não cai no grupo)', (() => { const r = tokenDaTela({ id: 'superadmin/Negocios/Index', source: 'superadmin-page.jsx' }, { rotas: rotasGrupo, mockupSrc: 'window.SuperadminPage = 1;', override: { sem_vista: 'motivo X' } }); return r.token === null && r.via.includes('motivo X'); })());
+  ok('tokenDaTela MORDE: sem_vista vazio não desliga a derivação', tokenDaTela({ id: 'superadmin/Negocios/Index', source: 'superadmin-page.jsx' }, { rotas: rotasGrupo, mockupSrc: 'window.SuperadminPage = 1;', override: { sem_vista: '  ' } }).token === 'superadmin');
   ok('tokenDaTela: override ganha de tudo', tokenDaTela({ id: 'R/Index', source: 'r-page.jsx' }, { rotas: [], mockupSrc: rotasFx, override: { token: 'x' } }).token === 'x');
   ok('tokenDaTela: sem ROTAS → derivação do app.jsx (rota do grupo)', tokenDaTela({ id: 'superadmin/Negocios/Index', source: 'superadmin-page.jsx' }, { rotas: rotasGrupo, mockupSrc: 'window.SuperadminPage = 1;' }).token === 'superadmin');
   const colR = colisoesDeRota([{ id: 'S/A', token: 'superadmin' }, { id: 'S/B', token: 'superadmin' }, { id: 'S/C', token: 'sa-c' }, { id: 'S/D', token: null }]);

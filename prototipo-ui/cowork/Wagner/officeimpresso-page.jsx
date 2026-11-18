@@ -16,9 +16,9 @@ const ds = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
 // caminho_banco_servidor, officeimpresso_limitemaquinas, officeimpresso_bloqueado.
 const EMPRESAS = [
   { biz:1,   nome:"WR2 Comunicação Visual",   cidade:"São Paulo · SP",   matriz:true,  grupo:"WR2",      versaoObrig:"6.7.14", versaoDisp:"6.7.14", banco:"\\\\SRV-WR2\\OI\\DADOS.FDB",        limite:6,  usadas:4,  bloqueado:false, ultimo:"há 12min", frescor:"recente", desde:"12/03/2019" },
-  { biz:4,   nome:"ROTA LIVRE Comunicação Visual", cidade:"São Paulo · SP", matriz:true, grupo:"ROTA LIVRE", versaoObrig:"6.7.12", versaoDisp:"6.7.14", banco:"\\\\SRV-ROTA\\OFFICE\\DADOS.FDB",   limite:8,  usadas:8,  bloqueado:false, ultimo:"há 3min",  frescor:"recente", desde:"04/09/2021" },
-  { biz:58,  nome:"ROTA LIVRE — Zona Leste",  cidade:"São Paulo · SP",   matriz:false, grupo:"ROTA LIVRE", matrizDe:4, versaoObrig:"6.7.12", versaoDisp:"6.7.14", banco:"herda da matriz",       limite:3,  usadas:2,  bloqueado:false, ultimo:"há 1h",    frescor:"recente", desde:"18/02/2024" },
-  { biz:164, nome:"Martinho Oficina",         cidade:"Guarulhos · SP",   matriz:true,  grupo:"Martinho", versaoObrig:"6.7.09", versaoDisp:"6.7.14", banco:"C:\\OFFICE\\DADOS.FDB",             limite:2,  usadas:2,  bloqueado:false, ultimo:"há 4h",    frescor:"fresc",   desde:"04/02/2026" },
+  { biz:21,  nome:"Vitrine Sinalização", cidade:"São Paulo · SP", matriz:true, grupo:"Vitrine", versaoObrig:"6.7.12", versaoDisp:"6.7.14", banco:"\\\\SRV-VITRINE\\OFFICE\\DADOS.FDB",   limite:8,  usadas:8,  bloqueado:false, ultimo:"há 3min",  frescor:"recente", desde:"04/09/2021" },
+  { biz:58,  nome:"Vitrine — Zona Leste",     cidade:"São Paulo · SP",   matriz:false, grupo:"Vitrine", matrizDe:21, versaoObrig:"6.7.12", versaoDisp:"6.7.14", banco:"herda da matriz",       limite:3,  usadas:2,  bloqueado:false, ultimo:"há 1h",    frescor:"recente", desde:"18/02/2024" },
+  { biz:173, nome:"Oficina Modelo",           cidade:"Guarulhos · SP",   matriz:true,  grupo:"Oficina Modelo", versaoObrig:"6.7.09", versaoDisp:"6.7.14", banco:"C:\\OFFICE\\DADOS.FDB",             limite:2,  usadas:2,  bloqueado:false, ultimo:"há 4h",    frescor:"fresc",   desde:"04/02/2026" },
   { biz:149, nome:"Grupo Sinaliza",           cidade:"Porto Alegre · RS",matriz:true,  grupo:"Sinaliza", versaoObrig:"6.7.14", versaoDisp:"6.7.14", banco:"\\\\SINALIZA-SRV\\OI\\DADOS.FDB",  limite:12, usadas:9,  bloqueado:false, ultimo:"ontem",    frescor:"fresc",   desde:"09/07/2020" },
   { biz:151, nome:"Sinaliza — Canoas",        cidade:"Canoas · RS",      matriz:false, grupo:"Sinaliza", matrizDe:149, versaoObrig:"6.7.14", versaoDisp:"6.7.14", banco:"herda da matriz",      limite:4,  usadas:3,  bloqueado:false, ultimo:"há 2 dias",frescor:"fresc",   desde:"21/05/2022" },
   { biz:142, nome:"Copiadora Central",        cidade:"Goiânia · GO",     matriz:true,  grupo:"Copiadora",versaoObrig:"6.5.02", versaoDisp:"6.7.14", banco:"\\\\CC-FILE\\OI\\DADOS.FDB",       limite:3,  usadas:1,  bloqueado:false, ultimo:"há 27 dias",frescor:"frio",   desde:"02/04/2018" },
@@ -28,38 +28,39 @@ const EMPRESAS = [
 
 // ── Mock: licenças de computador (licenca_computador) ──
 const LICENCAS = [
-  { id:"LIC-4412", host:"BALCAO-01",    serial:"9F31-A7C2-1B04-77DE", biz:4,   versao:"6.7.14", so:"Windows 11 Pro 23H2", ip:"189.45.12.88",  ultimo:"há 3min",   frescor:"recente", status:"ativa",     usuario:"larissa",  desde:"04/09/2021" },
-  { id:"LIC-4413", host:"BALCAO-02",    serial:"77C0-2DE4-91AA-3F18", biz:4,   versao:"6.7.14", so:"Windows 11 Pro 23H2", ip:"189.45.12.88",  ultimo:"há 22min",  frescor:"recente", status:"ativa",     usuario:"jonas",    desde:"04/09/2021" },
-  { id:"LIC-4471", host:"PRODUCAO-PLOT",serial:"2A88-CF10-5501-B2C9", biz:4,   versao:"6.7.12", so:"Windows 10 Pro 22H2", ip:"189.45.12.90",  ultimo:"há 1h",     frescor:"recente", status:"ativa",     usuario:"felipe",   desde:"11/01/2023" },
-  { id:"LIC-4502", host:"ZL-CAIXA",     serial:"D1E0-4471-88AC-0092", biz:58,  versao:"6.7.12", so:"Windows 11 Pro 23H2", ip:"177.92.4.31",   ultimo:"há 1h",     frescor:"recente", status:"ativa",     usuario:"marli",    desde:"18/02/2024" },
-  { id:"LIC-4390", host:"MARTINHO-PC",  serial:"7C02-DE41-2210-4F8B", biz:164, versao:"6.7.09", so:"Windows 10 Pro 21H2", ip:"201.17.88.140", ultimo:"há 4h",     frescor:"fresc",   status:"ativa",     usuario:"martinho", desde:"04/02/2026" },
-  { id:"LIC-4391", host:"OFICINA-BOX",  serial:"3PkQ-8bL2-7741-CC02", biz:164, versao:"6.5.02", so:"Windows 8.1",         ip:"201.17.88.141", ultimo:"há 9 dias", frescor:"fresc",   status:"ativa",     usuario:"ailton",   desde:"19/04/2026" },
-  { id:"LIC-4288", host:"SINALIZA-CX1", serial:"B4A2-9910-71DE-0043", biz:149, versao:"6.7.14", so:"Windows 11 Pro 24H2", ip:"200.140.7.19",  ultimo:"ontem",     frescor:"fresc",   status:"ativa",     usuario:"eder",     desde:"09/07/2020" },
-  { id:"LIC-4291", host:"CANOAS-CX1",   serial:"6610-BB84-2F19-A700", biz:151, versao:"6.7.14", so:"Windows 11 Pro 23H2", ip:"200.140.7.55",  ultimo:"há 2 dias", frescor:"fresc",   status:"ativa",     usuario:"rita",     desde:"21/05/2022" },
-  { id:"LIC-3902", host:"CC-BALCAO",    serial:"0F19-3320-1187-AB2C", biz:142, versao:"6.5.02", so:"Windows 7",           ip:"186.220.31.7",  ultimo:"há 27 dias",frescor:"frio",    status:"ativa",     usuario:"marli",    desde:"02/04/2018" },
-  { id:"LIC-4110", host:"PI-CAIXA",     serial:"A730-1180-4402-91FF", biz:158, versao:"6.7.09", so:"Windows 10 Pro 22H2", ip:"179.108.9.44",  ultimo:"há 4 dias", frescor:"fresc",   status:"bloqueada", usuario:"claudia",  desde:"22/11/2019" },
-  { id:"LIC-4111", host:"PI-PRODUCAO",  serial:"C002-7781-3322-1D40", biz:158, versao:"6.7.09", so:"Windows 10 Pro 22H2", ip:"179.108.9.45",  ultimo:"há 4 dias", frescor:"fresc",   status:"bloqueada", usuario:"claudia",  desde:"22/11/2019" },
-  { id:"LIC-4112", host:"PI-NOTEBOOK",  serial:"E551-0098-7741-3B20", biz:158, versao:"6.7.09", so:"Windows 11 Home",     ip:"179.108.9.61",  ultimo:"há 6 dias", frescor:"frio",    status:"excedente", usuario:"claudia",  desde:"07/08/2026" },
+  { id:"LIC-4412", host:"BALCAO-01",    serial:"9F31-A7C2-1B04-77DE", biz:21,  versao:"6.7.14", so:"Windows 11 Pro 23H2", ip:"203.0.113.10",  ultimo:"há 3min",   frescor:"recente", status:"ativa",     usuario:"ana.p",  desde:"04/09/2021" },
+  { id:"LIC-4413", host:"BALCAO-02",    serial:"77C0-2DE4-91AA-3F18", biz:21,  versao:"6.7.14", so:"Windows 11 Pro 23H2", ip:"203.0.113.10",  ultimo:"há 22min",  frescor:"recente", status:"ativa",     usuario:"jonas",    desde:"04/09/2021" },
+  { id:"LIC-4471", host:"PRODUCAO-PLOT",serial:"2A88-CF10-5501-B2C9", biz:21,  versao:"6.7.12", so:"Windows 10 Pro 22H2", ip:"203.0.113.12",  ultimo:"há 1h",     frescor:"recente", status:"ativa",     usuario:"bruno",   desde:"11/01/2023" },
+  { id:"LIC-4502", host:"ZL-CAIXA",     serial:"D1E0-4471-88AC-0092", biz:58,  versao:"6.7.12", so:"Windows 11 Pro 23H2", ip:"203.0.113.31",   ultimo:"há 1h",     frescor:"recente", status:"ativa",     usuario:"marli",    desde:"18/02/2024" },
+  { id:"LIC-4390", host:"OFICINA-PC",  serial:"7C02-DE41-2210-4F8B", biz:173, versao:"6.7.09", so:"Windows 10 Pro 21H2", ip:"198.51.100.40", ultimo:"há 4h",     frescor:"fresc",   status:"ativa",     usuario:"operador1", desde:"04/02/2026" },
+  { id:"LIC-4391", host:"OFICINA-BOX",  serial:"3PkQ-8bL2-7741-CC02", biz:173, versao:"6.5.02", so:"Windows 8.1",         ip:"198.51.100.41", ultimo:"há 9 dias", frescor:"fresc",   status:"ativa",     usuario:"ailton",   desde:"19/04/2026" },
+  { id:"LIC-4288", host:"SINALIZA-CX1", serial:"B4A2-9910-71DE-0043", biz:149, versao:"6.7.14", so:"Windows 11 Pro 24H2", ip:"198.51.100.19",  ultimo:"ontem",     frescor:"fresc",   status:"ativa",     usuario:"eder",     desde:"09/07/2020" },
+  { id:"LIC-4291", host:"CANOAS-CX1",   serial:"6610-BB84-2F19-A700", biz:151, versao:"6.7.14", so:"Windows 11 Pro 23H2", ip:"198.51.100.55",  ultimo:"há 2 dias", frescor:"fresc",   status:"ativa",     usuario:"rita",     desde:"21/05/2022" },
+  { id:"LIC-3902", host:"CC-BALCAO",    serial:"0F19-3320-1187-AB2C", biz:142, versao:"6.5.02", so:"Windows 7",           ip:"192.0.2.7",  ultimo:"há 27 dias",frescor:"frio",    status:"expirada",  usuario:"marli",    desde:"02/04/2018", validade:"31/07/2026" },
+  { id:"LIC-4530", host:"VITRINE-CX3",  serial:"5E20-91AB-3C77-0D14", biz:21,  versao:"6.7.14", so:"Windows 11 Pro 24H2", ip:"203.0.113.14", ultimo:"há 8min",   frescor:"recente", status:"excedente", usuario:"ana.p",    desde:"19/08/2026", nova:true },
+  { id:"LIC-4110", host:"PI-CAIXA",     serial:"A730-1180-4402-91FF", biz:158, versao:"6.7.09", so:"Windows 10 Pro 22H2", ip:"192.0.2.44",  ultimo:"há 4 dias", frescor:"fresc",   status:"bloqueada", usuario:"claudia",  desde:"22/11/2019" },
+  { id:"LIC-4111", host:"PI-PRODUCAO",  serial:"C002-7781-3322-1D40", biz:158, versao:"6.7.09", so:"Windows 10 Pro 22H2", ip:"192.0.2.45",  ultimo:"há 4 dias", frescor:"fresc",   status:"bloqueada", usuario:"claudia",  desde:"22/11/2019" },
+  { id:"LIC-4112", host:"PI-NOTEBOOK",  serial:"E551-0098-7741-3B20", biz:158, versao:"6.7.09", so:"Windows 11 Home",     ip:"192.0.2.61",  ultimo:"há 6 dias", frescor:"frio",    status:"excedente", usuario:"claudia",  desde:"07/08/2026" },
   { id:"LIC-3771", host:"WR2-DEV01",    serial:"1122-4002-9F31-0AA8", biz:1,   versao:"6.7.14", so:"Windows 11 Pro 24H2", ip:"192.168.0.21",  ultimo:"há 12min",  frescor:"recente", status:"ativa",     usuario:"wagner",   desde:"12/03/2019" },
-  { id:"LIC-3660", host:"ROTA-ANTIGO",  serial:"8890-4114-2210-77C1", biz:4,   versao:"6.3.11", so:"Windows 7",           ip:"—",             ultimo:"há 8 meses",frescor:"distante",status:"revogada",  usuario:"—",        desde:"04/09/2021" },
+  { id:"LIC-3660", host:"VITRINE-ANTIGO",  serial:"8890-4114-2210-77C1", biz:21,  versao:"6.3.11", so:"Windows 7",           ip:"—",             ultimo:"há 8 meses",frescor:"distante",status:"revogada",  usuario:"—",        desde:"04/09/2021" },
 ];
 
 // ── Mock: log de acesso (licenca_log, append-only) ──
 // Tipos conforme retention_days do module.json: api_call · login_success · login_error · admin_action · error_log
 const LOGS = [
-  { ts:"19/08/2026 10:34:12", tipo:"api_call",      biz:4,   host:"BALCAO-01",    ip:"189.45.12.88",  rota:"GET /api/officeimpresso/produtos",  ms:180, detalhe:"142 produtos · variações incluídas", autor:"—" },
-  { ts:"19/08/2026 10:33:58", tipo:"login_success", biz:4,   host:"BALCAO-01",    ip:"189.45.12.88",  rota:"POST /oauth/token",                 ms:310, detalhe:"password grant · access_token emitido (1 ano)", autor:"larissa" },
-  { ts:"19/08/2026 10:19:04", tipo:"api_call",      biz:58,  host:"ZL-CAIXA",     ip:"177.92.4.31",   rota:"GET /api/officeimpresso/clientes",  ms:224, detalhe:"delta desde 18/08 · 31 registros", autor:"—" },
-  { ts:"19/08/2026 09:58:41", tipo:"error_log",     biz:164, host:"OFICINA-BOX",  ip:"201.17.88.141", rota:"GET /api/officeimpresso/vendas",    ms:8120,detalhe:"timeout no Firebird · versão 6.5.02 abaixo da obrigatória", autor:"—" },
+  { ts:"19/08/2026 10:34:12", tipo:"api_call",      biz:21,  host:"BALCAO-01",    ip:"203.0.113.10",  rota:"GET /api/officeimpresso/produtos",  ms:180, detalhe:"142 produtos · variações incluídas", autor:"—" },
+  { ts:"19/08/2026 10:33:58", tipo:"login_success", biz:21,  host:"BALCAO-01",    ip:"203.0.113.10",  rota:"POST /oauth/token",                 ms:310, detalhe:"password grant · access_token emitido (1 ano)", autor:"ana.p" },
+  { ts:"19/08/2026 10:19:04", tipo:"api_call",      biz:58,  host:"ZL-CAIXA",     ip:"203.0.113.31",   rota:"GET /api/officeimpresso/clientes",  ms:224, detalhe:"delta desde 18/08 · 31 registros", autor:"—" },
+  { ts:"19/08/2026 09:58:41", tipo:"error_log",     biz:173, host:"OFICINA-BOX",  ip:"198.51.100.41", rota:"GET /api/officeimpresso/vendas",    ms:8120,detalhe:"timeout no Firebird · versão 6.5.02 abaixo da obrigatória", autor:"—" },
   { ts:"19/08/2026 09:41:20", tipo:"admin_action",  biz:158, host:"—",            ip:"192.168.0.21",  rota:"businessupdate/158",                ms:96,  detalhe:"bloqueio da empresa · motivo: assinatura vencida há 15 dias", autor:"wagner" },
   { ts:"19/08/2026 09:40:52", tipo:"admin_action",  biz:158, host:"PI-NOTEBOOK",  ip:"192.168.0.21",  rota:"licenca_computador/4112/toggle-block", ms:74, detalhe:"licença marcada excedente — limite de 2 máquinas estourado", autor:"wagner" },
-  { ts:"19/08/2026 09:12:07", tipo:"login_error",   biz:158, host:"PI-CAIXA",     ip:"179.108.9.44",  rota:"POST /oauth/token",                 ms:142, detalhe:"empresa bloqueada (officeimpresso_bloqueado=1)", autor:"claudia" },
-  { ts:"19/08/2026 08:55:33", tipo:"login_error",   biz:158, host:"PI-PRODUCAO",  ip:"179.108.9.45",  rota:"POST /oauth/token",                 ms:138, detalhe:"empresa bloqueada (officeimpresso_bloqueado=1)", autor:"claudia" },
+  { ts:"19/08/2026 09:12:07", tipo:"login_error",   biz:158, host:"PI-CAIXA",     ip:"192.0.2.44",  rota:"POST /oauth/token",                 ms:142, detalhe:"empresa bloqueada (officeimpresso_bloqueado=1)", autor:"claudia" },
+  { ts:"19/08/2026 08:55:33", tipo:"login_error",   biz:158, host:"PI-PRODUCAO",  ip:"192.0.2.45",  rota:"POST /oauth/token",                 ms:138, detalhe:"empresa bloqueada (officeimpresso_bloqueado=1)", autor:"claudia" },
   { ts:"19/08/2026 08:31:19", tipo:"api_call",      biz:1,   host:"WR2-DEV01",    ip:"192.168.0.21",  rota:"GET /api/officeimpresso/versao",    ms:64,  detalhe:"handshake de versão · 6.7.14 em dia", autor:"—" },
-  { ts:"18/08/2026 19:02:44", tipo:"api_call",      biz:149, host:"SINALIZA-CX1", ip:"200.140.7.19",  rota:"POST /api/officeimpresso/audit",    ms:210, detalhe:"contexto rico do Delphi (hostname + serial)", autor:"—" },
-  { ts:"18/08/2026 18:44:10", tipo:"login_success", biz:151, host:"CANOAS-CX1",   ip:"200.140.7.55",  rota:"POST /oauth/token",                 ms:288, detalhe:"password grant · filial herda config da matriz 149", autor:"rita" },
-  { ts:"18/08/2026 11:20:02", tipo:"error_log",     biz:142, host:"CC-BALCAO",    ip:"186.220.31.7",  rota:"GET /api/officeimpresso/produtos",  ms:5440,detalhe:"Windows 7 · TLS 1.0 recusado pelo servidor", autor:"—" },
-  { ts:"12/08/2026 15:08:31", tipo:"admin_action",  biz:4,   host:"ROTA-ANTIGO",  ip:"192.168.0.21",  rota:"licenca_computador/3660",           ms:88,  detalhe:"licença revogada · máquina desativada na troca de servidor", autor:"wagner" },
+  { ts:"18/08/2026 19:02:44", tipo:"api_call",      biz:149, host:"SINALIZA-CX1", ip:"198.51.100.19",  rota:"POST /api/officeimpresso/audit",    ms:210, detalhe:"contexto rico do Delphi (hostname + serial)", autor:"—" },
+  { ts:"18/08/2026 18:44:10", tipo:"login_success", biz:151, host:"CANOAS-CX1",   ip:"198.51.100.55",  rota:"POST /oauth/token",                 ms:288, detalhe:"password grant · filial herda config da matriz 149", autor:"rita" },
+  { ts:"18/08/2026 11:20:02", tipo:"error_log",     biz:142, host:"CC-BALCAO",    ip:"192.0.2.7",  rota:"GET /api/officeimpresso/produtos",  ms:5440,detalhe:"Windows 7 · TLS 1.0 recusado pelo servidor", autor:"—" },
+  { ts:"12/08/2026 15:08:31", tipo:"admin_action",  biz:21,  host:"VITRINE-ANTIGO",  ip:"192.168.0.21",  rota:"licenca_computador/3660",           ms:88,  detalhe:"licença revogada · máquina desativada na troca de servidor", autor:"wagner" },
 ];
 
 const EV = {
@@ -69,9 +70,51 @@ const EV = {
   admin_action:  { l:"admin_action",  cls:"admin_action" },
   error_log:     { l:"error_log",     cls:"error_log" },
 };
-const LIC_TONE = { ativa:"success", bloqueada:"danger", excedente:"warning", revogada:"neutral" };
-const LIC_LABEL = { ativa:"Ativa", bloqueada:"Bloqueada", excedente:"Excedente", revogada:"Revogada" };
+// Vocabulário único da tela: "máquina" (nunca computador/equipamento), "serial do HD" (nunca só
+// serial ou só HD), "excedente" = máquina que passou do limite e espera liberação (≠ bloqueada à mão).
+// "expirada" vem de licenca_computador.dt_validade < hoje — o campo existe na produção.
+const LIC_TONE = { ativa:"success", bloqueada:"danger", excedente:"warning", expirada:"warning", revogada:"neutral" };
+const LIC_LABEL = { ativa:"Ativa", bloqueada:"Bloqueada", excedente:"Excedente", expirada:"Expirada", revogada:"Revogada" };
+const LIC_STATUS = ["ativa", "bloqueada", "excedente", "expirada", "revogada"];
 const empresaDe = (biz) => EMPRESAS.find((e) => e.biz === biz) || { nome:"biz #" + biz, cidade:"—" };
+
+// Estado de demonstração — a produção carrega as listas com Inertia::defer, pode falhar e esconde ações
+// por permissão. O seletor no topo deixa ver cada estado sem arquivo novo (variação é tweak, não cópia).
+const DEMO = [
+  { id:"normal", label:"Com dados" }, { id:"carregando", label:"Carregando" }, { id:"erro", label:"Erro ao carregar" },
+  { id:"vazio", label:"Sem registros" }, { id:"liberar", label:"Perfil: só officeimpresso.clientes.liberar" },
+  { id:"sem-acesso", label:"Perfil: sem officeimpresso.access" },
+];
+const DemoCtx = React.createContext(["normal", () => {}]);
+function DemoSeletor() {
+  const [v, set] = React.useContext(DemoCtx);
+  return (
+    <label className="oi-demo">Estado da demonstração
+      <select value={v} onChange={(e) => set(e.target.value)}>{DEMO.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}</select>
+    </label>
+  );
+}
+// Devolve o nó que substitui a lista quando o estado não é "com dados"; null = renderiza a lista.
+function useEstadoLista({ vazioTitulo, vazioTexto }) {
+  const [v, set] = React.useContext(DemoCtx);
+  if (v === "carregando") return <div className="oi-skel" role="status" aria-label="Carregando a lista"><i></i><i></i><i></i><i></i></div>;
+  if (v === "erro") return <Vazio titulo="Não foi possível carregar a lista" texto="O servidor não respondeu. Nada foi alterado — tente de novo; se repetir, veja o laravel.log."
+    acao={<button className="os-btn ghost" onClick={() => set("normal")}>Tentar de novo</button>}/>;
+  if (v === "vazio") return <Vazio titulo={vazioTitulo} texto={vazioTexto}/>;
+  return null;
+}
+// Navegar já filtrado: a rota da produção leva o filtro na query (?business_id=, ?licenca=); aqui o
+// filtro viaja nesta variável e a vista de destino o consome uma vez ao montar.
+let NAV = {};
+const ir = (rota, filtro) => { NAV = { [rota]: filtro || {} }; window.__selectRoute?.(rota); };
+const navDe = (rota) => { const f = NAV[rota] || {}; delete NAV[rota]; return f; };
+const copiar = (texto, toast, msg) => {
+  const ok = () => toast(msg, "ok"), falha = () => toast("Não deu para copiar — selecione e copie à mão", "danger");
+  navigator.clipboard?.writeText ? navigator.clipboard.writeText(texto).then(ok, falha) : falha();
+};
+// Linha de tabela que abre drawer: clicável E alcançável por teclado.
+const linhaAbre = (abrir, rotulo) => ({ tabIndex:0, "aria-label":rotulo, onClick:abrir,
+  onKeyDown:(e) => { if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrir(); } } });
 
 // Origem do evento — o log recebe por três caminhos diferentes e a tela precisa distinguir:
 // middleware LogDelphiAccess (passivo) · listener do Passport · POST /api/officeimpresso/audit
@@ -136,7 +179,7 @@ const OI_ABAS = [
   { key: "oi-licencas", label: "Licenças" },
   { key: "oi-clientes", label: "Clientes OAuth" },
   { key: "oi-importar", label: "Importar do Firebird" },
-  { key: "oi-log", label: "Logs" },
+  { key: "oi-log", label: "Máquinas" },
 ];
 const OiCtx = React.createContext("officeimpresso");
 function PageHead({ titulo, sub, acoes }) {
@@ -147,9 +190,9 @@ function PageHead({ titulo, sub, acoes }) {
     <header className="os-page-h">
       <div className="os-page-h-l"><h1>{titulo}</h1><p>{sub}</p></div>
       <div className="os-page-h-r">{acoes}</div>
-    </header>{abas}
+    </header>{abas}<DemoSeletor/>
   </>);
-  return <><div className="sa-ph"><PageHeader title={titulo} subtitle={sub} actions={acoes}/></div>{abas}</>;
+  return <><div className="sa-ph"><PageHeader title={titulo} subtitle={sub} actions={acoes}/></div>{abas}<DemoSeletor/></>;
 }
 
 function Kpi({ v, l, sub, tone }) {
@@ -249,18 +292,21 @@ function Vazio({ titulo, texto, acao }) {
 }
 
 function Drawer({ titulo, sub, badge, children, rodape, onClose }) {
+  const fechar = useRef(null);
   React.useEffect(() => {
+    const volta = document.activeElement;
+    fechar.current?.focus();
     const h = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", h);
-    return () => document.removeEventListener("keydown", h);
+    return () => { document.removeEventListener("keydown", h); volta?.focus?.(); };
   }, [onClose]);
   return (
     <>
       <div className="sa-scrim" onClick={onClose}></div>
-      <aside className="sa-drawer" role="dialog" aria-label={titulo}>
+      <aside className="sa-drawer" role="dialog" aria-modal="true" aria-label={titulo}>
         <header className="sa-dr-h">
           <div><h2>{titulo}</h2><p>{sub}</p>{badge}</div>
-          <button className="sa-dr-x" onClick={onClose} title="Fechar (esc)">
+          <button ref={fechar} className="sa-dr-x" onClick={onClose} title="Fechar (esc)" aria-label="Fechar">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
           </button>
         </header>
@@ -281,7 +327,7 @@ function Health() {
         {HEALTH.map((h) => {
           const chip = (
             <span key={h.nome} className={"oi-sig oi-sig--" + h.status.toLowerCase()}>
-              <i></i><b>{h.nome}</b><span>{h.detalhe}</span>
+              <i aria-hidden="true"></i><em>{h.status}</em><b>{h.nome}</b><span>{h.detalhe}</span>
             </span>
           );
           return Tooltip ? <Tooltip key={h.nome} content={h.rec} side="bottom">{chip}</Tooltip> : chip;
@@ -299,11 +345,12 @@ function Ver({ instalada, obrigatoria, curta }) {
       {instalada}{atras && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 9v4M12 17h.01M10.3 4.3 2.6 18a1.6 1.6 0 0 0 1.4 2.4h16a1.6 1.6 0 0 0 1.4-2.4L13.7 4.3a1.6 1.6 0 0 0-2.8 0Z"/></svg>}
     </span>
   );
+  // Uso longo: obrigatória → disponível. O atraso aparece em texto, não só na cor.
   return (
-    <span className={"oi-ver " + (atras ? "atras" : "ok")} title={atras ? "Abaixo da versão obrigatória" : "Em dia com a obrigatória"}>
+    <span className={"oi-ver " + (atras ? "atras" : "ok")} title={atras ? "A obrigatória está atrás da disponível" : "Obrigatória igual à disponível"}>
       {instalada}
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      {obrigatoria}
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      {obrigatoria}{atras && <span className="oi-tag">atrás</span>}
     </span>
   );
 }
@@ -353,6 +400,9 @@ function ViewEmpresas() {
   });
   const limpar = () => { setFBloq("all"); setFVer("all"); setQ(""); };
   const ativos = [fBloq, fVer].filter((v) => v !== "all").length;
+  const estadoLista = useEstadoLista({ vazioTitulo:"Nenhuma empresa licenciada ainda",
+    vazioTexto:"A empresa aparece aqui no primeiro handshake do Delphi ou quando o superadmin libera o módulo no pacote." });
+  if (React.useContext(DemoCtx)[0] === "sem-acesso") return <SemAcesso titulo="Empresas licenciadas"/>;
 
   return (
     <div className="os-page sa-page" data-screen-label="Office Impresso · Empresas Licenciadas">
@@ -378,7 +428,7 @@ function ViewEmpresas() {
       <div className="sa-toolbar">
         <div className="sa-search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input ref={buscaRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar empresa, grupo, caminho do banco ou biz #…"/>
+          <input ref={buscaRef} type="search" aria-label="Buscar empresa" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar empresa, grupo, caminho do banco ou biz #…"/>
           <kbd className="sa-kbd">/</kbd>
         </div>
         <div className="sa-filters">
@@ -391,7 +441,7 @@ function ViewEmpresas() {
         </div>
       </div>
 
-      {filtradas.length === 0 ? (
+      {estadoLista || (filtradas.length === 0 ? (
         <Vazio titulo="Nenhuma empresa com esses filtros"
           texto={q ? `A busca "${q}" não bate com nome, grupo, caminho do banco ou biz #.` : "Os filtros combinados não deixaram nenhuma empresa."}
           acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>
@@ -404,7 +454,7 @@ function ViewEmpresas() {
             </tr></thead>
             <tbody>
               {filtradas.map((e) => (
-                <tr key={e.biz} className="sa-row" onClick={() => setAberta(e)}>
+                <tr key={e.biz} className="sa-row" {...linhaAbre(() => setAberta(e), `Configuração de ${e.nome}`)}>
                   <td>
                     <div className={"sa-biz" + (e.matriz ? "" : " oi-filial")}>
                       <b>{e.nome}{e.bloqueado && <span className="sa-inativo">bloqueada</span>}</b>
@@ -418,9 +468,10 @@ function ViewEmpresas() {
                   <td><Frescor v={e.frescor} rel={e.ultimo}/></td>
                   <td className="sa-td-act" onClick={(ev) => ev.stopPropagation()}>
                     <Kebab items={[
+                      { label:"Abrir ficha", action: () => ir("oi-empresa", { biz:e.biz }) },
                       { label:"Ver configuração", action: () => setAberta(e) },
-                      { label:"Licenças da empresa", action: () => { toast(`Filtrando licenças de ${e.nome}`); window.__selectRoute?.("oi-licencas"); } },
-                      { label:"Log de acesso", action: () => window.__selectRoute?.("oi-log") },
+                      { label:"Licenças da empresa", action: () => ir("oi-licencas", { biz:e.biz }) },
+                      { label:"Máquinas da empresa", action: () => ir("oi-log", { biz:e.biz }) },
                       { sep:true },
                       { label:"Forçar versão disponível", action: () => toast(`${e.nome}: obrigatória atualizada para ${e.versaoDisp}`, "ok") },
                       { label: e.bloqueado ? "Desbloquear empresa" : "Bloquear empresa", danger: !e.bloqueado,
@@ -432,7 +483,7 @@ function ViewEmpresas() {
             </tbody>
           </table>
         </div>
-      )}
+      ))}
 
       {aberta && <EmpresaDrawer e={aberta} onClose={() => setAberta(null)} onSalvar={(nome) => { setAberta(null); toast(`Configuração de ${nome} salva`, "ok"); }}/>}
 
@@ -533,10 +584,11 @@ function EmpresaDrawer({ e, onClose, onSalvar }) {
 // ── View: Licenças / Computadores (licenca_computador + computadores) ──
 const LIC_PAGE = 8;
 function ViewLicencas() {
+  const [vindo] = useState(() => navDe("oi-licencas"));
   const [modo, setModo] = useState("licencas");
   const [q, setQ] = useState("");
   const [fStatus, setFStatus] = useState("all");
-  const [fBiz, setFBiz] = useState("all");
+  const [fBiz, setFBiz] = useState(vindo.biz ? String(vindo.biz) : "all");
   const [sel, setSel] = useState([]);
   const [aberta, setAberta] = useState(null);
   const [confirma, setConfirma] = useState(null);
@@ -558,24 +610,33 @@ function ViewLicencas() {
   const pagina = filtradas.slice((Math.min(page, pageCount) - 1) * LIC_PAGE, Math.min(page, pageCount) * LIC_PAGE);
   const limpar = () => { setFStatus("all"); setFBiz("all"); setQ(""); setPage(1); };
   const marcado = (id) => sel.includes(id);
+  const novas = LICENCAS.filter((l) => l.nova);
+  const estadoLista = useEstadoLista({ vazioTitulo:"Nenhuma máquina licenciada ainda",
+    vazioTexto:"A licença nasce no primeiro handshake do Delphi, quando ele manda o CNPJ e o serial do HD." });
+  if (React.useContext(DemoCtx)[0] === "sem-acesso") return <SemAcesso titulo="Licenças"/>;
 
   return (
     <div className="os-page sa-page" data-screen-label="Office Impresso · Licenças">
-      <PageHead titulo="Licenças de computador" sub={`${LICENCAS.length} registradas · ${LICENCAS.filter(l=>l.status==="ativa").length} ativas · ${LICENCAS.filter(l=>l.status==="bloqueada"||l.status==="excedente").length} travadas`}
+      <PageHead titulo="Licenças das máquinas" sub={`${LICENCAS.length} registradas · ${LICENCAS.filter(l=>l.status==="ativa").length} ativas · ${LICENCAS.filter(l=>["bloqueada","excedente","expirada"].includes(l.status)).length} sem acesso`}
         acoes={<>
           <window.CliSeg role="tablist" ariaLabel="Modo de visualização" value={modo} onChange={setModo} options={[{ key: "licencas", label: "Licenças" }, { key: "computadores", label: "Por empresa" }]} />
-          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("oi-log")}>Log de acesso</button>
+          <button className="os-btn ghost" onClick={() => ir("oi-log", fBiz !== "all" ? { biz:+fBiz } : {})}>Ver máquinas</button>
         </>}/>
+
+      {!estadoLista && novas.length > 0 &&
+        <Nota tone="warn" titulo={`${novas.length} máquina nova aguardando liberação`}>
+          {novas.map((l) => `${l.host} (${empresaDe(l.biz).nome})`).join(", ")} fez o primeiro handshake com o limite cheio e ficou como excedente. Libere uma vaga ou aumente o limite da empresa; até lá o Delphi não abre nela.
+        </Nota>}
 
       <div className="sa-toolbar">
         <div className="sa-search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Buscar host, serial, LIC-…, IP ou usuário…"/>
+          <input type="search" aria-label="Buscar licença" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Buscar máquina, serial do HD, LIC-…, IP ou usuário…"/>
         </div>
         <div className="sa-filters">
           <FilterDropdown label="Status" value={fStatus} onChange={(v) => { setFStatus(v); setPage(1); }} options={[
             { id:"all", label:"Todos" },
-            ...["ativa","bloqueada","excedente","revogada"].map((s) => ({ id:s, label:LIC_LABEL[s], count:LICENCAS.filter(l=>l.status===s).length }))]}/>
+            ...LIC_STATUS.map((s) => ({ id:s, label:LIC_LABEL[s], count:LICENCAS.filter(l=>l.status===s).length }))]}/>
           <FilterDropdown label="Empresa" value={fBiz} onChange={(v) => { setFBiz(v); setPage(1); }} options={[
             { id:"all", label:"Todas" },
             ...EMPRESAS.map((e) => ({ id:String(e.biz), label:`${e.nome} (#${e.biz})`, count:LICENCAS.filter(l=>l.biz===e.biz).length }))]}/>
@@ -584,9 +645,9 @@ function ViewLicencas() {
         </div>
       </div>
 
-      {filtradas.length === 0 ? (
+      {estadoLista ? estadoLista : filtradas.length === 0 ? (
         <Vazio titulo="Nenhuma licença com esses filtros"
-          texto="Host, serial e IP entram na busca. O serial é o que o Delphi manda no handshake."
+          texto="Máquina, serial do HD e IP entram na busca. O serial do HD é o que o Delphi manda no handshake."
           acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>
       ) : agrupadas ? (
         EMPRESAS.filter((e) => filtradas.some((l) => l.biz === e.biz)).map((e) => {
@@ -599,11 +660,11 @@ function ViewLicencas() {
               </header>
               <div className="os-table-wrap">
                 <table className="os-table sa-table">
-                  <thead><tr><th>Computador</th><th>Versão</th><th>Usuário</th><th>Último acesso</th><th>Status</th></tr></thead>
+                  <thead><tr><th>Máquina</th><th>Versão</th><th>Usuário</th><th>Último acesso</th><th>Status</th></tr></thead>
                   <tbody>
                     {ls.map((l) => (
-                      <tr key={l.id} className="sa-row" onClick={() => setAberta(l)}>
-                        <td><div className="oi-host"><b>{l.host}</b><small>{l.serial}</small></div></td>
+                      <tr key={l.id} className="sa-row" {...linhaAbre(() => setAberta(l), `Licença ${l.host}`)}>
+                        <td><div className="oi-host"><b>{l.host}{l.nova && <span className="oi-tag">nova</span>}</b><small>{l.serial}</small></div></td>
                         <td><Ver curta instalada={l.versao} obrigatoria={e.versaoObrig}/></td>
                         <td>{l.usuario}</td>
                         <td><Frescor v={l.frescor} rel={l.ultimo}/></td>
@@ -627,18 +688,18 @@ function ViewLicencas() {
                       onChange={(on) => setSel(on ? [...new Set([...sel, ...pagina.map(l => l.id)])] : sel.filter((id) => !pagina.some((l) => l.id === id)))}/>
                   </span>}
                 </th>
-                <th>Computador</th><th>Empresa</th><th>Versão instalada</th><th>IP · usuário</th><th>Último acesso</th><th>Status</th><th className="sa-th-act"></th>
+                <th>Máquina</th><th>Empresa</th><th>Versão instalada</th><th>IP · usuário</th><th>Último acesso</th><th>Status</th><th className="sa-th-act"></th>
               </tr></thead>
               <tbody>
                 {pagina.map((l) => {
                   const e = empresaDe(l.biz);
                   return (
-                    <tr key={l.id} className={"sa-row" + (marcado(l.id) ? " sel" : "")} onClick={() => setAberta(l)}>
+                    <tr key={l.id} className={"sa-row" + (marcado(l.id) ? " sel" : "")} {...linhaAbre(() => setAberta(l), `Licença ${l.host}`)}>
                       <td className="sa-td-check" onClick={(ev) => ev.stopPropagation()}>
                         {Checkbox && <span className="sa-check-wrap"><Checkbox checked={marcado(l.id)} name={"Selecionar " + l.host}
                           onChange={(on) => setSel((s) => on ? [...s, l.id] : s.filter((x) => x !== l.id))}/></span>}
                       </td>
-                      <td><div className="oi-host"><b>{l.host}</b><small>{l.id} · {l.serial}</small></div></td>
+                      <td><div className="oi-host"><b>{l.host}{l.nova && <span className="oi-tag">nova</span>}</b><small>{l.id} · {l.serial}</small></div></td>
                       <td><div className="sa-biz"><b className="sa-b-reg">{e.nome}</b><small className="sa-mono">biz #{l.biz}</small></div></td>
                       <td><Ver curta instalada={l.versao} obrigatoria={e.versaoObrig || l.versao}/></td>
                       <td><div className="sa-biz"><b className="sa-mono sa-b-reg">{l.ip}</b><small>{l.usuario}</small></div></td>
@@ -647,7 +708,7 @@ function ViewLicencas() {
                       <td className="sa-td-act" onClick={(ev) => ev.stopPropagation()}>
                         <Kebab items={[
                           { label:"Ver licença", action: () => setAberta(l) },
-                          { label:"Timeline no log", action: () => window.__selectRoute?.("oi-log-timeline") },
+                          { label:"Timeline da máquina", action: () => ir("oi-log-timeline", { licenca:l.id }) },
                           { sep:true },
                           { label: l.status === "bloqueada" ? "Desbloquear" : "Bloquear máquina",
                             action: () => setConfirma({ tipo:"bloqueio", l }) },
@@ -715,7 +776,8 @@ function LicencaDrawer({ l, onClose, onAcao }) {
       <section className="sa-dr-sec">
         <h3>Identificação</h3>
         <dl className="oi-kv">
-          <dt>Serial</dt><dd className="mono">{l.serial}</dd>
+          <dt>Serial do HD</dt><dd className="mono">{l.serial}</dd>
+          {l.validade && <><dt>Validade</dt><dd className="mono">{l.validade}{l.status === "expirada" && <span className="oi-tag">vencida</span>}</dd></>}
           <dt>Versão</dt><dd><Ver instalada={l.versao} obrigatoria={e.versaoObrig || l.versao}/></dd>
           <dt>Sistema</dt><dd>{l.so}</dd>
           <dt>IP</dt><dd className="mono">{l.ip}</dd>
@@ -725,7 +787,7 @@ function LicencaDrawer({ l, onClose, onAcao }) {
         </dl>
       </section>
       <section className="sa-dr-sec">
-        <h3>Timeline no log ({eventos.length})</h3>
+        <h3>Timeline da máquina ({eventos.length})</h3>
         {eventos.length === 0
           ? <p className="sa-modal-p">Nenhum evento nesta janela de retenção.</p>
           : <ul className="oi-tl">
@@ -749,27 +811,33 @@ function LicencaDrawer({ l, onClose, onAcao }) {
 // Credencial Passport password-grant que cada Delphi usa pra autenticar.
 // Gate: listar/criar aceita officeimpresso.clientes.liberar; excluir e regenerar são superadmin-only.
 const OAUTH = [
-  { id:12, nome:"Delphi ROTA LIVRE — balcão", clientId:"9",  secret:"o1Kd8sQz2Vb7Yn4Lp6Rt3Xw9Ac5Ef1Gh0Jm7Nq2S", criado:"04/09/2021", revogado:false, biz:4,   usos:"3 máquinas", ultimo:"há 3min" },
-  { id:14, nome:"Delphi Martinho Oficina",    clientId:"11", secret:"7Pq2Wm9Zx4Rt6Yb1Kd8Nc5Vf3Hj0Ls7Ap4Eg2Q", criado:"04/02/2026", revogado:false, biz:164, usos:"2 máquinas", ultimo:"há 4h" },
-  { id:15, nome:"Delphi Grupo Sinaliza",      clientId:"12", secret:"2Bn6Yt8Kw1Qs4Zx7Rc3Vd9Hf5Lg0Jm8Ap6Ne1T", criado:"09/07/2020", revogado:false, biz:149, usos:"4 máquinas", ultimo:"ontem" },
-  { id:9,  nome:"Delphi Print Ideal",         clientId:"7",  secret:"5Kd0Nq3Xw8Vb2Yt6Rc1Zs9Hf4Lg7Jm5Ap3Ee8W", criado:"22/11/2019", revogado:true,  biz:158, usos:"3 máquinas", ultimo:"há 4 dias" },
-  { id:3,  nome:"WR2 — homologação",          clientId:"3",  secret:"1Ap4Eg2Qq7Kd8Nc5Vf3Hj0Ls9Zx4Rt6Yb2Wm7P", criado:"12/03/2019", revogado:false, biz:1,   usos:"1 máquina",  ultimo:"há 12min" },
+  { id:12, nome:"Delphi Vitrine — balcão", clientId:"9", criado:"04/09/2021", revogado:false, biz:21,   usos:"3 máquinas", ultimo:"há 3min" },
+  { id:14, nome:"Delphi Oficina Modelo",    clientId:"11", criado:"04/02/2026", revogado:false, biz:173, usos:"2 máquinas", ultimo:"há 4h" },
+  { id:15, nome:"Delphi Grupo Sinaliza",      clientId:"12", criado:"09/07/2020", revogado:false, biz:149, usos:"4 máquinas", ultimo:"ontem" },
+  { id:9,  nome:"Delphi Print Ideal",         clientId:"7", criado:"22/11/2019", revogado:true,  biz:158, usos:"3 máquinas", ultimo:"há 4 dias" },
+  { id:3,  nome:"WR2 — homologação",          clientId:"3", criado:"12/03/2019", revogado:false, biz:1,   usos:"1 máquina",  ultimo:"há 12min" },
 ];
 
+// O secret nunca volta na lista (igual à produção, thread 05): só o bloco da criação o mostra, uma vez.
 function ViewClientes() {
-  const [revelado, setRevelado] = useState([]);
   const [novo, setNovo] = useState(false);
+  const [criada, setCriada] = useState(null);
   const [confirma, setConfirma] = useState(null);
   const [nome, setNome] = useState("");
   const [toastNode, toast] = useToast();
-  const { Input, StatusBadge } = ds();
-  const mostra = (id) => revelado.includes(id);
+  const { Input } = ds();
+  const [demo] = React.useContext(DemoCtx);
+  const superadmin = demo !== "liberar";
+  const estadoLista = useEstadoLista({ vazioTitulo:"Nenhuma credencial OAuth ainda",
+    vazioTexto:"Crie uma por instalação do Delphi. Sem credencial o desktop não consegue pedir token." });
+  if (demo === "sem-acesso") return <SemAcesso titulo="Clientes OAuth"/>;
+  const secretFake = () => Array.from({ length:40 }, (_, i) => "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"[(i * 7 + nome.length * 13) % 54]).join("");
 
   return (
     <div className="os-page sa-page" data-screen-label="Office Impresso · Clientes OAuth">
       <PageHead titulo="Clientes OAuth" sub={`${OAUTH.length} credenciais password-grant · ${OAUTH.filter(c=>c.revogado).length} revogada · uma por instalação Delphi`}
         acoes={<>
-          <button className="os-btn ghost" onClick={() => setConfirma({ tipo:"regen" })}>Regenerar chaves</button>
+          {superadmin && <button className="os-btn ghost" onClick={() => setConfirma({ tipo:"regen" })}>Regenerar chaves</button>}
           <button className="os-btn primary" onClick={() => { setNome(""); setNovo(true); }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
             Nova credencial
@@ -780,7 +848,19 @@ function ViewClientes() {
         Ver a lista e criar credencial aceita <span className="sa-mono">officeimpresso.clientes.liberar</span> — dá para um funcionário liberar cliente sem abrir o Financeiro. Excluir e regenerar continuam <span className="sa-mono">superadmin</span>-only, porque derrubam acesso.
       </Nota>
 
-      <div className="os-table-wrap">
+      {criada &&
+        <Nota tone="warn" titulo={`Credencial "${criada.nome}" criada — copie o secret agora`}>
+          Ele não aparece de novo. Perdeu? Crie outra credencial e exclua esta.
+          <span className="oi-secret-uma">
+            <code>{criada.secret}</code>
+            <span className="oi-secret">
+              <button className="oi-secret-b" onClick={() => copiar(criada.secret, toast, "client_secret copiado — cole no Delphi e não guarde em e-mail")}>Copiar secret</button>
+              <button className="oi-secret-b" onClick={() => setCriada(null)}>Já copiei, esconder</button>
+            </span>
+          </span>
+        </Nota>}
+
+      {estadoLista || <div className="os-table-wrap">
         <table className="os-table sa-table">
           <thead><tr>
             <th>Credencial</th><th>client_id</th><th>client_secret</th><th>Em uso</th><th>Criada</th><th className="sa-th-act"></th>
@@ -795,37 +875,28 @@ function ViewClientes() {
                   </div>
                 </td>
                 <td><span className="sa-mono">{c.clientId}</span></td>
-                <td>
-                  <span className="oi-secret">
-                    <code>{mostra(c.id) ? c.secret : "•".repeat(28)}</code>
-                    <button className="oi-secret-b" onClick={() => setRevelado((s) => mostra(c.id) ? s.filter((x) => x !== c.id) : [...s, c.id])}>
-                      {mostra(c.id) ? "ocultar" : "revelar"}
-                    </button>
-                    <button className="oi-secret-b" onClick={() => toast("client_secret copiado — cole no Delphi e não guarde em e-mail", "ok")}>copiar</button>
-                  </span>
-                </td>
+                <td><span className="sa-mute" title="Mostrado uma única vez, na criação">não exibido</span></td>
                 <td><div className="sa-biz"><b className="sa-b-reg">{c.usos}</b><small>último handshake {c.ultimo}</small></div></td>
                 <td><span className="sa-mono">{c.criado}</span></td>
                 <td className="sa-td-act">
                   <Kebab items={[
-                    { label:"Copiar client_id", action: () => toast("client_id copiado", "ok") },
-                    { label:"Licenças desta empresa", action: () => window.__selectRoute?.("oi-licencas") },
-                    { sep:true },
-                    { label:"Excluir credencial", danger:true, action: () => setConfirma({ tipo:"del", c }) },
+                    { label:"Copiar client_id", action: () => copiar(c.clientId, toast, "client_id copiado") },
+                    { label:"Licenças desta empresa", action: () => ir("oi-licencas", { biz:c.biz }) },
+                    ...(superadmin ? [{ sep:true }, { label:"Excluir credencial", danger:true, action: () => setConfirma({ tipo:"del", c }) }] : []),
                   ]}/>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       {novo && <Drawer titulo="Nova credencial OAuth" sub="password grant · secret de 40 caracteres gerado agora"
         onClose={() => setNovo(false)}
         rodape={<>
           <button className="os-btn ghost" onClick={() => setNovo(false)}>Cancelar</button>
           <button className="os-btn primary" disabled={nome.trim().length < 3}
-            onClick={() => { setNovo(false); toast(`Credencial "${nome}" criada — revele o secret e cole no Delphi`, "ok"); }}>Criar credencial</button>
+            onClick={() => { setNovo(false); setCriada({ nome:nome.trim(), secret:secretFake() }); }}>Criar credencial</button>
         </>}>
         <section className="sa-dr-sec">
           <h3>Identificação</h3>
@@ -873,10 +944,10 @@ const FAMILIAS = [
 ];
 
 function ViewImportar() {
-  const [biz, setBiz] = useState("164");
+  const [biz, setBiz] = useState("173");
   const [fdb, setFdb] = useState("");
-  const [user, setUser] = useState("SYSDBA");
-  const [pass, setPass] = useState("masterkey");
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
   const [driver, setDriver] = useState(true);
   const [estado, setEstado] = useState("pronto"); // pronto | rodando | feito | erro
   const [confirma, setConfirma] = useState(false);
@@ -931,10 +1002,12 @@ function ViewImportar() {
             </div>
             <div className="oi-form-2">
               <div className="sa-campo">
-                {Input ? <Input label="Usuário Firebird" value={user} onChange={(ev) => setUser(ev && ev.target ? ev.target.value : ev)}/> : <input value={user} onChange={(ev) => setUser(ev.target.value)}/>}
+                {Input ? <Input label="Usuário Firebird" value={user} placeholder="usuário de leitura do banco" onChange={(ev) => setUser(ev && ev.target ? ev.target.value : ev)}
+                    help="Peça ao cliente um usuário só de leitura — nunca o administrador padrão."/> : <input value={user} onChange={(ev) => setUser(ev.target.value)}/>}
               </div>
               <div className="sa-campo">
-                {Input ? <Input label="Senha" value={pass} type="password" onChange={(ev) => setPass(ev && ev.target ? ev.target.value : ev)}/> : <input value={pass} onChange={(ev) => setPass(ev.target.value)}/>}
+                {Input ? <Input label="Senha" value={pass} type="password" autoComplete="off" onChange={(ev) => setPass(ev && ev.target ? ev.target.value : ev)}
+                    help="Usada só nesta rodada; não fica gravada."/> : <input value={pass} onChange={(ev) => setPass(ev.target.value)}/>}
               </div>
             </div>
             {Switch && <div className="sa-swrow-ds">
@@ -1013,18 +1086,19 @@ function ViewImportar() {
 // ── View: Máquinas Cadastradas (rota licenca_log) ── D7 [W] 2026-10-14: a tela lista MÁQUINAS,
 // não eventos. Espelha Logs/Index.tsx + _components/MaquinasTable.tsx do main (93ff8a960b74):
 // KPIs do buildKpisPayload, colunas e ações da MaquinasTable, filtros q/estado_atual + chips business_id/licenca_id/hd.
-const CNPJ = { 1:"12.345.678/0001-90", 4:"23.456.789/0001-01", 58:"23.456.789/0002-92", 164:"34.567.890/0001-12", 149:"45.678.901/0001-23", 151:"45.678.901/0002-04", 142:"56.789.012/0001-34", 158:"67.890.123/0001-45", 190:"78.901.234/0001-56" };
+const CNPJ = { 1:"12.345.678/0001-90", 21:"23.456.789/0001-01", 58:"23.456.789/0002-92", 173:"34.567.890/0001-12", 149:"45.678.901/0001-23", 151:"45.678.901/0002-04", 142:"56.789.012/0001-34", 158:"67.890.123/0001-45", 190:"78.901.234/0001-56" };
 const maquinaDe = (l) => {
   const e = empresaDe(l.biz);
   const ult = LOGS.find((g) => g.host === l.host && (g.tipo === "login_success" || g.tipo === "login_error"));
-  return { ...l, empresa:e.nome, empresaBloq:!!e.bloqueado, maqBloq:l.status === "bloqueada" || l.status === "excedente",
+  return { ...l, empresa:e.nome, empresaBloq:!!e.bloqueado, maqBloq:["bloqueada", "excedente", "expirada"].includes(l.status),
     hd:l.serial, local:{ nome:e.nome, cnpj:CNPJ[l.biz] || null },
     ultimoLogin: ult ? ult.ts : null, cadastro: l.desde + " 00:00:00",
     bloqNoUltimo: ult ? ult.tipo === "login_error" : null, ip: ult ? ult.ip : l.ip };
 };
 function EstadoAtual({ m }) {
   const { StatusBadge } = ds();
-  const [l, tone] = m.empresaBloq ? ["Empresa bloqueada", "danger"] : m.maqBloq ? ["Máquina bloqueada", "warning"] : ["Ativa", "success"];
+  const [l, tone] = m.empresaBloq ? ["Empresa bloqueada", "danger"] : m.status === "bloqueada" ? ["Máquina bloqueada", "danger"]
+    : m.maqBloq ? [LIC_LABEL[m.status], "warning"] : ["Ativa", "success"];
   return StatusBadge ? <StatusBadge label={l} tone={tone}/> : <span className="sa-badge">{l}</span>;
 }
 function EstadoNoAcesso({ v }) {
@@ -1036,9 +1110,12 @@ function EstadoNoAcesso({ v }) {
 function ViewLog() {
   const [q, setQ] = useState("");
   const [fEstado, setFEstado] = useState("all");
-  const [chips, setChips] = useState({});
+  const [chips, setChips] = useState(() => { const v = navDe("oi-log"); return v.biz ? { business_id:v.biz } : {}; });
   const [conf, setConf] = useState(null);
   const [toastNode, toast] = useToast();
+  const estadoLista = useEstadoLista({ vazioTitulo:"Nenhuma máquina cadastrada ainda.",
+    vazioTexto:"A tabela é populada pela rotina /connector/api/processa-dados-cliente quando o Delphi envia CNPJ + serial do HD." });
+  if (React.useContext(DemoCtx)[0] === "sem-acesso") return <SemAcesso titulo="Máquinas cadastradas"/>;
   const MAQ = LICENCAS.filter((l) => l.status !== "revogada").map(maquinaDe);
   const kpis = { total:MAQ.length, maqBloq:MAQ.filter((m) => m.maqBloq).length, empBloq:EMPRESAS.filter((e) => e.bloqueado).length,
     acessos24h:LOGS.filter((g) => g.ts.startsWith("19/08/2026")).length };
@@ -1055,14 +1132,14 @@ function ViewLog() {
   const limpar = () => { setQ(""); setFEstado("all"); setChips({}); };
   const addChip = (k, v) => setChips((c) => ({ ...c, [k]: v }));
   const tirarChip = (k) => setChips((c) => { const n = { ...c }; delete n[k]; return n; });
-  const rotChip = { business_id:(v) => "Empresa #" + v, licenca_id:(v) => "Equipamento #" + v, hd:(v) => "HD " + v };
+  const rotChip = { business_id:(v) => "Empresa #" + v, licenca_id:(v) => "Máquina " + v, hd:(v) => "Serial do HD " + v };
 
   return (
     <div className="os-page sa-page" data-screen-label="Office Impresso · Máquinas Cadastradas">
-      <PageHead titulo="Máquinas Cadastradas" sub={<>O cadastro é populado por <span className="sa-mono">/connector/api/processa-dados-cliente</span>; cada linha mostra o último acesso registrado.</>}/>
+      <PageHead titulo="Máquinas cadastradas" sub={<>O cadastro é populado por <span className="sa-mono">/connector/api/processa-dados-cliente</span>; cada linha mostra o último acesso registrado.</>}/>
 
       <div className="sa-kpis sa-kpis--4">
-        <Kpi v={kpis.total} l="Máquinas cadastradas" sub="total de equipamentos"/>
+        <Kpi v={kpis.total} l="Máquinas cadastradas" sub="total de máquinas"/>
         <Kpi v={kpis.maqBloq} l="Máquinas bloqueadas" sub="bloqueio individual" tone="warning"/>
         <Kpi v={kpis.empBloq} l="Empresas bloqueadas" sub="bloqueio em massa" tone="danger"/>
         <Kpi v={kpis.acessos24h} l="Acessos 24h" sub="processa-dados-cliente" tone="success"/>
@@ -1071,18 +1148,18 @@ function ViewLog() {
       <div className="sa-toolbar">
         <div className="sa-search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input type="search" aria-label="Buscar empresa ou máquina" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome, CNPJ, HD, hostname, IP…"/>
+          <input type="search" aria-label="Buscar empresa ou máquina" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome, CNPJ, serial do HD, máquina, IP…"/>
         </div>
         <div className="sa-filters">
           <FilterDropdown label="Estado atual" value={fEstado} onChange={setFEstado} options={[
             { id:"all", label:"Todos" }, { id:"ativa", label:"Ativa" }, { id:"bloqueada", label:"Bloqueada" }]}/>
-          {Object.entries(chips).map(([k, v]) => <button key={k} className="os-btn ghost" onClick={() => tirarChip(k)}>{rotChip[k](v)} ✕</button>)}
+          {Object.entries(chips).map(([k, v]) => <button key={k} className="os-btn ghost" aria-label={`Remover filtro ${rotChip[k](v)}`} onClick={() => tirarChip(k)}>{rotChip[k](v)} <span aria-hidden="true">✕</span></button>)}
           {temFiltro && <button className="sa-clear" onClick={limpar}>Limpar</button>}
           <span className="sa-count">{filtrados.length} de {MAQ.length}</span>
         </div>
       </div>
 
-      {filtrados.length === 0 ? (
+      {estadoLista ? estadoLista : filtrados.length === 0 ? (
         temFiltro
           ? <Vazio titulo="Nenhuma máquina encontrada com os filtros aplicados." texto="" acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>
           : <Vazio titulo="Nenhuma máquina cadastrada ainda." texto="A tabela é populada pela rotina /connector/api/processa-dados-cliente quando o Delphi envia CNPJ + HD."/>
@@ -1091,15 +1168,15 @@ function ViewLog() {
           <table className="os-table sa-table oi-maq-table">
             <colgroup><col/><col/><col style={{ width:140 }}/><col style={{ width:170 }}/><col style={{ width:80 }}/><col style={{ width:120 }}/><col style={{ width:160 }}/><col style={{ width:120 }}/><col style={{ width:150 }}/><col style={{ width:170 }}/></colgroup>
             <thead><tr>
-              <th>Empresa</th><th>Location / CNPJ</th><th>Máquina</th><th>HD</th><th>Versão</th><th>IP</th><th>Último login</th><th>Estado no último login</th><th>Estado atual</th><th className="ta-r">Ações</th>
+              <th>Empresa</th><th>Local / CNPJ</th><th>Máquina</th><th>Serial do HD</th><th>Versão</th><th>IP</th><th>Último login</th><th>Estado no último login</th><th>Estado atual</th><th className="ta-r">Ações</th>
             </tr></thead>
             <tbody>
               {filtrados.map((m) => (
                 <tr key={m.id} className="sa-row">
                   <td><button className="oi-link" title="Filtrar por esta empresa" onClick={() => addChip("business_id", m.biz)}>{m.empresa}</button></td>
                   <td><div className="sa-biz"><b className="sa-b-reg">{m.local.nome}</b>{m.local.cnpj && <small className="sa-mono">CNPJ {m.local.cnpj}</small>}</div></td>
-                  <td><button className="oi-link sa-mono" title="Filtrar por este equipamento" onClick={() => addChip("licenca_id", m.id)}>{m.host || "(sem hostname)"}</button></td>
-                  <td><button className="oi-link sa-mono" title="Ver todas as empresas com este HD" onClick={() => addChip("hd", m.hd)}>{m.hd}</button></td>
+                  <td><button className="oi-link sa-mono" title="Filtrar por esta máquina" onClick={() => addChip("licenca_id", m.id)}>{m.host || "(sem hostname)"}</button></td>
+                  <td><button className="oi-link sa-mono" title="Ver todas as empresas com este serial do HD" onClick={() => addChip("hd", m.hd)}>{m.hd}</button></td>
                   <td><span className="sa-mono">{m.versao}</span></td>
                   <td><span className="sa-mono">{m.ip}</span></td>
                   <td><span className="sa-mono">{m.ultimoLogin || m.cadastro}</span>{!m.ultimoLogin && <small className="sa-mute" style={{ display:"block" }}>(cadastro)</small>}</td>
@@ -1107,8 +1184,8 @@ function ViewLog() {
                   <td><EstadoAtual m={m}/></td>
                   <td className="ta-r">
                     {m.empresaBloq
-                      ? <button className="os-btn ghost" onClick={() => setConf({ titulo:"Desbloquear a empresa inteira?", texto:`Isto libera o Delphi de TODAS as máquinas de ${m.empresa}, não só desta.`, ok:`${m.empresa} desbloqueada` })}>Desbloquear empresa</button>
-                      : <button className={"os-btn " + (m.maqBloq ? "ghost" : "danger")} onClick={() => setConf({ titulo: m.maqBloq ? "Desbloquear esta máquina?" : "Bloquear esta máquina?", texto:`${m.host} — ${m.empresa}.`, ok:`${m.host} ${m.maqBloq ? "desbloqueada" : "bloqueada"}` })}>{m.maqBloq ? "Desbloquear máquina" : "Bloquear máquina"}</button>}
+                      ? <button className="os-btn ghost" onClick={() => setConf({ titulo:"Desbloquear a empresa inteira?", texto:`Isto libera o Delphi de TODAS as máquinas de ${m.empresa}, não só desta.`, cta:"Desbloquear empresa", ok:`${m.empresa} desbloqueada · admin_action registrado com motivo` })}>Desbloquear empresa</button>
+                      : <button className={"os-btn " + (m.maqBloq ? "ghost" : "danger")} onClick={() => setConf({ titulo: m.maqBloq ? "Desbloquear esta máquina?" : "Bloquear esta máquina?", texto:`${m.host} — ${m.empresa}. ${m.maqBloq ? "Volta a autenticar" : "Para de autenticar"} no próximo handshake.`, cta: m.maqBloq ? "Desbloquear" : "Bloquear", ok:`${m.host} ${m.maqBloq ? "desbloqueada" : "bloqueada"} · admin_action registrado com motivo` })}>{m.maqBloq ? "Desbloquear máquina" : "Bloquear máquina"}</button>}
                   </td>
                 </tr>
               ))}
@@ -1117,8 +1194,9 @@ function ViewLog() {
         </div>
       )}
 
-      <Confirm open={!!conf} titulo={conf?.titulo} texto={conf?.texto} cta="Confirmar"
-        onConfirm={() => { toast(conf.ok, "ok"); setConf(null); }} onClose={() => setConf(null)}/>
+      {/* Mesmo contrato de Licenças e Empresas: bloquear/liberar é admin_action e exige motivo. */}
+      <ConfirmMotivo open={!!conf} titulo={conf?.titulo} texto={conf?.texto} cta={conf?.cta}
+        onConfirm={() => toast(conf.ok, "ok")} onClose={() => setConf(null)}/>
       {toastNode}
     </div>
   );
@@ -1128,15 +1206,16 @@ function ViewLog() {
 // licença FIXA (a 1ª ativa) para a medida ser reprodutível; ?licenca= na produção é parâmetro.
 function ViewTimeline() {
   const { Timeline } = ds();
-  const l = LICENCAS.find((x) => x.status === "ativa") || LICENCAS[0];
+  const [vindo] = useState(() => navDe("oi-log-timeline"));
+  const l = LICENCAS.find((x) => x.id === vindo.licenca) || LICENCAS.find((x) => x.status === "ativa") || LICENCAS[0];
   const e = empresaDe(l.biz);
   const eventos = LOGS.filter((g) => g.host === l.host);
   return (
     <div className="os-page sa-page" data-screen-label="Office Impresso · Timeline da licença">
       <PageHead titulo={"Timeline · " + l.host} sub={`${l.id} · ${e.nome} (biz #${l.biz}) · ${eventos.length} eventos · append-only`}
         acoes={<>
-          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("oi-log")}>Voltar ao log</button>
-          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("oi-licencas")}>Abrir a licença</button>
+          <button className="os-btn ghost" onClick={() => ir("oi-log", { biz:l.biz })}>Voltar às máquinas</button>
+          <button className="os-btn ghost" onClick={() => ir("oi-licencas", { biz:l.biz })}>Licenças da empresa</button>
         </>}/>
       <div className="sa-body" style={{ padding: "0 24px 24px" }}>
         {eventos.length === 0
@@ -1149,10 +1228,93 @@ function ViewTimeline() {
   );
 }
 
+// ── View: Ficha da empresa (Empresa/Show · PT-03 Detalhe) ── a ficha é PÁGINA, não drawer (charter).
+// Espelha Empresa/Show.tsx: dados, assinatura (limite, fim, dias restantes), "Ver pacote", Editar,
+// bloquear/liberar com motivo e a lista de máquinas da empresa.
+const ASSINATURA = { 21:{ fim:"30/09/2026", dias:42 }, 158:{ fim:"04/08/2026", dias:-15 }, 173:{ fim:"04/02/2027", dias:169 } };
+function ViewEmpresa() {
+  const [vindo] = useState(() => navDe("oi-empresa"));
+  const e = EMPRESAS.find((x) => x.biz === vindo.biz) || EMPRESAS.find((x) => x.biz === 21);
+  const [aberta, setAberta] = useState(false);
+  const [confirma, setConfirma] = useState(false);
+  const [toastNode, toast] = useToast();
+  const { StatusBadge } = ds();
+  const ass = ASSINATURA[e.biz];
+  const maqs = LICENCAS.filter((l) => l.biz === e.biz);
+  const [demo] = React.useContext(DemoCtx);
+  if (demo === "sem-acesso") return <SemAcesso titulo="Ficha da empresa"/>;
+  return (
+    <div className="os-page sa-page" data-screen-label="Office Impresso · Ficha da empresa">
+      <PageHead titulo={e.nome} sub={`biz #${e.biz} · ${e.cidade} · licenciada desde ${e.desde}`}
+        acoes={<button className="os-btn ghost" onClick={() => ir("officeimpresso")}>Voltar às empresas</button>}/>
+      {demo === "carregando" ? <div className="oi-skel" role="status" aria-label="Carregando a ficha"><i></i><i></i><i></i></div> : <>
+      <section className="sa-card oi-ficha" aria-labelledby="oi-ficha-h">
+        <header className="sa-card-h"><div><h3 id="oi-ficha-h">Dados e assinatura</h3><p>Razão social e endereço vêm do cadastro da empresa</p></div>
+          {StatusBadge && <StatusBadge label={e.bloqueado ? "Bloqueada" : "Ativa"} tone={e.bloqueado ? "danger" : "success"}/>}</header>
+        <div className="oi-form">
+          <dl className="oi-kv">
+            <dt>Razão social</dt><dd>{e.nome} Ltda</dd>
+            <dt>Endereço</dt><dd>Rua Exemplo, 100 · {e.cidade}</dd>
+            <dt>Telefone</dt><dd className="mono">(11) 4000-0000</dd>
+            <dt>Versão obrigatória</dt><dd className="mono">{e.versaoObrig}</dd>
+            <dt>Versão disponível</dt><dd className="mono">{e.versaoDisp}</dd>
+            <dt>Caminho do banco</dt><dd className="mono">{e.banco}</dd>
+            <dt>Último acesso</dt><dd><Frescor v={e.frescor} rel={e.ultimo}/></dd>
+            {ass ? <>
+              <dt>Limite de máquinas</dt><dd className="mono">{e.limite}</dd>
+              <dt>Assinatura até</dt><dd className="mono">{ass.fim}</dd>
+              <dt>Restante</dt><dd>{ass.dias >= 0 ? `${ass.dias} dia(s)` : <>vencida há {-ass.dias} dia(s) <span className="oi-tag">vencida</span></>}</dd>
+            </> : <><dt>Assinatura</dt><dd className="sa-mute">sem pacote vinculado</dd></>}
+          </dl>
+          <div className="oi-ficha-acoes">
+            <button className="os-btn ghost" onClick={() => toast("Abriria o pacote no Superadmin", "ok")}>Ver pacote</button>
+            <button className="os-btn ghost" onClick={() => setAberta(true)}>Editar</button>
+            <button className={"os-btn " + (e.bloqueado ? "ghost" : "danger")} onClick={() => setConfirma(true)}>{e.bloqueado ? "Liberar empresa" : "Bloquear empresa"}</button>
+          </div>
+        </div>
+      </section>
+      <section className="sa-card oi-card" aria-labelledby="oi-ficha-maq">
+        <header className="sa-card-h"><div><h3 id="oi-ficha-maq">Máquinas ({maqs.length})</h3><p>limite {e.limite} · <Maquinas usadas={e.usadas} limite={e.limite}/></p></div>
+          <button className="os-btn ghost" onClick={() => ir("oi-log", { biz:e.biz })}>Ver máquinas da empresa</button></header>
+        {maqs.length === 0 ? <Vazio titulo="Nenhuma máquina registrada" texto="A empresa nunca fez handshake pelo Delphi."/> :
+        <div className="os-table-wrap"><table className="os-table sa-table">
+          <thead><tr><th>Máquina</th><th>Versão</th><th>Usuário</th><th>Último acesso</th><th>Status</th></tr></thead>
+          <tbody>{maqs.map((l) => (
+            <tr key={l.id} className="sa-row" {...linhaAbre(() => ir("oi-log-timeline", { licenca:l.id }), `Timeline da máquina ${l.host}`)}>
+              <td><div className="oi-host"><b>{l.host}{l.nova && <span className="oi-tag">nova</span>}</b><small>{l.serial}</small></div></td>
+              <td><Ver curta instalada={l.versao} obrigatoria={e.versaoObrig}/></td>
+              <td>{l.usuario}</td><td><Frescor v={l.frescor} rel={l.ultimo}/></td><td><LicBadge s={l.status}/></td>
+            </tr>))}</tbody>
+        </table></div>}
+      </section></>}
+      {aberta && <EmpresaDrawer e={e} onClose={() => setAberta(false)} onSalvar={(n) => { setAberta(false); toast(`Configuração de ${n} salva`, "ok"); }}/>}
+      <ConfirmMotivo open={confirma} onClose={() => setConfirma(false)}
+        titulo={e.bloqueado ? "Liberar a empresa?" : "Bloquear a empresa?"}
+        texto={e.bloqueado ? "As máquinas desta empresa voltam a abrir o Office Impresso, exceto as bloqueadas uma a uma."
+          : "Todas as máquinas desta empresa deixam de abrir o Office Impresso no próximo handshake."}
+        cta={e.bloqueado ? "Liberar" : "Bloquear"}
+        onConfirm={() => toast(`${e.nome} ${e.bloqueado ? "liberada" : "bloqueada"} · admin_action registrado com motivo`, e.bloqueado ? "ok" : "danger")}/>
+      {toastNode}
+    </div>
+  );
+}
+
+// Sem officeimpresso.access o controller devolve 403 — a tela explica em vez de mostrar lista vazia.
+function SemAcesso({ titulo }) {
+  return (
+    <div className="os-page sa-page" data-screen-label={"Office Impresso · " + titulo + " · sem acesso"}>
+      <PageHead titulo={titulo} sub="Office Impresso"/>
+      <Vazio titulo="Você não tem acesso ao Office Impresso"
+        texto="Esta área exige a permissão officeimpresso.access, que só o superadmin concede. Peça ao responsável pelo sistema."/>
+    </div>
+  );
+}
+
 function OfficeimpressoPage({ view = "empresas" }) {
-  const M = { licencas: [ViewLicencas, "oi-licencas"], clientes: [ViewClientes, "oi-clientes"], importar: [ViewImportar, "oi-importar"], log: [ViewLog, "oi-log"], timeline: [ViewTimeline, "oi-log"] };
+  const M = { licencas: [ViewLicencas, "oi-licencas"], clientes: [ViewClientes, "oi-clientes"], importar: [ViewImportar, "oi-importar"], log: [ViewLog, "oi-log"], timeline: [ViewTimeline, "oi-log"], empresa: [ViewEmpresa, "officeimpresso"] };
   const [V, rota] = M[view] || [ViewEmpresas, "officeimpresso"];
-  return <OiCtx.Provider value={rota}><V /></OiCtx.Provider>;
+  const demo = useState("normal");
+  return <DemoCtx.Provider value={demo}><OiCtx.Provider value={rota}><V /></OiCtx.Provider></DemoCtx.Provider>;
 }
 
 window.OfficeimpressoPage = OfficeimpressoPage;

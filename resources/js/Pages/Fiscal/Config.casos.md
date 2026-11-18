@@ -5,8 +5,8 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-21"
-last_run_ci: "UC-FCFG-10 nasce com teste novo (ContingenciaModoTest, 12 passed no CT 100 em 2026-10-21); veredito da lane nfebrasil-pest PENDENTE. Os demais UC não foram re-executados nesta corrida"
+last_run: "2026-11-18"
+last_run_ci: "2026-11-18: a tela ganhou o bloco NFS-e (ambiente + prestador) da aba Ambiente; UC-FCFG-13/14 nascem com NfseConfiguracaoContratoTest, veredito da lane NFSe PENDENTE. UC-FCFG-01..12 não foram re-executados (backend deles não mudou). 2026-10-21: UC-FCFG-10 nasceu com ContingenciaModoTest, 12 passed no CT 100"
 related_us: [US-FISCAL-009]
 ---
 
@@ -78,6 +78,8 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-10 | a contingência é ativada com o modo escolhido (SVC-AN · SVC-RS · EPEC), e a SVC errada para a UF é recusada | `[must]` `[fiscal]` | US-NFE-071 | `ContingenciaModoTest` (3) | 🧪 |
 | UC-FCFG-11 | certificado sem CNPJ titular mostra o CNPJ da empresa | `[should]` | CU-FISC-14 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-12 | a configuração fiscal mostrada é a da própria empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-13 | ambiente e prestador da NFS-e gravam na empresa da sessão | `[must]` `[T0]` | CU-FISC-12 | `NfseConfiguracaoContratoTest` | 🧪 |
+| UC-FCFG-14 | trocar o ambiente da NFS-e tem a trava da NF-e | `[must]` `[T0]` | CU-FISC-13 | `NfseConfiguracaoContratoTest` | 🧪 |
 
 ---
 
@@ -290,6 +292,28 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Regressão que defende:** a tela lê a configuração com `NfeBusinessConfig::query()->first()`, filtrado só pelo escopo global; sem ele as duas empresas receberiam a mesma linha. Achado da auditoria do Fiscal de 2026-11-05 (lote 2.1).
 - **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-12 · a tela mostra a configuração fiscal da própria empresa, nunca a da vizinha')`
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+
+## UC-FCFG-13 — Ambiente e prestador da NFS-e gravam na empresa da sessão `[must]` `[T0]`
+
+**Dado** duas empresas e um usuário com `fiscal.config.edit` na primeira
+**Quando** ele salva município, CNPJ, inscrição municipal, série e CNAE da NFS-e, mesmo mandando no corpo o `business_id` da outra
+**Então** a configuração (`nfse_provider_configs`) grava na empresa da sessão e a outra fica intacta; sem `fiscal.config.edit` é 403 e nada grava.
+
+- **Por que existe:** achado B4 da auditoria NFSe (2026-11-18) — esses campos só mudavam no banco. Só entram os que a emissão lê (`NfseEmissaoService`): ambiente, município IBGE, CNPJ, IM, série da DPS e CNAE. Alíquota e código LC 116 padrão ficam fora (são padrão de valor de imposto).
+- **Certificado:** a configuração criada aqui aponta para o A1 ativo da empresa (o mesmo da NF-e) quando ainda não tem; não há upload próprio de certificado para a NFS-e.
+- **Teste:** `Modules/NFSe/Tests/Feature/NfseConfiguracaoContratoTest.php` — `it('UC-FCFG-13 · grava na empresa da sessão e ignora business_id do request')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NFSe · MySQL)`.
+
+## UC-FCFG-14 — Trocar o ambiente da NFS-e tem a trava da NF-e `[must]` `[T0]`
+
+**Dado** a NFS-e da empresa em homologação
+**Quando** alguém pede produção (ou o caminho inverso)
+**Então** exige `fiscal.config.ambiente` (só `fiscal.config.edit` dá 403), o nome do destino digitado e um motivo de 15+ caracteres; sem isso o ambiente não muda, e a troca feita vira evento `nfse.ambiente_alterado` com o motivo.
+
+- **Separado da NF-e:** a NFS-e lê `nfse_provider_configs.ambiente`, não `business.ambiente`. Os dois ficam lado a lado na aba, cada um com a sua cerimônia (UC-FCFG-07 é o da NF-e).
+- **Teste:** `NfseConfiguracaoContratoTest` — `it('UC-FCFG-14 · produção exige fiscal.config.ambiente, destino digitado e motivo')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NFSe · MySQL)`.
 
 ---
 

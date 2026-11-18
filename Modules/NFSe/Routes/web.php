@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\NFSe\Http\Controllers\InstallController;
 use Modules\NFSe\Http\Controllers\NfseController;
+use Modules\NFSe\Http\Controllers\NfseConfiguracaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,9 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('transactions/{tx}/emitir', [NfseController::class, 'emitirParaTransaction'])
             ->whereNumber('tx')
             ->name('transactions.emitir');
+
+        // Ambiente + prestador por empresa — tela em /fiscal/config?tab=ambiente.
+        Route::post('/configuracao', [NfseConfiguracaoController::class, 'update'])->name('configuracao.update');
 
         // US-NFSE-006: detalhe + cancelar + PDF
         Route::get('/{nfse}', [NfseController::class, 'show'])->name('show');

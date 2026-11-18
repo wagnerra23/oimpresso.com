@@ -24,6 +24,7 @@ uses(Tests\TestCase::class);
  * teste. Os asserts olham só as fixtures criadas aqui, nunca a contagem global.
  *
  * Tenant: `seededTenant()` (fictício 98, ADR 0358) — nunca biz=4.
+ * @covers-us US-OI-020
  */
 
 beforeEach(function () {
