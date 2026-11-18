@@ -12,8 +12,6 @@ use App\Variation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\RepairStatus;
@@ -142,20 +140,8 @@ class RepairSettingsController extends Controller
     private function linkDoPortal(int $businessId): ?string
     {
         $empresaPublica = \Modules\ConsultaOs\Services\EmpresaPublica::class;
-        if ($businessId <= 0 || ! class_exists($empresaPublica) || ! Route::has('consulta-os.empresa')) {
-            return null;
-        }
 
-        try {
-            return $empresaPublica::linkDe($businessId);
-        } catch (\Throwable $e) {
-            Log::warning('repair.settings.consulta_os_link_indisponivel', [
-                'business_id' => $businessId,
-                'erro' => $e->getMessage(),
-            ]);
-
-            return null;
-        }
+        return class_exists($empresaPublica) ? $empresaPublica::linkSeDisponivel($businessId) : null;
     }
 
     /**

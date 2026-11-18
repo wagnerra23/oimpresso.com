@@ -6,6 +6,8 @@ namespace Modules\ConsultaOs\Services;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Empresa do portal público — código na URL ↔ business_id (decisão [W] 2026-11-17).
@@ -64,6 +66,26 @@ class EmpresaPublica
     public static function linkDe(int $businessId): string
     {
         return route('consulta-os.empresa', ['empresa' => self::codigoDe($businessId)]);
+    }
+
+    /**
+     * linkDe() para quem não pode falhar por causa do portal (tela de configuração, aviso da OS,
+     * impressão): devolve null se a rota do portal não estiver registrada ou se o código não puder
+     * ser criado (tabela ausente, banco fora) — e registra o motivo no log.
+     */
+    public static function linkSeDisponivel(int $businessId): ?string
+    {
+        if ($businessId <= 0 || ! Route::has('consulta-os.empresa')) {
+            return null;
+        }
+
+        try {
+            return self::linkDe($businessId);
+        } catch (\Throwable $e) {
+            Log::warning('consultaos.link_indisponivel', ['business_id' => $businessId, 'erro' => $e->getMessage()]);
+
+            return null;
+        }
     }
 
     /** business_id do código, ou null se não existe. */
