@@ -1,6 +1,6 @@
 ---
 owner: W
-last_validated: "2026-06-08"
+last_validated: "2026-11-18"
 slug: officeimpresso-runbook-migracao-react
 title: "Officeimpresso — Runbook migração Blade → Inertia/React (MWART aplicado a módulo superadmin)"
 type: runbook
@@ -42,7 +42,7 @@ related:
 
 | Camada | Arquivo | Papel |
 |---|---|---|
-| Backend publica menu | `Modules/Officeimpresso/Http/Controllers/DataController.php::modifyAdminMenu()` | Guard `auth()->user()->can('superadmin')` + `Menu::modify('admin-sidebar-menu', dropdown(...))` |
+| Backend publica menu | `Modules/Officeimpresso/Http/Controllers/DataController.php::modifyAdminMenu()` | Guard `AcessoOperador::pode($user, 'officeimpresso.access')` (superadmin, ou a permissão delegada a usuário da empresa operadora; até 2026-07-30 era `can('superadmin')`) + `Menu::modify('admin-sidebar-menu', dropdown(...))` |
 | Conversor nwidart→JSON | [`app/Services/LegacyMenuAdapter.php`](../../../app/Services/LegacyMenuAdapter.php) | Itera Menu instance, vira ShellMenuItem[] flat |
 | **Classifier label→grupo sidebar** | [`Sidebar.tsx`](../../../resources/js/Components/cockpit/Sidebar.tsx) — `SIDEBAR_GROUPS` (`office` + `plataforma`) | Lookup case-insensitive label → grupo visual |
 | Cascata Superadmin (deprecated) | `shared.ts` — `SUPERADMIN_LABELS` esvaziado, `isSuperadminMenu()` retorna false | Code path dormente sem quebrar callers |
@@ -65,27 +65,29 @@ Muitas instalações reseed Spatie permissions sem incluir `superadmin`. Verific
 php artisan tinker --execute="echo \App\User::find(1)->can('superadmin') ? 'OK' : 'FALTA'"
 ```
 
-Se faltar, criar + atribuir ao role `Admin#1` + `permission:cache-reset`. Items dos módulos superadmin **simplesmente não aparecem no shell.menu** sem essa perm — `DataController::modifyAdminMenu()` guarda `if (! auth()->user()->can('superadmin')) return;` é o gate único.
+Se faltar, criar + atribuir ao role `Admin#1` + `permission:cache-reset`. Items dos módulos superadmin **simplesmente não aparecem no shell.menu** sem essa perm — _Atualização de 2026-11-18:_ desde 2026-07-30 o gate do menu é `AcessoOperador::pode(..., 'officeimpresso.access')`, não mais só `superadmin`; esta pegadinha vale para o superadmin, e quem entra por permissão delegada precisa da `officeimpresso.access` num papel da empresa operadora.
 
 ---
 
 ## Inventário — 14 telas Blade
 
+> **Estado em 2026-11-18** (lote L5 da auditoria de 2026-11-05). A tabela abaixo é o plano de 2026-05-10; a coluna de estado foi acrescentada sem reescrever o resto. Os Blades que existem hoje: `git ls-files ':(glob)Modules/Officeimpresso/Resources/views/**/*.blade.php'`.
+
 | # | Tela Blade | Rota | Page React alvo | Prioridade | Cliente |
 |---|---|---|---|---|---|
-| 1 | `licenca_log/index.blade.php` | `/officeimpresso/licenca_log` | `Officeimpresso/Logs/Index.tsx` | **P0** — sua dor maior (timeline de máquinas) | Wagner |
-| 2 | `licenca_log/timeline.blade.php` | `/officeimpresso/licenca_log/timeline/{id}` | `Officeimpresso/Logs/Timeline.tsx` | **P0** — viz rica per-máquina | Wagner |
-| 3 | `licenca_computador/index.blade.php` | `/officeimpresso/licenca_computador` | `Officeimpresso/Licencas/Index.tsx` | P1 — DataTable + KPIs | Wagner |
-| 4 | `licenca_computador/computadores.blade.php` | `/officeimpresso/computadores` | `Officeimpresso/Empresa/Show.tsx` | P1 — ficha empresa + tabela máquinas | Wagner |
-| 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index.tsx` | P1 — listagem 37 empresas | Wagner |
-| 6 | `licenca_computador/create.blade.php` | `/officeimpresso/licenca_computador/create` | `Officeimpresso/Licencas/Create.tsx` | P2 — pouco uso (cadastro raro) | Wagner |
-| 7 | `clients/index.blade.php` | `/officeimpresso/client` | `Officeimpresso/OauthClients/Index.tsx` | P3 — OAuth tokens (raro) | Wagner |
+| 1 | `licenca_log/index.blade.php` | `/officeimpresso/licenca_log` | `Officeimpresso/Logs/Index.tsx` | **P0** — sua dor maior (timeline de máquinas) | Wagner **Estado 2026-11-18:** React servido para todos desde 2026-10-14 (#9412); Blade e flag ainda no repo. |
+| 2 | `licenca_log/timeline.blade.php` | `/officeimpresso/licenca_log/timeline/{id}` | `Officeimpresso/Logs/Timeline.tsx` | **P0** — viz rica per-máquina | Wagner **Estado 2026-11-18:** idem #1. |
+| 3 | `licenca_computador/index.blade.php` | `/officeimpresso/licenca_computador` | `Officeimpresso/Licencas/Index.tsx` | P1 — DataTable + KPIs | Wagner **Estado 2026-11-18:** cutover 2026-10-06 (#8783), Blade apagado. |
+| 4 | `licenca_computador/computadores.blade.php` | `/officeimpresso/computadores` | `Officeimpresso/Empresa/Show.tsx` | P1 — ficha empresa + tabela máquinas | Wagner **Estado 2026-11-18:** React com flag ligada e ações feitas (#9178, #9182); Blade ainda no repo. |
+| 5 | `licenca_computador/businessall.blade.php` | `/officeimpresso/businessall` | `Officeimpresso/Empresas/Index.tsx` | P1 — listagem 37 empresas | Wagner **Estado 2026-11-18:** cutover 2026-10-27 (#10035), Blade apagado. |
+| 6 | `licenca_computador/create.blade.php` | `/officeimpresso/licenca_computador/create` | `Officeimpresso/Licencas/Create.tsx` | P2 — pouco uso (cadastro raro) | Wagner **Estado 2026-11-18:** Blade ainda servido; sem tela React. |
+| 7 | `clients/index.blade.php` | `/officeimpresso/client` | `Officeimpresso/OauthClients/Index.tsx` | P3 — OAuth tokens (raro) | Wagner **Estado 2026-11-18:** a tela real chama `Officeimpresso/Clientes/Index.tsx` (#9081, 2026-10-09), atrás da flag `useV2OfficeimpressoClientes`, fora dos padrões do `FeatureFlagService`; a Blade serve por padrão. |
 | 8 | ~~`licencas_log/index.blade.php`~~ (typo path) | — | ✅ **DELETADO** em 2026-08-20 (path com plural extra, não-rota) | — | — |
-| 9 | `index.blade.php` | `/officeimpresso/install` (raiz módulo) | `Officeimpresso/Install/Index.tsx` | P3 | Wagner |
-| 10 | `catalogue/index.blade.php` | `/officeimpresso/catalogue/{biz}/{loc}` | `Officeimpresso/Catalogue/Index.tsx` | P2 — público QR | qualquer cliente |
-| 11 | `catalogue/show.blade.php` | `/officeimpresso/show-catalogue/{biz}/{prod}` | `Officeimpresso/Catalogue/Show.tsx` | P2 — público QR | qualquer cliente |
-| 12 | `catalogue/generate_qr.blade.php` | `/officeimpresso/catalogue-qr` | `Officeimpresso/Catalogue/Qr.tsx` | P2 | Wagner |
-| 13 | `catalogue/partials/*.blade.php` (3 partials) | (includes) | converter em sub-componentes `_components/` | P2 | — |
+| 9 | `index.blade.php` | `/officeimpresso/install` (raiz módulo) | `Officeimpresso/Install/Index.tsx` | P3 | Wagner **Estado 2026-11-18:** Blade ainda no repo. |
+| 10 | `catalogue/index.blade.php` | `/officeimpresso/catalogue/{biz}/{loc}` | `Officeimpresso/Catalogue/Index.tsx` | P2 — público QR | qualquer cliente **Estado 2026-11-18:** fora da migração — a rota redireciona para o `ProductCatalogue` desde 2026-10-01 (#8346); o Blade ficou sem consumidor. |
+| 11 | `catalogue/show.blade.php` | `/officeimpresso/show-catalogue/{biz}/{prod}` | `Officeimpresso/Catalogue/Show.tsx` | P2 — público QR | qualquer cliente **Estado 2026-11-18:** idem #10. |
+| 12 | `catalogue/generate_qr.blade.php` | `/officeimpresso/catalogue-qr` | `Officeimpresso/Catalogue/Qr.tsx` | P2 | Wagner **Estado 2026-11-18:** o arquivo não existe mais; o QR redireciona para o `ProductCatalogue` (#8403). |
+| 13 | `catalogue/partials/*.blade.php` (3 partials) | (includes) | converter em sub-componentes `_components/` | P2 | — **Estado 2026-11-18:** sem consumidor, idem #10. |
 | 14 | `layouts/master.blade.php` + `layouts/nav.blade.php` | (layout) | **DELETAR** após migração — vira AppShellV2 | — | — |
 
 **Total estimado** (recalibrado [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) fator 10x IA-pair + margem 2x): **~5-8 dias úteis** pras 7 P0/P1 (telas internas Wagner). P2/P3 podem ficar pra outro cycle.
@@ -143,7 +145,7 @@ Score < 70 ou qualquer CRITICAL **bloqueia merge**.
 
 **Specifically para Officeimpresso (superadmin-only):**
 
-1. Habilitar flag `useV2OfficeimpressoLogs=true` em `pos_settings` SOMENTE pra biz=1 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — biz=1 é Wagner WR2 SC, NUNCA cliente real)
+1. Habilitar flag `useV2OfficeimpressoLogs=true` em `pos_settings` SOMENTE pra biz=1 (regra da antiga ADR 0101-tests, hoje superada pela [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md); biz=1 é a empresa operadora, nunca cliente real)
 2. Wagner usa em produção (Hostinger) por 7 dias só ele
 3. Monitorar `storage/logs/laravel.log` — qualquer ALERT/ERROR do path `/officeimpresso/*` paralisa a feature
 4. Validar 4 fluxos críticos:
@@ -206,7 +208,7 @@ Sem cliente avisado, sem janela de manutenção. **Vantagem grande** vs migraç�
 - [Skill cockpit-runbook](../../../.claude/skills/cockpit-runbook/SKILL.md) — modo A (write) + modo B (audit)
 - [LegacyMenuAdapter](../../../app/Services/LegacyMenuAdapter.php) — convert nwidart → JSON
 - [shared.ts SUPERADMIN_LABELS](../../../resources/js/Components/cockpit/shared.ts) — set canônico
-- [project_officeimpresso_modulo](../../auto-mem-archive/project_officeimpresso_modulo.md) — auto-mem deprecated, ver este RUNBOOK
+- `project_officeimpresso_modulo` — auto-mem antiga, removida do repo; o conteúdo útil está neste RUNBOOK
 
 ---
 

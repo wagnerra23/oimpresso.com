@@ -169,6 +169,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
             Modules/Officeimpresso/Tests/Feature/LogPassportSoDelphiTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencaShowSemCredenciaisTest.php \
             Modules/Officeimpresso/Tests/Feature/DesktopAuditValidacaoTest.php \
             Modules/Officeimpresso/Tests/Feature/OfficeimpressoHealthCommandTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php \

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1095 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1096 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -35,8 +35,8 @@
 | [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
+| [`PaymentGateway`](#paymentgateway) | 14 | 0 | 0 | 0 | 14 |
 | [`NFSe`](#nfse) | 13 | 0 | 0 | 0 | 13 |
-| [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Produto`](#produto) | 12 | 1 | 0 | 0 | 11 |
 | [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
@@ -1174,6 +1174,26 @@
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
 
+## PaymentGateway
+
+
+### todo
+
+- **US-PG-010** — Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada) _(`p0`)_
+- **US-PG-011** — Boleto híbrido (boleto + QR Pix no mesmo documento) _(`p1`)_
+- **US-PG-014** — Driver da API de cobrança do Banco do Brasil (registro, PDF e baixa de boleto) _(`p1` · @wagner)_
+- **US-PG-012** — Extrato/saldo bancário unificado + conciliação contábil _(`p2`)_
+- **US-PG-013** — Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente _(`p2`)_
+- **US-PG-001** — [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest
+- **US-PG-002** — [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest
+- **US-PG-003** — [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache
+- **US-PG-004** — Doc mínimo: BRIEFING + CAPTERRA-FICHA + RUNBOOK-integrar-provider
+- **US-PG-005** — Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook)
+- **US-PG-006** — Corrigir autenticação do webhook Inter (mTLS em vez de HMAC x-inter-signature)
+- **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
+- **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
+- **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+
 ## NFSe
 
 
@@ -1192,25 +1212,6 @@
 - **US-NFSE-022** — Carta de correção (campo discriminação dos serviços) _(`p2` · @eliana)_
 - **US-NFSE-023** — Definir o prazo de guarda das notas fiscais (NFS-e e NF-e) de cada empresa cliente _(`p2` · @eliana)_
 - **US-NFSE-011** — Testes Pest end-to-end
-
-## PaymentGateway
-
-
-### todo
-
-- **US-PG-010** — Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada) _(`p0`)_
-- **US-PG-011** — Boleto híbrido (boleto + QR Pix no mesmo documento) _(`p1`)_
-- **US-PG-012** — Extrato/saldo bancário unificado + conciliação contábil _(`p2`)_
-- **US-PG-013** — Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente _(`p2`)_
-- **US-PG-001** — [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest
-- **US-PG-002** — [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest
-- **US-PG-003** — [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache
-- **US-PG-004** — Doc mínimo: BRIEFING + CAPTERRA-FICHA + RUNBOOK-integrar-provider
-- **US-PG-005** — Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook)
-- **US-PG-006** — Corrigir autenticação do webhook Inter (mTLS em vez de HMAC x-inter-signature)
-- **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
-- **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
-- **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
 
 ## PontoWr2
 
