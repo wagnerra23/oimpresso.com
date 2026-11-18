@@ -34,7 +34,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
     // OAuth clients management
     Route::resource('client', ClientController::class);
-    Route::get('/regenerate', [ClientController::class, 'regenerate'])->name('client.regenerate');
+    // POST + CSRF (2026-11): roda passport:install --force e derruba o token de TODOS os Delphi.
+    // Por GET, um <img src> ou prefetch numa página aberta pelo superadmin disparava a ação.
+    Route::post('/regenerate', [ClientController::class, 'regenerate'])->name('client.regenerate');
 
     // Licenca de computador (desktop license) — CRUD + extras (nomes sem prefix
     // porque as views do 3.7 chamam route('business.bloqueado') etc. diretamente)
