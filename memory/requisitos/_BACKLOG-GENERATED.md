@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1089 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1090 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -35,8 +35,8 @@
 | [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
+| [`NFSe`](#nfse) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
-| [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Produto`](#produto) | 12 | 1 | 0 | 0 | 11 |
 | [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
@@ -1169,6 +1169,25 @@
 - **US-AP-014** — Cupom fiscal SAT (SP) — **P2**
 - **US-AP-015** — E-commerce mini-loja (catálogo digital + pedido online) — **P2**
 
+## NFSe
+
+
+### todo
+
+- **US-NFSE-013** — Deploy produção real _(`p0` · @eliana · sprint D)_
+- **US-NFSE-016** — Geração própria do DANFSe conforme NT 008/2026 _(`p0` · @eliana)_
+- **US-NFSE-017** — Validar DPS contra leiaute RTC v2.00 / integrar nfse-nacional/nfse-php _(`p0` · @eliana)_
+- **US-NFSE-012** — Deploy sandbox _(`p1` · @eliana · sprint D)_
+- **US-NFSE-018** — Substituição de NFSe (evento, mantém vínculo original↔nova) _(`p1` · @eliana)_
+- **US-NFSE-019** — Webhook/callback assíncrono de eventos SEFIN _(`p1` · @eliana)_
+- **US-NFSE-014** — Rollout pros clientes oimpresso _(`p2` · @eliana · sprint D)_
+- **US-NFSE-015** — Ambiente per-business em consultar()/cancelar() do SnNfseAdapter _(`p2` · @eliana)_
+- **US-NFSE-020** — Alerta proativo de certificado A1 vencendo (cron D-30/D-7/D-1) _(`p2` · @eliana)_
+- **US-NFSE-021** — Dashboard de métricas NFSe (volume/erro/ISS pago) _(`p2` · @eliana)_
+- **US-NFSE-022** — Carta de correção (campo discriminação dos serviços) _(`p2` · @eliana)_
+- **US-NFSE-023** — Definir o prazo de guarda das notas fiscais (NFS-e e NF-e) de cada empresa cliente _(`p2` · @eliana)_
+- **US-NFSE-011** — Testes Pest end-to-end
+
 ## PaymentGateway
 
 
@@ -1187,24 +1206,6 @@
 - **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
-
-## NFSe
-
-
-### todo
-
-- **US-NFSE-013** — Deploy produção real _(`p0` · @eliana · sprint D)_
-- **US-NFSE-016** — Geração própria do DANFSe conforme NT 008/2026 _(`p0` · @eliana)_
-- **US-NFSE-017** — Validar DPS contra leiaute RTC v2.00 / integrar nfse-nacional/nfse-php _(`p0` · @eliana)_
-- **US-NFSE-012** — Deploy sandbox _(`p1` · @eliana · sprint D)_
-- **US-NFSE-018** — Substituição de NFSe (evento, mantém vínculo original↔nova) _(`p1` · @eliana)_
-- **US-NFSE-019** — Webhook/callback assíncrono de eventos SEFIN _(`p1` · @eliana)_
-- **US-NFSE-014** — Rollout pros clientes oimpresso _(`p2` · @eliana · sprint D)_
-- **US-NFSE-015** — Ambiente per-business em consultar()/cancelar() do SnNfseAdapter _(`p2` · @eliana)_
-- **US-NFSE-020** — Alerta proativo de certificado A1 vencendo (cron D-30/D-7/D-1) _(`p2` · @eliana)_
-- **US-NFSE-021** — Dashboard de métricas NFSe (volume/erro/ISS pago) _(`p2` · @eliana)_
-- **US-NFSE-022** — Carta de correção (campo discriminação dos serviços) _(`p2` · @eliana)_
-- **US-NFSE-011** — Testes Pest end-to-end
 
 ## PontoWr2
 
