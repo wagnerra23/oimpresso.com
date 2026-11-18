@@ -48,10 +48,22 @@ const aposRename = git('rev-parse', 'HEAD');
 // Muitos arquivos de runtime (base de deploy atrasada = o caso de 2026-09-28): a lista
 // "Arquivos que decidiram" passa do buffer do pipe (64 KiB) e o `head -20` fecha a
 // leitura antes do `sort` terminar de escrever — com pipefail isso virava o exit do script.
-const muitos = {};
-for (let i = 0; i < 1500; i++) muitos[`app/Gerado/${'Arquivo'.repeat(8)}${String(i).padStart(4, '0')}.php`] = `<?php // ${i}`;
+//
+// Tamanho: o BITE do `head -20` só morde se o `sort` ainda tiver o que escrever quando o
+// `head` fecha o pipe. Com 1500 arquivos (~117 KB, menos de 2× o buffer) o `head` às vezes
+// lia o primeiro bloco e o `sort` conseguia despejar o resto antes do fechamento: o mutante
+// passava e a falha caía em outro caso (run 44375561097, 2026-11-18). Com ~6× o buffer o
+// sort sempre sobra escrevendo. No Windows o BITE não é medido (ver abaixo), então lá fica
+// a lista menor; o `git add` é um só para o tamanho não pesar.
+const QTD_MUITOS = process.platform === 'win32' ? 1500 : 5000;
 const baseMuitos = git('rev-parse', 'HEAD');
-const aposMuitos = commit('muitos arquivos de runtime', muitos);
+mkdirSync(join(sandbox, 'app/Gerado'), { recursive: true });
+for (let i = 0; i < QTD_MUITOS; i++) {
+  writeFileSync(join(sandbox, `app/Gerado/${'Arquivo'.repeat(8)}${String(i).padStart(4, '0')}.php`), `<?php // ${i}`);
+}
+git('add', '--', 'app/Gerado');
+git('commit', '-q', '-m', 'muitos arquivos de runtime');
+const aposMuitos = git('rev-parse', 'HEAD');
 // Frontend mudou e FOI deployado; depois só docs. A listagem velha só enxerga um
 // sucesso anterior ao feJs — o caso do deploy do #8162 (2026-09-29).
 const feJs = commit('muda frontend (deployado)', { 'resources/js/app.tsx': 'export {}\n' });

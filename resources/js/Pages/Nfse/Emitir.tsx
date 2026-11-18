@@ -123,7 +123,7 @@ export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }:
             <div>
               {semConfig
                 ? 'Módulo NFSe não configurado para esta empresa. Entre em contato com o administrador.'
-                : 'Certificado digital expirado ou ausente. Importe o cert A1 via: php artisan nfse:importar-cert'}
+                : 'Certificado digital expirado ou ausente. Envie o certificado A1 em Fiscal › Configuração › Certificado (o mesmo da NF-e).'}
             </div>
           </div>
         )}

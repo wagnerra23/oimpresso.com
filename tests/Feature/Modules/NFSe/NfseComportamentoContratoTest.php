@@ -14,7 +14,8 @@ declare(strict_types=1);
 //     motivo (lote 2 PR 2.2, #11025 — antes ela sumia).
 //  3. Senha errada do A1 bloqueia a emissão: nada sai para a Sefin e a nota fica em `erro`.
 //     Controle positivo: o MESMO PFX com a senha certa emite.
-//  4. Config da 98 apontando para certificado da 99 não usa o certificado alheio.
+//  4. A 98 nunca emite com o certificado da 99, mesmo com a config apontando para ele
+//     (desde 2026-11-18 a NFS-e usa o certificado ATIVO da empresa, não o cert_id).
 //
 // Empresa = 98 (fictícia canônica, ADR 0358); adversário = 99. Nunca biz=4 nem biz=1.
 // DatabaseTransactions: o rollback desfaz só o que o teste gravou.
@@ -253,11 +254,13 @@ it('US-NFSE-004 · controle positivo: o mesmo PFX com a senha certa assina e emi
 
 it('[T0] US-NFSE-004 · config da 98 apontando para certificado da 99 nao usa o certificado alheio', function () {
     Http::fake(['*' => Http::response(['chaveAcesso' => 'NAO-DEVIA'], 201)]);
+    // A 98 parte sem certificado ativo (a transação desfaz); a 99 tem um ativo e vigente.
+    DB::table('nfe_certificados')->where('business_id', NFSECOMP_TENANT)->update(['ativo' => 0]);
     $certAlheio = nfsecompCert(NFSECOMP_ADVERSARIO);
-    $config = nfsecompConfig(NFSECOMP_TENANT, $certAlheio);
+    nfsecompConfig(NFSECOMP_TENANT, $certAlheio);
 
-    // O relacionamento herda o escopo da empresa da sessão.
-    expect(NfseProviderConfig::find($config->id)->certificado)->toBeNull();
+    $certificados = app(\Modules\NfeBrasil\Services\CertificadoService::class);
+    expect($certificados->certificadoAtivo(NFSECOMP_TENANT))->toBeNull();
 
     $service = new NfseEmissaoService(new SnNfseAdapter('homologacao'));
     $payload = nfsecompPayload(nfsecompPfx('senha'), 'senha');
@@ -267,7 +270,7 @@ it('[T0] US-NFSE-004 · config da 98 apontando para certificado da 99 nao usa o 
     // A nota da 98 fica `erro` (lote 2 PR 2.2); nada foi assinado com o A1 da 99.
     nfsecompNotaEmErro($payload);
 
-    // Controle positivo: com o certificado da própria empresa o relacionamento resolve.
-    $config->update(['cert_id' => nfsecompCert(NFSECOMP_TENANT)]);
-    expect(NfseProviderConfig::find($config->id)->certificado)->not->toBeNull();
+    // Controle positivo: com certificado ativo da própria empresa, é ele que resolve.
+    $proprio = nfsecompCert(NFSECOMP_TENANT);
+    expect($certificados->certificadoAtivo(NFSECOMP_TENANT)?->id)->toBe($proprio);
 });

@@ -1,0 +1,17 @@
+{
+  "_medido_em": "2026-11-18",
+  "_por_que": "Papeis medidos no DOM dos dois lados em 2026-11-18, tema claro: producao em oimpresso.com logada (Chrome do [W]), prototipo no espelho Wagner/ servido pelo servirEspelho do lote. O shell do prototipo roteia a vista por localStorage oimpresso.route = token.",
+  "token": "pcv-quadro",
+  "roles": {
+    "prod": {
+      "title": ".pcv-ph h1",
+      "primary": ".pcv-ph button",
+      "filterControls": ".pcv-filtro > *"
+    },
+    "design": {
+      "title": ".pcv-ph h1",
+      "primary": ".pcv-ph button",
+      "filterControls": ".pcv-filtro > *"
+    }
+  }
+}

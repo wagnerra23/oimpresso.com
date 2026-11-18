@@ -953,10 +953,10 @@ Quando peço NFC-e (modelo 65) dessa venda, a emissão recusa
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeBonificacaoTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** bonificação "sem ST" do Delphi (decisão pendente); a tela que grava o `sub_type` e o Financeiro sem título.
 
-### R-NFSE-004 · A NFS-e lê o certificado da config pelo CertificadoService
+### R-NFSE-004 · A NFS-e lê o certificado ativo da empresa pelo CertificadoService
 
 ```gherkin
-Dado uma empresa com config de NFS-e apontando um certificado A1 (cert_id)
+Dado uma empresa com config de NFS-e e certificado A1 ativo em nfe_certificados (o mesmo da NF-e)
 Quando monto o payload da NFS-e
 Então o PFX vem do disco ({business}/cert/{uuid}.pfx.enc), decriptado, em base64 uma única vez
 E a senha vem de encrypted_password, decriptada
@@ -966,7 +966,8 @@ E arquivo ausente no disco falha com "Arquivo do certificado ausente em disco", 
 
 **Contrato:** schema único de certificado do NfeBrasil (4e772bcb46, 2026-05-07), que removeu `pfxDecriptado()`/`senhaDecriptada()` do modelo do NFSe sem migrar o chamador — desde então toda emissão com certificado configurado quebrava ao montar a nota.
 **Implementação:** `Modules/NfeBrasil/Services/CertificadoService.php` (`carregarCertificado`, também usado por `carregarParaSefaz`) · `Modules/NFSe/Services/NfseEmissaoService.php` (`montarPayload`).
-**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php` (lane `nfebrasil-pest`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php` (lane `nfebrasil-pest`) · `tests/Feature/Modules/NFSe/NfseCertificadoAtivoTest.php` (lane `nfse-pest`: emissão, fila e cancelamento com o ativo da 98, nunca o `cert_id` antigo nem o da 99).
+**Desde 2026-11-18:** o certificado é o ativo da empresa (`CertificadoService::certificadoAtivo`), não mais `nfse_provider_configs.cert_id`.
 
 ### R-NFSE-001 · Retém 4,65% de tomador PJ no regime normal; dispensa no limite do art. 31 § 3º
 

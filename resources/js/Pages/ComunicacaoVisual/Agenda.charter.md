@@ -23,13 +23,15 @@ livre na semana e agendar a próxima fachada sem mandar duas equipes ao mesmo te
    `POST /comunicacao-visual/api/os/{os}/instalacao`.
 3. **Bloqueio visível** — quando a API recusa por falta de janela, o alerta "Sem janela — não agendado" mostra
    com quem e quando o horário conflita, e nada é gravado.
+4. **Abrir a instalação** — cada instalação da grade leva a `/comunicacao-visual/instalacoes/{id}`
+   ([`Instalacao.charter.md`](Instalacao.charter.md)), onde ficam as fotos, a assinatura e o concluir.
 
 Contrato comportamental: [`Agenda.casos.md`](Agenda.casos.md).
 
 ## Fora desta versão
 
-Ainda não estão na tela (não assuma que estão): arrastar instalação entre dias; checklist de EPI, foto,
-assinatura e comprovante (outras partes da US-COMVIS-007).
+Ainda não estão na tela (não assuma que estão): arrastar instalação entre dias; checklist de EPI. Foto,
+assinatura e comprovante moram na tela da instalação, não aqui.
 A regra de conflito mora no backend (`AgendaInstalacao`); a tela só mostra a recusa.
 
 Desde 2026-10-21 ([PR #9723](https://github.com/wagnerra23/oimpresso.com/pull/9723)), agendar avisa o cliente
