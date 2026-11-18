@@ -760,6 +760,10 @@ jobs:
         # ENTRA 2026-11-09 — ComunicacaoVisual/ApontamentoControllerTest (US-COMVIS-004 · UC-CVAPT-01..05):
         # lista só com id e nome do operador; sem permissão 403; OS/peça da 99 recusadas na validação.
         #
+        # ENTRA 2026-11-18 — ComunicacaoVisual/InstalacaoComprovanteContratoTest (US-COMVIS-007 · UC-PCV-25,
+        # UC-CVINST-11..14): foto antes, foto depois e assinatura (com aceite LGPD) no módulo Arquivos; só
+        # conclui com os três; assinatura não se troca; instalação da 99 → 404; concluída não recebe mais nada.
+        #
         # ENTRA 2026-11-16 — Superadmin/SubscriptionConfirmContratoTest (UC-SACF-01..07): o confirm
         # só cria assinatura com gateway configurado; GET → 405; offline nasce `waiting`; pacote
         # privado ou inexistente não assina; sem permissão 403.
@@ -790,6 +794,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoComprovanteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
