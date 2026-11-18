@@ -35,7 +35,7 @@
     },
     {
       "screen": "Associacoes",
-      "note": "5 arquivo(s)",
+      "note": "6 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -101,7 +101,7 @@
     },
     {
       "screen": "ComunicacaoVisual",
-      "note": "4 arquivo(s)",
+      "note": "5 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -255,7 +255,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "17 arquivo(s)",
+      "note": "18 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -310,7 +310,7 @@
     },
     {
       "screen": "Producao",
-      "note": "22 arquivo(s)",
+      "note": "23 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -629,7 +629,7 @@
     },
     {
       "screen": "Produto",
-      "note": "74 arquivo(s)",
+      "note": "76 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -730,8 +730,8 @@
   "progressPct": 64,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "b3f7c20c3d",
-  "generatedAt": "2026-11-16T21:10:47.210Z",
+  "measuredAgainstSha": "f98da314e9",
+  "generatedAt": "2026-11-18T18:19:59.321Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
