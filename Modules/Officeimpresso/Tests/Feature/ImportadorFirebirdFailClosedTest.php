@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Modules\Officeimpresso\Services\FirebirdImporter\FirebirdConnector;
 use Modules\Officeimpresso\Services\FirebirdImporter\OfficeimpressoImporterService;
@@ -162,6 +164,54 @@ it('insert que falha conta como failed, não como migrated, e o erro sai sem val
         ->and($falha['legacy_id'])->toBe(9800202)
         ->and($falha['erro'])->toBe('sql:1062');
     expect(json_encode($report['errors']))->not->toContain($doc);
+});
+
+it('o log da linha que falhou leva só o código do erro, sem o SQL com os valores', function () {
+    $doc = 'L2-FIXTURE-' . uniqid('log');
+    $service = new OfficeimpressoImporterService(oiImportConector(['CLIENTES' => [
+        oiImportCliente(9800501, $doc),
+        oiImportCliente(9800502, $doc), // mesmo documento: viola uk_contacts_biz_tax
+    ]]));
+
+    $avisos = [];
+    Log::listen(function ($evento) use (&$avisos) {
+        if ($evento->level === 'warning') {
+            $avisos[] = ['mensagem' => $evento->message, 'contexto' => $evento->context];
+        }
+    });
+
+    $service->importClientes($this->biz->id, dryRun: false);
+
+    $doImportador = array_values(array_filter($avisos, fn ($a) => $a['mensagem'] === 'officeimpresso.import.linha_falhou'));
+    expect($doImportador)->toHaveCount(1)
+        ->and($doImportador[0]['contexto'])->toBe(['tabela' => 'contacts', 'legacy_id' => 9800502, 'erro' => 'sql:1062']);
+    expect(json_encode($avisos))->not->toContain($doc);
+});
+
+it('sem senha no ambiente o connector recusa conectar no .fdb (não há senha padrão)', function () {
+    // Construído sem senha, como o comando faz quando OFFICEIMPRESSO_FB_PASSWORD falta.
+    $conector = new class('/nao/existe/fixture.fdb') extends FirebirdConnector
+    {
+        public function isMock(): bool
+        {
+            return false;
+        }
+    };
+
+    expect(fn () => $conector->connect())
+        ->toThrow(RuntimeException::class, 'OFFICEIMPRESSO_FB_PASSWORD');
+
+    $saude = $conector->healthCheck();
+    expect($saude['ok'])->toBeFalse()
+        ->and($saude['error'])->toContain('OFFICEIMPRESSO_FB_PASSWORD');
+});
+
+it('o comando não aceita mais --pass: a senha só entra por ambiente', function () {
+    $definicao = Artisan::all()['officeimpresso:import']->getDefinition();
+
+    expect($definicao->hasOption('pass'))->toBeFalse()
+        ->and($definicao->hasOption('user'))->toBeTrue()
+        ->and($definicao->getOption('user')->getDefault())->toBeNull();
 });
 
 it('dry-run não grava nada mesmo com a checagem de já-importado respondendo', function () {
