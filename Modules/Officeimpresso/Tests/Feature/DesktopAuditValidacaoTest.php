@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Laravel\Passport\Passport;
 
@@ -25,6 +26,11 @@ beforeEach(function () {
 
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: Passport + schema UltimatePOS exigem MySQL (ADR 0358).');
+    }
+
+    // O guard do Passport exige as chaves OAuth (mesma receita do OauthClientIdTest).
+    if (! file_exists(storage_path('oauth-private.key')) || ! file_exists(storage_path('oauth-public.key'))) {
+        Artisan::call('passport:keys', ['--force' => true]);
     }
 });
 
