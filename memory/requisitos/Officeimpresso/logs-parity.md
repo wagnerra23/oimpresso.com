@@ -16,6 +16,9 @@ related_adrs:
 
 # Paridade — Officeimpresso `Logs/` (Onda 1)
 
+> **Estado em 2026-11-18 (lote L5 da auditoria de 2026-11-05):** a flag `useV2OfficeimpressoLogs` está ligada para todas as empresas desde 2026-10-14 (#9412), então a tela servida é a React; os Blades `licenca_log/index` e `licenca_log/timeline` seguem no repo como rota de fuga (US-OI-007 pendente). Os 21 itens `alta` têm teste citando o UC em `LogsBaselineTest` (US-OI-006). A coluna "Está no React?" abaixo continua com o `⏳` da F1: **não foi preenchida item a item** depois da F3. Ela não é fonte de estado — o estado de cada item é o teste que cita o UC (`*.casos.md` da tela) e o [SPEC](SPEC.md).
+
+
 > Entregável **F2** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > Os itens de severidade **alta** viram teste de comportamento em **F4** — *presença deste
 > arquivo não conta pra nada* ([PARITY-TEMPLATE](../_DesignSystem/PARITY-TEMPLATE.md) §Enforcement).
