@@ -81,7 +81,7 @@ function nfsfilaProvider(): object
             throw new RuntimeException('o caminho sem ambiente/certificado não pode ser usado');
         }
 
-        public function cancelarNoAmbiente(string $numero, string $motivo, string $ambiente, string $certPfxBase64, string $certSenha): bool
+        public function cancelarNoAmbiente(string $chaveAcesso, string $motivo, string $ambiente, string $certPfxBase64, string $certSenha, string $cnpjAutor): bool
         {
             return true;
         }

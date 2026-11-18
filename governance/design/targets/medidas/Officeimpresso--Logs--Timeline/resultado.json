@@ -1,17 +1,19 @@
 {
   "id": "Officeimpresso/Logs/Timeline",
+  "module": "Officeimpresso",
   "source": "officeimpresso-page.jsx",
   "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx",
-  "token": "officeimpresso",
-  "frescor": "verificado 2026-09-17",
+  "token": "oi-log-timeline",
+  "lado": "ambos",
   "contrato": null,
   "compare": {
-    "rc": 1,
-    "veredito": "DIVERGE (bug)",
+    "rc": 0,
+    "veredito": "IGUAL",
     "motivo": "",
-    "bugs": 1,
+    "bugs": 0,
     "shell": 0,
-    "sameTheme": false,
+    "drawer": 0,
+    "sameTheme": true,
     "porDim": {
       "D2": {
         "diverge": 0,
@@ -20,9 +22,9 @@
         "igual": 1
       },
       "D4": {
-        "diverge": 1,
-        "bug": 1,
-        "semDado": 1,
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 2,
         "igual": 0
       },
       "D6": {
@@ -40,13 +42,19 @@
       "D9": {
         "diverge": 0,
         "bug": 0,
-        "semDado": 0,
-        "igual": 1
+        "semDado": 5,
+        "igual": 0
       },
       "SHELL": {
         "diverge": 0,
         "bug": 0,
         "semDado": 4,
+        "igual": 0
+      },
+      "SAÚDE": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
         "igual": 0
       }
     },
@@ -60,11 +68,10 @@
       },
       {
         "dim": "D4",
-        "campo": "título font-size",
-        "prod": "18px",
-        "design": "22px",
-        "veredito": "DIVERGE (bug)",
-        "detalhe": "Δ 4px · banda tituloPx ±1px"
+        "campo": "título",
+        "prod": "—",
+        "design": "—",
+        "veredito": "SEM-DADO"
       },
       {
         "dim": "D6",
@@ -82,16 +89,49 @@
       },
       {
         "dim": "D9",
-        "campo": "texto",
-        "prod": "ok",
-        "design": "ok",
-        "veredito": "IGUAL"
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
       },
       {
         "dim": "D4",
         "campo": "linha da tabela",
-        "prod": "não medido",
-        "design": "ok",
+        "prod": "ok",
+        "design": "não medido",
         "veredito": "SEM-DADO",
         "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
       },
@@ -126,16 +166,27 @@
         "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
       }
     ]
   },
   "veredito": null,
   "motivo": "",
+  "medido": true,
+  "designSha": "45dd394a9c4ee6af0e7d480b1282a6f246004401171840fd2b2db4f4f9a9c2aa",
+  "prodSha": "aabe57adf34f4e6b0252134063038e3fd56577130d9dbe8d835d5d084d9989c7",
   "meta": {
-    "urlFinal": "https://staging.oimpresso.com/officeimpresso/licenca_log/timeline",
+    "urlFinal": "https://staging.oimpresso.com/officeimpresso/licenca_log/timeline/1",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-18T12:33:17.085Z",
+  "medidoEm": "2026-11-18T19:43:42.332Z",
   "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
 }

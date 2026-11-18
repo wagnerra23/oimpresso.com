@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 19 |
 | Telas (.tsx) | 9 |
 | Telas com `casos.md` | 10 |
-| UC declarados | 74 |
-| UC com teste que os cita | 74 |
+| UC declarados | 81 |
+| UC com teste que os cita | 81 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -95,10 +95,16 @@ authority: generated
 | UC-OAP-05 | AprovacaoPublica | 🧪 aguarda veredito da lane |
 | UC-OAP-06 | AprovacaoPublica | 🧪 aguarda veredito da lane |
 | UC-OAP-07 | AprovacaoPublica | 🧪 aguarda veredito da lane |
+| UC-OAP-08 | AprovacaoPublica | 🧪 aguarda veredito da lane |
+| UC-OAP-09 | AprovacaoPublica | 🧪 aguarda veredito da lane |
+| UC-OAP-10 | AprovacaoPublica | 🧪 aguarda veredito da lane |
+| UC-OAP-11 | AprovacaoPublica | 🧪 aguarda veredito da lane |
+| UC-OAP-12 | AprovacaoPublica | 🧪 aguarda veredito da lane |
 | UC-OCR-01 | ServiceOrders/Create | 🧪 aguarda veredito da lane |
 | UC-OCR-02 | ServiceOrders/Create | 🧪 aguarda veredito da lane |
 | UC-OCR-03 | ServiceOrders/Create | 🧪 aguarda veredito da lane |
 | UC-OCR-04 | ServiceOrders/Create | 🧪 aguarda veredito da lane |
+| UC-OCR-05 | ServiceOrders/Create | 🧪 aguarda veredito da lane |
 | UC-OED-01 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-02 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-03 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
@@ -107,6 +113,7 @@ authority: generated
 | UC-OED-07 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-08 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OED-09 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
+| UC-OED-10 | ServiceOrders/Edit | 🧪 aguarda veredito da lane |
 | UC-OIM-01 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
 | UC-OIM-02 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |
 | UC-OIM-03 | importer-frota-legada (blade) | 🧪 aguarda veredito da lane |

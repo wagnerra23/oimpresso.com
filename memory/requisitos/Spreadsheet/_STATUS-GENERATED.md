@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 5 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 1 |
-| Telas com `casos.md` | 1 |
-| UC declarados | 5 |
-| UC com teste que os cita | 5 |
+| Telas (.tsx) | 2 |
+| Telas com `casos.md` | 2 |
+| UC declarados | 17 |
+| UC com teste que os cita | 17 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -51,6 +51,18 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-PLAN-03 | Index | 🧪 aguarda veredito da lane |
 | UC-PLAN-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PLAN-05 | Index | 🧪 aguarda veredito da lane |
+| UC-PLAN-06 | Index | 🧪 aguarda veredito da lane |
+| UC-PLAN-07 | Index | 🧪 aguarda veredito da lane |
+| UC-PLAN-08 | Index | 🧪 aguarda veredito da lane |
+| UC-PLAN-09 | Index | 🧪 aguarda veredito da lane |
+| UC-PLAN-10 | Index | 🧪 aguarda veredito da lane |
+| UC-PLED-01 | Editor | 🧪 aguarda veredito da lane |
+| UC-PLED-02 | Editor | 🧪 aguarda veredito da lane |
+| UC-PLED-03 | Editor | 🧪 aguarda veredito da lane |
+| UC-PLED-04 | Editor | 🧪 aguarda veredito da lane |
+| UC-PLED-05 | Editor | 🧪 aguarda veredito da lane |
+| UC-PLED-06 | Editor | 🧪 aguarda veredito da lane |
+| UC-PLED-07 | Editor | 🧪 aguarda veredito da lane |
 
 ---
 
