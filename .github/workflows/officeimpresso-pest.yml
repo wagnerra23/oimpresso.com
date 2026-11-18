@@ -42,6 +42,11 @@ name: Officeimpresso · Pest (MySQL)
 # Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate
 # (schema baseline) + seed biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant).
 # Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 nunca biz=4).
+#
+# 2026-11-18 — entra ImportadorFirebirdFailClosedTest (Lote 2 da auditoria
+# Officeimpresso): o officeimpresso:import gravava as fixtures do modo mock na
+# empresa real e contava insert com erro como migrado. Os testes Wave25/Wave28
+# do importador seguem FORA desta lane (Lote 4).
 
 on:
   workflow_dispatch: {}
@@ -166,6 +171,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
+            Modules/Officeimpresso/Tests/Feature/ImportadorFirebirdFailClosedTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php \
             tests/Feature/LegacyMigration/LegacyArchiveRowsContratoTest.php
 

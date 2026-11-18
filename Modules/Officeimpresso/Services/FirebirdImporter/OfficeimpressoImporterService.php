@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Modules\Officeimpresso\Services\FirebirdImporter;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * OfficeimpressoImporterService — migra tabelas Firebird (Delphi WR Comercial
@@ -52,6 +54,12 @@ class OfficeimpressoImporterService
 {
     private FirebirdConnector $connector;
 
+    /** @var list<array<string, int|string|null>> Falhas da última execução (sem valores de linha). */
+    private array $errors = [];
+
+    /** @var array<string, bool> Cache de Schema::hasColumn(<tabela>, 'legacy_id'). */
+    private array $temLegacyId = [];
+
     public function __construct(FirebirdConnector $connector)
     {
         $this->connector = $connector;
@@ -63,18 +71,28 @@ class OfficeimpressoImporterService
      * @return array{
      *     mode: string,
      *     dry_run: bool,
-     *     clientes: array{read: int, migrated: int, skipped: int},
-     *     produtos: array{read: int, migrated: int, skipped: int},
-     *     vendas: array{read: int, migrated: int, skipped: int},
-     *     licencas: array{read: int, migrated: int, skipped: int},
-     *     financeiros: array{read: int, migrated: int, skipped: int},
-     *     notas_fiscais: array{read: int, migrated: int, skipped: int},
-     *     errors: list<string>,
+     *     clientes: array{read: int, migrated: int, skipped: int, failed: int, blocked: int},
+     *     produtos: array{read: int, migrated: int, skipped: int, failed: int, blocked: int},
+     *     vendas: array{read: int, migrated: int, skipped: int, failed: int, blocked: int},
+     *     licencas: array{read: int, migrated: int, skipped: int, failed: int, blocked: int},
+     *     financeiros: array{read: int, migrated: int, skipped: int, failed: int, blocked: int},
+     *     notas_fiscais: array{read: int, migrated: int, skipped: int, failed: int, blocked: int},
+     *     errors: list<array<string, int|string|null>>,
      * }
+     *
+     * Contadores (2026-11-18, Lote 2 da auditoria Officeimpresso):
+     *   - `migrated` só conta linha que foi gravada (ou, em dry-run, que seria gravada
+     *     com a checagem de "já importado" respondida de verdade).
+     *   - `failed` conta linha cujo insert OU cuja checagem de "já importado" deu erro.
+     *     Antes os dois erros viravam `Log::warning` e a linha contava como migrada.
+     *   - `blocked` conta linha de tabela SEM coluna `legacy_id` (products, transactions,
+     *     licenca_computador): sem chave não há como saber se ela já foi importada, então
+     *     a linha não é gravada. Criar a coluna em tabela core é a decisão B5 do [W].
      */
     public function runFullImport(int $businessId, bool $dryRun = true): array
     {
         $this->assertBusinessId($businessId);
+        $this->errors = [];
 
         $report = [
             'mode' => $this->connector->isMock() ? 'mock' : 'live',
@@ -87,6 +105,7 @@ class OfficeimpressoImporterService
             'notas_fiscais' => $this->importNotasFiscais($businessId, $dryRun),
             'errors' => [],
         ];
+        $report['errors'] = $this->errors;
 
         Log::info('officeimpresso.firebird_importer.full_import', [
             'business_id' => $businessId,
@@ -110,27 +129,8 @@ class OfficeimpressoImporterService
             $this->mockClientes(),
         );
 
-        $stats = ['read' => count($rows), 'migrated' => 0, 'skipped' => 0];
-
-        foreach ($rows as $row) {
-            $legacyId = (int) ($row['ID'] ?? 0);
-            if ($legacyId === 0) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if ($this->alreadyImported('contacts', $businessId, 'fb_clientes', $legacyId)) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if (! $dryRun) {
-                $this->insertContact($businessId, $row, $legacyId);
-            }
-            $stats['migrated']++;
-        }
-
-        return $stats;
+        return $this->importPorLegacyId('contacts', 'fb_clientes', $businessId, $dryRun, $rows,
+            fn (array $row, int $legacyId) => $this->insertContact($businessId, $row, $legacyId));
     }
 
     /**
@@ -147,27 +147,8 @@ class OfficeimpressoImporterService
             $this->mockProdutos(),
         );
 
-        $stats = ['read' => count($rows), 'migrated' => 0, 'skipped' => 0];
-
-        foreach ($rows as $row) {
-            $legacyId = (int) ($row['ID'] ?? 0);
-            if ($legacyId === 0) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if ($this->alreadyImported('products', $businessId, 'fb_produtos', $legacyId)) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if (! $dryRun) {
-                $this->insertProduct($businessId, $row, $legacyId);
-            }
-            $stats['migrated']++;
-        }
-
-        return $stats;
+        return $this->importPorLegacyId('products', 'fb_produtos', $businessId, $dryRun, $rows,
+            fn (array $row, int $legacyId) => $this->insertProduct($businessId, $row, $legacyId));
     }
 
     /**
@@ -184,27 +165,8 @@ class OfficeimpressoImporterService
             $this->mockVendas(),
         );
 
-        $stats = ['read' => count($rows), 'migrated' => 0, 'skipped' => 0];
-
-        foreach ($rows as $row) {
-            $legacyId = (int) ($row['ID'] ?? 0);
-            if ($legacyId === 0) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if ($this->alreadyImported('transactions', $businessId, 'fb_vendas', $legacyId)) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if (! $dryRun) {
-                $this->insertTransaction($businessId, $row, $legacyId);
-            }
-            $stats['migrated']++;
-        }
-
-        return $stats;
+        return $this->importPorLegacyId('transactions', 'fb_vendas', $businessId, $dryRun, $rows,
+            fn (array $row, int $legacyId) => $this->insertTransaction($businessId, $row, $legacyId));
     }
 
     /**
@@ -221,27 +183,8 @@ class OfficeimpressoImporterService
             $this->mockLicencas(),
         );
 
-        $stats = ['read' => count($rows), 'migrated' => 0, 'skipped' => 0];
-
-        foreach ($rows as $row) {
-            $legacyId = (int) ($row['ID'] ?? 0);
-            if ($legacyId === 0) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if ($this->alreadyImported('licenca_computador', $businessId, 'fb_licenca', $legacyId)) {
-                $stats['skipped']++;
-                continue;
-            }
-
-            if (! $dryRun) {
-                $this->insertLicenca($businessId, $row, $legacyId);
-            }
-            $stats['migrated']++;
-        }
-
-        return $stats;
+        return $this->importPorLegacyId('licenca_computador', 'fb_licenca', $businessId, $dryRun, $rows,
+            fn (array $row, int $legacyId) => $this->insertLicenca($businessId, $row, $legacyId));
     }
 
     /**
@@ -278,7 +221,7 @@ class OfficeimpressoImporterService
             $this->mockFinanceiros(),
         );
 
-        $stats = ['read' => count($rows), 'migrated' => 0, 'skipped' => 0];
+        $stats = $this->statsVazio(count($rows));
 
         foreach ($rows as $row) {
             $legacyCodigo = (int) ($row['CODIGO'] ?? 0);
@@ -290,15 +233,20 @@ class OfficeimpressoImporterService
                 continue;
             }
 
-            if ($this->financeiroAlreadyImported($businessId, $legacyCodigo, $legacyCodPedido, $legacyCodEmpresa)) {
-                $stats['skipped']++;
-                continue;
-            }
+            try {
+                if ($this->financeiroAlreadyImported($businessId, $legacyCodigo, $legacyCodPedido, $legacyCodEmpresa)) {
+                    $stats['skipped']++;
+                    continue;
+                }
 
-            if (! $dryRun) {
-                $this->insertFinanceiro($businessId, $row);
+                if (! $dryRun) {
+                    $this->insertFinanceiro($businessId, $row);
+                }
+                $stats['migrated']++;
+            } catch (\Throwable $e) {
+                $stats['failed']++;
+                $this->registrarFalha('fin_titulos', $legacyCodigo, $e);
             }
-            $stats['migrated']++;
         }
 
         return $stats;
@@ -326,7 +274,7 @@ class OfficeimpressoImporterService
             $this->mockNotasFiscais(),
         );
 
-        $stats = ['read' => count($rows), 'migrated' => 0, 'skipped' => 0];
+        $stats = $this->statsVazio(count($rows));
 
         foreach ($rows as $row) {
             $legacyCodigo = (int) ($row['CODIGO'] ?? 0);
@@ -340,15 +288,20 @@ class OfficeimpressoImporterService
             $modelo = $this->mapNfeModelo($row);
             $serie = $this->mapNfeSerie($row);
 
-            if ($this->notaFiscalAlreadyImported($businessId, $modelo, $serie, $numero)) {
-                $stats['skipped']++;
-                continue;
-            }
+            try {
+                if ($this->notaFiscalAlreadyImported($businessId, $modelo, $serie, $numero)) {
+                    $stats['skipped']++;
+                    continue;
+                }
 
-            if (! $dryRun) {
-                $this->insertNotaFiscal($businessId, $row, $modelo, $serie);
+                if (! $dryRun) {
+                    $this->insertNotaFiscal($businessId, $row, $modelo, $serie);
+                }
+                $stats['migrated']++;
+            } catch (\Throwable $e) {
+                $stats['failed']++;
+                $this->registrarFalha('nfe_emissoes', $legacyCodigo, $e);
             }
-            $stats['migrated']++;
         }
 
         return $stats;
@@ -372,112 +325,207 @@ class OfficeimpressoImporterService
     }
 
     /**
-     * Idempotência: checa se row Firebird já foi importada (legacy_id JSON match).
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
+     */
+    private function statsVazio(int $read): array
+    {
+        return ['read' => $read, 'migrated' => 0, 'skipped' => 0, 'failed' => 0, 'blocked' => 0];
+    }
+
+    /**
+     * Laço das 4 tabelas cuja idempotência depende de `legacy_id` na própria tabela.
      *
-     * Não usa Eloquent direto pra suportar mock mode sem boot completo.
+     * Tabela sem a coluna → a linha conta como `blocked` e NÃO é gravada: sem chave,
+     * um segundo run duplicaria tudo. Erro na checagem ou no insert → `failed`.
+     *
+     * @param  array<int, array<string, mixed>>  $rows
+     * @param  callable(array<string, mixed>, int): void  $insert
+     * @return array{read: int, migrated: int, skipped: int, failed: int, blocked: int}
+     */
+    private function importPorLegacyId(string $table, string $source, int $businessId, bool $dryRun, array $rows, callable $insert): array
+    {
+        $stats = $this->statsVazio(count($rows));
+        $temChave = $this->temColunaLegacyId($table);
+
+        foreach ($rows as $row) {
+            $legacyId = (int) ($row['ID'] ?? 0);
+            if ($legacyId === 0) {
+                $stats['skipped']++;
+                continue;
+            }
+
+            if (! $temChave) {
+                $stats['blocked']++;
+                continue;
+            }
+
+            try {
+                if ($this->alreadyImported($table, $businessId, $source, $legacyId)) {
+                    $stats['skipped']++;
+                    continue;
+                }
+
+                if (! $dryRun) {
+                    $insert($row, $legacyId);
+                }
+                $stats['migrated']++;
+            } catch (\Throwable $e) {
+                $stats['failed']++;
+                $this->registrarFalha($table, $legacyId, $e);
+            }
+        }
+
+        if ($stats['blocked'] > 0) {
+            $this->errors[] = [
+                'tabela' => $table,
+                'legacy_id' => null,
+                'erro' => 'sem_coluna_legacy_id',
+                'linhas' => $stats['blocked'],
+            ];
+        }
+
+        return $stats;
+    }
+
+    private function temColunaLegacyId(string $table): bool
+    {
+        if (! array_key_exists($table, $this->temLegacyId)) {
+            $this->temLegacyId[$table] = $this->canQueryDb() && Schema::hasColumn($table, 'legacy_id');
+        }
+
+        return $this->temLegacyId[$table];
+    }
+
+    /**
+     * Valor gravado em `<tabela>.legacy_id` e usado na checagem de "já importado".
+     * Comparação por igualdade exata: `contacts.legacy_id` também guarda CNPJ do
+     * importer Python, e JSON_EXTRACT sobre esse valor dá erro de JSON inválido.
+     */
+    private function chaveLegacy(string $source, int $legacyId): string
+    {
+        return (string) json_encode([$source => $legacyId]);
+    }
+
+    /**
+     * Registra a falha de UMA linha no relatório e no log, sem valores da linha.
+     */
+    private function registrarFalha(string $table, int $legacyId, \Throwable $e): void
+    {
+        $erro = $this->codigoErro($e);
+        $this->errors[] = ['tabela' => $table, 'legacy_id' => $legacyId, 'erro' => $erro, 'linhas' => 1];
+
+        Log::warning('officeimpresso.import.linha_falhou', [
+            'tabela' => $table,
+            'legacy_id' => $legacyId,
+            'erro' => $erro,
+            'err' => $e->getMessage(),
+        ]);
+    }
+
+    /**
+     * Código do erro sem a mensagem (a mensagem do driver traz o SQL com os valores).
+     */
+    private function codigoErro(\Throwable $e): string
+    {
+        if ($e instanceof QueryException) {
+            $driver = $e->errorInfo[1] ?? null;
+
+            return 'sql:' . ($driver !== null ? (string) $driver : (string) $e->getCode());
+        }
+
+        return class_basename($e);
+    }
+
+    /**
+     * Idempotência: checa se a linha Firebird já foi importada (igualdade exata em legacy_id).
+     *
+     * Erro aqui PROPAGA: quem chama conta a linha como `failed`. Antes o erro virava
+     * `false` ("não importado") e a linha seguia para o insert como se a checagem tivesse
+     * respondido.
      */
     private function alreadyImported(string $table, int $businessId, string $source, int $legacyId): bool
     {
-        if (! $this->canQueryDb()) {
-            return false; // mock mode sem DB
-        }
+        $this->exigirDb();
 
-        try {
-            return DB::table($table)
-                ->where('business_id', $businessId)
-                ->whereRaw("JSON_EXTRACT(legacy_id, '$.\"{$source}\"') = ?", [$legacyId])
-                ->exists();
-        } catch (\Throwable $e) {
-            // Coluna `legacy_id` pode não existir ainda — fail-safe pra dry-run não quebrar
-            return false;
+        return DB::table($table)
+            ->where('business_id', $businessId)
+            ->where('legacy_id', $this->chaveLegacy($source, $legacyId))
+            ->exists();
+    }
+
+    private function exigirDb(): void
+    {
+        if (! $this->canQueryDb()) {
+            throw new \RuntimeException('Banco indisponível — importação não pode verificar nem gravar.');
         }
     }
 
     private function insertContact(int $businessId, array $row, int $legacyId): void
     {
-        if (! $this->canQueryDb()) {
-            return;
-        }
-        try {
-            DB::table('contacts')->insert([
-                'business_id' => $businessId,
-                'type' => 'customer',
-                'name' => (string) ($row['NOME'] ?? 'Cliente legacy'),
-                'tax_number' => (string) ($row['CNPJ_CPF'] ?? ''),
-                'email' => (string) ($row['EMAIL'] ?? ''),
-                'mobile' => (string) ($row['TELEFONE'] ?? ''),
-                'contact_status' => 'active',
-                'legacy_id' => json_encode(['fb_clientes' => $legacyId]),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('officeimpresso.import.contact_fail', ['legacy_id' => $legacyId, 'err' => $e->getMessage()]);
-        }
+        $this->exigirDb();
+
+        DB::table('contacts')->insert([
+            'business_id' => $businessId,
+            'type' => 'customer',
+            'name' => (string) ($row['NOME'] ?? 'Cliente legacy'),
+            'tax_number' => (string) ($row['CNPJ_CPF'] ?? ''),
+            'email' => (string) ($row['EMAIL'] ?? ''),
+            'mobile' => (string) ($row['TELEFONE'] ?? ''),
+            'contact_status' => 'active',
+            'legacy_id' => $this->chaveLegacy('fb_clientes', $legacyId),
+            'created_by' => $this->resolveCreatedBy($businessId),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function insertProduct(int $businessId, array $row, int $legacyId): void
     {
-        if (! $this->canQueryDb()) {
-            return;
-        }
-        try {
-            DB::table('products')->insert([
-                'business_id' => $businessId,
-                'name' => (string) ($row['NOME'] ?? 'Produto legacy'),
-                'type' => 'single',
-                'unit_id' => 1,
-                'sku' => 'FB-' . $legacyId,
-                'legacy_id' => json_encode(['fb_produtos' => $legacyId]),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('officeimpresso.import.product_fail', ['legacy_id' => $legacyId, 'err' => $e->getMessage()]);
-        }
+        $this->exigirDb();
+
+        DB::table('products')->insert([
+            'business_id' => $businessId,
+            'name' => (string) ($row['NOME'] ?? 'Produto legacy'),
+            'type' => 'single',
+            'unit_id' => 1,
+            'sku' => 'FB-' . $legacyId,
+            'legacy_id' => $this->chaveLegacy('fb_produtos', $legacyId),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function insertTransaction(int $businessId, array $row, int $legacyId): void
     {
-        if (! $this->canQueryDb()) {
-            return;
-        }
-        try {
-            DB::table('transactions')->insert([
-                'business_id' => $businessId,
-                'type' => 'sell',
-                'status' => 'final',
-                'final_total' => (float) ($row['VALOR_TOTAL'] ?? 0),
-                'transaction_date' => $row['DATA_VENDA'] ?? now(),
-                'legacy_id' => json_encode(['fb_vendas' => $legacyId]),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('officeimpresso.import.txn_fail', ['legacy_id' => $legacyId, 'err' => $e->getMessage()]);
-        }
+        $this->exigirDb();
+
+        DB::table('transactions')->insert([
+            'business_id' => $businessId,
+            'type' => 'sell',
+            'status' => 'final',
+            'final_total' => (float) ($row['VALOR_TOTAL'] ?? 0),
+            'transaction_date' => $row['DATA_VENDA'] ?? now(),
+            'legacy_id' => $this->chaveLegacy('fb_vendas', $legacyId),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function insertLicenca(int $businessId, array $row, int $legacyId): void
     {
-        if (! $this->canQueryDb()) {
-            return;
-        }
-        try {
-            DB::table('licenca_computador')->insert([
-                'business_id' => $businessId,
-                'hd' => (string) ($row['HD'] ?? ''),
-                'processador' => (string) ($row['PROCESSADOR'] ?? ''),
-                'memoria' => (string) ($row['MEMORIA'] ?? ''),
-                'versao_exe' => (string) ($row['VERSAO_EXE'] ?? ''),
-                'bloqueado' => (bool) ((int) ($row['BLOQUEADO'] ?? 0)),
-                'legacy_id' => json_encode(['fb_licenca' => $legacyId]),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('officeimpresso.import.licenca_fail', ['legacy_id' => $legacyId, 'err' => $e->getMessage()]);
-        }
+        $this->exigirDb();
+
+        DB::table('licenca_computador')->insert([
+            'business_id' => $businessId,
+            'hd' => (string) ($row['HD'] ?? ''),
+            'processador' => (string) ($row['PROCESSADOR'] ?? ''),
+            'memoria' => (string) ($row['MEMORIA'] ?? ''),
+            'versao_exe' => (string) ($row['VERSAO_EXE'] ?? ''),
+            'bloqueado' => (bool) ((int) ($row['BLOQUEADO'] ?? 0)),
+            'legacy_id' => $this->chaveLegacy('fb_licenca', $legacyId),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /**
@@ -508,89 +556,76 @@ class OfficeimpressoImporterService
 
     private function financeiroAlreadyImported(int $businessId, int $legacyCodigo, string $legacyCodPedido, string $legacyCodEmpresa): bool
     {
-        if (! $this->canQueryDb()) {
-            return false;
-        }
-        try {
-            return DB::table('fin_titulos')
-                ->where('business_id', $businessId)
-                ->whereRaw("JSON_EXTRACT(metadata, '$.legacy.codigo') = ?", [$legacyCodigo])
-                ->whereRaw("JSON_EXTRACT(metadata, '$.legacy.codpedido') = ?", [$legacyCodPedido])
-                ->whereRaw("JSON_EXTRACT(metadata, '$.legacy.codempresa') = ?", [$legacyCodEmpresa])
-                ->exists();
-        } catch (\Throwable $e) {
-            return false;
-        }
+        $this->exigirDb();
+
+        return DB::table('fin_titulos')
+            ->where('business_id', $businessId)
+            ->whereRaw("JSON_EXTRACT(metadata, '$.legacy.codigo') = ?", [$legacyCodigo])
+            ->whereRaw("JSON_EXTRACT(metadata, '$.legacy.codpedido') = ?", [$legacyCodPedido])
+            ->whereRaw("JSON_EXTRACT(metadata, '$.legacy.codempresa') = ?", [$legacyCodEmpresa])
+            ->exists();
     }
 
     private function insertFinanceiro(int $businessId, array $row): void
     {
-        if (! $this->canQueryDb()) {
-            return;
-        }
-        try {
-            $tipo = $this->mapFinTipo((string) ($row['TIPO'] ?? ''));
-            $status = $this->mapFinStatus((string) ($row['TIPO'] ?? ''));
-            $parcela = (int) ($row['PARCELA'] ?? 1);
-            $valor = (float) ($row['VALOR'] ?? 0);
-            $emissao = $this->dateOnly($row['EMISSAO'] ?? null) ?: now()->format('Y-m-d');
-            $vencto = $this->dateOnly($row['VENCTO'] ?? null) ?: $emissao;
-            $competenciaFonte = $row['DT_COMPETENCIA'] ?? $row['EMISSAO'] ?? null;
-            $competencia = substr($this->dateOnly($competenciaFonte) ?: $emissao, 0, 7);
+        $this->exigirDb();
 
-            $clienteId = $this->lookupContactByLegacy($businessId, (string) ($row['PESSOA_RESPONSAVEL_CODIGO'] ?? ''));
-            $createdBy = $this->resolveCreatedBy($businessId);
+        $tipo = $this->mapFinTipo((string) ($row['TIPO'] ?? ''));
+        $status = $this->mapFinStatus((string) ($row['TIPO'] ?? ''));
+        $parcela = (int) ($row['PARCELA'] ?? 1);
+        $valor = (float) ($row['VALOR'] ?? 0);
+        $emissao = $this->dateOnly($row['EMISSAO'] ?? null) ?: now()->format('Y-m-d');
+        $vencto = $this->dateOnly($row['VENCTO'] ?? null) ?: $emissao;
+        $competenciaFonte = $row['DT_COMPETENCIA'] ?? $row['EMISSAO'] ?? null;
+        $competencia = substr($this->dateOnly($competenciaFonte) ?: $emissao, 0, 7);
 
-            $metadata = [
-                'legacy' => [
-                    'source' => 'wr-comercial-delphi',
-                    'codigo' => (int) $row['CODIGO'],
-                    'codpedido' => (string) $row['CODPEDIDO'],
-                    'codempresa' => (string) $row['CODEMPRESA'],
-                    'codconta' => (int) ($row['CODCONTA'] ?? 0),
-                    'codusuario' => (int) ($row['CODUSUARIO'] ?? 0),
-                    'codplanocontas' => (string) ($row['CODPLANOCONTAS'] ?? ''),
-                ],
-                'tipopagto' => (string) ($row['TIPOPAGTO'] ?? ''),
-                'condicaopagto' => (string) ($row['CONDICAOPAGTO'] ?? ''),
-                'boleto_nosso_nr' => (string) ($row['BOLETO_NOSSO_NR'] ?? ''),
-                'notafiscal' => (string) ($row['NOTAFISCAL'] ?? ''),
-            ];
+        $clienteId = $this->lookupContactByLegacy($businessId, (string) ($row['PESSOA_RESPONSAVEL_CODIGO'] ?? ''));
+        $createdBy = $this->resolveCreatedBy($businessId);
 
-            $historico = trim(sprintf('%s %s',
-                (string) ($row['HISTORICO'] ?? ''),
-                (string) ($row['CONTATOS'] ?? '') ? 'Contato: ' . (string) ($row['CONTATOS']) : ''
-            ));
+        $metadata = [
+            'legacy' => [
+                'source' => 'wr-comercial-delphi',
+                'codigo' => (int) $row['CODIGO'],
+                'codpedido' => (string) $row['CODPEDIDO'],
+                'codempresa' => (string) $row['CODEMPRESA'],
+                'codconta' => (int) ($row['CODCONTA'] ?? 0),
+                'codusuario' => (int) ($row['CODUSUARIO'] ?? 0),
+                'codplanocontas' => (string) ($row['CODPLANOCONTAS'] ?? ''),
+            ],
+            'tipopagto' => (string) ($row['TIPOPAGTO'] ?? ''),
+            'condicaopagto' => (string) ($row['CONDICAOPAGTO'] ?? ''),
+            'boleto_nosso_nr' => (string) ($row['BOLETO_NOSSO_NR'] ?? ''),
+            'notafiscal' => (string) ($row['NOTAFISCAL'] ?? ''),
+        ];
 
-            DB::table('fin_titulos')->insert([
-                'business_id' => $businessId,
-                'numero' => (string) ($row['DOCUMENTO'] ?? $row['CODIGO']),
-                'tipo' => $tipo,
-                'status' => $status,
-                'cliente_id' => $clienteId,
-                'cliente_descricao' => (string) ($row['RAZAOSOCIAL'] ?? $row['FANTASIA'] ?? ''),
-                'valor_total' => $valor,
-                'valor_aberto' => $valor,
-                'moeda' => 'BRL',
-                'emissao' => $emissao,
-                'vencimento' => $vencto,
-                'competencia_mes' => $competencia,
-                'origem' => $row['CODPEDIDO'] ? 'venda' : 'manual',
-                'origem_id' => null, // soft FK; lookup futuro em transactions.legacy_id se necessário
-                'parcela_numero' => $parcela > 0 ? $parcela : null,
-                'parcela_total' => null,
-                'observacoes' => $historico !== '' ? $historico : null,
-                'metadata' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
-                'created_by' => $createdBy,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('officeimpresso.import.financeiro_fail', [
-                'codigo' => $row['CODIGO'] ?? null,
-                'err' => $e->getMessage(),
-            ]);
-        }
+        $historico = trim(sprintf('%s %s',
+            (string) ($row['HISTORICO'] ?? ''),
+            (string) ($row['CONTATOS'] ?? '') ? 'Contato: ' . (string) ($row['CONTATOS']) : ''
+        ));
+
+        DB::table('fin_titulos')->insert([
+            'business_id' => $businessId,
+            'numero' => (string) ($row['DOCUMENTO'] ?? $row['CODIGO']),
+            'tipo' => $tipo,
+            'status' => $status,
+            'cliente_id' => $clienteId,
+            'cliente_descricao' => (string) ($row['RAZAOSOCIAL'] ?? $row['FANTASIA'] ?? ''),
+            'valor_total' => $valor,
+            'valor_aberto' => $valor,
+            'moeda' => 'BRL',
+            'emissao' => $emissao,
+            'vencimento' => $vencto,
+            'competencia_mes' => $competencia,
+            'origem' => $row['CODPEDIDO'] ? 'venda' : 'manual',
+            'origem_id' => null, // soft FK; lookup futuro em transactions.legacy_id se necessário
+            'parcela_numero' => $parcela > 0 ? $parcela : null,
+            'parcela_total' => null,
+            'observacoes' => $historico !== '' ? $historico : null,
+            'metadata' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
+            'created_by' => $createdBy,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function mapFinTipo(string $delphiTipo): string
@@ -613,7 +648,7 @@ class OfficeimpressoImporterService
         try {
             $id = DB::table('contacts')
                 ->where('business_id', $businessId)
-                ->whereRaw("JSON_EXTRACT(legacy_id, '$.fb_clientes') = ?", [(int) $legacyCode])
+                ->where('legacy_id', $this->chaveLegacy('fb_clientes', (int) $legacyCode))
                 ->value('id');
             return $id ? (int) $id : null;
         } catch (\Throwable $e) {
@@ -621,20 +656,24 @@ class OfficeimpressoImporterService
         }
     }
 
+    /**
+     * Primeiro usuário da empresa destino. Sem usuário na empresa a linha FALHA:
+     * o fallback antigo era o user 1, de outra empresa (Tier 0, ADR 0093).
+     */
     private function resolveCreatedBy(int $businessId): int
     {
-        if (! $this->canQueryDb()) {
-            return 1;
+        $this->exigirDb();
+
+        $id = DB::table('users')
+            ->where('business_id', $businessId)
+            ->orderBy('id', 'asc')
+            ->value('id');
+
+        if (! $id) {
+            throw new \RuntimeException('Empresa destino sem usuário para created_by.');
         }
-        try {
-            $id = DB::table('users')
-                ->where('business_id', $businessId)
-                ->orderBy('id', 'asc')
-                ->value('id');
-            return $id ? (int) $id : 1;
-        } catch (\Throwable $e) {
-            return 1;
-        }
+
+        return (int) $id;
     }
 
     private function dateOnly($val): ?string
@@ -653,69 +692,56 @@ class OfficeimpressoImporterService
 
     private function notaFiscalAlreadyImported(int $businessId, string $modelo, string $serie, int $numero): bool
     {
-        if (! $this->canQueryDb()) {
-            return false;
-        }
-        try {
-            return DB::table('nfe_emissoes')
-                ->where('business_id', $businessId)
-                ->where('modelo', $modelo)
-                ->where('serie', $serie)
-                ->where('numero', $numero)
-                ->exists();
-        } catch (\Throwable $e) {
-            return false;
-        }
+        $this->exigirDb();
+
+        return DB::table('nfe_emissoes')
+            ->where('business_id', $businessId)
+            ->where('modelo', $modelo)
+            ->where('serie', $serie)
+            ->where('numero', $numero)
+            ->exists();
     }
 
     private function insertNotaFiscal(int $businessId, array $row, string $modelo, string $serie): void
     {
-        if (! $this->canQueryDb()) {
-            return;
-        }
-        try {
-            $status = $this->mapNfeStatus($row);
-            $emitidoEm = $this->dateTime($row['NF_DT_EMISSAO'] ?? null);
-            $valorTotal = (float) ($row['VALOR_TOTAL'] ?? 0); // pode vir 0 se NOTA_FISCAL não tem coluna de total — historicamente vem de VENDA join
+        $this->exigirDb();
 
-            $metadata = [
-                'legacy' => [
-                    'source' => 'wr-comercial-delphi',
-                    'codigo' => (int) $row['CODIGO'],
-                    'codvenda' => (string) ($row['CODVENDA'] ?? ''),
-                    'codempresa' => (int) ($row['CODEMPRESA'] ?? 0),
-                ],
-                'natureza_operacao' => (string) ($row['NF_NATUREZA_OPERACAO'] ?? ''),
-                'razao_social' => (string) ($row['NF_RAZAOSOCIAL'] ?? ''),
-                'protocolo' => (string) ($row['NF_PROTOCOLO'] ?? ''),
-                'protocolo_cancelamento' => (string) ($row['NF_PROTOCOLO_CANCELAMENTO'] ?? ''),
-                'dt_cancelamento' => (string) ($row['NF_DT_CANCELAMENTO'] ?? ''),
-                'ambiente' => (int) ($row['NF_AMBIENTE'] ?? 1),
-                'situacao_delphi' => (string) ($row['NF_SITUACAO'] ?? ''),
-            ];
+        $status = $this->mapNfeStatus($row);
+        $emitidoEm = $this->dateTime($row['NF_DT_EMISSAO'] ?? null);
+        $valorTotal = (float) ($row['VALOR_TOTAL'] ?? 0); // pode vir 0 se NOTA_FISCAL não tem coluna de total — historicamente vem de VENDA join
 
-            DB::table('nfe_emissoes')->insert([
-                'business_id' => $businessId,
-                'transaction_id' => null, // soft FK; lookup futuro em transactions.legacy_id
-                'modelo' => $modelo,
-                'serie' => $serie,
-                'numero' => (int) ($row['NF_NUMERO'] ?? 0),
-                'chave_44' => (string) ($row['NF_CHAVE'] ?? '') ?: null,
-                'status' => $status,
-                'cstat' => (string) ($row['NF_CSTAT'] ?? '') ?: null,
-                'motivo' => null, // NF_MOTIVO_STATUS é BLOB — não trazido no SELECT pra evitar overhead
-                'valor_total' => $valorTotal,
-                'emitido_em' => $emitidoEm,
-                'metadata' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('officeimpresso.import.notafiscal_fail', [
-                'codigo' => $row['CODIGO'] ?? null,
-                'err' => $e->getMessage(),
-            ]);
-        }
+        $metadata = [
+            'legacy' => [
+                'source' => 'wr-comercial-delphi',
+                'codigo' => (int) $row['CODIGO'],
+                'codvenda' => (string) ($row['CODVENDA'] ?? ''),
+                'codempresa' => (int) ($row['CODEMPRESA'] ?? 0),
+            ],
+            'natureza_operacao' => (string) ($row['NF_NATUREZA_OPERACAO'] ?? ''),
+            'razao_social' => (string) ($row['NF_RAZAOSOCIAL'] ?? ''),
+            'protocolo' => (string) ($row['NF_PROTOCOLO'] ?? ''),
+            'protocolo_cancelamento' => (string) ($row['NF_PROTOCOLO_CANCELAMENTO'] ?? ''),
+            'dt_cancelamento' => (string) ($row['NF_DT_CANCELAMENTO'] ?? ''),
+            'ambiente' => (int) ($row['NF_AMBIENTE'] ?? 1),
+            'situacao_delphi' => (string) ($row['NF_SITUACAO'] ?? ''),
+        ];
+
+        DB::table('nfe_emissoes')->insert([
+            'business_id' => $businessId,
+            'transaction_id' => null, // soft FK; lookup futuro em transactions.legacy_id
+            'modelo' => $modelo,
+            'serie' => $serie,
+            'numero' => (int) ($row['NF_NUMERO'] ?? 0),
+            'chave_44' => (string) ($row['NF_CHAVE'] ?? '') ?: null,
+            'status' => $status,
+            'cstat' => (string) ($row['NF_CSTAT'] ?? '') ?: null,
+            'motivo' => null, // NF_MOTIVO_STATUS é BLOB — não trazido no SELECT pra evitar overhead
+            'valor_total' => $valorTotal,
+            'emitido_em' => $emitidoEm,
+            'metadata' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function mapNfeModelo(array $row): string
