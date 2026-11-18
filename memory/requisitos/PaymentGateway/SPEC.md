@@ -309,3 +309,27 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Pest de divisão correta + multi-tenant Tier 0
 
 **Refs:** CAPTERRA-FICHA §4 (split-pagamento), §6 G6, ADR 0105 (cliente como sinal), ADR 0170.
+
+### US-PG-014 · Driver da API de cobrança do Banco do Brasil (registro, PDF e baixa de boleto)
+
+> owner: wagner · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** decisão [W] 2026-11-18, textual *"vai ser api"* e *"arquivo é um pé no saco"*: boleto do Banco do Brasil pela API, não por CNAB, em toda empresa migrada (regra no [pattern de migração](../../reference/migracao-officeimpresso-pattern.md), Fase 4). Trava a virada da Sabor Brasil, biz=199 ([plano](../../research/clientes-legacy-officeimpresso/06-sabor-brasil/02-plano-migracao.md), seção "Boleto BB: CNAB ou API?").
+
+**Estado atual:** para o BB só existe o `BBCnabDriver` (remessa 240, PDF e retorno, P-157). A chave `bb_api` já está no enum de `payment_gateway_credentials`, mas nenhum driver a usa. Inter, Sicoob, C6 e Asaas têm driver de API em `Modules/PaymentGateway/Services/Drivers/`.
+
+**Como o cliente usa hoje (Delphi, conta 11 da 199):** registra o boleto pela API (a conta tem `CLIENTID`, `CLIENTSECRET`, `APPKEY`, `WS_SCOPO` e `API_AMBIENTE = P`; zero remessas geradas) e baixa pelo arquivo de retorno CNAB 240.
+
+**Aceite:**
+- `BBApiDriver` implementando `PaymentDriverContract`, imitando o `SicoobApiDriver` (autenticação, credencial por empresa, erros).
+- Registra o boleto na API do BB, com juros, multa e desconto até o vencimento; devolve linha digitável, código de barras e PDF.
+- Baixa: consulta do boleto pela API ou webhook do BB; o retorno CNAB do `BBCnabDriver` segue como alternativa.
+- Credenciais cadastradas no oimpresso pelo cliente ou pelo [W] (não saem do Delphi pelo importer); conferir na documentação do BB se a produção exige certificado (mTLS), como o Sicoob.
+- Valor do boleto segue a regra mestre ([proibicoes.md](../../proibicoes.md) §Cálculo de valor): dupla prova de juros, multa e desconto + antes→depois antes do merge.
+- Pest com o BB simulado (`Http::fake`) e isolamento multi-tenant (empresa 98 × outra empresa).
+- Smoke no ambiente de homologação do BB antes da homologação da 199 com o Ricardo.
+
+**Implementado em:** _pendente_ — nenhum código ainda; driver a criar em `Modules/PaymentGateway/Services/Drivers/`
+
+**Refs:** ADR 0170, [RUNBOOK-sicoob-api.md](RUNBOOK-sicoob-api.md), #11151.
