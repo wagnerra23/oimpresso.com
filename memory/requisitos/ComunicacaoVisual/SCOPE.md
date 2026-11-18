@@ -22,7 +22,7 @@ contains:
   - "InstalacaoController (agenda da instalação por OS — /comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
   - "InstalacaoComprovanteController + ComprovanteInstalacao (comprovante da instalação: foto antes/depois e assinatura com aceite LGPD no módulo Arquivos, concluir só com os três — /comunicacao-visual/api/instalacoes/{id}/comprovante|fotos|assinatura|concluir, US-COMVIS-007 · UC-PCV-25)"
   - "AgendaController (tela da agenda de instalação em semana × equipe — /comunicacao-visual/agenda, US-COMVIS-007 · UC-FLX-21)"
-  - "InstalacaoCampoController (tela do instalador no celular: onde e quando, foto antes e depois pela API do comprovante — /comunicacao-visual/instalacoes/{id}, US-COMVIS-007 · UC-PCV-25)"
+  - "InstalacaoCampoController + ProtocoloInstalacao (tela do instalador no celular: fotos, assinatura e concluir pela API do comprovante, e o protocolo em PDF da instalação concluída — /comunicacao-visual/instalacoes/{id} e /{id}/protocolo, US-COMVIS-007 · UC-PCV-25)"
   - "Services/AgendaInstalacao (agenda equipe e veículo na OS; recusa sem janela — US-COMVIS-007 · UC-FLX-21)"
   - "Entities/OsItem (comvis_os_itens — itens da OS copiados do orçamento, UC-FLX-01)"
   - "Services/OrcamentoViraOs (orçamento aprovado vira OS com itens, medidas e arquivos — US-COMVIS-020 · UC-FLX-01)"
