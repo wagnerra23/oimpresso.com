@@ -1,7 +1,20 @@
 {
-  "url": "https://staging.oimpresso.com/officeimpresso/licenca_log/timeline",
+  "url": "https://staging.oimpresso.com/officeimpresso/licenca_log/timeline/1",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
   "theme": "light",
-  "assinatura": "404 Not Found",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI M Timeline — medida-lote6 CI Tenant 98 (ficticio) · HD MEDIDA-OI-LOTE6-HD · IP 10.0.0.1 Ativa Voltar Últimos 200 acessos a processa-dados-cliente ( 1 ) Data/hora Status HTTP Estado no login IP Duração 18/11/2026 16:39:06 200 Liberada — — Você tem acesso de leitura. Bloquear ou liberar esta máquina exige a permissão officeimpresso.licencas.gerenciar . Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
       "count": 0,
@@ -10,20 +23,143 @@
       "items": []
     },
     "title": {
-      "fontPx": 18,
-      "weight": "700",
-      "color": "rgb(0, 0, 0)"
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
     },
     "primary": null,
     "filterRows": null,
-    "contratos": [],
-    "celulas": null,
-    "tabela": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 33.5,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.02 162)",
+          "dot": true
+        }
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 24.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.02 162)",
+          "dot": true
+        }
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 1,
+      "linhasComEstado": 0
+    },
     "shell": {
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-shortcuts .sb-shortcut",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -31,6 +167,7 @@
         "itemGrupo": {
           "seletor": ".sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -38,6 +175,7 @@
         "grupoHeader": {
           "seletor": ".sb-group-h",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -45,12 +183,15 @@
         "containerMenu": {
           "seletor": ".sb-menu-grouped",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null,
+    "drawer": null
   }
 }

@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 17 |
+| US no SPEC | 22 |
 | CU no SDD | 9 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
@@ -63,6 +63,11 @@ authority: generated
 | US-OI-015 | `desconhecido` | — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01 |
 | US-OI-016 | `desconhecido` | — F4: QA da `Empresas/Index` — os itens `alta` viram teste |
 | US-OI-017 | `desconhecido` | — F5: cutover das 3 telas da Onda 2 e sunset dos Blades |
+| US-OI-018 | `desconhecido` | — Tela `Clientes/Index` (clients OAuth do desktop) |
+| US-OI-019 | `desconhecido` | — Delegação da gestão de licenças ao suporte |
+| US-OI-020 | `desconhecido` | — Comandos de operação do módulo |
+| US-OI-021 | `desconhecido` | — Importação Firebird de um cliente (`officeimpresso:import`) |
+| US-OI-022 | `desconhecido` | — `POST /api/officeimpresso/audit` (evento opt-in do desktop) |
 
 ## UC por status
 

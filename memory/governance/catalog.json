@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1048,
-    "edges": 1406,
+    "nodes": 1049,
+    "edges": 1413,
     "by_node_type": {
       "module": 45,
       "table": 136,
       "adr": 157,
-      "component": 610,
+      "component": 611,
       "api": 100
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 85,
-      "hasComponent": 610,
-      "dependsOn": 154,
-      "delegatesTo": 139,
+      "hasComponent": 611,
+      "dependsOn": 157,
+      "delegatesTo": 142,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 80,
@@ -4814,6 +4814,13 @@
       "desc": ""
     },
     {
+      "id": "component:NFSe/NfseConfiguracaoController",
+      "type": "component",
+      "module": "NFSe",
+      "name": "NfseConfiguracaoController",
+      "desc": "POST /nfse/configuracao: ambiente e prestador da NFS-e da empresa (tela em /fiscal/config, aba ambiente)"
+    },
+    {
       "id": "component:NFSe/NfseController",
       "type": "component",
       "module": "NFSe",
@@ -6582,7 +6589,7 @@
       "id": "module:Officeimpresso",
       "type": "module",
       "module": "Officeimpresso",
-      "purpose": "Licenciamento, bloqueio e auditoria das máquinas do Office Impresso desktop (Delphi) — CRUD de licenças e logs, credenciais OAuth Passport e API de acesso do desktop, delegáveis ao suporte por permissão. Inclui o importador Firebird do WR Comercial legado.",
+      "purpose": "Administração do licenciamento do Office Impresso desktop (Delphi): máquinas, empresas bloqueadas, versão exigida, log de acesso (licenca_log) e clients OAuth Passport do desktop, por superadmin ou por permissão delegada ao suporte da empresa operadora. A API que o desktop chama para registrar e verificar licença é do Modules/Connector; este módulo cria as tabelas que ela grava e registra o middleware log.delphi que ela usa. API própria pequena (ping e POST /audit). Inclui o importador Firebird do WR Comercial legado.",
       "trust": "L3",
       "owner": "wagner",
       "permission_prefix": "officeimpresso.*",
@@ -14596,6 +14603,12 @@
     },
     {
       "from": "module:NFSe",
+      "to": "component:NFSe/NfseConfiguracaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NFSe",
       "to": "component:NFSe/NfseController",
       "type": "hasComponent",
       "source": "contains"
@@ -14650,6 +14663,13 @@
     },
     {
       "from": "module:Officeimpresso",
+      "to": "module:Connector",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Handshake de licença do desktop (processa-dados-cliente, salvar-cliente, salvar-equipamento, oimpresso/registrar, check-update)"
+    },
+    {
+      "from": "module:Officeimpresso",
       "to": "module:Forja",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -14671,6 +14691,27 @@
     },
     {
       "from": "module:Officeimpresso",
+      "to": "module:ProductCatalogue",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Catálogo de produtos e QR"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:Superadmin",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Bloqueio automático por cobrança vencida (gravação de business.officeimpresso_bloqueado)"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:Connector",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Handshake de licença do desktop (processa-dados-cliente, salvar-cliente, salvar-equipamento, oimpresso/registrar, check-update)"
+    },
+    {
+      "from": "module:Officeimpresso",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -14689,6 +14730,20 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:ProductCatalogue",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Catálogo de produtos e QR"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:Superadmin",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Bloqueio automático por cobrança vencida (gravação de business.officeimpresso_bloqueado)"
     },
     {
       "from": "module:Officeimpresso",

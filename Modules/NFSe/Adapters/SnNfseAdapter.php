@@ -138,16 +138,48 @@ class SnNfseAdapter implements NfseProviderInterface, NfseCancelaComCertificado
         );
     }
 
+    /**
+     * Cancela pelo evento e101101 (Cancelamento de NFS-e), assinado com o certificado da
+     * empresa, no ambiente dela. Fontes oficiais (gov.br/nfse, documentação atual):
+     *  - Manual dos Contribuintes — API do Emissor Público Nacional v1.2, item 1.5 "API
+     *    Eventos": `POST /nfse/{chaveAcesso}/eventos`, mensagem em JSON com o XML do
+     *    pedido de registro de evento assinado;
+     *  - pacote `nfse-esquemas_xsd-v1-01-20260209.zip`: `pedRegEvento_v1.01.xsd` +
+     *    `tiposEventos_v1.01.xsd` (TCPedRegEvt, TCInfPedReg, TE101101);
+     *  - Anexo II (`anexo_ii-sefin_adn-pedregevt_evt-snnfse-v1-01-20260122.xlsx`): Id =
+     *    "PRE" + chave de acesso (50) + código do evento (6); assinatura obrigatória.
+     * O nome dos campos JSON (`pedidoRegistroEventoXmlGZipB64` no envio,
+     * `eventoXmlGZipB64` na resposta) vem da Swagger da Sefin, que só abre com mTLS; foi
+     * conferido em bibliotecas independentes que já falam com a API, não no PDF.
+     *
+     * Devolve true só quando a Sefin devolve o evento gerado para esta chave. Recusa da
+     * Sefin vira NfseException com o motivo dela; falha de rede, ProviderTimeoutException.
+     * Até 2026-11-18 este método mandava `DELETE /nfse/{numero}`, que não está no manual.
+     */
     public function cancelarNoAmbiente(
-        string $numero,
+        string $chaveAcesso,
         string $motivo,
         string $ambiente,
         string $certPfxBase64,
         string $certSenha,
+        string $cnpjAutor,
     ): bool {
         $pfx = base64_decode($certPfxBase64, true);
         if ($pfx === false || $pfx === '') {
             throw new CertificadoInvalidoException('Nenhum certificado A1 para cancelar a nota.');
+        }
+
+        $pedido = $this->buildPedRegEventoCancelamento($chaveAcesso, $motivo, $ambiente, $cnpjAutor);
+
+        try {
+            $xmlAssinado = DpsXml::assinarPedRegEvento(
+                DpsXml::serializarPedRegEvento($pedido),
+                $pfx,
+                $certSenha,
+                config('nfse.assinatura_algoritmo') === 'sha1' ? OPENSSL_ALGO_SHA1 : OPENSSL_ALGO_SHA256,
+            );
+        } catch (\Throwable $e) {
+            throw new CertificadoInvalidoException('Não foi possível assinar o pedido de cancelamento: ' . $e->getMessage());
         }
 
         [$certPem, $keyPem] = $this->pemTemporarios($pfx, $certSenha);
@@ -155,15 +187,111 @@ class SnNfseAdapter implements NfseProviderInterface, NfseCancelaComCertificado
             $response = Http::timeout(15)
                 ->acceptJson()
                 ->withOptions(['cert' => $certPem, 'ssl_key' => $keyPem])
-                ->delete($this->resolveBaseUrl($ambiente) . "/nfse/{$numero}", ['motivo' => $motivo]);
+                ->post(
+                    $this->resolveBaseUrl($ambiente) . "/nfse/{$chaveAcesso}/eventos",
+                    ['pedidoRegistroEventoXmlGZipB64' => DpsXml::empacotar($xmlAssinado)],
+                );
 
-            return $response->successful();
+            if ($response->clientError() || $response->serverError()) {
+                $this->recusaDoEvento((array) $response->json(), $response->status());
+            }
+
+            return $this->eventoConfirmaCancelamento((array) $response->json(), $chaveAcesso);
+        } catch (NfseException $e) {
+            throw $e;
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             throw new ProviderTimeoutException(1, $e);
         } finally {
             @unlink($certPem);
             @unlink($keyPem);
         }
+    }
+
+    /**
+     * Pedido de registro do evento de cancelamento na ORDEM do XSD (TCInfPedReg + TE101101),
+     * pronto para o `DpsXml::serializarPedRegEvento`. Público para os testes de contrato.
+     *
+     * cMotivo vai 9 ("Outros") com o texto do usuário em xMotivo: a tela só colhe o texto,
+     * e o código 1/2 ("Erro na Emissão"/"Serviço não Prestado") seria um palpite nosso.
+     *
+     * @return array<string, mixed>
+     */
+    public function buildPedRegEventoCancelamento(string $chaveAcesso, string $motivo, string $ambiente, string $cnpjAutor): array
+    {
+        if (! preg_match('/^[0-9]{50}$/', $chaveAcesso)) {
+            throw new NfseException(
+                'A nota não tem a chave de acesso da Sefin (50 dígitos); sem ela não há como pedir o cancelamento.',
+                'CHAVE_ACESSO_AUSENTE',
+            );
+        }
+
+        $cnpj = $this->digitos($cnpjAutor);
+        if (strlen($cnpj) !== 14) {
+            throw new NfseException('CNPJ do prestador não configurado na NFS-e.', 'PRESTADOR_SEM_CNPJ');
+        }
+
+        // TSMotivo: 15 a 255 caracteres, sem quebra de linha nem espaço nas pontas (TSString).
+        $xMotivo = trim((string) preg_replace('/\s+/u', ' ', $motivo));
+        $tamanho = mb_strlen($xMotivo);
+        if ($tamanho < 15 || $tamanho > 255) {
+            throw new NfseException('O motivo do cancelamento precisa ter de 15 a 255 caracteres.', 'MOTIVO_INVALIDO');
+        }
+
+        return [
+            'infPedReg' => [
+                '@Id'       => 'PRE' . $chaveAcesso . '101101',
+                'tpAmb'     => $ambiente === 'producao' ? '1' : '2',
+                'verAplic'  => 'oimpresso',
+                'dhEvento'  => now('America/Sao_Paulo')->format('Y-m-d\TH:i:sP'),
+                'CNPJAutor' => $cnpj,
+                'chNFSe'    => $chaveAcesso,
+                'e101101'   => [
+                    'xDesc'   => 'Cancelamento de NFS-e',
+                    'cMotivo' => '9',
+                    'xMotivo' => $xMotivo,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * A Sefin só confirma devolvendo o evento gerado. Confere que ele é de cancelamento e
+     * da chave pedida — resposta 2xx sem o evento não conta como cancelada.
+     */
+    private function eventoConfirmaCancelamento(array $data, string $chaveAcesso): bool
+    {
+        $b64 = (string) ($data['eventoXmlGZipB64'] ?? '');
+        if ($b64 === '') {
+            return false;
+        }
+
+        try {
+            $xml = DpsXml::desempacotar($b64);
+        } catch (\InvalidArgumentException) {
+            return false;
+        }
+
+        $doc = new \DOMDocument();
+        if (! @$doc->loadXML($xml)) {
+            return false;
+        }
+
+        $chave = (string) ($doc->getElementsByTagName('chNFSe')->item(0)?->textContent ?? '');
+
+        return $chave === $chaveAcesso && $doc->getElementsByTagName('e101101')->length > 0;
+    }
+
+    /** Recusa da Sefin: `erros: [{Codigo, Descricao, Complemento}]` (formato da emissão). */
+    private function recusaDoEvento(array $response, int $status): never
+    {
+        $erro = $response['erros'][0] ?? $response['erro'] ?? $response;
+        $codigo = (string) ($erro['Codigo'] ?? $erro['codigo'] ?? '');
+        $descricao = (string) ($erro['Descricao'] ?? $erro['descricao'] ?? $erro['mensagem'] ?? "HTTP {$status}");
+
+        throw new NfseException(
+            'A Sefin recusou o cancelamento: ' . $descricao,
+            $codigo !== '' ? $codigo : 'CANCELAMENTO_RECUSADO',
+        );
     }
 
     /**
