@@ -19,6 +19,7 @@ uses(Tests\TestCase::class);
  * desenho do LogsBaselineTest). Asserções só sobre as linhas que ESTE teste cria: no CT 100
  * o banco persiste entre runs. Tenant 98 (operadora) × 99 (cliente) — ADR 0358. MySQL-only.
  *
+ * @covers-us US-OI-018
  * @see Modules\Officeimpresso\Http\Controllers\ClientController::index
  */
 

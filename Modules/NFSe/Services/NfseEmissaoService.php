@@ -394,12 +394,16 @@ class NfseEmissaoService
             throw new CertificadoInvalidoException('Certificado A1 da empresa indisponível: ' . $e->getMessage());
         }
 
+        // O evento de cancelamento identifica a nota pela chave de acesso que a Sefin
+        // devolveu na emissão (provider_protocolo), não pelo número. O autor é o prestador,
+        // o mesmo CNPJ que foi na DPS.
         $confirmado = $this->provider->cancelarNoAmbiente(
-            (string) $emissao->numero,
+            (string) $emissao->provider_protocolo,
             $motivo,
             $config->ambiente ?? 'homologacao',
             base64_encode($cert['pfx_binary']),
             (string) $cert['senha'],
+            (string) $config->prestador_cnpj,
         );
 
         // Só grava `cancelada` com a confirmação do provedor. A troca de status estorna a

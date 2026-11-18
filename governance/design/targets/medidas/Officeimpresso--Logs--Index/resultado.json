@@ -1,62 +1,70 @@
 {
   "id": "Officeimpresso/Logs/Index",
+  "module": "Officeimpresso",
   "source": "officeimpresso-page.jsx",
   "target": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx",
-  "token": "officeimpresso",
-  "frescor": "verificado 2026-09-17",
+  "token": "oi-log",
+  "lado": "ambos",
   "contrato": null,
   "compare": {
     "rc": 1,
     "veredito": "DIVERGE (bug)",
     "motivo": "",
-    "bugs": 9,
+    "bugs": 8,
     "shell": 0,
-    "sameTheme": false,
+    "drawer": 0,
+    "sameTheme": true,
     "porDim": {
       "D2": {
         "diverge": 5,
-        "bug": 2,
+        "bug": 3,
         "semDado": 0,
-        "igual": 1
+        "igual": 0
       },
       "D4": {
-        "diverge": 4,
-        "bug": 2,
+        "diverge": 1,
+        "bug": 1,
         "semDado": 0,
         "igual": 1
       },
       "D6": {
-        "diverge": 3,
+        "diverge": 5,
         "bug": 3,
         "semDado": 0,
         "igual": 1
       },
       "D8": {
-        "diverge": 5,
-        "bug": 2,
+        "diverge": 4,
+        "bug": 1,
         "semDado": 0,
         "igual": 1
       },
       "D9": {
         "diverge": 0,
         "bug": 0,
-        "semDado": 0,
-        "igual": 1
+        "semDado": 5,
+        "igual": 0
       },
       "SHELL": {
         "diverge": 0,
         "bug": 0,
         "semDado": 4,
         "igual": 0
+      },
+      "SAÚDE": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 0
       }
     },
     "rows": [
       {
         "dim": "D2",
-        "campo": "layout",
-        "prod": "ok",
-        "design": "ok",
-        "veredito": "IGUAL"
+        "campo": "kpi.count",
+        "prod": 1,
+        "design": 4,
+        "veredito": "DIVERGE (bug)"
       },
       {
         "dim": "D4",
@@ -81,18 +89,43 @@
       },
       {
         "dim": "D9",
-        "campo": "texto",
-        "prod": "ok",
-        "design": "ok",
-        "veredito": "IGUAL"
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
       },
       {
-        "dim": "D2",
-        "campo": "nº de colunas",
-        "prod": 10,
-        "design": 6,
-        "veredito": "DIVERGE (bug)",
-        "detalhe": "comparando as 6 primeiras"
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
       },
       {
         "dim": "D2",
@@ -103,26 +136,19 @@
         "detalhe": "o design declara larguras e elas mandam; a prod deixa o conteúdo decidir — é a causa de toda largura divergente abaixo"
       },
       {
-        "dim": "D4",
-        "campo": "col0.mono",
-        "prod": "sem mono",
-        "design": "mono",
+        "dim": "D2",
+        "campo": "colunas com largura declarada",
+        "prod": 0,
+        "design": 10,
         "veredito": "DIVERGE (bug)"
       },
       {
         "dim": "D8",
-        "campo": "col0.alcancavel",
+        "campo": "col0.tag",
         "prod": "A",
-        "design": "sem elemento clicavel",
-        "veredito": "DIVERGE (fonte)"
-      },
-      {
-        "dim": "D2",
-        "campo": "col0.blocos de texto",
-        "prod": 1,
-        "design": 4,
-        "veredito": "DIVERGE (dado?)",
-        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+        "design": "BUTTON",
+        "veredito": "DIVERGE (impl)",
+        "detalhe": "os dois sao alcancaveis — formas diferentes. BUTTON herda text-align:center; confira o alinhamento da celula"
       },
       {
         "dim": "D4",
@@ -132,32 +158,28 @@
         "veredito": "DIVERGE (bug)"
       },
       {
-        "dim": "D6",
-        "campo": "col1.cor",
-        "prod": "herda a da linha",
-        "design": "cor própria",
-        "veredito": "DIVERGE (bug)"
+        "dim": "D2",
+        "campo": "col1.blocos de texto",
+        "prod": 1,
+        "design": 2,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
       },
       {
         "dim": "D8",
-        "campo": "col2.alcancavel",
+        "campo": "col2.tag",
         "prod": "A",
-        "design": "sem elemento clicavel",
-        "veredito": "DIVERGE (fonte)"
+        "design": "BUTTON",
+        "veredito": "DIVERGE (impl)",
+        "detalhe": "os dois sao alcancaveis — formas diferentes. BUTTON herda text-align:center; confira o alinhamento da celula"
       },
       {
         "dim": "D8",
-        "campo": "col3.alcancavel",
+        "campo": "col3.tag",
         "prod": "A",
-        "design": "sem elemento clicavel",
-        "veredito": "DIVERGE (fonte)"
-      },
-      {
-        "dim": "D4",
-        "campo": "col4.mono",
-        "prod": "mono",
-        "design": "sem mono",
-        "veredito": "DIVERGE (fonte)"
+        "design": "BUTTON",
+        "veredito": "DIVERGE (impl)",
+        "detalhe": "os dois sao alcancaveis — formas diferentes. BUTTON herda text-align:center; confira o alinhamento da celula"
       },
       {
         "dim": "D6",
@@ -167,48 +189,46 @@
         "veredito": "DIVERGE (bug)"
       },
       {
-        "dim": "D2",
-        "campo": "col4.blocos de texto",
-        "prod": 1,
-        "design": 3,
-        "veredito": "DIVERGE (dado?)",
-        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
-      },
-      {
         "dim": "D6",
-        "campo": "col4.pílula",
-        "prod": "ausente",
-        "design": "presente",
+        "campo": "col5.cor",
+        "prod": "herda a da linha",
+        "design": "cor própria",
         "veredito": "DIVERGE (bug)"
       },
       {
-        "dim": "D4",
-        "campo": "col5.mono",
-        "prod": "mono",
-        "design": "sem mono",
+        "dim": "D6",
+        "campo": "col6.cor",
+        "prod": "herda a da linha",
+        "design": "cor própria",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col7.pílula.dot",
+        "prod": "com dot",
+        "design": "sem dot",
+        "veredito": "DIVERGE (fonte)"
+      },
+      {
+        "dim": "D6",
+        "campo": "col8.pílula.dot",
+        "prod": "com dot",
+        "design": "sem dot",
         "veredito": "DIVERGE (fonte)"
       },
       {
         "dim": "D8",
-        "campo": "col5.alcancavel",
+        "campo": "col9.alcancavel",
         "prod": "sem elemento clicavel",
         "design": "BUTTON",
         "veredito": "DIVERGE (bug)",
         "detalhe": "o design alcanca o destino; a prod imprime texto morto"
       },
       {
-        "dim": "D8",
-        "campo": "col5.align",
-        "prod": "left",
-        "design": "right",
-        "veredito": "DIVERGE (bug)",
-        "detalhe": "o alinhamento é da CÉLULA — classe num filho não alinha o <td> nem o cabeçalho"
-      },
-      {
         "dim": "D2",
-        "campo": "col5.blocos de texto",
-        "prod": 1,
-        "design": 0,
+        "campo": "col9.blocos de texto",
+        "prod": 0,
+        "design": 1,
         "veredito": "DIVERGE (dado?)",
         "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
       },
@@ -243,16 +263,27 @@
         "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
         "veredito": "SEM-DADO",
         "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
       }
     ]
   },
   "veredito": null,
   "motivo": "",
+  "medido": true,
+  "designSha": "046e42be0bbfeb779c13e421a0b884f8495bbe6973640228eb8f7589aef71b04",
+  "prodSha": "3adf976b512a1d5398f0b06d4236fa441d5a5d2b7e204f466c58e7edabf63639",
   "meta": {
     "urlFinal": "https://staging.oimpresso.com/officeimpresso/licenca_log",
     "componenteInertia": null
   },
-  "medidoEm": "2026-09-18T12:33:09.706Z",
+  "medidoEm": "2026-11-18T19:45:21.796Z",
   "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
 }
