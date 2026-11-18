@@ -17,7 +17,7 @@ authority: generated
 | Elo | Quantidade |
 |---|---:|
 | US no SPEC | 17 |
-| CU no SDD | 0 |
+| CU no SDD | 9 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
 | UC declarados | 65 |
@@ -25,7 +25,17 @@ authority: generated
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
+| Lacuna | O que falta escrever |
+|---|---|
+| `CU-OI-01` sem UC | caso de uso que o exercite — Desktop obtém token e o login entra no log |
+| `CU-OI-02` sem UC | caso de uso que o exercite — Máquina nova se registra bloqueada |
+| `CU-OI-03` sem UC | caso de uso que o exercite — Máquina liberada recebe autorização |
+| `CU-OI-04` sem UC | caso de uso que o exercite — Body sem CNPJ resolve pelo HD |
+| `CU-OI-05` sem UC | caso de uso que o exercite — Operador bloqueia ou libera máquina com motivo |
+| `CU-OI-06` sem UC | caso de uso que o exercite — Empresa bloqueada recusa todas as máquinas |
+| `CU-OI-07` sem UC | caso de uso que o exercite — Desktop consulta versão |
+| `CU-OI-08` sem UC | caso de uso que o exercite — Toda chamada do desktop fica no log sem PII |
+| `CU-OI-09` sem UC | caso de uso que o exercite — Importação Firebird de um cliente |
 
 ### Backlog — NÃO é lacuna
 
