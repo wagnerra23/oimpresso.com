@@ -15,10 +15,11 @@ name: Officeimpresso · Pest (MySQL)
 # teste MySQL-only do módulo — cada novo entra na allowlist abaixo (mesma
 # disciplina do jana-pest.yml / essentials-pest.yml).
 #
-# ClientesLiberarPermissionTest (irmão, pré-existente) NÃO entra na allowlist
-# ainda: nunca rodou em CI, então seu estado é desconhecido. Entra num PR
-# próprio, depois de verificado — allowlist é catraca de verde comprovado, não
-# lista de desejos.
+# ClientesLiberarPermissionTest (irmão, pré-existente) ficou fora da allowlist
+# no nascimento da lane: nunca tinha rodado em CI. Entrou em 2026-11-18 (Lote 4
+# da auditoria) depois de medido na lane (3/3), com o caso "libera quem tem"
+# apertado de `status != 403` para assertOk — allowlist é catraca de verde
+# comprovado, não lista de desejos.
 #
 # 2026-08-19 — entra LogsBaselineTest (F2 da Onda 1 da migração React,
 # memory/requisitos/Officeimpresso/RUNBOOK-logs.md). É baseline do
@@ -169,9 +170,11 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ClientesIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesLiberarPermissionTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
             Modules/Officeimpresso/Tests/Feature/ImportadorFirebirdFailClosedTest.php \
+            Modules/Officeimpresso/Tests/Feature/DesktopAuditValidacaoTest.php \
             Modules/Officeimpresso/Tests/Feature/OfficeimpressoHealthCommandTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php \
             tests/Feature/LegacyMigration/LegacyArchiveRowsContratoTest.php

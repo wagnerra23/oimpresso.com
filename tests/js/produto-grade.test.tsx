@@ -181,6 +181,39 @@ describe('UC-PCAD-32 · Novo produto — a grade na tela', () => {
     expect(screen.getByText('Escolha o modelo da variação.')).toBeTruthy()
   })
 
+  // Checagem em produção (2026-11-18, empresa 1, 1280px): o título só existia como aria-label, o
+  // cursor ficava na linha de cima depois do Enter e o Select do modelo avisava "uncontrolled to
+  // controlled". O protótipo (produto-blade-forms.jsx) mostra "Variações" com "Adicionar valor" ao
+  // lado e promete a grade inteira sem o mouse.
+  it('mostra o título "Variações" com "Adicionar valor" ao lado', () => {
+    render(<ProdutoCreate {...props} />)
+
+    const titulo = screen.getByRole('heading', { name: 'Variações' })
+    expect(titulo.parentElement?.textContent).toContain('Adicionar valor')
+  })
+
+  it('Enter leva o cursor ao Valor da linha seguinte, abrindo a linha quando é a última', () => {
+    render(<ProdutoCreate {...props} />)
+    escolher('variacao_modelo', 'Cor')
+
+    fireEvent.keyDown(screen.getByLabelText('% de lucro 1'), { key: 'Enter' })
+    expect(document.activeElement).toBe(screen.getByLabelText('Valor 2'))
+
+    fireEvent.keyDown(screen.getByLabelText('Valor 1'), { key: 'Enter' })
+    expect(screen.queryByLabelText('Valor 3')).toBeNull()
+    expect(document.activeElement).toBe(screen.getByLabelText('Valor 2'))
+  })
+
+  it('escolher o modelo não troca o Select de não controlado para controlado', () => {
+    const erros = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<ProdutoCreate {...props} />)
+    escolher('variacao_modelo', 'Cor')
+
+    const avisos = erros.mock.calls.map((c) => String(c[0])).filter((m) => /uncontrolled to controlled/i.test(m))
+    erros.mockRestore()
+    expect(avisos).toEqual([])
+  })
+
   it('empresa sem modelo de variação: avisa e leva ao cadastro de variações', () => {
     render(<ProdutoCreate {...props} modelosVariacao={[]} />)
 
