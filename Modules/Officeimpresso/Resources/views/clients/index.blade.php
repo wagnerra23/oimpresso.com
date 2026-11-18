@@ -41,10 +41,13 @@
             <h3><i class="fa fa-key"></i> Clientes cadastrados <small style="color:#6b7280;">({{ count($clients) }})</small></h3>
             <div style="display: flex; gap: 8px;">
                 @can('superadmin')
-                    <a href="{{ action([\Modules\Officeimpresso\Http\Controllers\ClientController::class, 'regenerate']) }}"
-                       class="oi-btn oi-btn-ghost">
-                        <i class="fas fa-sync"></i> @lang('officeimpresso::lang.regenerate_doc')
-                    </a>
+                    <form method="POST" action="{{ action([\Modules\Officeimpresso\Http\Controllers\ClientController::class, 'regenerate']) }}" style="display:inline;"
+                          onsubmit="return confirm('Regenerar as chaves derruba todos os Delphi conectados. Continuar?');">
+                        @csrf
+                        <button type="submit" class="oi-btn oi-btn-ghost">
+                            <i class="fas fa-sync"></i> @lang('officeimpresso::lang.regenerate_doc')
+                        </button>
+                    </form>
                 @endcan
                 <button type="button" class="oi-btn oi-btn-primary" data-toggle="modal" data-target="#create_client_modal">
                     <i class="fas fa-plus"></i> @lang('officeimpresso::lang.create_client')

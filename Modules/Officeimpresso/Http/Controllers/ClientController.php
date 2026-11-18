@@ -257,9 +257,12 @@ class ClientController extends Controller
                     'msg' => __("lang_v1.success")
                 ];
 
-        } catch (Exception $e) {
-            $output = ['success' => 1,
-                    'msg' => $e->getMessage()
+        } catch (\Throwable $e) {
+            // `Exception` sem `use` resolvia para uma classe inexistente deste namespace: o catch
+            // nunca pegava nada. E o ramo de erro respondia success=1 com a mensagem crua.
+            \Log::error('officeimpresso.regenerate falhou', ['exception' => $e::class, 'msg' => $e->getMessage()]);
+            $output = ['success' => 0,
+                    'msg' => __('messages.something_went_wrong')
                 ];
         }
         
