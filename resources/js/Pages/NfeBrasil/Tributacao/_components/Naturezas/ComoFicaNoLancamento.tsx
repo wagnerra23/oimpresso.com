@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { MousePointerClick } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Segmented } from '@/Components/ui/segmented';
+import { Grid, Inline } from '@/Components/layout';
 import { completar, type EmpresaResumo, type LinhaNatureza, type Regime } from './natureza';
 import { DESTINOS, lancamento, type Destino } from './lancamento';
 
@@ -25,10 +26,14 @@ export default function ComoFicaNoLancamento({
       aria-labelledby="lancamento-titulo"
       className="min-w-0 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]"
     >
-      <header
-        className="flex flex-wrap items-center gap-3 border-b border-[var(--border)] px-4 py-3"
+      <Inline
+        asChild
+        wrap
+        gap={3}
+        className="border-b border-[var(--border)] px-4 py-3"
         style={{ background: 'color-mix(in oklch, var(--stage-blue) 5%, var(--surface))' }}
       >
+      <header>
         <span
           aria-hidden
           className="inline-flex h-[30px] w-[30px] flex-none items-center justify-center rounded-lg"
@@ -46,6 +51,7 @@ export default function ComoFicaNoLancamento({
           </p>
         </div>
       </header>
+      </Inline>
 
       <div className="p-4">
         {!atual ? (
@@ -54,7 +60,7 @@ export default function ComoFicaNoLancamento({
           </p>
         ) : (
           <>
-            <div className="mb-3 flex flex-wrap items-end gap-3">
+            <Inline wrap align="end" gap={3} className="mb-3">
               <div className="min-w-0 max-w-[420px] flex-[1_1_280px]">
                 <span className={LBL} id="lanc-natureza">Natureza da operação</span>
                 <Select value={String(atual.id)} onValueChange={setEscolhida}>
@@ -73,10 +79,11 @@ export default function ComoFicaNoLancamento({
                   options={DESTINOS}
                 />
               </div>
-            </div>
+            </Inline>
 
-            <div
-              className="grid gap-px overflow-hidden rounded-lg border border-[var(--border-2)] bg-[var(--border-2)]"
+            <Grid
+              gap={0}
+              className="gap-px overflow-hidden rounded-lg border border-[var(--border-2)] bg-[var(--border-2)]"
               style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}
             >
               {itens.map((x) => (
@@ -99,7 +106,7 @@ export default function ComoFicaNoLancamento({
                   {x.sub && <span className="mt-0.5 block text-[11.5px] leading-snug text-[var(--text-dim)]">{x.sub}</span>}
                 </div>
               ))}
-            </div>
+            </Grid>
             <p className="mt-2.5 text-[11.5px] leading-[1.45] text-[var(--text-dim)]">
               Sem valores aqui: base, imposto e totais são calculados no lançamento. O produto completa o que é dele (NCM,
               origem, alíquota da TIPI, MVA).
