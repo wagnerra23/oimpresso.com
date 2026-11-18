@@ -187,7 +187,7 @@ class AdminSidebarMenu
                 || $abasVisiveis) {
                 $menu->dropdown(
                     __('sale.products'),
-                    function ($sub) use ($pode, $abasVisiveis) {
+                    function ($sub) use ($abasVisiveis) {
                         if (auth()->user()->can('product.view')) {
                             $sub->url(
                                 action([\App\Http\Controllers\ProductController::class, 'index']),
