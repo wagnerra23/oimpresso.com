@@ -14,14 +14,15 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 123 arquivos em 18 papéis.
+**Total mapeado:** 128 arquivos em 18 papéis.
 
-## Controllers — 13
+## Controllers — 14
 
 - [AgendaController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php)
 - [ApontamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php)
 - [AppOrcamentoRapidoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php)
 - [DataController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/DataController.php)
+- [InstalacaoCampoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstalacaoCampoController.php)
 - [InstalacaoComprovanteController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstalacaoComprovanteController.php)
 - [InstalacaoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php)
 - [InstallController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstallController.php)
@@ -119,31 +120,34 @@ module: ComunicacaoVisual
 - [config.php](../../../Modules/ComunicacaoVisual/Config/config.php)
 - [retention.php](../../../Modules/ComunicacaoVisual/Config/retention.php)
 
-## Telas (Inertia/React) — 3
+## Telas (Inertia/React) — 4
 
 - [AceitePublico.tsx](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.tsx)
 - [Agenda.tsx](../../../resources/js/Pages/ComunicacaoVisual/Agenda.tsx)
 - [Index.tsx](../../../resources/js/Pages/ComunicacaoVisual/Index.tsx)
+- [Instalacao.tsx](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.tsx)
 
 ## Componentes / apoio de tela — 1
 
 - [RoteiroPadraoCard.tsx](../../../resources/js/Pages/ComunicacaoVisual/_components/RoteiroPadraoCard.tsx)
 
-## Charters (lei da tela) — 3
+## Charters (lei da tela) — 4
 
 - [AceitePublico.charter.md](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.charter.md)
 - [Agenda.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Agenda.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Index.charter.md)
+- [Instalacao.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.charter.md)
 
-## Casos (contrato UC) — 3
+## Casos (contrato UC) — 4
 
 - [AceitePublico.casos.md](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.casos.md)
 - [Agenda.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Agenda.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
+- [Instalacao.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.casos.md)
 
-## Testes (Pest) — 42
+## Testes (Pest) — 43
 
-- 42 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 43 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
