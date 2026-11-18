@@ -8,6 +8,9 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — Officeimpresso/Logs/Timeline
 
+> **⚠️ SUPERADO — nota de 2026-11-18 (lote L5 da auditoria de 2026-11-05).** A afirmação "No protótipo esta tela NÃO EXISTE como página" caducou: o protótipo ganhou a vista `ViewTimeline` e a rota `oi-log-timeline` (`prototipo-ui/cowork/Wagner/app.jsx`). Este documento fica como retrato de 2026-09-06; a comparação de hoje é página contra página e precisa ser re-medida (skill `comparar-design-prod`).
+
+
 > **Âncora declarada no charter** (`related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx`) e confirmada pela porta. A tela viva mora dentro do módulo — ver a nota sobre as duas raízes de `Pages` no [gap da tela irmã](logs-index-gap.md).
 >
 > ⚠️ **No protótipo esta tela NÃO EXISTE como página.** O charter é explícito: *"No protótipo esta tela **não é uma página própria**: a timeline vive no drawer da licença dentro da view `oi-licencas` ('Timeline no log')"* — e a decisão é a mesma da irmã: **[W] 2026-08-19, "paridade agora, realinhar depois"**. A região de comparação, portanto, é o bloco `<h3>Timeline no log</h3>` dentro do `LicencaDrawer` (`officeimpresso-page.jsx:737-750`), não uma tela.
