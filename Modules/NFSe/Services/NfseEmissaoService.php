@@ -59,15 +59,16 @@ class NfseEmissaoService
         $config = NfseProviderConfig::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->whereNull('deleted_at') // config apagada não conta (ver getConfig)
-            ->with('certificado')
             ->first();
 
-        // Cert do `cert_id` da config, decriptado pelo dono do schema (NfeBrasil). O PFX
-        // vai binário → base64 uma vez; o SnNfseAdapter decodifica uma vez. Antes daqui o
-        // código chamava pfxDecriptado()/senhaDecriptada(), removidos em 4e772bcb46.
+        // Certificado ATIVO da empresa (o mesmo da NF-e), decriptado pelo dono do schema
+        // (NfeBrasil). O PFX vai binário → base64 uma vez; o SnNfseAdapter decodifica uma
+        // vez. Empresa sem config de NFS-e monta sem certificado.
+        // _Até 2026-11-18 vinha de nfse_provider_configs.cert_id, que só o nfse:importar-cert
+        // atualizava: trocar o certificado na tela /fiscal/config não chegava na NFS-e._
         $certPfxBase64 = null;
         $certSenha = null;
-        $certificado = $config?->certificado;
+        $certificado = $config ? $this->certificadoAtivo($businessId) : null;
         if ($certificado instanceof NfeCertificado) {
             $cert = app(CertificadoService::class)->carregarCertificado($certificado);
             $certPfxBase64 = base64_encode($cert['pfx_binary']);
@@ -238,13 +239,13 @@ class NfseEmissaoService
         // motivo e aparece em /nfse. Antes a validação vinha antes do create e a nota sumia.
         try {
             $config = $this->getConfig($payload->businessId);
-            $this->validarCertificado($config);
+            $this->validarCertificado($payload->businessId);
         } catch (NfseException $e) {
             $this->marcarErro($emissao, $e);
             throw $e;
         }
         $emissao->update(['cnae' => $config->cnae]);
-        $payload = $this->comCertificadoDaEmpresa($payload, $config);
+        $payload = $this->comCertificadoDaEmpresa($payload);
 
         return $this->enviar($emissao, $payload);
     }
@@ -383,7 +384,7 @@ class NfseEmissaoService
 
         // Ambiente e certificado da EMPRESA da nota (não o global), igual à emissão.
         $config = $this->getConfig((int) $emissao->business_id);
-        $certificado = $config->certificado;
+        $certificado = $this->certificadoAtivo((int) $emissao->business_id);
         if (! $certificado instanceof NfeCertificado) {
             throw new CertificadoInvalidoException('Nenhum certificado A1 configurado.');
         }
@@ -426,12 +427,12 @@ class NfseEmissaoService
      * Se o arquivo não carrega, o payload segue sem certificado e quem precisa dele recusa:
      * o SnNfseAdapter lança CertificadoInvalidoException ("Nenhum certificado A1 no payload").
      */
-    private function comCertificadoDaEmpresa(NfseEmissaoPayload $payload, NfseProviderConfig $config): NfseEmissaoPayload
+    private function comCertificadoDaEmpresa(NfseEmissaoPayload $payload): NfseEmissaoPayload
     {
         if ($payload->certPfxBase64 !== null && $payload->certSenha !== null) {
             return $payload;
         }
-        $certificado = $config->certificado;
+        $certificado = $this->certificadoAtivo($payload->businessId);
         if (! $certificado instanceof NfeCertificado) {
             return $payload;
         }
@@ -469,15 +470,25 @@ class NfseEmissaoService
         return $config;
     }
 
-    private function validarCertificado(NfseProviderConfig $config): void
+    /**
+     * Certificado A1 ativo da empresa em `nfe_certificados` — o mesmo que a NF-e usa
+     * (`CertificadoService::certificadoAtivo`), trocado na tela /fiscal/config?tab=cert.
+     * Filtra pelo business_id explícito (ADR 0093): nunca o certificado de outra empresa.
+     */
+    private function certificadoAtivo(int $businessId): ?NfeCertificado
     {
-        $cert = $config->certificado;
+        return app(CertificadoService::class)->certificadoAtivo($businessId);
+    }
+
+    private function validarCertificado(int $businessId): void
+    {
+        $cert = $this->certificadoAtivo($businessId);
 
         if (! $cert) {
             throw new CertificadoInvalidoException('Nenhum certificado A1 configurado.');
         }
 
-        if ($cert->isExpirado()) {
+        if ($cert->isVencido()) {
             throw new CertificadoInvalidoException(
                 "Certificado expirado em {$cert->valido_ate->format('d/m/Y')}."
             );
