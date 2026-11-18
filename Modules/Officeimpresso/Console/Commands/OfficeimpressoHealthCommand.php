@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Schema;
  * officeimpresso:health — Health check Officeimpresso desktop legacy (D9.c — Wave 17).
  *
  * Sinais mínimos:
- *   1. licencas_table_present — Licenca_Computador
- *   2. licenca_logs_table_present — LicencaLog (audit Delphi)
+ *   1. licencas_table_present — licenca_computador (FAIL se ausente)
+ *   2. licenca_logs_table_present — licenca_log, audit Delphi (FAIL se ausente)
  *   3. desktop_pings_24h — pings desktop Delphi últimas 24h
  *   4. bloqueadas_count — licenças bloqueadas (visibilidade)
  *
@@ -80,57 +80,62 @@ class OfficeimpressoHealthCommand extends Command
         return $this->resolveExitCode($summary, $alert);
     }
 
+    /**
+     * Nomes reais das tabelas — os mesmos de Entities/Licenca_Computador e
+     * Entities/LicencaLog. Até 2026-11-18 o comando procurava `licenca_computadores` e
+     * `licenca_logs` (plural, que nunca existiram), então todo check saía WARN com as
+     * tabelas presentes e nunca chegava a FAIL com elas ausentes.
+     */
+    private const TABELA_LICENCAS = 'licenca_computador';
+
+    private const TABELA_LOG = 'licenca_log';
+
     private function checkLicencasTable(): array
     {
-        return Schema::hasTable('licenca_computadores')
-            ? $this->mk('licencas_table_present', 'OK', 'Tabela licenca_computadores presente', 'Schema canônico aplicado.')
-            : $this->mk('licencas_table_present', 'WARN',
-                'Tabela licenca_computadores ausente (talvez nome legacy diferente)',
-                'Confira Entities/Licenca_Computador::getTable().');
+        $t = self::TABELA_LICENCAS;
+
+        return Schema::hasTable($t)
+            ? $this->mk('licencas_table_present', 'OK', "Tabela {$t} presente", 'Schema canônico aplicado.')
+            : $this->mk('licencas_table_present', 'FAIL', "Tabela {$t} ausente", 'Rode as migrations do Officeimpresso.');
     }
 
     private function checkLogsTable(): array
     {
-        $candidates = ['licenca_logs', 'officeimpresso_licenca_logs'];
-        foreach ($candidates as $t) {
-            if (Schema::hasTable($t)) {
-                return $this->mk('licenca_logs_table_present', 'OK', "Tabela {$t} presente", 'Audit Delphi ativo.');
-            }
-        }
-        return $this->mk('licenca_logs_table_present', 'WARN',
-            'Nenhuma tabela de log encontrada',
-            'Confira Entities/LicencaLog::getTable().');
+        $t = self::TABELA_LOG;
+
+        return Schema::hasTable($t)
+            ? $this->mk('licenca_logs_table_present', 'OK', "Tabela {$t} presente", 'Audit Delphi ativo.')
+            : $this->mk('licenca_logs_table_present', 'FAIL', "Tabela {$t} ausente", 'Rode as migrations do Officeimpresso.');
     }
 
     private function checkDesktopPings24h(): array
     {
-        $candidates = ['licenca_logs', 'officeimpresso_licenca_logs'];
-        $table = null;
-        foreach ($candidates as $t) {
-            if (Schema::hasTable($t)) { $table = $t; break; }
+        $t = self::TABELA_LOG;
+        if (! Schema::hasTable($t)) {
+            return $this->mk('desktop_pings_24h', 'FAIL', "Tabela {$t} ausente", 'Rode as migrations do Officeimpresso.');
         }
-        if ($table === null) {
-            return $this->mk('desktop_pings_24h', 'WARN', 'Tabela de log ausente', 'Confira migrations.');
-        }
-        $count = (int) DB::table($table)
+        $count = (int) DB::table($t)
             ->where('created_at', '>=', now()->subDay())
             ->count();
         if ($count === 0) {
             return $this->mk('desktop_pings_24h', 'WARN', '0 pings desktop em 24h cross-tenant', 'Esperado se nenhum cliente desktop ativo.');
         }
+
         return $this->mk('desktop_pings_24h', 'OK', "{$count} pings desktop em 24h", 'Desktop legacy ativo.');
     }
 
     private function checkBloqueadasCount(): array
     {
-        if (! Schema::hasTable('licenca_computadores')) {
-            return $this->mk('bloqueadas_count', 'WARN', 'Tabela ausente', 'Rode migrate.');
+        $t = self::TABELA_LICENCAS;
+        if (! Schema::hasTable($t)) {
+            return $this->mk('bloqueadas_count', 'FAIL', "Tabela {$t} ausente", 'Rode as migrations do Officeimpresso.');
         }
-        if (! Schema::hasColumn('licenca_computadores', 'bloqueado')) {
-            return $this->mk('bloqueadas_count', 'WARN', 'Coluna bloqueado ausente', 'Schema parcial.');
+        if (! Schema::hasColumn($t, 'bloqueado')) {
+            return $this->mk('bloqueadas_count', 'FAIL', "Coluna {$t}.bloqueado ausente", 'Schema parcial — rode as migrations.');
         }
-        $bloq = (int) DB::table('licenca_computadores')->where('bloqueado', 1)->count();
-        $total = (int) DB::table('licenca_computadores')->count();
+        $bloq = (int) DB::table($t)->where('bloqueado', 1)->count();
+        $total = (int) DB::table($t)->count();
+
         return $this->mk('bloqueadas_count', 'OK',
             "{$bloq}/{$total} licenças bloqueadas",
             'Visibilidade — bloqueios manuais via UI.');

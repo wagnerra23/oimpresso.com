@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 381 arquivos em 20 papéis.
+**Total mapeado:** 383 arquivos em 20 papéis.
 
 ## Controllers — 17
 
@@ -274,7 +274,7 @@ module: NfeBrasil
 - 127 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 55
+## Demais arquivos (manifestos, docs, assets e misc) — 57
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -304,7 +304,9 @@ module: NfeBrasil
 - [nfebrasil.php](../../../Modules/NfeBrasil/Resources/lang/pt-BR/nfebrasil.php)
 - [DPS_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/DPS_v1.01.xsd)
 - [README.md](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/README.md)
+- [pedRegEvento_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/pedRegEvento_v1.01.xsd)
 - [tiposComplexos_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/tiposComplexos_v1.01.xsd)
+- [tiposEventos_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/tiposEventos_v1.01.xsd)
 - [tiposSimples_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/tiposSimples_v1.01.xsd)
 - [xmldsig-core-schema.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/xmldsig-core-schema.xsd)
 - [comercio-atacado-simples-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-atacado-simples-sp.php)
