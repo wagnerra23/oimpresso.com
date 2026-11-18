@@ -8,6 +8,9 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — Officeimpresso/Logs/Index
 
+> **⚠️ SUPERADO EM PARTE — nota de 2026-11-18 (lote L5 da auditoria de 2026-11-05).** Duas afirmações abaixo, verdadeiras em 2026-09-06, caducaram: (1) o protótipo foi realinhado pela decisão D7 [W] de 2026-10-14 e a vista que corresponde a esta tela agora é a `ViewLog`, rotulada "Máquinas Cadastradas" (`prototipo-ui/cowork/Wagner/officeimpresso-page.jsx`, comentário D7 antes de `function ViewLog`), não mais a `ViewLicencas`; (2) `node scripts/design/ancora.mjs Officeimpresso/Logs/Index` passou a imprimir a tela viva (`Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx`). A tabela abaixo segue como retrato de 2026-09-06; para comparar com o protótipo de hoje, re-medir com `node scripts/design/design-diff.mjs` (skill `comparar-design-prod`).
+
+
 > **Âncora declarada no charter** (`related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx`) e confirmada pela porta.
 >
 > ⚠️ **A tela viva mora DENTRO do módulo** (`Modules/Officeimpresso/Resources/js/Pages/...`), não em `resources/js/Pages/`. As duas raízes são igualmente canônicas desde 2026-08-12 (`scripts/qa/page-path.mjs` §RAIZ_PAGES), e por isso `ancora.mjs` imprime `tela viva: —` para esta tela: o resolvedor dele olha só a raiz do núcleo. Não é âncora quebrada — é limite conhecido da porta.
