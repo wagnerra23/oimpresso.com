@@ -42,11 +42,10 @@ function ClientesIndex({ is_demo, credencial, permissions, clientes }: Props) {
           actions={is_demo ? undefined : (
             <div className="flex gap-2">
               {permissions.pode_regenerar && (
-                <Button asChild variant="ghost" size="sm">
-                  <a href="/officeimpresso/regenerate"
-                    onClick={(e) => { if (!confirm('Regenerar as chaves derruba todos os Delphi conectados. Continuar?')) e.preventDefault(); }}>
-                    Regenerar chaves
-                  </a>
+                // POST (com CSRF do Inertia): a rota não responde mais a GET — regenerar derruba todos os Delphi.
+                <Button variant="ghost" size="sm"
+                  onClick={() => { if (confirm('Regenerar as chaves derruba todos os Delphi conectados. Continuar?')) router.post('/officeimpresso/regenerate'); }}>
+                  Regenerar chaves
                 </Button>
               )}
               <Button size="sm" onClick={() => setNovo(true)}>Nova credencial</Button>
