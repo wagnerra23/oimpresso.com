@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 23 |
 | CU no SDD | 10 |
-| Telas (.tsx) | 3 |
-| Telas com `casos.md` | 3 |
-| UC declarados | 93 |
-| UC com teste que os cita | 93 |
+| Telas (.tsx) | 4 |
+| Telas com `casos.md` | 4 |
+| UC declarados | 105 |
+| UC com teste que os cita | 105 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -81,6 +81,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CVAG-02 | Agenda | 🧪 aguarda veredito da lane |
 | UC-CVAG-03 | Agenda | 🧪 aguarda veredito da lane |
 | UC-CVAG-04 | Agenda | 🧪 aguarda veredito da lane |
+| UC-CVAG-05 | Agenda | 🧪 aguarda veredito da lane |
 | UC-CVAPT-01 | Index | 🧪 aguarda veredito da lane |
 | UC-CVAPT-02 | Index | 🧪 aguarda veredito da lane |
 | UC-CVAPT-03 | Index | 🧪 aguarda veredito da lane |
@@ -93,6 +94,12 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CVARQ-05 | Index | 🧪 aguarda veredito da lane |
 | UC-CVARQ-06 | Index | 🧪 aguarda veredito da lane |
 | UC-CVARQ-07 | Index | 🧪 aguarda veredito da lane |
+| UC-CVCEL-01 | Instalacao | 🧪 aguarda veredito da lane |
+| UC-CVCEL-02 | Instalacao | 🧪 aguarda veredito da lane |
+| UC-CVCEL-03 | Instalacao | 🧪 aguarda veredito da lane |
+| UC-CVCEL-04 | Instalacao | 🧪 aguarda veredito da lane |
+| UC-CVCEL-05 | Instalacao | 🧪 aguarda veredito da lane |
+| UC-CVCEL-06 | Instalacao | 🧪 aguarda veredito da lane |
 | UC-CVEMP-01 | Index | 🧪 aguarda veredito da lane |
 | UC-CVEMP-02 | Index | 🧪 aguarda veredito da lane |
 | UC-CVEMP-03 | Index | 🧪 aguarda veredito da lane |
@@ -110,6 +117,10 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CVINST-08 | Index | 🧪 aguarda veredito da lane |
 | UC-CVINST-09 | Index | 🧪 aguarda veredito da lane |
 | UC-CVINST-10 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-11 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-12 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-13 | Index | 🧪 aguarda veredito da lane |
+| UC-CVINST-14 | Index | 🧪 aguarda veredito da lane |
 | UC-CVMRG-01 | Index | 🧪 aguarda veredito da lane |
 | UC-CVMRG-02 | Index | 🧪 aguarda veredito da lane |
 | UC-CVMRG-03 | Index | 🧪 aguarda veredito da lane |
@@ -148,6 +159,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FLX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-03 | Index | 🧪 aguarda veredito da lane |
 | UC-FLX-21 | Agenda | 🧪 aguarda veredito da lane |
+| UC-PCV-25 | Agenda | 🧪 aguarda veredito da lane |
 
 ---
 

@@ -40,6 +40,7 @@ uses(Tests\TestCase::class);
  * rodam em sqlite). Roda contra DB real (CT 100 / dev). biz=1 (Wagner WR2) —
  * NUNCA biz=4 (ROTA LIVRE prod) — ADR 0101.
  *
+ * @covers-us US-OI-019
  * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::authorizeAccess()
  * @see Modules\Officeimpresso\Tests\Feature\ClientesLiberarPermissionTest
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
