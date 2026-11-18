@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 14 |
 | Telas com `casos.md` | 14 |
-| UC declarados | 97 |
-| UC com teste que os cita | 96 |
+| UC declarados | 99 |
+| UC com teste que os cita | 98 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -47,6 +47,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-COS-63 | Settings/Index | 🧪 aguarda veredito da lane |
 | UC-DMCRE-01 | DeviceModels/Create | 🧪 aguarda veredito da lane |
 | UC-DMCRE-02 | DeviceModels/Create | 🧪 aguarda veredito da lane |
 | UC-DMCRE-03 | DeviceModels/Create | 🧪 aguarda veredito da lane |
@@ -127,6 +128,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RSET-06 | Settings/Index | 🧪 aguarda veredito da lane |
 | UC-RSET-07 | Settings/Index | 🧪 aguarda veredito da lane |
 | UC-RSET-08 | Settings/Index | 🧪 aguarda veredito da lane |
+| UC-RSET-09 | Settings/Index | 🧪 aguarda veredito da lane |
 | UC-RSHW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-RSHW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-RSHW-03 | Show | 🧪 aguarda veredito da lane |
