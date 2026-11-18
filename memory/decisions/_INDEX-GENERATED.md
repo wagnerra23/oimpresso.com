@@ -7,7 +7,7 @@
 ## Resumo
 - **459** arquivos · **444** números únicos · máx **0454**
 - **ADRs ATIVOS (lifecycle ativo): 411** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 391 · superseded 28 · proposto 26 · deprecated 11 · recusado 2 · rascunho 1
+- Por status: aceito 392 · superseded 28 · proposto 25 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 411 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -465,7 +465,7 @@ _(nenhuma)_
 | 0419 | aceito | ativo | decision | Ponto — escopo do REP-P sem selfie ratificado (W10): 7 rotas reais, app do colab |
 | 0420 | aceito | ativo | decision | Ponto — o AEJ lê a apuração para horário contratual e ausências; dado legal ause |
 | 0421 | aceito | ativo | decision | Arquivos — aviso ao titular (LGPD Art. 18 VI): registro titular_avisado_at + açã |
-| 0422 | proposto | ativo | decision | Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negó |
+| 0422 | aceito | ativo | decision | Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negó |
 | 0423 | superseded | substituido | decision | Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+busines |
 | 0424 | superseded | substituido | decision | Ponto — emenda à 0423: o app de telas próprias registra o aparelho pela API (Pas |
 | 0425 | aceito | ativo | decision | Webhook sync-memory atualiza só memory/ — código de produção chega só pelo deplo |

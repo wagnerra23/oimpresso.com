@@ -32,7 +32,7 @@ Página pública onde o cliente final informa o nº da OS, o nº da venda ou o c
 ## Goals — Features (faz)
 
 - Busca por nº da OS, nº da venda ou celular (celular só se `repair.enable_repair_check_using_mobile_num` ligar), com nº de série opcional que só estreita (`consulta-os.buscar`)
-- Exibe, por OS encontrada, **só**: nº da OS, marca, aparelho, modelo, nº de série, status com cor, previsão de entrega e atividades (data, ação, quem, nota) — a mesma lista do `/repair-status`
+- Exibe, por OS encontrada, **só**: nº da OS, marca, aparelho, modelo, nº de série, status com cor, previsão de entrega e atividades (data, ação, quem — primeiro nome + inicial do sobrenome, decisão [W] 2026-11-17 —, nota) — a mesma lista do `/repair-status`
 - Estado "OS não encontrada" claro quando o número não bate
 - Layout público limpo (sem AppShellV2, sem sidebar do ERP), tokens DS
 
@@ -42,6 +42,7 @@ Página pública onde o cliente final informa o nº da OS, o nº da venda ou o c
 
 - ❌ NÃO expõe dados internos/financeiros da OS ao público (só status de acompanhamento): sem custo/preço, senha do aparelho, defeitos, checklist, notas internas, `business_id`
 - ❌ NÃO expõe dados do cliente (nome, CPF/CNPJ, endereço, e-mail) — nem pra quem buscou pelo celular
+- ❌ NÃO expõe o nome completo de funcionário: quem mexeu na OS sai como primeiro nome + inicial do sobrenome, sem o tratamento (decisão [W] 2026-11-17 · UC-COS-62)
 - ❌ NÃO exige login — é rota pública intencional
 - ❌ NÃO lista todas as OS (só as que casam com o critério informado; no máximo 20)
 - ❌ NÃO permite editar/cancelar a OS (read-only pro cliente)

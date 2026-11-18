@@ -20,7 +20,7 @@ uses(Tests\TestCase::class);
  * visto por superadmin logado (cookie `same_site=lax`) bastava. E `show` dos resources de
  * pacote e assinatura renderizava `superadmin::show`, view inexistente (500).
  *
- * Nenhum caso aqui exclui negócio de verdade: o que a exclusão apaga é decisão B5 pendente.
+ * Decisão B5 ([W] 2026-11-18): "excluir" empresa não apaga nada — só desativa (UC-SARD-08).
  *
  * ⚠️ SKIP em SQLite: precisa do schema UltimatePOS real. Leia *assertions*, não "0 failed" (LC-13).
  */
@@ -119,10 +119,10 @@ it('UC-SARD-04 · os aliases GET de excluir não existem mais e não apagam nada
     expect(DB::table('packages')->where('id', $pacote)->exists())->toBeTrue();
 });
 
-it('UC-SARD-05 · DELETE do próprio negócio é recusado e não grava exclusão', function () {
+it('UC-SARD-05 · DELETE do próprio negócio é recusado e não desativa nem registra', function () {
     $user = rdUsuario('rd_superadmin_test', true);
     $antes = Schema::hasTable('activity_log')
-        ? DB::table('activity_log')->where('event', 'negocio_excluido')->where('business_id', 98)->count()
+        ? DB::table('activity_log')->where('event', 'negocio_desativado')->where('business_id', 98)->count()
         : 0;
 
     $this->actingAs($user)
@@ -131,8 +131,9 @@ it('UC-SARD-05 · DELETE do próprio negócio é recusado e não grava exclusão
         ->assertRedirect();
 
     expect(DB::table('business')->where('id', 98)->exists())->toBeTrue();
+    expect((int) DB::table('business')->where('id', 98)->value('is_active'))->toBe(1);
     if (Schema::hasTable('activity_log')) {
-        expect(DB::table('activity_log')->where('event', 'negocio_excluido')->where('business_id', 98)->count())->toBe($antes);
+        expect(DB::table('activity_log')->where('event', 'negocio_desativado')->where('business_id', 98)->count())->toBe($antes);
     }
 });
 
@@ -151,4 +152,30 @@ it('UC-SARD-07 · o resource /subscription só expõe index e show', function ()
     $this->actingAs($user)->post('/subscription')->assertStatus(405);
     $this->actingAs($user)->delete('/subscription/1')->assertStatus(405);
     $this->actingAs($user)->put('/subscription/1')->assertStatus(405);
+});
+
+it('UC-SARD-08 · DELETE de outra empresa só desativa: a empresa e as transações dela continuam no banco', function () {
+    DB::table('business')->where('id', 99)->update(['is_active' => 1]);
+    $user = rdUsuario('rd_superadmin_test', true);
+    $transacoesAntes = Schema::hasTable('transactions')
+        ? DB::table('transactions')->where('business_id', 99)->count()
+        : 0;
+    $logAntes = Schema::hasTable('activity_log')
+        ? DB::table('activity_log')->where('event', 'negocio_desativado')->where('business_id', 99)->count()
+        : 0;
+
+    $this->actingAs($user)
+        ->withSession(['user.business_id' => 98, 'user.id' => $user->id])
+        ->delete('/superadmin/business/99')
+        ->assertRedirect();
+
+    // Antes da B5 a linha de `business` sumia — aqui ela tem de continuar, só inativa.
+    expect(DB::table('business')->where('id', 99)->exists())->toBeTrue();
+    expect((int) DB::table('business')->where('id', 99)->value('is_active'))->toBe(0);
+    if (Schema::hasTable('transactions')) {
+        expect(DB::table('transactions')->where('business_id', 99)->count())->toBe($transacoesAntes);
+    }
+    if (Schema::hasTable('activity_log')) {
+        expect(DB::table('activity_log')->where('event', 'negocio_desativado')->where('business_id', 99)->count())->toBe($logAntes + 1);
+    }
 });
