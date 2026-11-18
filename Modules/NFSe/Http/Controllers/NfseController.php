@@ -14,6 +14,7 @@ use Modules\NFSe\Http\Requests\StoreNfseRequest;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
+use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\Nfse\ListaServicoNacional;
 use Modules\NfeBrasil\Services\SeparacaoNotasDaVenda;
 
@@ -93,7 +94,9 @@ class NfseController extends Controller
         $this->authorize('nfse.emit');
 
         $businessId = session('user.business_id');
-        $config = NfseProviderConfig::where('business_id', $businessId)->with('certificado')->first();
+        $config = NfseProviderConfig::where('business_id', $businessId)->first();
+        // Certificado ativo da empresa — o mesmo da NF-e (/fiscal/config?tab=cert).
+        $certificado = app(CertificadoService::class)->certificadoAtivo((int) $businessId);
 
         $venda = null;
         if ($request->filled('transaction_id')) {
@@ -123,8 +126,8 @@ class NfseController extends Controller
                 'lc116_codigo_default' => $config->lc116_codigo_default,
                 'aliquota_iss'         => $config->aliquota_iss,
                 'ambiente'             => $config->ambiente,
-                'cert_valido'          => $config->certificado?->isExpirado() === false,
-                'cert_expira'          => $config->certificado?->valido_ate?->format('d/m/Y'),
+                'cert_valido'          => $certificado?->isVencido() === false,
+                'cert_expira'          => $certificado?->valido_ate?->format('d/m/Y'),
             ] : null,
             'venda'    => $venda,
             'flash'    => session('status'),

@@ -1,0 +1,35 @@
+{
+  "url": "http://127.0.0.1:5611/",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 86
+  },
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 5 CRM 16 G R Vendas 22 G V Oficina Auto 1 Vestuário 2 Fisio 11 Finanças 4 Caixa G X Financeiro 15 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 9 Produção 5 Painel de produção 7 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 2 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 7 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 5 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 8 em produção · 2 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Terminal Roteiros Postos e cadastros Apontamento no celular O operador aponta a câmera para o QR da etiqueta da OS (ou da máquina), vê só a etapa dele e marca início, pausa e fim. O tempo vira custo real; a baixa de material e o refugo saem dali mesmo. Sem digitar OS — o QR já diz qual OS e qual etapa. Arquivo certo — abre a versão aprovada da arte, não uma prova antiga. Esqueceu de parar? — no fim do turno da empresa ( 08h–18h ) o sistema fecha o cronômetro e avisa o PCP. Sem internet — guarda no celular com a hora do toque e envia quando voltar, uma vez só. Simular celular sem internet Produção oimpresso · produção Diego · impressão Minhas etapas de hoje na ordem da programação OS-2611 Impressão eco-solvente Roland VG3-640 · em andamento · 6,2 de 9,6 h OS-2619 Impressão látex HP Latex 365 · 10:00 · 0,6 h OS-2608 Adesivo de aplicação Roland VG3-640 · 14:30 · 1,1 h Ler QR de outra OS",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "rgb(255, 255, 255)",
+      "color": "oklch(0.5 0.01 80)",
+      "border": "oklch(0.9 0.004 90)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}

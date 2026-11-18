@@ -1,0 +1,35 @@
+{
+  "url": "http://127.0.0.1:5611/",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 84
+  },
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 5 CRM 16 G R Vendas 22 G V Oficina Auto 1 Vestuário 2 Fisio 11 Finanças 4 Caixa G X Financeiro 15 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 9 Produção 5 Painel de produção 7 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 2 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 7 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 5 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 8 em produção · 2 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Terminal Roteiros Postos e cadastros Todas Atrasadas ou vencendo 2 Travadas por arte 2 Urgentes 4 Qualquer responsável Diego Marcos Ana Felipe Larissa Hoje, qui 15/10 Próximo dia útil, sex 16/10 Arraste um bloco que ainda não começou para mudar o horário ou levar para outra máquina do mesmo setor. No teclado: Alt + setas. Tracejado = travado por arte ou falta de material · \"Trilha A/B\" = etapas em paralelo da mesma OS: as duas trilhas correm ao mesmo tempo, cada uma em ordem, e a junção só começa quando as duas terminam · borda vermelha = passa do fim do turno ( 08h–18h ) ou da entrega prometida. O dia seguinte pula sábado, domingo e feriados. Máquina 08 h 09 h 10 h 11 h 12 h 13 h 14 h 15 h 16 h 17 h 18 h 19 h HP Latex 365 12 m²/h · Diego · 3,1 de 10,0 h OS-2603 Supermercado Bom Preço OS-2619 Supermercado Bom Preço OS-2598 Construtora Alicerce Roland VG3-640 9 m²/h · Diego · 10,4 de 10,0 h OS-2611 Rota Livre Transportes OS-2608 Trilha B Padaria Pão Dourado OS-2611 Rota Livre Transportes Mimaki UJF-6042 4 m²/h · Paula · 3,6 de 8,0 h OS-2614 Clínica Sorriso Plotter de recorte GR2 20 m/h · Felipe · 2,5 de 10,0 h OS-2611 Rota Livre Transportes Laminadora a frio 30 m²/h · Felipe · 0,7 de 10,0 h OS-2611 Rota Livre Transportes Router CNC 2x3 3 chapas/h · Marcos · 7,6 de 9,0 h OS-2608 Trilha A Padaria Pão Dourado OS-2614 Clínica Sorriso OS-2617 Trilha A Academia Força Total Bancada de solda — · Marcos · 1,8 de 9,0 h OS-2617 Trilha A Academia Força Total Eventos das máquinas hoje todas as máquinas — clique numa máquina para filtrar Baixou 58 m² de vinil branco brilho 15/10 11:14 · Diego · Roland VG3-640 OS-2611 Pausou Corte CNC do ACM — troca de fresa 15/10 10:31 · Marcos · Router CNC 2x3 OS-2608 Iniciou Impressão eco-solvente (QR na máquina) 15/10 08:05 · Diego · Roland VG3-640 OS-2611 Iniciou Corte CNC do ACM 15/10 08:00 · Marcos · Router CNC 2x3 OS-2608 Mesma mídia: dá para agrupar OS-2603 e OS-2619 usam Lona 440 g na HP Latex. Programar a OS-2619 logo depois (09:30) evita uma troca de mídia (~12 min). Regra simples; o encaixe na bobina é da versão 2. Agrupar Sugestão de reprogramação Mover OS-2608 (1,1 h) da Roland VG3-640 para a HP Latex 365 às 10:45 tira a Roland do vermelho (10,4 h → 9,3 h, capacidade de 10 h no dia) sem atrasar a fachada. O Diego opera as duas, então o responsável não muda. Ou arraste o bloco você mesmo. Aplicar",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(1 0 0)",
+      "border": "rgba(0, 0, 0, 0)"
+    },
+    "filterRows": 1,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}

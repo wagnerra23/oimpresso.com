@@ -14,20 +14,21 @@ use Illuminate\Support\Facades\Schema;
  *   1. emissoes_table         — nfse_emissoes presente
  *   2. provider_config_table  — nfse_provider_configs presente
  *   3. certificado_table      — nfe_certificados presente (o certificado da NFS-e
- *                               mora na tabela do NfeBrasil; nfse_provider_configs.cert_id
- *                               tem FK para ela)
+ *                               mora na tabela do NfeBrasil)
  *   4. providers_ativos       — empresas com config NFS-e (sem as apagadas)
- *   5. cert_vencimento_alarme — por config: o certificado apontado por cert_id
- *                               existe, é da mesma empresa e não está vencido nem
- *                               vencendo em menos de 30 dias
+ *   5. cert_vencimento_alarme — por config: a empresa tem certificado ATIVO (o mesmo
+ *                               da NF-e) e ele não está vencido nem vencendo em menos
+ *                               de 30 dias
  *   6. erros_recentes         — emissões em status 'erro' nas últimas 24h
  *
  * Até 2026-11-16 o check 3 lia `nfse_certificados` (tabela que nunca existiu) e o 6
  * contava status 'rejeitada' (que o módulo nunca grava; o enum de nfse_emissoes é
  * rascunho/processando/emitida/cancelada/erro). Os dois sinais eram cegos.
  *
- * O alerta de vencimento olha o cert_id de CADA config NFS-e. O `nfe:health` do
- * NfeBrasil olha o certificado ativo da empresa, que pode não ser o mesmo.
+ * Desde 2026-11-18 a NFS-e emite com o certificado ativo da empresa
+ * (CertificadoService::certificadoAtivo), o mesmo do `nfe:health`. Até então o alerta
+ * olhava `nfse_provider_configs.cert_id`, ponteiro próprio que só o `nfse:importar-cert`
+ * atualizava — e havia o FAIL "certificado de outra empresa", que deixou de ser possível.
  *
  * "Vencido" segue a regra da emissão: NfeCertificado::isVencido() usa
  * valido_ate->isPast(), e valido_ate é data — no próprio dia do vencimento a
@@ -159,8 +160,9 @@ class NfseHealthCommand extends Command
     }
 
     /**
-     * Uma linha por config NFS-e ativa, com o certificado que ela aponta.
-     * Classifica cada config; o pior estado decide o status do check.
+     * Uma linha por config NFS-e ativa, com o certificado ativo da empresa dela (o mais
+     * recente, como CertificadoService::certificadoAtivo). O join é pelo business_id da
+     * config: nunca casa certificado de outra empresa. O pior estado decide o status.
      */
     private function checkCertVencimento(?int $businessId): array
     {
@@ -168,12 +170,17 @@ class NfseHealthCommand extends Command
             return $this->makeCheck('cert_vencimento_alarme', 'WARN', 'Tabela ausente — não medido');
         }
 
+        $ativoMaisRecente = DB::table('nfe_certificados')
+            ->selectRaw('business_id, MAX(id) as id')
+            ->where('ativo', true)
+            ->whereNull('deleted_at')
+            ->groupBy('business_id');
+
         $q = DB::table('nfse_provider_configs as p')
-            ->leftJoin('nfe_certificados as c', function ($join) {
-                $join->on('c.id', '=', 'p.cert_id')->whereNull('c.deleted_at');
-            })
+            ->leftJoinSub($ativoMaisRecente, 'a', 'a.business_id', '=', 'p.business_id')
+            ->leftJoin('nfe_certificados as c', 'c.id', '=', 'a.id')
             ->whereNull('p.deleted_at')
-            ->select('p.id', 'p.business_id', 'c.id as cert_id', 'c.business_id as cert_business_id', 'c.valido_ate');
+            ->select('p.id', 'p.business_id', 'c.id as cert_id', 'c.valido_ate');
 
         if ($businessId !== null) {
             $q->where('p.business_id', $businessId);
@@ -188,13 +195,11 @@ class NfseHealthCommand extends Command
         $hoje   = now()->toDateString();
         $limite = now()->addDays(self::CERT_WARN_DIAS)->toDateString();
 
-        $grupos = ['outra_empresa' => [], 'vencido' => [], 'sem_cert' => [], 'vencendo' => []];
+        $grupos = ['vencido' => [], 'sem_cert' => [], 'vencendo' => []];
 
         foreach ($configs as $c) {
             if ($c->cert_id === null) {
                 $grupos['sem_cert'][] = $c->business_id;
-            } elseif ((int) $c->cert_business_id !== (int) $c->business_id) {
-                $grupos['outra_empresa'][] = $c->business_id;
             } elseif (substr((string) $c->valido_ate, 0, 10) <= $hoje) {
                 $grupos['vencido'][] = $c->business_id;
             } elseif (substr((string) $c->valido_ate, 0, 10) < $limite) {
@@ -203,7 +208,6 @@ class NfseHealthCommand extends Command
         }
 
         $rotulos = [
-            'outra_empresa' => 'certificado de outra empresa',
             'vencido'       => 'certificado vencido',
             'sem_cert'      => 'sem certificado',
             'vencendo'      => 'vencendo em < ' . self::CERT_WARN_DIAS . 'd',
@@ -220,7 +224,7 @@ class NfseHealthCommand extends Command
             return $this->makeCheck('cert_vencimento_alarme', 'OK', "{$configs->count()} config(s) com certificado vigente");
         }
 
-        $status = ($grupos['outra_empresa'] !== [] || $grupos['vencido'] !== []) ? 'FAIL' : 'WARN';
+        $status = $grupos['vencido'] !== [] ? 'FAIL' : 'WARN';
 
         return $this->makeCheck('cert_vencimento_alarme', $status, implode('; ', $partes));
     }

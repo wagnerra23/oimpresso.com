@@ -20,14 +20,18 @@ e deixar o comprovante da instalação sem voltar ao escritório.
 1. **Onde e quando** — OS, dia e hora, cliente, endereço com "Abrir no mapa", equipe e veículo.
 2. **Fotos** — tirar a foto antes e a foto depois pela câmera do celular; o item fica marcado quando a API
    grava. Refazer vale a mais nova.
-3. **Recusa visível** — quando a API recusa (instalação concluída, arquivo que não é imagem), o alerta
-   "Não enviado" mostra a mensagem dela.
+3. **Assinatura** — o cliente assina no quadro da tela; o instalador escreve o nome de quem assinou e marca o
+   aceite do cliente para guardar a assinatura (LGPD). Sem desenho, nome e aceite, "Salvar assinatura" não sai.
+   A assinatura é colhida uma vez.
+4. **Concluir** — o botão só libera quando o comprovante tem foto antes, foto depois e assinatura; concluída,
+   a tela mostra "Instalação concluída" e não oferece mais nada para enviar.
+5. **Recusa visível** — quando a API recusa (instalação concluída, arquivo que não é imagem, assinatura já
+   colhida, item faltando), o alerta "Não enviado" mostra a mensagem dela.
 
 Contrato comportamental: [`Instalacao.casos.md`](Instalacao.casos.md).
 
 ## Fora desta versão
 
-Ainda não estão na tela (não assuma que estão): colher a assinatura do cliente (aparece só como estado),
-o botão Concluir, o protocolo em PDF e o envio ao cliente. Os itens de EPI, nível e vedação do protótipo não
-têm onde ser gravados.
+Ainda não estão na tela (não assuma que estão): o protocolo em PDF e o envio ao cliente. Os itens de EPI,
+nível e vedação do protótipo não têm onde ser gravados.
 A regra do que pode ser enviado mora no backend (`ComprovanteInstalacao`); a tela só mostra a recusa.

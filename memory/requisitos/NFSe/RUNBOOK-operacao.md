@@ -103,12 +103,13 @@ php artisan nfse:importar-cert --pfx=/caminho/absoluto/novo.pfx --senha='***' --
 
 - **Sempre passe `--business`.** O padrão do comando é `1`: sem a opção, o certificado vai para
   a empresa 1.
-- O comando valida o arquivo, grava cifrado em `nfe_certificados` (pelo `CertificadoService` do
-  NfeBrasil) e liga o novo certificado na config de NFS-e da empresa (`cert_id`).
+- O comando valida o arquivo e grava cifrado em `nfe_certificados` (pelo `CertificadoService` do
+  NfeBrasil) como o certificado **ativo** da empresa, desativando o anterior.
 - A senha vai na linha de comando: não deixe no histórico do shell e apague o `.pfx` do disco
   depois de conferir.
-- Enviar o certificado pela tela `/fiscal/config` **não** liga na config de NFS-e. Só o comando
-  acima faz isso.
+- Enviar o certificado pela tela `/fiscal/config?tab=cert` faz o mesmo e é o caminho normal:
+  NF-e e NFS-e usam o mesmo certificado ativo. _Até 2026-11-18 a NFS-e lia
+  `nfse_provider_configs.cert_id`, que só o comando atualizava._
 
 **Confira:**
 
@@ -119,8 +120,8 @@ php artisan nfse:health --business=<id>
 `cert_vencimento_alarme` deve dar OK. Notas que ficaram em `erro` por certificado: reenvie pela
 tela com os mesmos dados; o sistema reaproveita a mesma linha e o mesmo nº de DPS.
 
-**FAIL "certificado de outra empresa":** a config aponta para certificado de outra empresa. O
-emissor recusa e não usa o certificado alheio. Reimporte o certificado certo com `--business`.
+_O FAIL "certificado de outra empresa" deixou de existir em 2026-11-18: o certificado é buscado
+pelo `business_id` da própria empresa, nunca por ponteiro._
 
 ---
 

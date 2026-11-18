@@ -137,7 +137,10 @@ it('retorna nota existente quando idempotency_key já existe com status emitida'
 // ── erros de certificado ──────────────────────────────────────────────────────
 
 it('lança CertificadoInvalidoException quando nenhum cert configurado', function () {
-    seedConfig();  // sem cert_id
+    // A empresa sem certificado ativo (a transação desfaz). O cert_id da config não conta
+    // desde 2026-11-18: a NFS-e usa o certificado ativo da empresa.
+    NfseCertificado::withoutGlobalScopes()->where('business_id', NFSE_SVC_TENANT)->update(['ativo' => false]);
+    seedConfig();
 
     $service = new NfseEmissaoService(mockProvider());
 

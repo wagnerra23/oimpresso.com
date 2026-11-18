@@ -3,11 +3,13 @@
  *
  * Âncora de design: a tela "Instalação" do celular em prototipo-ui/cowork/Wagner/producao-cv-campo.jsx
  * (OS · dia e hora, cliente, endereço com "Abrir no mapa", checklist com foto antes, foto depois e assinatura).
- * Esta versão envia as duas fotos; a assinatura aparece só como estado.
+ * Envia as duas fotos, colhe a assinatura do cliente (com o nome e o aceite de guardá-la) e conclui a
+ * instalação. Concluir só fica ativo quando o comprovante tem os três itens.
  *
- * A tela não decide o que pode: manda a foto pela API do comprovante
- * (POST /comunicacao-visual/api/instalacoes/{id}/fotos) e, quando ela recusa (instalação concluída,
- * arquivo que não é imagem), mostra a mensagem dela no alerta "Não enviado".
+ * A tela não decide o que pode: manda tudo pela API do comprovante
+ * (POST /comunicacao-visual/api/instalacoes/{id}/fotos|assinatura|concluir) e, quando ela recusa
+ * (instalação concluída, arquivo que não é imagem, assinatura já colhida, item faltando), mostra a
+ * mensagem dela no alerta "Não enviado".
  *
  * Persona: instalador da gráfica, no celular, em pé na frente da fachada. Tokens DS v4, sem cor crua.
  *
@@ -24,6 +26,11 @@ import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { QuadroAssinatura } from '@/Components/shared/QuadroAssinatura';
 import { Inline, Stack } from '@/Components/layout';
 
 export interface InstalacaoCampo {
@@ -71,7 +78,10 @@ function csrf(): string {
 }
 
 export default function Instalacao({ instalacao, comprovante, podeRegistrar }: Props) {
-  const [enviando, setEnviando] = useState<TipoFoto | null>(null);
+  const [enviando, setEnviando] = useState<string | null>(null);
+  const [png, setPng] = useState<string | null>(null);
+  const [assinadoPor, setAssinadoPor] = useState('');
+  const [aceite, setAceite] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const fechada = comprovante.status === 'concluida' || comprovante.status === 'cancelada';
   const [rotulo, tom] = ESTADO[instalacao.status] ?? [instalacao.status, 'neutral'];
@@ -79,32 +89,54 @@ export default function Instalacao({ instalacao, comprovante, podeRegistrar }: P
     ? `${ddmm(instalacao.inicio)} às ${hora(instalacao.inicio)}${instalacao.fim ? `–${hora(instalacao.fim)}` : ''}`
     : 'Sem horário';
 
-  async function enviarFoto(tipo: TipoFoto, e: ChangeEvent<HTMLInputElement>) {
+  /** POST na API do comprovante. Sucesso recarrega só as props pedidas; recusa vira o alerta "Não enviado". */
+  async function postar(acao: string, caminho: string, corpo: FormData | Record<string, unknown>, sucesso: number, recarregar: string[]) {
+    setEnviando(acao);
+    setErro(null);
+    const json = !(corpo instanceof FormData);
+    try {
+      const res = await fetch(`/comunicacao-visual/api/instalacoes/${instalacao.id}/${caminho}`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf(),
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(json ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: json ? JSON.stringify(corpo) : corpo,
+      });
+      if (res.status === sucesso) {
+        router.reload({ only: recarregar });
+        return true;
+      }
+      const resposta = await res.json().catch(() => ({}));
+      setErro(resposta?.message ?? `Não foi enviado (HTTP ${res.status}).`);
+    } catch {
+      setErro('Sem conexão: nada foi enviado. Tente de novo.');
+    } finally {
+      setEnviando(null);
+    }
+    return false;
+  }
+
+  function enviarFoto(tipo: TipoFoto, e: ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
     e.target.value = '';
     if (!arquivo) return;
-    setEnviando(tipo);
-    setErro(null);
     const dados = new FormData();
     dados.append('tipo', tipo);
     dados.append('arquivo', arquivo);
-    try {
-      const res = await fetch(`/comunicacao-visual/api/instalacoes/${instalacao.id}/fotos`, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
-        body: dados,
-      });
-      if (res.status === 201) {
-        router.reload({ only: ['comprovante'] });
-        return;
-      }
-      const corpo = await res.json().catch(() => ({}));
-      setErro(corpo?.message ?? `A foto não foi enviada (HTTP ${res.status}).`);
-    } catch {
-      setErro('Sem conexão: a foto não foi enviada. Tente de novo.');
-    } finally {
-      setEnviando(null);
+    void postar(tipo, 'fotos', dados, 201, ['comprovante']);
+  }
+
+  async function salvarAssinatura() {
+    if (!png) return;
+    const corpo = { png, assinado_por: assinadoPor.trim(), consentimento: aceite };
+    if (await postar('assinatura', 'assinatura', corpo, 201, ['comprovante'])) {
+      setPng(null);
+      setAssinadoPor('');
+      setAceite(false);
     }
   }
 
@@ -197,8 +229,58 @@ export default function Instalacao({ instalacao, comprovante, podeRegistrar }: P
                 </li>
               </Inline>
             </ul>
+            {podeRegistrar && !fechada && comprovante.assinatura === null && (
+              <Stack gap={2} data-contract="assinatura" className="mt-3">
+                <QuadroAssinatura onChange={setPng} disabled={enviando !== null} rotulo="Quadro de assinatura do cliente" />
+                <Stack gap={1}>
+                  <Label htmlFor="cv-assinado-por">Nome de quem assinou</Label>
+                  <Input
+                    id="cv-assinado-por"
+                    value={assinadoPor}
+                    maxLength={120}
+                    onChange={(e) => setAssinadoPor(e.target.value)}
+                  />
+                </Stack>
+                <Inline gap={2} align="start">
+                  <Checkbox id="cv-aceite" checked={aceite} onCheckedChange={(v) => setAceite(v === true)} />
+                  <Label htmlFor="cv-aceite" className="text-sm font-normal leading-snug">
+                    O cliente concorda que esta assinatura fique guardada como comprovante da instalação.
+                  </Label>
+                </Inline>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!png || assinadoPor.trim() === '' || !aceite || enviando !== null}
+                  onClick={salvarAssinatura}
+                >
+                  {enviando === 'assinatura' ? 'Salvando…' : 'Salvar assinatura'}
+                </Button>
+              </Stack>
+            )}
           </CardContent>
         </Card>
+
+        {podeRegistrar && !fechada && (
+          <Stack gap={1} data-contract="concluir">
+            <Button
+              type="button"
+              className="h-11 w-full"
+              disabled={!comprovante.pode_concluir || enviando !== null}
+              onClick={() => postar('concluir', 'concluir', {}, 200, ['comprovante', 'instalacao'])}
+            >
+              {enviando === 'concluir' ? 'Concluindo…' : 'Concluir instalação'}
+            </Button>
+            {!comprovante.pode_concluir && (
+              <span className="text-xs text-muted-foreground">Libera com foto antes, foto depois e assinatura do cliente.</span>
+            )}
+          </Stack>
+        )}
+        {comprovante.status === 'concluida' && (
+          <Alert data-contract="concluida">
+            <AlertTitle>Instalação concluída</AlertTitle>
+            <AlertDescription>O comprovante está completo e não recebe mais fotos nem assinatura.</AlertDescription>
+          </Alert>
+        )}
 
         {erro && (
           <Alert variant="destructive" data-contract="erro">
