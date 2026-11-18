@@ -1205,8 +1205,15 @@ class JobSheetController extends Controller
         $jobsheet_settings = ! empty($business->repair_jobsheet_settings) ?
         json_decode($business->repair_jobsheet_settings, true) : [];
 
+        // Link + QR do portal de consulta de OS (decisão [W] 2026-11-18): sempre a empresa da OS,
+        // que é a da sessão (a query acima já filtra por business_id). Sem ConsultaOs, sai sem.
+        $empresaPublica = \Modules\ConsultaOs\Services\EmpresaPublica::class;
+        $consulta_os_link = class_exists($empresaPublica)
+            ? $empresaPublica::linkSeDisponivel((int) $job_sheet->business_id)
+            : null;
+
         $html = view('repair::job_sheet.print_pdf')
-            ->with(compact('job_sheet', 'repair_settings', 'parts', 'jobsheet_settings'))->render();
+            ->with(compact('job_sheet', 'repair_settings', 'parts', 'jobsheet_settings', 'consulta_os_link'))->render();
         $mpdf = new \Mpdf\Mpdf(['tempDir' => public_path('uploads/temp'),
             'mode' => 'utf-8',
             'autoScriptToLang' => true,
