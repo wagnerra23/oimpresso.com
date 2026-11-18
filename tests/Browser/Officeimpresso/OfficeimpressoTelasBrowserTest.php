@@ -21,8 +21,8 @@ declare(strict_types=1);
  *   Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx
  *
  * ── O QUE PROVA, POR TELA (viewport 1280) ─────────────────────────────────────
- *   - Clientes/Index · UC-OICLI-02: com a flag ligada a tela React monta (cabeçalho e formulário
- *     de nova credencial) e a lista adiada resolve.
+ *   - Clientes/Index · UC-OICLI-02: com a flag ligada a tela React monta (cabeçalho; o formulário
+ *     de nova credencial abre no clique) e a lista adiada resolve.
  *   - Empresa/Show · UC-EMP-19: `/officeimpresso/computadores` mostra a máquina da empresa da
  *     sessão.
  *   - Empresas/Index · UC-EMPS-01 · UC-EMPS-10: a rota serve a tela React e a empresa marcada
@@ -174,7 +174,19 @@ it('UC-OICLI-02 · Clientes/Index com a flag ligada monta a tela React e sem vio
     [$page] = oiBrwAbrir('/officeimpresso/client', ['Clientes OAuth', 'Nova credencial']);
 
     expect((string) $page->script('window.location.pathname'))->toBe('/officeimpresso/client');
-    expect((int) $page->script('document.querySelectorAll(\'[data-contract="header"], [data-contract="nova"]\').length'))->toBe(2);
+    expect((int) $page->script('document.querySelectorAll(\'[data-contract="header"]\').length'))->toBe(1);
+
+    // O formulário só existe depois do clique (`novo` começa false em Clientes/Index.tsx); a 1ª
+    // versão deste caso o exigia na carga e caiu no CI com "1 is identical to 2".
+    $page->click('Nova credencial');
+    $form = 0;
+    for ($i = 0; $i < 20 && $form === 0; $i++) {
+        $form = (int) $page->script('document.querySelectorAll(\'[data-contract="nova"]\').length');
+        if ($form === 0) {
+            $page->wait(0.1);
+        }
+    }
+    expect($form)->toBe(1);
     $page->assertNoAccessibilityIssues(level: 0);
 });
 
