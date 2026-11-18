@@ -621,6 +621,21 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Nfse/NfseTelasRenderTest.php
 
+      # ── E2E DE RENDER + AXE — Officeimpresso (6 telas) (NASCE ADVISORY) ────────────
+      # Buraco medido em 2026-11-18 por `screen-coverage-map.mjs --screen Officeimpresso/<Tela>`:
+      # as 6 telas com `e2e (Browser) ✗` e nenhuma com axe (auditoria do módulo 2026-11-05,
+      # lote 6). Prova no DOM a 1280 Clientes, Empresa/Show, Empresas, Licencas, Logs e
+      # Timeline como o usuário 98 posto em `administrator_usernames`, com as flags do módulo
+      # ligadas por stub. Grava uma máquina no tenant 98 e apaga pelos ids no ->after().
+      # ADVISORY no nascimento: Pest Browser é CI-only e não pôde rodar antes do PR.
+      # Promoção = remover o `continue-on-error` depois de 2 verdes que EXECUTARAM, lidos no
+      # log; é flip [W].
+      - name: E2E de render + axe · Officeimpresso (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-officeimpresso
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Officeimpresso/OfficeimpressoTelasBrowserTest.php
+
       # ── E2E DE RENDER POR TELA — Financeiro/Caixa (NASCE ADVISORY) ───────────────────
       # Buraco medido em 2026-09-03 por `screen-coverage-map.mjs --screen Financeiro/Caixa/Index`:
       # trio ✓ · scorecard ✓ · 5/5 UC citados por teste — e `e2e (Browser) ✗`. O contrato vive
