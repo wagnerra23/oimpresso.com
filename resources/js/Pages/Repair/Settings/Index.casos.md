@@ -149,6 +149,21 @@ last_run: "2026-11-06"
   asset); mandar a versão REAL também dá 409, porque nesta lane ela é string vazia. O caminho que
   devolve 200 é o GET normal, sem simular XHR — `assertInertia` lê o `data-page` da root view.
 
+
+## UC-RSET-09 · A configuração mostra o link do portal da própria empresa
+
+- **Persona:** dono da loja que precisa mandar ao cliente o link de acompanhar a OS.
+- **Aceite:** Dado a empresa 98 sem link e a 99 já com o dela · Quando o admin da 98 abre a
+  configuração (flag ON) · Então a prop `consultaOsLink` é o `/consulta-os/{codigo}` da 98 e não o
+  da 99 · E abrir a tela de novo não cria outro código (uma linha por empresa em
+  `consulta_os_empresas`). O Blade (flag OFF) mostra o mesmo link num campo com botão "Copiar".
+- **Por quê:** decisão [W] 2026-11-18 — o link nasce sozinho na primeira vez que a empresa abre a
+  configuração; até então só existia pelo comando `consultaos:link`, e na prática o portal estava
+  fechado para todos. A geração do código é do ConsultaOs (`EmpresaPublica::linkDe`, UC-COS-63/64).
+- **Escrita em GET:** é a única exceção ao Non-Goal "Não grava nada em GET" do charter, aprovada
+  por [W] em 2026-11-18 — e grava só na tabela do ConsultaOs, nunca nas configurações do Repair.
+- **Status:** 🧪
+
 ---
 
 ## RESOLVIDO em 2026-09-05 · a aba de impressão do Blade **NÃO está quebrada** — premissa refutada

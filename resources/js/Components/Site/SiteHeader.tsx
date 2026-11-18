@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
 import { Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
-
-type PublicRoutes = {
-  consultaOs?: boolean;
-  repairStatus?: boolean;
-};
 
 const NAV_FIXO = [
   { label: 'Recursos', href: '/#recursos' },
@@ -20,18 +15,10 @@ const NAV_TAIL = [
 ];
 
 export default function SiteHeader() {
-  const { publicRoutes } = usePage<{ publicRoutes?: PublicRoutes }>().props;
-
-  // Itens condicionais a modulos ativos. Espelha @if(Route::has(...)) do Blade.
-  const condicional: { label: string; href: string }[] = [];
-  if (publicRoutes?.consultaOs) {
-    condicional.push({ label: 'Acompanhar pedido', href: '/consulta-os' });
-  }
-  if (publicRoutes?.repairStatus) {
-    condicional.push({ label: 'Status do reparo', href: '/repair-status' });
-  }
-
-  const NAV = [...NAV_FIXO, ...condicional, ...NAV_TAIL];
+  // Sem "Acompanhar pedido"/"Status do reparo" desde 2026-11-18: os dois levavam a /consulta-os
+  // sem empresa, que não busca nada (decisão [W] 2026-11-17 "empresa na URL"). O cliente chega
+  // pelo link da empresa (aviso da OS, impressão), não pelo site.
+  const NAV = [...NAV_FIXO, ...NAV_TAIL];
 
   // Menu do celular: abaixo de md o <nav> de cima some, e sem isto Preços, Ajuda e Contato
   // só eram alcançáveis pelo rodapé. Painel inline (sem portal), mesma lista do desktop.

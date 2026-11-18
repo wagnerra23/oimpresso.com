@@ -386,3 +386,40 @@ it('UC-RSET-08: flag ON → Inertia renderiza Repair/Settings/Index com as props
         ->has('customLabels')
     );
 });
+
+it('UC-RSET-09: a configuração mostra o link do portal da PRÓPRIA empresa, nunca o de outra', function () {
+    repairSettingsPrecisaDoModuloInstalado();
+    if (! Schema::hasTable('consulta_os_empresas') || ! \Illuminate\Support\Facades\Route::has('consulta-os.empresa')) {
+        $this->markTestSkipped('ConsultaOs não migrado/ligado neste banco — sem link para mostrar.');
+    }
+
+    $biz = $this->seededTenant();
+    $user = repairSettingsUser((int) $biz->id);
+    repairSettingsSessao((int) $biz->id, (int) $user->id);
+    config([
+        'mwart.repair_settings_index.enabled' => true,
+        'mwart.repair_settings_index.business_ids' => [],
+    ]);
+
+    // Outra empresa (99, fictícia) já tem link: ele não pode aparecer na tela da 98.
+    // consulta_os_empresas tem FK para business, então a 99 precisa existir.
+    if (! \Illuminate\Support\Facades\DB::table('business')->where('id', 99)->exists()) {
+        $this->markTestSkipped('Empresa fictícia 99 ausente neste banco — sem adversário para o isolamento.');
+    }
+    $linkOutra = \Modules\ConsultaOs\Services\EmpresaPublica::linkDe(99);
+
+    $r = repairSettingsActAs($this, $user)->get('/repair/repair-settings');
+    expect($r->status())->toBe(200);
+
+    $linkProprio = \Modules\ConsultaOs\Services\EmpresaPublica::linkDe((int) $biz->id);
+    expect($linkProprio)->not->toBe($linkOutra);
+
+    $r->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->component('Repair/Settings/Index')
+        ->where('consultaOsLink', $linkProprio)
+    );
+
+    // Abrir a configuração de novo não cria outro código para a empresa.
+    repairSettingsActAs($this, $user)->get('/repair/repair-settings')->assertOk();
+    expect(\Illuminate\Support\Facades\DB::table('consulta_os_empresas')->where('business_id', (int) $biz->id)->count())->toBe(1);
+});

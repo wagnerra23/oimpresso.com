@@ -12,8 +12,9 @@ use Modules\ConsultaOs\Services\EmpresaPublica;
  * consultaos:link {business_id} — imprime o link público do portal da empresa.
  *
  * Decisão [W] 2026-11-17 ("empresa na URL"): o portal só busca dentro da empresa do código na
- * URL. Enquanto o aviso do Repair/WhatsApp não manda o link sozinho, é por aqui que a empresa
- * (ou o suporte) obtém o link. Cria o código na primeira vez; depois devolve sempre o mesmo.
+ * URL. Desde 2026-11-18 o link nasce sozinho (configuração do Repair) e aparece lá com botão de
+ * copiar; este comando segue para o suporte. Cria o código na primeira vez; depois devolve sempre
+ * o mesmo.
  */
 class ConsultaOsLinkCommand extends Command
 {
@@ -31,8 +32,7 @@ class ConsultaOsLinkCommand extends Command
             return self::FAILURE;
         }
 
-        $codigo = EmpresaPublica::codigoDe($businessId);
-        $this->line(route('consulta-os.empresa', ['empresa' => $codigo]));
+        $this->line(EmpresaPublica::linkDe($businessId));
 
         return self::SUCCESS;
     }
