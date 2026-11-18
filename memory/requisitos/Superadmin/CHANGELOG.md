@@ -2,6 +2,10 @@
 
 Append-only. Cada PR mergeado que toca `Modules/Superadmin/` deve adicionar 1 linha na entrada do Wave/data.
 
+## 2026-11-18 — Decisão B5: excluir empresa só desativa
+
+- `BusinessController::destroy` deixa de apagar: antes removia as transações, o estoque por local e o registro da empresa (e deixava produtos, contatos e usuários órfãos); agora só põe `is_active = 0` e registra `negocio_desativado` (com `via: excluir`) em `activity_log`. As travas de `canDestroy` continuam. Decisão [W] 2026-11-18: num ERP não se apaga dado (`SuperadminRotasDestrutivasContratoTest` UC-SARD-05/08).
+
 ## 2026-11-16 — Lote 0 da auditoria (rotas que apagam)
 
 - Desativar empresa (`toggle-active`) passa a POST com `is_active` só 0 ou 1; excluir empresa e excluir pacote só pelo DELETE do resource (os aliases `GET .../destroy` saíram); `BusinessController::destroy` consulta `BusinessAuditService::canDestroy` (empresa 1, a própria e a última não se excluem) e registra `negocio_excluido` em `activity_log` — o que é apagado não mudou (B5 com o [W]); resources de pacote, assinatura do superadmin e `/subscription` deixam de expor métodos sem view ou sem corpo (`SuperadminRotasDestrutivasContratoTest`).
