@@ -120,5 +120,10 @@ function makeOiCatalogoTestUser(int $businessId): User
         'email'       => 'oi_catalogo_'.$businessId.'_'.uniqid().'@test.local',
         'password'    => bcrypt('test12345'),
         'language'    => 'pt_BR',
+        // Explícitos de propósito: o default do banco (user/1) não volta para o model que o
+        // User::create devolve, e é esse objeto que o actingAs usa. Desde o #10822 (12/11) a rota
+        // do Catálogo QR passa pelo CheckUserLogin, que lê os dois e dava 403 com eles nulos.
+        'user_type'   => 'user',
+        'allow_login' => 1,
     ]);
 }
