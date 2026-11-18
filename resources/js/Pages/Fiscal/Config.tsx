@@ -110,6 +110,20 @@ interface ConfigProps {
   podeTrocarAmbiente?: boolean;
   /** Contador da empresa (playbook Fiscal thread 15c). Null = não cadastrado. */
   contador?: Contador | null;
+  /** Ambiente + prestador da NFS-e (nfse_provider_configs). Null = módulo NFSe ausente. */
+  nfse?: NfseConfig | null;
+}
+
+/** NFS-e lê `nfse_provider_configs.ambiente` — campo SEPARADO do ambiente SEFAZ da NF-e. */
+interface NfseConfig {
+  existe: boolean;
+  ambiente: 'homologacao' | 'producao';
+  municipioIbge: string | null;
+  prestadorCnpj: string | null;
+  prestadorIm: string | null;
+  serie: string | null;
+  cnae: string | null;
+  temCertificado: boolean;
 }
 
 /** Cadastro do contador — salvar também cria o papel `Contador#{business}`, se faltar. */
@@ -161,7 +175,7 @@ function formatCnpj(raw: string | null): string {
 
 export default function Config({
   activeTab, certificado, config, painel, seriesMock = [], envioDocumentos, podeTrocarAmbiente = false,
-  contador = null,
+  contador = null, nfse = null,
 }: ConfigProps) {
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
   const tab = activeTab ?? 'cert';
@@ -234,6 +248,40 @@ export default function Config({
       onError: () => toast.error('Ambiente NÃO alterado — confira a confirmação e o motivo.'),
     });
   };
+
+  // NFS-e → POST /nfse/configuracao. Mesma cerimônia da NF-e na troca de ambiente
+  // (destino digitado + motivo 15+); quem recusa é o NfseConfiguracaoController.
+  const nfseForm = useForm({
+    ambiente: nfse?.ambiente ?? 'homologacao',
+    municipio_codigo_ibge: nfse?.municipioIbge ?? '',
+    prestador_cnpj: nfse?.prestadorCnpj ?? '',
+    prestador_im: nfse?.prestadorIm ?? '',
+    serie_default: nfse?.serie ?? '1',
+    cnae: nfse?.cnae ?? '',
+    motivo: '',
+    confirmacao: '',
+  });
+  const nfseDestino = nfseForm.data.ambiente === 'producao' ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO';
+  const nfseTroca = nfseForm.data.ambiente !== (nfse?.ambiente ?? 'homologacao');
+  const nfseCerimoniaOk = !nfseTroca || (
+    nfseForm.data.confirmacao.trim().localeCompare(nfseDestino, 'pt-BR', { sensitivity: 'base' }) === 0
+    && nfseForm.data.motivo.trim().length >= 15
+  );
+  const submitNfse = (e: FormEvent) => {
+    e.preventDefault();
+    if (!nfseCerimoniaOk) return;
+    nfseForm.post('/nfse/configuracao', {
+      preserveScroll: true,
+      onSuccess: () => {
+        toast.success(nfseTroca ? `Ambiente da NFS-e alterado para ${nfseDestino}.` : 'Dados da NFS-e salvos.');
+        nfseForm.reset('motivo', 'confirmacao');
+      },
+      onError: () => toast.error('NFS-e NÃO alterada — confira os campos.'),
+    });
+  };
+  const nfseErro = (campo: keyof typeof nfseForm.data) => nfseForm.errors[campo] && (
+    <small style={{ color: 'var(--bad)', display: 'block', fontSize: 11 }}>{nfseForm.errors[campo]}</small>
+  );
 
   // ── US-NFE-006 / ADR TECH-0002 — contingência SEFAZ ────────────────────────
   // A ADR REJEITOU auto-ativação ("pode ativar em falsa-detecção: rede do servidor
@@ -818,6 +866,101 @@ export default function Config({
             )}
           </form>
         </section>
+
+        {/* NFS-e — ambiente e prestador (nfse_provider_configs). O certificado é o
+            mesmo A1 da NF-e, enviado acima: não há upload próprio. */}
+        {nfse && (
+        <section className="fx-cert-card" style={{ marginBottom: 14 }} data-contract="fiscal-config-nfse">
+          <h3>NFS-e — ambiente e prestador</h3>
+          <p className="lead">
+            A NFS-e tem ambiente <b>próprio</b>, separado do SEFAZ acima. Usa o mesmo certificado A1.
+            {!nfse.existe && <> Ainda não configurada: a emissão de NFS-e recusa até salvar aqui.</>}
+            {nfse.existe && !nfse.temCertificado && <> Sem certificado vinculado: envie o A1 acima e salve de novo.</>}
+          </p>
+          <form onSubmit={submitNfse} style={{ marginTop: 12 }}>
+            <RadioGroup
+              value={nfseForm.data.ambiente}
+              onValueChange={(v) => nfseForm.setData('ambiente', v as 'homologacao' | 'producao')}
+              disabled={!podeTrocarAmbiente}
+              title={podeTrocarAmbiente ? undefined : motivoGate}
+              style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}
+            >
+              <label htmlFor="nfse-amb-h" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                <RadioGroupItem id="nfse-amb-h" value="homologacao" />
+                <b>Homologação</b>
+                <small style={{ color: 'var(--fx-text-mute)' }}>(teste)</small>
+              </label>
+              <label htmlFor="nfse-amb-p" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                <RadioGroupItem id="nfse-amb-p" value="producao" />
+                <b>Produção</b>
+                <small style={{ color: 'var(--warn)' }}>(valor fiscal real)</small>
+              </label>
+            </RadioGroup>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
+              <div>
+                <label htmlFor="nfse-municipio" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>Município (código IBGE) *</label>
+                <Input id="nfse-municipio" value={nfseForm.data.municipio_codigo_ibge} onChange={(e) => nfseForm.setData('municipio_codigo_ibge', e.target.value)} inputMode="numeric" maxLength={7} />
+                {nfseErro('municipio_codigo_ibge')}
+              </div>
+              <div>
+                <label htmlFor="nfse-cnpj" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>CNPJ do prestador</label>
+                <Input id="nfse-cnpj" value={nfseForm.data.prestador_cnpj} onChange={(e) => nfseForm.setData('prestador_cnpj', e.target.value)} maxLength={18} />
+                {nfseErro('prestador_cnpj')}
+              </div>
+              <div>
+                <label htmlFor="nfse-im" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>Inscrição municipal</label>
+                <Input id="nfse-im" value={nfseForm.data.prestador_im} onChange={(e) => nfseForm.setData('prestador_im', e.target.value)} maxLength={20} />
+                {nfseErro('prestador_im')}
+              </div>
+              <div>
+                <label htmlFor="nfse-serie" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>Série da DPS</label>
+                <Input id="nfse-serie" value={nfseForm.data.serie_default} onChange={(e) => nfseForm.setData('serie_default', e.target.value)} inputMode="numeric" maxLength={5} />
+                {nfseErro('serie_default')}
+              </div>
+              <div>
+                <label htmlFor="nfse-cnae" style={{ display: 'block', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--fx-text-mute)', marginBottom: 6 }}>CNAE</label>
+                <Input id="nfse-cnae" value={nfseForm.data.cnae} onChange={(e) => nfseForm.setData('cnae', e.target.value)} maxLength={10} />
+                {nfseErro('cnae')}
+              </div>
+            </div>
+            {podeTrocarAmbiente && nfseTroca && (
+              <div data-contract="fiscal-config-nfse-troca" style={{ marginBottom: 12 }}>
+                <div className="fx-callout" role="alert" style={{ marginBottom: 12, background: 'var(--warn-soft, var(--bad-soft))', borderColor: 'var(--warn)' }}>
+                  <AlertTriangle size={16} />
+                  <div>
+                    <b style={{ color: 'var(--warn)' }}>Você está trocando o ambiente da NFS-e para {nfseDestino}</b>
+                    <small>Digite o destino e o motivo. A troca vira evento de auditoria.</small>
+                  </div>
+                </div>
+                <label htmlFor="nfse-confirmacao" style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
+                  Digite <code className="fx-mono">{nfseDestino}</code> para confirmar
+                </label>
+                <Input id="nfse-confirmacao" value={nfseForm.data.confirmacao} onChange={(e) => nfseForm.setData('confirmacao', e.target.value)} placeholder={nfseDestino} autoComplete="off" maxLength={40} />
+                {nfseErro('confirmacao')}
+                <label htmlFor="nfse-motivo" style={{ display: 'block', fontSize: 13, marginTop: 10, marginBottom: 6 }}>
+                  Motivo <span style={{ color: 'var(--fx-text-mute)' }}>(mínimo 15 caracteres, fica na auditoria)</span>
+                </label>
+                <Input id="nfse-motivo" value={nfseForm.data.motivo} onChange={(e) => nfseForm.setData('motivo', e.target.value)} maxLength={255} />
+                {nfseErro('motivo')}
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <small style={{ color: 'var(--fx-text-mute)' }}>
+                Atual: <code className="fx-mono">{nfse.ambiente === 'producao' ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}</code>
+              </small>
+              <Button
+                type="submit"
+                variant="cowork-ghost"
+                title={nfseCerimoniaOk ? undefined : `Digite ${nfseDestino} e um motivo de 15+ caracteres`}
+                disabled={nfseForm.processing || !nfseCerimoniaOk}
+              >
+                {nfseForm.processing ? 'Salvando…' : 'Salvar NFS-e'}
+              </Button>
+            </div>
+            {nfseErro('ambiente')}
+          </form>
+        </section>
+        )}
 
         {/* ── Contingência SEFAZ (US-NFE-006 / ADR TECH-0002) ────────────────
             Mora junto de "Ambiente" porque é a mesma pergunta do operador: para
