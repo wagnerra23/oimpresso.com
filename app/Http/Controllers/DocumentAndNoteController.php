@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Contact;
 use App\DocumentAndNote;
 use App\Media;
 use App\User;
 use App\Utils\ModuleUtil;
 use Exception;
+use App\Services\Pessoas\PessoaEscopo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -29,6 +31,84 @@ class DocumentAndNoteController extends Controller
     }
 
     /**
+     * Localiza o registro dono das anotações (cliente/fornecedor/lead ou usuário) na empresa da
+     * sessão e confere se quem pede pode vê-lo. Antes nenhuma ação conferia permissão: qualquer
+     * usuário logado lia, criava, editava e apagava anotações de qualquer contato ou usuário da
+     * empresa, e o tipo do registro vinha do pedido sem lista fechada.
+     *
+     * Só App\Contact e App\User recebem anotações (nenhum módulo registra outro tipo pelo
+     * gancho addDocumentAndNotes). Outro tipo: 404. Sem permissão: 403.
+     */
+    private function registroDono($tipo, $id): Contact|User
+    {
+        $tipo = ltrim((string) $tipo, '\\');
+        $business_id = (int) request()->session()->get('user.business_id');
+        $user = auth()->user();
+
+        if ($tipo === User::class) {
+            if (! $user->can('user.view')) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            return User::where('business_id', $business_id)->findOrFail($id);
+        }
+
+        if ($tipo !== Contact::class) {
+            abort(404);
+        }
+
+        $contact = Contact::where('business_id', $business_id)->findOrFail($id);
+
+        // Lead do Crm: a mesma regra da tela do lead (LeadController::show + scopeOnlyOwnLeads).
+        if ($contact->type === 'lead' && $this->podeVerLead($contact, $user)) {
+            return $contact;
+        }
+
+        $veContatos = $user->can('customer.view') || $user->can('customer.view_own')
+            || $user->can('supplier.view') || $user->can('supplier.view_own');
+        if (! $veContatos || ! PessoaEscopo::podeVerContato($contact, $user)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return $contact;
+    }
+
+    private function podeVerLead(Contact $contact, User $user): bool
+    {
+        if ($user->can('crm.access_all_leads')) {
+            return true;
+        }
+        if (! $user->can('crm.access_own_leads')) {
+            return false;
+        }
+        if ((int) $contact->created_by === (int) $user->id) {
+            return true;
+        }
+
+        return DB::table('crm_lead_users')
+            ->where('contact_id', $contact->id)
+            ->where('user_id', $user->id)
+            ->exists();
+    }
+
+    /**
+     * Anotação privada só aparece para quem a criou — a lista já filtrava; ver, editar,
+     * salvar e apagar pelo número não filtravam.
+     */
+    private function anotacaoVisivel(int $business_id, $notable_id, string $tipo, $id): DocumentAndNote
+    {
+        $user_id = (int) request()->session()->get('user.id');
+
+        return DocumentAndNote::where('business_id', $business_id)
+            ->where('notable_id', $notable_id)
+            ->where('notable_type', $tipo)
+            ->where(function ($query) use ($user_id) {
+                $query->where('is_private', 0)->orWhere('created_by', $user_id);
+            })
+            ->findOrFail($id);
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -42,6 +122,8 @@ class DocumentAndNoteController extends Controller
             $notable_id = request()->get('notable_id');
             //model name like App\User
             $notable_type = request()->get('notable_type');
+            $this->registroDono($notable_type, $notable_id);
+            $notable_type = ltrim((string) $notable_type, '\\');
 
             $document_note = DocumentAndNote::where('business_id', $business_id)
                 ->where('notable_id', $notable_id)
@@ -196,6 +278,7 @@ class DocumentAndNoteController extends Controller
         $notable_id = request()->get('notable_id');
         //model name like App\User
         $notable_type = request()->get('notable_type');
+        $this->registroDono($notable_type, $notable_id);
 
         return view('documents_and_notes.create')
             ->with(compact('notable_id', 'notable_type'));
@@ -209,13 +292,10 @@ class DocumentAndNoteController extends Controller
      */
     public function store(Request $request)
     {
+        // Fora do try: o catch genérico transformaria o 403/404 em "algo deu errado".
+        $model = $this->registroDono(request()->get('notable_type'), request()->get('notable_id'));
+
         try {
-
-            //model id like project_id, user_id
-            $notable_id = request()->get('notable_id');
-            //model name like App\User
-            $notable_type = request()->get('notable_type');
-
             $input = $request->only('heading', 'description', 'is_private');
             $input['business_id'] = request()->session()->get('user.business_id');
             $input['created_by'] = request()->session()->get('user.id');
@@ -225,10 +305,6 @@ class DocumentAndNoteController extends Controller
             if (! empty($input['is_private'])) {
                 activity()->disableLogging();
             }
-
-            //find model to which document is to be added
-            $model = $notable_type::where('business_id', $input['business_id'])
-                ->findOrFail($notable_id);
 
             $model_note = $model->documentsAndnote()->create($input);
 
@@ -273,13 +349,11 @@ class DocumentAndNoteController extends Controller
         $notable_id = request()->get('notable_id');
         //model name like App\User
         $notable_type = request()->get('notable_type');
+        $this->registroDono($notable_type, $notable_id);
 
-        $business_id = request()->session()->get('user.business_id');
-        $document_note = DocumentAndNote::where('business_id', $business_id)
-            ->where('notable_id', $notable_id)
-            ->where('notable_type', $notable_type)
-            ->with('media', 'createdBy')
-            ->findOrFail($id);
+        $business_id = (int) request()->session()->get('user.business_id');
+        $document_note = $this->anotacaoVisivel($business_id, $notable_id, ltrim((string) $notable_type, '\\'), $id)
+            ->load('media', 'createdBy');
 
         return view('documents_and_notes.show')
             ->with(compact('document_note'));
@@ -297,12 +371,10 @@ class DocumentAndNoteController extends Controller
         $notable_id = request()->get('notable_id');
         //model name like App\User
         $notable_type = request()->get('notable_type');
+        $this->registroDono($notable_type, $notable_id);
 
-        $business_id = request()->session()->get('user.business_id');
-        $document_note = DocumentAndNote::where('business_id', $business_id)
-        ->where('notable_id', $notable_id)
-        ->where('notable_type', $notable_type)
-        ->findOrFail($id);
+        $business_id = (int) request()->session()->get('user.business_id');
+        $document_note = $this->anotacaoVisivel($business_id, $notable_id, ltrim((string) $notable_type, '\\'), $id);
 
         return view('documents_and_notes.edit')
             ->with(compact('notable_id', 'document_note', 'notable_type'));
@@ -317,22 +389,18 @@ class DocumentAndNoteController extends Controller
      */
     public function update(Request $request, $id)
     {
+        //model id like project_id, user_id
+        $notable_id = request()->get('notable_id');
+        //model name like App\User
+        $notable_type = request()->get('notable_type');
+        // Fora do try: o catch genérico transformaria o 403/404 em "algo deu errado".
+        $this->registroDono($notable_type, $notable_id);
+        $business_id = (int) request()->session()->get('user.business_id');
+        $document_note = $this->anotacaoVisivel($business_id, $notable_id, ltrim((string) $notable_type, '\\'), $id);
+
         try {
-
-            //model id like project_id, user_id
-            $notable_id = request()->get('notable_id');
-            //model name like App\User
-            $notable_type = request()->get('notable_type');
-
-            $business_id = request()->session()->get('user.business_id');
-
             $input = $request->only('heading', 'description');
             $input['is_private'] = ! empty($request->get('is_private')) ? 1 : 0;
-
-            $document_note = DocumentAndNote::where('business_id', $business_id)
-                ->where('notable_id', $notable_id)
-                ->where('notable_type', $notable_type)
-                ->findOrFail($id);
 
             DB::beginTransaction();
 
@@ -381,18 +449,16 @@ class DocumentAndNoteController extends Controller
      */
     public function destroy($id)
     {
+        //model id like project_id, user_id
+        $notable_id = request()->get('notable_id');
+        //model name like App\User
+        $notable_type = request()->get('notable_type');
+        // Fora do try: o catch genérico transformaria o 403/404 em "algo deu errado".
+        $this->registroDono($notable_type, $notable_id);
+        $business_id = (int) request()->session()->get('user.business_id');
+        $document_note = $this->anotacaoVisivel($business_id, $notable_id, ltrim((string) $notable_type, '\\'), $id);
+
         try {
-            $business_id = request()->session()->get('user.business_id');
-            //model id like project_id, user_id
-            $notable_id = request()->get('notable_id');
-            //model name like App\User
-            $notable_type = request()->get('notable_type');
-
-            $document_note = DocumentAndNote::where('business_id', $business_id)
-                ->where('notable_id', $notable_id)
-                ->where('notable_type', $notable_type)
-                ->findOrFail($id);
-
             DB::beginTransaction();
 
             $document_note->delete();
@@ -459,6 +525,7 @@ class DocumentAndNoteController extends Controller
             $business_id = request()->session()->get('user.business_id');
             $notable_type = $request->get('notable_type');
             $notable_id = $request->get('notable_id');
+            $this->registroDono($notable_type, $notable_id);
             $permissions = $this->__getPermission($business_id, $notable_id, $notable_type);
 
             return view('documents_and_notes.index')

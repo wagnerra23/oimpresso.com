@@ -38,6 +38,7 @@ on:
     paths:
       - 'app/Http/Controllers/ContactController.php'
       - 'app/Http/Controllers/LedgerDiscountController.php'
+      - 'app/Http/Controllers/DocumentAndNoteController.php'
       - 'app/Http/Requests/Cliente/**'
       - 'app/Utils/ContactUtil.php'
       - 'app/Contact.php'
@@ -87,6 +88,7 @@ jobs:
             cli:
               - 'app/Http/Controllers/ContactController.php'
               - 'app/Http/Controllers/LedgerDiscountController.php'
+              - 'app/Http/Controllers/DocumentAndNoteController.php'
               - 'app/Http/Requests/Cliente/**'
               - 'app/Utils/ContactUtil.php'
               - 'app/Contact.php'
