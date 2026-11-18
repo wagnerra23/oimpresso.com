@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela emite a credencial com que cada Delphi autentica; secret reexibido ou credencial de outro negócio é incidente Tier 0.
 owner: wagner
-last_run: "2026-10-09"
+last_run: "2026-11-18"
 ---
 
 # Casos de Uso & Aceite — Clientes OAuth (`/officeimpresso/client`)
@@ -55,5 +55,18 @@ Status: 🧪
 **Dado** a flag ligada e um usuário sem `superadmin` nem `officeimpresso.clientes.liberar` **Quando**
 abre a lista **Então** recebe 403; **e** um delegado da operadora recebe `pode_excluir` e
 `pode_regenerar` falsos.
+
+Status: 🧪
+
+## UC-OICLI-07 · "Regenerar chaves" só por POST, e a falha não se diz sucesso · `must` `[T0]`
+
+Derivado da auditoria Officeimpresso 2026-11-05 (eixo 5, A3): regenerar roda `passport:install --force`
+e derruba o token de todos os desktops; por `GET`, um `<img src>` ou prefetch o disparava.
+Teste: `Modules/Officeimpresso/Tests/Feature/RegenerateViaPostTest.php` (Artisan mockado).
+
+**Dado** um superadmin logado **Quando** algo pede `GET /officeimpresso/regenerate` **Então** recebe 405
+e nada roda; **Quando** um delegado sem `superadmin` faz `POST` **Então** recebe 403; **Quando** o
+superadmin faz `POST` **Então** as chaves são regeneradas e a resposta diz sucesso; **e se** a
+regeneração falha **Então** a resposta diz falha, sem a mensagem interna.
 
 Status: 🧪
