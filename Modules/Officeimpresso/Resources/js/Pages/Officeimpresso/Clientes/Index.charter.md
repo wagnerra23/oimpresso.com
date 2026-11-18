@@ -6,6 +6,7 @@ owner: wagner
 parent_module: Officeimpresso
 last_validated: '2026-10-09'
 related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx
+related_visual_comparison: memory/requisitos/Officeimpresso/Clientes-Index-visual-comparison.md
 related_runbook: memory/requisitos/Officeimpresso/RUNBOOK-clientes.md
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho

@@ -1,0 +1,5 @@
+{
+  "_medido_em": "2026-11-18",
+  "_por_que": "Lote 6 do Officeimpresso. O charter de Empresa/Show declara officeimpresso-page.jsx, mas o protótipo não tem vista para a ficha da empresa (/officeimpresso/computadores): as vistas são empresas, licencas, clientes, importar, log e timeline (app.jsx:945-951). O mais próximo é o modo 'Por empresa' da vista licencas, que é outra tela. Medir contra ele repetiria o erro da medida de Logs de 2026-09-18 (vista errada). Sem este campo a tela caía em route=officeimpresso e colidia com Empresas/Index, travando a medição dela.",
+  "sem_vista": "o protótipo não tem a ficha da empresa (/officeimpresso/computadores); criar a vista é do Lote 7"
+}
