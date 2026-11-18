@@ -5,13 +5,17 @@ namespace Modules\NFSe\Console\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Modules\NfeBrasil\Services\CertificadoService;
-use Modules\NFSe\Models\NfseProviderConfig;
 
 /**
  * Importa certificado A1 (.pfx) para o cofre criptografado em nfe_certificados.
  *
  * Delegado ao CertificadoService (NfeBrasil) — schema unificado após
- * migration 2026_05_07_210000.
+ * migration 2026_05_07_210000. Faz o mesmo que enviar o certificado na tela
+ * /fiscal/config?tab=cert: o novo vira o ativo da empresa e vale para NF-e e NFS-e.
+ *
+ * Até 2026-11-18 o comando também gravava `nfse_provider_configs.cert_id`, e era o único
+ * caminho que ligava um certificado à NFS-e. Desde então a NFS-e usa o certificado ativo
+ * (CertificadoService::certificadoAtivo) e a coluna ficou sem leitor; não é mais gravada.
  *
  * Uso:
  *   php artisan nfse:importar-cert --pfx=/caminho/cert.pfx --senha=SUA_SENHA --business=1
@@ -23,7 +27,7 @@ class ImportarCertificadoCommand extends Command
                             {--senha= : Senha do certificado PFX}
                             {--business=1 : ID do business (padrão: 1)}';
 
-    protected $description = 'Importa certificado A1 (.pfx) para o banco de dados criptografado';
+    protected $description = 'Importa certificado A1 (.pfx) como o certificado ativo da empresa (NF-e e NFS-e)';
 
     public function handle(CertificadoService $service): int
     {
@@ -44,10 +48,6 @@ class ImportarCertificadoCommand extends Command
         try {
             $pfxBase64 = base64_encode(file_get_contents($pfxPath));
             $cert      = $service->salvar($businessId, $pfxBase64, $senha);
-
-            // Vincula à config do provider NFSe se existir
-            NfseProviderConfig::where('business_id', $businessId)
-                ->update(['cert_id' => $cert->id, 'updated_at' => now()]);
 
             $this->info("Certificado importado com sucesso. ID: {$cert->id}");
             $this->info("CNPJ: {$cert->cnpj_titular} | Válido até: {$cert->valido_ate->format('d/m/Y')}");
