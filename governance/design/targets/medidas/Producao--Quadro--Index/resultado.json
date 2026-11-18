@@ -1,0 +1,105 @@
+{
+  "rows": [
+    {
+      "dim": "D2",
+      "campo": "layout",
+      "prod": "ok",
+      "design": "ok",
+      "veredito": "IGUAL"
+    },
+    {
+      "dim": "D4",
+      "campo": "tipografia",
+      "prod": "ok",
+      "design": "ok",
+      "veredito": "IGUAL"
+    },
+    {
+      "dim": "D6",
+      "campo": "cor",
+      "prod": "ok",
+      "design": "ok",
+      "veredito": "IGUAL"
+    },
+    {
+      "dim": "D8",
+      "campo": "kpi align",
+      "prod": "ok",
+      "design": "ok",
+      "veredito": "IGUAL"
+    },
+    {
+      "dim": "D9",
+      "campo": "sb-alcas",
+      "prod": "presente",
+      "design": "ausente",
+      "veredito": "SEM-DADO",
+      "detalhe": "região só existe de um lado"
+    },
+    {
+      "dim": "D9",
+      "campo": "sb-corpo",
+      "prod": "presente",
+      "design": "ausente",
+      "veredito": "SEM-DADO",
+      "detalhe": "região só existe de um lado"
+    },
+    {
+      "dim": "D9",
+      "campo": "sb-modos",
+      "prod": "presente",
+      "design": "ausente",
+      "veredito": "SEM-DADO",
+      "detalhe": "região só existe de um lado"
+    },
+    {
+      "dim": "D9",
+      "campo": "sb-rodape",
+      "prod": "presente",
+      "design": "ausente",
+      "veredito": "SEM-DADO",
+      "detalhe": "região só existe de um lado"
+    },
+    {
+      "dim": "D9",
+      "campo": "sb-topo",
+      "prod": "presente",
+      "design": "ausente",
+      "veredito": "SEM-DADO",
+      "detalhe": "região só existe de um lado"
+    },
+    {
+      "dim": "D4",
+      "campo": "linha da tabela",
+      "prod": "não medido",
+      "design": "não medido",
+      "veredito": "SEM-DADO",
+      "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
+    },
+    {
+      "dim": "SHELL",
+      "campo": "shell",
+      "prod": "não medido",
+      "design": "não medido",
+      "veredito": "SEM-DADO",
+      "detalhe": "declare window.__SB_ROLES nos DOIS lados — node scripts/design/design-diff.mjs --shell-roles imprime o mapa"
+    },
+    {
+      "dim": "SAÚDE",
+      "campo": "tokens.prod",
+      "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+      "design": "—",
+      "veredito": "NÃO MEDI",
+      "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
+    }
+  ],
+  "bugs": 0,
+  "shell": 0,
+  "drawer": 0,
+  "declaradas": 0,
+  "porDeclaracao": [],
+  "declaracoesSemEfeito": [],
+  "sameTheme": true,
+  "_exit_check": 0,
+  "_medido_em": "2026-11-18"
+}

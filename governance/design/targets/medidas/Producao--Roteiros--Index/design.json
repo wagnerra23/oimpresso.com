@@ -1,0 +1,35 @@
+{
+  "url": "http://127.0.0.1:5611/",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 86
+  },
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 5 CRM 16 G R Vendas 22 G V Oficina Auto 1 Vestuário 2 Fisio 11 Finanças 4 Caixa G X Financeiro 15 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 9 Produção 5 Painel de produção 7 Quadro Linha do tempo Custo real × orçado Instalação Roteiros ⋯ mais 2 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 7 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 5 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 8 em produção · 2 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Terminal Roteiros Postos e cadastros Impresso simples Lona impressa em sequência Adesivo impresso e recortado em sequência Placa rígida Placa em ACM com UV com etapas em paralelo Projeto com instalação Fachada em ACM + estrutura com etapas em paralelo Letra-caixa iluminada com etapas em paralelo Fachada em ACM + estrutura Projeto com instalação · vira as etapas da OS quando o orçamento é aprovado Ajustar tempos 1 Projeto e medição Arte e aprovação 2,0 h Em paralelo — as duas trilhas andam ao mesmo tempo e se juntam em Montagem na fábrica 2 Estrutura metálica Serralheria 6,0 h 3 Corte CNC do ACM Serralheria · Router CNC 2x3 3 chapas/h 4 Adesivo de aplicação Impressão · Roland VG3-640 9 m²/h 5 Laminação Acabamento · Laminadora a frio · só com laminação 30 m²/h 6 Montagem na fábrica Serralheria 2,0 h 7 Instalação em campo Instalação 6,0 h Tempo de máquina = quantidade ÷ capacidade do posto. Etapa marcada \"só com…\" entra na OS quando a opção vem marcada no orçamento. Conversão do orçamento para o posto: chapa — chapa de ACM 1,22 × 5,00 m = 6,1 m², arredonda para cima . Produtos que usam este roteiro Fachada ACM sob medida Ligar produto Cada item aprovado vira uma OS com o roteiro do produto dele. Produto sem roteiro usa as etapas de produção do modelo da empresa (Sistema › Fluxos e regras). Por que no máximo duas trilhas Linha reta demais faz a impressão esperar a serralheria sem motivo. Fluxograma livre demais ninguém treina. O meio-termo: famílias prontas, até 2 trilhas que sempre se juntam, e opcionais ligados pelo orçamento. O operador nunca vê o roteiro inteiro — só \"minhas etapas de hoje\".",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklab(0.7 0.0633927 -0.135946)",
+      "color": "oklab(0.14 0.00845236 -0.0181262)",
+      "border": "rgba(0, 0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}
