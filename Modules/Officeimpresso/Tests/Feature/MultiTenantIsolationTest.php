@@ -77,7 +77,8 @@ it('[T0] o audit do desktop grava a empresa do TOKEN; business_id no corpo não 
     Passport::actingAs($desktop, ['*']);
 
     $r = $this->postJson('/api/officeimpresso/audit', [
-        'event'       => 'oiiso_audit',
+        // evento da lista do desktop: o #11157 (Lote 3) fecha o endpoint aos eventos `desktop_*`
+        'event'       => 'desktop_timeout',
         'business_id' => (int) $this->oiIsoOperadora->id,
         'endpoint'    => '/oiiso',
     ])->assertCreated();
