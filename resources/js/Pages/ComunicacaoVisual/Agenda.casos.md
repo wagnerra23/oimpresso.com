@@ -5,7 +5,7 @@ irmaos: Agenda.charter.md (lei) · Agenda.tsx (código)
 tecnica: Caso de uso = narrativa do coordenador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a agenda só serve se mostrar a semana da empresa certa e se a recusa por falta de janela aparecer para quem agenda; dado de outra empresa na grade ou no formulário é vazamento.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-11-18"
 last_run_ci: "2026-10-21 — nasce com a tela; veredito vem do CI do PR (Pest ComunicacaoVisual MySQL e vitest)."
 ---
 
@@ -24,6 +24,7 @@ last_run_ci: "2026-10-21 — nasce com a tela; veredito vem do CI do PR (Pest Co
 | UC-CVAG-02 | Equipe e OS do formulário são só desta empresa, e OS concluída fica fora | must `[T0]` | US-COMVIS-007 | `AgendaTelaContratoTest` | 🧪 |
 | UC-CVAG-03 | Sem permissão não abre; quem só vê abre sem poder agendar | must | US-COMVIS-007 | `AgendaTelaContratoTest` | 🧪 |
 | UC-CVAG-04 | A recusa sem janela aparece como alerta com quem e quando | must | US-COMVIS-007 · UC-FLX-21 | `cv-agenda.test.tsx` | 🧪 |
+| UC-CVAG-05 | Cada instalação da grade abre a tela da instalação | should | US-COMVIS-007 · UC-PCV-25 | `cv-agenda.test.tsx` | 🧪 |
 
 ## UC-CVAG-01 · A semana lista só as instalações desta empresa que caem nela, sem as canceladas · `must` `[T0]`
 
@@ -53,5 +54,12 @@ Status: 🧪
 **Dado** o formulário preenchido **Quando** a API responde 422 "Sem janela: … de 21/10/2026 09:00 a 11:00"
 **Então** aparece o alerta "Sem janela — não agendado" com o nome e o horário, e a agenda não recarrega.
 Controle: 422 de dado inválido mostra o erro sem o alerta de bloqueio; 201 recarrega só a agenda.
+
+Status: 🧪
+
+## UC-CVAG-05 · Cada instalação da grade abre a tela da instalação · `should`
+
+**Quando** o coordenador ou o instalador toca uma instalação na grade **Então** abre
+`/comunicacao-visual/instalacoes/{id}`, onde ficam as fotos, a assinatura e o concluir.
 
 Status: 🧪

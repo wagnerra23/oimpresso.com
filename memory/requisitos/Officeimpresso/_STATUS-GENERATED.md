@@ -16,8 +16,8 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 17 |
-| CU no SDD | 0 |
+| US no SPEC | 22 |
+| CU no SDD | 9 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
 | UC declarados | 65 |
@@ -25,7 +25,17 @@ authority: generated
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
+| Lacuna | O que falta escrever |
+|---|---|
+| `CU-OI-01` sem UC | caso de uso que o exercite — Desktop obtém token e o login entra no log |
+| `CU-OI-02` sem UC | caso de uso que o exercite — Máquina nova se registra bloqueada |
+| `CU-OI-03` sem UC | caso de uso que o exercite — Máquina liberada recebe autorização |
+| `CU-OI-04` sem UC | caso de uso que o exercite — Body sem CNPJ resolve pelo HD |
+| `CU-OI-05` sem UC | caso de uso que o exercite — Operador bloqueia ou libera máquina com motivo |
+| `CU-OI-06` sem UC | caso de uso que o exercite — Empresa bloqueada recusa todas as máquinas |
+| `CU-OI-07` sem UC | caso de uso que o exercite — Desktop consulta versão |
+| `CU-OI-08` sem UC | caso de uso que o exercite — Toda chamada do desktop fica no log sem PII |
+| `CU-OI-09` sem UC | caso de uso que o exercite — Importação Firebird de um cliente |
 
 ### Backlog — NÃO é lacuna
 
@@ -53,6 +63,11 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | US-OI-015 | `desconhecido` | — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01 |
 | US-OI-016 | `desconhecido` | — F4: QA da `Empresas/Index` — os itens `alta` viram teste |
 | US-OI-017 | `desconhecido` | — F5: cutover das 3 telas da Onda 2 e sunset dos Blades |
+| US-OI-018 | `desconhecido` | — Tela `Clientes/Index` (clients OAuth do desktop) |
+| US-OI-019 | `desconhecido` | — Delegação da gestão de licenças ao suporte |
+| US-OI-020 | `desconhecido` | — Comandos de operação do módulo |
+| US-OI-021 | `desconhecido` | — Importação Firebird de um cliente (`officeimpresso:import`) |
+| US-OI-022 | `desconhecido` | — `POST /api/officeimpresso/audit` (evento opt-in do desktop) |
 
 ## UC por status
 

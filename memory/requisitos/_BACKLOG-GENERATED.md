@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1091 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1096 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -25,12 +25,12 @@
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
+| [`Officeimpresso`](#officeimpresso) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Compras`](#compras) | 20 | 2 | 0 | 0 | 17 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
-| [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 16 | 1 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 16 | 0 | 0 | 0 | 16 |
@@ -910,6 +910,34 @@
 - **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 - **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
+## Officeimpresso
+
+
+### todo
+
+- **US-OI-001** — F2: Pest baseline do comportamento atual
+- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
+- **US-OI-003** — F2: mapa de paridade Blade↔React
+- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
+- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
+- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
+- **US-OI-007** — F5: cutover e sunset do Blade
+- **US-OI-008** — F2: baseline, payload seguro e flag da `Licencas/Index`
+- **US-OI-009** — F3: tela `Licencas/Index` (Computadores Cadastrados) em PT-01
+- **US-OI-010** — F4: QA da `Licencas/Index` — os itens `alta` viram teste
+- **US-OI-011** — F2: baseline, payload seguro e flag da `Empresa/Show`
+- **US-OI-012** — F3: tela `Empresa/Show` (ficha + computadores) em PT-03
+- **US-OI-013** — F4: QA da `Empresa/Show` — os itens `alta` viram teste
+- **US-OI-014** — F2: baseline, payload seguro e flag da `Empresas/Index`
+- **US-OI-015** — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01
+- **US-OI-016** — F4: QA da `Empresas/Index` — os itens `alta` viram teste
+- **US-OI-017** — F5: cutover das 3 telas da Onda 2 e sunset dos Blades
+- **US-OI-018** — Tela `Clientes/Index` (clients OAuth do desktop)
+- **US-OI-019** — Delegação da gestão de licenças ao suporte
+- **US-OI-020** — Comandos de operação do módulo
+- **US-OI-021** — Importação Firebird de um cliente (`officeimpresso:import`)
+- **US-OI-022** — `POST /api/officeimpresso/audit` (evento opt-in do desktop)
+
 ## Connector
 
 
@@ -1052,29 +1080,6 @@
 - **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
 - **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
 - **US-PONTO-013** — Consertar as duas telas que nao persistem
-
-## Officeimpresso
-
-
-### todo
-
-- **US-OI-001** — F2: Pest baseline do comportamento atual
-- **US-OI-002** — F2: action dual + feature flag `useV2OfficeimpressoLogs`
-- **US-OI-003** — F2: mapa de paridade Blade↔React
-- **US-OI-004** — F3: tela `Logs/Index` (Máquinas Cadastradas) em PT-01
-- **US-OI-005** — F3: tela `Logs/Timeline` (acessos por máquina) em PT-07
-- **US-OI-006** — F4: QA — os itens `alta` da paridade viram teste
-- **US-OI-007** — F5: cutover e sunset do Blade
-- **US-OI-008** — F2: baseline, payload seguro e flag da `Licencas/Index`
-- **US-OI-009** — F3: tela `Licencas/Index` (Computadores Cadastrados) em PT-01
-- **US-OI-010** — F4: QA da `Licencas/Index` — os itens `alta` viram teste
-- **US-OI-011** — F2: baseline, payload seguro e flag da `Empresa/Show`
-- **US-OI-012** — F3: tela `Empresa/Show` (ficha + computadores) em PT-03
-- **US-OI-013** — F4: QA da `Empresa/Show` — os itens `alta` viram teste
-- **US-OI-014** — F2: baseline, payload seguro e flag da `Empresas/Index`
-- **US-OI-015** — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01
-- **US-OI-016** — F4: QA da `Empresas/Index` — os itens `alta` viram teste
-- **US-OI-017** — F5: cutover das 3 telas da Onda 2 e sunset dos Blades
 
 ## Accounting
 
