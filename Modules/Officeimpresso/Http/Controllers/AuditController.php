@@ -2,7 +2,7 @@
 
 namespace Modules\Officeimpresso\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Modules\Officeimpresso\Http\Requests\StoreDesktopAuditRequest;
 use Illuminate\Routing\Controller;
 use Modules\Officeimpresso\Services\LicencaAuditService;
 
@@ -22,12 +22,14 @@ class AuditController extends Controller
 
     /**
      * POST /api/officeimpresso/audit
-     * Body JSON tolerante (todos campos opcionais).
+     * Todos os campos sao opcionais; `event` so da lista fechada do desktop e
+     * `licenca_id` so da empresa do usuario (StoreDesktopAuditRequest). Campos nao
+     * conhecidos seguem para metadata, com o valor validado prevalecendo.
      */
-    public function store(Request $request)
+    public function store(StoreDesktopAuditRequest $request)
     {
         $log = $this->auditService->registrar(
-            $request->all(),
+            array_merge($request->all(), $request->validated()),
             [
                 'user_id'     => $request->user()->id ?? null,
                 'business_id' => $request->user()?->business_id ?? null,
