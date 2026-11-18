@@ -3,6 +3,7 @@ id: reference-migracao-officeimpresso-pattern
 name: Pattern canônico de migração OfficeImpresso (Delphi/Firebird) → oimpresso (Laravel/MySQL)
 description: Receita validada Wagner 2026-05 — Python firebird-driver + pymysql · idempotência por legacy_id · audit JSON · 4 fases (Empresas → Vehicles → Vendas → Financeiro). Calibrada em 3 clientes (WR2 biz=1, Vargas dry-run, Martinho biz=164 live)
 type: reference
+authority: canonical
 ---
 
 # Migração OfficeImpresso (Delphi/Firebird) → oimpresso (Laravel/MySQL)
@@ -73,6 +74,7 @@ type: reference
 - **Alvo:** `transaction_payments` + linkagem com `transactions` Fase 3
 - **Decisão estratégica Wagner:** cleanup-first — write-off candidate (`DT_VENCTO > 365d + sem BOLETO + sem movimentação`) flagado, NÃO importado. ROI maior que dunning pra 76.7% inadimplência típica (caso Martinho)
 - **Status:** ✅ executado Martinho biz=164 (83.045 títulos + 71.675 baixas em prod · diagnóstico 2026-05-27) — provavelmente **SEM cleanup-first** (76.7% inadimplência migrada incluindo write-off legacy 14 anos · review trigger: avaliar archive job opt-in ADR 0198 §Mitigação 3) · 🟡 Vargas/Gold/Extreme ainda pendentes — manter cleanup-first per [ADR 0171 §Cleanup tools](../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md)
+- **Boleto do Banco do Brasil: pela API, não por CNAB (decisão [W] 2026-11-18, vale para toda empresa migrada).** Textual: *"vai ser api"*, *"arquivo é um pé no saco"*. Cliente que emite boleto BB passa a registrá-lo pela API de cobrança do BB. O `BBCnabDriver` (remessa 240, PDF e retorno) não é o caminho padrão da virada. As credenciais da API (client id, secret, app key) não saem do Delphi pelo importer: o cliente ou o [W] cadastram no oimpresso. Enquanto o driver da API do BB não existir no oimpresso, a virada de cliente com boleto BB espera por ele. Origem: Sabor Brasil, biz=199 ([plano](../research/clientes-legacy-officeimpresso/06-sabor-brasil/02-plano-migracao.md), seção "Boleto BB: CNAB ou API?").
 - **⚠️ Regra de status — CANCELADO tem precedência sobre PAGAMENTO (Wagner 2026-06-03):** no WR, status que **começa com "INATIVO"** (ex. `INATIVO CANCELADA`) = lançamento **não-válido** → mapear pra `cancelado`, **mesmo se tiver `DATAPAGTO`** (pago e depois cancelado ≠ recebimento válido). Bug catalogado: `map_status` em `import-financeiro.py` checava `datapagto` antes de `cancelado` → **2.683 títulos biz=164 viraram `quitado`** (R$ [redacted Tier 0]M somando indevido). Fix PR #2174 (`if raw.startswith("INATIVO") or kind=="real_cancelado": return "cancelado"` ANTES do datapagto) + backfill prod idempotente.
   - **Lição geral (vale p/ TODA migração):** status de cancelamento/inativo e o campo de pagamento são **independentes na origem** — o cancelamento DEVE vencer. Conferir o mesmo padrão em outros importers (vendas: `derive_status` cancelado × `derive_payment_status` paid são desacoplados → US-FIN-049; NF-e dedup → US-NFE-065).
   - **Não basta esconder na LISTA:** `cancelado` precisa ser excluído de **todos** os totais — lista (controller `whereIn` ativos), cards RECEBIDO/PAGO (baixas `whereHas titulo status != cancelado`) e sparkline (PR #2176). E expor um filtro **"Arquivados"** pra ver os cancelados sob demanda (espelha o WR).
@@ -213,6 +215,7 @@ Antes de disparar agent `migracao-officeimpresso` pra cliente novo:
 - [ ] Sinal qualificado per [ADR 0105](../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente paga + reporta OU métrica drift)
 - [ ] Discovery doc criado em `memory/requisitos/<Modulo>/discovery-<cliente>-YYYY-MM-DD.md`
 - [ ] Pre-flight count tabela alvo em prod (detect import anterior)
+- [ ] **Pacote fiscal:** se o cliente emite NF-e no Delphi, a assinatura da empresa no oimpresso precisa de um pacote com `fiscal_module`. Sem ele, toda rota `/nfe-brasil/*` fica bloqueada para a empresa (desde 2026-11-11, #10732), e nem a configuração fiscal nem a conferência dos impostos abrem. Ativar ou renovar é pelo superadmin: a assinatura da empresa passa a ser de um pacote com `fiscal_module`. Se em vez disso o pacote for editado (`/superadmin/packages/{id}/edit`), marcar também "Atualizar inscrições existentes", senão a assinatura ativa não muda. Procedimento autorizado para toda empresa migrada (decisão [W] de 2026-11-13 para a 199, estendida pelo [W] a toda empresa migrada em 2026-11-18: *"extenda"*). Fazer antes da configuração fiscal, não na véspera da virada.
 
 ---
 
