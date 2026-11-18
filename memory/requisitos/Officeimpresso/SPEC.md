@@ -267,3 +267,25 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 - ADR 0154 — Module grade v2 N/A justificado
 - Skill `officeimpresso-source-analysis` — leitura código fonte Delphi
 - Skill `officeimpresso-financial-snapshot` — extração receita Firebird
+
+## Testes fora da lane `officeimpresso-pest` (auditoria 2026-11-05, Lote 4)
+
+Medidos na CI (run 44383147672): falham no MySQL da lane e por isso não entram na allowlist até o conserto. Nenhum foi desligado nem marcado como skip.
+
+### US-OI-023 — Audit do desktop redige a metadata vinda do Delphi (LGPD D7.a)
+**Como** dona do dado, **quero** que o que o desktop manda no audit não grave dado pessoal em claro, **pra** cumprir a LGPD também nos campos livres.
+**Implementado em:** _pendente_
+**Aceite:**
+- `LicencaAuditService::registrar` passa só `error_message` pelo `PiiRedactor`; os campos desconhecidos do payload do Delphi vão para `metadata` sem redação
+- `LgpdComplianceTest` "D7.a — AuditController redaciona metadata vindo do Delphi" falha por isso e o arquivo fica fora da lane até o conserto
+- Pronto: `metadata` gravada em `licenca_log` sai redigida (teste de comportamento, não leitura do arquivo-fonte), `LgpdComplianceTest` verde e ligado na lane
+- Conferir antes o #11157 (Lote 3), que mexe no mesmo endpoint
+
+### US-OI-024 — `Wave28FirebirdImporterTest` alinhado ao contrato novo e ao ambiente da CI
+**Como** dono do importador, **quero** o teste dele rodando na lane, **pra** o importador Firebird ter alguma cobertura em CI.
+**Implementado em:** _pendente_
+**Aceite:**
+- `blocked_by`: #11158 (Lote 2)
+- O caso "isMock() retorna true quando ext pdo_firebird ausente (CI default)" falha: a CI tem a extensão. O teste força o modo (`forceMock`) ou lê `extension_loaded`, em vez de supor o ambiente
+- O #11158 muda o contrato: stats com 5 chaves (read, migrated, skipped, failed, blocked); products/transactions/licenca_computador saem como `blocked`; `licencas.migrated` deixa de ser 1
+- Pronto: arquivo verde na lane com as expectativas novas
