@@ -50,6 +50,20 @@ class CertificadoService
      */
     public function validar(string $pfxBase64, string $senha): array
     {
+        $meta = $this->validarComBinario($pfxBase64, $senha);
+        unset($meta['pfx_binario']);
+
+        return $meta;
+    }
+
+    /**
+     * validar() + o binário do .pfx que deve ir pro disco: o original, ou o
+     * convertido pro formato atual quando o arquivo veio no formato antigo
+     * (RC2-40). Gravar o convertido é o que deixa a emissão (NFePHP readPfx)
+     * ler o certificado depois.
+     */
+    private function validarComBinario(string $pfxBase64, string $senha): array
+    {
         // D9 Wave 26 — span no parse PKCS12 (hot-path SEFAZ — senha/pfx NUNCA em attributes).
         // Defesa Tier 0: attributes carregam APENAS booleans/length, nunca conteudo do .pfx ou senha.
         return OtelHelper::spanBiz('nfe.certificado.validar', function () use ($pfxBase64, $senha): array {
@@ -67,7 +81,7 @@ class CertificadoService
             throw new InvalidArgumentException('Certificado .pfx em formato base64 inválido.');
         }
 
-        $info = $this->readPkcs12($binary, $senha);
+        [$info, $binary] = $this->readPkcs12($binary, $senha);
 
         if (! isset($info['cert'])) {
             throw new InvalidArgumentException('Certificado não contém cert público — arquivo inválido.');
@@ -96,6 +110,7 @@ class CertificadoService
             'cnpj_titular' => $cnpj,
             'valido_ate'   => $validoAte,
             'subject_cn'   => $cn,
+            'pfx_binario'  => $binary,
         ];
     }
 
@@ -112,7 +127,7 @@ class CertificadoService
         string $senha,
         array $businessContext = [],
     ): NfeCertificado {
-        $meta = $this->validar($pfxBase64, $senha);
+        $meta = $this->validarComBinario($pfxBase64, $senha);
 
         if (
             isset($businessContext['cnpj_titular'])
@@ -126,8 +141,7 @@ class CertificadoService
         $uuid = (string) Str::uuid();
         $diskPath = sprintf('%d/cert/%s.pfx.enc', $businessId, $uuid);
 
-        $binary = base64_decode($pfxBase64, true);
-        Storage::disk('nfe_certs')->put($diskPath, Crypt::encrypt($binary));
+        Storage::disk('nfe_certs')->put($diskPath, Crypt::encrypt($meta['pfx_binario']));
 
         // Desativa anterior — só 1 cert ativo por business
         NfeCertificado::where('business_id', $businessId)
@@ -375,20 +389,171 @@ class CertificadoService
 
     // ---------- internos ----------
 
+    /**
+     * Lê o .pfx. Devolve [info do openssl_pkcs12_read, binário a gravar].
+     *
+     * O OpenSSL 3 não carrega o provider "legacy", então .pfx no formato
+     * antigo (pbeWithSHA1And40BitRC2-CBC, comum em A1 emitido no Brasil) falha
+     * com "unsupported" mesmo com a senha certa. Nesse caso convertemos com o
+     * binário `openssl pkcs12 -legacy` e devolvemos o .pfx regravado no formato
+     * atual. Senha errada é detectada antes (o MAC é verificado antes de
+     * decifrar) e sai com mensagem própria.
+     *
+     * @return array{0: array, 1: string}
+     */
     private function readPkcs12(string $content, string $senha): array
     {
         if ($this->pkcs12Reader) {
-            return ($this->pkcs12Reader)($content, $senha);
+            return [($this->pkcs12Reader)($content, $senha), $content];
         }
 
+        $this->limparErrosOpenssl();
         $info = [];
-        if (! openssl_pkcs12_read($content, $info, $senha)) {
-            $err = openssl_error_string() ?: 'sem mensagem';
-            throw new InvalidArgumentException(
-                "Falha ao ler .pfx (senha errada ou arquivo corrompido). [{$err}]"
-            );
+        if (openssl_pkcs12_read($content, $info, $senha)) {
+            return [$info, $content];
         }
-        return $info;
+
+        $erro = $this->coletarErrosOpenssl();
+        if (self::ehSenhaErrada($erro)) {
+            throw new InvalidArgumentException(self::MSG_SENHA_ERRADA);
+        }
+        if (! self::ehFormatoNaoSuportado($erro)) {
+            throw new InvalidArgumentException(self::MSG_ARQUIVO_INVALIDO." [{$erro}]");
+        }
+
+        $convertido = $this->converterPfxLegado($content, $senha);
+        $info = [];
+        if (! openssl_pkcs12_read($convertido, $info, $senha)) {
+            $erro = $this->coletarErrosOpenssl();
+            throw new InvalidArgumentException(self::MSG_FORMATO_NAO_SUPORTADO." [{$erro}]");
+        }
+
+        Log::info('nfe.certificado.pfx_legado_convertido', ['bytes_original' => strlen($content)]);
+
+        return [$info, $convertido];
+    }
+
+    public const MSG_SENHA_ERRADA = 'Senha do certificado incorreta.';
+
+    public const MSG_ARQUIVO_INVALIDO = 'Arquivo .pfx inválido ou corrompido.';
+
+    public const MSG_FORMATO_NAO_SUPORTADO = 'O certificado usa um formato antigo que este servidor não conseguiu converter.';
+
+    public static function ehSenhaErrada(string $erroOpenssl): bool
+    {
+        return stripos($erroOpenssl, 'mac verify failure') !== false;
+    }
+
+    public static function ehFormatoNaoSuportado(string $erroOpenssl): bool
+    {
+        return stripos($erroOpenssl, 'unsupported') !== false;
+    }
+
+    /**
+     * Converte .pfx antigo pro formato atual via `openssl pkcs12 -legacy`.
+     *
+     * Segurança: o .pfx entra por stdin e a senha por variável de ambiente
+     * (`-passin env:`) — nada de senha em argv, arquivo temporário ou log.
+     * A chave em PEM só existe no pipe e em memória, e é re-empacotada na hora
+     * com a mesma senha (openssl_pkcs12_export usa o formato atual, AES).
+     */
+    private function converterPfxLegado(string $content, string $senha): string
+    {
+        if (! function_exists('proc_open')) {
+            throw new InvalidArgumentException(self::MSG_FORMATO_NAO_SUPORTADO.' [proc_open indisponível]');
+        }
+
+        $env = ['NFE_PFX_SENHA' => $senha];
+        foreach (['PATH', 'HOME', 'OPENSSL_MODULES', 'OPENSSL_CONF'] as $var) {
+            $valor = getenv($var);
+            if ($valor !== false && $valor !== '') {
+                $env[$var] = $valor;
+            }
+        }
+
+        $cmd = [self::opensslBin(), 'pkcs12', '-legacy', '-nodes', '-passin', 'env:NFE_PFX_SENHA'];
+        $proc = @proc_open($cmd, [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $env);
+        if (! is_resource($proc)) {
+            throw new InvalidArgumentException(self::MSG_FORMATO_NAO_SUPORTADO.' [falha ao iniciar openssl]');
+        }
+
+        fwrite($pipes[0], $content);
+        fclose($pipes[0]);
+        $pem = (string) stream_get_contents($pipes[1]);
+        $stderr = (string) stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $rc = proc_close($proc);
+
+        if ($rc !== 0) {
+            if (self::ehSenhaErrada($stderr)) {
+                throw new InvalidArgumentException(self::MSG_SENHA_ERRADA);
+            }
+            $resumo = trim(strtok($stderr, "\n") ?: "rc={$rc}");
+            throw new InvalidArgumentException(self::MSG_FORMATO_NAO_SUPORTADO." [{$resumo}]");
+        }
+
+        $pkey = preg_match('/-----BEGIN (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----.+?-----END (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----/s', $pem, $mk)
+            ? openssl_pkey_get_private($mk[0])
+            : false;
+        preg_match_all('/-----BEGIN CERTIFICATE-----.+?-----END CERTIFICATE-----/s', $pem, $mc);
+        $pem = '';
+        if ($pkey === false || $mc[0] === []) {
+            throw new InvalidArgumentException(self::MSG_FORMATO_NAO_SUPORTADO.' [saída do openssl sem chave ou certificado]');
+        }
+
+        $leaf = null;
+        $cadeia = [];
+        foreach ($mc[0] as $certPem) {
+            if ($leaf === null && openssl_x509_check_private_key($certPem, $pkey)) {
+                $leaf = $certPem;
+            } else {
+                $cadeia[] = $certPem;
+            }
+        }
+        if ($leaf === null) {
+            throw new InvalidArgumentException(self::MSG_FORMATO_NAO_SUPORTADO.' [nenhum certificado casa com a chave]');
+        }
+
+        $saida = '';
+        $opts = $cadeia === [] ? [] : ['extracerts' => $cadeia];
+        if (! openssl_pkcs12_export($leaf, $saida, $pkey, $senha, $opts)) {
+            throw new InvalidArgumentException(self::MSG_FORMATO_NAO_SUPORTADO.' ['.$this->coletarErrosOpenssl().']');
+        }
+
+        return $saida;
+    }
+
+    private static function opensslBin(): string
+    {
+        $configurado = (string) config('nfebrasil.openssl_bin', '');
+        if ($configurado !== '') {
+            return $configurado;
+        }
+        foreach (['/usr/bin/openssl', '/usr/local/bin/openssl'] as $caminho) {
+            if (is_executable($caminho)) {
+                return $caminho;
+            }
+        }
+
+        return 'openssl';
+    }
+
+    private function limparErrosOpenssl(): void
+    {
+        while (openssl_error_string() !== false) {
+            // drena a fila de erros de chamadas anteriores
+        }
+    }
+
+    private function coletarErrosOpenssl(): string
+    {
+        $erros = [];
+        while (($e = openssl_error_string()) !== false) {
+            $erros[] = $e;
+        }
+
+        return $erros === [] ? 'sem mensagem' : implode(' | ', $erros);
     }
 
     /**
