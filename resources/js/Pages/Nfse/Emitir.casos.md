@@ -5,7 +5,7 @@ irmaos: Emitir.charter.md (lei) · Emitir.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
 related_us: [US-NFSE-009, US-NFSE-006]
-last_run: "2026-11-16"
+last_run: "2026-11-18"
 last_run_ci: "2026-10-13 — UC-NFSEM-04 verde na lane PHP / Pest (NfeBrasil · MySQL), run 38414970371 (NfseRetencoesDpsTest); UC-NFSEM-01..03 na lane PHP / Pest (Unit), NfseTelasContratoTest; UC-NFSEM-05 nasce no PR do R-NFSE-006, veredito pendente da lane NfeBrasil MySQL (ListaServicoNacionalTest)"
 ---
 
@@ -104,4 +104,4 @@ Nunca biz=4.
 ## Fora do contrato por enquanto
 
 - `[BACKLOG]` o job assíncrono recebe `business_id` no payload (charter Automation hooks) — exige banco; a lane `nfse-pest` (MySQL) existe desde 2026-11-16 (#10964), falta o teste.
-- `[BACKLOG]` alerta de módulo sem configuração / certificado inválido — comportamento de cliente.
+- `[BACKLOG]` alerta de módulo sem configuração / certificado inválido — comportamento de cliente. _2026-11-18: o aviso de certificado passou a olhar o certificado ativo da empresa (o mesmo da NF-e) e a mandar enviar o A1 em Fiscal › Configuração; nenhum UC acima muda (#11144)._
