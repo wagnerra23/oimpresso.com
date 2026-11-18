@@ -8,8 +8,9 @@
 // (US-COM-024 · UC-FLX-38), um PUT no módulo Compras, dono da tabela.
 //
 // A SIMULAÇÃO É DO SERVIDOR, não do cliente: mexer no slider dispara um partial reload, e o
-// backend recalcula com a MESMA fórmula de custo do resto do módulo. O cliente formata.
-// Isso é o §9 do handoff ("a autoridade é o servidor") e evita uma segunda conta na tela.
+// backend devolve o preço simulado do insumo (`preco_simulado`, UC-INS-06) e o custo e a margem
+// de cada receita, recalculados com a MESMA fórmula de custo do resto do módulo. O cliente só
+// formata. Isso é o §9 do handoff ("a autoridade é o servidor") e evita uma segunda conta na tela.
 
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
@@ -60,6 +61,8 @@ interface Props {
   selecionado: number | null;
   usos: LinhaUso[];
   variacao_pct: number;
+  /** UC-INS-06: preço do insumo com a variação aplicada. Nulo sem `view_purchase_price` (UC-INS-07). */
+  preco_simulado: number | null;
   metodo_custo: MetodoCusto | null;
   permissions: { prod: boolean };
   producao: { total: number; rascunhos: number };
@@ -68,7 +71,7 @@ interface Props {
 
 const ROUTE = '/manufacturing/insumos';
 /** Props que a gaveta recarrega ao abrir/fechar um insumo. */
-const PROPS_GAVETA = ['usos', 'selecionado', 'variacao_pct', 'metodo_custo'];
+const PROPS_GAVETA = ['usos', 'selecionado', 'variacao_pct', 'preco_simulado', 'metodo_custo'];
 
 const OPCOES_METODO = [
   { value: 'medio', label: 'Médio' },
@@ -135,6 +138,7 @@ export default function Insumos({
   selecionado,
   usos,
   variacao_pct,
+  preco_simulado,
   metodo_custo,
   permissions,
   producao,
@@ -277,7 +281,7 @@ export default function Insumos({
                   {variacao_pct}%
                 </b>
                 <span>
-                  {fmt(sel.custo)} → {fmt(sel.custo * (1 + variacao_pct / 100))} / {sel.unidade}
+                  {fmt(sel.custo)} → {fmt(preco_simulado)} / {sel.unidade}
                 </span>
               </div>
             </SecaoGaveta>

@@ -3,13 +3,10 @@
 namespace Modules\Superadmin\Http\Controllers;
 
 use App\Business;
-use App\Product;
-use App\Transaction;
 use App\User;
 use App\Util\OtelHelper;
 use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
-use App\VariationLocationDetails;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
@@ -632,8 +629,7 @@ class BusinessController extends BaseController
             $business_id = request()->session()->get('user.business_id');
 
             // Pré-condições centralizadas (negócio 1 protegido, próprio negócio, último negócio).
-            // O que é apagado não muda aqui — isso é a decisão B5 pendente do [W]. A recusa sai
-            // pelo mesmo `return` de antes, para não abrir mais um retorno no método.
+            // A recusa sai pelo mesmo `return` de antes, para não abrir mais um retorno no método.
             $pode = app(BusinessAuditService::class)->canDestroy((int) $id, (int) $business_id);
             if ($business_id == $id || ! $pode['can_destroy']) {
                 $output = ['success' => 0, 'msg' => $business_id == $id
@@ -645,26 +641,22 @@ class BusinessController extends BaseController
 
             DB::beginTransaction();
 
-            // Trilha: quem excluiu qual negócio (ids e o IP de quem excluiu). `business_id` do registro é o
-            // negócio excluído, não o da sessão do superadmin.
+            // Decisão B5 ([W] 2026-11-18): excluir empresa NÃO apaga nada — só desativa. Num ERP
+            // venda, nota e financeiro têm dever de guarda. Antes apagava transações, estoque por
+            // local e o registro da empresa, e deixava o resto (produtos, contatos, usuários) órfão.
+            Business::where('id', $id)
+                ->update(['is_active' => 0]);
+
+            // Trilha: quem desativou qual negócio (ids e o IP). `business_id` do registro é o
+            // negócio desativado, não o da sessão do superadmin.
             activity('superadmin_negocio')
                 ->causedBy(auth()->user())
-                ->event('negocio_excluido')
-                ->withProperties(['negocio_id' => (int) $id, 'ip' => request()->ip()])
+                ->event('negocio_desativado')
+                ->withProperties(['negocio_id' => (int) $id, 'ip' => request()->ip(), 'via' => 'excluir'])
                 ->tap(function ($activity) use ($id) {
                     $activity->business_id = (int) $id;
                 })
-                ->log('negocio_excluido');
-
-            //Delete related products & transactions.
-            $products_id = Product::where('business_id', $id)->pluck('id')->toArray();
-            if (! empty($products_id)) {
-                VariationLocationDetails::whereIn('product_id', $products_id)->delete();
-            }
-            Transaction::where('business_id', $id)->delete();
-
-            Business::where('id', $id)
-                ->delete();
+                ->log('negocio_desativado');
 
             DB::commit();
 

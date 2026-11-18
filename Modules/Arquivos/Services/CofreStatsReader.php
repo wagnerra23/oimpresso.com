@@ -99,9 +99,9 @@ class CofreStatsReader
      *
      * Os discos NÃO são escritos aqui: saem de um `GROUP BY` do próprio acervo, pelo
      * mesmo motivo que os chips da trilha saem do log. Os nomes vivem em config
-     * (`disk_default`/`disk_vault`) e já variam por ambiente ('local' em dev, 'arquivos'
-     * no CT 100) — uma lista em PHP diria o disco errado em metade das instalações, e
-     * ainda esconderia um disco terceiro que aparecesse por backfill.
+     * (`disk_default`/`disk_vault`) e podem variar por ambiente (env `ARQUIVOS_DISK_*`) — uma
+     * lista em PHP diria o disco errado conforme a instalação, e ainda esconderia um disco
+     * terceiro que aparecesse por backfill.
      *
      * `cifrados` acompanha porque é o que distingue os dois cards: vault com cifrado
      * abaixo do total é o mesmo sinal do check #5 do `arquivos:health-check`.

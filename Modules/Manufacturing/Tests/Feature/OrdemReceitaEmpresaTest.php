@@ -10,6 +10,8 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
+ * @covers-us US-MANU-008
+ *
  * Montar e gravar a ordem de produção só com receita da PRÓPRIA empresa — Tier 0, ADR 0093.
  *
  * Prova as hipóteses H1 e H2 de `memory/requisitos/Manufacturing/PARIDADE-ordem-producao-blade-vs-prototipo.md`

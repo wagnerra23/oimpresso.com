@@ -32,7 +32,7 @@ Página pública onde o cliente final informa o nº da OS, o nº da venda ou o c
 ## Goals — Features (faz)
 
 - Busca por nº da OS, nº da venda ou celular (celular só se `repair.enable_repair_check_using_mobile_num` ligar), com nº de série opcional que só estreita (`consulta-os.buscar`)
-- Exibe, por OS encontrada, **só**: nº da OS, marca, aparelho, modelo, nº de série, status com cor, previsão de entrega e atividades (data, ação, quem, nota) — a mesma lista do `/repair-status`
+- Exibe, por OS encontrada, **só**: nº da OS, marca, aparelho, modelo, nº de série, status com cor, previsão de entrega e atividades (data, ação, quem — primeiro nome + inicial do sobrenome, decisão [W] 2026-11-17 —, nota) — a mesma lista do `/repair-status`
 - Estado "OS não encontrada" claro quando o número não bate
 - Layout público limpo (sem AppShellV2, sem sidebar do ERP), tokens DS
 
@@ -42,6 +42,7 @@ Página pública onde o cliente final informa o nº da OS, o nº da venda ou o c
 
 - ❌ NÃO expõe dados internos/financeiros da OS ao público (só status de acompanhamento): sem custo/preço, senha do aparelho, defeitos, checklist, notas internas, `business_id`
 - ❌ NÃO expõe dados do cliente (nome, CPF/CNPJ, endereço, e-mail) — nem pra quem buscou pelo celular
+- ❌ NÃO expõe o nome completo de funcionário: quem mexeu na OS sai como primeiro nome + inicial do sobrenome, sem o tratamento (decisão [W] 2026-11-17 · UC-COS-62)
 - ❌ NÃO exige login — é rota pública intencional
 - ❌ NÃO lista todas as OS (só as que casam com o critério informado; no máximo 20)
 - ❌ NÃO permite editar/cancelar a OS (read-only pro cliente)
@@ -65,9 +66,11 @@ Página pública onde o cliente final informa o nº da OS, o nº da venda ou o c
 
 ## Anti-hooks (NÃO faz automaticamente)
 
-- ❌ NÃO indexa/expõe OS por enumeração (proteção de token público — ver testes de segurança do módulo)
+- ❌ NÃO facilita enumerar OS: `throttle:30,1` por IP nas rotas do portal e no `/repair-status`, tipo de busca em lista fechada, número com formato restrito (até 20 caracteres) e resposta "não encontrada" sem pista (UC-COS-03, UC-COS-07). Resíduo aberto: o nº da OS é sequencial por empresa e a busca procura em todas as empresas, então quem tenta números em sequência dentro do limite do throttle acha OS de qualquer empresa — decisão [W] pendente (UC-COS-09, ver Pendências)
 - ❌ NÃO dispara notificação ao cliente ao consultar
-- ❌ NÃO grava nada em GET
+- ❌ NÃO grava dado de negócio nem altera a OS em GET. Grava só o log de auditoria redigido da busca (`ConsultaOsController::auditarConsulta`: número via `PiiRedactor`, IP truncado, tipo, resultado) e o contador do throttle (UC-COS-06)
+
+> **Errata 2026-11-17** (o teste verde vence o charter — [proibicoes.md](../../../../memory/proibicoes.md) §Precedência): este bloco dizia (a) "NÃO indexa/expõe OS por enumeração (proteção de token público — ver testes de segurança do módulo)" — não existe token público, e o `PublicTokenSecurityTest` saiu com o mock em 2026-10-02; a defesa real é a descrita acima; e (b) "NÃO grava nada em GET" — toda busca grava a linha de auditoria e o contador do throttle. Status do charter não muda: aprovar é do Wagner.
 
 ---
 

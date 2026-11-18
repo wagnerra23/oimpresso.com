@@ -104,6 +104,8 @@ class DataController extends Controller
                     'ghosts'   => $ghosts,
                 ];
                 // "Nova ordem" abre o formulário de ordem, que pede `access_production`.
+                // Destino é a Blade até a etapa 6 da ADR 0448 chegar em produção (§6: a Blade
+                // sai na etapa 7). Mesmo destino de `resources/js/Pages/Manufacturing/_lib/ordem.ts`.
                 if ($pode_producao) {
                     $atributos['primary'] = [
                         'label'    => 'Nova ordem de produção',

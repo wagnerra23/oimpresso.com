@@ -119,6 +119,58 @@ describe('Sidebar · item com filhos abre inline', () => {
     expect(qr.getAttribute('href')).toBe('/product-catalogue/qr');
   });
 
+  // Medido em prod 2026-11-17 (biz=1): em /product-catalogue/catalogue-qr o Vendas
+  // ficava fechado e nada levava aria-current — a cascata só abria por filho.
+  it('na rota de um ghost, o item abre e só o ghost leva aria-current', () => {
+    localStorage.setItem('oimpresso.cockpit.group.v2.comercial.expanded', '0');
+    irPara('/product-catalogue/catalogue-qr');
+    render(
+      <SidebarMenu
+        items={[
+          { label: 'CRM', href: '/crm' },
+          {
+            label: 'Vendas',
+            children: [
+              { label: 'Todas as vendas', href: '/sells' },
+              { label: 'Nova venda', href: '/sells/create' },
+            ],
+            ghosts: [
+              { key: 'nova', label: 'Nova venda', href: '/sells/create' },
+              { key: 'catalogue-qr', label: 'Catálogo QR', href: '/product-catalogue/catalogue-qr' },
+            ],
+          },
+          { label: 'Auditoria', href: '/auditoria' },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /Vendas/ }).getAttribute('aria-expanded')).toBe('true');
+    const atuais = document.querySelectorAll('[aria-current="page"]');
+    expect(atuais).toHaveLength(1);
+    expect(atuais[0].textContent).toBe('Catálogo QR');
+  });
+
+  it('ghost com o mesmo href de um filho: só o filho leva aria-current', () => {
+    irPara('/sells/create');
+    render(
+      <SidebarMenu
+        items={[
+          { label: 'CRM', href: '/crm' },
+          {
+            label: 'Vendas',
+            children: [{ label: 'Nova venda', href: '/sells/create' }],
+            ghosts: [{ key: 'nova', label: 'Nova venda', href: '/sells/create' }],
+          },
+        ]}
+      />,
+    );
+
+    const atuais = document.querySelectorAll('[aria-current="page"]');
+    expect(atuais).toHaveLength(1);
+    expect(atuais[0].classList.contains('sb-ghost')).toBe(true);
+    expect(atuais[0].closest('a')?.getAttribute('href')).toBe('/sells/create');
+  });
+
   it('item com filhos E ghosts: fora da rota, ghosts só com a cascata aberta', () => {
     irPara('/auditoria');
     render(

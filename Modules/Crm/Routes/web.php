@@ -174,32 +174,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
             ->whereNumber('id')
             ->name('veiculos.index');
 
-        // Wagner 2026-05-27 (fix critico stuck "Carregando atividades...") --
-        // 7 sub-tabs do OssTab drawer 760 (Extrato/Vendas/Pagamentos/
-        // Documentos/Atividades/Pessoas/Assinaturas/Pontos) recebiam undefined
-        // do parent porque buildClienteIndexCustomers do ContactController so
-        // monta rows enxuto sem Inertia::defer dos sub-tabs (defers viviam so na
-        // Show.tsx legada). Fix arquitetural: self-fetch via fetch() JSON.
-        // Endpoints centralizados em ClienteOssDataController (1 arquivo,
-        // N metodos). Multi-tenant Tier 0 garantido em cada metodo.
-        Route::prefix('{id}')->whereNumber('id')->group(function () {
-            Route::get('ledger', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'ledger'])
-                ->name('oss.ledger');
-            Route::get('sales', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'sales'])
-                ->name('oss.sales');
-            Route::get('payments', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'payments'])
-                ->name('oss.payments');
-            Route::get('documents', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'documents'])
-                ->name('oss.documents');
-            Route::get('activities', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'activities'])
-                ->name('oss.activities');
-            Route::get('persons', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'persons'])
-                ->name('oss.persons');
-            Route::get('subscriptions', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'subscriptions'])
-                ->name('oss.subscriptions');
-            Route::get('rewards', [\Modules\Crm\Http\Controllers\ClienteOssDataController::class, 'rewards'])
-                ->name('oss.rewards');
-        });
+        // 2026-11-17 — removidas as 8 rotas GET /cliente/{id}/{ledger,sales,payments,documents,
+        // activities,persons,subscriptions,rewards} (ClienteOssDataController). Nenhuma tela as
+        // chamava e elas não conferiam permissão: qualquer usuário logado da empresa lia extrato,
+        // vendas, pagamentos e pessoas de contato de qualquer cliente digitando o endereço. As abas
+        // da ficha usam /cliente/{id}/sales-json, payments-json, rewards-json, subscriptions-json,
+        // anexos e /contacts/ledger (ContactController), que conferem permissão.
 
         // 2 endpoints lookup (cache Redis: CEP 90d, CNPJ 30d).
         // Wave 15 D8 Security -- throttle 60/min anti-abuso pro caso de

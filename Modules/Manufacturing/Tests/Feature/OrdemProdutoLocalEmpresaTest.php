@@ -10,6 +10,8 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
+ * @covers-us US-MANU-008
+ *
  * Gravar e editar a ordem de produção só com produto e local da PRÓPRIA empresa. Tier 0, ADR 0093 ·
  * US-MANU-008 H1 · handoff Fabricação §9.
  *

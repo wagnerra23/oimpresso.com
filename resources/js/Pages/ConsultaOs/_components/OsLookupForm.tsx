@@ -30,12 +30,16 @@ export function OsLookupForm({ onBuscar, loading, buscaPorCelular }: Props) {
   const [serie, setSerie] = useState('')
   const [touched, setTouched] = useState(false)
 
+  // Celular só com nº de série (decisão [W] 2026-11-17): o servidor recusa com 422 sem ela.
+  const serieObrigatoria = tipo === 'mobile_num'
   const invalid = touched && !numero.trim()
+  const serieInvalida = touched && serieObrigatoria && !serie.trim()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setTouched(true)
     if (!numero.trim()) return
+    if (serieObrigatoria && !serie.trim()) return
     onBuscar(tipo, numero.trim(), serie.trim())
   }
 
@@ -47,13 +51,17 @@ export function OsLookupForm({ onBuscar, loading, buscaPorCelular }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} aria-busy={loading}>
       <Stack gap={5}>
         <Stack gap={2}>
-          <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <Label
+            id="os-tipo-label"
+            className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
+          >
             Buscar por
           </Label>
           <RadioGroup
+            aria-labelledby="os-tipo-label"
             value={tipo}
             onValueChange={(v) => setTipo(v as TipoBusca)}
             className="grid-cols-3"
@@ -102,16 +110,27 @@ export function OsLookupForm({ onBuscar, loading, buscaPorCelular }: Props) {
             htmlFor="os-serie"
             className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
           >
-            Nº de série do aparelho (opcional)
+            {serieObrigatoria ? 'Nº de série do aparelho' : 'Nº de série do aparelho (opcional)'}
           </Label>
           <Input
             id="os-serie"
             type="text"
             maxLength={50}
             value={serie}
+            required={serieObrigatoria}
             onChange={(e) => setSerie(e.target.value.replace(/[^A-Za-z0-9/.-]/g, ''))}
-            className="h-11 text-base"
+            className={cn(
+              'h-11 text-base',
+              serieInvalida && 'border-destructive ring-destructive focus-visible:ring-destructive',
+            )}
+            aria-invalid={serieInvalida}
+            aria-describedby={serieInvalida ? 'os-serie-error' : undefined}
           />
+          {serieInvalida && (
+            <p id="os-serie-error" className="text-xs text-destructive">
+              Para buscar pelo celular, informe também o número de série do aparelho.
+            </p>
+          )}
         </Stack>
 
         <div className="grid grid-cols-2 gap-3 pt-1">

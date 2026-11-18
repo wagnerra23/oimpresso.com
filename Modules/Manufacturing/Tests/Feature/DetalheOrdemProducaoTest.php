@@ -14,6 +14,8 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
+ * @covers-us US-MANU-009
+ *
  * Detalhe de uma ordem de produção (painel lateral da tela de Ordens) — UC-OP-07.
  *
  * O painel mostra os ingredientes consumidos e o custo. As contas são as do detalhe da tela

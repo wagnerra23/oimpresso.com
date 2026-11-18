@@ -185,6 +185,46 @@ last_run: "2026-11-16"
 - **Teste:** `tests/Feature/Cliente/ClienteDescontoExtratoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-18 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente das lanes.
 
+## UC-CIDX-19 · "Só os próprios clientes" vale também ao abrir o cliente pelo número `[T0]` `[must]`
+- **Persona:** vendedor com permissão de ver só os próprios clientes (`customer.view_own` sem `customer.view`).
+- **Como usa:** abre a ficha do cliente; a ficha chama um endereço por aba (vendas, pagamentos, pontos, assinaturas, documentos, IA, auditoria, cadastro, endereços de entrega, extrato por e-mail).
+- **Aceite:** Dado um vendedor só-próprios · Quando pede qualquer desses endereços com o número de um cliente que outro vendedor cadastrou · Então recebe 403 e nada é alterado · E o próprio cliente abre normalmente · E o cliente compartilhado com ele (`user_contact_access`) abre · E quem tem `customer.view` abre o cliente de qualquer vendedor · E as 8 rotas `GET /cliente/{id}/{ledger,sales,payments,documents,activities,persons,subscriptions,rewards}`, que não conferiam permissão e nenhuma tela usava, respondem 404.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-17 ("corrige o 1, o 2 e o 3") · a regra da lista (`PessoaEscopo::viewOwn`, `tests/Feature/Roles/ContatosViewOwnTest.php`) · `ContactController::show()` antigo já recusava o cliente de outro vendedor com 403 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteSoPropriosPorNumeroTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-19 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-20 · Endereços de entrega mostram quando o servidor recusa `[T1]` `[must]`
+- **Persona:** quem cuida do cadastro do cliente na gaveta (aba Endereço → endereços de entrega).
+- **Como usa:** clica em **Remover** ou em **Marcar como endereço de entrega** num endereço da lista.
+- **Aceite:** Dado que o servidor recusa (403 sem permissão de editar, 404, 422 com motivo) · Quando clica · Então aparece o aviso com o motivo e o endereço continua na lista como estava · E quando o servidor aceita, a lista se atualiza sem aviso.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-17 ("corrige o 1, o 2 e o 3") · mesmo defeito corrigido no desconto do extrato e na anotação de documentos (UC-CIDX-13/14): até 2026-11-17 os dois botões não faziam nada quando o servidor recusava.
+- **Teste:** `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-20 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-21 · Estoque comprado de um fornecedor só da própria empresa e com permissão `[T0]` `[must]`
+- **Persona:** quem abre a aba de estoque na ficha antiga do fornecedor.
+- **Como usa:** a aba pede `GET /contacts/stock-report/{fornecedor}`.
+- **Aceite:** Dado um fornecedor de outra empresa · Quando o pedido chega com o número dele · Então responde 404 · E sem permissão de ver contatos responde 403 · E quem só vê os próprios contatos não abre o fornecedor de outro · E o fornecedor da própria empresa, com permissão, responde 200.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-18 ("corrige o 1, o 2, o 3 e o 4") · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Até 2026-11-18 a consulta não filtrava empresa nem conferia permissão.
+- **Teste:** `tests/Feature/Cliente/ClienteRotasAntigasPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-21 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-22 · Pagamentos na ficha antiga: com permissão e conta mascarada `[T0]` `[must]`
+- **Persona:** quem abre a aba Pagamentos da ficha antiga do contato.
+- **Como usa:** a aba pede `GET /contacts/payments/{contato}`.
+- **Aceite:** Dado um usuário sem permissão de ver contatos · Quando pede os pagamentos · Então responde 403 · E contato de outra empresa responde 404 · E com permissão o número de conta aparece como `****` + 4 últimos dígitos, nunca inteiro, como na aba nova (`/cliente/{id}/payments-json`, UC-CSHW-03).
+- **Âncora de contrato:** pedido do Felipe em 2026-11-18 · LGPD: número de conta nunca em claro (`ContactController::paymentsJson`).
+- **Teste:** `tests/Feature/Cliente/ClienteRotasAntigasPermissaoTest.php` — `UC-CIDX-22 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-23 · Anotações e documentos conferem permissão e respeitam anotação privada `[T0]` `[must]`
+- **Persona:** quem anota no cliente (aba Documentos da ficha, ficha antiga, lead do Crm) ou no cadastro de um usuário.
+- **Como usa:** listar, criar, abrir, editar e apagar anotações em `/note-documents`.
+- **Aceite:** Dado quem não pode ver o registro dono · Quando pede qualquer dessas ações · Então responde 403 e nada é gravado · E cliente/fornecedor exige permissão de ver contatos, com "só os próprios" respeitado · E lead do Crm segue a regra da tela do lead (todos os leads, ou os que ele criou ou atende) · E usuário exige `user.view` · E tipo de registro fora de App\\Contact e App\\User responde 404 · E anotação privada de outro usuário não abre, não salva e não apaga pelo número (404), enquanto o autor segue editando a sua.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-18 ("corrige o 1, o 2, o 3 e o 4") · `LeadController::show` + `CrmContact::scopeOnlyOwnLeads` (regra do lead) · `PessoaEscopo` (regra do contato) · a lista de anotações já escondia a privada de outro usuário. Até 2026-11-18 nenhuma ação de `DocumentAndNoteController` conferia permissão.
+- **Teste:** `tests/Feature/Cliente/ClienteAnotacaoPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-23 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.

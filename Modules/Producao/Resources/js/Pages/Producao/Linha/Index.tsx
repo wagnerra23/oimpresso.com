@@ -12,6 +12,7 @@
 // - o dia seguinte é o próximo dia útil (UC-FLX-06); travado por arte ou falta de material (D3) move e segue travado;
 // - passar da entrega prometida (US-PCP-028) move, mas avisa.
 // O filtro é o do Quadro (`../_lib/filtro.ts`, UC-PCV-06) e mora na URL. Reprogramar = PUT /producao/etapas/{id}/reprogramar.
+// UC-PCOSF-09: clicar no bloco abre a Ficha no painel lateral, como no Quadro (decisão [W] no #10850), com `?os=` na URL.
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -27,7 +28,10 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
 import { LIMPO, filtrado as temFiltro, passa, paraUrl, setorDe, type Filtravel, type Filtro } from '../_lib/filtro';
 import { json, Recusa } from '../Quadro/_lib/json';
-import { urlDaFicha } from '../_lib/ficha';
+import { osDoPainel, urlDaFicha } from '../_lib/ficha';
+import PainelDaFicha from '../_components/PainelDaFicha';
+import { usePainelDaFicha } from '../_lib/usePainelDaFicha';
+import type { FichaBase } from '../_components/FichaDaOs';
 
 interface Pessoa { id: number; nome: string }
 interface Posto { id: number; nome: string; setor: string | null; horas: number; capacidade: number; operadores: Pessoa[] }
@@ -42,7 +46,7 @@ interface Linha { postos: Posto[]; blocos: Bloco[]; sugestao: Sugestao | null; a
 interface Evento { quando: string; texto: string; etapa: string | null; quem: string | null; os: string | null; posto_id: number | null }
 interface Props {
   hoje: string; dias: { hoje: string; proximo: string }; dia: 'hoje' | 'proximo'; turno: { inicio: string; fim: string };
-  filtro: Filtro; pode_mover: boolean; linha?: Linha; eventos?: Evento[];
+  filtro: Filtro; pode_mover: boolean; linha?: Linha; eventos?: Evento[]; ficha?: FichaBase | null;
 }
 interface Msg { tom: 'ok' | 'aviso' | 'recusa'; texto: string; desfazer?: () => void }
 interface Escolha { b: Bloco; posto: Posto; inicio: number; opcoes: Pessoa[] }
@@ -56,7 +60,7 @@ const h1 = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, 
 const d2 = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
 const semana = (iso: string) => ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][new Date(iso + 'T12:00:00').getDay()];
 
-function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Evento[] }) {
+function Conteudo({ p, linha, eventos, abrirFicha }: { p: Props; linha: Linha; eventos: Evento[]; abrirFicha: (osId: number) => void }) {
   const [f, setFiltro] = useState<Filtro>({ q: p.filtro?.q ?? '', so: p.filtro?.so ?? 'todas', resp: p.filtro?.resp ?? '', setor: p.filtro?.setor ?? '' });
   const [msg, setMsg] = useState<Msg | null>(null);
   const [escolha, setEscolha] = useState<Escolha | null>(null);
@@ -71,7 +75,9 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
   const H1 = Math.max(Math.ceil(fimTurno) + 1, ...linha.blocos.map((b) => Math.ceil(horaDe(b.fim))));
   const pos = (h: number) => ((h - H0) / (H1 - H0)) * 100;
   const posto = (id: number) => linha.postos.find((x) => x.id === id);
-  const urlDo = (nf: Filtro, dia: string) => window.location.pathname + paraUrl(nf, dia === 'proximo' ? { dia } : {});
+  // A OS aberta no painel (UC-PCOSF-09) continua na URL ao filtrar e ao trocar de dia.
+  const urlDo = (nf: Filtro, dia: string) => { const os = osDoPainel(window.location.search);
+    return window.location.pathname + paraUrl(nf, { ...(dia === 'proximo' ? { dia } : {}), ...(os ? { os: String(os) } : {}) }); };
   const setF = (nf: Filtro) => { setFiltro(nf); window.history.replaceState(window.history.state, '', urlDo(nf, p.dia)); };
   // O mesmo `passa` do Quadro (UC-PCV-06): o bloco vira um "cartão" com atraso e arte vindos do prazo e das travas.
   const comoCartao = (b: Bloco): Filtravel => ({ numero: b.numero, cliente: b.cliente, titulo: b.etapa,
@@ -138,11 +144,10 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
     };
     window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
   };
-  // UC-PCOSF-06: clicar (sem arrastar) ou Enter no bloco abre a Ficha da OS por item.
+  // UC-PCOSF-06/09: clicar (sem arrastar) ou Enter no bloco abre a Ficha da OS por item no painel lateral.
   const abrir = (b: Bloco) => () => {
     if (arrastouRef.current) { arrastouRef.current = false; return; }
-    const url = urlDaFicha(b.os_tipo, b.os_id);
-    if (url) router.visit(url);
+    if (urlDaFicha(b.os_tipo, b.os_id)) abrirFicha(b.os_id);
   };
   const tecla = (b: Bloco) => (e: ReactKeyboardEvent<HTMLButtonElement>) => {
     if (!e.altKey || !p.pode_mover) return;
@@ -319,12 +324,14 @@ function Conteudo({ p, linha, eventos }: { p: Props; linha: Linha; eventos: Even
 }
 
 export default function LinhaIndex(props: Props) {
+  const painel = usePainelDaFicha('/producao/linha'); // UC-PCOSF-09
   return (
     <div className="pcv-root" data-screen-label="Produção · Linha do tempo">
       <div className="pcv-ph"><PageHeader title="Produção" suffix=" · Linha do tempo" below={<ProducaoAbas ativa="/producao/linha" />} /></div>
       <Deferred data={['linha', 'eventos']} fallback={<div className="pcv-body"><Skeleton className="h-64 w-full" /></div>}>
-        <Conteudo p={props} linha={props.linha ?? { postos: [], blocos: [], sugestao: null, agrupamento: null }} eventos={props.eventos ?? []} />
+        <Conteudo p={props} linha={props.linha ?? { postos: [], blocos: [], sugestao: null, agrupamento: null }} eventos={props.eventos ?? []} abrirFicha={painel.abrir} />
       </Deferred>
+      <PainelDaFicha osId={painel.osAberta} ficha={props.ficha} carregando={painel.carregando} onFechar={painel.fechar} atualizar={['linha', 'eventos']} />
     </div>
   );
 }

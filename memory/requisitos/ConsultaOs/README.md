@@ -1,79 +1,60 @@
 # Modules/ConsultaOs
 
-Portal publico (sem auth) para cliente final acompanhar status de Ordem de Servico (OS) — fluxo orcado → aprovacao → producao → acabamento → expedicao → entregue.
+Portal público (sem login) onde o cliente final consulta a Ordem de Serviço (OS) dele. Lê as folhas de OS do `Modules/Repair`; o status mostrado é o que cada empresa cadastrou no Repair (é livre por empresa, não há pipeline fixo).
 
 ## Status
 
-**Fonte real desde 2026-10-02** — lê as folhas de OS do `Modules/Repair` (US-CONSULTA-001). O antigo `/repair-status` redireciona pra cá. O resto deste README (jornada, filtro por estágio) descreve o desenho mock anterior e ficou histórico; o contrato vivo é `resources/js/Pages/ConsultaOs/Index.casos.md`.
+**Fonte real desde 2026-10-02** (US-CONSULTA-001): as folhas de OS do `Modules/Repair`. O antigo `/repair-status` redireciona (302) pra cá. Contrato vivo: `resources/js/Pages/ConsultaOs/Index.casos.md`.
+
+Pendências que são decisão [W] (não estão feitas): identificar a empresa do cliente na busca (hoje um nº válido é procurado em todas as empresas, travado pelo UC-COS-09) e captcha.
 
 ## Arquitetura
 
 ```
-Routes/web.php (throttle:30,1)
-  → ConsultaOsController (validacao + auditoria PiiRedactor)
-    → ConsultaOsService (found/not_found + OTel span)
-      → ConsultaOsRepositoryInterface (contrato)
-        → RepairConsultaOsRepository (repair_job_sheets real, payload whitelist)
+Routes/web.php  GET /consulta-os  e  GET /consulta-os/buscar  (throttle:30,1, sem auth)
+  → ConsultaOsController
+      index()  → Inertia ConsultaOs/Index (prop buscaPorCelular)
+      buscar() → ConsultaPublicaRequest (tipo em lista fechada + formato do número)
+               → auditoria redigida no log (PiiRedactor, IP /24, UA 80c)
+    → ConsultaOsService (found/not_found + span OTel consultaos.busca_publica)
+      → ConsultaOsRepositoryInterface
+        → RepairConsultaOsRepository (repair_job_sheets, payload campo a campo, até LIMITE OS)
 ```
 
-## Como cliente usa (portal publico completo Wave 27)
+## Como o cliente usa
 
-### Jornada feliz — consulta por numero
+1. A empresa passa ao cliente o nº da OS (ou ele usa o nº da venda / celular) e o link `/consulta-os`.
+2. O cliente escolhe o tipo de busca e digita o número. Tipos: `job_sheet_no`, `invoice_no` e `mobile_num` (celular só quando `repair.enable_repair_check_using_mobile_num` está ligada). Formato: letras, dígitos e `/ . -`, até 20 caracteres; nº de série opcional.
+3. Resposta:
+   - `200 {found: true, ordens: [...]}` — cada ordem traz nº, marca, aparelho, modelo, nº de série, status (nome + cor), previsão de entrega e atividades (data, ação, quem, nota, mudança de conclusão).
+   - `404 {found: false}` — não achou; não diz se o número existe em alguma empresa.
+   - `422` — tipo ou formato inválido.
+4. Quando a empresa muda o status da OS para um status marcado com aviso (`repair_statuses.whatsapp_template_aviso`), o cliente recebe WhatsApp (listener `Modules/Whatsapp/Listeners/NotifyRepairCustomer`, US-CONSULTA-004). A transição pela FSM do Repair não dispara esse aviso (UC-COS-14).
 
-1. **Vendedor entrega numero da OS**: "Sua OS e 4821, acompanhe em https://oimpresso.com/consulta-os" (canal WhatsApp/email/SMS).
-2. **Cliente acessa portal Inertia React** (`/consulta-os`) — pagina single-page, sem login, sem cookies persistentes.
-3. **Digita numero** + escolhe estagio (opcional) — validacao `alpha_num + max:20` via `ConsultaPublicaRequest`.
-4. **Recebe JSON estruturado**:
-   - `200 {found: true, os: {client, contact, stage, items[]}}` — OS achada
-   - `404 {found: false}` — opaco (NAO confirma se OS existe ou se estagio nao bate — anti-enumeration)
-
-### Filtro por estagio (Wave 27 scaffold)
-
-5. **Lista por estagio** (futuro US-CONSULTA-002): `ConsultaPorEstagioRequest` permite cliente ver "todas as minhas OS em producao" — validacao estagio em lista controlada + paginacao max 20/pag (anti-scraping).
-
-### Feedback opcional (Wave 27 scaffold)
-
-6. **Apos consultar, cliente pode enviar feedback** (futuro US-CONSULTA-002 analytics):
-   - `FeedbackPublicoRequest` valida `numero_os + nota 1-5 + comentario opcional max:500`
-   - Comentario passa por `PiiRedactor` ANTES de persistir (defesa em profundidade)
-   - Throttle mais restritivo (5 req/min) — feedback e baixa frequencia natural
-
-### Operacao do portal (timeline real do cliente)
-
-7. **Recebe SMS quando OS muda estagio**: integracao com `Modules/RecurringBilling` notifica via WhatsApp Baileys/Meta API (canal valido por business). Mensagem template "Sua OS {numero} avancou para {estagio}. Consulte: https://...".
-8. **Acessa portal sem precisar lembrar de senha**: ZERO auth — apenas conhecer o numero. Defesa contra enumeration brute-force via:
-   - `throttle:30,1` (30 req/min por IP)
-   - `404` opaco quando estagio nao bate (nao confirma existencia)
-   - PiiRedactor wraps tudo logado
-9. **Ve estado atual + itens da OS** — sem ver: `business_id`, `total_final`, `lucro`, `cliente_cpf`, `cliente_cnpj`, `forma_pagamento` (D7 LGPD + ADR 0093).
-10. **Imprime/screenshota como comprovante** — JSON estruturado renderizado em React ja contem todas as info publicas (cliente, contato, criado em, atualizado em, items por estagio).
-
-### Observabilidade (Wave 25 + 27 D9 — defesa em profundidade)
-
-- **Repository span** (`consultaos.repository.lookup` — Wave 27 D9): isola latencia da fonte de dados (mock vs SQL real quando US-CONSULTA-001 entrar).
-- **Service span** (`consultaos.busca_publica` — Wave 18 D9): envolve filtragem por estagio + decisao found/stage_mismatch.
-- **Controller audit log** (Wave 25 D9): estruturado com PiiRedactor + IP truncado /24.
-- **Health probes** (`consulta-os:health --detail` — Wave 25): 5 checks operacionais.
-
-Nunca expoe `business_id`, `total_final`, `lucro`, `cliente_cpf`, `cliente_cnpj` (D7 LGPD + ADR 0093).
+Nunca sai no payload: nome, CPF/CNPJ, endereço ou e-mail do cliente, `business_id`, custo estimado, senha/padrão do aparelho, defeitos, checklist e notas internas da OS.
 
 ## Conformidade
 
-- **D8 Security:** `ConsultaPublicaRequest` valida `alpha_num + max:20`; route middleware `throttle:30,1` (30 req/min anti-enumeration); `404` opaco em not_found OU stage_mismatch (nao confirma existencia).
-- **D7 LGPD:** auditoria via `PiiRedactor` (cobre CPF/CNPJ/email se cliente cola no campo errado) + IP truncado /24 (ipv4) ou /48 (ipv6) — pseudonimizacao. Retencao 365d via `Config/retention.php`.
-- **D9 OTel:** `ConsultaOsMockService` envolve busca em `OtelHelper::span('consultaos.busca_publica')`.
+- **Segurança:** `throttle:30,1` por IP nas duas rotas públicas (e no `/repair-status`); tipo de busca em lista fechada e formato do número restrito; a consulta não roda sem tipo válido e número não vazio (revalidado no repositório).
+- **LGPD:** cada busca gera uma linha de log com o número redigido (`PiiRedactor`), IP truncado (/24 IPv4, /48 IPv6), User-Agent cortado em 80 caracteres, tipo e resultado. Nenhum dado da OS encontrada vai pro log.
+- **OTel:** `consultaos.busca_publica` (Service) e `consultaos.repository.lookup` (Repository), sem `business_id`.
 
-## Smoke E2E
+## Testes
 
-```bash
-php artisan test --filter=CustomerJourneyTest --testsuite=consultaos
-```
+Rodam no CI ou no CT 100, nunca local:
 
-Cobre acesso portal + busca OS conhecida + filtro estagio + 404 limpo + brute-force bloqueado + payload sem PII.
+- `tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php` — contrato da tela e da busca.
+- `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` — aviso de status (US-CONSULTA-004).
+- `Modules/ConsultaOs/Tests/Feature/` — scaffold e isolamento.
+
+Health sob demanda: `php artisan consultaos:health --detail`.
 
 ## Refs
 
-- `memory/requisitos/ConsultaOs/SPEC.md` (US-CONSULTA-001 — migrar mock → real)
+- `memory/requisitos/ConsultaOs/SPEC.md`
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0
-- [ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) — rubrica D1-D9
-- `Modules/Repair/Routes/web.php` — padrao a imitar (`/repair-status`; o `/post-repair-status` saiu em 2026-10-27)
+- `Modules/Repair/Http/Controllers/CustomerRepairStatusController.php` — o redirect do `/repair-status`
+
+---
+
+Histórico: até 2026-10-02 este README descrevia o desenho com mock de 4 OS (pipeline orçado → entregue, filtro por estágio, payload `{client, stage, items[]}`). Esse desenho saiu junto com o mock; o registro está no [CHANGELOG](CHANGELOG.md).

@@ -1,5 +1,5 @@
 ---
-last_validated: "2026-09-04"
+last_validated: "2026-11-17"
 slug: runbook-manufacturing-producao
 title: "RUNBOOK — /manufacturing/production (Fabricação · Ordens de produção)"
 type: runbook
@@ -7,7 +7,7 @@ module: Manufacturing
 page: /manufacturing/production
 component: resources/js/Pages/Manufacturing/Index.tsx
 status: rascunho
-updated_at: 2026-09-04
+updated_at: 2026-11-17
 version: 0.1
 owner: F
 ---
@@ -28,7 +28,9 @@ O protótipo distingue `vivo` (recalculado do preço de insumo de hoje) de `cong
 
 **No app, `custoSnap` NÃO EXISTE** — conferido: `transactions` tem `mfg_production_cost`,
 `mfg_production_cost_type`, `mfg_wasted_units` e `mfg_is_final`, nenhum total congelado
-separado. Quem introduz o `custoSnap` é a **US-MANU-007** (§9 do handoff).
+separado. A US-MANU-007, que o introduziria, foi cancelada em 2026-10-13 (D1, ADR 0448): o custo
+congelado passa a ser da ordem na Produção. Desde o lote 1.5 da auditoria (2026-11-12) o
+`final_total` é calculado no servidor no `store` e no `update` (UC-OP-19); antes vinha do navegador.
 
 Então esta onda usa o que existe, e declara o que está fazendo:
 
@@ -69,21 +71,32 @@ zero** (quantidade 0 ⇒ 0.0, nunca `INF`/`NaN`). Nenhuma outra conta entra.
 | "quem lançou" vazio | `transactions.created_by` aponta pra user removido | `users` |
 | Custo unit. `R$ 0,00` com total > 0 | `purchase_lines.quantity` zerado — o guard está funcionando, o DADO é que está torto | a ordem legada |
 
-## 5. Smoke prod (R1)
+## 5. Painel lateral da ordem (US-MANU-009, UC-OP-07)
+
+Clicar numa ordem abre `_components/OrdemDrawer.tsx`. O detalhe vem da prop opcional
+`ordem_detalhe` (`ProductionController@indexV2`, `ProductionService::detalheOrdem`), calculada só
+quando a tela a pede. Ordem de outra empresa vem `null`; de local não permitido, 403 (UC-OP-22);
+sem `view_purchase_price`, sem custo (`Support/OcultaCusto`).
+
+Pela D1 (ADR 0448) a aba é consulta. O botão "Editar ordem" do rascunho e o "Nova produção" ainda
+abrem o formulário Blade, consertado pela B1 do [W] enquanto existir; os botões são do lote 5
+da auditoria.
+
+## 6. Smoke prod (R1)
 
 ```bash
 curl -sv https://oimpresso.com/manufacturing/production 2>&1 | grep '^< HTTP'
 ```
 
-Regressão adjacente (Blade legado não muda):
+Sem cookie, `302` para `/login`. Regressão adjacente — a tela antiga no mesmo endereço:
 
 ```bash
-curl -sv https://oimpresso.com/manufacturing/production 2>&1 | grep '^< HTTP'
+curl -sv 'https://oimpresso.com/manufacturing/production?legacy=1' 2>&1 | grep '^< HTTP'
 ```
 
-Depois do 200, screenshot obrigatório — a tela mudou de 5 pra 8 colunas.
+Logado, screenshot da lista e de um painel aberto.
 
-## 6. Rollback
+## 7. Rollback
 
 Reverter o PR devolve as 5 colunas. Sem migration, sem escrita: a tela é 100% leitura e o
 `indexV2` só ganhou campos no payload.

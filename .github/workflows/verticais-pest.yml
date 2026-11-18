@@ -65,6 +65,10 @@ on:
       # UC-COS-31/32 — o aviso de OS do Repair mora no módulo Whatsapp; sem o listener no
       # trigger, mexer nele não rodaria o contrato que o cobre.
       - 'Modules/Whatsapp/Listeners/NotifyRepairCustomer.php'
+      # UC-COS-12 — /consulta-os/buscar em MySQL real (ClienteAcompanhaStatusContratoTest) é o
+      # único teste que roda o RepairConsultaOsRepository fora do schema sintético do sqlite.
+      # Sem o módulo aqui, PR que só mexe no repositório não roda esse teste.
+      - 'Modules/ConsultaOs/**'
       - 'resources/js/Pages/Repair/**'
       - 'Modules/Vestuario/**'
       - 'resources/js/Pages/Vestuario/**'
@@ -224,6 +228,8 @@ jobs:
               - 'resources/js/Pages/ComunicacaoVisual/**'
               - 'Modules/Repair/**'
               - 'Modules/Whatsapp/Listeners/NotifyRepairCustomer.php'
+              # UC-COS-12 (MySQL real do RepairConsultaOsRepository) — mesmo motivo do trigger `push`.
+              - 'Modules/ConsultaOs/**'
               - 'resources/js/Pages/Repair/**'
               - 'Modules/Vestuario/**'
               - 'resources/js/Pages/Vestuario/**'
@@ -754,6 +760,14 @@ jobs:
         # ENTRA 2026-11-09 — ComunicacaoVisual/ApontamentoControllerTest (US-COMVIS-004 · UC-CVAPT-01..05):
         # lista só com id e nome do operador; sem permissão 403; OS/peça da 99 recusadas na validação.
         #
+        # ENTRA 2026-11-18 — ComunicacaoVisual/InstalacaoComprovanteContratoTest (US-COMVIS-007 · UC-PCV-25,
+        # UC-CVINST-11..14): foto antes, foto depois e assinatura (com aceite LGPD) no módulo Arquivos; só
+        # conclui com os três; assinatura não se troca; instalação da 99 → 404; concluída não recebe mais nada.
+        #
+        # ENTRA 2026-11-18 — ComunicacaoVisual/InstalacaoTelaContratoTest (US-COMVIS-007 · UC-PCV-25,
+        # UC-CVCEL-01..03): tela do instalador traz OS, cliente, endereço e o comprovante; instalação da 99 → 404;
+        # sem permissão 403; quem só vê não registra.
+        #
         # ENTRA 2026-11-16 — Superadmin/SubscriptionConfirmContratoTest (UC-SACF-01..07): o confirm
         # só cria assinatura com gateway configurado; GET → 405; offline nasce `waiting`; pacote
         # privado ou inexistente não assina; sem permissão 403.
@@ -784,6 +798,8 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoComprovanteContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
@@ -884,6 +900,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php \
+            Modules/Producao/Tests/Feature/ComposicaoEtapa1ColunasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoApontamentoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOrdemPorItemContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCriarOsDaVendaContratoTest.php \

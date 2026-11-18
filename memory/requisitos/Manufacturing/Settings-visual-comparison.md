@@ -6,7 +6,7 @@ tela: Manufacturing/Settings
 owner: W
 status: rascunho
 inertia_target: resources/js/Pages/Manufacturing/Settings.tsx
-last_updated: "2026-09-22"
+last_updated: "2026-11-17"
 ---
 
 # Comparação design × produção — `Manufacturing/Settings` (Configurações)
@@ -17,24 +17,27 @@ last_updated: "2026-09-22"
 
 ```
 node scripts/design/ancora.mjs Manufacturing/Settings --staging prototipo-ui/cowork
-  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Felipe/manufacturing-producao.jsx
+  âncora ✓: [related_prototype (charter)] prototipo-ui/cowork/Wagner/manufacturing-producao.jsx
 ```
 
-O componente é `MfgConfig` (`:330` do protótipo). Passou de `Wagner/` para `Felipe/` em 2026-09-22
-([PR #7696](https://github.com/wagnerra23/oimpresso.com/pull/7696), decisão [W]).
+Saída medida em 2026-11-17 contra `main`. O componente desta tela é o `MfgConfig`. A âncora voltou de `Felipe/` para `Wagner/` em 2026-09-25 ([#7984](https://github.com/wagnerra23/oimpresso.com/pull/7984)). As medições de 2026-09-22 abaixo foram feitas contra `Felipe/` ([#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)) e ficam como registro datado.
 
-⚠️ **Três telas dividem este arquivo** — `Index` → `MfgProducaoView` (`:31`), `Report` →
-`MfgRelatorio` (`:268`), `Settings` → `MfgConfig` (`:330`). A âncora aponta o **arquivo**; o
-componente é o que separa as três.
+⚠️ **Três telas dividem este arquivo** — `Index` → `MfgProducaoView`, `Report` → `MfgRelatorio`, `Settings` → `MfgConfig`. A âncora aponta o **arquivo**; o componente é o que separa as três.
 
-> ⚠️ **Saída medida com o [#7696](https://github.com/wagnerra23/oimpresso.com/pull/7696)
-> aplicado** (branch `claude/fabricacao-prototype-production-8fa4a8`, 2026-09-22). Enquanto ele
-> não mergear, `main` ainda resolve esta tela em `Wagner/` — o que este bloco registra é a
-> medição daquela branch, não o estado de `main`.
+## Medição 2026-11-17 (auditoria, lote 5.3)
 
-⚠️ **Sem selo de frescor** — `ancora.mjs:93` fixa `LUGAR_FIXO = 'prototipo-ui/cowork/Wagner'`.
+Produção em oimpresso.com (empresa 1, tema claro, 1600×900 num iframe), protótipo no espelho `Wagner/` gerado por `design-diff-lote.mjs --lado design --tema light`, comparação por `design-diff.mjs --compare --check`. Papéis do override [`roles/Manufacturing--Settings.json`](../../../governance/design/targets/roles/Manufacturing--Settings.json) (#11117). Os snapshots não foram commitados: o lado produção saiu sem shell e sem a `assinatura` (texto visível é dado real), e por isso o D0 (identidade da view) continua sem prova nesta rodada.
 
-## ⚠️ Esta tela NUNCA foi medida
+| dim | prod | design | veredito |
+|---|---|---|---|
+| D4 tipografia (título 22px/600) | ok | ok | IGUAL |
+| D6 cor (primário "Atualizar") | ok | ok | IGUAL |
+| D2 · D8 | — | — | sem KPI e sem filtros nos dois lados |
+| D9 texto por região | presente | sem `[data-contract]` | SEM-DADO |
+
+**DIVERGE (bug): 0.**
+
+## Até 2026-09-22 esta tela nunca tinha sido medida
 
 Não existe artefato em `governance/design/targets/medidas/Manufacturing--Settings/`. A rodada de
 [#7503](https://github.com/wagnerra23/oimpresso.com/pull/7503) (18/09) cobriu **2 das 5** telas
@@ -104,7 +107,7 @@ frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
 |---|---|
 | charter | ✓ `Settings.charter.md` — **`status: draft`** |
 | casos | ✓ **4 UCs** em `Settings.casos.md` — a menor cobertura da família |
-| medição design×prod | ✗ **nunca rodou** |
+| medição design×prod | ✓ 2026-09-22 e 2026-11-17 (seções acima) |
 | e2e / browser | ✗ nenhum |
 | scorecard | ✗ nenhum |
 | baseline de pixel | ✗ **0 `.snap`** |
@@ -113,7 +116,7 @@ frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
 ## Pendências
 
 1. ~~Primeira medicao~~ — **FEITA em 2026-09-22** (secao acima): `IGUAL`, cobrindo 4 de 19.
-2. **Calibrar o `__DD_ROLES`** desta familia (override em [`governance/design/targets/roles/`](../../../governance/design/targets/roles/)). E o que tira as regioes de `SEM-DADO` e faz o veredito falar da tela, nao de 4 celulas. O molde pronto e o [`Compras--Index.json`](../../../governance/design/targets/roles/Compras--Index.json), que ja mede papel no DOM dos dois lados em vez de adivinhar.
+2. ~~Calibrar o `__DD_ROLES`~~ — **FEITO em 2026-11-17** ([#11117](https://github.com/wagnerra23/oimpresso.com/pull/11117), seção *Medição 2026-11-17*). O que segue SEM-DADO é D9 (o protótipo não tem `[data-contract]`) e o shell.
 2. ⚠️ **Tela de configuração governa o cálculo das outras.** Se a subida do protótipo alterar
    qualquer chave que entre em custo, margem ou baixa de estoque, vale a **regra mestre de
    valor/estoque** ([proibicoes.md](../../proibicoes.md)): dois caminhos + antes→depois + [W] antes

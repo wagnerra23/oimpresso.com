@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 188 arquivos em 17 papéis.
+**Total mapeado:** 190 arquivos em 17 papéis.
 
 ## Controllers — 25
 
@@ -129,7 +129,7 @@ module: Producao
 
 - [web.php](../../../Modules/Producao/Routes/web.php)
 
-## Migrations (schema) — 16
+## Migrations (schema) — 17
 
 - [2026_10_15_000001_create_pcp_fundo_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php)
 - [2026_10_16_000001_create_pcp_cadastros_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000001_create_pcp_cadastros_tables.php)
@@ -147,6 +147,7 @@ module: Producao
 - [2026_10_22_000001_create_pcp_quadro_colunas_table.php](../../../Modules/Producao/Database/Migrations/2026_10_22_000001_create_pcp_quadro_colunas_table.php)
 - [2026_11_06_000001_add_versao_to_pcp_aprovacoes_arte.php](../../../Modules/Producao/Database/Migrations/2026_11_06_000001_add_versao_to_pcp_aprovacoes_arte.php)
 - [2026_11_16_000001_add_append_only_triggers_to_pcp_romaneios.php](../../../Modules/Producao/Database/Migrations/2026_11_16_000001_add_append_only_triggers_to_pcp_romaneios.php)
+- [2026_11_17_180000_add_composicao_etapa1_to_pcp_bobinas_and_pcp_ordens.php](../../../Modules/Producao/Database/Migrations/2026_11_17_180000_add_composicao_etapa1_to_pcp_bobinas_and_pcp_ordens.php)
 
 ## Config — 1
 
@@ -157,11 +158,10 @@ module: Producao
 - [aprovacao-arte.blade.php](../../../Modules/Producao/Resources/views/aprovacao-arte.blade.php)
 - [etiqueta-os.blade.php](../../../Modules/Producao/Resources/views/etiqueta-os.blade.php)
 
-## Telas (Inertia/React) — 7
+## Telas (Inertia/React) — 6
 
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx)
-- [Show.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
@@ -172,39 +172,39 @@ module: Producao
 - [AcaoDaProva.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/_components/AcaoDaProva.tsx)
 - [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
 - [Alocar.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/Alocar.tsx)
-- [PainelDaFicha.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/PainelDaFicha.tsx)
 - [SimuladorBobina.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx)
 - [EditorRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/EditorRoteiro.tsx)
 - [ProdutosDoRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/ProdutosDoRoteiro.tsx)
 - [FichaDaOs.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.tsx)
+- [PainelDaFicha.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/PainelDaFicha.tsx)
 - [ProducaoAbas.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas.tsx)
 
 ## Charters (lei da tela) — 7
 
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.charter.md)
-- [Show.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.charter.md)
+- [FichaDaOs.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.charter.md)
 
 ## Casos (contrato UC) — 7
 
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Linha/Index.casos.md)
-- [Show.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Os/Show.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
+- [FichaDaOs.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.casos.md)
 
-## Testes (Pest) — 38
+## Testes (Pest) — 39
 
-- 38 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 39 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 12
+## Demais arquivos (manifestos, docs, assets e misc) — 13
 
 - [ApontamentoRecusado.php](../../../Modules/Producao/Exceptions/ApontamentoRecusado.php)
 - [fila.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts)
@@ -214,6 +214,7 @@ module: Producao
 - [falhaDoDeferido.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/falhaDoDeferido.ts)
 - [ficha.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/ficha.ts)
 - [filtro.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/filtro.ts)
+- [usePainelDaFicha.ts](../../../Modules/Producao/Resources/js/Pages/Producao/_lib/usePainelDaFicha.ts)
 - [producao.php](../../../Modules/Producao/Resources/lang/pt/producao.php)
 - [composer.json](../../../Modules/Producao/composer.json)
 - [module.json](../../../Modules/Producao/module.json)

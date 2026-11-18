@@ -4,11 +4,16 @@ return [
     'name' => 'Arquivos',
 
     /**
-     * Disk default pra arquivos comuns. Em CT 100, mountar volume
-     * /var/lib/oimpresso-arquivos. Em local dev, usar 'local' até
-     * Sprint 1 dia 4 quando US-PRE-ARQ-004 mount for feito.
+     * Disk default pra arquivos comuns: 'arquivos' (storage/app/arquivos, fora do webroot).
+     *
+     * Era 'local' até 2026-11-18. Neste app o disco 'local' tem raiz em public/uploads, a pasta
+     * servida pela web, e a produção não define ARQUIVOS_DISK_DEFAULT: medido no servidor em
+     * 2026-11-17, config('arquivos.disk_default') = 'local'. O próximo anexo não-sensível iria
+     * para a pasta pública, sem a assinatura do DownloadController. As linhas já gravadas
+     * guardam o próprio disco na coluna `disk`, então a troca só vale para upload novo.
+     * O destino da ADR 0214 (MinIO) segue pendente; este é o passo intermediário privado.
      */
-    'disk_default' => env('ARQUIVOS_DISK_DEFAULT', 'local'),
+    'disk_default' => env('ARQUIVOS_DISK_DEFAULT', 'arquivos'),
 
     /**
      * Disk pra bucket=sensitive. Encryption-at-rest mandatório (ADR 0123 §3).

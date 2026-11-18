@@ -372,7 +372,7 @@ const SHORTCUT_TO_ROUTE = Object.keys(MENU_SHORTCUTS).reduce((a, k) => (a[MENU_S
 // Ausente = tela desenhada. "mock" = MockupPage (esqueleto genérico). "stub" = ModuleStub (só ficha de migração).
 const ROUTE_STATE = {
   cv: "mock", nfe: "mock", nfse: "mock", auditoria: "mock",
-  ads: "mock", brief: "mock", portalos: "mock",
+  ads: "mock", brief: "mock",
   governance: "stub",
 };
 const ROUTE_STATE_LABEL = { mock: "Esqueleto — tela ainda não desenhada", stub: "Sem tela — só ficha de migração" };

@@ -3,6 +3,8 @@
 use Inertia\Inertia;
 use Modules\ComunicacaoVisual\Http\Controllers\AgendaController;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoCampoController;
+use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoComprovanteController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoAceiteController;
@@ -87,6 +89,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // US-COMVIS-007 · UC-FLX-21: agenda de instalação em semana × equipe. Só lê; agendar é o POST da API.
         Route::get('agenda', [AgendaController::class, 'index'])->name('comunicacao-visual.agenda');
+
+        // US-COMVIS-007 · UC-PCV-25: tela do instalador no celular. Só lê; fotos, assinatura e concluir são a API do comprovante.
+        Route::get('instalacoes/{id}', [InstalacaoCampoController::class, 'show'])
+            ->whereNumber('id')->name('comunicacao-visual.instalacao');
     });
 
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).
@@ -176,6 +182,16 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('os/{os}/instalacao', [InstalacaoController::class, 'agendar'])
             ->whereNumber('os')
             ->name('comvis.api.instalacoes.agendar');
+
+        // US-COMVIS-007 · UC-PCV-25: comprovante da instalação (foto antes/depois + assinatura) e concluir.
+        Route::get('instalacoes/{id}/comprovante', [InstalacaoComprovanteController::class, 'show'])
+            ->whereNumber('id')->name('comvis.api.instalacoes.comprovante');
+        Route::post('instalacoes/{id}/fotos', [InstalacaoComprovanteController::class, 'foto'])
+            ->whereNumber('id')->name('comvis.api.instalacoes.fotos');
+        Route::post('instalacoes/{id}/assinatura', [InstalacaoComprovanteController::class, 'assinatura'])
+            ->whereNumber('id')->name('comvis.api.instalacoes.assinatura');
+        Route::post('instalacoes/{id}/concluir', [InstalacaoComprovanteController::class, 'concluir'])
+            ->whereNumber('id')->name('comvis.api.instalacoes.concluir');
 
         // US-COMVIS-005: custo orçado × real e margem da OS (flag COMVIS_POS_CALCULO_ENABLED, desligada).
         Route::get('os/{os}/pos-calculo', [OsPosCalculoController::class, 'show'])

@@ -16,6 +16,11 @@
   },
   "roles": {
     "prod": {
+      "kpi": "[data-contract=kpis] > *",
+      "title": "[data-contract=cabecalho] h1",
+      "primary": "[data-contract=cabecalho] a",
+      "filterControls": "[data-contract=filtros] label",
+      "tableRow": "[data-contract=lista] tbody tr",
       "drawer": {
         "raiz": "[data-contract=drawer]",
         "fechar": "[data-contract=drawer] [aria-label=Fechar], [data-contract=drawer] button:has(> svg.lucide-x)",
@@ -39,6 +44,11 @@
       }
     },
     "design": {
+      "kpi": ".mfg-kpis > *",
+      "title": "main h1",
+      "primary": "main button",
+      "filterControls": ".mfg-filters > :not(.sp)",
+      "tableRow": "main table tbody tr",
       "drawer": {
         "raiz": "aside[role=dialog]",
         "fechar": "aside[role=dialog] > div:first-child button",
@@ -61,5 +71,7 @@
         "botaoPrimario": "aside[role=dialog] > div:last-child > button:last-child"
       }
     }
-  }
+  },
+  "_pagina_medida_em": "2026-11-17",
+  "_pagina_por_que": "Papeis da pagina medidos no DOM dos dois lados em 2026-11-17, 1600x900, tema escuro: producao em oimpresso.com logada na empresa 1 (Chrome do [W]), prototipo no espelho Wagner/ servido pelo servirEspelho do lote. Sem estes papeis os defaults heuristicos saiam kpi=0 e primary/filtros nulos no prototipo, e o veredito ficava SEM-DADO em tudo."
 }

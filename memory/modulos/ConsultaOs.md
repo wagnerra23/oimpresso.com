@@ -1,6 +1,8 @@
 # Módulo: ConsultaOs
 
-> **Portal público de consulta de Ordem de Serviço — cliente acompanha pipeline de produção (orçado → aprovação → produção → acabamento → expedição → entregue) sem login.**
+> **Portal público de consulta de Ordem de Serviço — sem login, o cliente busca pelo nº da OS, nº da venda ou celular e vê o status que a empresa registrou no Modules/Repair, a previsão de entrega e o histórico.**
+
+> ⚠️ Corrigido à mão em 2026-11-17 a partir do código (o gerador não rodou: sem `vendor/` no checkout). Reexecute `php artisan module:spec ConsultaOs` para regerar; os números abaixo são de 2026-11-17.
 
 - **Alias:** `consultaos`
 - **Versão:** ?
@@ -14,8 +16,8 @@
 - ℹ️ Módulo sem views (provável API-only ou service)
 - ℹ️ Sem migrations próprias (pode depender de tabelas de outros módulos)
 - 🔗 Registra 3 hook(s) UltimatePOS: modifyAdminMenu, superadmin_package, user_permissions
-- ✅ Tem testes (11)
-- 🔗 Acoplamento: depende de 1 outro(s) módulo(s)
+- ✅ Tem testes (2 no módulo + contrato em `tests/Feature/ConsultaOs/` e `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php`)
+- 🔗 Acoplamento: lê `Modules/Repair` (folhas de OS); o aviso de status vem de `Modules/Whatsapp`
 
 - **Prioridade sugerida de migração:** alta (pequeno, ganho rápido)
 - **Risco estimado:** baixo
@@ -24,7 +26,7 @@
 
 | Peça | Qtde |
 |---|---:|
-| Rotas (web+api) | 5 |
+| Rotas (web+api) | 6 |
 | Controllers | 3 |
 | Entities (Models) | 0 |
 | Services | 1 |
@@ -33,7 +35,7 @@
 | Views Blade | 0 |
 | Migrations | 0 |
 | Arquivos de lang | 0 |
-| Testes | 11 |
+| Testes | 2 |
 
 ## Rotas
 
@@ -43,9 +45,10 @@
 |---|---|---|
 | `GET` | `/` | `[ConsultaOsController::class, 'index']` |
 | `GET` | `/buscar` | `[ConsultaOsController::class, 'buscar']` |
+| `POST` | `install` | `[InstallController::class, 'install']` |
 | `GET` | `install` | `[InstallController::class, 'index']` |
-| `GET` | `install/uninstall` | `[InstallController::class, 'uninstall']` |
-| `GET` | `install/update` | `[InstallController::class, 'update']` |
+| `GET`/`POST` | `install/uninstall` | `[InstallController::class, 'uninstall']` |
+| `GET`/`POST` | `install/update` | `[InstallController::class, 'update']` |
 
 ## Controllers
 
@@ -75,7 +78,7 @@ _Referências a outros módulos encontradas no código PHP._
 
 | Módulo referenciado | Ocorrências |
 |---|---:|
-| `Jana` | 1 |
+| `Repair` | 6 |
 
 ## Presença em branches
 

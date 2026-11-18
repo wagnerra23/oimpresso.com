@@ -17,8 +17,9 @@ use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
  * SoC: o Controller valida (ConsultaPublicaRequest) e audita; este Service decide
  * found/not_found; o Repositório monta o payload público campo a campo.
  *
- * Multi-tenant Tier 0 (ADR 0093): rota pública, sem business_id — ver o PENDENTE [W] no
- * docblock do RepairConsultaOsRepository.
+ * Multi-tenant Tier 0 (ADR 0093): a empresa vem do código na URL (decisão [W] 2026-11-17).
+ * Sem empresa a busca devolve not_found sem consultar (fail-closed) — é o que o probe do
+ * `consultaos:health` exercita ao chamar sem o 4º argumento.
  *
  * @see Modules\ConsultaOs\Repositories\RepairConsultaOsRepository
  * @see memory/requisitos/ConsultaOs/SPEC.md US-CONSULTA-001
@@ -33,13 +34,17 @@ class ConsultaOsService
     /**
      * @return array{found: bool, ordens?: list<array<string, mixed>>, reason?: string}
      */
-    public function buscar(string $tipo, string $numero, ?string $serie = null): array
+    public function buscar(string $tipo, string $numero, ?string $serie = null, ?int $businessId = null): array
     {
+        if ($businessId === null || $businessId <= 0) {
+            return ['found' => false, 'reason' => 'not_found'];
+        }
+
         return OtelHelper::span('consultaos.busca_publica', [
             'tipo' => $tipo,
-            // Sem business_id intencionalmente — rota pública (ADR 0093, escape comentado).
-        ], function () use ($tipo, $numero, $serie) {
-            $ordens = $this->repository->buscar($tipo, $numero, $serie);
+            'business_id' => $businessId,
+        ], function () use ($tipo, $numero, $serie, $businessId) {
+            $ordens = $this->repository->buscar($businessId, $tipo, $numero, $serie);
 
             if ($ordens === []) {
                 return ['found' => false, 'reason' => 'not_found'];

@@ -1,5 +1,5 @@
 ---
-last_validated: "2026-09-02"
+last_validated: "2026-11-17"
 slug: runbook-manufacturing-recipes
 title: "RUNBOOK — /manufacturing/recipe (Fabricação · Receitas)"
 type: runbook
@@ -139,10 +139,10 @@ Três degraus, do mais barato ao mais caro:
 
 | Item do handoff | Por que ficou fora |
 |---|---|
-| Aba **Insumos** (§4.4) | §18.3: *"não tem backend"* — `usosDoInsumo` é cálculo novo no `RecipeBomService`. O handoff diz *"sem isso, a aba não sai"*. |
+| Aba **Insumos** (§4.4) | saiu depois, com o backend que faltava: `/manufacturing/insumos` (US-MANU-005, 2026-09-04) |
 | **Editor de ingredientes** (§5) | saiu depois: editor React (US-MANU-006), padrão em `/manufacturing/add-ingredient` desde o cutover de 2026-10-27 |
-| **Ordem de produção** (§6) | tem tela própria — `/manufacturing/v2/production` (Wave J) e o formulário legado |
-| **Relatório** / **Configurações** (§4.6/§4.7) | seguem nas telas legadas; as abas navegam pra elas |
+| **Ordem de produção** (§6) | tem tela própria — `/manufacturing/production` (o `/v2/production` virou 301 no cutover de 2026-09-04); o formulário é Blade e, pela D1 (ADR 0448), a ordem nova nasce na Produção |
+| **Relatório** / **Configurações** (§4.6/§4.7) | ganharam tela React em `/manufacturing/report` e `/manufacturing/settings` (US-MANU-002/003, 2026-09-03) |
 | **"Atualizar preço de venda"** na BulkBar | §18.1 + Tier 0 de valor (ver §7 acima) |
 
 ## 9. Refs

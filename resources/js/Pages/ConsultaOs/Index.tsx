@@ -2,7 +2,7 @@
 // e centralizado para o cliente final acompanhar o status do reparo.
 // US-CONSULTA-001: dados reais das folhas de OS do Repair (/repair-status redireciona pra ca).
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Head } from '@inertiajs/react'
 import { ArrowLeft, AlertCircle, FileSearch } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
@@ -17,14 +17,31 @@ type Estado = 'busca' | 'resultado' | 'nao-encontrado'
 
 interface Props {
   buscaPorCelular?: boolean
+  // Código público da empresa na URL (/consulta-os/{codigo}). null em /consulta-os sem empresa:
+  // a busca só existe dentro de uma empresa (decisão [W] 2026-11-17).
+  empresa?: string | null
 }
 
-export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
+export default function ConsultaOsIndex({ buscaPorCelular = false, empresa = null }: Props) {
   const [estado, setEstado] = useState<Estado>('busca')
   const [loading, setLoading] = useState(false)
   const [ordens, setOrdens] = useState<OrdemServico[]>([])
   const [ultimoNumero, setUltimoNumero] = useState('')
   const [erro, setErro] = useState<string | null>(null)
+  // Leva o foco ao resultado depois da busca, para teclado e leitor de tela.
+  const resultadoRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (estado !== 'busca') resultadoRef.current?.focus()
+  }, [estado])
+
+  const aviso = loading
+    ? 'Buscando...'
+    : estado === 'resultado'
+      ? `${ordens.length === 1 ? '1 OS encontrada' : `${ordens.length} OS encontradas`}.`
+      : estado === 'nao-encontrado'
+        ? 'OS não encontrada.'
+        : ''
 
   async function handleBuscar(tipo: TipoBusca, numero: string, serie: string) {
     setLoading(true)
@@ -34,7 +51,7 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
     try {
       const params = new URLSearchParams({ tipo, numero })
       if (serie) params.set('serie', serie)
-      const res = await fetch(`/consulta-os/buscar?${params}`, {
+      const res = await fetch(`/consulta-os/${encodeURIComponent(empresa ?? '')}/buscar?${params}`, {
         headers: { Accept: 'application/json' },
       })
 
@@ -44,7 +61,15 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
         return
       }
 
-      if (!res.ok) throw new Error(`Erro ${res.status}`)
+      if (res.status === 429) {
+        setErro('Muitas buscas em pouco tempo. Aguarde um minuto e tente de novo.')
+        return
+      }
+
+      if (!res.ok) {
+        setErro('O servidor não conseguiu fazer a busca agora. Tente de novo em alguns instantes.')
+        return
+      }
 
       const data: BuscarResponse = await res.json()
 
@@ -82,6 +107,19 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
           </span>
         </div>
 
+        <p className="sr-only" role="status" aria-live="polite">
+          {aviso}
+        </p>
+
+        <Stack
+          ref={resultadoRef}
+          gap={0}
+          align="center"
+          tabIndex={-1}
+          aria-busy={loading}
+          aria-label="Consulta de OS"
+          className="w-full outline-none"
+        >
         {estado === 'busca' && (
           <Card className="w-full max-w-md shadow-md">
             <CardHeader className="text-center pb-2 pt-7">
@@ -89,18 +127,29 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
                 Consulta de Ordem de Serviço
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Informe o número da OS, da venda ou o celular para acompanhar o seu reparo
+                {empresa
+                  ? 'Informe o número da OS, da venda ou o celular para acompanhar o seu reparo'
+                  : 'Abra o link de acompanhamento que a empresa do seu reparo enviou'}
               </p>
             </CardHeader>
 
             <CardContent className="pt-4 pb-7 px-7">
-              {erro && (
-                <Alert variant="destructive" className="mb-5">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{erro}</AlertDescription>
-                </Alert>
+              {empresa ? (
+                <>
+                  {erro && (
+                    <Alert variant="destructive" className="mb-5">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{erro}</AlertDescription>
+                    </Alert>
+                  )}
+                  <OsLookupForm onBuscar={handleBuscar} loading={loading} buscaPorCelular={buscaPorCelular} />
+                </>
+              ) : (
+                <p data-testid="consulta-os-sem-empresa" className="text-sm text-muted-foreground text-center leading-relaxed">
+                  A consulta é feita pelo link que a empresa enviou junto com a sua ordem de serviço.
+                  Se não tiver o link, peça à empresa.
+                </p>
               )}
-              <OsLookupForm onBuscar={handleBuscar} loading={loading} buscaPorCelular={buscaPorCelular} />
             </CardContent>
           </Card>
         )}
@@ -159,6 +208,7 @@ export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
             </Card>
           </div>
         )}
+        </Stack>
       </div>
     </>
   )

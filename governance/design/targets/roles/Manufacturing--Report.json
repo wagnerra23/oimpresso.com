@@ -1,5 +1,19 @@
 {
   "_medido_em": "2026-09-22",
   "_por_que": "A ancora desta tela e manufacturing-producao.jsx, que NAO e um -page.jsx: ele expoe window.MfgRelatorio (:268), nao window.ManufacturingPage. A derivacao do token cruza o 'window.YPage =' do mockup com a tabela de rotas do app.jsx e por isso sai 'sem rota derivavel' -- nao e defeito, e o arquivo nao ser o hub. O token abaixo foi LIDO do app.jsx do espelho do Felipe (:848-851), onde 'if (route === \"mfg-relatorio\") content = <window.ManufacturingPage initialView=...' monta exatamente esta tela. Tres telas dividem o manufacturing-producao.jsx (Index/Report/Settings) em componentes diferentes; o token e o que as separa.",
-  "token": "mfg-relatorio"
+  "token": "mfg-relatorio",
+  "_pagina_medida_em": "2026-11-17",
+  "_pagina_por_que": "Papeis da pagina medidos no DOM dos dois lados em 2026-11-17, 1600x900, tema escuro: producao em oimpresso.com logada na empresa 1 (Chrome do [W]), prototipo no espelho Wagner/ servido pelo servirEspelho do lote. Sem estes papeis os defaults heuristicos saiam kpi=0 e primary/filtros nulos no prototipo, e o veredito ficava SEM-DADO em tudo. Nenhum dos lados tem botao primario nem KPI nesta tela. Na producao a empresa 1 nao tinha producao no periodo padrao, entao a linha da tabela sai SEM-DADO do lado prod.",
+  "roles": {
+    "prod": {
+      "title": "[data-contract=cabecalho] h1",
+      "filterControls": "[data-contract=filtros] label",
+      "tableRow": "[data-contract=lista] tbody tr"
+    },
+    "design": {
+      "title": "main h1",
+      "filterControls": ".mfg-filters > *",
+      "tableRow": "main table tbody tr"
+    }
+  }
 }

@@ -14,14 +14,16 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 118 arquivos em 18 papéis.
+**Total mapeado:** 128 arquivos em 18 papéis.
 
-## Controllers — 12
+## Controllers — 14
 
 - [AgendaController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php)
 - [ApontamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php)
 - [AppOrcamentoRapidoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php)
 - [DataController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/DataController.php)
+- [InstalacaoCampoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstalacaoCampoController.php)
+- [InstalacaoComprovanteController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstalacaoComprovanteController.php)
 - [InstalacaoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php)
 - [InstallController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstallController.php)
 - [OrcamentoAceiteController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/OrcamentoAceiteController.php)
@@ -40,11 +42,12 @@ module: ComunicacaoVisual
 
 - [ComunicacaoVisualLiberado.php](../../../Modules/ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado.php)
 
-## Services — 9
+## Services — 10
 
 - [AceiteDoOrcamento.php](../../../Modules/ComunicacaoVisual/Services/AceiteDoOrcamento.php)
 - [AgendaInstalacao.php](../../../Modules/ComunicacaoVisual/Services/AgendaInstalacao.php)
 - [ApontamentoTracker.php](../../../Modules/ComunicacaoVisual/Services/ApontamentoTracker.php)
+- [ComprovanteInstalacao.php](../../../Modules/ComunicacaoVisual/Services/ComprovanteInstalacao.php)
 - [MargemDoOrcamento.php](../../../Modules/ComunicacaoVisual/Services/MargemDoOrcamento.php)
 - [OrcamentoCalculator.php](../../../Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php)
 - [OrcamentoGravador.php](../../../Modules/ComunicacaoVisual/Services/OrcamentoGravador.php)
@@ -52,13 +55,14 @@ module: ComunicacaoVisual
 - [PosCalculoDaOs.php](../../../Modules/ComunicacaoVisual/Services/PosCalculoDaOs.php)
 - [RoteiroPadraoDaOs.php](../../../Modules/ComunicacaoVisual/Services/RoteiroPadraoDaOs.php)
 
-## Models / Entities — 12
+## Models / Entities — 13
 
 - [Acabamento.php](../../../Modules/ComunicacaoVisual/Entities/Acabamento.php)
 - [Apontamento.php](../../../Modules/ComunicacaoVisual/Entities/Apontamento.php)
 - [EscopoPorNegocioDaSessao.php](../../../Modules/ComunicacaoVisual/Entities/Concerns/EscopoPorNegocioDaSessao.php)
 - [Instalacao.php](../../../Modules/ComunicacaoVisual/Entities/Instalacao.php)
 - [InstalacaoCatalogo.php](../../../Modules/ComunicacaoVisual/Entities/InstalacaoCatalogo.php)
+- [InstalacaoComprovante.php](../../../Modules/ComunicacaoVisual/Entities/InstalacaoComprovante.php)
 - [Material.php](../../../Modules/ComunicacaoVisual/Entities/Material.php)
 - [Orcamento.php](../../../Modules/ComunicacaoVisual/Entities/Orcamento.php)
 - [OrcamentoItem.php](../../../Modules/ComunicacaoVisual/Entities/OrcamentoItem.php)
@@ -85,7 +89,7 @@ module: ComunicacaoVisual
 
 - [web.php](../../../Modules/ComunicacaoVisual/Routes/web.php)
 
-## Migrations (schema) — 17
+## Migrations (schema) — 18
 
 - [2026_05_10_000040_create_comvis_materiais_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000040_create_comvis_materiais_table.php)
 - [2026_05_10_000041_create_comvis_orcamentos_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000041_create_comvis_orcamentos_table.php)
@@ -104,6 +108,7 @@ module: ComunicacaoVisual
 - [2026_10_26_110000_add_perda_e_emenda_to_comvis_materiais.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_110000_add_perda_e_emenda_to_comvis_materiais.php)
 - [2026_10_26_200000_create_comvis_orcamento_aceites_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_200000_create_comvis_orcamento_aceites_table.php)
 - [2026_11_10_100000_add_retrato_ao_comvis_orcamento_aceites.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_11_10_100000_add_retrato_ao_comvis_orcamento_aceites.php)
+- [2026_11_18_120000_create_cv_instalacao_comprovantes_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_11_18_120000_create_cv_instalacao_comprovantes_table.php)
 
 ## Seeders — 2
 
@@ -115,31 +120,34 @@ module: ComunicacaoVisual
 - [config.php](../../../Modules/ComunicacaoVisual/Config/config.php)
 - [retention.php](../../../Modules/ComunicacaoVisual/Config/retention.php)
 
-## Telas (Inertia/React) — 3
+## Telas (Inertia/React) — 4
 
 - [AceitePublico.tsx](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.tsx)
 - [Agenda.tsx](../../../resources/js/Pages/ComunicacaoVisual/Agenda.tsx)
 - [Index.tsx](../../../resources/js/Pages/ComunicacaoVisual/Index.tsx)
+- [Instalacao.tsx](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.tsx)
 
 ## Componentes / apoio de tela — 1
 
 - [RoteiroPadraoCard.tsx](../../../resources/js/Pages/ComunicacaoVisual/_components/RoteiroPadraoCard.tsx)
 
-## Charters (lei da tela) — 3
+## Charters (lei da tela) — 4
 
 - [AceitePublico.charter.md](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.charter.md)
 - [Agenda.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Agenda.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Index.charter.md)
+- [Instalacao.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.charter.md)
 
-## Casos (contrato UC) — 3
+## Casos (contrato UC) — 4
 
 - [AceitePublico.casos.md](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.casos.md)
 - [Agenda.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Agenda.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
+- [Instalacao.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.casos.md)
 
-## Testes (Pest) — 41
+## Testes (Pest) — 43
 
-- 41 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 43 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4

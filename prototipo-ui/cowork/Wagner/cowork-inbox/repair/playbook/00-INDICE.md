@@ -362,35 +362,35 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
         {
           "tipo": "contem",
           "path": "resources/js/Pages/ConsultaOs/Index.casos.md",
-          "padrao": "UC-COS-15"
+          "padrao": "UC-COS-43"
         },
         {
           "tipo": "contem",
           "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
-          "padrao": "UC-COS-15"
+          "padrao": "UC-COS-43"
         },
         {
           "tipo": "contem",
           "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
-          "padrao": "UC-COS-16"
+          "padrao": "UC-COS-44"
         },
         {
           "tipo": "contem",
           "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
-          "padrao": "UC-COS-17"
+          "padrao": "UC-COS-45"
         },
         {
           "tipo": "contem",
           "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
-          "padrao": "UC-COS-25"
+          "padrao": "UC-COS-53"
         },
         {
           "tipo": "contem",
           "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
-          "padrao": "UC-COS-26"
+          "padrao": "UC-COS-54"
         }
       ],
-      "nota_provas": "casos UC-COS-12..22, 25..27, 29 em cowork-inbox/repair/ConsultaOs-link.casos.md; forma em repair-portal.jsx + os-acompanhamento.jsx (cartão único) + repair-print.js (QR no recibo)"
+      "nota_provas": "casos UC-COS-40..50, 53..55, 57 em cowork-inbox/repair/ConsultaOs-link.casos.md; forma em repair-portal.jsx + os-acompanhamento.jsx (cartão único) + repair-print.js (QR no recibo)"
     },
     {
       "id": "07",
@@ -417,19 +417,19 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
         {
           "tipo": "contem",
           "path": "resources/js/Pages/ConsultaOs/Index.casos.md",
-          "padrao": "UC-COS-23"
+          "padrao": "UC-COS-51"
         },
         {
           "tipo": "contem",
           "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
-          "padrao": "UC-COS-23"
+          "padrao": "UC-COS-51"
         }
       ],
-      "nota_provas": "UC-COS-23; walk-in nunca ganha acesso"
+      "nota_provas": "UC-COS-51; walk-in nunca ganha acesso"
     },
     {
       "id": "08",
-      "titulo": "Aprovar/recusar orçamento pelo link (UC-COS-28)",
+      "titulo": "Aprovar/recusar orçamento pelo link (UC-COS-56)",
       "dono": "CL",
       "vaga": 4,
       "prs": 1,
@@ -452,12 +452,12 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
         {
           "tipo": "contem",
           "path": "resources/js/Pages/ConsultaOs/Index.casos.md",
-          "padrao": "UC-COS-28"
+          "padrao": "UC-COS-56"
         },
         {
           "tipo": "contem",
           "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
-          "padrao": "UC-COS-28"
+          "padrao": "UC-COS-56"
         }
       ]
     }

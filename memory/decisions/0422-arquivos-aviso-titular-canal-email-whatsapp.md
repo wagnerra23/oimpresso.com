@@ -3,7 +3,7 @@ slug: 0422-arquivos-aviso-titular-canal-email-whatsapp
 number: 422
 title: "Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negócio (emenda da 0421)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
