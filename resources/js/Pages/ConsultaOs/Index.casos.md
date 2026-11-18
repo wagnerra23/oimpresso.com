@@ -61,6 +61,8 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-60 | Celular só com nº de série, e só na empresa do link | must `[T0]` | decisão [W] 2026-11-17 "celular só com série" · ADR 0093 | 🧪 |
 | UC-COS-61 | Sem código de empresa não há busca; código desconhecido dá 404 | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" | 🧪 |
 | UC-COS-62 | Quem mexeu na OS aparece como primeiro nome + inicial do sobrenome | must | decisão [W] 2026-11-17 "primeiro nome + inicial" · Non-Goals "NÃO expõe o nome completo de funcionário" | 🧪 |
+| UC-COS-63 | O link da empresa nasce na 1ª vez que é pedido e depois é sempre o mesmo | must | decisão [W] 2026-11-18 "o link nasce sozinho" | 🧪 |
+| UC-COS-64 | O link de uma empresa nunca é o de outra, nem abre a outra | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" · ADR 0093 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -318,6 +320,24 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
 - **Por quê:** decisão [W] 2026-11-17. Antes saía o nome completo do cadastro
   (`surname + first_name + last_name`). A inicial separa duas pessoas com o mesmo primeiro nome;
   o nome completo continua no histórico interno da OS.
+- **Status:** 🧪
+
+## UC-COS-63 · O link da empresa nasce na 1ª vez que é pedido e depois é sempre o mesmo · `must`
+
+- **Aceite:** Dado nenhuma empresa com código · Quando o sistema pede o link da empresa 98 duas
+  vezes (`EmpresaPublica::linkDe`) · Então devolve o mesmo `/consulta-os/{codigo}` nas duas · E existe
+  uma única linha da 98 em `consulta_os_empresas` · E o código está no formato da rota e resolve de
+  volta para a 98.
+- **Por quê:** decisão [W] 2026-11-18. Até então o link só nascia pelo comando `consultaos:link` e
+  nenhuma empresa tinha um — o portal estava fechado para todos. Agora nasce quando a empresa abre a
+  configuração do Repair (UC-RSET-09); o comando continua para o suporte.
+- **Status:** 🧪
+
+## UC-COS-64 · O link de uma empresa nunca é o de outra, nem abre a outra · `must` `[T0]`
+
+- **Aceite:** Dado as empresas 98 e 99 pedindo o link · Então os dois links são diferentes e
+  nenhum contém o código do outro · E cada código resolve para a própria empresa · E pedir de novo o
+  link da 98 depois de criar o da 99 não muda nada.
 - **Status:** 🧪
 
 ---

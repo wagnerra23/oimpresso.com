@@ -12,6 +12,8 @@ use App\Variation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\RepairStatus;
@@ -81,6 +83,8 @@ class RepairSettingsController extends Controller
         $devices = Category::forDropdown($business_id, 'device');
         $module_category_data = $this->moduleUtil->getTaxonomyData('device');
 
+        $consulta_os_link = $this->linkDoPortal((int) $business_id);
+
         // Onda 1 do export Repair (2026-09-04) — coexistência opt-in MWART (ADR 0104).
         // Flag OFF (default) => Blade legado intacto. O cutover é decisão [W] após
         // smoke real (R1), nunca efeito colateral de deploy.
@@ -117,13 +121,41 @@ class RepairSettingsController extends Controller
                 'jobsheetPdfSettings' => (object) $jobsheet_pdf_settings,
                 'contactCustomFields' => array_values($contact_custom_fields),
                 'customLabels' => $custom_labels,
+                'consultaOsLink' => $consulta_os_link,
             ]);
         }
 
         return view('repair::settings.index')
                 ->with(compact('barcode_settings', 'repair_settings', 'default_product_name',
                 'barcode_types', 'repair_statuses', 'brands', 'devices',
-                'module_category_data', 'jobsheet_pdf_settings'));
+                'module_category_data', 'jobsheet_pdf_settings', 'consulta_os_link'));
+    }
+
+    /**
+     * Link público do portal de consulta de OS desta empresa (decisão [W] 2026-11-18).
+     *
+     * O código nasce aqui na primeira abertura da configuração (grava uma linha em
+     * `consulta_os_empresas`, tabela do ConsultaOs — exceção aprovada ao "não grava em GET",
+     * ver o charter da tela). Sempre o business da sessão: nunca aceita id vindo da request.
+     * Sem o ConsultaOs ligado, ou se a tabela não existir, a tela segue sem o link.
+     */
+    private function linkDoPortal(int $businessId): ?string
+    {
+        $empresaPublica = \Modules\ConsultaOs\Services\EmpresaPublica::class;
+        if ($businessId <= 0 || ! class_exists($empresaPublica) || ! Route::has('consulta-os.empresa')) {
+            return null;
+        }
+
+        try {
+            return $empresaPublica::linkDe($businessId);
+        } catch (\Throwable $e) {
+            Log::warning('repair.settings.consulta_os_link_indisponivel', [
+                'business_id' => $businessId,
+                'erro' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     /**

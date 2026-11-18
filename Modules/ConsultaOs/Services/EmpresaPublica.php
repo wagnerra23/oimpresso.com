@@ -55,6 +55,17 @@ class EmpresaPublica
         throw new \RuntimeException('consultaos.codigo_empresa_indisponivel');
     }
 
+    /**
+     * Link público completo do portal da empresa (decisão [W] 2026-11-18: o link nasce sozinho).
+     *
+     * Cria o código na primeira vez que o sistema precisa dele (tela de configuração do Repair,
+     * aviso da OS, impressão); depois devolve sempre o mesmo — idempotente via codigoDe().
+     */
+    public static function linkDe(int $businessId): string
+    {
+        return route('consulta-os.empresa', ['empresa' => self::codigoDe($businessId)]);
+    }
+
     /** business_id do código, ou null se não existe. */
     public static function empresaDe(string $codigo): ?int
     {

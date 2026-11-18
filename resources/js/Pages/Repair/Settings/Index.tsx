@@ -24,7 +24,7 @@ import { Switch } from '@/Components/ui/switch';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline } from '@/Components/layout';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 type Dicionario = Record<string, string | number | null>;
 
@@ -63,6 +63,8 @@ interface PageProps {
   jobsheetPdfSettings: JobsheetPdfSettings;
   contactCustomFields: string[];
   customLabels: Record<string, Record<string, string>>;
+  /** Link público do portal de consulta de OS da empresa (decisão [W] 2026-11-18); null sem ConsultaOs. */
+  consultaOsLink?: string | null;
 }
 
 /**
@@ -137,6 +139,29 @@ function Secao({ titulo, descricao, children }: { titulo: string; descricao: str
   );
 }
 
+/** Link do portal de consulta de OS — só leitura, com botão de copiar. */
+function LinkDoPortal({ link }: { link: string }) {
+  const [copiado, setCopiado] = useState(false);
+  return (
+    <Secao
+      titulo="Link da consulta de OS"
+      descricao="O cliente abre este link e acompanha a OS pelo número, sem login. Ele só encontra as OS desta empresa."
+    >
+      <Inline gap={2}>
+        <Input value={link} readOnly aria-label="Link da consulta de OS para o cliente" className="min-w-0 flex-1" />
+        <Button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard?.writeText(link).then(() => setCopiado(true));
+          }}
+        >
+          {copiado ? 'Copiado' : 'Copiar'}
+        </Button>
+      </Inline>
+    </Secao>
+  );
+}
+
 export default function RepairSettingsIndex({
   barcodeSettings,
   repairSettings,
@@ -145,6 +170,7 @@ export default function RepairSettingsIndex({
   repairStatuses,
   jobsheetPdfSettings,
   contactCustomFields,
+  consultaOsLink,
 }: PageProps) {
   // ── Form 1 — conjunto COMPLETO de business.repair_settings ────────────────
   const folha = useForm({
@@ -190,6 +216,8 @@ export default function RepairSettingsIndex({
         title="Configurações do Repair"
         subtitle="Padrões da folha de OS e o que sai impresso na etiqueta"
       />
+
+      {consultaOsLink ? <LinkDoPortal link={consultaOsLink} /> : null}
 
       {/* ── 1 · Folha de OS ─────────────────────────────────────────────── */}
       <form
