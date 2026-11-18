@@ -6,6 +6,7 @@ owner: wagner
 parent_module: Officeimpresso
 last_validated: '2026-08-19'
 related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx
+related_visual_comparison: memory/requisitos/Officeimpresso/Logs-Timeline-visual-comparison.md
 related_runbook: memory/requisitos/Officeimpresso/RUNBOOK-logs.md
 related_us:
   - US-OI-005
