@@ -34,7 +34,7 @@ entra (thread 05: o secret não sai do banco para a lista). "Em uso / último ha
 - Lista das credenciais password-grant cujo dono é usuário do negócio da sessão: nome, Client ID, tipo.
 - "Nova credencial": cria pelo `POST /officeimpresso/client`; o secret aparece **uma vez**, num bloco
   copiável que fica até o usuário fechar.
-- Excluir (`DELETE /officeimpresso/client/{id}`) e "Regenerar chaves" (`/officeimpresso/regenerate`)
+- Excluir (`DELETE /officeimpresso/client/{id}`) e "Regenerar chaves" (`POST /officeimpresso/regenerate`, com CSRF desde 2026-11)
   só aparecem para `superadmin` — são as ações que o controller já restringe a ele.
 
 ## Non-Goals (NÃO faz)
