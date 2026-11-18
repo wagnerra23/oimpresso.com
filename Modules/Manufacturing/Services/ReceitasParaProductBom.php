@@ -92,6 +92,30 @@ final class ReceitasParaProductBom
         return $plano;
     }
 
+    /**
+     * Receitas cujo produto feito não existe mais (a variação foi apagada da tabela). Elas não
+     * pertencem a empresa nenhuma, então `planejar()` não as vê, e o contrato de hoje também não as
+     * usa. Fica fora da cópia, e o relatório precisa dizer isso para fechar a conta das linhas
+     * (medido em produção em 2026-11-18: 2 receitas, 8 das 13 linhas).
+     *
+     * Só contagem: sem empresa, não há dado de ninguém a mostrar (ADR 0093).
+     *
+     * @return array{receitas: int, linhas: int}
+     */
+    public function receitasSemProduto(): array
+    {
+        $ids = DB::table('mfg_recipes as r')
+            ->leftJoin('variations as rv', 'rv.id', '=', 'r.variation_id')
+            ->leftJoin('products as rp', 'rp.id', '=', 'rv.product_id')
+            ->whereNull('rp.id')
+            ->pluck('r.id');
+
+        return [
+            'receitas' => $ids->count(),
+            'linhas' => $ids->isEmpty() ? 0 : DB::table('mfg_recipe_ingredients')->whereIn('mfg_recipe_id', $ids)->count(),
+        ];
+    }
+
     /** Grava o plano, se a conferência bateu em todas as receitas. Devolve as linhas gravadas. */
     public function aplicar(int $businessId): int
     {

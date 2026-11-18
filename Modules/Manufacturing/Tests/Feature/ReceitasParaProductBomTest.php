@@ -163,3 +163,23 @@ it('ADR 0448 etapa 2 · o comando simula por padrão e só grava com --aplicar',
         ->assertSuccessful();
     expect(DB::table('product_bom')->where('parent_variation_id', $feita)->count())->toBe(3);
 });
+
+it('ADR 0448 etapa 2 · receita cujo produto não existe mais é contada no relatório e não entra na cópia', function () {
+    [, $insumo] = bomInsumo(MFG_EMP_BIZ, 'Insumo da receita órfã', $this->usuario);
+    $semVariacao = (int) DB::table('variations')->max('id') + 100000;
+    $orfa = MfgRecipe::create(['product_id' => $semVariacao, 'variation_id' => $semVariacao, 'waste_percent' => 0,
+        'ingredients_cost' => 0, 'extra_cost' => 0, 'total_quantity' => 1, 'final_price' => 0]);
+    MfgRecipeIngredient::create(['mfg_recipe_id' => $orfa->id, 'variation_id' => $insumo, 'quantity' => 1]);
+    MfgRecipeIngredient::create(['mfg_recipe_id' => $orfa->id, 'variation_id' => $insumo, 'quantity' => 2]);
+    $copia = app(ReceitasParaProductBom::class);
+    $antes = $copia->receitasSemProduto();
+
+    expect($antes['receitas'])->toBeGreaterThanOrEqual(1);
+    expect($antes['linhas'])->toBeGreaterThanOrEqual(2);
+    expect(collect($copia->planejar(MFG_EMP_BIZ)['receitas'])->pluck('receita_id')->all())->not->toContain($orfa->id);
+
+    $this->artisan('manufacturing:receitas-para-product-bom', ['business_id' => MFG_EMP_BIZ])
+        ->expectsOutputToContain("Fica de fora, em todo o sistema: {$antes['receitas']} receita(s), {$antes['linhas']} linha(s)")
+        ->assertSuccessful();
+    expect(DB::table('product_bom')->where('parent_variation_id', $semVariacao)->count())->toBe(0);
+});

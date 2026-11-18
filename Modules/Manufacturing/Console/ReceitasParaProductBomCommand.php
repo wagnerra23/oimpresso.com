@@ -56,7 +56,13 @@ final class ReceitasParaProductBomCommand extends Command
             ], $plano['ignoradas']));
         }
 
-        $copiadas = count(array_filter($plano['receitas'], fn (array $r) => ! $r['ja_copiada']));
+        $semProduto = $copia->receitasSemProduto();
+        if ($semProduto['receitas'] > 0) {
+            $this->line("Fica de fora, em todo o sistema: {$semProduto['receitas']} receita(s), {$semProduto['linhas']} linha(s), "
+                .'cujo produto não existe mais. Não pertencem a nenhuma empresa e o sistema não as usa hoje.');
+        }
+
+        $copiadas =count(array_filter($plano['receitas'], fn (array $r) => ! $r['ja_copiada']));
         if ($plano['divergencias'] !== []) {
             $this->error('Conferência: '.count($plano['divergencias'])." de {$copiadas} receita(s) dão consumo diferente do de hoje.");
             foreach ($plano['divergencias'] as $d) {
