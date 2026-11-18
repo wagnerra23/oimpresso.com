@@ -155,9 +155,7 @@ class CertificadoService
      */
     public function carregarParaSefaz(int $businessId): array
     {
-        $cert = NfeCertificado::where('business_id', $businessId)
-            ->where('ativo', true)
-            ->first();
+        $cert = $this->certificadoAtivo($businessId);
 
         if ($cert) {
             return $this->carregarCertificado($cert);
@@ -173,11 +171,28 @@ class CertificadoService
     }
 
     /**
+     * O certificado A1 ativo da empresa — o mesmo para NF-e, NFC-e e NFS-e. É o que a tela
+     * `/fiscal/config?tab=cert` troca (o `salvar` desativa o anterior). Filtra pelo
+     * `business_id` explícito (ADR 0093): o job chega sem sessão. Se houver mais de um ativo
+     * (não deveria: o `salvar` deixa um só), vale o mais recente.
+     */
+    public function certificadoAtivo(int $businessId): ?NfeCertificado
+    {
+        return NfeCertificado::where('business_id', $businessId)
+            ->where('ativo', true)
+            ->latest('id')
+            ->first();
+    }
+
+    /**
      * Decripta UM certificado já resolvido: o .pfx do disco (`{biz}/cert/{uuid}.pfx.enc`)
      * e a senha de `encrypted_password`. É a mesma leitura do `carregarParaSefaz`, exposta
-     * para quem já tem o certificado em mãos — a NFS-e usa o `cert_id` da sua config, que
-     * não é necessariamente o ativo do business. O caminho no disco usa o `business_id`
+     * para quem já tem o certificado em mãos. O caminho no disco usa o `business_id`
      * DO PRÓPRIO certificado (ADR 0093).
+     *
+     * _Até 2026-11-18 a NFS-e chamava este método com o `nfse_provider_configs.cert_id` da
+     * sua config, ponteiro que só o `nfse:importar-cert` atualizava; desde então ela usa
+     * `certificadoAtivo()`, o mesmo certificado da NF-e._
      *
      * Substitui `pfxDecriptado()`/`senhaDecriptada()`, removidos do modelo do NFSe na
      * unificação do schema (4e772bcb46, 2026-05-07) sem que o chamador fosse migrado.
