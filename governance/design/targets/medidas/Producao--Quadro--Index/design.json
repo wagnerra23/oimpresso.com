@@ -1,0 +1,35 @@
+{
+  "url": "http://127.0.0.1:5611/",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 84
+  },
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 5 CRM 16 G R Vendas 22 G V Oficina Auto 1 Vestuário 2 Fisio 11 Finanças 4 Caixa G X Financeiro 15 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 9 Produção 5 Painel de produção 7 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 2 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 7 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 5 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 8 em produção · 2 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Terminal Roteiros Postos e cadastros Todas Atrasadas ou vencendo 2 Travadas por arte 2 Urgentes 4 Qualquer responsável Diego Marcos Ana Felipe Larissa Por setor Por máquina 8 de 8 OS. A OS anda sozinha quando o operador fecha a etapa. Para mover à mão: arraste o cartão ou use o menu ⋮. Esconder eventos Arte e aprovação 2 OS-2614 Normal Placas de sinalização interna (24 un) Clínica Sorriso Arte e arquivo de corte Progresso 14% 09:12 Sistema : Reenviou o link de prova ao cliente entrega 20/10 Aguardando cliente 2 tarefas Ana OS-2619 Normal Banner roll-up 0,8×2 m (4 un) Supermercado Bom Preço Arte e prova Progresso 27% 08:47 Cliente : Pediu ajuste: aumentar o logo e trocar o telefone entrega 18/10 Ajuste pedido Ana Impressão 2 OS-2611 Alta Adesivagem de frota — 6 baús Rota Livre Transportes Impressão eco-solvente · Roland VG3-640 Progresso 45% 11:14 Diego : Baixou 58 m² de vinil branco brilho entrega 17/10 Diego OS-2622 Normal Painel de fachada em lona 6×2 m Escola Crescer Impressão látex · HP Latex 365 Progresso 18% 09:41 Sistema : Foi para Aguardando material: falta 8,0 m² de Lona 440 g 3,20 m entrega 21/10 Aguardando material Diego Acabamento 1 OS-2603 Urgente Lonas de oferta 5×2 m (12 un) Supermercado Bom Preço Bainha + ilhós Progresso 89% 10:52 Felipe : Iniciou Bainha + ilhós vence hoje Felipe Serralheria 2 OS-2608 Alta Fachada ACM 8×1,2 m + letreiro Padaria Pão Dourado Corte CNC do ACM · Router CNC 2x3 Progresso 49% 10:31 Marcos : Pausou Corte CNC do ACM — troca de fresa amanhã Marcos OS-2617 Normal Letra-caixa iluminada \"FORÇA\" Academia Força Total Corte CNC das faces · Router CNC 2x3 Progresso 8% 10:30 Cliente : Aprovou a arte pelo link entrega 24/10 1 tarefa Marcos Instalação 0 Nada aqui agora. Expedição 1 OS-2598 Alta Tapume impresso 40 m Construtora Alicerce Embalar e liberar Progresso 98% 09:10 Larissa : Liberou para retirada atrasada Larissa Eventos das 8 OS do quadro Fechar Baixou 58 m² de vinil branco brilho 15/10 11:14 · Diego · Roland VG3-640 OS-2611 Iniciou Bainha + ilhós 15/10 10:52 · Felipe OS-2603 Pausou Corte CNC do ACM — troca de fresa 15/10 10:31 · Marcos · Router CNC 2x3 OS-2608 Foi para Aguardando material: falta 8,0 m² de Lona 440 g 3,20 m 15/10 09:41 · Sistema OS-2622 Liberou a OS para a produção 15/10 09:40 · Larissa OS-2622 Reenviou o link de prova ao cliente 15/10 09:12 · Sistema OS-2614 Pediu ajuste: aumentar o logo e trocar o telefone 15/10 08:47 · Cliente OS-2619 Iniciou Impressão eco-solvente (QR na máquina) 15/10 08:05 · Diego · Roland VG3-640 OS-2611 Iniciou Corte CNC do ACM 15/10 08:00 · Marcos · Router CNC 2x3 OS-2608 Fechou automaticamente o apontamento aberto (fim do turno) 14/10 18:00 · Sistema · HP Latex 365 OS-2603 Concluiu Arte e prova 14/10 17:40 · Ana OS-2611 Refugo de 9,4 m² — banding na cabeça 3 14/10 15:20 · Diego · HP Latex 365 OS-2603 Aprovou a arte pelo link 14/10 10:30 · Cliente OS-2617 Liberou para retirada 14/10 09:10 · Larissa OS-2598 Aprovou a arte pelo link 13/10 16:40 · Cliente OS-2611 Orçamento aprovado virou OS (roteiro Adesivo impresso e recortado) 13/10 11:05 · Larissa OS-2611",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(1 0 0)",
+      "border": "rgba(0, 0, 0, 0)"
+    },
+    "filterRows": 1,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}
