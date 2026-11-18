@@ -181,13 +181,15 @@ Atenção: **resposta 5xx da Sefin é tratada como rejeição** (erro terminal),
 indisponibilidade — só falha de conexão retenta. Ver [RUNBOOK-operacao](RUNBOOK-operacao.md) §2.
 
 **F5 — Cancelamento.** `NfseEmissaoService::cancelar` só aceita nota `emitida` com número; lê
-ambiente e certificado **da empresa da nota** (lote 0); chama `cancelarNoAmbiente`, que faz
-`DELETE /nfse/{numero}` com o motivo. Só grava `cancelada` se a Sefin confirmar; senão a nota
+ambiente e certificado **da empresa da nota** (lote 0); chama `cancelarNoAmbiente`, que monta o
+pedido de registro do evento e101101 (`pedRegEvento_v1.01.xsd`), assina o `infPedReg` com o
+certificado da empresa e faz `POST /nfse/{chaveAcesso}/eventos` (chave = `provider_protocolo`,
+autor = `prestador_cnpj`). Só grava `cancelada` se a Sefin confirmar; senão a nota
 continua emitida e a tela mostra o erro. A troca para `cancelada` estorna a retenção no
 Financeiro (`NfseEmissaoRetencaoObserver`). O motivo é logado redigido.
 
-> Este `DELETE` **não é** o evento de cancelamento assinado do padrão nacional. O formato oficial
-> do evento não está no repo e a forma é decisão [W] (lote 2.4). O NfeBrasil tem um caminho
+> Até 2026-11-18 o adapter mandava `DELETE /nfse/{numero}`, que não é o evento do padrão nacional.
+> Decisão B2 do [W] (2026-11-18): evento assinado. O envio real à Sefin ainda não foi exercitado. O NfeBrasil tem um caminho
 > separado (`NfseCancelService` + `CancelarNfseJob`, tabela `nfse_eventos_cancelamento`).
 
 **F6 — DANFSe.** O adapter grava `pdf_url = null` em toda emissão. `NfseController@pdf` dá 404
@@ -263,7 +265,7 @@ Sefin.
 1. Motivo de 15 a 255 caracteres; só `nfse.cancel` — UC-NFSD-02/03 🧪
 2. Sem confirmação, continua emitida e a retenção não é estornada — `NfseCancelamentoHonestoTest` ✅
 3. Nota que não está emitida não chama a Sefin — idem ✅
-4. Cancelamento pelo evento assinado do padrão nacional — ⬜ (lote 2.4, decisão [W])
+4. Cancelamento pelo evento assinado do padrão nacional — `NfseEventoCancelamentoTest` 🧪 (resposta da Sefin simulada; envio real não exercitado)
 
 #### CU-NFSE-08 — Nota cancelada não some `[must]` 🟡
 - Não há rota de apagar; `delete()` só marca `deleted_at` — `NfseComportamentoContratoTest` ✅
@@ -310,7 +312,7 @@ _Só [W] preenche._
 | R1 | Nenhum `queue:work` agendado lê a fila `nfse` (produção usa fila `database`) | a primeira emissão em produção ficaria parada na tabela `jobs`, em `processando` para sempre | `app/Console/Kernel.php` (schedule); fora do módulo |
 | R2 | Certificado da empresa 1 vencido em produção | emissão vira `erro` | `nfse:health` |
 | R3 | Sem DANFSe | nota sem PDF para o tomador | US-NFSE-016 |
-| R4 | Cancelamento por `DELETE`, não pelo evento oficial | pode ser recusado pela Sefin | lote 2.4 |
+| R4 | Evento de cancelamento nunca enviado à Sefin de verdade (até 2026-11-18 era `DELETE`) | o nome dos campos JSON vem de bibliotecas, não do PDF; a Sefin pode recusar | `NfseEventoCancelamentoTest` + teste em homologação |
 | R5 | 5xx da Sefin vira `erro` terminal | indisponibilidade da Sefin parece rejeição | F4 |
 | R6 | `nfse:importar-cert` tem `--business=1` como padrão | importar sem `--business` grava na empresa 1 | comando |
 | R7 | `forceDelete()` apaga nota fiscal | perde registro obrigatório | lote 4 |
