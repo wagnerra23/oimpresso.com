@@ -50,7 +50,7 @@ function ncfDados(array $extra = []): array
     return array_merge([
         'ambiente'              => 'homologacao',
         'municipio_codigo_ibge' => '4218707',
-        'prestador_cnpj'        => '11.222.333/0001-81',
+        'prestador_cnpj'        => '11.222.333/0001-81', # pii-allowlist (CNPJ fictício de teste)
         'prestador_im'          => '12345',
         'serie_default'         => '1',
         'cnae'                  => '6201-5/00',
