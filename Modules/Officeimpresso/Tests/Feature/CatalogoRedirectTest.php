@@ -120,5 +120,9 @@ function makeOiCatalogoTestUser(int $businessId): User
         'email'       => 'oi_catalogo_'.$businessId.'_'.uniqid().'@test.local',
         'password'    => bcrypt('test12345'),
         'language'    => 'pt_BR',
+        // Explícitos: o model criado não lê o DEFAULT do banco, e o CheckUserLogin da rota do
+        // Catálogo QR (#10822) compara `allow_login != 1` — com null, o destino dava 403.
+        'user_type'   => 'user',
+        'allow_login' => 1,
     ]);
 }
