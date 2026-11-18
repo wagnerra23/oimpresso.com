@@ -86,6 +86,10 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVINST-08 | Agendar avisa o cliente por WhatsApp com OS, dia e hora | must `[LGPD]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
 | UC-CVINST-09 | Cliente que recusou WhatsApp, sem celular, sem cliente ou sem canal ativo não é avisado | must `[LGPD]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
 | UC-CVINST-10 | Contato e número de outra empresa nunca entram no aviso | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
+| UC-CVINST-11 | Instalação só conclui com foto antes, foto depois e assinatura; antes disso diz o que falta | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
+| UC-CVINST-12 | Assinatura só com o aceite do cliente (LGPD), com o nome de quem assinou, e uma vez só | must `[LGPD]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
+| UC-CVINST-13 | Instalação de outra empresa é não encontrada no comprovante, e nada é gravado nela | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
+| UC-CVINST-14 | Foto refeita vale a mais nova; concluída não recebe mais nada; sem permissão 403 | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
 | UC-CVOS-01 | Aprovar cria a OS com os itens e as medidas do orçamento | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-02 | A OS vale o total do orçamento e nenhum valor do orçamento muda | must `[V0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-03 | Aprovar de novo não duplica OS, itens nem arquivos | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
@@ -597,6 +601,39 @@ Status: 🧪
 
 **Dado** um orçamento da 98 que aponta para um contato da 99 **Então** ninguém é avisado. **Dado** a 98 sem
 número de saída e a 99 com número **Então** o número da 99 não é usado.
+
+Status: 🧪
+
+## UC-CVINST-11 · Instalação só conclui com foto antes, foto depois e assinatura · `must`
+
+**Dado** uma instalação agendada **Quando** o instalador conclui sem os comprovantes **Então** 422 dizendo o que falta
+("Para concluir falta: foto antes, foto depois, assinatura do cliente.") e o status não muda · **Quando** manda as duas
+fotos e a assinatura **Então** conclui: status `concluida` e `data_realizada` com a hora. API (1a do UC-PCV-25; a tela
+do instalador e o protocolo em PDF vêm depois): `POST /comunicacao-visual/api/instalacoes/{id}/fotos|assinatura|concluir`
+e `GET …/comprovante`.
+
+Status: 🧪
+
+## UC-CVINST-12 · Assinatura só com o aceite do cliente, e uma vez só · `must` `[LGPD]`
+
+**Dado** a assinatura sem o aceite do cliente para guardá-la **Então** 422 e nada é gravado (anti-hook #7 do charter) ·
+**Dado** o aceite **Então** grava o nome de quem assinou e a hora do aceite, e o PNG vai para o módulo Arquivos (cofre
+privado, não pasta pública), anexado ao comprovante · **Quando** tenta assinar de novo **Então** 422 e a primeira fica.
+
+Status: 🧪
+
+## UC-CVINST-13 · Instalação de outra empresa é não encontrada no comprovante · `must` `[T0]`
+
+**Dado** a instalação da empresa 99 **Quando** alguém da 98 consulta, manda foto, assina ou conclui **Então** 404 em todos,
+nada é gravado nela e ela continua agendada.
+
+Status: 🧪
+
+## UC-CVINST-14 · Foto refeita vale a mais nova; concluída não recebe mais nada · `must`
+
+**Dado** a instalação aberta **Quando** a foto antes é mandada duas vezes **Então** as duas ficam guardadas e o comprovante
+conta uma · **Dado** a instalação concluída **Quando** chega outra foto **Então** 422 ("A instalação está concluída e não
+recebe mais comprovante.") · sem `comvis.os.update_status` **Então** 403.
 
 Status: 🧪
 

@@ -21,7 +21,8 @@
             } elseif ($payment->method == 'card') {
                 $method .= '<br>(' . __('lang_v1.card_transaction_no') . ': ' . $payment->card_transaction_number . ')';
             } elseif ($payment->method == 'bank_transfer') {
-                $method .= '<br>(' . __('lang_v1.bank_account_no') . ': ' . $payment->bank_account_number . ')';
+                // Número de conta nunca em claro (mesma máscara do paymentsJson da aba nova).
+                $method .= '<br>(' . __('lang_v1.bank_account_no') . ': ' . (empty($payment->bank_account_number) ? '' : '****' . substr((string) $payment->bank_account_number, -4)) . ')';
             } elseif ($payment->method == 'custom_pay_1') {
                 $method .= '<br>(' . __('lang_v1.transaction_no') . ': ' . $payment->transaction_no . ')';
             } elseif ($payment->method == 'custom_pay_2') {
