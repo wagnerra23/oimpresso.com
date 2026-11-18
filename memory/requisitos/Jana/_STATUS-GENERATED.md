@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 65 |
+| US no SPEC | 66 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 7 |
-| UC declarados | 98 |
-| UC com teste que os cita | 96 |
+| UC declarados | 100 |
+| UC com teste que os cita | 98 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -102,6 +102,7 @@ authority: generated
 | US-COPI-146 | `todo` | Migrar Jana/Dashboard pro padrão PT-04 (sair do bundle CSS paralelo .sells-cowor |
 | US-COPI-147 | `todo` | Higiene de schema da camada de IA — 2 resíduos reais, 4 falsos positivos e 1 pro |
 | US-COPI-148 | `todo` | Fundir as telas da Jana numa tela única `/ia` com abas Painel | Conversa | Memór |
+| US-COPI-151 | `todo` | Jana propõe ação, usuário confirma no cartão, só então grava |
 
 ## UC por status
 
@@ -181,6 +182,8 @@ authority: generated
 | UC-JPAIN-33 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-34 | Index | 🧪 aguarda veredito da lane |
 | UC-JPAIN-35 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-36 | Index | 🧪 aguarda veredito da lane |
+| UC-JPAIN-37 | Index | 🧪 aguarda veredito da lane |
 | UC-JPERM-07 | Memoria | 🧪 aguarda veredito da lane |
 | UC-JPERM-08 | Pro | 🧪 aguarda veredito da lane |
 | UC-MEM-01 | Memoria | 🧪 aguarda veredito da lane |

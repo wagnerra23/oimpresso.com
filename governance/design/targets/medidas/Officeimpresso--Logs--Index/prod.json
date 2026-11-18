@@ -1,36 +1,100 @@
 {
   "url": "https://staging.oimpresso.com/officeimpresso/licenca_log",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
   "theme": "light",
-  "assinatura": "CI Biz Visão geral Gerenciamento de usuários Contatos Produtos Vendas Relatórios Configurações Suporte Jana Sidebar Menu Collapse Sidebar Calendário Adicionar a fazer Application Tour Calculator Reparar Today's Profit 09/18/2026 Notifications CI Signed in as CI Perfil Desconectar Toggle navigation Office Impresso Empresas Licenciadas Computadores Licenças Clientes Log de Acesso Máquinas Cadastradas Registro da máquina é a chave desta tela. A rotina popula/atualiza o cadastro; o log do último acesso aparece em cada linha. Máquinas cadastradas 2 total de equipamentos Máquinas bloqueadas 0 bloqueio individual Empresas bloqueadas 0 bloqueio em massa Acessos 24h 0 processa-dados-cliente 🔍 Empresa / Máquina Estado atual Todos Ativa Bloqueada Aplicar Timeline de Máquinas (2) 1 linha por máquina · última atividade primeiro · clique em empresa ou máquina para filtrar Mostrar 25 50 100 200 500 1,000 Todos Exportar para CSV Exportar para Excel Imprimir Visibilidade da coluna Exportar para PDF Buscar: Empresa Location / CNPJ Máquina HD Versão IP Último Login Estado no Último Login Estado Atual Ações CI Biz — usr_teste HD-TESTE-ISOL-992 — — nunca — Ativa Bloq. máquina CI Biz — usr_teste HD-TESTE-ISOL-991 — — nunca — Ativa Bloq. máquina 1–2 de 2 ‹ 1 › - V6.4 | Copyright © 2026 All rights reserved. × Benefício de hoje Fechar × Entrada Saída Endereço de IP: 177.74.67.30 Relógio na nota: Nota do relógio: Enviar Fechar Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Só essenciais Aceitar tudo Tour da Aplicação Vamos passar pelo aplicativo em 7 passos rápidos ... « Anterior Próximo » Tour final",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI M Máquinas Cadastradas O cadastro é populado por ; cada linha mostra o último acesso registrado. Máquinas cadastradas 2 total de equipamentos Máquinas bloqueadas 0 bloqueio individual Empresas bloqueadas 0 bloqueio em massa Acessos 24h 1 processa-dados-cliente Todos Empresa Location / CNPJ Máquina HD Versão IP Último login Estado no último login Estado atual Ações CI Tenant 98 (ficticio) — medida-lote6 MEDIDA-OI-LOTE6-HD 1.0.0 10.0.0.1 18/11/2026 16:39:06 Liberada Ativa CI Biz — medida-lote6-b1 MEDIDA-OI-LOTE6-HD-B1 1.0.0 10.0.0.2 nunca — Ativa Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
-      "count": 0,
-      "tag": null,
-      "overflowX": null,
-      "items": []
+      "count": 1,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Máquinas cadas",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
     },
     "title": {
       "fontPx": 22,
       "weight": "600",
-      "color": "rgb(17, 24, 39)"
+      "color": "oklch(0.22 0.01 80)"
     },
-    "primary": {
-      "bg": "rgb(240, 240, 240)",
-      "color": "rgb(0, 0, 0)",
-      "border": "rgb(0, 0, 0)"
-    },
+    "primary": null,
     "filterRows": null,
-    "contratos": [],
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
     "celulas": [
       {
         "col": 0,
         "tag": "A",
         "align": "left",
-        "larguraPct": 7.2,
+        "larguraPct": 11.5,
         "mono": false,
         "corPropria": true,
-        "fontPx": 13,
-        "weight": "700",
+        "fontPx": 14,
+        "weight": "500",
         "blocos": 1,
         "pill": null
       },
@@ -38,10 +102,10 @@
         "col": 1,
         "tag": null,
         "align": "left",
-        "larguraPct": 11.2,
+        "larguraPct": 9.5,
         "mono": false,
-        "corPropria": false,
-        "fontPx": 13,
+        "corPropria": true,
+        "fontPx": 14,
         "weight": "400",
         "blocos": 1,
         "pill": null
@@ -50,11 +114,11 @@
         "col": 2,
         "tag": "A",
         "align": "left",
-        "larguraPct": 7.3,
+        "larguraPct": 10.9,
         "mono": true,
         "corPropria": true,
-        "fontPx": 12,
-        "weight": "700",
+        "fontPx": 14,
+        "weight": "500",
         "blocos": 1,
         "pill": null
       },
@@ -62,10 +126,10 @@
         "col": 3,
         "tag": "A",
         "align": "left",
-        "larguraPct": 11.5,
+        "larguraPct": 13.8,
         "mono": true,
         "corPropria": true,
-        "fontPx": 12,
+        "fontPx": 14,
         "weight": "400",
         "blocos": 1,
         "pill": null
@@ -74,10 +138,10 @@
         "col": 4,
         "tag": null,
         "align": "left",
-        "larguraPct": 6.4,
+        "larguraPct": 6.1,
         "mono": true,
         "corPropria": false,
-        "fontPx": 12,
+        "fontPx": 14,
         "weight": "400",
         "blocos": 1,
         "pill": null
@@ -86,10 +150,10 @@
         "col": 5,
         "tag": null,
         "align": "left",
-        "larguraPct": 3.1,
+        "larguraPct": 7.8,
         "mono": true,
         "corPropria": false,
-        "fontPx": 12,
+        "fontPx": 14,
         "weight": "400",
         "blocos": 1,
         "pill": null
@@ -98,10 +162,10 @@
         "col": 6,
         "tag": null,
         "align": "left",
-        "larguraPct": 10.1,
+        "larguraPct": 13.6,
         "mono": true,
         "corPropria": false,
-        "fontPx": 12,
+        "fontPx": 14,
         "weight": "400",
         "blocos": 1,
         "pill": null
@@ -110,41 +174,46 @@
         "col": 7,
         "tag": null,
         "align": "left",
-        "larguraPct": 16.5,
+        "larguraPct": 13,
         "mono": false,
-        "corPropria": false,
-        "fontPx": 13,
-        "weight": "400",
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
         "blocos": 1,
-        "pill": null
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.02 162)",
+          "dot": true
+        }
       },
       {
         "col": 8,
         "tag": null,
         "align": "left",
-        "larguraPct": 10.1,
+        "larguraPct": 8.5,
         "mono": false,
         "corPropria": true,
-        "fontPx": 11,
-        "weight": "600",
+        "fontPx": 12,
+        "weight": "500",
         "blocos": 1,
         "pill": {
-          "radius": "999px",
-          "borda": false,
-          "bg": "rgb(209, 250, 229)",
-          "dot": false
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.97 0.02 162)",
+          "dot": true
         }
       },
       {
         "col": 9,
-        "tag": "A",
-        "align": "left",
-        "larguraPct": 15.1,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 5.4,
         "mono": false,
-        "corPropria": true,
-        "fontPx": 11,
-        "weight": "500",
-        "blocos": 1,
+        "corPropria": null,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
         "pill": null
       }
     ],
@@ -159,6 +228,7 @@
         "atalhoTopo": {
           "seletor": ".sb-shortcuts .sb-shortcut",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -166,6 +236,7 @@
         "itemGrupo": {
           "seletor": ".sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -173,6 +244,7 @@
         "grupoHeader": {
           "seletor": ".sb-group-h",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -180,12 +252,15 @@
         "containerMenu": {
           "seletor": ".sb-menu-grouped",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null,
+    "drawer": null
   }
 }

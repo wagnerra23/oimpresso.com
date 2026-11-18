@@ -1,15 +1,13 @@
 /* officeimpresso-page.css — extras do módulo Office Impresso (licenciamento desktop Delphi).
-   Só o que as classes sa-*/os-*/cli-* do shell não cobrem. Tokens do DS vivo, nada de cor crua. */
+   Só o que as classes de prefixo sa-, os- e cli- do shell não cobrem. Tokens do DS vivo, nada de cor crua.
+   Cor de TEXTO usa a variante -fg / --text-dim: a base (--color-warning 2,72:1, --color-success 3,42:1,
+   --text-mute 4,30:1 no --bg-2) fica abaixo de AA em texto pequeno — medido por OKLCH→sRGB em 2026-11-18. */
 .oi-card{margin:0 24px 16px}
 .oi-card .sa-card-h h3{margin:0;font:600 13.5px/1.3 var(--font-sans);color:var(--text)}
 .oi-card .sa-card-h p{margin:3px 0 0;font:400 11.5px/1.4 var(--font-sans);color:var(--text-mute)}
-.oi-seg{display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:8px;background:var(--bg-2)}
-.oi-seg button{font:500 12.5px/1 var(--font-sans);color:var(--text-dim);background:transparent;border:0;border-radius:6px;padding:7px 12px;cursor:pointer}
-.oi-seg button:hover{color:var(--text)}
-.oi-seg button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgb(0 0 0/.06)}
 .oi-ver{display:flex;align-items:center;gap:6px;font:500 12.5px/1 var(--font-mono);color:var(--text)}
 .oi-ver svg{color:var(--text-mute);flex:none}
-.oi-ver.atras{color:var(--color-warning)}
+.oi-ver.atras{color:var(--color-warning-fg)}
 .oi-ver.ok{color:var(--text-dim)}
 .oi-maq{display:flex;align-items:center;gap:8px}
 .oi-bar{width:54px;height:5px;border-radius:3px;background:color-mix(in oklch,var(--text) 12%,transparent);overflow:hidden;flex:none}
@@ -19,12 +17,12 @@
 .oi-ev{display:inline-flex;align-items:center;gap:6px;font:500 11.5px/1 var(--font-mono);padding:4px 8px;border-radius:5px;border:1px solid;white-space:nowrap}
 .oi-ev i{width:5px;height:5px;border-radius:50%;background:currentColor;flex:none}
 .oi-ev--api{color:var(--text-dim);border-color:var(--border);background:var(--bg-2)}
-.oi-ev--login_success{color:var(--color-success);border-color:color-mix(in oklch,var(--color-success) 22%,transparent);background:color-mix(in oklch,var(--color-success) 6%,transparent)}
+.oi-ev--login_success{color:var(--color-success-fg);border-color:color-mix(in oklch,var(--color-success) 22%,transparent);background:color-mix(in oklch,var(--color-success) 6%,transparent)}
 .oi-ev--login_error{color:var(--danger-fg);border-color:color-mix(in oklch,var(--danger-fg) 22%,transparent);background:color-mix(in oklch,var(--danger-fg) 6%,transparent)}
 .oi-ev--admin_action{color:var(--accent);border-color:color-mix(in oklch,var(--accent) 22%,transparent);background:color-mix(in oklch,var(--accent) 6%,transparent)}
-.oi-ev--error_log{color:var(--color-warning);border-color:color-mix(in oklch,var(--color-warning) 22%,transparent);background:color-mix(in oklch,var(--color-warning) 6%,transparent)}
+.oi-ev--error_log{color:var(--color-warning-fg);border-color:color-mix(in oklch,var(--color-warning) 22%,transparent);background:color-mix(in oklch,var(--color-warning) 6%,transparent)}
 .oi-lat{font:500 12.5px/1 var(--font-mono);color:var(--text-dim)}
-.oi-lat.alta{color:var(--color-warning)}
+.oi-lat.alta{color:var(--color-warning-fg)}
 .oi-kv{display:grid;grid-template-columns:132px 1fr;gap:8px 14px;margin:0}
 .oi-kv dt{font:500 11px/1.4 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--text-mute);padding-top:2px}
 .oi-kv dd{margin:0;font:400 13px/1.5 var(--font-sans);color:var(--text)}
@@ -36,24 +34,25 @@
 .oi-tl-b{display:flex;flex-direction:column;gap:3px;min-width:0}
 .oi-tl-b b{font:500 13px/1.4 var(--font-sans);color:var(--text)}
 .oi-tl-b small{font:400 11.5px/1.4 var(--font-mono);color:var(--text-mute)}
-.oi-grupo{display:inline-flex;align-items:center;gap:5px;font:500 10.5px/1 var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:3px 6px}
+.oi-grupo{display:inline-flex;align-items:center;gap:5px;font:500 10.5px/1 var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--text);background:var(--accent-soft);border-radius:4px;padding:3px 6px}
 .oi-filial{padding-left:16px;position:relative}
 .oi-filial::before{content:"";position:absolute;left:4px;top:2px;width:7px;height:9px;border-left:1px solid var(--border);border-bottom:1px solid var(--border)}
 .oi-host{display:flex;flex-direction:column;gap:2px;min-width:0}
 .oi-host b{font:500 13px/1.3 var(--font-mono);color:var(--text)}
 .oi-host small{font:400 11.5px/1.3 var(--font-mono);color:var(--text-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .oi-note{margin:0 24px 12px}.oi-note .sa-mono,.oi-note code{font-family:var(--font-mono)}
-.oi-aviso{margin-top:8px;color:var(--color-warning)}
+.oi-aviso{margin-top:8px;color:var(--color-warning-fg)}
 .oi-motivo{margin-top:14px}
-.oi-secret{display:inline-flex;align-items:center;gap:8px}
+.oi-secret{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px}
 .oi-secret code{font:400 12px/1 var(--font-mono);color:var(--text-dim);letter-spacing:.02em;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.oi-secret-b{font:500 11px/1 var(--font-sans);color:var(--text-mute);background:var(--bg-2);border:1px solid var(--border);border-radius:4px;padding:4px 7px;cursor:pointer}
+.oi-secret-b{display:inline-flex;align-items:center;white-space:nowrap;flex:none;min-height:24px;min-width:24px;font:500 12px/1 var(--font-sans);color:var(--text-dim);background:var(--bg-2);border:1px solid var(--border);border-radius:4px;padding:5px 9px;cursor:pointer}
+.oi-secret-b:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .oi-secret-b:hover{color:var(--text);border-color:var(--accent)}
 .oi-health{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 24px 14px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg-2)}
 .oi-health-t{display:flex;flex-direction:column;gap:2px;font:600 11px/1.2 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
-.oi-health-t small{font:400 11px/1.2 var(--font-mono);letter-spacing:0;text-transform:none;color:var(--text-mute)}
+.oi-health-t small{font:400 11px/1.2 var(--font-mono);letter-spacing:0;text-transform:none;color:var(--text-dim)}
 .oi-health-sig{display:flex;gap:8px;flex-wrap:wrap;flex:1 1 auto}
-.oi-health-r{font:500 11.5px/1 var(--font-mono);color:var(--text-mute)}
+.oi-health-r{font:500 11.5px/1 var(--font-mono);color:var(--text-dim)}
 .oi-sig{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface);white-space:nowrap}
 .oi-sig i{width:6px;height:6px;border-radius:50%;flex:none;background:var(--text-mute)}
 .oi-sig b{font:500 11px/1 var(--font-mono);color:var(--text)}
@@ -71,5 +70,19 @@
 .oi-form{display:flex;flex-direction:column;gap:12px;padding:14px 16px}
 .oi-form-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .oi-form .oi-note{margin:2px 0 0}
-.oi-skip{color:var(--color-warning)}
+.oi-skip{color:var(--color-warning-fg)}
 .oi-ok-txt{color:var(--text-mute)}
+/* Estado nunca só por cor: o rótulo vai junto do ponto. */
+.oi-sig em{font:600 10.5px/1 var(--font-mono);font-style:normal;color:var(--text-dim)}
+/* Linha que abre drawer é alcançável por teclado (tabIndex + Enter/Espaço). */
+.sa-row[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.oi-demo{display:flex;align-items:center;gap:8px;margin:0 24px 12px;font:500 11.5px/1 var(--font-sans);color:var(--text-dim)}
+.oi-demo select{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:6px;min-height:28px;padding:0 8px}
+.oi-tag{display:inline-block;margin-left:6px;font:600 10.5px/1 var(--font-sans);letter-spacing:.04em;text-transform:uppercase;color:var(--text);background:var(--accent-soft);border-radius:4px;padding:3px 6px}
+.oi-skel{display:flex;flex-direction:column;gap:8px;margin:0 24px 16px}
+.oi-skel i{display:block;height:36px;border-radius:6px;background:color-mix(in oklch,var(--text) 7%,transparent)}
+.oi-secret-uma{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.oi-secret-uma code{font:500 13px/1.4 var(--font-mono);color:var(--text);background:var(--bg-2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;overflow-wrap:anywhere}
+.oi-ficha{margin:0 24px 16px}
+.oi-ficha .oi-kv{grid-template-columns:160px 1fr}
+.oi-ficha-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}

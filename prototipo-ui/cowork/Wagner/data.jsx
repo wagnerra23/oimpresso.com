@@ -340,7 +340,7 @@ const SUPERADMIN_MENU = [
     { id: "oi-licencas", icon: "keyboard", label: "Licenças" },
     { id: "oi-clientes", icon: "shield",   label: "Clientes OAuth" },
     { id: "oi-importar", icon: "archive",  label: "Importar do Firebird" },
-    { id: "oi-log",      icon: "audit",    label: "Log de acesso" },
+    { id: "oi-log",      icon: "audit",    label: "Máquinas" },
   ]},
 ];
 

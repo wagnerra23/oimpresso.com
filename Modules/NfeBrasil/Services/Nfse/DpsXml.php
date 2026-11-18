@@ -43,15 +43,49 @@ final class DpsXml
             throw new InvalidArgumentException('Estrutura da DPS sem o grupo infDPS.');
         }
 
+        return self::documento('DPS', 'infDPS', $dps['infDPS'], $versao);
+    }
+
+    /**
+     * Pedido de Registro de Evento (`pedRegEvento`, tipo TCPedRegEvt de
+     * `tiposEventos_v1.01.xsd`): raiz `pedRegEvento` com `versao` e o grupo `infPedReg`
+     * (atributo `Id`, padrão `PRE[0-9]{56}`), na mesma regra de estrutura da DPS.
+     * Quem monta o grupo é o `SnNfseAdapter::buildPedRegEventoCancelamento`.
+     *
+     * @param array<string, mixed> $pedido ['infPedReg' => [...]]
+     */
+    public static function serializarPedRegEvento(array $pedido, string $versao = self::VERSAO): string
+    {
+        if (! isset($pedido['infPedReg']) || ! is_array($pedido['infPedReg'])) {
+            throw new InvalidArgumentException('Pedido de registro de evento sem o grupo infPedReg.');
+        }
+
+        return self::documento('pedRegEvento', 'infPedReg', $pedido['infPedReg'], $versao);
+    }
+
+    /**
+     * Assina o `infPedReg` (referência pelo atributo Id). O Anexo II (LeiautesRN_Eventos)
+     * exige assinatura digital no pedido de registro de evento.
+     */
+    public static function assinarPedRegEvento(string $xml, string $pfxBinario, string $senha, int $algoritmo = OPENSSL_ALGO_SHA256): string
+    {
+        $certificado = Certificate::readPfx($pfxBinario, $senha);
+
+        return Signer::sign($certificado, $xml, 'infPedReg', 'Id', $algoritmo);
+    }
+
+    /** @param array<string, mixed> $grupo */
+    private static function documento(string $raizNome, string $grupoNome, array $grupo, string $versao): string
+    {
         $doc = new DOMDocument('1.0', 'UTF-8');
         $doc->preserveWhiteSpace = false;
         $doc->formatOutput = false;
 
-        $raiz = $doc->createElementNS(self::NAMESPACE, 'DPS');
+        $raiz = $doc->createElementNS(self::NAMESPACE, $raizNome);
         $raiz->setAttribute('versao', $versao);
         $doc->appendChild($raiz);
 
-        self::anexar($doc, $raiz, 'infDPS', $dps['infDPS']);
+        self::anexar($doc, $raiz, $grupoNome, $grupo);
 
         return (string) $doc->saveXML($doc->documentElement);
     }

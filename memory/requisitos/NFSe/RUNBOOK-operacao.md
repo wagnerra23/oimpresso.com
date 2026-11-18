@@ -159,11 +159,16 @@ reaproveita a linha em `erro`. Com dados **corrigidos**, nasce uma linha nova e 
 - Ao virar `cancelada`, a retenção da nota é estornada no Financeiro.
 - A nota cancelada continua no banco e na lista.
 
-**Limite conhecido:** o sistema cancela por `DELETE /nfse/{numero}` com o motivo. O padrão
-nacional cancela por **evento assinado**; o formato oficial do evento não está no repo e a forma
-de fazer é decisão [W] (lote 2.4 da auditoria). Se a Sefin recusar o `DELETE`, o cancelamento
-precisa ser feito no Emissor Nacional (gov.br/nfse) e **a nota fica `emitida` no oimpresso**:
-não existe comando para marcar como cancelada, e não se faz isso no banco.
+**Como cancela (desde 2026-11-18):** pelo **evento de cancelamento assinado** (e101101) do padrão
+nacional — `POST /nfse/{chaveAcesso}/eventos` com o pedido assinado pelo certificado da empresa.
+Precisa da **chave de acesso** da nota (gravada na emissão) e do **CNPJ do prestador** na config
+NFSe. Se a Sefin recusar, a tela mostra "A Sefin recusou o cancelamento: <motivo dela>" e a nota
+fica `emitida`. Até 2026-11-18 o sistema mandava `DELETE /nfse/{numero}`, que não está no manual.
+
+**Limite conhecido:** o envio real do evento à Sefin ainda não foi exercitado (só testes com a
+resposta simulada). Se a Sefin recusar o evento, o cancelamento precisa ser feito no Emissor
+Nacional (gov.br/nfse) e **a nota fica `emitida` no oimpresso**: não existe comando para marcar
+como cancelada, e não se faz isso no banco.
 
 ---
 
