@@ -5,8 +5,8 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-21"
-last_run_ci: "UC-FCFG-10 nasce com teste novo (ContingenciaModoTest, 12 passed no CT 100 em 2026-10-21); veredito da lane nfebrasil-pest PENDENTE. Os demais UC não foram re-executados nesta corrida"
+last_run: "2026-11-18"
+last_run_ci: "2026-11-18: a tela ganhou o bloco NFS-e (ambiente + prestador) da aba Ambiente; UC-FCFG-13/14 nascem com NfseConfiguracaoContratoTest, veredito da lane NFSe PENDENTE. UC-FCFG-01..12 não foram re-executados (backend deles não mudou). 2026-10-21: UC-FCFG-10 nasceu com ContingenciaModoTest, 12 passed no CT 100"
 related_us: [US-FISCAL-009]
 ---
 
