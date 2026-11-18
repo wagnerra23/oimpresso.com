@@ -895,6 +895,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php \
+            Modules/Producao/Tests/Feature/ComposicaoEtapa1ColunasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoApontamentoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOrdemPorItemContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCriarOsDaVendaContratoTest.php \

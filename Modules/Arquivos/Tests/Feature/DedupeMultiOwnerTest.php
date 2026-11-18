@@ -60,8 +60,8 @@ beforeEach(function () {
     }
 
     // Fakear os discos que o SERVIÇO usa, lidos da config — não pelo nome suposto.
-    // `arquivos.disk_default` é `local` (raiz public/uploads no UltimatePOS): fakear
-    // só 'arquivos' deixou a 1ª rodada no CT 100 gravar em public/uploads real.
+    // Fakear pelo nome que a config resolve, não pelo nome suposto: com o padrão antigo
+    // ('local', raiz public/uploads) fakear só 'arquivos' gravou em public/uploads real no CT 100.
     Storage::fake(config('arquivos.disk_default', 'arquivos'));
     Storage::fake(config('arquivos.disk_vault', 'vault'));
     session(['user' => ['business_id' => DEDUP_MULTI_BIZ]]);

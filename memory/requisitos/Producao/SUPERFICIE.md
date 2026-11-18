@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 188 arquivos em 17 papéis.
+**Total mapeado:** 190 arquivos em 17 papéis.
 
 ## Controllers — 25
 
@@ -129,7 +129,7 @@ module: Producao
 
 - [web.php](../../../Modules/Producao/Routes/web.php)
 
-## Migrations (schema) — 16
+## Migrations (schema) — 17
 
 - [2026_10_15_000001_create_pcp_fundo_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php)
 - [2026_10_16_000001_create_pcp_cadastros_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000001_create_pcp_cadastros_tables.php)
@@ -147,6 +147,7 @@ module: Producao
 - [2026_10_22_000001_create_pcp_quadro_colunas_table.php](../../../Modules/Producao/Database/Migrations/2026_10_22_000001_create_pcp_quadro_colunas_table.php)
 - [2026_11_06_000001_add_versao_to_pcp_aprovacoes_arte.php](../../../Modules/Producao/Database/Migrations/2026_11_06_000001_add_versao_to_pcp_aprovacoes_arte.php)
 - [2026_11_16_000001_add_append_only_triggers_to_pcp_romaneios.php](../../../Modules/Producao/Database/Migrations/2026_11_16_000001_add_append_only_triggers_to_pcp_romaneios.php)
+- [2026_11_17_180000_add_composicao_etapa1_to_pcp_bobinas_and_pcp_ordens.php](../../../Modules/Producao/Database/Migrations/2026_11_17_180000_add_composicao_etapa1_to_pcp_bobinas_and_pcp_ordens.php)
 
 ## Config — 1
 
@@ -198,9 +199,9 @@ module: Producao
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 - [FichaDaOs.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/_components/FichaDaOs.casos.md)
 
-## Testes (Pest) — 38
+## Testes (Pest) — 39
 
-- 38 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 39 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 13

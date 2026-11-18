@@ -259,6 +259,7 @@ jobs:
             Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandV2Test.php \
             Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php \
             Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
+            Modules/Arquivos/Tests/Feature/DiscoPadraoPrivadoTest.php \
             Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php \
             Modules/Arquivos/Tests/Feature/BackfillConsumersTest.php \
             Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php \
