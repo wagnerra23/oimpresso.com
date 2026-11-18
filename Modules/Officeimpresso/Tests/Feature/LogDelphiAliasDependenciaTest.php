@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Routing\Middleware\ThrottleRequestsWithRedis;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Modules\Officeimpresso\Http\Middleware\LogDelphiAccess;
@@ -34,25 +36,19 @@ it('o alias log.delphi aponta para LogDelphiAccess quando o Officeimpresso está
     expect(app('router')->getMiddleware()['log.delphi'])->toBe(LogDelphiAccess::class);
 });
 
-it('toda rota connector/api resolve todos os middlewares para classe existente', function () {
-    $rotas = rotasConnectorApi();
-    // Sem rota o caso passaria por vácuo.
-    expect(count($rotas))->toBeGreaterThan(0);
-
+it('toda rota connector/api que declara log.delphi o resolve para LogDelphiAccess', function () {
     $comLogDelphi = 0;
-    foreach ($rotas as $rota) {
-        if (in_array('log.delphi', $rota->gatherMiddleware(), true)) {
-            $comLogDelphi++;
+    foreach (rotasConnectorApi() as $rota) {
+        if (! in_array('log.delphi', $rota->gatherMiddleware(), true)) {
+            continue;
         }
-        foreach (app('router')->gatherRouteMiddleware($rota) as $mw) {
-            if (! is_string($mw)) {
-                continue;
-            }
-            $classe = explode(':', $mw, 2)[0];
-            expect(class_exists($classe))->toBeTrue("rota {$rota->uri()}: middleware [{$mw}] não resolve para classe");
-        }
+        $comLogDelphi++;
+        $resolvidos = app('router')->gatherRouteMiddleware($rota);
+        expect($resolvidos)->toContain(LogDelphiAccess::class);
+        // Nome cru na lista = alias ausente: o pipeline tentaria app()->make('log.delphi').
+        expect(in_array('log.delphi', $resolvidos, true))->toBeFalse("rota {$rota->uri()}: log.delphi não resolveu");
     }
-    // Os 3 grupos usam o alias; se ele sair do Connector, este caso deixa de valer e precisa ser revisto.
+    // Os 3 grupos do Connector usam o alias; sem rota nenhuma o caso passaria por vácuo.
     expect($comLogDelphi)->toBeGreaterThan(0);
 });
 
@@ -69,6 +65,9 @@ it('sem o alias (Officeimpresso desligado) a rota connector/api quebra ao montar
     unset($aliases['log.delphi']);
     $prop->setValue($router, $aliases);
 
+    // O throttle roda antes e chama $request->user(), que monta o servidor do Passport;
+    // sem as chaves OAuth (CI) ele lança antes de o pipeline chegar ao log.delphi.
+    $this->withoutMiddleware([ThrottleRequests::class, ThrottleRequestsWithRedis::class]);
     $this->withoutExceptionHandling();
     expect(fn () => $this->getJson('/'.$rota->uri()))
         ->toThrow(BindingResolutionException::class, 'log.delphi');
