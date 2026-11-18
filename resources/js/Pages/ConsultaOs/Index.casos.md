@@ -61,6 +61,10 @@ last_run_ci: "2026-11-17: ci.yml run 44088901109 (PHP / Pest (Unit)) — Consult
 | UC-COS-60 | Celular só com nº de série, e só na empresa do link | must `[T0]` | decisão [W] 2026-11-17 "celular só com série" · ADR 0093 | 🧪 |
 | UC-COS-61 | Sem código de empresa não há busca; código desconhecido dá 404 | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" | 🧪 |
 | UC-COS-62 | Quem mexeu na OS aparece como primeiro nome + inicial do sobrenome | must | decisão [W] 2026-11-17 "primeiro nome + inicial" · Non-Goals "NÃO expõe o nome completo de funcionário" | 🧪 |
+| UC-COS-63 | O link da empresa nasce na 1ª vez que é pedido e depois é sempre o mesmo | must | decisão [W] 2026-11-18 "o link nasce sozinho" | 🧪 |
+| UC-COS-64 | O link de uma empresa nunca é o de outra, nem abre a outra | must `[T0]` | decisão [W] 2026-11-17 "empresa na URL" · ADR 0093 | 🧪 |
+| UC-COS-65 | O aviso de WhatsApp da OS leva o link do portal da empresa da OS | must `[T0]` | decisão [W] 2026-11-18 "link no aviso" · US-CONSULTA-004 · ADR 0093 | 🧪 |
+| UC-COS-66 | A impressão da OS traz o link e o QR do portal da empresa da OS | must `[T0]` | decisão [W] 2026-11-18 "link e QR na impressão" · ADR 0093 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -318,6 +322,47 @@ in-memory com tenants fictícios 98 e 99. Os ✅ vêm do manifesto `scripts/caso
 - **Por quê:** decisão [W] 2026-11-17. Antes saía o nome completo do cadastro
   (`surname + first_name + last_name`). A inicial separa duas pessoas com o mesmo primeiro nome;
   o nome completo continua no histórico interno da OS.
+- **Status:** 🧪
+
+## UC-COS-63 · O link da empresa nasce na 1ª vez que é pedido e depois é sempre o mesmo · `must`
+
+- **Aceite:** Dado nenhuma empresa com código · Quando o sistema pede o link da empresa 98 duas
+  vezes (`EmpresaPublica::linkDe`) · Então devolve o mesmo `/consulta-os/{codigo}` nas duas · E existe
+  uma única linha da 98 em `consulta_os_empresas` · E o código está no formato da rota e resolve de
+  volta para a 98.
+- **Por quê:** decisão [W] 2026-11-18. Até então o link só nascia pelo comando `consultaos:link` e
+  nenhuma empresa tinha um — o portal estava fechado para todos. Agora nasce quando a empresa abre a
+  configuração do Repair (UC-RSET-09); o comando continua para o suporte.
+- **Status:** 🧪
+
+## UC-COS-64 · O link de uma empresa nunca é o de outra, nem abre a outra · `must` `[T0]`
+
+- **Aceite:** Dado as empresas 98 e 99 pedindo o link · Então os dois links são diferentes e
+  nenhum contém o código do outro · E cada código resolve para a própria empresa · E pedir de novo o
+  link da 98 depois de criar o da 99 não muda nada.
+- **Status:** 🧪
+
+## UC-COS-65 · O aviso de WhatsApp da OS leva o link do portal da empresa da OS · `must` `[T0]`
+
+- **Aceite:** Dado a empresa 99 com o link dela já criado · Quando a OS da empresa 98 muda para um
+  status marcado para avisar · Então a mensagem ao cliente traz "pronta para retirada" e o link
+  `/consulta-os/{codigo}` da 98 · E não traz o código da 99.
+- **Onde:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` acrescenta "Acompanhe pelo link:
+  …" ao texto, com o `business_id` da OS. Sem o ConsultaOs ligado o aviso sai sem link (não falha).
+- **Teste:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php`, lane
+  `Verticais · MySQL`.
+- **Status:** 🧪
+
+## UC-COS-66 · A impressão da OS traz o link e o QR do portal da empresa da OS · `must` `[T0]`
+
+- **Aceite:** Dado a empresa 99 com o link dela já criado · Quando a loja da 98 imprime a folha de
+  uma OS dela (`/repair/job-sheet/print/{id}`) · Então a folha recebe o link `/consulta-os/{codigo}`
+  da 98 · E o HTML impresso mostra esse link e um QR (PNG do `DNS2D`, `milon/barcode`, já no repo —
+  sem dependência nova) · E não traz o código da 99.
+- **Por que o teste lê a view e não o PDF:** o mPDF comprime o texto do PDF; o teste captura os
+  dados que o controller entrega à view e renderiza a mesma view.
+- **Teste:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php`, lane
+  `Verticais · MySQL`.
 - **Status:** 🧪
 
 ---

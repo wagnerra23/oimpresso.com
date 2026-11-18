@@ -192,6 +192,43 @@ it('UC-COS-12: mudar o status da OS avisa o cliente certo e o portal mostra o st
     expect(json_encode($corpo))->not->toContain('Cliente Vizinho FLX-24');
 });
 
+it('UC-COS-65 [T0]: o aviso da OS leva o link do portal da empresa da OS, nunca o de outra', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+    $user = Fx::usuario((int) $biz->id);
+    Fx::sessao((int) $biz->id, (int) $user->id);
+
+    $contato = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 LINK');
+    DB::table('contacts')->where('id', $contato)->update(['mobile' => '+5547900000398']);
+    $statusInicial = Fx::status((int) $biz->id, 'Recebido');
+    $statusPronto = Fx::status((int) $biz->id, 'Pronto para retirada');
+    DB::table('repair_statuses')->where('id', $statusPronto)->update(['whatsapp_template_aviso' => 'ready']);
+    $osId = Fx::os((int) $biz->id, $contato, $statusInicial, (int) $user->id);
+    flx24Telefone((int) $biz->id);
+
+    // A outra empresa já tem o link dela: ele não pode aparecer no aviso desta.
+    $linkVizinho = EmpresaPublica::linkDe((int) $vizinho->id);
+    $codigoVizinho = (string) DB::table('consulta_os_empresas')->where('business_id', (int) $vizinho->id)->value('codigo');
+
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
+
+    $this->actingAs($user)->put("/repair/job-sheet/{$osId}", [
+        'contact_id' => $contato,
+        'status_id' => $statusPronto,
+        'service_type' => 'carry_in',
+        'serial_no' => 'SN-FLX24-LINK',
+    ]);
+
+    $linkProprio = EmpresaPublica::linkDe((int) $biz->id);
+    expect($linkProprio)->not->toBe($linkVizinho);
+
+    $avisos = flx24Avisos();
+    expect($avisos)->toHaveCount(1);
+    expect($avisos[0]->body)->toContain('pronta para retirada');
+    expect($avisos[0]->body)->toContain($linkProprio);
+    expect($avisos[0]->body)->not->toContain($codigoVizinho);
+});
+
 it('UC-COS-13: status com o nome que a empresa deu avisa pelo WhatsApp quando está marcado', function () {
     $biz = $this->seededTenant();
     $user = Fx::usuario((int) $biz->id);
@@ -316,4 +353,47 @@ it('UC-COS-32: OS que aponta para cliente de outra empresa não avisa ninguém',
     $listener->handle((object) ['id' => 9804, 'business_id' => (int) $biz->id, 'contact_id' => $proprio], 'ready');
     $avisos = flx24Avisos();
     expect($avisos)->toHaveCount(1)->and($avisos[0]->customer_external_id)->toBe('+5547900000598');
+});
+
+it('UC-COS-66 [T0]: a impressão da OS traz o link e o QR do portal da empresa da OS, nunca o de outra', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+    $user = Fx::usuario((int) $biz->id);
+    Fx::sessao((int) $biz->id, (int) $user->id);
+
+    $localId = DB::table('business_locations')->where('business_id', (int) $biz->id)->value('id');
+    if ($localId === null) {
+        $this->markTestSkipped('Tenant 98 sem business_location — a folha impressa precisa do endereço da loja.');
+    }
+
+    $contato = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 IMPRESSAO');
+    $status = Fx::status((int) $biz->id, 'Recebido');
+    $osId = Fx::os((int) $biz->id, $contato, $status, (int) $user->id, ['location_id' => (int) $localId]);
+
+    $linkVizinho = EmpresaPublica::linkDe((int) $vizinho->id);
+    $codigoVizinho = (string) DB::table('consulta_os_empresas')->where('business_id', (int) $vizinho->id)->value('codigo');
+
+    // Captura o que o controller entrega à view da folha (o PDF em si sai comprimido pelo mPDF).
+    $dados = null;
+    \Illuminate\Support\Facades\View::composer('repair::job_sheet.print_pdf', function ($view) use (&$dados) {
+        $dados ??= $view->getData();
+    });
+
+    ob_start();
+    try {
+        $this->actingAs($user)->get("/repair/job-sheet/print/{$osId}");
+    } finally {
+        ob_end_clean(); // o mPDF manda o PDF direto para a saída
+    }
+
+    expect($dados)->not->toBeNull();
+    $linkProprio = EmpresaPublica::linkDe((int) $biz->id);
+    expect($dados['consulta_os_link'] ?? null)->toBe($linkProprio);
+    expect($linkProprio)->not->toBe($linkVizinho);
+
+    // A folha renderizada mostra o link e o QR (imagem PNG gerada pelo DNS2D) — e nada da outra empresa.
+    $html = view('repair::job_sheet.print_pdf', $dados)->render();
+    expect($html)->toContain($linkProprio);
+    expect($html)->toContain('QR da consulta de OS');
+    expect($html)->not->toContain($codigoVizinho);
 });

@@ -130,9 +130,9 @@ Peças do NfeBrasil usadas na emissão: `DpsXml` (serializa, assina, empacota),
 
 | Tabela | Papel | `business_id` |
 |---|---|---|
-| `nfse_provider_configs` | 1 por empresa: CNPJ/IM do prestador, município, série, CNAE, LC 116 e alíquota padrão, **`ambiente`**, **`cert_id`** | coluna própria; escopo `NfseBusinessScope` |
+| `nfse_provider_configs` | 1 por empresa: CNPJ/IM do prestador, município, série, CNAE, LC 116 e alíquota padrão, **`ambiente`**, `cert_id` (sem leitor desde 2026-11-18) | coluna própria; escopo `NfseBusinessScope` |
 | `nfse_emissoes` | a nota: status, `rps_numero` (nº da DPS), `idempotency_key` (UNIQUE), número, chave (`provider_protocolo`), `pdf_url`, `xml_retorno`, valores, retenções, `transaction_id` | coluna própria; escopo `NfseBusinessScope`; SoftDeletes |
-| `nfe_certificados` | certificado A1 cifrado (dono: NfeBrasil) | coluna própria |
+| `nfe_certificados` | certificado A1 cifrado (dono: NfeBrasil). A NFS-e usa o **ativo** da empresa, o mesmo da NF-e | coluna própria |
 
 `nfse_emissoes` é **compartilhada** com o NfeBrasil, que tem model próprio e vocabulário de
 status diferente ([SCOPE.md](SCOPE.md)).
@@ -206,9 +206,13 @@ recorrente `final` quando a empresa tem config. **Nada emite esse rascunho** (US
 
 - **Dois models e dois cancelamentos** para `nfse_emissoes` (NFSe e NfeBrasil). Consolidar é a
   D-NFSE-CONSOLIDA, sem ADR.
-- **Certificado enviado pela tela fiscal não liga na config da NFS-e.** O upload em
-  `/fiscal/config` grava em `nfe_certificados`; só o comando `nfse:importar-cert` atualiza
-  `nfse_provider_configs.cert_id`. Não há tela para criar a config da NFS-e (US-NFSE-014).
+- **Certificado: resolvido em 2026-11-18.** A NFS-e (emissão, envio pela fila,
+  cancelamento, `nfse:health` e a tela Emitir) usa o certificado ativo da empresa em
+  `nfe_certificados` (`CertificadoService::certificadoAtivo`), o mesmo da NF-e, trocado em
+  `/fiscal/config?tab=cert`. _Até então lia `nfse_provider_configs.cert_id`, que só o
+  comando `nfse:importar-cert` atualizava: o certificado enviado pela tela não chegava na
+  NFS-e._ A coluna `cert_id` ficou sem leitor e não foi apagada. Segue sem tela para criar a
+  config da NFS-e (US-NFSE-014).
 - **`SnNfseAdapter::consultar`** usa o ambiente global e não usa mTLS (US-NFSE-015). Só é
   chamado no tratamento de DPS duplicada.
 

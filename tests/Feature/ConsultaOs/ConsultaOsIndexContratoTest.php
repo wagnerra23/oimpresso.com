@@ -669,3 +669,53 @@ it('UC-COS-62 quem mexeu na OS aparece como primeiro nome + inicial, nunca o nom
     expect(RepairConsultaOsRepository::nomePublico((new User)->forceFill(['first_name' => ''])))->toBeNull();
     expect(RepairConsultaOsRepository::nomePublico(null))->toBeNull();
 });
+
+/** Tabela-ponte vazia: nenhuma empresa tem código ainda (é o estado de produção antes do link nascer). */
+function consultaOsEmpresasVazia(): void
+{
+    Schema::dropIfExists('consulta_os_empresas');
+    Schema::create('consulta_os_empresas', function (Blueprint $t) {
+        $t->increments('id');
+        $t->unsignedInteger('business_id')->unique();
+        $t->string('codigo', 16)->unique();
+        $t->timestamps();
+    });
+}
+
+it('UC-COS-63 o link da empresa nasce na 1ª vez que é pedido e depois é sempre o mesmo', function () {
+    consultaOsEmpresasVazia();
+    // Anti-vácuo: ninguém tem código antes.
+    expect(DB::table('consulta_os_empresas')->count())->toBe(0);
+
+    $primeiro = \Modules\ConsultaOs\Services\EmpresaPublica::linkDe(98);
+    $segundo = \Modules\ConsultaOs\Services\EmpresaPublica::linkDe(98);
+
+    expect($segundo)->toBe($primeiro);
+    expect(DB::table('consulta_os_empresas')->where('business_id', 98)->count())->toBe(1);
+    expect(DB::table('consulta_os_empresas')->count())->toBe(1);
+
+    $codigo = (string) DB::table('consulta_os_empresas')->where('business_id', 98)->value('codigo');
+    expect($codigo)->toMatch('/^'.\Modules\ConsultaOs\Services\EmpresaPublica::FORMATO.'$/');
+    expect($primeiro)->toBe(route('consulta-os.empresa', ['empresa' => $codigo]));
+    // O link resolve de volta para a mesma empresa.
+    expect(\Modules\ConsultaOs\Services\EmpresaPublica::empresaDe($codigo))->toBe(98);
+});
+
+it('UC-COS-64 [T0] o link de uma empresa nunca é o de outra, nem abre a outra', function () {
+    consultaOsEmpresasVazia();
+
+    $link98 = \Modules\ConsultaOs\Services\EmpresaPublica::linkDe(98);
+    $link99 = \Modules\ConsultaOs\Services\EmpresaPublica::linkDe(99);
+    expect($link98)->not->toBe($link99);
+
+    $codigo98 = (string) DB::table('consulta_os_empresas')->where('business_id', 98)->value('codigo');
+    $codigo99 = (string) DB::table('consulta_os_empresas')->where('business_id', 99)->value('codigo');
+    expect($link98)->not->toContain($codigo99);
+    expect($link99)->not->toContain($codigo98);
+    expect(\Modules\ConsultaOs\Services\EmpresaPublica::empresaDe($codigo98))->toBe(98);
+    expect(\Modules\ConsultaOs\Services\EmpresaPublica::empresaDe($codigo99))->toBe(99);
+
+    // Pedir de novo o link da 98 depois de criar o da 99 não troca nada.
+    expect(\Modules\ConsultaOs\Services\EmpresaPublica::linkDe(98))->toBe($link98);
+    expect(DB::table('consulta_os_empresas')->count())->toBe(2);
+});

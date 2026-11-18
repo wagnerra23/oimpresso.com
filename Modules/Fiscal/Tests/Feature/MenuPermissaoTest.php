@@ -50,7 +50,7 @@ function fiscalMenuUrls(\App\User $user, int $businessId): array
 
     return collect(Menu::instance('admin-sidebar-menu')->getItems())
         ->map(fn ($item) => parse_url($item->getUrl(), PHP_URL_PATH))
-        ->filter(fn ($path) => str_starts_with((string) $path, '/fiscal'))
+        ->filter(fn ($path) => str_starts_with((string) $path, '/fiscal') || str_starts_with((string) $path, '/nfe-brasil'))
         ->values()
         ->all();
 }
@@ -63,6 +63,7 @@ it('cada permissão de tela mostra só o item da sua rota', function (string $pe
     'Notas Fiscais' => ['fiscal.nfe.view', '/fiscal/nfe'],
     'Manifestação' => ['fiscal.dfe.manage', '/fiscal/dfe'],
     'Certificado' => ['fiscal.config.edit', '/fiscal/config'],
+    'Tributação' => ['nfe.tributacao.manage', '/nfe-brasil/tributacao'],
 ]);
 
 it('só fiscal.access, sem permissão de tela nenhuma, não ganha item que daria 403', function () {
@@ -71,12 +72,12 @@ it('só fiscal.access, sem permissão de tela nenhuma, não ganha item que daria
     expect(fiscalMenuUrls($u, (int) $this->b98->id))->toBe([]);
 });
 
-it('controle: com as três permissões de tela aparecem os três itens', function () {
+it('controle: com as quatro permissões de tela aparecem os quatro itens', function () {
     $u = $this->usuarioComPermissoes(
-        ['fiscal.access', 'fiscal.nfe.view', 'fiscal.dfe.manage', 'fiscal.config.edit'],
+        ['fiscal.access', 'fiscal.nfe.view', 'fiscal.dfe.manage', 'fiscal.config.edit', 'nfe.tributacao.manage'],
         $this->b98
     );
 
     expect(fiscalMenuUrls($u, (int) $this->b98->id))
-        ->toBe(['/fiscal/nfe', '/fiscal/dfe', '/fiscal/config']);
+        ->toBe(['/fiscal/nfe', '/fiscal/dfe', '/fiscal/config', '/nfe-brasil/tributacao']);
 });

@@ -445,3 +445,26 @@ Gap C14 (nota 0/10, AUSENTE). No padrão nacional/municipal a carta de correçã
 - [ ] UI + persistência do evento + Pest.
 
 **Origem:** /comparativo 2026-07-03. Refs: CAPTERRA-FICHA §4 C14. labels: capterra-gap, from-skill
+
+### US-NFSE-023 · Definir o prazo de guarda das notas fiscais (NFS-e e NF-e) de cada empresa cliente
+
+> owner: eliana · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — pergunta jurídica sem resposta registrada (2026-11-18)
+
+**Pergunta jurídica (decisão B3 da auditoria NFSe 2026-11-05):** por quanto tempo o oimpresso deve guardar as NFS-e e NF-e emitidas por cada empresa cliente, inclusive depois que ela deixa de ser cliente?
+
+**Por que importa:** o código declara dois prazos diferentes para a mesma tabela `nfse_emissoes`: 5 anos em `Modules/NFSe/Config/retention.php` e 10 anos em `Modules/NfeBrasil/Config/retention.php`. Hoje nenhum dos dois apaga nada (a limpeza está desligada e o comando não existe), então a divergência ainda não tem efeito.
+
+**Pontos para a resposta:**
+- Prazo do CTN (arts. 173/174) e quando ele se estende (fiscalização, processo, parcelamento).
+- Obrigações municipais de ISS do prestador.
+- Se depois do prazo o sistema pode apagar, ou se deve guardar sempre (ERP sem exclusão de dado, controle por permissão).
+- Quem responde pela guarda quando a empresa sai do oimpresso: ela (exportação) ou nós.
+
+**Aceite:**
+- [ ] Prazo decidido e registrado por escrito pela Eliana.
+- [ ] Os dois `retention.php` passam a declarar o mesmo valor (mudança técnica feita depois, por dev).
+
+**Fora daqui:** a troca do apagamento em cascata da empresa (`onDelete('cascade')` em `nfse_emissoes`) é correção técnica e não depende desta resposta.

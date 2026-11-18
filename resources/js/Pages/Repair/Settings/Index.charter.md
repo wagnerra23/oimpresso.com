@@ -41,8 +41,8 @@ Dar ao admin do negócio um único lugar para definir **os padrões da folha de 
 - **Não reimplementa Status nem Modelos de dispositivo.** As duas abas do Blade legado já têm Page viva; esta tela linka, não duplica.
 - **Não cria tabela nem migration.** Tudo é JSON em `business`.
 - **Não decide permissão por conta própria.** O gate do Controller (`superadmin` OU `repair_module` + `repair.create`) é a autoridade; a UI só reflete. → **UC-RSET-04**
-- **Não grava nada em GET.** Escrita só por submit explícito.
-- **Não toca o portal público** (`/repair-status`) nem a taxonomia de dispositivos — ondas próprias.
+- **Não grava nada em GET.** Escrita só por submit explícito. _Exceção única, decisão [W] 2026-11-18: na primeira abertura a tela cria o código do portal de consulta de OS da empresa (`consulta_os_empresas`, tabela do ConsultaOs), uma vez só — nada nas configurações do Repair._ → **UC-RSET-09**
+- **Não toca o portal público** (`/repair-status`) nem a taxonomia de dispositivos — ondas próprias. _Desde 2026-11-18 a tela **mostra** o link do portal da empresa, com botão de copiar (só leitura; quem gera é o ConsultaOs)._
 
 ---
 

@@ -24,20 +24,6 @@
         @if(Route::has('pricing') && config('app.env') != 'demo')
         <li><a href="{{ action([\Modules\Superadmin\Http\Controllers\PricingController::class, 'index']) }}">@lang('superadmin::lang.pricing')</a></li>
         @endif
-        @if(Route::has('repair-status'))
-        <li>
-          <a href="{{ action([\Modules\Repair\Http\Controllers\CustomerRepairStatusController::class, 'index']) }}">
-            @lang('repair::lang.repair_status')
-          </a>
-        </li>
-        @endif
-        @if(Route::has('consulta-os.index'))
-        <li>
-          <a href="{{ route('consulta-os.index') }}">
-            Acompanhar pedido
-          </a>
-        </li>
-        @endif
       </ul>
       <ul class="nav navbar-nav navbar-right">
         @if (Route::has('login'))

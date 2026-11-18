@@ -19,6 +19,12 @@ class CustomerRepairStatusController extends Controller
      * Cutover MWART (2026-10-27): a tela Blade antiga e o `POST /post-repair-status` que ela
      * usava foram removidos. Sem o ConsultaOs registrado (módulo desligado no sistema),
      * esta rota responde 404 — não há mais segunda versão do portal.
+     *
+     * Desde 2026-11-17 ("empresa na URL") o destino `/consulta-os` sem código NÃO busca: só
+     * mostra o aviso de que o cliente precisa do link da empresa. Este redirect fica (2026-11-18)
+     * para que QR e links antigos não caiam em 404 — eles chegam no aviso, não numa busca. O link
+     * certo é o `/consulta-os/{codigo}` da empresa (configuração do Repair). Os atalhos do site
+     * que apontavam para cá saíram no mesmo dia.
      */
     public function index()
     {

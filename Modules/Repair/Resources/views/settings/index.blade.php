@@ -12,6 +12,25 @@
 
 <!-- Main content -->
 <section class="content">
+    @if(!empty($consulta_os_link))
+    {{-- Link do portal de consulta de OS da empresa (decisão [W] 2026-11-18) --}}
+    <div class="row" data-testid="consulta-os-link">
+        <div class="col-md-12">
+            <div class="box box-solid">
+                <div class="box-body">
+                    <label for="consulta_os_link">Link da consulta de OS para o cliente</label>
+                    <div class="input-group">
+                        <input type="text" id="consulta_os_link" class="form-control" value="{{ $consulta_os_link }}" readonly>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-primary" onclick="var c=document.getElementById('consulta_os_link');c.select();if(navigator.clipboard){navigator.clipboard.writeText(c.value);}else{document.execCommand('copy');}this.innerText='Copiado';">Copiar</button>
+                        </span>
+                    </div>
+                    <p class="help-block">O cliente abre este link e acompanha a OS pelo número, sem login. Ele só encontra as OS desta empresa.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
     <div class="row">
         @php
             $cat_code_enabled = isset($module_category_data['enable_taxonomy_code']) && !$module_category_data['enable_taxonomy_code'] ? false : true;

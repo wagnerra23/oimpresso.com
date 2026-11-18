@@ -69,6 +69,21 @@ class NotifyRepairCustomer
             ? "{$saudacao} Sua OS nº {$os} está pronta para retirada."
             : "{$saudacao} Sua OS nº {$os} está aguardando peça. Avisamos assim que chegar.";
 
+        // Link do portal da empresa da OS (decisão [W] 2026-11-18). Sempre o business_id da OS,
+        // nunca outro: o link só abre as OS desta empresa (UC-COS-64).
+        $link = $this->linkDoPortal($businessId);
+        if ($link !== null) {
+            $texto .= " Acompanhe pelo link: {$link}";
+        }
+
         app(NotificadorClienteWhatsapp::class)->notificar($businessId, $contactId, 'repair_status', $texto);
+    }
+
+    /** Link público `/consulta-os/{codigo}` da empresa, ou null sem o ConsultaOs (o aviso sai sem link). */
+    private function linkDoPortal(int $businessId): ?string
+    {
+        $empresaPublica = \Modules\ConsultaOs\Services\EmpresaPublica::class;
+
+        return class_exists($empresaPublica) ? $empresaPublica::linkSeDisponivel($businessId) : null;
     }
 }

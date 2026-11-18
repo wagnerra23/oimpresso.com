@@ -34,6 +34,7 @@ related_adrs:
 | Lei / contrato | `Index.charter.md` · `Index.casos.md` (UC-NFTR-*) |
 | Controller | `Modules/NfeBrasil/Http/Controllers/TributacaoController.php` (index, aplicarTemplate, toggleAutoEmission, CRUD de regra) |
 | Leitura pelo certificado | `EmpresaFiscalLookupController` → `GET /nfe-brasil/tributacao/empresa-fiscal` (read-only) |
+| Item de menu | grupo Fiscal › **Tributação** (order 98), publicado em `Modules/Fiscal/Http/Controllers/DataController.php` para quem tem `nfe.tributacao.manage` (ou superadmin). Até 2026-11-17 não havia item: só URL direta ou o link pequeno na tela Certificado |
 | Templates | `TributacaoTemplateService` (`listar` · `sugerir` · `aplicar`, exige NCM padrão) |
 
 ## Fluxo "Configurar pelo certificado" (UC-NFTR-14..18)

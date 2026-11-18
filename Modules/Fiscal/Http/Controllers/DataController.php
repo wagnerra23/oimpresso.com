@@ -102,13 +102,17 @@ class DataController extends Controller
         //   /fiscal/nfe    → NfeCockpitController::index  → fiscal.nfe.view
         //   /fiscal/dfe    → DfeController::index         → fiscal.dfe.manage
         //   /fiscal/config → ConfigController::index      → fiscal.config.edit
+        //   /nfe-brasil/tributacao → TributacaoController   → nfe.tributacao.manage
+        //     (a mesma permissão das mutações da tela; até 2026-11-17 a Tributação não
+        //     tinha item no menu e só se chegava por URL ou por link pequeno no Certificado)
         $user = auth()->user();
         $pode = fn (string $permissao): bool => $user->can('superadmin') || $user->can($permissao);
         $ver_notas = $pode('fiscal.nfe.view');
         $ver_dfe = $pode('fiscal.dfe.manage');
         $ver_config = $pode('fiscal.config.edit');
+        $ver_tributacao = $pode('nfe.tributacao.manage');
 
-        if (! $ver_notas && ! $ver_dfe && ! $ver_config) {
+        if (! $ver_notas && ! $ver_dfe && ! $ver_config && ! $ver_tributacao) {
             return;
         }
 
@@ -127,7 +131,7 @@ class DataController extends Controller
         //
         // Ordering: Notas 95 · Manifestação 96 · Certificado 97.
         // Mantém afinidade visual antes do Financeiro (order 85).
-        Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $is_fiscal, $ver_notas, $ver_dfe, $ver_config) {
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $is_fiscal, $ver_notas, $ver_dfe, $ver_config, $ver_tributacao) {
             if ($ver_notas) {
                 // Entry 1 — Notas Fiscais (cockpit NF-e/NFC-e — sub-página 2)
                 // Active também quando segment(2) é null pra cobrir /fiscal raiz
@@ -175,6 +179,22 @@ class DataController extends Controller
                         'group'  => 'fiscal',
                     ]
                 )->order(97);
+            }
+
+            if ($ver_tributacao) {
+                // Entry 4 — Tributação (NfeBrasil/Tributacao/Index.tsx): regras por NCM,
+                // configuração padrão, naturezas de operação e simulador. A rota mora no
+                // NfeBrasil e exige o mesmo pacote `fiscal_module` (FiscalLiberado).
+                $menu->url(
+                    url('/nfe-brasil/tributacao'),
+                    'Tributação',
+                    [
+                        'icon'   => 'fa fas fa-percent',
+                        'style'  => 'background-color:' . $background_color,
+                        'active' => request()->segment(1) === 'nfe-brasil' && request()->segment(2) === 'tributacao',
+                        'group'  => 'fiscal',
+                    ]
+                )->order(98);
             }
         });
     }

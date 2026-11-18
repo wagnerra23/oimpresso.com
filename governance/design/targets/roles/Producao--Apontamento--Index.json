@@ -1,0 +1,16 @@
+{
+  "_medido_em": "2026-11-18",
+  "_por_que": "Papeis medidos no DOM dos dois lados em 2026-11-18, tema claro: producao em oimpresso.com logada (Chrome do [W]), prototipo no espelho Wagner/ servido pelo servirEspelho do lote. O shell do prototipo roteia a vista por localStorage oimpresso.route = token.",
+  "token": "pcv-apontamento",
+  "roles": {
+    "prod": {
+      "title": ".pcv-root h1",
+      "primary": ".pcv-scan button"
+    },
+    "design": {
+      "title": ".pcv-root h1",
+      "primary": ".pcv-phone button:last-of-type"
+    }
+  },
+  "_primary_design": "Medido com o botao Ler QR de outra OS marcado por atributo; no espelho ele e o ultimo botao do .pcv-phone. Sem OS no lado da producao o papel de primario nao e o mesmo nos dois lados (ver visual-comparison)."
+}
