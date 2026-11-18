@@ -33,7 +33,8 @@ derivados da ficha 10, da thread 05 (`_saida-05.md`) e da decisão D1 — não d
 - Props: `credencial` e `permissions` eager (a credencial é flash — adiada chegaria sem ele), `clientes`
   em `Inertia::defer` com DTO `{id, name, tipo}`, sem `secret`.
 - Criar/excluir seguem as rotas da Blade (`POST /officeimpresso/client`, `DELETE /officeimpresso/client/{id}`);
-  "Regenerar chaves" segue o `GET /officeimpresso/regenerate`, só para `superadmin`.
+  "Regenerar chaves" ia pelo `GET /officeimpresso/regenerate`, só para `superadmin`; desde 2026-11 é
+  `POST` com CSRF (`RegenerateViaPostTest`).
 - Teste: `Modules/Officeimpresso/Tests/Feature/ClientesIndexContratoTest.php`, lane `officeimpresso-pest`.
 
 ## F4 — QA
