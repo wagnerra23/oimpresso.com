@@ -1,0 +1,85 @@
+{
+  "url": "https://oimpresso.com/producao/quadro",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "light",
+  "assinatura": "WS WR2 Sistemas Certificado vencido há 104 dias IA Visão geral Atendimento 15406 CADASTRO 3 Clientes Produtos 14 Fabricação 5 G P COMERCIAL 5 CRM 9 Vendas 13 Oficina Auto 3 G Y Vestuário 1 G V Fisio 11 FINANÇAS 4 Caixa 4 Financeiro 10 G F Cobrança 3 G B Cobrança Recorrente 4 FISCAL 3 Notas Fiscais Manifestação Certificado PRODUÇÃO 6 Painel de produção Comunicação Visual Assistência técnica 7 G O Reservas Cozinha Pedidos ESTOQUE 4 Compras 3 Transferências de ações 2 Ajuste de estoque 2 Patrimônio 6 RH 3 SISTEMA 9 Auditoria Fluxos e regras Usuários 3 Configurações 11 Relatórios 20 Arquivos Base de Conhecimento Planilhas Governança 7 G G PLATAFORMA 3 Forja Suporte Super Admin [ini] [usuário] Admin Produção · Quadro Painel Quadro Linha do tempo Roteiros Postos e cadastros Todas Atrasadas ou vencendo (0) Travadas por arte (0) Qualquer setor Qualquer responsável Por setor Por máquina 0 de 0 OS. A OS anda sozinha quando o operador fecha a etapa. Para mover à mão: arraste o cartão ou use o menu ⋮. Nenhuma OS com etapa aberta. As OS entram aqui quando o roteiro gera as etapas. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": 1,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}
