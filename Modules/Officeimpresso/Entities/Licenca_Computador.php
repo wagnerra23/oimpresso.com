@@ -14,15 +14,22 @@ class Licenca_Computador extends Model
 
     /**
      * Auditoria LGPD Tier 0 (Wave 10 D7.b — 2026-05-16): registra mudanças em
-     * licenças desktop bridge Delphi (block/unblock, troca de serial, alteração
-     * de versão_exe, validade) via Spatie ActivityLog. Campos PII (`senha`,
-     * `contra_senha`, `token`, `user_win`) são automaticamente fillable mas
-     * NÃO inclui senha plain — verificar storage encrypted ([ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §LGPD Art. 6).
+     * licenças desktop bridge Delphi (block/unblock, alteração de versão_exe,
+     * validade) via Spatie ActivityLog ([ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §LGPD Art. 6).
+     *
+     * Até 2026-11 o `logFillable()` copiava a credencial do desktop em claro para
+     * `activity_log.properties` a cada save que a sujasse. `logExcept` tira os
+     * segredos: o log diz que a máquina mudou, nunca qual é a senha.
      */
+    public const SEGREDOS_FORA_DO_LOG = [
+        'senha', 'contra_senha', 'serial', 'token', 'usuario', 'conexao', 'caminho_banco',
+    ];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->logFillable()
+            ->logExcept(self::SEGREDOS_FORA_DO_LOG)
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

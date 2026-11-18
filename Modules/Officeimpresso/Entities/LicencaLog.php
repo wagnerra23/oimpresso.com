@@ -75,14 +75,20 @@ class LicencaLog extends Model
      * Auditoria LGPD Tier 0 (Wave 10 D7.b — 2026-05-16): apesar de licenca_log
      * já ser append-only por design, a trait fornece audit secundário no
      * activity_log (cross-business read) pra rastrear quem criou cada entry
-     * via admin_action (block/unblock manual). Eventos source=trigger_mysql /
-     * source=passport_event acontecem sem usuário autenticado e não geram
-     * activity log (LogOnlyDirty + dontSubmitEmptyLogs filtra).
+     * via admin_action (block/unblock manual).
+     *
+     * Correção 2026-11: este bloco dizia que eventos sem usuário (trigger, passport,
+     * chamada do Delphi) não geram activity log. Não é verdade: `dontSubmitEmptyLogs`
+     * filtra propriedades vazias, não a falta de causer — e no create todo atributo
+     * está sujo, então TODA linha de licenca_log também vira linha em activity_log.
+     * Por isso `metadata` (corpo da requisição, headers) fica de fora: ele já mora em
+     * licenca_log, que é o próprio registro; duplicá-lo só espalha o corpo cru.
      */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->logFillable()
+            ->logExcept(['metadata'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
