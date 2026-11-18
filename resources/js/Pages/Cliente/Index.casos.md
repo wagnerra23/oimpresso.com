@@ -201,6 +201,22 @@ last_run: "2026-11-16"
 - **Teste:** `tests/js/cliente-ficha-recusa-servidor.test.tsx` (Vitest) — `UC-CIDX-20 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## UC-CIDX-21 · Estoque comprado de um fornecedor só da própria empresa e com permissão `[T0]` `[must]`
+- **Persona:** quem abre a aba de estoque na ficha antiga do fornecedor.
+- **Como usa:** a aba pede `GET /contacts/stock-report/{fornecedor}`.
+- **Aceite:** Dado um fornecedor de outra empresa · Quando o pedido chega com o número dele · Então responde 404 · E sem permissão de ver contatos responde 403 · E quem só vê os próprios contatos não abre o fornecedor de outro · E o fornecedor da própria empresa, com permissão, responde 200.
+- **Âncora de contrato:** pedido do Felipe em 2026-11-18 ("corrige o 1, o 2, o 3 e o 4") · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Até 2026-11-18 a consulta não filtrava empresa nem conferia permissão.
+- **Teste:** `tests/Feature/Cliente/ClienteRotasAntigasPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-21 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-22 · Pagamentos na ficha antiga: com permissão e conta mascarada `[T0]` `[must]`
+- **Persona:** quem abre a aba Pagamentos da ficha antiga do contato.
+- **Como usa:** a aba pede `GET /contacts/payments/{contato}`.
+- **Aceite:** Dado um usuário sem permissão de ver contatos · Quando pede os pagamentos · Então responde 403 · E contato de outra empresa responde 404 · E com permissão o número de conta aparece como `****` + 4 últimos dígitos, nunca inteiro, como na aba nova (`/cliente/{id}/payments-json`, UC-CSHW-03).
+- **Âncora de contrato:** pedido do Felipe em 2026-11-18 · LGPD: número de conta nunca em claro (`ContactController::paymentsJson`).
+- **Teste:** `tests/Feature/Cliente/ClienteRotasAntigasPermissaoTest.php` — `UC-CIDX-22 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
