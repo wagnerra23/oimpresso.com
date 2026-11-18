@@ -111,7 +111,7 @@ beforeEach(function () {
     config(['nfse.ambiente' => 'homologacao']);
     $existentes = NfseProviderConfig::withoutGlobalScopes()->where('business_id', NFSCANC_TENANT);
     if ((clone $existentes)->exists()) {
-        $existentes->update(['ambiente' => 'producao', 'cert_id' => $cert->id, 'prestador_cnpj' => NFSCANC_CNPJ]);
+        $existentes->update(['ambiente' => 'producao', 'cert_id' => $cert->id]);
     } else {
         NfseProviderConfig::withoutGlobalScopes()->create([
             'business_id'           => NFSCANC_TENANT,
@@ -119,9 +119,11 @@ beforeEach(function () {
             'municipio_codigo_ibge' => '4218707',
             'ambiente'              => 'producao',
             'cert_id'               => $cert->id,
-            'prestador_cnpj'        => NFSCANC_CNPJ,
         ]);
     }
+    // prestador_cnpj fica fora do $fillable do Model: grava por update de query.
+    NfseProviderConfig::withoutGlobalScopes()->where('business_id', NFSCANC_TENANT)
+        ->update(['prestador_cnpj' => NFSCANC_CNPJ]);
 
     // Espião do estorno de retenção do Financeiro (chamado pelo observer na troca de status).
     $this->retencao = Mockery::spy(RetencaoNfseTituloService::class);
