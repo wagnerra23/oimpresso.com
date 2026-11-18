@@ -16,6 +16,9 @@ related_adrs:
 
 # Paridade — Officeimpresso `Empresa/Show` (Onda 2, tela 4)
 
+> **Estado em 2026-11-18 (lote L5 da auditoria de 2026-11-05):** a flag `useV2OfficeimpressoEmpresa` está com padrão ligado, e a ficha React faz as ações (editar configuração, bloquear empresa, bloquear e liberar máquina; #9178 e #9182, 2026-10-13). O Blade `licenca_computador/computadores` segue no repo como rota de fuga (US-OI-017). Se os 23 itens `alta` têm todos teste não foi recontado (US-OI-013). A coluna "Está no React?" abaixo continua com o `⏳` da F1: **não foi preenchida item a item** depois da F3. Ela não é fonte de estado — o estado de cada item é o teste que cita o UC (`*.casos.md` da tela) e o [SPEC](SPEC.md).
+
+
 > Entregável da **F1/F2** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > Os itens de severidade **alta** viram teste de comportamento em **F4** — *presença deste
 > arquivo não conta pra nada* ([PARITY-TEMPLATE](../_DesignSystem/PARITY-TEMPLATE.md) §Enforcement).
