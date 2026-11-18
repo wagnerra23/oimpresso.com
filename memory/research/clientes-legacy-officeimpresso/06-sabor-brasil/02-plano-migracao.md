@@ -215,7 +215,7 @@ Conta 11 do Delphi ("BANCO DO BRASIL - EDC FOODS"), única de boleto ativa (a co
 
 | Assunto | Decisão |
 |---|---|
-| Pacote fiscal | renovar a assinatura da 199 com o `fiscal_module` (o pacote 182 só tem `auditoria_module`; a assinatura venceu em 2026-04-23) |
+| Pacote fiscal | renovar a assinatura da 199 com o `fiscal_module` (o pacote 182 só tem `auditoria_module`; a assinatura venceu em 2026-04-23). Vale para toda empresa migrada que emite NF-e: ver o pattern de migração, §8 |
 | Empresa 4 (Regime Normal) | ainda emite: configurar os dois locais emissores, cada um com o seu regime (P-155) |
 | 581 títulos a receber em aberto (desde 2019) | importar como estão. Provavelmente o Ricardo esqueceu de baixar. **Lembrete:** na Etapa 8, a [M] confere a lista com o Ricardo e baixa o que já foi pago |
 | Balanço de estoque | não trava a virada: o Ricardo não controla estoque no oimpresso |

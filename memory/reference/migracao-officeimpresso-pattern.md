@@ -213,6 +213,7 @@ Antes de disparar agent `migracao-officeimpresso` pra cliente novo:
 - [ ] Sinal qualificado per [ADR 0105](../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente paga + reporta OU métrica drift)
 - [ ] Discovery doc criado em `memory/requisitos/<Modulo>/discovery-<cliente>-YYYY-MM-DD.md`
 - [ ] Pre-flight count tabela alvo em prod (detect import anterior)
+- [ ] **Pacote fiscal:** se o cliente emite NF-e no Delphi, a assinatura da empresa no oimpresso precisa de um pacote com `fiscal_module`. Sem ele, toda rota `/nfe-brasil/*` fica bloqueada para a empresa (desde 2026-11-11, #10732), e nem a configuração fiscal nem a conferência dos impostos abrem. Ativar ou renovar é pelo superadmin: a assinatura da empresa passa a ser de um pacote com `fiscal_module`. Se em vez disso o pacote for editado (`/superadmin/packages/{id}/edit`), marcar também "Atualizar inscrições existentes", senão a assinatura ativa não muda. Procedimento autorizado para toda empresa migrada (decisão [W] de 2026-11-13 para a 199, estendida a toda migração pelo merge deste item). Fazer antes da configuração fiscal, não na véspera da virada.
 
 ---
 
