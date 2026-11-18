@@ -119,6 +119,9 @@ class ManufacturingServiceProvider extends ServiceProvider
 
     public function registerScheduleCommands()
     {
-        
+        // ADR 0448, etapa 2: comando manual, sem agendamento. Simula por padrão.
+        if ($this->app->runningInConsole()) {
+            $this->commands([\Modules\Manufacturing\Console\ReceitasParaProductBomCommand::class]);
+        }
     }
 }
