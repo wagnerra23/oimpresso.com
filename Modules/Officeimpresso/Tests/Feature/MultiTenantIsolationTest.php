@@ -34,6 +34,11 @@ beforeEach(function () {
     }
     $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
     $_SERVER['HTTP_USER_AGENT'] ??= 'Pest/CI (X11; Linux x86_64) HeadlessChrome';
+    // O guard auth:api lê a chave pública do Passport. A lane roda em ordem aleatória: sem
+    // isto o caso do audit só passava quando outro arquivo tinha gerado as chaves antes.
+    if (! file_exists(storage_path('oauth-private.key')) || ! file_exists(storage_path('oauth-public.key'))) {
+        \Illuminate\Support\Facades\Artisan::call('passport:keys', ['--force' => true]);
+    }
 
     foreach (['superadmin', 'officeimpresso.access', 'officeimpresso.licencas.gerenciar'] as $p) {
         Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
