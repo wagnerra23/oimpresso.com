@@ -16,7 +16,7 @@
  * @see Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php
  */
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { Deferred, Head, router } from '@inertiajs/react';
+import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { CalendarDays, ChevronLeft, ChevronRight, Truck } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -191,10 +191,16 @@ export function GradeSemana({ dias, equipe, instalacoes, hoje }: {
   );
 }
 
-function BlocoInstalacao({ instalacao: i }: { instalacao: InstalacaoAgenda }) {
+/** Cada bloco abre a tela da instalação (onde o instalador tira as fotos e colhe a assinatura). */
+export function BlocoInstalacao({ instalacao: i }: { instalacao: InstalacaoAgenda }) {
   const [rotulo, tom] = ESTADO[i.status] ?? [i.status, 'neutral'];
   return (
-    <Stack gap={0} className="rounded-md border border-border bg-muted/40 px-2 py-1.5" data-instalacao={i.id}>
+    <Stack asChild gap={0}>
+      <Link
+        href={`/comunicacao-visual/instalacoes/${i.id}`}
+        className="rounded-md border border-border bg-muted/40 px-2 py-1.5 hover:bg-muted"
+        data-instalacao={i.id}
+      >
       <span className="font-mono text-xs font-semibold">{horaDe(i.inicio)}–{horaDe(i.fim)}</span>
       <span className="text-xs">{i.os_numero ? `OS ${i.os_numero}` : `Instalação #${i.id}`}</span>
       {i.veiculo && (
@@ -203,6 +209,7 @@ function BlocoInstalacao({ instalacao: i }: { instalacao: InstalacaoAgenda }) {
         </Inline>
       )}
       <Badge variant={tom} className="w-fit">{rotulo}</Badge>
+      </Link>
     </Stack>
   );
 }
