@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 132 arquivos em 19 papéis.
+**Total mapeado:** 125 arquivos em 19 papéis.
 
 ## Controllers — 7
 
@@ -95,16 +95,9 @@ module: Officeimpresso
 - [config.php](../../../Modules/Officeimpresso/Config/config.php)
 - [retention.php](../../../Modules/Officeimpresso/Config/retention.php)
 
-## Views (Blade) — 14
+## Views (Blade) — 7
 
-- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/index.blade.php)
-- [combo_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/combo_product_details.blade.php)
-- [single_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/single_product_details.blade.php)
-- [variable_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/variable_product_details.blade.php)
-- [show.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/show.blade.php)
 - [index.blade.php](../../../Modules/Officeimpresso/Resources/views/clients/index.blade.php)
-- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/index.blade.php)
-- [master.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/master.blade.php)
 - [nav.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/nav.blade.php)
 - [design-system.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/partials/design-system.blade.php)
 - [computadores.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_computador/computadores.blade.php)
