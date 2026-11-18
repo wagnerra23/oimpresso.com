@@ -13,9 +13,10 @@ vi.mock('@inertiajs/react', () => ({
   router: { reload: (...a: unknown[]) => reload(...a), get: vi.fn() },
   Deferred: ({ children }: { children: unknown }) => children,
   Head: () => null,
+  Link: ({ href, children, ...resto }: { href: string; children: unknown }) => <a href={href} {...resto}>{children as never}</a>,
 }));
 
-import { FormAgendar } from '@/Pages/ComunicacaoVisual/Agenda';
+import { BlocoInstalacao, FormAgendar } from '@/Pages/ComunicacaoVisual/Agenda';
 
 const EQUIPE = [{ id: 7, nome: 'Instalador Alfa' }];
 const OS = [{ id: 41, numero: 'OS-41', etapa: 'instalacao' }];
@@ -68,5 +69,10 @@ describe('Agenda CV · bloqueio sem janela', () => {
     await screen.findByText('Instalação agendada.');
     expect(document.querySelector('[data-contract="bloqueio"]')).toBeNull();
     await waitFor(() => expect(reload).toHaveBeenCalledWith({ only: ['instalacoes'] }));
+  });
+
+  it('UC-CVAG-05 · cada instalação da grade abre a tela da instalação', () => {
+    render(<BlocoInstalacao instalacao={{ id: 12, os_id: 40, os_numero: 'OS-40', inicio: '2026-10-21T09:00:00-03:00', fim: '2026-10-21T11:00:00-03:00', equipe: [], veiculo: null, status: 'agendada' }} />);
+    expect(screen.getByRole('link', { name: /OS OS-40/ }).getAttribute('href')).toBe('/comunicacao-visual/instalacoes/12');
   });
 });

@@ -24,6 +24,8 @@ last_run_ci: "2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest Co
 | UC-CVCEL-02 | Instalação de outra empresa é não encontrada | must `[T0]` | US-COMVIS-007 | `InstalacaoTelaContratoTest` | 🧪 |
 | UC-CVCEL-03 | Sem permissão não abre; quem só vê abre sem poder registrar | must | US-COMVIS-007 | `InstalacaoTelaContratoTest` | 🧪 |
 | UC-CVCEL-04 | A foto vai para a API; enviada recarrega o comprovante, recusada aparece no alerta | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
+| UC-CVCEL-05 | A assinatura só sai com desenho, nome e aceite do cliente, e vai para a API com os três | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
+| UC-CVCEL-06 | Concluir só libera com os três itens; concluída não oferece mais nada | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
 
 ## UC-CVCEL-01 · A tela mostra OS, cliente, endereço, horário, equipe e o que o comprovante já tem · `must`
 
@@ -52,5 +54,23 @@ Status: 🧪
 **Quando** o instalador escolhe a foto antes **Então** ela vai para `POST …/instalacoes/{id}/fotos` com o tipo
 `foto_antes`; com 201 a tela recarrega só o comprovante. Com 422 "A instalação está concluída e não recebe mais
 comprovante." aparece o alerta "Não enviado" com essa mensagem e nada recarrega.
+
+Status: 🧪
+
+## UC-CVCEL-05 · A assinatura só sai com desenho, nome e aceite do cliente, e vai para a API com os três · `must`
+
+**Dado** as duas fotos enviadas e a assinatura pendente **Quando** o cliente assina no quadro **Então**
+"Salvar assinatura" continua travado até o instalador escrever o nome de quem assinou e marcar o aceite do
+cliente. Salvando, vai para `POST …/instalacoes/{id}/assinatura` o PNG, o nome sem espaços nas pontas e
+`consentimento: true`; com 201 a tela recarrega só o comprovante. Com a assinatura já colhida o quadro some.
+
+Status: 🧪
+
+## UC-CVCEL-06 · Concluir só libera com os três itens; concluída não oferece mais nada · `must`
+
+**Dado** só a foto antes **Então** "Concluir instalação" está travado e a tela diz que libera com foto antes,
+foto depois e assinatura. **Dado** os três **Quando** o instalador conclui **Então** vai para
+`POST …/instalacoes/{id}/concluir` e, com 200, a tela recarrega o comprovante e a instalação. Concluída, não há
+botão de foto nem de concluir, e aparece "Instalação concluída".
 
 Status: 🧪

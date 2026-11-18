@@ -17,6 +17,9 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * `nfe_certificados`, com FK a partir de nfse_provider_configs.cert_id) e contava
  * status 'rejeitada' (fora do enum de nfse_emissoes). Os dois sinais nunca mudavam.
  *
+ * Desde 2026-11-18 o alerta olha o certificado ATIVO da empresa (o mesmo da NF-e), não
+ * mais `nfse_provider_configs.cert_id`.
+ *
  * Tenant 98 (ADR 0358) com adversário 99. Tudo dentro de transação revertida.
  * MySQL: o schema UltimatePOS (business, FKs) não existe no SQLite.
  */
@@ -33,9 +36,13 @@ beforeEach(function () {
     $this->biz = $this->seededTenant()->id;
     $this->outra = $this->seededSupportClientTenant()->id;
     expect($this->biz)->not->toBe($this->outra);
+
+    // Ponto de partida conhecido: nenhuma das duas empresas com certificado ativo (a
+    // transação desfaz). Sem isso, um ativo deixado por outro teste decidiria o veredito.
+    DB::table('nfe_certificados')->whereIn('business_id', [$this->biz, $this->outra])->update(['ativo' => false]);
 });
 
-function nfseHealthCert(int $businessId, string $validoAte): int
+function nfseHealthCert(int $businessId, string $validoAte, bool $ativo = true): int
 {
     return (int) DB::table('nfe_certificados')->insertGetId([
         'business_id'        => $businessId,
@@ -43,7 +50,7 @@ function nfseHealthCert(int $businessId, string $validoAte): int
         'cnpj_titular'       => '00000000000098',
         'valido_ate'         => $validoAte,
         'encrypted_password' => 'teste',
-        'ativo'              => true,
+        'ativo'              => $ativo,
         'created_at'         => now(),
         'updated_at'         => now(),
     ]);
@@ -105,14 +112,15 @@ it('certificado que vence hoje já conta como vencido (a emissão bloqueia no di
         ->and($exit)->toBe(2);
 });
 
-it('config apontando para certificado de OUTRA empresa → FAIL (Tier 0)', function () {
+it('certificado ativo vigente da OUTRA empresa não conta para a 98 (Tier 0) → WARN sem certificado', function () {
+    // A 99 tem certificado ativo e vigente; a config da 98 até aponta para ele pelo cert_id.
     nfseHealthConfig($this->biz, nfseHealthCert($this->outra, now()->addDays(200)->toDateString()));
 
-    $checks = nfseHealthRodar($this->biz, $exit);
+    $checks = nfseHealthRodar($this->biz);
 
-    expect($checks['cert_vencimento_alarme']['status'])->toBe('FAIL')
-        ->and($checks['cert_vencimento_alarme']['details'])->toContain('outra empresa')
-        ->and($exit)->toBe(2);
+    expect($checks['cert_vencimento_alarme']['status'])->toBe('WARN')
+        ->and($checks['cert_vencimento_alarme']['details'])->toContain('sem certificado')
+        ->and($checks['cert_vencimento_alarme']['details'])->toContain((string) $this->biz);
 });
 
 it('config sem certificado → WARN', function () {
@@ -124,14 +132,28 @@ it('config sem certificado → WARN', function () {
         ->and($checks['cert_vencimento_alarme']['details'])->toContain('sem certificado');
 });
 
-it('olha o cert_id da config NFS-e, não o certificado ativo da empresa', function () {
-    // A empresa tem um certificado vigente e ativo, mas a config NFS-e aponta outro, vencido.
+it('olha o certificado ativo da empresa, não o cert_id antigo da config NFS-e', function () {
+    // Cenário de produção (empresa 1, 2026-11-18): o cert_id aponta um certificado vencido e
+    // já desativado; a empresa trocou o certificado na tela e o ativo é vigente.
+    $antigoVencido = nfseHealthCert($this->biz, now()->subDays(3)->toDateString(), ativo: false);
     nfseHealthCert($this->biz, now()->addDays(300)->toDateString());
-    nfseHealthConfig($this->biz, nfseHealthCert($this->biz, now()->subDays(3)->toDateString()));
+    nfseHealthConfig($this->biz, $antigoVencido);
 
     $checks = nfseHealthRodar($this->biz);
 
-    expect($checks['cert_vencimento_alarme']['status'])->toBe('FAIL');
+    expect($checks['cert_vencimento_alarme']['status'])->toBe('OK');
+});
+
+it('cert_id vigente não esconde certificado ativo vencido → FAIL', function () {
+    $antigoVigente = nfseHealthCert($this->biz, now()->addDays(300)->toDateString(), ativo: false);
+    nfseHealthCert($this->biz, now()->subDays(3)->toDateString());
+    nfseHealthConfig($this->biz, $antigoVigente);
+
+    $checks = nfseHealthRodar($this->biz, $exit);
+
+    expect($checks['cert_vencimento_alarme']['status'])->toBe('FAIL')
+        ->and($checks['cert_vencimento_alarme']['details'])->toContain('vencido')
+        ->and($exit)->toBe(2);
 });
 
 it('conta emissões em status erro (o que o módulo grava) nas últimas 24h', function () {
