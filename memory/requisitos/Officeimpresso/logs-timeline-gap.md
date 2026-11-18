@@ -8,7 +8,7 @@ gerado_em: 2026-09-06
 
 # GAP-SPEC — Officeimpresso/Logs/Timeline
 
-> **⚠️ SUPERADO — nota de 2026-11-18 (lote L5 da auditoria de 2026-11-05).** A afirmação "No protótipo esta tela NÃO EXISTE como página" caducou: o protótipo ganhou a vista `ViewTimeline` e a rota `oi-log-timeline` (`prototipo-ui/cowork/Wagner/app.jsx`). Este documento fica como retrato de 2026-09-06; a comparação de hoje é página contra página e precisa ser re-medida (skill `comparar-design-prod`).
+> **⚠️ SUPERADO — nota de 2026-11-18 (lote L5 da auditoria de 2026-11-05).** A afirmação "No protótipo esta tela NÃO EXISTE como página" caducou: o protótipo ganhou a vista `ViewTimeline` (`prototipo-ui/cowork/Wagner/officeimpresso-page.jsx`) e a rota `oi-log-timeline` (`prototipo-ui/cowork/Wagner/app.jsx`). Este documento fica como retrato de 2026-09-06; a comparação de hoje é página contra página e precisa ser re-medida (skill `comparar-design-prod`).
 
 
 > **Âncora declarada no charter** (`related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx`) e confirmada pela porta. A tela viva mora dentro do módulo — ver a nota sobre as duas raízes de `Pages` no [gap da tela irmã](logs-index-gap.md).
