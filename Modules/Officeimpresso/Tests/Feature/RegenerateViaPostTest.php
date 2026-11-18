@@ -44,21 +44,21 @@ afterEach(function () {
     }
 });
 
-it('GET não responde mais: 405, e o Artisan não é chamado', function () {
+it('UC-OICLI-07 · GET não responde mais: 405, e o Artisan não é chamado', function () {
     Artisan::shouldReceive('call')->never();
     $this->actingAs(oiRegenUser($this, 'superadmin'));
 
     $this->get('/officeimpresso/regenerate')->assertStatus(405);
 });
 
-it('POST sem superadmin é 403, mesmo com a permissão delegável de clientes', function () {
+it('UC-OICLI-07 · POST sem superadmin é 403, mesmo com a permissão delegável de clientes', function () {
     Artisan::shouldReceive('call')->never();
     $this->actingAs(oiRegenUser($this, 'officeimpresso.clientes.liberar'));
 
     $this->post('/officeimpresso/regenerate')->assertForbidden();
 });
 
-it('POST de superadmin chama passport:install --force e responde sucesso', function () {
+it('UC-OICLI-07 · POST de superadmin chama passport:install --force e responde sucesso', function () {
     Artisan::shouldReceive('call')->once()->with('passport:install --force')->andReturn(0);
     Artisan::shouldReceive('call')->once()->with('apidoc:generate')->andReturn(0);
     $this->actingAs(oiRegenUser($this, 'superadmin'));
@@ -68,7 +68,7 @@ it('POST de superadmin chama passport:install --force e responde sucesso', funct
         ->assertSessionHas('status.success', 1);
 });
 
-it('POST de superadmin com falha responde success=0 e não devolve a mensagem crua', function () {
+it('UC-OICLI-07 · POST de superadmin com falha responde success=0 e não devolve a mensagem crua', function () {
     Artisan::shouldReceive('call')->once()->with('passport:install --force')
         ->andThrow(new RuntimeException('OIREGEN-DETALHE-INTERNO'));
     $this->actingAs(oiRegenUser($this, 'superadmin'));
