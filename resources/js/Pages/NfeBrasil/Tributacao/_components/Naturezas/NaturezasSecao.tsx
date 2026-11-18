@@ -11,6 +11,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
 import SubNav from '@/Components/shared/SubNav';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import NaturezaEditor from './NaturezaEditor';
 import {
   CST_COM_ST, FINS, REGIME_NOME, completar, listar, rotulo, vazia,
@@ -146,14 +147,16 @@ export default function NaturezasSecao() {
   const abrir = (l: LinhaNatureza) => setAberta({ natureza: { ...completar(l.natureza), id: l.id }, editavel: l.editavel });
 
   return (
-    <section id="naturezas" data-contract="naturezas" aria-labelledby="naturezas-titulo" className="flex flex-col gap-4">
-      <header className="flex flex-wrap items-end gap-x-6 gap-y-3">
+    <Stack asChild gap={4}>
+    <section id="naturezas" data-contract="naturezas" aria-labelledby="naturezas-titulo">
+      <Inline asChild wrap align="end" gap={3} className="gap-x-6">
+      <header>
         <div className="min-w-0">
-          <div className="mb-1.5 flex gap-1.5 text-xs text-[var(--text-dim)]">
+          <Inline gap={1} className="mb-1.5 gap-1.5 text-xs text-[var(--text-dim)]">
             <span>Fiscal</span>
             <span aria-hidden className="text-[var(--text-mute)]">/</span>
             <span>Naturezas de operação</span>
-          </div>
+          </Inline>
           <h2 id="naturezas-titulo" className="m-0 text-[22px] font-semibold leading-tight tracking-[-.02em] text-[var(--text)]">
             Tributação padrão
           </h2>
@@ -168,10 +171,12 @@ export default function NaturezasSecao() {
           Nova natureza
         </Button>
       </header>
+      </Inline>
 
       {empresa && (
-        <div
-          className="grid gap-px overflow-hidden rounded-lg border border-[var(--border-2)] bg-[var(--border-2)]"
+        <Grid
+          gap={0}
+          className="gap-px overflow-hidden rounded-lg border border-[var(--border-2)] bg-[var(--border-2)]"
           style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))' } as CSSProperties}
         >
           <Dado rotulo="Empresa emitente" valor={empresa.nome ?? '—'} sub={empresa.cnpj ?? undefined} mono />
@@ -190,7 +195,7 @@ export default function NaturezasSecao() {
                 : `CBS de ${empresa.ano} ainda sem alíquota`
             }
           />
-        </div>
+        </Grid>
       )}
 
       <div className="min-w-0 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
@@ -201,7 +206,7 @@ export default function NaturezasSecao() {
           value={filtro}
           onChange={(v) => setFiltro(v as Filtro)}
         />
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5">
+        <Inline wrap justify="between" gap={3} className="px-4 py-2.5">
           <span className="text-[11.5px] text-[var(--text-dim)]">Clique numa natureza para revisar os passos.</span>
           <Input
             className="h-8 max-w-xs"
@@ -210,7 +215,7 @@ export default function NaturezasSecao() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
           />
-        </div>
+        </Inline>
 
         {erro && <p className="px-4 py-4 text-sm text-destructive">{erro}</p>}
         {!linhas && !erro && <div className="px-4 pb-4"><Skeleton className="h-32 w-full" /></div>}
@@ -269,13 +274,13 @@ export default function NaturezasSecao() {
                       </td>
                       <td className={TD}>
                         {n.icms ? (
-                          <div className="flex flex-wrap gap-1">
+                          <Inline wrap gap={1}>
                             <Tag cor={COR.icms}>ICMS</Tag>
                             {cst && CST_COM_ST.includes(cst) && <Tag cor={COR.icms}>ST</Tag>}
                             {n.ipi?.on && <Tag cor={COR.ipi}>IPI {n.ipi.cst}</Tag>}
                             {pc && <Tag cor={COR.pis}>PIS/COFINS {pc}</Tag>}
                             {n.ibs?.on && <Tag cor={COR.ibs}>IBS/CBS {n.ibs.cst}</Tag>}
-                          </div>
+                          </Inline>
                         ) : (
                           <span className="text-[var(--text-mute)]">—</span>
                         )}
@@ -301,5 +306,6 @@ export default function NaturezasSecao() {
         )}
       </div>
     </section>
+    </Stack>
   );
 }
