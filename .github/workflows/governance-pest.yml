@@ -122,7 +122,8 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-governance-junit.xml \
-            tests/Feature/Governance/DashboardAcessoGateTest.php
+            tests/Feature/Governance/DashboardAcessoGateTest.php \
+            tests/Feature/Governance/PoliciesContratoTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
       # Se o sumário mostrar casos com 0 assertions, a lane NÃO mediu — leia isso antes

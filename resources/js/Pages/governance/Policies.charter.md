@@ -20,7 +20,7 @@ charter_version: 1
 
 ## Mission
 
-Permitir a Wagner editar policies de governança (rules do `ActionGate`) pelo painel `/governance/policies` sem precisar tocar em código. Ativar/desativar uma rule é decisão operacional frequente (ex: relaxar gate em janela de incidente, bloquear rule problemática). Toda mudança deve futuramente virar entry em `mcp_governance_rule_history` (Fase 5+1) pra audit.
+Permitir a Wagner editar policies de governança (rules do `ActionGate`) pelo painel `/governance/policies` sem precisar tocar em código. Ativar/desativar uma rule é decisão operacional frequente (ex: relaxar gate em janela de incidente, bloquear rule problemática). Toda alternância que muda o estado grava uma linha em `activity_log` (log `governance`) — desde 2026-11-19, lote L0; antes a previsão era uma `mcp_governance_rule_history` (Fase 5+1), que não foi criada.
 
 ---
 
@@ -60,7 +60,7 @@ Permitir a Wagner editar policies de governança (rules do `ActionGate`) pelo pa
 - ❌ Confirmação modal pra toggle (toggle é reversível — modal só atrita; canon = ação direta + flash)
 - ❌ Edit inline com `<input>` que salva on-blur (race condition com toggle — esperar editor JSON dedicado próxima iter)
 - ❌ Esconder rules disabled (Wagner precisa ver todas pra reativar — só ordena ao fim)
-- ❌ Toggle sem registrar histórico (Fase 5+1 — TODO `mcp_governance_rule_history`; sem isso, audit fica cego)
+- ❌ Toggle sem registrar histórico (sem isso, audit fica cego) — atendido em 2026-11-19 pela trilha em `activity_log` (UC-GPOL-11); id inexistente responde 404 (UC-GPOL-10)
 - ❌ Badge cor crua sem tone (canon = `variant="outline"` shadcn)
 
 ---

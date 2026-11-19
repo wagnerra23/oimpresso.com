@@ -49,6 +49,10 @@ Status: 🧪 (vitest — "avisa que alternar não deixa rastro")
 desligar uma política muda o enforcement em runtime e a auditoria fica cega justamente para essa mudança.
 O charter já registrava isso como anti-padrão; o aviso torna o fato visível a quem opera, com a copy do
 protótipo (`governance-page.jsx:325-329`). O bloco sai da tela no dia em que a tabela existir.
+⚠️ **Fato novo, 2026-11-19 (lote L0):** a trilha passou a existir — não na `mcp_governance_rule_history`, mas
+no `activity_log` (UC-GPOL-11). O aviso da tela ficou **falso** desde então. Tirá-lo ou reescrevê-lo é mudança
+de FORMA com fonte no protótipo (UI-0029): o pedido vai ao Cowork e o PR da tela vem depois; até lá, este UC
+descreve uma copy que não corresponde mais ao comportamento.
 **Pronto quando:** havendo ≥1 regra, o texto "Alternar não deixa rastro" está visível acima da lista.
 
 ## UC-GPOL-05 — Não existe alternar em lote
@@ -61,7 +65,7 @@ quer cara.
 segue sendo a única porta de escrita (um id por requisição).
 
 ## UC-GPOL-06 — Ler exige a permissão da sidebar; alternar exige a de edição
-Status: 🧪 (Pest `GovernanceRotasCanGateTest` — "cada tela sem gate próprio passa a exigir a permission da sidebar" + "as 3 permissions usadas são as que o DataController DECLARA". ⚠️ O id **não** está no título daquele Pest: `Modules/Governance/` é `nao_toca` desta frente, então quem satisfaz a rastreabilidade é a citação no `e2e/governance-policies.spec.ts`. Consequência honesta: o UC fica ⛓ — provado de fato, inalcançável pelo G-7 até alguém ancorar o id no Pest)
+Status: 🧪 (Pest `tests/Feature/Governance/PoliciesContratoTest.php` — "UC-GPOL-06 · sem governance.policies.edit o toggle recusa com 403", caso negativo real na lane `Governance · Pest (MySQL)`, desde 2026-11-19; e `GovernanceRotasCanGateTest` — "cada tela sem gate próprio passa a exigir a permission da sidebar" + "as 3 permissions usadas são as que o DataController DECLARA". ⚠️ O id **não** está no título daquele Pest: `Modules/Governance/` é `nao_toca` desta frente, então quem satisfaz a rastreabilidade é a citação no `e2e/governance-policies.spec.ts`. Consequência honesta: o UC fica ⛓ — provado de fato, inalcançável pelo G-7 até alguém ancorar o id no Pest)
 Medido no `routes.php`: `GET /policies` → `can:governance.dashboard.view`; `POST /policies/{id}/toggle` →
 `can:governance.policies.edit`.
 ⚠️ **Divergência com o SPEC, registrada e não consertada aqui:** a tabela §Permissões do `SPEC.md` atribui a
@@ -70,8 +74,10 @@ casos > charter > SPEC) o teste e a rota ganham; alinhar o SPEC é decisão [W],
 da rota revogaria acesso em silêncio.
 ⚠️ **Ressalva D-GATE, e ela é estrutural:** `AuthServiceProvider` registra um `Gate::before` que devolve
 `true` para a role `Admin#{business_id}` em qualquer ability fora de backup/superadmin/manage_modules —
-logo o `can:` barra o não-admin sem a permission, e **não** barra o admin de um business. Fechar esse
-caminho é o passo 1 da ADR 0392, decisão [W] em aberto.
+logo o `can:` barra o não-admin sem a permission, e **não** barra o admin de um business. _Correção
+2026-11-19:_ o passo 1 da ADR 0392 foi fechado pelo #6962 e a ADR 0415 tirou do bypass só as permissões de
+plataforma — `governance.*` segue liberada para `Admin#{empresa}`. Fechar isso é o passo 3 da 0392, decisão
+[W] em aberto.
 **Pronto quando:** o registry vivo (`gatherMiddleware()`) mostra `can:governance.dashboard.view` na rota de
 índice e `can:governance.policies.edit` na de toggle — e o caso negativo real só depois do D-GATE.
 
@@ -101,3 +107,20 @@ aparecem aqui) e **não** renderiza a toolbar de busca — não há o que buscar
 só existe com catálogo povoado. O GAP-SPEC registra o vazio de catálogo como "vivo à frente" do protótipo,
 que nunca o desenhou.
 **Pronto quando:** com `rules_by_category: []` aparece "Sem rules ainda" e o campo de busca não existe.
+
+## UC-GPOL-10 — Alternar regra inexistente responde 404
+Status: 🧪 (Pest `tests/Feature/Governance/PoliciesContratoTest.php` — "UC-GPOL-10 · toggle de id inexistente responde 404 e não grava trilha")
+Lote L0 da auditoria do Governance (aprovado pelo [W] em 2026-11-19). Até ali o `PolicyToggleService` fazia
+UPDATE por id sem conferir existência, e a tela recebia "Policy #N ativada" para uma regra que não existe.
+**Pronto quando:** `POST /governance/policies/{id}/toggle` com id sem linha em `mcp_governance_rules` responde
+404 e nenhuma linha de trilha nasce.
+
+## UC-GPOL-11 — Toda alternância que muda o estado deixa rastro: quem, quando, antes→depois
+Status: 🧪 (Pest `tests/Feature/Governance/PoliciesContratoTest.php` — os 2 casos "UC-GPOL-11 …")
+Charter, anti-padrão "Toggle sem registrar histórico — audit fica cego". A trilha usa o mecanismo que o repo já
+tem: uma linha só-inserção em `activity_log` (log `governance`, evento `updated`, causer = quem alternou,
+`old.enabled` → `attributes.enabled`, mais `policy_id` e `rule_key`). Sem `business_id`: `mcp_governance_rules`
+é de plataforma e não tem a coluna, então a linha não aparece na /auditoria de nenhuma empresa. A
+`mcp_governance_rule_history` prevista ("Fase 5+1") não foi criada — o `activity_log` cobre o que ela cobriria.
+**Pronto quando:** alternar uma regra grava exatamente 1 linha com autor, data e os dois estados; pedir o estado
+que a regra já tem não grava nada.
