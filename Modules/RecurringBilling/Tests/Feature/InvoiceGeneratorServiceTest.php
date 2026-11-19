@@ -330,3 +330,82 @@ test('UC-RBFAT-11 · 8. Logga SubscriptionEvent kind=event-charge', function () 
     expect($event->body)->toContain('Fatura RB-');
     expect($event->body)->toContain('R$ 100,00');
 });
+
+/*
+ * d7 (auditoria 2026-11-19, L2 PR 2) — competência já faturada não pode prender a assinatura.
+ *
+ * Antes: o gerador achava a fatura da competência, contava "skipped" e saía SEM mover
+ * next_due_date. A assinatura voltava a ser candidata todo dia, sempre "skipped", e nunca
+ * mais gerava a fatura do mês seguinte. Tenants 98/99 (ADR 0358), nunca biz=4.
+ */
+function faturaJaExistente(int $bizId, int $subId, string $vencimento, float $valor = 100.0): Invoice
+{
+    return Invoice::create([
+        'business_id'      => $bizId,
+        'subscription_id'  => $subId,
+        'contact_id'       => 999,
+        'numero_documento' => "MANUAL-{$bizId}-{$subId}-".substr($vencimento, 0, 7),
+        'valor'            => $valor,
+        'status'           => 'open',
+        'vencimento'       => $vencimento,
+    ]);
+}
+
+/** next_due_date como está gravado (texto do banco, sem o cast `date` do model). */
+function vencimentoGravado(int $subId): string
+{
+    return (string) \Illuminate\Support\Facades\DB::table('rb_subscriptions')->where('id', $subId)->value('next_due_date');
+}
+
+test('UC-RBFAT-08 · d7. Competência já faturada avança o vencimento sem criar fatura', function () {
+    $plan = makePlan(98, 100.0, 'monthly');
+    $sub  = makeSubscription(98, $plan->id, '2026-07-15');
+    faturaJaExistente(98, $sub->id, '2026-07-15');
+
+    $service = new InvoiceGeneratorService();
+    $stats = $service->run(98, '2026-07-15');
+
+    expect($stats)->toBe(['generated' => 0, 'skipped' => 1, 'errors' => 0, 'advanced' => 1]);
+    expect(Invoice::where('subscription_id', $sub->id)->count())->toBe(1);
+    expect(vencimentoGravado($sub->id))->toStartWith('2026-08-15');
+    expect(SubscriptionEvent::where('subscription_id', $sub->id)->where('kind', SubscriptionEvent::KIND_NOTE)->count())->toBe(1);
+
+    // Dia seguinte: deixou de ser candidata (antes: "skipped" de novo, todo dia).
+    expect($service->run(98, '2026-07-16'))->toBe(['generated' => 0, 'skipped' => 0, 'errors' => 0, 'advanced' => 0]);
+
+    // No vencimento seguinte a fatura do mês nasce normalmente, com o valor do plano.
+    $agosto = $service->run(98, '2026-08-15');
+    expect($agosto['generated'])->toBe(1);
+    $nova = Invoice::where('subscription_id', $sub->id)->where('numero_documento', "RB-{$sub->id}-2026-08")->first();
+    expect($nova)->not->toBeNull();
+    expect((float) $nova->valor)->toBe(100.0);
+    expect(Invoice::where('subscription_id', $sub->id)->count())->toBe(2);
+});
+
+test('UC-RBFAT-10 · d7. dry-run com competência já faturada não move a data', function () {
+    $plan = makePlan(98, 100.0, 'monthly');
+    $sub  = makeSubscription(98, $plan->id, '2026-07-15');
+    faturaJaExistente(98, $sub->id, '2026-07-15');
+
+    $stats = (new InvoiceGeneratorService())->run(98, '2026-07-15', dryRun: true);
+
+    expect($stats)->toBe(['generated' => 0, 'skipped' => 1, 'errors' => 0, 'advanced' => 0]);
+    expect(vencimentoGravado($sub->id))->toStartWith('2026-07-15');
+    expect(SubscriptionEvent::count())->toBe(0);
+});
+
+test('UC-RBFAT-11 · d7. Avançar a data de 98 não toca a assinatura presa de 99', function () {
+    $plan98 = makePlan(98, 100.0, 'monthly');
+    $sub98  = makeSubscription(98, $plan98->id, '2026-07-15');
+    faturaJaExistente(98, $sub98->id, '2026-07-15');
+
+    $plan99 = makePlan(99, 200.0, 'monthly');
+    $sub99  = makeSubscription(99, $plan99->id, '2026-07-15');
+    faturaJaExistente(99, $sub99->id, '2026-07-15', 200.0);
+
+    (new InvoiceGeneratorService())->run(98, '2026-07-15');
+
+    expect(vencimentoGravado($sub98->id))->toStartWith('2026-08-15');
+    expect(vencimentoGravado($sub99->id))->toStartWith('2026-07-15');
+    expect(SubscriptionEvent::where('business_id', 99)->count())->toBe(0);
+});
