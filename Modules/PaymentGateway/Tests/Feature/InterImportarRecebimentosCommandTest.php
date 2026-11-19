@@ -341,9 +341,9 @@ it('2.6 --autor de outra empresa é recusado', function () {
 });
 
 it('2.6 agendamento lê empresa/conta/janela da config (defaults = valores antigos)', function () {
-    expect(config('paymentgateway.inter_importar.business_id'))->toBe(1)
-        ->and((int) config('paymentgateway.inter_importar.conta_id'))->toBe(12)
-        ->and(config('paymentgateway.inter_importar.dias'))->toBe(15);
+    expect(config('paymentgateway_inter_importar.business_id'))->toBe(1)
+        ->and((int) config('paymentgateway_inter_importar.conta_id'))->toBe(12)
+        ->and(config('paymentgateway_inter_importar.dias'))->toBe(15);
 
     // Mesmo jeito do RetryOrphanWebhookCommandTest GUARD 1: invoca Kernel::schedule num Schedule novo.
     $kernel = app(\App\Console\Kernel::class);

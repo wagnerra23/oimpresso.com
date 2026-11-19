@@ -97,15 +97,15 @@ class Kernel extends ConsoleKernel
         // RECEBIDO) e cria título recebido + baixa na conta Inter (id=12).
         // Idempotente (dedup por metadata->inter_ref) — janela 15d cobre runs
         // perdidos sem duplicar. 07h BRT (antes do dia operacional).
-        // Empresa/conta/janela vêm de config('paymentgateway.inter_importar')
+        // Empresa/conta/janela vêm de config('paymentgateway_inter_importar')
         // (auditoria PG 2.6); defaults = os valores que estavam fixos aqui.
         $schedule->command('paymentgateway:inter-importar-recebimentos', array_filter([
-            '--business' => (int) config('paymentgateway.inter_importar.business_id', 1),
-            '--conta'    => config('paymentgateway.inter_importar.conta_id', 12),
-            '--days'     => (int) config('paymentgateway.inter_importar.dias', 15),
+            '--business' => (int) config('paymentgateway_inter_importar.business_id', 1),
+            '--conta'    => config('paymentgateway_inter_importar.conta_id', 12),
+            '--days'     => (int) config('paymentgateway_inter_importar.dias', 15),
         ], fn ($v) => $v !== null && $v !== ''))
             ->dailyAt('07:00')
-            ->when(fn () => (int) config('paymentgateway.inter_importar.business_id', 1) > 0)
+            ->when(fn () => (int) config('paymentgateway_inter_importar.business_id', 1) > 0)
             ->timezone('America/Sao_Paulo')
             ->withoutOverlapping()
             ->environments(['live'])
