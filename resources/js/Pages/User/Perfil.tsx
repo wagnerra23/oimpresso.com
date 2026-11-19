@@ -17,6 +17,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Button } from '@/Components/ui/button';
+import SubNav from '@/Components/shared/SubNav';
 import { toast } from 'sonner';
 import { User, Info, Landmark, Lock, Camera, Mail, Save } from 'lucide-react';
 
@@ -85,10 +86,10 @@ const MARITAL = [
 ];
 
 const TABS = [
-  { id: 'conta', label: 'Conta', icon: User },
-  { id: 'info', label: 'Mais informações', icon: Info },
-  { id: 'banco', label: 'Dados bancários', icon: Landmark },
-  { id: 'seguranca', label: 'Segurança', icon: Lock },
+  { id: 'conta', label: 'Conta', icon: 'user' },
+  { id: 'info', label: 'Mais informações', icon: 'info' },
+  { id: 'banco', label: 'Dados bancários', icon: 'landmark' },
+  { id: 'seguranca', label: 'Segurança', icon: 'lock' },
 ] as const;
 
 type FormShape = Record<string, string | File | null | BankDetails>;
@@ -217,6 +218,7 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
     custom_field_4: usuario.custom_field_4 ?? '',
     bank_details: { ...usuario.bank_details },
     profile_photo: null,
+    remove_photo: '',
   });
 
   const pwForm = useForm({
@@ -244,7 +246,7 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
   const onPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    form.setData('profile_photo', file);
+    form.setData((d) => ({ ...d, profile_photo: file, remove_photo: '' }));
     setPhotoPreview(URL.createObjectURL(file));
   };
 
@@ -279,31 +281,17 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
       <span>{initials}</span>
     );
 
+  // Abas pelo SubNav canon (underline), não <nav> escrito à mão.
   const subnav = (
-    <Inline asChild gap={1} className="overflow-x-auto">
-      <nav aria-label="Seções do perfil" data-contract="tabs">
-        {TABS.map((t) => {
-          const Ic = t.icon;
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              aria-current={active ? 'page' : undefined}
-              className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[12.5px] font-medium whitespace-nowrap transition-colors ${
-                active
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
-            >
-              <Ic className="h-3.5 w-3.5" />
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-    </Inline>
+    <div data-contract="tabs">
+      <SubNav
+        items={TABS.map((t) => ({ value: t.id, label: t.label, icon: t.icon }))}
+        value={tab}
+        onChange={(v) => setTab(v as (typeof TABS)[number]['id'])}
+        ariaLabel="Seções do perfil"
+        className="border-b-0"
+      />
+    </div>
   );
 
   const actions =
@@ -317,7 +305,10 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
     ) : null;
 
   return (
-    <div className="max-w-5xl mx-auto">
+    // Header em largura total, primeiro filho da tela (canon PageHeader). A coluna
+    // estreita centrada (max-w-5xl mx-auto) encolhia o header e cortava a linha
+    // divisória no meio — o protótipo também removeu a caixa centrada.
+    <>
       <div data-contract="header">
       <PageHeader
         title="Meu perfil"
@@ -332,10 +323,10 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
       />
       </div>
 
-      <div className="p-6 space-y-6" data-contract="corpo">
+      <div className="px-6 pt-5 pb-6 space-y-4" data-contract="corpo">
         {/* ── Conta ── */}
         {tab === 'conta' && (
-          <Grid gap={6} className="lg:grid-cols-[1fr_320px] items-start">
+          <Grid gap={4} className="lg:grid-cols-[minmax(0,1fr)_320px] items-start">
             <SectionCard icon={User} title="Editar perfil" desc="Nome de exibição e dados de acesso">
               <Grid gap={4} className="md:grid-cols-3">
                 <Field label="Prefixo" htmlFor="surname">
@@ -350,7 +341,8 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
                 <Field label="E-mail" htmlFor="email" required error={form.errors.email} span2>
                   <Inline gap={0} className="relative">
                     <Mail className="absolute left-3 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                    <Input id="email" type="email" value={form.data.email as string} onChange={set('email')} placeholder="email@empresa.com.br" className="pl-9" />
+                    {/* recuo em style: o `.cw-input` do bundle (8px) vence a classe pl-9 */}
+                    <Input id="email" type="email" value={form.data.email as string} onChange={set('email')} placeholder="email@empresa.com.br" style={{ paddingLeft: 34 }} />
                   </Inline>
                 </Field>
                 <Field label="Idioma" htmlFor="language">
@@ -382,7 +374,8 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
                       size="sm"
                       onClick={() => {
                         setPhotoPreview(null);
-                        form.setData('profile_photo', null);
+                        // Sem arquivo novo, pede ao servidor para apagar a foto atual.
+                        form.setData((d) => ({ ...d, profile_photo: null, remove_photo: usuario.photo_url ? '1' : '' }));
                       }}
                     >
                       Remover
@@ -398,7 +391,7 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
 
         {/* ── Mais informações ── */}
         {tab === 'info' && (
-          <div className="max-w-3xl space-y-6">
+          <div className="max-w-[1240px] space-y-4">
             <SectionCard icon={Info} title="Dados pessoais">
               <Grid gap={4} className="md:grid-cols-2">
                 <Field label="Data de nascimento" htmlFor="dob">
@@ -495,7 +488,7 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
 
         {/* ── Dados bancários ── */}
         {tab === 'banco' && (
-          <div className="max-w-3xl">
+          <div className="max-w-[1240px]">
             <SectionCard icon={Landmark} title="Dados bancários" desc="Usados para folha de pagamento e reembolsos">
               <Grid gap={4} className="md:grid-cols-2">
                 <Field label="Titular da conta" htmlFor="account_holder_name">
@@ -565,7 +558,7 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
