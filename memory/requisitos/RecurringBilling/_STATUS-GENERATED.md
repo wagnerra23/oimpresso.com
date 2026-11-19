@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 15 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 54 |
-| UC com teste que os cita | 54 |
+| UC declarados | 55 |
+| UC com teste que os cita | 55 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -87,6 +87,7 @@ authority: generated
 | UC-RBCFG-06 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-RBCFG-07 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-RBCFG-08 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-RBCFG-09 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-RBFAT-01 | Faturas/Index | 🧪 aguarda veredito da lane |
 | UC-RBFAT-02 | Faturas/Index | 🧪 aguarda veredito da lane |
 | UC-RBFAT-03 | Faturas/Index | 🧪 aguarda veredito da lane |
