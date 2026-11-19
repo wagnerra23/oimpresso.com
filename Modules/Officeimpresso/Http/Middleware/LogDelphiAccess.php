@@ -75,7 +75,8 @@ class LogDelphiAccess
             $rawBody = $request->getContent();
             $bodyPreview = null;
             if ($rawBody !== '') {
-                $truncated = Str::limit($rawBody, 4000, '…[truncado]');
+                // Segredos ANTES do corte: truncar primeiro poderia partir a chave e deixar o valor.
+                $truncated = Str::limit(self::redigirSegredos($rawBody), 4000, '…[truncado]');
                 try {
                     $bodyPreview = app(PiiRedactor::class)->redact($truncated);
                 } catch (\Throwable $piiError) {
@@ -241,14 +242,50 @@ class LogDelphiAccess
     }
 
     /**
+     * Chaves cujo VALOR nunca vai para `licenca_log`: a credencial do desktop (o Connector já não a
+     * persiste em `licenca_computador`, `SEGREDOS_DO_DESKTOP`) e segredos de autenticação em geral.
+     * O PiiRedactor só cobre e-mail, CNPJ, CPF, CEP e telefone. Casamento EXATO da chave, sem
+     * diferenciar maiúsculas: `serial` sai, `serial_hd` (o HD da máquina) fica.
+     */
+    private const CHAVES_SEGREDO = [
+        'senha', 'contra_senha', 'contrasenha', 'serial', 'token', 'password',
+        'access_token', 'refresh_token', 'client_secret', 'api_key', 'x_api_key',
+    ];
+
+    /**
+     * Troca por `[REDACTED]` o valor das CHAVES_SEGREDO no corpo cru, nos dois formatos que chegam:
+     * JSON (`"senha": "..."`, também dentro de arrays de tabelas, e mesmo com o JSON truncado ou
+     * inválido) e formulário (`senha=...&...`). Público para o teste exercitar o mesmo predicado.
+     */
+    public static function redigirSegredos(string $raw): string
+    {
+        $chaves = implode('|', array_map(fn ($c) => preg_quote($c, '/'), self::CHAVES_SEGREDO));
+
+        // JSON: "chave" : "valor com \"escape\""  |  "chave": 123  |  "chave": null
+        $raw = preg_replace(
+            '/("(?:'.$chaves.')"\s*:\s*)("(?:[^"\\\\]|\\\\.)*"|[^,}\]\s]+)/i',
+            '$1"[REDACTED]"',
+            $raw
+        ) ?? '[REDACTED:BODY]';
+
+        // Formulário: chave=valor até o próximo & (início do corpo ou depois de & / ?)
+        return preg_replace(
+            '/(^|[&?])((?:'.$chaves.')=)[^&]*/i',
+            '$1$2[REDACTED]',
+            $raw
+        ) ?? '[REDACTED:BODY]';
+    }
+
+    /**
      * Pega so headers relevantes pro troubleshooting (evita logar
-     * Authorization completo ou cookies).
+     * Authorization completo ou cookies). O `X-API-Key` é segredo: registra-se
+     * só que veio, nunca o valor.
      */
     private function extractRelevantHeaders(Request $request): array
     {
         return array_filter([
             'content_type' => $request->header('Content-Type'),
-            'x_api_key'    => $request->header('X-API-Key'),
+            'x_api_key'    => $request->header('X-API-Key') !== null ? '[REDACTED]' : null,
             'x_oi_hd'      => $request->header('X-OI-HD'),
             'has_bearer'   => $request->bearerToken() ? true : null,
         ], fn ($v) => $v !== null);
