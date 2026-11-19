@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Modules\RecurringBilling\Models\Subscription;
@@ -19,11 +20,14 @@ use Modules\RecurringBilling\Models\SubscriptionFavorite;
  */
 class SubscriptionFavoriteController extends Controller
 {
+    use ExigePermissaoRb;
+
     /**
      * POST /recurring-billing/{subscriptionId}/favorite — toggle.
      */
     public function toggle(int $subscriptionId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.favorites.write');
         $businessId = (int) session('user.business_id');
         $userId = (int) auth()->id();
 

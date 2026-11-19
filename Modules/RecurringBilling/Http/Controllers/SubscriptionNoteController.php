@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,11 +22,14 @@ use Modules\RecurringBilling\Models\SubscriptionNote;
  */
 class SubscriptionNoteController extends Controller
 {
+    use ExigePermissaoRb;
+
     /**
      * POST /recurring-billing/{subscriptionId}/notes — criar nota.
      */
     public function store(Request $request, int $subscriptionId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
         $sub = Subscription::query()
             ->where('business_id', $businessId)
@@ -70,6 +74,7 @@ class SubscriptionNoteController extends Controller
      */
     public function destroy(int $subscriptionId, int $noteId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
 
         $note = SubscriptionNote::query()
@@ -88,6 +93,7 @@ class SubscriptionNoteController extends Controller
      */
     public function togglePin(int $subscriptionId, int $noteId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
 
         $note = SubscriptionNote::query()

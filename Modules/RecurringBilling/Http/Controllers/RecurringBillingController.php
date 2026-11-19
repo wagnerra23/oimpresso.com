@@ -2,6 +2,7 @@
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,8 @@ use Modules\RecurringBilling\Services\MandatoPixAutomatico;
  */
 class RecurringBillingController extends Controller
 {
+    use ExigePermissaoRb;
+
     public function __construct(private readonly SubscriptionRepository $subscriptions)
     {
     }
@@ -44,6 +47,7 @@ class RecurringBillingController extends Controller
      */
     public function index(Request $request): InertiaResponse
     {
+        $this->exigirPermissao('recurringbilling.access');
         $businessId = (int) session('user.business_id');
         $filters = [
             'status_visual' => $request->string('status', 'all')->toString(),
@@ -263,6 +267,7 @@ class RecurringBillingController extends Controller
      */
     public function reenviarNfe(Request $request, int $id): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.access');
         $sub = $this->loadOwnedOrFail($id);
 
         // 1. Acha última invoice paga (timeline business-correta).
