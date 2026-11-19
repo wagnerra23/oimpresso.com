@@ -81,6 +81,17 @@ fora da lista, ou `custom` sem as duas pontas em `YYYY-MM-DD`, degrada pra `30d`
 volta `30d` com as datas zeradas.
 **Regressão que defende:** `Carbon::parse()` de lixo vindo da URL (500), ou o preset da URL atravessando sem validação.
 
+## UC-GDSH-07 — Sem `governance.dashboard.view`, a rota recusa com 403
+Status: 🧪 (Pest `tests/Feature/Governance/DashboardAcessoGateTest.php` — 3 casos "UC-GDSH-07 …", lane `Governance · Pest (MySQL)`)
+**Persona:** usuário de qualquer empresa sem a permissão.
+Decisão [W] de 2026-11-19 (lote L0 da auditoria do Governance) + ADR 0392 §D-D passo 2 (gate de URL igual
+ao de sidebar, `DataController::modifyAdminMenu`). A tela mostra custo de IA somado de todas as empresas.
+**Pronto quando:** sem a permissão no tenant 98, `GET /governance/dashboard` responde 403 e o corpo não traz
+`custo_ia_brl_24h`; com ela, a mesma requisição responde 200 com `governance/Dashboard`; outra permissão do
+Governance (`governance.audit.view`) não abre o painel.
+**Regressão que defende:** voltar a rota para só `auth`. **Não cobre** o papel `Admin#{empresa}`, que o
+`Gate::before` ainda libera (ADR 0415; passo 3 da ADR 0392, decisão [W] em aberto).
+
 ## Divergência registrada, não consertada
 
 - **SPEC US-GOV-001 × charter/RUNBOOK sobre a rota.** O SPEC diz `GET /governance`; o charter v3 e o RUNBOOK
@@ -102,5 +113,5 @@ volta `30d` com as datas zeradas.
 
 ## Perguntas sem fonte (para o [W])
 
-- **Gatear a ROTA `/governance/dashboard` por `can:governance.dashboard.view`?** Charter e RUNBOOK registram que hoje a rota é só `auth` e chamam a mudança de "decisão [W] à parte". Sem decisão, não há UC de acesso à rota.
+- ~~**Gatear a ROTA `/governance/dashboard` por `can:governance.dashboard.view`?**~~ Respondida pelo [W] em 2026-11-19 (lote L0) — virou o UC-GDSH-07.
 - **O "Compliance score" é contrato de valor ou só de presença?** O SPEC lista o KPI; nenhuma fonte define a régua que o produz (literal no controller). Hoje o UC-GDSH-03 trava só a presença.

@@ -99,6 +99,13 @@ last_run: "2026-10-02"
 - **Regressão que defende:** efeito colateral de escrita no GET.
 - **Status: 🧪** sem veredito.
 
+## UC-PGSET-08 · `[T0]` Configurar gateway exige `business_settings.access`
+- **Persona:** usuário da empresa sem a permissão das Configurações (ex.: só vê o Financeiro) — não pode ver nem mexer em credencial de gateway.
+- **Aceite:** Dado um usuário do business 98 sem `business_settings.access` · Quando abro a tela ou chamo store, update, destroy, toggle ou o upload de retorno CNAB · Então recebo 403 e o banco não muda; com a permissão, o mesmo pedido passa.
+- **Teste:** `Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysPermissaoContratoTest.php` — `UC-PGSET-08 [T0] …` (6 casos, cada um com controle positivo).
+- **Regressão que defende:** qualquer usuário logado trocando `api_key`/`webhook_secret`, apagando credencial ou subindo retorno CNAB que dá baixa em cobrança (auditoria L0, 2026-11-19).
+- **Status: 🧪** sem veredito.
+
 ---
 
 ## Backlog de casos (sem id — entram quando um teste citar o UC-id)
@@ -116,6 +123,7 @@ last_run: "2026-10-02"
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-11-19 · [CC] Auditoria PaymentGateway L0: grupo de rotas `settings.` passa a exigir `can:business_settings.access`; novo `UC-PGSET-08` com teste de 403 + controle positivo por verbo.
 - 2026-09-23 · [CL] Prontidão thread 05: 5 bullets do backlog + 2 anti-hooks do charter promovidos a `UC-PGSET-01..07`, citados por `tests/Feature/PaymentGateway/PaymentGatewaysSettingsContratoTest.php` (tenant 98). Health check, ações de linha, wizard e warn PesaPal seguem no backlog.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela), complementando a CAPTERRA-FICHA. Débito exposto = **UC-traceability** (0 UC-id apesar de baseline Feature forte); a nota de UX (80 Advanced) coexiste com comportamento tested-mas-não-traçado.
 

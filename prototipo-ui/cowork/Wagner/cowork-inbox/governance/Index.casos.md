@@ -1,7 +1,7 @@
 ---
 id: governance-cowork-index-casos
 charter: Index.charter.md
-page: /governance (painel · políticas · auditoria · drift · notas dos módulos)
+page: /governance (painel · políticas · auditoria · drift)
 status: draft
 last_validated: "2026-08-23"
 ---
@@ -21,7 +21,7 @@ Então é redirecionado para `/ia` com 302, e o painel segue em `/governance/das
 **UC-GOV-02 — o módulo tem navegação própria** (A1)
 Dado que o usuário tem `governance.dashboard.view` e o módulo instalado;
 Quando abre qualquer vista;
-Então a strip do módulo aparece com as cinco vistas, e a vista corrente está marcada.
+Então a strip do módulo aparece com as quatro vistas, e a vista corrente está marcada.
 *Aceite:* a lista vem de `DataController::modifyAdminMenu`, não duplicada na tela; sem a entry em `shell.menu`, a strip **some em silêncio** em vez de renderizar vazia.
 
 ## Painel
@@ -189,42 +189,9 @@ Dado um `SCOPE.md` com YAML inválido;
 Então o módulo aparece marcado como ilegível, o erro vai para log estruturado, e o resto da lista continua.
 *Aceite:* nenhuma exceção sobe para a interface.
 
-## Notas dos módulos
+## Notas dos módulos (retirada)
 
-**UC-GOV-30 — a tela é de leitura** (R8)
-Dado a lista de notas;
-Quando procuro editar nota, peso de rubrica ou disparar avaliação;
-Então não existe ação disso.
-*Aceite:* caso negativo; rubrica muda por ADR 0154 (append-only).
-
-**UC-GOV-31 ❌ — travessão não é zero** (A7)
-Dado um módulo sem as dimensões D6–D9 avaliadas na v3;
-Quando a linha aparece;
-Então as colunas mostram travessão, e a média do projeto **não** conta esse módulo como zero nessas dimensões.
-*Aceite:* nasce vermelho se a média usar zero; o teste de sub-dimensões cobre. ❌
-
-**UC-GOV-32 — faixa filtra, dimensão não**
-Dado as cinco faixas (excelente, bom, médio, crítico, embrião);
-Quando aciono uma;
-Então a lista filtra por faixa, com contagem em cada botão.
-*Aceite:* não existe filtro por dimensão — o detalhe é no drill-down.
-
-**UC-GOV-33 — o filtro não sobrevive ao recarregar** (R8)
-Dado uma faixa aplicada;
-Quando recarrego;
-Então volta ao padrão.
-*Aceite:* nada em `localStorage`.
-
-**UC-GOV-34 — o gate de CI aparece na tela**
-Dado o rodapé da lista;
-Então ele explica que nota que cai bloqueia o merge e qual etiqueta libera a exceção, com os links do fluxo e da linha de base.
-*Aceite:* somente links externos — sem botão, sem estado, e sempre abaixo da tabela.
-
-**UC-GOV-35 — a nota é cara e chega depois** (R11)
-Dado que o serviço faz I/O de filesystem em 34 módulos;
-Quando abro a vista;
-Então vejo esqueleto e a tela pinta antes das notas chegarem.
-*Aceite:* nada de carregamento adiantado; alvo de primeira pintura abaixo de 2 s.
+A vista saiu (G-NOTAS, [W] 2026-09-24; a rubrica module-grade foi aposentada pela ADR 0399). Os casos **UC-GOV-30 a UC-GOV-35** foram retirados em 2026-11-19 e os números não são reaproveitados.
 
 ## Rastreabilidade
 
@@ -235,7 +202,7 @@ Então vejo esqueleto e a tela pinta antes das notas chegarem.
 | 03 | A2 | ❌ |
 | 04, 05 | R2 | — |
 | 06 | R10 | — |
-| 07, 35 | R11 | — |
+| 07 | R11 | — |
 | 08, 10, 11 | R12 | — |
 | 09 | A3 | ❌ |
 | 12 | R5 | — |
@@ -250,6 +217,4 @@ Então vejo esqueleto e a tela pinta antes das notas chegarem.
 | 23, 24 | R7 | — |
 | 25, 26, 28, 29 | R7 · paridade CLI | — |
 | 27 | A5 | — |
-| 30, 32, 33 | R8 | — |
-| 31 | A7 | ❌ |
-| 34 | gate de CI (ADR 0155) | — |
+| 30–35 | retirados (G-NOTAS, ADR 0399) | — |

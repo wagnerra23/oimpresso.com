@@ -26,6 +26,12 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  */
 class AsaasWebhookController extends Controller
 {
+    /**
+     * Header que carrega o segredo do webhook. Fonte única: a tela de
+     * Configurações exibe este mesmo valor (UC-RBCFG-09).
+     */
+    public const AUTH_HEADER = 'asaas-access-token';
+
     public function handle(Request $request, int $businessId): JsonResponse
     {
         // Tier 0 multi-tenant: autenticidade ANTES de qualquer processamento/dispatch.
@@ -41,7 +47,7 @@ class AsaasWebhookController extends Controller
         }
 
         $expectedSecret = $credential->config_json['webhook_secret'] ?? null;
-        $providedSecret = (string) $request->header('asaas-access-token', '');
+        $providedSecret = (string) $request->header(self::AUTH_HEADER, '');
 
         if (! $expectedSecret || ! hash_equals((string) $expectedSecret, $providedSecret)) {
             return $this->reject('secret_mismatch', $businessId, 401);

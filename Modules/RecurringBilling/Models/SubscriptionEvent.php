@@ -20,7 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *   event-nf       — emissão de NFe/NFS-e (e reenvios)
  *   note           — nota livre humano
  *
- * Append-only: sem update/delete (regra cultural — Pest test garante).
+ * Append-only: o model recusa update e delete (booted). A cascata do banco ao apagar a
+ * assinatura não passa por aqui. Auditoria RB d2, 2026-11-19.
  * Multi-tenant Tier 0 IRREVOGÁVEL: business_id global scope.
  */
 class SubscriptionEvent extends Model
@@ -45,6 +46,16 @@ class SubscriptionEvent extends Model
     public const KIND_RETRY   = 'event-retry';
     public const KIND_NF      = 'event-nf';
     public const KIND_NOTE    = 'note';
+
+    protected static function booted(): void
+    {
+        static::updating(function () {
+            throw new \LogicException('rb_subscription_events é append-only: evento não se altera.');
+        });
+        static::deleting(function () {
+            throw new \LogicException('rb_subscription_events é append-only: evento não se apaga.');
+        });
+    }
 
     public function subscription(): BelongsTo
     {

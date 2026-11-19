@@ -25,7 +25,7 @@ beforeEach(function () {
 });
 
 it('store cria credencial Inter sandbox com sucesso', function () {
-    $user = User::factory()->create(['business_id' => 1]);
+    $user = $this->usuarioComPermissoes(['business_settings.access'], Business::findOrFail(1));
 
     $payload = [
         'gateway_key' => 'inter',
@@ -58,7 +58,7 @@ it('store cria credencial Inter sandbox com sucesso', function () {
 });
 
 it('store rejeita duplicate (business_id, gateway_key, ambiente)', function () {
-    $user = User::factory()->create(['business_id' => 1]);
+    $user = $this->usuarioComPermissoes(['business_settings.access'], Business::findOrFail(1));
     $existing = PaymentGatewayCredential::create([
         'business_id' => 1,
         'gateway_key' => 'asaas',
@@ -84,7 +84,7 @@ it('store rejeita duplicate (business_id, gateway_key, ambiente)', function () {
 });
 
 it('store rejeita conta_bancaria_id de outro business (Tier 0)', function () {
-    $user = User::factory()->create(['business_id' => 1]);
+    $user = $this->usuarioComPermissoes(['business_settings.access'], Business::findOrFail(1));
     // Tenant adversário = biz=2, semeado pelo pest-mysql-setup com owner_id. Criar um
     // business cru (só name/currency_id) quebra a FK business_owner_id_foreign no MySQL.
     $otherBiz = Business::query()->find(2);
@@ -114,7 +114,7 @@ it('store rejeita conta_bancaria_id de outro business (Tier 0)', function () {
 });
 
 it('store valida gateway_key enum', function () {
-    $user = User::factory()->create(['business_id' => 1]);
+    $user = $this->usuarioComPermissoes(['business_settings.access'], Business::findOrFail(1));
 
     $response = $this->actingAs($user)
         ->withSession(['user.business_id' => 1])
