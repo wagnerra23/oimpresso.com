@@ -27,14 +27,14 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  *   9. Worker job-rerun mesma linha já processed → cedo-return (idempotência)
  *  10. business_id resolvido corretamente pela credentialId (Tier 0 multi-tenant)
  *
- * ADR 0093 multi-tenant: biz=1 (NUNCA biz=4 cliente — ADR 0101).
+ * ADR 0093 multi-tenant: tenant fictício 98 (ADR 0358), nunca empresa real 1 ou 4.
  * ADR 0143 FSM: Titulo update direto (sem trait GuardsFsmTransitions yet).
  * ADR 0170 dogfooding ciclo PaymentGateway.
  */
 
 beforeEach(function () {
     $this->credential = PaymentGatewayCredential::query()->create([
-        'business_id'  => 1,
+        'business_id'  => 98,
         'gateway_key'  => 'inter',
         'ambiente'     => 'sandbox',
         'ativo'        => true,
@@ -80,9 +80,10 @@ it('aceita webhook PIX com signature HMAC válida e cria InterWebhookLog', funct
             'valor'      => '150.50',
             'horario'    => '2026-05-20T12:34:56Z',
             'pagador'    => [
-                // CPF com DV válido: o PiiRedactor só redige CPF CRU (11 dígitos) quando o
-                // dígito verificador confere; '12345678900' tem DV inválido e passa intacto.
-                'cpf'  => '11144477735',
+                // CPF sintético PONTUADO com DV inválido (nunca um CPF que possa existir): o
+                // PiiRedactor redige CPF pontuado sempre, com DV válido ou não ("formato é
+                // declaração"), então o teste prova a redação sem carregar CPF válido.
+                'cpf'  => '123.456.789-00',
                 'nome' => 'João da Silva',
             ],
         ]],
@@ -95,7 +96,7 @@ it('aceita webhook PIX com signature HMAC válida e cria InterWebhookLog', funct
 
     $log = InterWebhookLog::withoutGlobalScopes()->first();
     expect($log)->not->toBeNull();
-    expect($log->business_id)->toBe(1);
+    expect($log->business_id)->toBe(98);
     expect($log->payment_gateway_credential_id)->toBe($this->credential->id);
     expect($log->txid)->toBe('inter-pix-abc-001');
     expect($log->endToEndId)->toBe('E12345678202605200001');
@@ -103,10 +104,11 @@ it('aceita webhook PIX com signature HMAC válida e cria InterWebhookLog', funct
     expect($log->signature_valid)->toBeTrue();
     expect($log->status)->toBe('received');
     // LGPD: CPF NÃO grava em raw — apenas redacted
-    expect($log->payer_cpf_cnpj_redacted)->not->toContain('11144477735');
+    expect($log->payer_cpf_cnpj_redacted)->not->toContain('123.456.789-00');
+    expect($log->payer_cpf_cnpj_redacted)->toContain('[REDACTED');
 
     Queue::assertPushed(ProcessarWebhookPixInterJob::class, function ($job) use ($log) {
-        return $job->interWebhookLogId === $log->id && $job->businessId === 1;
+        return $job->interWebhookLogId === $log->id && $job->businessId === 98;
     });
 });
 
@@ -152,7 +154,7 @@ it('fail-secure: credencial SEM webhook_secret cadastrado → 401', function () 
     Queue::fake();
 
     // Reusa a credencial do beforeEach sem o webhook_secret: (business_id, gateway_key,
-    // ambiente) é UNIQUE, e uma 2ª inter/sandbox no biz=1 estoura no MySQL.
+    // ambiente) é UNIQUE, e uma 2ª inter/sandbox no biz=98 estoura no MySQL.
     $credSemSecret = $this->credential;
     $credSemSecret->config_json = [
         'client_id'     => 'x',
@@ -188,7 +190,7 @@ it('mesmo txid em credencial DIFERENTE NÃO colide', function () {
     // Outra credencial inter do MESMO biz só existe em outro ambiente: o par
     // (business_id, gateway_key, ambiente) é UNIQUE.
     $cred2 = PaymentGatewayCredential::query()->create([
-        'business_id'  => 1,
+        'business_id'  => 98,
         'gateway_key'  => 'inter',
         'ambiente'     => 'production',
         'ativo'        => true,
@@ -224,7 +226,7 @@ it('Job worker processa Cobranca existente: marca paga + dispatch CobrancaPaga +
 
     // Setup: Cobranca emitida previamente
     $cobranca = Cobranca::query()->create([
-        'business_id'                   => 1,
+        'business_id'                   => 98,
         'payment_gateway_credential_id' => $this->credential->id,
         'gateway_external_id'           => 'inter-pix-job-001',
         'tipo'                          => 'pix_cob',
@@ -236,7 +238,7 @@ it('Job worker processa Cobranca existente: marca paga + dispatch CobrancaPaga +
 
     // Log já criado (simulando controller)
     $log = InterWebhookLog::query()->create([
-        'business_id'                   => 1,
+        'business_id'                   => 98,
         'payment_gateway_credential_id' => $this->credential->id,
         'txid'                          => 'inter-pix-job-001',
         'valor_centavos'                => 25000,
@@ -260,7 +262,7 @@ it('Job worker processa Cobranca existente: marca paga + dispatch CobrancaPaga +
 
     Event::assertDispatched(CobrancaPaga::class, function (CobrancaPaga $e) use ($cobranca) {
         return $e->cobrancaId === $cobranca->id
-            && $e->businessId === 1
+            && $e->businessId === 98
             && $e->formaPagamento === 'pix';
     });
 });
@@ -269,7 +271,7 @@ it('Job worker: Cobranca NÃO encontrada → status=titulo_nao_encontrado, sem C
     Event::fake([CobrancaPaga::class]);
 
     $log = InterWebhookLog::query()->create([
-        'business_id'                   => 1,
+        'business_id'                   => 98,
         'payment_gateway_credential_id' => $this->credential->id,
         'txid'                          => 'inexistente-txid-xyz',
         'valor_centavos'                => 1000,
@@ -290,7 +292,7 @@ it('Job worker idempotente: re-rodar linha já processed → cedo-return sem re-
     Event::fake([CobrancaPaga::class]);
 
     $log = InterWebhookLog::query()->create([
-        'business_id'                   => 1,
+        'business_id'                   => 98,
         'payment_gateway_credential_id' => $this->credential->id,
         'txid'                          => 'reprocessado-001',
         'valor_centavos'                => 5000,
@@ -308,14 +310,15 @@ it('Job worker idempotente: re-rodar linha já processed → cedo-return sem re-
 it('business_id resolvido pela credentialId (Tier 0 multi-tenant)', function () {
     Queue::fake();
 
-    // Credencial do biz=2 (outro tenant, semeado pelo pest-mysql-setup). Com um business
+    // Credencial do adversário 99 (ADR 0358), criado se faltar. Com um business
     // inexistente a FK iwl_biz_fk recusa o log e o controller conta como duplicado.
+    $adversario = $this->seededSupportClientTenant()->id;
     $credBiz2 = PaymentGatewayCredential::query()->create([
-        'business_id'  => 2,
+        'business_id'  => $adversario,
         'gateway_key'  => 'inter',
         'ambiente'     => 'sandbox',
         'ativo'        => true,
-        'nome_display' => 'Inter biz=2',
+        'nome_display' => 'Inter biz=99',
         'config_json'  => [
             'client_id'      => 'a',
             'client_secret'  => 'b',
@@ -331,9 +334,9 @@ it('business_id resolvido pela credentialId (Tier 0 multi-tenant)', function () 
         ->first();
 
     expect($log)->not->toBeNull();
-    expect($log->business_id)->toBe(2);
+    expect($log->business_id)->toBe($adversario);
 
-    Queue::assertPushed(ProcessarWebhookPixInterJob::class, function ($job) {
-        return $job->businessId === 2;
+    Queue::assertPushed(ProcessarWebhookPixInterJob::class, function ($job) use ($adversario) {
+        return $job->businessId === $adversario;
     });
 });
