@@ -53,7 +53,7 @@ beforeEach(function () {
 
     $this->params = [
         'pagador_nome'     => 'EMPRESA FICTICIA DE TESTE LTDA',
-        'pagador_cpf_cnpj' => '00.000.000/0001-91',
+        'pagador_cpf_cnpj' => '00.000.000/0001-91', // pii-allowlist (CNPJ fictício de teste)
         'valor'            => 1234.56,
         'data_vencimento'  => '2031-06-10',
         'numero_documento' => 'INV-TESTE-001',
