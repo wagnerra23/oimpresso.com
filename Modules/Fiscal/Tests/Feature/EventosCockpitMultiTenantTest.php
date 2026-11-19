@@ -263,3 +263,71 @@ it('UC-FEVT-07 · a janela do CSV é clampada nas opções da tela — `?dias` a
         ->and($parseDias->invoke($controller, 'abc'))->toBe(30)
         ->and($parseDias->invoke($controller, null))->toBe(30);
 });
+
+/** O que a tela recebe em `rows`, para um filtro. */
+function eventosRows(string $kind, int $dias): array
+{
+    $controller = new \Modules\Fiscal\Http\Controllers\EventosController();
+
+    return (fn () => $this->buildRowsPayload(['kind' => $kind, 'dias' => $dias]))->call($controller)['data'];
+}
+
+it('UC-FEVT-09 · a justificativa exibida é cortada em 200 caracteres', function () {
+    $this->actingAs(eventosUserComAcessoFiscal());
+    session(['business.id' => EVENTOS_BIZ_TENANT, 'user.business_id' => EVENTOS_BIZ_TENANT]);
+
+    $id = eventosSemearEvento(EVENTOS_BIZ_TENANT, '110111', 'CORTE-INICIO ' . str_repeat('x', 250) . ' CAUDA-QUE-NAO-APARECE');
+
+    $linha = collect(eventosRows('todos', 30))->firstWhere('id', $id);
+
+    expect($linha)->not->toBeNull('o evento do fixture não voltou')
+        ->and(mb_strlen($linha['justificativa']))->toBe(200)
+        ->and($linha['justificativa'])->toStartWith('CORTE-INICIO')
+        ->and(str_contains($linha['justificativa'], 'CAUDA-QUE-NAO-APARECE'))->toBeFalse();
+});
+
+it('UC-FEVT-10 · filtro por categoria e por janela de 7, 30 ou 90 dias, com 30 de padrão', function () {
+    $this->actingAs(eventosUserComAcessoFiscal());
+    session(['business.id' => EVENTOS_BIZ_TENANT, 'user.business_id' => EVENTOS_BIZ_TENANT]);
+
+    $hoje = eventosSemearEvento(EVENTOS_BIZ_TENANT, '110111', 'CANCEL-HOJE');
+    $antigo = eventosSemearEvento(EVENTOS_BIZ_TENANT, '110111', 'CANCEL-40-DIAS');
+    DB::table('nfe_eventos')->where('id', $antigo)->update(['created_at' => now()->subDays(40)]);
+    $cce = eventosSemearEvento(EVENTOS_BIZ_TENANT, '110110', 'CCE-HOJE');
+
+    $ids = fn (string $kind, int $dias) => collect(eventosRows($kind, $dias))->pluck('id')->all();
+
+    expect($ids('todos', 30))->toContain($hoje)->toContain($cce)->not->toContain($antigo)
+        ->and($ids('todos', 90))->toContain($antigo)
+        ->and($ids('cancel', 90))->toContain($hoje)->toContain($antigo)->not->toContain($cce)
+        ->and($ids('cce', 90))->toContain($cce)->not->toContain($hoje);
+
+    // Sem `?dias`, a tela abre em 30.
+    $this->get('/fiscal/eventos')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('Fiscal/Eventos')->where('filters.dias', 30));
+});
+
+it('UC-FEVT-11 · a nota de origem vem junto numa consulta só, não uma por evento', function () {
+    $this->actingAs(eventosUserComAcessoFiscal());
+    session(['business.id' => EVENTOS_BIZ_TENANT, 'user.business_id' => EVENTOS_BIZ_TENANT]);
+
+    $ids = [
+        eventosSemearEvento(EVENTOS_BIZ_TENANT, '110111', 'ORIGEM-A'),
+        eventosSemearEvento(EVENTOS_BIZ_TENANT, '110111', 'ORIGEM-B'),
+        eventosSemearEvento(EVENTOS_BIZ_TENANT, '110110', 'ORIGEM-C'),
+    ];
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $rows = collect(eventosRows('todos', 30));
+    $consultas = collect(DB::getQueryLog())->pluck('query');
+    DB::disableQueryLog();
+
+    $minhas = $rows->whereIn('id', $ids);
+    expect($minhas)->toHaveCount(3);
+    foreach ($minhas as $r) {
+        expect($r['emissao'])->not->toBeNull('a nota de origem não veio junto');
+    }
+    expect($consultas->filter(fn ($q) => str_contains($q, 'nfe_emissoes'))->count())->toBe(1);
+});

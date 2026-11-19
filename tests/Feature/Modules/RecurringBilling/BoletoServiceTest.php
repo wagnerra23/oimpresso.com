@@ -1,100 +1,120 @@
 <?php
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Modules\RecurringBilling\Dto\BoletoResult;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Services\Boleto\BoletoService;
-use Modules\RecurringBilling\Services\Boleto\Drivers\AsaasDriver;
-use Modules\RecurringBilling\Services\Boleto\Drivers\InterDriver;
-use Modules\RecurringBilling\Services\Boleto\Drivers\C6Driver;
-use Modules\RecurringBilling\Dto\BoletoResult;
+
+/*
+ * BoletoService (raiz) — emissão pelo serviço real, ponta a ponta até o HTTP do gateway.
+ *
+ * A resolução de driver por credencial (inter/c6/asaas, inativa, ausente) é coberta pelo
+ * teste homônimo do módulo (Modules/RecurringBilling/Tests/Feature/BoletoServiceTest.php,
+ * sqlite). Este arquivo cobre o que aquele não cobre: o valor e a chave que chegam ao
+ * gateway e o isolamento entre empresas, com o schema MySQL real (enum de banco e índice
+ * único por empresa+banco).
+ *
+ * Até 2026-11-19 este arquivo não rodava em lane nenhuma; dois dos testes tinham `->skip()`
+ * incondicional e os outros dois testavam o próprio mock e um `match` escrito no teste,
+ * sem tocar o BoletoService. Roda na lane RecurringBilling · Pest (MySQL).
+ *
+ * Tenants 98 x 99 (ADR 0358). Nunca biz=4. Pagador e CNPJ fictícios.
+ */
+
+uses(DatabaseTransactions::class);
 
 beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('Schema real do RecurringBilling (MySQL): enum de banco e índice único por empresa.');
+    }
+
+    $this->b98 = (int) $this->seededTenant()->id;
+    $this->b99 = (int) $this->seededSupportClientTenant()->id;
+
+    // Sem credencial de boleto pré-existente nos tenants de teste (rollback no fim).
+    DB::table('rb_boleto_credentials')->whereIn('business_id', [$this->b98, $this->b99])->delete();
+
+    $this->credencialAsaas = fn (int $biz, string $chave, bool $ativo = true) => BoletoCredential::create([
+            'business_id'  => $biz,
+            'banco'        => 'asaas',
+            'ambiente'     => 'sandbox',
+            'ativo'        => $ativo,
+            'nome_display' => 'Asaas Sandbox',
+            'config_json'  => [
+                'api_key'  => Crypt::encryptString($chave),
+                'ambiente' => 'sandbox',
+            ],
+        ]);
+
     $this->params = [
-        'pagador_nome'       => 'ROTA LIVRE TRANSPORTES LTDA',
-        'pagador_cpf_cnpj'   => '12.345.678/0001-99',
-        'pagador_cep'        => '01310-100',
-        'pagador_endereco'   => 'Av. Paulista',
-        'pagador_numero'     => '1000',
-        'pagador_bairro'     => 'Bela Vista',
-        'pagador_cidade'     => 'São Paulo',
-        'pagador_uf'         => 'SP',
-        'valor'              => 299.90,
-        'data_vencimento'    => now()->addDays(5)->format('Y-m-d'),
-        'numero_documento'   => 'INV-2026-001',
-        'descricao'          => 'Mensalidade oimpresso — maio/2026',
-        'instrucoes'         => ['Não receber após vencimento', 'Após 3 dias, acrescentar multa de 2%'],
+        'pagador_nome'     => 'EMPRESA FICTICIA DE TESTE LTDA',
+        'pagador_cpf_cnpj' => '00.000.000/0001-91', // pii-allowlist (CNPJ fictício de teste)
+        'valor'            => 1234.56,
+        'data_vencimento'  => '2031-06-10',
+        'numero_documento' => 'INV-TESTE-001',
+        'descricao'        => 'Mensalidade de teste',
     ];
+
+    Http::fake([
+        'sandbox.asaas.com/api/v3/customers*'                       => Http::sequence()
+            ->push(['data' => []])
+            ->push(['id' => 'cus_teste']),
+        'sandbox.asaas.com/api/v3/payments/pay_teste/identificationField' => Http::response([
+            'identificationField' => '00190.00009 01234.567890 12345.678901 1 00000000123456',
+            'barCode'             => '00191000000000123456000000000000001234567890',
+        ]),
+        'sandbox.asaas.com/api/v3/payments/pay_teste/pixQrCode'     => Http::response(['payload' => '00020126PIXTESTE']),
+        'sandbox.asaas.com/api/v3/payments'                         => Http::response([
+            'id'          => 'pay_teste',
+            'bankSlipUrl' => 'https://sandbox.asaas.com/b/pdf/pay_teste',
+        ]),
+    ]);
 });
 
-it('resolve driver inter a partir da credencial do tenant', function () {
-    BoletoCredential::create([
-        'business_id'  => 1,
-        'banco'        => 'inter',
-        'ambiente'     => 'sandbox',
-        'ativo'        => true,
-        'nome_display' => 'Banco Inter PJ',
-        'config_json'  => [
-            'client_id'           => 'test-client-id',
-            'client_secret'       => Crypt::encryptString('test-client-secret'),
-            'certificado_crt'     => '/tmp/inter.crt',
-            'certificado_key'     => '/tmp/inter.key',
-            'certificado_senha'   => Crypt::encryptString(''),
-            'conta_corrente'      => '123456789',
-            'cnpj_beneficiario'   => '00.000.000/0001-00',
-            'nome_beneficiario'   => 'OIMPRESSO SISTEMAS LTDA',
-            'cep'                 => '01310-100',
-            'logradouro'          => 'Av. Paulista',
-            'numero'              => '500',
-            'bairro'              => 'Bela Vista',
-            'cidade'              => 'São Paulo',
-            'uf'                  => 'SP',
-        ],
-    ]);
+it('emite pela credencial ativa da empresa: o valor chega ao gateway sem arredondar e com a chave decifrada', function () {
+    ($this->credencialAsaas)($this->b98, 'chave-sandbox-98');
 
-    $service = app(BoletoService::class);
-
-    // Mock o InterDriver pra não chamar a API real
-    $mockDriver = Mockery::mock(InterDriver::class);
-    $mockDriver->shouldReceive('emitir')->once()->andReturn(new BoletoResult(
-        nossoNumero:    '00000000001',
-        linhaDigitavel: '07791.00000 00000.000000 00000.000000 1 00000000000299',
-        codigoBarras:   '07791000000000000000000000000000100000000000299',
-        dataVencimento: $this->params['data_vencimento'],
-        valor:          299.90,
-        pixQrCode:      '00020126360014br.gov.bcb.pix',
-        pdfBase64:      base64_encode('pdf-content'),
-    ));
-
-    $this->instance(InterDriver::class, $mockDriver);
-
-    // Substituímos o service por um parcial que injeta o mock
-    $result = $mockDriver->emitir($this->params);
+    $result = app(BoletoService::class)->emitir($this->b98, $this->params);
 
     expect($result)->toBeInstanceOf(BoletoResult::class)
-        ->and($result->nossoNumero)->toBe('00000000001')
-        ->and($result->valor)->toBe(299.90)
-        ->and($result->pixQrCode)->not->toBeNull();
-})->skip('Requer MySQL — rodar localmente com banco configurado');
+        ->and($result->nossoNumero)->toBe('pay_teste')
+        ->and($result->valor)->toBe(1234.56)
+        ->and($result->linhaDigitavel)->toBe('00190.00009 01234.567890 12345.678901 1 00000000123456')
+        ->and($result->pixQrCode)->toBe('00020126PIXTESTE')
+        ->and($result->pdfUrl)->toBe('https://sandbox.asaas.com/b/pdf/pay_teste');
 
-it('resolve driver asaas a partir da credencial sandbox', function () {
-    BoletoCredential::create([
-        'business_id'  => 2,
-        'banco'        => 'asaas',
-        'ambiente'     => 'sandbox',
-        'ativo'        => true,
-        'nome_display' => 'Asaas Sandbox',
-        'config_json'  => [
-            'api_key'   => Crypt::encryptString('$aact_sandbox_test_key'),
-            'ambiente'  => 'sandbox',
-        ],
-    ]);
+    Http::assertSent(fn (Request $r) => $r->method() === 'POST'
+        && $r->url() === 'https://sandbox.asaas.com/api/v3/payments'
+        && $r['value'] === 1234.56
+        && $r['customer'] === 'cus_teste'
+        && $r['dueDate'] === '2031-06-10'
+        && $r['externalReference'] === 'INV-TESTE-001'
+        && $r->header('access_token')[0] === 'chave-sandbox-98');
+});
 
-    $credential = BoletoCredential::where('business_id', 2)->where('banco', 'asaas')->first();
+it('Tier 0: empresa sem credencial própria não emite com a credencial de outra empresa', function () {
+    ($this->credencialAsaas)($this->b98, 'chave-sandbox-98');
 
-    expect($credential)->not->toBeNull()
-        ->and($credential->banco)->toBe('asaas')
-        ->and($credential->ambiente)->toBe('sandbox');
-})->skip('Requer MySQL — rodar localmente com banco configurado');
+    expect(fn () => app(BoletoService::class)->emitir($this->b99, $this->params))
+        ->toThrow(ModelNotFoundException::class);
+
+    Http::assertNothingSent();
+});
+
+it('credencial inativa da própria empresa não é usada, mesmo existindo a ativa de outra', function () {
+    ($this->credencialAsaas)($this->b98, 'chave-sandbox-98');
+    ($this->credencialAsaas)($this->b99, 'chave-sandbox-99', ativo: false);
+
+    expect(fn () => app(BoletoService::class)->emitir($this->b99, $this->params))
+        ->toThrow(ModelNotFoundException::class);
+
+    Http::assertNothingSent();
+});
 
 it('BoletoResult serializa corretamente para array', function () {
     $result = new BoletoResult(
@@ -114,13 +134,4 @@ it('BoletoResult serializa corretamente para array', function () {
         ->and($arr['valor'])->toBe(299.90)
         ->and($arr['pix_qr_code'])->toBe('00020126')
         ->and($arr['pdf_url'])->toBeNull();
-});
-
-it('driver inválido lança InvalidArgumentException', function () {
-    expect(fn () => match ('nubank') {
-        'inter' => 'ok',
-        'c6'    => 'ok',
-        'asaas' => 'ok',
-        default => throw new \InvalidArgumentException("Driver 'nubank' não suportado."),
-    })->toThrow(\InvalidArgumentException::class);
 });
