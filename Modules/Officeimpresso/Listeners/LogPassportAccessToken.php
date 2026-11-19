@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Escuta AccessTokenCreated do Passport e grava login_success em licenca_log
- * com contexto rico (IP, user-agent, client_id).
+ * com contexto rico (IP, user-agent, client_id) — so para o client do desktop
+ * Delphi (config officeimpresso.delphi_client_ids).
  *
  * SEGURANCA: toda a operacao eh dentro de try/catch. Se qualquer coisa
  * falhar (DB down, migration desatualizada, etc.), o Passport continua
@@ -19,6 +20,13 @@ class LogPassportAccessToken
 {
     public function handle(AccessTokenCreated $event): void
     {
+        // So o client do desktop Delphi e login de licenca. Antes deste filtro todo
+        // token Passport do sistema (CRM, fieldforce, app) virava login_success aqui
+        // (auditoria 2026-11-05, Lote 3). Ids em config officeimpresso.delphi_client_ids.
+        if (! self::ehClientDelphi($event->clientId)) {
+            return;
+        }
+
         try {
             $request = request();
             $hdFromRequest = $request?->input('hd') ?: $request?->header('X-OI-HD');
@@ -96,6 +104,16 @@ class LogPassportAccessToken
         } catch (\Throwable $e) {
             Log::warning('LogPassportAccessToken falhou: ' . $e->getMessage());
         }
+    }
+
+    public static function ehClientDelphi(?string $clientId): bool
+    {
+        if ($clientId === null || $clientId === '') {
+            return false;
+        }
+        $ids = array_map('strval', (array) config('officeimpresso.delphi_client_ids', []));
+
+        return in_array((string) $clientId, $ids, true);
     }
 
     private function tokenHint(?string $tokenId): ?string

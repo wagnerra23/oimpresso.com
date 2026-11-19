@@ -100,7 +100,7 @@ Arquitetura: **event listener + middleware** (não triggers MySQL).
 - Tudo try/catch — log nunca quebra Delphi
 - Regra: **só loga quando Delphi envia `hd`** (serial disco)
 - Snapshot de bloqueio em `metadata` (`business_blocked`, `licenca_blocked`, `was_blocked`)
-- Listener guardado por `static $listenerRegistered` — evita duplicata se boot() rodar 2x
+- Listener guardado por `static $listenerRegistradoPara` (WeakReference da app; até 2026-11-18 era o bool `$listenerRegistered`, que sumia com o listener numa 2ª app do mesmo processo) — evita duplicata se o provider rodar 2x. Desde 2026-11-18 só grava token do client Delphi (`officeimpresso.delphi_client_ids`)
 
 ## Tela `/officeimpresso/licenca_log` (2026-04-24 v3 machine-centric)
 
@@ -147,7 +147,7 @@ Tela `licenca_log` usa esse registry como fonte primária e enriquece com `MAX(c
 - `Modules/Officeimpresso1/` no servidor era lixo da migração com mesmo `name: Officeimpresso` → conflito namespace impedia load de traduções. Movido pra `~/Officeimpresso1-3.7-BACKUP/`.
 - `@lang('key', [], 'fallback')` — 3º arg é LOCALE, não fallback. Laravel retorna key literal.
 - `oauth_clients.id` continua INT no DB (Passport v13 espera UUID, mas usa o que existe).
-- `Event::listen()` em `ServiceProvider::boot()` de módulo nwidart pode **duplicar listener** (boot roda 2x) — guard com `static $listenerRegistered`.
+- `Event::listen()` em `ServiceProvider::boot()` de módulo nwidart pode **duplicar listener** (boot roda 2x) — guard por app (`static $listenerRegistradoPara`, WeakReference), não por bool estático — o bool vale para o processo e some com o listener numa 2ª app.
 - `css/1E202D.css` + `css/app.all.css` referenciados em `resources/views/layouts/partials/css.blade.php` **mas arquivos nao existem** — 404 + tema escuro quebrado globalmente. Removidas as refs.
 
 ## Passport v10→v13 upgrade (ADR 0019 RESOLVIDO)
