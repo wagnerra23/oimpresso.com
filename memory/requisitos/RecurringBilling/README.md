@@ -29,10 +29,23 @@ related_modules:
   - NfeBrasil
   - Officeimpresso
 last_generated: 2026-04-24
-last_updated: 2026-04-24
+last_updated: 2026-11-19
 ---
 
 # RecurringBilling
+
+> ⚠️ **Leia isto antes do resto (2026-11-19).** As seções de *Propósito* até *Próximos passos imediatos* são o **desenho de 2026-04-24** (6 sub-módulos event-driven, ADR [ARQ-0001](adr/arq/0001-6-modulos-event-driven.md)), preservado como registro da intenção. **Esse desenho não foi construído nessa forma.** O que existe no código, medido em `origin/main` `bedeeb0096`:
+>
+> | Desenho (abril) | Construído | Como conferir |
+> |---|---|---|
+> | Sub-módulos `PaymentGateway`, `PixAutomatico`, `NFSe`, `Dunning`, `Boleto` com tabelas `pg_*`, `pa_*`, `nfse_*`, `dun_*`, `bol_*` | O RB é um módulo só, sem sub-módulos (o `Modules/PaymentGateway` existe à parte, ver a última linha). Tabelas do RB: `rb_plans`, `rb_subscriptions`, `rb_invoices`, `rb_charge_attempts`, `rb_boleto_credentials`, `rb_cartoes_salvos`, `rb_subscription_events`, `rb_subscription_favorites`, `rb_subscription_notes` e `pg_webhook_events` (esta, apesar do prefixo, nasce numa migration do RB) | `grep -hoE "Schema::create\('[a-z_]+'" Modules/RecurringBilling/Database/Migrations/*.php` |
+> | Mandatos Pix Automático em `pa_*` | Ficam em `rb_subscriptions.metadata.pix_automatico`; o driver do banco (`BcbPixDriver`) mora no `Modules/PaymentGateway`. US-RB-020/021, atrás da flag `RB_COBRAR_PIX_AUTOMATICO` | `Modules/RecurringBilling/Config/config.php` |
+> | NFSe como sub-módulo | NFe da fatura paga pelo `Modules/NfeBrasil` ([ARQ-0006](adr/arq/0006-escopo3-nfe-via-modulo-nfebrasil-nao-nfse.md)) | — |
+> | Dunning multicanal, smart retry com ML, reajuste IPCA, portal B2C, proração | Não existem | — |
+> | Fatura paga vira título baixado no Financeiro (`RecurringInvoicePaid` → `BaixarTituloRecurring`) | **Não existe ponte para o Financeiro.** Nem o evento nem o listener existem; a fatura paga grava `account_transactions` legado nos jobs de webhook. Se haverá ponte: **pendente de decisão do Wagner** (b2 da auditoria 2026-11-19) | `git grep -n "rb_invoices" -- Modules/Financeiro` → 0 linhas fora de testes |
+> | Drivers só no RB, sem `Modules/PaymentGateway` (ARQ-0005) | Existem **duas** pilhas: `Services/Boleto/Drivers/{Asaas,C6,Inter}Driver.php` + `rb_boleto_credentials` no RB, e os drivers do `Modules/PaymentGateway` + `payment_gateway_credentials`. Qual é a dona: **pendente de decisão do Wagner** (b1) | — |
+>
+> Estado das US: [SPEC.md](SPEC.md) e `node scripts/governance/requisitos-status.mjs RecurringBilling`. Estado consolidado: [BRIEFING.md](BRIEFING.md).
 
 > **Pitch para o tenant:** _Cobre todo mês sozinho, no Pix Automático mais barato._ Mensalidade que entra em 92%+ dos meses, mesmo quando o cartão falha — com retentativa inteligente e régua que recupera 30% da inadimplência.
 
@@ -70,11 +83,11 @@ RecurringBilling tem **maior take rate** dos 4 módulos: tenant cobra GMV alto (
 ## Índice
 
 - **[SPEC.md](SPEC.md)** — user stories US-RB-NNN + regras Gherkin R-RB-NNN
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** — 6 sub-módulos event-driven, integração com Financeiro/NfeBrasil
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — desenho de abril (6 sub-módulos event-driven), com o mapa desenho × construído no topo
 - **[GLOSSARY.md](GLOSSARY.md)** — vocabulário (assinatura, dunning, MoR, GMV, JRC, etc.)
 - **[CHANGELOG.md](CHANGELOG.md)** — versão a versão
 - **[adr/](adr/)** — decisões numeradas (`arq/`, `tech/`, `ui/`)
-- **[RUNBOOK.md](RUNBOOK.md)** — _stub_ — operações: rotacionar credencial gateway, recuperar webhook, etc.
+- **RUNBOOKs** — [RUNBOOK-inter-pj.md](RUNBOOK-inter-pj.md) (Inter PJ Banking, rascunho nunca executado) e [RUNBOOK-recurring-billing-index.md](RUNBOOK-recurring-billing-index.md) (as telas Index). O `RUNBOOK.md` genérico que este índice citava nunca foi criado.
 
 ## 6 sub-módulos (event-driven)
 
@@ -170,13 +183,13 @@ Comunicação **só por evento Laravel** — nenhum sub-módulo chama método de
 Como a sua empresa usa o RecurringBilling no dia-a-dia:
 
 1. **Cadastra um plano** em `/recurring-billing/planos` (ex: "Mensal Standard R$ [redacted Tier 0] / mês")
-2. **Assina cliente nele** em `/recurring-billing/assinaturas/criar` selecionando plano + contato
-3. **Sistema gera invoice automática** no `next_due_date` (job `recurring:gerar-invoices` daily 02:00 BRT)
-4. **Boleto/PIX emitido** automaticamente via gateway (Inter / C6 / Asaas — cred cadastrada em `/recurring-billing/credenciais-boleto`)
+2. **Assina cliente nele** pelo formulário de nova assinatura em `/recurring-billing` (POST `/recurring-billing`), selecionando plano + contato
+3. **Sistema gera invoice automática** no `next_due_date` (comando `rb:generate-invoices`, agendado `dailyAt('03:00')` em `RecurringBillingServiceProvider`)
+4. **Boleto/PIX emitido** automaticamente via gateway (Inter / C6 / Asaas — cred cadastrada em `/recurring-billing/configuracoes`)
 5. **Cliente paga** → webhook do banco → invoice `paid` → MRR atualiza
-6. **Cliente quer pausar?** Botão "Pausar" em `/recurring-billing/assinaturas/{id}` → suspende geração próximas
+6. **Cliente quer pausar?** Botão "Pausar" no detalhe da assinatura em `/recurring-billing` (POST `/recurring-billing/{id}/pausar`) → suspende geração próximas
 7. **Cliente quer cancelar?** Botão "Cancelar" com motivo (churn_reason) → status `canceled` + Asaas refund/cancel automático (se enabled)
-8. **NFe-de-boleto-pago automática** ([US-RB-044](../../requisitos/RecurringBilling/SPEC-US-044-nfe-boleto-pago.md)): quando boleto compensa, sistema emite NFSe correspondente automaticamente (canônico irrevogável — não tocar)
+8. **NFe-de-boleto-pago automática** (US-RB-044, em [SPEC.md](SPEC.md)): quando boleto compensa, o NfeBrasil emite a **NFe** correspondente (não NFSe — [ARQ-0006](adr/arq/0006-escopo3-nfe-via-modulo-nfebrasil-nao-nfse.md)), atrás da flag `nfebrasil.auto_emission_on_invoice_paid` (canônico irrevogável — não tocar)
 
 ## Lifecycle Subscription canônico
 
@@ -213,12 +226,12 @@ Métodos críticos wrap em `OtelHelper::spanBiz`:
 ## Health check
 
 ```bash
-php artisan recurring:health
-php artisan recurring:health --business=1 --detail
-php artisan recurring:health --json --alert  # exit 0/1/2
+php artisan rb:health
+php artisan rb:health --business=1
+php artisan rb:health --json --alert  # exit 0/1/2
 ```
 
-10 sinais críticos: subscriptions_table, invoices_table, plans_table, credenciais_ativas, mrr_baseline, ciclos_inadimplencia, webhook_idempotency, retention_policy, last_invoice_freshness, boleto_drivers_resolvidos.
+5 sinais (medido em `Console/Commands` do `rb:health`, 2026-11-19): tabela de credenciais, tabela de invoices, tabela de subscriptions, credenciais por empresa e frescor do saldo cacheado. A lista de 10 sinais que estava aqui nunca correspondeu ao comando.
 
 ## Tests
 
@@ -232,7 +245,7 @@ Cobertura: AssinaturaService (D2/D4 lifecycle), BoletoService (3 drivers), Webho
 
 - [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pattern (inspiração)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
-- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1
+- [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) — tenant de teste 98 (supersede a antiga 0101-tests, que fixava biz=1)
 - US-RB-044 — NFe-de-boleto-pago (canônico irrevogável)
 - US-RB-055 — Schema aditivo v9.75 (notes/favorites/events + cached cols)
 

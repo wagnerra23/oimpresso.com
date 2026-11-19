@@ -1,7 +1,7 @@
 ---
 module: RecurringBilling
 purpose: "Assinaturas, planos e faturas recorrentes (schema rb_*) com pilha própria de boleto e PIX (Inter, C6, Asaas) e webhooks. Gera faturas por schedule diário em live; a régua de dunning é declarativa e a cobrança automática (ChargeAttempt) ainda não é criada por código de produção."
-migracao_ui: "pendente — tem Blade servido, sem duvida de escopo; fila em module-surface --migracao"
+migracao_ui: "concluido — 0 Blade servido (medido 2026-11-19: module-surface --migracao = servido 0, estado migrado); as 6 telas sao Inertia e /recurringbilling redireciona com 301"
 contains:
   - "DataController"
   - "InstallController"
@@ -28,7 +28,7 @@ related_adrs:
   - 0080-trust-tiers-operacional-audit-findings
 url_prefixes:
   - /recurring-billing/*
-  - /recurringbilling/* (legacy 301 redirect — Onda 10 cutover v9,75)
+  - /recurringbilling/* (legacy 301 redirect — Onda 10 cutover v9,75; exceto /recurringbilling/install*, que o InstallController segue servindo)
   - /financeiro/rb-invoices/* (monta DENTRO do prefixo do Modules/Financeiro)
   - /webhooks/inter/* (RB serve /webhooks/inter/pix/{businessId}; o PG co-prove o PREFIXO com /webhooks/inter/{credentialId}, nao o /pix/)
   - /api/v1/* (scaffold nWidart · auth:sanctum)
@@ -40,7 +40,9 @@ drift_alerts: []
 
 ## Missão
 
-Cobrança recorrente BR — Pix Automático, smart retries, NFSe automática. Spec-ready.
+Cobrança recorrente BR: planos, assinaturas e faturas (`rb_*`), com geração diária de fatura (`rb:generate-invoices`), boleto/Pix pelos drivers próprios (Inter, C6, Asaas) e webhooks. Pix Automático (US-RB-020/021) e cartão salvo (US-RB-011) existem em código atrás de flag, apoiados no `Modules/PaymentGateway`. NFe da fatura paga vai pelo NfeBrasil (ARQ-0006), não NFSe. Não há smart retry.
+
+> Texto da v1.0.0 (2026-05-05), preservado: *"Cobrança recorrente BR — Pix Automático, smart retries, NFSe automática. Spec-ready."* Foi a intenção da época; a frase acima é o construído medido em 2026-11-19.
 
 ## Trust level
 
@@ -54,3 +56,4 @@ Ver `not_contains[]` no frontmatter. Em dúvida, consulte
 ---
 
 - **v1.0.0** (2026-05-05) — SCOPE.md inicial. Gerado em batch via Fase 3.4 do ADR 0079.
+- **2026-11-19** — `migracao_ui` passou a `concluido` (o `module-surface --migracao` já media 0 Blade servido); Missão reescrita pelo construído; exceção do `/recurringbilling/install*` declarada no `url_prefixes`.
