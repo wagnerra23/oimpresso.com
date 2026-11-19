@@ -29,38 +29,39 @@ const KPIS_CONST = [
   { id: "ocor", l: "Ocorrências em 24 h", v: 9, tone: "danger", sub: "resultado diferente de concluído" },
 ];
 
+// Números EX01–EX07: ADRs de exemplo, fora da faixa real de memory/decisions/ — não se passam por canon.
 const ADRS = [
-  { slug: "0372-fila-de-impressao-como-fsm", t: "Fila de impressão como máquina de estados", dias: 2 },
-  { slug: "0371-retencao-de-anexos-por-modulo", t: "Retenção de anexos por módulo (LGPD Art. 16)", dias: 3 },
-  { slug: "0369-ledger-de-conformidade-do-ds", t: "Ledger de conformidade do design system", dias: 5 },
-  { slug: "0368-cotas-por-ator-no-mcp", t: "Cotas por ator no servidor MCP", dias: 6 },
-  { slug: "0367-orcamento-versionado-sem-clone", t: "Orçamento versionado sem clonar registro", dias: 9 },
-  { slug: "0365-catraca-semantica-de-enum", t: "Catraca semântica: enum nunca aparece cru", dias: 12 },
-  { slug: "0364-escopo-de-anexo-por-negocio", t: "Escopo de anexo por negócio no DMS", dias: 18 },
+  { slug: "EX07-fila-de-impressao-como-fsm", t: "Fila de impressão como máquina de estados", dias: 2 },
+  { slug: "EX06-retencao-de-anexos-por-modulo", t: "Retenção de anexos por módulo (LGPD Art. 16)", dias: 3 },
+  { slug: "EX05-ledger-de-conformidade-do-ds", t: "Ledger de conformidade do design system", dias: 5 },
+  { slug: "EX04-cotas-por-ator-no-mcp", t: "Cotas por ator no servidor MCP", dias: 6 },
+  { slug: "EX03-orcamento-versionado-sem-clone", t: "Orçamento versionado sem clonar registro", dias: 9 },
+  { slug: "EX02-catraca-semantica-de-enum", t: "Catraca semântica: enum nunca aparece cru", dias: 12 },
+  { slug: "EX01-escopo-de-anexo-por-negocio", t: "Escopo de anexo por negócio no DMS", dias: 18 },
 ];
 
 // mcp_audit_log — últimas 24 h, status != ok. É o que o painel destaca e a auditoria detalha.
 const OCORRENCIAS = [
   { h: "18:42", ator: "delphi-wr-comercial", ep: "tools/call", alvo: "vendas.registrar", res: "quota_exceeded", ms: 41 },
-  { h: "17:05", ator: "jana-brain-b", ep: "tools/call", alvo: "financeiro.conciliar", res: "error", ms: 2380 },
-  { h: "16:58", ator: "jana-brain-b", ep: "tools/call", alvo: "financeiro.conciliar", res: "error", ms: 2411 },
+  { h: "17:05", ator: "jana-copiloto", ep: "tools/call", alvo: "financeiro.conciliar", res: "error", ms: 2380 },
+  { h: "16:58", ator: "jana-copiloto", ep: "tools/call", alvo: "financeiro.conciliar", res: "error", ms: 2411 },
   { h: "15:30", ator: "app-tecnico", ep: "resources/read", alvo: "os.anexo", res: "denied", ms: 12 },
   { h: "14:12", ator: "claude-code", ep: "tools/call", alvo: "memory.write", res: "denied", ms: 8 },
   { h: "11:47", ator: "delphi-oficina", ep: "tools/list", alvo: "—", res: "error", ms: 1902 },
   { h: "09:21", ator: "app-tecnico", ep: "tools/call", alvo: "os.fechar", res: "denied", ms: 15 },
-  { h: "08:03", ator: "jana-brain-a", ep: "tools/call", alvo: "bi.narrar", res: "error", ms: 3105 },
+  { h: "08:03", ator: "jana-bi", ep: "tools/call", alvo: "bi.narrar", res: "error", ms: 3105 },
   { h: "07:14", ator: "delphi-wr-comercial", ep: "tools/call", alvo: "estoque.baixar", res: "quota_exceeded", ms: 37 },
 ];
 
 const SAUDE = [
-  { id: "jobs", l: "Jobs falhos em 24 h", v: 3, tone: "warning", sub: "fila do Horizon" },
+  { id: "jobs", l: "Jobs falhos em 24 h", v: 3, tone: "warning", sub: "fila de jobs do banco" },
   { id: "custo", l: "Custo de IA em 24 h", v: "R$ 41,80", tone: "default", sub: "tokens de entrada e saída" },
   { id: "narrativa", l: "Última narrativa", v: "06:00", tone: "info", sub: "rotina diária" },
 ];
 
 const NARRATIVAS = [
   { sev: "warn", h: "06:00", txt: "Três jobs de conciliação falharam de madrugada, todos no mesmo extrato do Sicredi. A fila drenou sozinha às 05:40." },
-  { sev: "info", h: "05:12", txt: "Volume de chamadas ao MCP 22% acima da média para uma segunda-feira — origem é o balcão da ROTA LIVRE." },
+  { sev: "info", h: "05:12", txt: "Volume de chamadas ao MCP 22% acima da média para uma segunda-feira — origem é o balcão da loja de demonstração." },
   { sev: "ok", h: "00:15", txt: "Fechamento do dia sem intercorrência: 41 vendas, 6 ordens de produção encerradas." },
 ];
 
@@ -83,8 +84,8 @@ const MCP = {
     { cod: "quota.daily", v: 20 },
   ],
   usuarios: [
-    { n: "delphi-wr-comercial", v: 7420 }, { n: "jana-brain-b", v: 4102 }, { n: "claude-code", v: 3180 },
-    { n: "app-tecnico", v: 1904 }, { n: "delphi-oficina", v: 1120 }, { n: "jana-brain-a", v: 706 },
+    { n: "delphi-wr-comercial", v: 7420 }, { n: "jana-copiloto", v: 4102 }, { n: "claude-code", v: 3180 },
+    { n: "app-tecnico", v: 1904 }, { n: "delphi-oficina", v: 1120 }, { n: "jana-bi", v: 706 },
   ],
   tools: [
     { n: "vendas.registrar", v: 5210 }, { n: "clientes.buscar", v: 3980 }, { n: "estoque.baixar", v: 2740 },
@@ -121,7 +122,7 @@ const POLITICAS = [
 // ── Auditoria (mcp_audit_log — teto de 200 por consulta) ──
 const RES_LABEL = { ok: "Concluído", denied: "Negado", error: "Erro", quota_exceeded: "Cota excedida" };
 const ENDPOINTS = ["tools/call", "tools/list", "resources/read", "resources/list", "prompts/get"];
-const ATORES = ["delphi-wr-comercial", "delphi-oficina", "jana-brain-a", "jana-brain-b", "claude-code", "app-tecnico"];
+const ATORES = ["delphi-wr-comercial", "delphi-oficina", "jana-bi", "jana-copiloto", "claude-code", "app-tecnico"];
 const ALVOS = ["vendas.registrar", "clientes.buscar", "estoque.baixar", "memory.search", "financeiro.conciliar", "os.abrir", "os.fechar", "bi.narrar", "memory.write", "os.anexo"];
 
 // Gerador estável (semente fixa) — a amostra não pode dançar entre renders.
