@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Listeners;
 
+use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use App\Transaction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
@@ -57,7 +58,8 @@ class EnviarDanfeNFCePorEmail implements ShouldQueue
 
     public function handle(NFCeAutorizada $event): void
     {
-        if (! config('nfebrasil.email_danfe_nfce_on_autorizada', false)) {
+        // Escolha da empresa em /fiscal/config; sem escolha, a chave do servidor.
+        if (! NfeBusinessConfig::envioDanfeAtivo((int) $event->emissao->business_id, '65')) {
             Log::info('EnviarDanfeNFCePorEmail: flag desabilitada — no-op', [
                 'emissao_id' => $event->emissao->id,
             ]);

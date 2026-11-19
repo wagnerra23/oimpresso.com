@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "governance/Policies (/governance/policies)",
   "gap_fonte": "memory/requisitos/Governance/governance-policies-gap.md",
-  "prototipo_sha": "sha256:53938d9e2417",
-  "gerado_em": "2026-09-29",
+  "prototipo_sha": "sha256:fa6a6868346a",
+  "gerado_em": "2026-11-19",
   "partes": [
     {
       "id": "header-pageheader",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "404-415"
+        "linhas": "470-484"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -41,7 +41,7 @@
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "325-330"
+        "linhas": "380-385"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -56,7 +56,7 @@
       "id": "aviso-alternar-nao-deixa-rastro",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "332-336"
+        "linhas": "387-391"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -71,7 +71,7 @@
       "id": "busca-de-politicas-vazio-no-results",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "338-349"
+        "linhas": "393-407"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -87,7 +87,7 @@
       "id": "lista-agrupada-por-categoria",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "350-376"
+        "linhas": "408-434"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -103,7 +103,7 @@
       "id": "linha-da-regra",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "355-372"
+        "linhas": "413-430"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -118,7 +118,7 @@
       "id": "toggle-por-linha",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "318-321"
+        "linhas": "363-376"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
@@ -134,7 +134,7 @@
       "id": "feedback-do-toggle",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "320"
+        "linhas": "365-375"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Policies.tsx",
