@@ -824,3 +824,5 @@ tests/Feature/Architecture/SuperadminScheduledCommandsRegisteredTest.php
 Modules/Financeiro/Tests/Feature/ListenersPorDispatcherContratoTest.php
 # Consumidor da fila nfse (auditoria NFSe, 2026-11-17): DB-less, só lê o Schedule.
 tests/Feature/Console/NfseQueueWorkerScheduleTest.php
+# Governance L1.4 (2026-11-19): UC-GPOL-05/06/07 lidos do registry de rotas, sem banco.
+Modules/Governance/Tests/Feature/PoliciesRotasContratoTest.php

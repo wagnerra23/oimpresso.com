@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Tests\Support\WithSeededTenant;
 
-uses(Tests\TestCase::class, WithSeededTenant::class);
+uses(Tests\TestCase::class, WithSeededTenant::class, DatabaseTransactions::class);
 
 /**
  * DS Rollout · smoke + contrato da prop `census` (/governance/ds-rollout).
@@ -27,7 +28,7 @@ uses(Tests\TestCase::class, WithSeededTenant::class);
  *
  * Middlewares UltimatePOS (SetSessionData/AdminSidebarMenu/CheckUserLogin) exigem
  * schema MySQL → skip gracioso em sqlite (mesma estratégia de ForjaRoutesSmokeTest).
- * biz=1 canônico via WithSeededTenant — NUNCA biz=4 (ROTA LIVRE prod · ADR 0101).
+ * Tenant fictício 98 via WithSeededTenant — NUNCA biz=4 (ROTA LIVRE prod · ADR 0358).
  *
  * Ancora os casos de DsRollout.casos.md (Adendo MV batch 2026-07-06). As variantes
  * "b" são a versão backend-testável (mordível) dos UCs manuais base — o mesmo cenário
@@ -45,27 +46,25 @@ uses(Tests\TestCase::class, WithSeededTenant::class);
  * @see memory/decisions/0239-governanca-ds-git-ssot.md
  */
 
-/** Bootstrap: tenant canônico biz=1 + user não-customer + sessão UltimatePOS. */
+/**
+ * Bootstrap: tenant fictício 98 (ADR 0358) + usuário NOVO com só a permissão que a rota
+ * exige (`can:governance.dashboard.view`) + sessão UltimatePOS. Antes pegava "o primeiro
+ * usuário da empresa", que pode não ter a permissão e dar 403.
+ */
 function dsRolloutBootstrap(): User
 {
     if (DB::connection()->getDriverName() === 'sqlite') {
         test()->markTestSkipped(
             'SQLite-incompatível: middlewares UltimatePOS (SetSessionData/AdminSidebarMenu/'.
-            'CheckUserLogin) exigem schema MySQL com business/users (ADR 0101).'
+            'CheckUserLogin) exigem schema MySQL com business/users. Roda na lane governance-pest.'
         );
     }
     if (! Schema::hasTable('users') || ! Schema::hasTable('business')) {
         test()->markTestSkipped('Schema UltimatePOS ausente — rode com DB_CONNECTION=mysql.');
     }
 
-    $business = test()->seededTenant(); // biz=1 canônico (ADR 0101) — skip gracioso interno
-
-    $user = User::where('business_id', $business->id)
-        ->where('user_type', '!=', 'user_customer')
-        ->first();
-    if (! $user) {
-        test()->markTestSkipped('Sem user não-customer no business pra autenticar.');
-    }
+    $business = test()->seededTenant(); // 98
+    $user = test()->usuarioComPermissoes(['governance.dashboard.view'], $business);
 
     session([
         'user.id'          => $user->id,
@@ -95,7 +94,7 @@ it('UC-DSR-09 · rota ds-rollout aplica throttle:60,1 (render estático leve)', 
 // UC-DSR-08 — Acesso: rota sob auth bloqueia anônimo
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-DSR-08 · GET /governance/ds-rollout sem auth redireciona ou bloqueia', function () {
+it('UC-DSR-08B · GET /governance/ds-rollout sem auth redireciona ou bloqueia', function () {
     $response = $this->get('/governance/ds-rollout');
     expect($response->status())->toBeIn([302, 401, 403])
         ->and($response->status())->not->toBe(200);
@@ -109,14 +108,13 @@ it('UC-DSR-08 · GET /governance/ds-rollout sem auth redireciona ou bloqueia', f
 // counts{screens,done,references}. treeGuard fecha o banner (UC-DSR-05).
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-DSR-04/05 · render Inertia expõe census com o contrato canônico do Ledger', function () {
+it('UC-DSR-04B · UC-DSR-05 · render Inertia expõe census com o contrato canônico do Ledger', function () {
     $user = dsRolloutBootstrap();
 
     $response = $this->actingAs($user)->get('/governance/ds-rollout');
 
-    if ($response->status() !== 200) {
-        test()->markTestSkipped('Render Inertia falhou (status '.$response->status().') — middleware/subscription gate.');
-    }
+    // Render que não dá 200 é DEFEITO, não ambiente: antes isto virava skip e escondia a falha.
+    $response->assertOk();
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
         ->component('governance/DsRollout')
@@ -143,7 +141,7 @@ it('UC-DSR-04/05 · render Inertia expõe census com o contrato canônico do Led
 // preservar a trava (measured=false quando artefato ausente).
 // ─────────────────────────────────────────────────────────────────────────────
 
-it('UC-DSR-01 · sem ds-ledger.json a tela cai no fallback measured=false + TODO ledger', function () {
+it('UC-DSR-01B · sem ds-ledger.json a tela cai no fallback measured=false + TODO ledger', function () {
     $user = dsRolloutBootstrap();
 
     $ledgerPath = base_path('governance/ds-ledger.json');
@@ -152,9 +150,7 @@ it('UC-DSR-01 · sem ds-ledger.json a tela cai no fallback measured=false + TODO
         // válido é o inverso (número real carimbado). Não removemos o artefato
         // (side-effect no repo) — asserimos o contrato do caminho medido.
         $response = $this->actingAs($user)->get('/governance/ds-rollout');
-        if ($response->status() !== 200) {
-            test()->markTestSkipped('Render Inertia falhou (status '.$response->status().').');
-        }
+        $response->assertOk();
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->where('census.measured', true)
             ->has('census.measuredAgainstSha')
@@ -166,9 +162,7 @@ it('UC-DSR-01 · sem ds-ledger.json a tela cai no fallback measured=false + TODO
 
     // Checkout fresco (sem censo) — caminho canônico do fallback: a trava tem de segurar.
     $response = $this->actingAs($user)->get('/governance/ds-rollout');
-    if ($response->status() !== 200) {
-        test()->markTestSkipped('Render Inertia falhou (status '.$response->status().').');
-    }
+    $response->assertOk();
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
         ->where('census.measured', false)
@@ -195,6 +189,8 @@ it('UC-DSR-10 · Controller é render estático (sem Inertia::defer no census)',
     expect(file_exists($controllerPath))->toBeTrue();
 
     $source = file_get_contents($controllerPath);
-    expect($source)->not->toContain('Inertia::defer');
+    // `Inertia::defer(` com parêntese: o docblock do Controller CITA "sem Inertia::defer" e
+    // a busca sem parêntese reprovava o próprio comentário que explica a decisão.
+    expect($source)->not->toContain('Inertia::defer(');
     expect($source)->toContain("Inertia::render('governance/DsRollout'");
 });
