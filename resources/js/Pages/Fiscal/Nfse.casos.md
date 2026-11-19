@@ -247,13 +247,15 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
 - **[BACKLOG · ⬜ sem teste] A busca aceita número, código de verificação, nome e documento do tomador** — sem teste do resultado.
 - **[BACKLOG · ⬜ sem teste] O filtro de competência restringe as linhas ao mês escolhido** — só o caminho de mês **inválido** tem teste; o caminho feliz não.
 - **[BACKLOG · ⬜ sem teste · débito de schema] O município da prestação aparece na linha** — a coluna **não existe** no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2.
-- **[BACKLOG · ⬜ sem teste · decisão [W]] Venda lançada com produto, mas o cliente pede nota de serviço** — pedido
+- **[BACKLOG · ⬜ sem teste] Venda lançada com produto, mas o cliente pede nota de serviço** — pedido
   da Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens de natureza mercadoria,
   Quando o cliente fecha e pede a nota de serviço, Então a venda mostra que esses itens saem em NF-e e por quê;
   se a operação é mesmo serviço sob encomenda, o contador corrige a natureza do produto e a venda sai em NFS-e
   sem ser refeita; se é venda de mercadoria, a nota segue NF-e. Hoje a natureza é só do produto, decidida pelo
-  contador (D-NATUREZA, US-NFE-068), e a venda não mostra nem troca a natureza dos itens. Falta o [W] decidir
-  se quem fatura pode trocar a natureza só no item da venda, com justificativa. Mexe em imposto: Regra Mestre.
+  contador (D-NATUREZA, US-NFE-068), e a venda não mostra nem troca a natureza dos itens. **Decidido em
+  2026-11-19 (lote 2 dos débitos do Fiscal): quem fatura NÃO troca a natureza no item da venda.** A natureza
+  continua sendo do produto e de quem a define (o contador, D-NATUREZA); a venda só avisa e leva ao atalho de
+  correção. Trocar por item mudaria imposto fora do cadastro que o contador confere (Regra Mestre).
   - Pedido: P-114
   - Âncora: US-NFE-068 (natureza por produto) · US-NFE-069 (a natureza do item escolhe a nota) · UC-FLX-27 e UC-FLX-31 · D-NATUREZA · `Fiscal/Nfse.casos.md`
   - Fazer: Avisar a natureza fiscal dos itens já na venda e de novo ao faturar. Dar o atalho para o contador corrigir a natureza do produto, com fonte. A emissão lê a natureza na hora de faturar, então a venda aberta não precisa ser refeita.

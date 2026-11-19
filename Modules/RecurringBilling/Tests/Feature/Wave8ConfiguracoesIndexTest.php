@@ -10,11 +10,14 @@ declare(strict_types=1);
  *   UC-RBCFG-02 — mostra a régua de dunning com as 3 retentativas
  *   UC-RBCFG-03 — gateway de um business não aparece pro outro [T0]
  *   UC-RBCFG-04 — a URL de webhook reflete o business da sessão [T0][V0]
+ *   UC-RBCFG-09 — URL e header exibidos são os que o webhook de fato atende [V0]
  */
 
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
+use Modules\RecurringBilling\Http\Controllers\AsaasWebhookController;
 use Modules\RecurringBilling\Http\Controllers\ConfiguracoesController;
+use Modules\RecurringBilling\Http\Controllers\InterWebhookController;
 use Modules\RecurringBilling\Models\BoletoCredential;
 
 uses(Tests\TestCase::class);
@@ -272,4 +275,44 @@ it('UC-RBCFG-04 · URLs de webhook refletem o business_id da session ativa', fun
 
     expect($asaas['url'])->toContain('/webhooks/asaas/7');
     expect($inter['url'])->toContain('/webhooks/inter/pix/7');
+});
+
+/**
+ * Cenário 6 — os dois lados do mesmo literal: a URL exibida é a da rota nomeada
+ * que o webhook atende (Asaas sob /api) e o header exibido é a constante que o
+ * controller do webhook lê. Antes de 2026-11-19 a tela mostrava a URL sem /api e
+ * o header X-Webhook-Token, que nenhum controller lê.
+ */
+it('UC-RBCFG-09 · URL e header de webhook são os que os controllers atendem', function () {
+    session(['user' => ['business_id' => 98]]);
+
+    $response   = app(ConfiguracoesController::class)->index(request());
+    $reflection = new ReflectionClass($response);
+    $propsProp  = $reflection->getProperty('props');
+    $propsProp->setAccessible(true);
+    $props = $propsProp->getValue($response);
+
+    $asaas = collect($props['webhooks'])->firstWhere('gateway', 'asaas');
+    $inter = collect($props['webhooks'])->firstWhere('gateway', 'inter');
+
+    // URL = rota nomeada (a mesma que o roteador resolve para o controller).
+    expect($asaas['url'])->toBe(route('webhooks.asaas', ['businessId' => 98]));
+    expect(parse_url($asaas['url'], PHP_URL_PATH))->toBe('/api/webhooks/asaas/98');
+    expect($inter['url'])->toBe(route('webhooks.inter.pix', ['businessId' => 98]));
+    expect(parse_url($inter['url'], PHP_URL_PATH))->toBe('/webhooks/inter/pix/98');
+
+    $rotaAsaas = app('router')->getRoutes()->getByName('webhooks.asaas');
+    expect($rotaAsaas->getActionName())->toBe(AsaasWebhookController::class . '@handle');
+    $rotaInter = app('router')->getRoutes()->getByName('webhooks.inter.pix');
+    expect($rotaInter->getActionName())->toBe(InterWebhookController::class . '@handle');
+
+    // Header = a constante que o controller do webhook lê.
+    expect(AsaasWebhookController::AUTH_HEADER)->toBe('asaas-access-token');
+    expect($asaas['auth_header'])->toBe(AsaasWebhookController::AUTH_HEADER);
+    expect($asaas['auth'])->toContain(AsaasWebhookController::AUTH_HEADER);
+    expect($asaas['auth'])->not->toContain('X-Webhook-Token');
+
+    expect(InterWebhookController::AUTH_HEADER)->toBe('X-Inter-Webhook-Secret');
+    expect($inter['auth_header'])->toBe(InterWebhookController::AUTH_HEADER);
+    expect($inter['auth'])->toContain(InterWebhookController::AUTH_HEADER);
 });

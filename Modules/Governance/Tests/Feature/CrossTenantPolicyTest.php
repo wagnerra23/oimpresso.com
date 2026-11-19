@@ -19,8 +19,8 @@ uses(Tests\TestCase::class);
  * `superadmin`/`governance.dashboard.view`, NÃO via global scope.
  *
  * Este teste valida:
- *   1. superadmin biz=1 acessa /governance (não retorna 5xx)
- *   2. user normal biz=1 sem permission é bloqueado (302/403)
+ *   1. superadmin biz=98 acessa /governance (não retorna 5xx)
+ *   2. user normal biz=98 sem permission é bloqueado (302/403)
  *   3. user normal biz=99 (fictício) também bloqueado — mesmo cross-tenant
  *   4. tabelas mcp_* NÃO devem ter coluna business_id (cross-tenant by design)
  *   5. queries em mcp_memory_documents NÃO aplicam scope de business (cross-tenant)
@@ -29,15 +29,15 @@ uses(Tests\TestCase::class);
  * module-grade (ADR 0399 — a rota e o controller foram deletados na Onda 2).
  *
  * SQLite guard obrigatório (rotas precisam middleware UltimatePOS → MySQL).
- * biz=1 (Wagner WR2) NUNCA biz=4 (ROTA LIVRE cliente Larissa) — ADR 0101.
+ * biz=98 (tenant fictício de teste) NUNCA biz=4 (ROTA LIVRE cliente Larissa) — ADR 0358.
  *
  * Refs: ADR 0086 (Governance MVP UI), ADR 0093 (Multi-tenant Tier 0 — Governance
- * é exceção transversal), ADR 0101 (Tests biz=1),
+ * é exceção transversal), ADR 0358 (Tests biz=98),
  * Constituição Art. 6 (Identity Mesh) + Art. 8 (Policy Gating) + Art. 9 (Auditoria).
  */
 beforeEach(function () {
     if (config('database.default') !== 'sqlite') {
-        $this->markTestSkipped('CrossTenantPolicyTest roda apenas em SQLite in-memory (guard ADR 0101)');
+        $this->markTestSkipped('CrossTenantPolicyTest roda apenas em SQLite in-memory (guard ADR 0358)');
     }
 
     // Schema mínimo das tabelas mcp_* — replicar Wave B GovernanceGateTest pattern
@@ -106,15 +106,15 @@ afterEach(function () {
     Schema::dropIfExists('mcp_memory_documents');
 });
 
-// IDs canônicos: biz=1 Wagner WR2, biz=99 fictício isolamento (ADR 0101)
-const BIZ_WAGNER_GOV = 1;
+// IDs canônicos: biz=98 tenant fictício de teste, biz=99 fictício isolamento (ADR 0358)
+const BIZ_TENANT_GOV = 98;
 const BIZ_FICTICIO_GOV = 99;
 
 // ------------------------------------------------------------------
-// Cenário 1: superadmin biz=1 acessa /governance — não retorna 5xx
+// Cenário 1: superadmin biz=98 acessa /governance — não retorna 5xx
 // ------------------------------------------------------------------
 
-it('cenario 1: superadmin biz=1 acessa /governance retorna < 500 (gate permite)', function () {
+it('cenario 1: superadmin biz=98 acessa /governance retorna < 500 (gate permite)', function () {
     // Sem autenticar de fato (Tests/TestCase não tem factory User pronto pra MVP) —
     // valida que a ROTA EXISTE e é resolvida (não retorna 404/500). O gate em si
     // é coberto pelos cenários 2/3/6 (bloqueio).
@@ -127,18 +127,18 @@ it('cenario 1: superadmin biz=1 acessa /governance retorna < 500 (gate permite)'
 });
 
 // ------------------------------------------------------------------
-// Cenário 2: user normal biz=1 sem permission é bloqueado em /governance
+// Cenário 2: user normal biz=98 sem permission é bloqueado em /governance
 // ------------------------------------------------------------------
 
-it('cenario 2: user normal biz=1 sem permission e bloqueado em /governance (302/403)', function () {
-    // Simula sessão biz=1 SEM auth (anonimo equivale a "sem permission" pro middleware)
-    session(['user.business_id' => BIZ_WAGNER_GOV]);
+it('cenario 2: user normal biz=98 sem permission e bloqueado em /governance (302/403)', function () {
+    // Simula sessão biz=98 SEM auth (anonimo equivale a "sem permission" pro middleware)
+    session(['user.business_id' => BIZ_TENANT_GOV]);
 
     $response = $this->get('/governance');
 
     // auth middleware redireciona pra login OU retorna 401/403
     expect($response->status())->toBeIn([301, 302, 401, 403, 404, 500],
-        "User sem permission em biz=1 deveria ser bloqueado, recebeu {$response->status()}");
+        "User sem permission em biz=98 deveria ser bloqueado, recebeu {$response->status()}");
     expect($response->status())->not->toBe(200, 'Dashboard NUNCA pode vazar sem auth+permission');
 });
 
@@ -153,7 +153,7 @@ it('cenario 3: user normal biz=99 fictício também bloqueado em /governance', f
     $response = $this->get('/governance');
 
     expect($response->status())->toBeIn([301, 302, 401, 403, 404, 500],
-        "User sem permission em biz=99 deveria ser bloqueado igual biz=1, recebeu {$response->status()}");
+        "User sem permission em biz=99 deveria ser bloqueado igual biz=98, recebeu {$response->status()}");
     expect($response->status())->not->toBe(200);
 });
 
@@ -203,15 +203,15 @@ it('cenario 5: queries em mcp_memory_documents retornam mesma count cross-tenant
         ['slug' => 'adr-0094-test', 'title' => 'Constituição v2', 'type' => 'adr', 'status' => 'accepted', 'created_at' => now(), 'updated_at' => now()],
     ]);
 
-    // Query "como biz=1"
-    session(['user.business_id' => BIZ_WAGNER_GOV]);
+    // Query "como biz=98"
+    session(['user.business_id' => BIZ_TENANT_GOV]);
     $countBizWagner = DB::table('mcp_memory_documents')->where('type', 'adr')->count();
 
     // Query "como biz=99" — DEVE retornar mesma count (cross-tenant by design)
     session(['user.business_id' => BIZ_FICTICIO_GOV]);
     $countBizFicticio = DB::table('mcp_memory_documents')->where('type', 'adr')->count();
 
-    expect($countBizWagner)->toBe(3, 'biz=1 deveria ver 3 ADRs');
+    expect($countBizWagner)->toBe(3, 'biz=98 deveria ver 3 ADRs');
     expect($countBizFicticio)->toBe(3, 'biz=99 deveria ver MESMAS 3 ADRs (cross-tenant)');
     expect($countBizWagner)->toBe($countBizFicticio,
         'ADRs canon devem retornar mesma count em qualquer biz (Art. 6+8 cross-tenant)');
