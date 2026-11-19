@@ -47,7 +47,7 @@ it('gate_status fail → persiste alerta high com a métrica que caiu nomeada', 
         ->and($row->business_id)->toBeNull()            // repo-wide (ADR 0093 §Exceção)
         ->and($meta['evidence']['week'])->toBe('2026-07-26')
         ->and($meta['evidence']['context_recall_avg'])->toBe(0.3461)
-        ->and($meta['evidence']['n_evaluated'])->toBe(51.0);
+        ->and($meta['evidence']['n_evaluated'])->toEqual(51); // o JSON devolve 51 inteiro: o contrato é o número, não o tipo float
 
     // MORDE: a mensagem tem que dizer QUAL piso caiu — e só o do recall caiu neste caso
     // (faithfulness 0.6865 > 0.65 e relevancy 0.8294 > 0.75 estão ACIMA).
@@ -96,5 +96,5 @@ it('flags de métrica ausentes → alerta sai mesmo assim, sem inventar número'
 
     expect($row)->not->toBeNull()
         ->and($meta['evidence']['context_recall_avg'])->toBeNull()
-        ->and($row->mensagem)->toContain('piso não identificado');
+        ->and($row->descricao)->toContain('piso não identificado'); // a coluna é descricao (PersistsDriftAlert)
 });
