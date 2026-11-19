@@ -162,6 +162,15 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-officeimpresso-junit.xml \
             Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
+            Modules/Officeimpresso/Tests/Feature/ArchitectureTest.php \
+            Modules/Officeimpresso/Tests/Feature/ScaffoldTest.php \
+            Modules/Officeimpresso/Tests/Feature/SmokeRoutesTest.php \
+            Modules/Officeimpresso/Tests/Feature/ObservabilityServicesTest.php \
+            Modules/Officeimpresso/Tests/Feature/E2EJourneyDelphiBiz1Test.php \
+            Modules/Officeimpresso/Tests/Feature/Wave23OfficeimpressoSaturationTest.php \
+            Modules/Officeimpresso/Tests/Feature/Wave25FirebirdImporterFixturesTest.php \
+            Modules/Officeimpresso/Tests/Feature/Wave25ObservabilityExpandedTest.php \
+            Modules/Officeimpresso/Tests/Feature/Wave27PolishTest.php \
             Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
             Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
@@ -174,6 +183,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
             Modules/Officeimpresso/Tests/Feature/ImportadorFirebirdFailClosedTest.php \
+            Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php \
             Modules/Officeimpresso/Tests/Feature/RegenerateViaPostTest.php \
             Modules/Officeimpresso/Tests/Feature/LicencaShowSemCredenciaisTest.php \
             Modules/Officeimpresso/Tests/Feature/DesktopAuditValidacaoTest.php \

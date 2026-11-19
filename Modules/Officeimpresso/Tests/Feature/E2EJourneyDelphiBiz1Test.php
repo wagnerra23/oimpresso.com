@@ -2,34 +2,40 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Officeimpresso\Entities\LicencaLog;
 use Modules\Officeimpresso\Services\LicencaAuditService;
 
-uses(Tests\TestCase::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Wave 18 saturation D5 — E2E journey Delphi → Officeimpresso biz=1.
+ * Wave 18 saturation D5 — E2E journey Delphi → Officeimpresso (LicencaAuditService).
  *
  * Smoke do journey README:
  *  - Delphi POST /api/officeimpresso/audit com payload {event,error_message}
  *  - LicencaAuditService::registrar persiste LicencaLog
  *  - PII potencial em error_message redacted antes do INSERT
- *  - Cross-biz isolation (log de biz=1 NÃO vaza em filter biz=99)
+ *  - o business_id do contexto é o que fica gravado (tenant 98 e 99 separados)
  *  - Append-only audit (sem UPDATE/DELETE no fluxo Service)
  *
- * Multi-tenant Tier 0 (ADR 0101 — biz=1 nunca cliente real).
+ * Tenant 98 × 99 (ADR 0358), com DatabaseTransactions: as contagens valem por execução
+ * mesmo no CT 100, onde o banco persiste. O nome do arquivo (Biz1) ficou do tempo em que
+ * gravava em biz=1; renomear mudaria o path da allowlist da lane.
  *
  * @see memory/requisitos/Officeimpresso/README.md
  * @see Modules/Officeimpresso/Services/LicencaAuditService.php
  */
 
-const E2E_OFI_BIZ_WAGNER = 1;
-const E2E_OFI_BIZ_OUTRO  = 99;
-
 beforeEach(function () {
     config()->set('otel.enabled', false);
+    // Tenant 98 (operadora de teste) x 99 (cliente) - ADR 0358. Antes era biz=1 chumbado,
+    // empresa real: no CT 100 a base e clone de prod e os ~57 logs por run ficavam la.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->bizA = (int) $this->seededTenant()->id;
+        $this->bizB = (int) $this->seededSupportClientTenant()->id;
+    }
 });
 
 function skipIfNoMysqlOfi(): void
@@ -42,7 +48,7 @@ function skipIfNoMysqlOfi(): void
     }
 }
 
-it('cenario E2E 1: Delphi POST audit → LicencaLog persistido biz=1', function () {
+it('cenario E2E 1: Delphi POST audit → LicencaLog persistido no tenant 98', function () {
     skipIfNoMysqlOfi();
     $svc = app(LicencaAuditService::class);
 
@@ -55,7 +61,7 @@ it('cenario E2E 1: Delphi POST audit → LicencaLog persistido biz=1', function 
     ];
     $ctx = [
         'user_id'     => null,
-        'business_id' => E2E_OFI_BIZ_WAGNER,
+        'business_id' => $this->bizA,
         'ip'          => '192.168.1.10',
         'user_agent'  => 'OfficeImpresso/4.2 Delphi',
         'http_method' => 'POST',
@@ -65,7 +71,7 @@ it('cenario E2E 1: Delphi POST audit → LicencaLog persistido biz=1', function 
 
     expect($log)->toBeInstanceOf(LicencaLog::class)
         ->and($log->event)->toBe('login_success')
-        ->and($log->business_id)->toBe(E2E_OFI_BIZ_WAGNER)
+        ->and($log->business_id)->toBe($this->bizA)
         ->and($log->ip)->toBe('192.168.1.10')
         ->and($log->http_status)->toBe(200);
 });
@@ -74,26 +80,26 @@ it('cenario E2E 2: cross-biz isolation — filter por business_id NAO vaza', fun
     skipIfNoMysqlOfi();
     $svc = app(LicencaAuditService::class);
 
-    // biz=1: 3 logs
+    // tenant 98: 3 logs
     for ($i = 0; $i < 3; $i++) {
         $svc->registrar(
             ['event' => 'api_call', 'endpoint' => '/api/sync', 'http_status' => 200],
-            ['business_id' => E2E_OFI_BIZ_WAGNER, 'ip' => '10.0.0.'.$i, 'user_agent' => 'Delphi', 'http_method' => 'POST']
+            ['business_id' => $this->bizA, 'ip' => '10.0.0.'.$i, 'user_agent' => 'Delphi', 'http_method' => 'POST']
         );
     }
-    // biz=99: 5 logs
+    // tenant 99: 5 logs
     for ($i = 0; $i < 5; $i++) {
         $svc->registrar(
             ['event' => 'api_call', 'endpoint' => '/api/sync', 'http_status' => 200],
-            ['business_id' => E2E_OFI_BIZ_OUTRO, 'ip' => '10.0.1.'.$i, 'user_agent' => 'Delphi', 'http_method' => 'POST']
+            ['business_id' => $this->bizB, 'ip' => '10.0.1.'.$i, 'user_agent' => 'Delphi', 'http_method' => 'POST']
         );
     }
 
-    $countBiz1 = LicencaLog::where('business_id', E2E_OFI_BIZ_WAGNER)->where('endpoint', '/api/sync')->count();
-    $countBiz99 = LicencaLog::where('business_id', E2E_OFI_BIZ_OUTRO)->where('endpoint', '/api/sync')->count();
+    $countA = LicencaLog::where('business_id', $this->bizA)->where('endpoint', '/api/sync')->count();
+    $countB = LicencaLog::where('business_id', $this->bizB)->where('endpoint', '/api/sync')->count();
 
-    expect($countBiz1)->toBe(3)
-        ->and($countBiz99)->toBe(5);
+    expect($countA)->toBe(3)
+        ->and($countB)->toBe(5);
 });
 
 it('cenario E2E 3: user_agent longo é truncado em 500 chars (anti-DOS)', function () {
@@ -103,7 +109,7 @@ it('cenario E2E 3: user_agent longo é truncado em 500 chars (anti-DOS)', functi
 
     $log = $svc->registrar(
         ['event' => 'login_success'],
-        ['business_id' => E2E_OFI_BIZ_WAGNER, 'ip' => '127.0.0.1', 'user_agent' => $longUa, 'http_method' => 'POST']
+        ['business_id' => $this->bizA, 'ip' => '127.0.0.1', 'user_agent' => $longUa, 'http_method' => 'POST']
     );
 
     expect(strlen($log->user_agent))->toBeLessThanOrEqual(500);
@@ -121,7 +127,7 @@ it('cenario E2E 4: payload com error_message não derruba registrar (PII fallbac
         'http_status'   => 401,
     ];
     $ctx = [
-        'business_id' => E2E_OFI_BIZ_WAGNER,
+        'business_id' => $this->bizA,
         'ip'          => '127.0.0.1',
         'user_agent'  => 'Delphi',
         'http_method' => 'POST',
@@ -131,7 +137,9 @@ it('cenario E2E 4: payload com error_message não derruba registrar (PII fallbac
 
     expect($log)->toBeInstanceOf(LicencaLog::class)
         ->and($log->event)->toBe('login_error')
-        ->and($log->error_code)->toBe('401');
+        // A coluna é varchar(100): o valor gravado é '401'. O model que o create() devolve
+        // ainda guarda o int do payload, por isso a leitura é do banco (fresh).
+        ->and($log->fresh()->error_code)->toBe('401');
 });
 
 it('cenario E2E 5: campos extras (não-conhecidos) vão pra metadata, nao perdidos', function () {
@@ -146,7 +154,7 @@ it('cenario E2E 5: campos extras (não-conhecidos) vão pra metadata, nao perdid
 
     $log = $svc->registrar(
         $payload,
-        ['business_id' => E2E_OFI_BIZ_WAGNER, 'ip' => '127.0.0.1', 'user_agent' => 'Delphi', 'http_method' => 'POST']
+        ['business_id' => $this->bizA, 'ip' => '127.0.0.1', 'user_agent' => 'Delphi', 'http_method' => 'POST']
     );
 
     expect($log->event)->toBe('desktop_audit');
@@ -175,7 +183,7 @@ it('cenario E2E 7: high-volume insert (50 logs/seg sustentado, smoke perf)', fun
     for ($i = 0; $i < 50; $i++) {
         $svc->registrar(
             ['event' => 'api_call', 'endpoint' => '/api/sync', 'http_status' => 200],
-            ['business_id' => E2E_OFI_BIZ_WAGNER, 'ip' => '127.0.0.1', 'user_agent' => 'Delphi', 'http_method' => 'POST']
+            ['business_id' => $this->bizA, 'ip' => '127.0.0.1', 'user_agent' => 'Delphi', 'http_method' => 'POST']
         );
     }
 
