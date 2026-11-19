@@ -4,12 +4,20 @@ type: runbook
 module: RecurringBilling
 created: 2026-05-12
 authority: canonical
-owner: wagner
-last_validated: <WAGNER_FILL: data primeira validação real>
-related_adrs: [0030, 0062, 0093, 0094, 0101]
+owner: W
+# NUNCA executado ponta a ponta (smokes 1-4 sem registro). O schema exige o campo:
+# a data abaixo é a da REDAÇÃO (#703), não de uma validação. Ao rodar os smokes,
+# troque pela data real e passe `status` para `ativo` (ver "Próximo passo após smoke OK").
+last_validated: "2026-05-12"
+related_adrs:
+  - "0030-credenciais-jamais-em-git"
+  - "0062-separacao-runtime-hostinger-ct100"
+  - "0093-multi-tenant-isolation-tier-0"
+  - "0094-constituicao-v2-7-camadas-8-principios"
+  - "0358-doutrina-de-teste-tenant-98-supersede-0101"
 related_us: [US-RB-045, US-RB-046, US-RB-047, US-RB-048]
-related_cycle_goals: [CYCLE-05 #1 — Inter PJ Banking em prod com canary 7d]
-status: live
+related_cycle_goals: ["CYCLE-05 #1 — Inter PJ Banking em prod com canary 7d"]
+status: rascunho
 charter_version: 2
 ---
 
@@ -17,9 +25,9 @@ charter_version: 2
 
 > **Quando usar:** validar `InterBankingClient` ponta-a-ponta antes de promover Inter PJ Banking pra prod, ou debugar incidentes (token expirado, webhook não chega, valor errado, divergência de saldo) durante o canary 7d.
 >
-> **Onde rodar:** `business_id=1` (Wagner WR2 Sistemas — Tubarão/SC). Cross-tenant tests usam `biz=99` (convenção [feedback `test_biz_99_cross_tenant`](../../../C:/Users/wagne/.claude/projects/D--oimpresso-com/memory/feedback_test_biz_99_cross_tenant_convention.md)).
+> **Onde rodar:** `business_id=1` (Wagner WR2 Sistemas — Tubarão/SC). Cross-tenant tests usavam `biz=99` (convenção [feedback-test-biz-99-cross-tenant](../../reference/feedback-test-biz-99-cross-tenant.md)); desde a [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) o tenant canônico de teste é o **98**.
 >
-> **🚨 NUNCA rodar em `business_id=4`** (RotaLivre/Larissa — 99% do volume real, [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)). Testar Inter em biz=4 contamina extrato/cobranças do cliente piloto.
+> **🚨 NUNCA rodar em `business_id=4`** (RotaLivre/Larissa — 99% do volume real, [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md), que supersede a antiga 0101-tests). Testar Inter em biz=4 contamina extrato/cobranças do cliente piloto.
 
 Origem: gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 4 RUNBOOK ausente — escalado a P0 como **US-RB-048**). Materializa Goal #1 do CYCLE-05 ("Inter PJ Banking em prod com canary 7d sem incidente"). Materializa o "como" das US-RB-045 (saldo Fase 1), US-RB-046 (extrato Fase 2), US-RB-047 (PIX cob + webhook Fase 3).
 
@@ -135,7 +143,7 @@ BoletoCredential::create([
 ]);
 ```
 
-⚠️ **NUNCA colar cert/secret/conta em chat Claude** ([feedback `nunca_publicar_credenciais_no_chat`](../../../C:/Users/wagne/.claude/projects/D--oimpresso-com/memory/feedback_nunca_publicar_credenciais_no_chat.md)). Wagner cola direto no tinker via clipboard local.
+⚠️ **NUNCA colar cert/secret/conta em chat Claude** ([feedback-nunca-publicar-credenciais](../../reference/feedback-nunca-publicar-credenciais.md)). Wagner cola direto no tinker via clipboard local.
 
 ---
 
@@ -494,7 +502,7 @@ Cenários que exigem contato direto Inter (Wagner liga, não Claude):
 - **US-RB-047** (Inter PJ PIX cob + webhook Fase 3) — Smokes 3+4 validam `InterPixCobDriver` + `InterWebhookController` + `ProcessInterWebhookJob`
 - **US-RB-048** (este RUNBOOK) — Dim 4 governance ([skill `module-completeness-audit`](../../../.claude/skills/module-completeness-audit/SKILL.md))
 - **[ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)** Multi-tenant Tier 0 — RUNBOOK respeita `business_id=1` scope; NUNCA biz=4
-- **[ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)** — biz=1 default smoke, biz=99 cross-tenant
+- **[ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)** — supersede a 0101-tests: Pest no tenant fictício 98; smoke manual segue biz=1
 - **[ADR 0030](../../decisions/0030-credenciais-jamais-em-git.md)** — cert + secrets em Vaultwarden; RUNBOOK usa `<WAGNER_FILL>` + Vaultwarden refs
 - **[ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)** — RUNBOOK roda APP em Hostinger; smokes via SSH
 - **[ADR 0094 §5](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)** SoC brutal — `InterBankingClient` (banking) separado de `InterDriver` (boleto), com drivers próprios pra extrato (`InterStatementDriver`) e PIX cob (`InterPixCobDriver`)
@@ -505,7 +513,7 @@ Cenários que exigem contato direto Inter (Wagner liga, não Claude):
 
 Quando Smokes 1+2+3+4 ✅ em `business_id=1`:
 
-1. **Trocar frontmatter `last_validated: 2026-MM-DD`** + manter `status: live`
+1. **Trocar frontmatter `last_validated`** pela data real dos smokes + passar `status: rascunho` → `status: ativo`
 2. **Promover Goal #1 do CYCLE-05** parcialmente: `cycle-goals-track goal_id:1 status:doing achieved_value:"4 smokes OK biz=1 2026-MM-DD — canary 7d iniciado"`
 3. **Session log** `memory/sessions/2026-MM-DD-inter-pj-smoke-canary.md` com saldo retornado (sem PII), txid PIX criado, webhook recebido
 4. **Marcar US-RB-048 done** via `tasks-update task_id:US-RB-048 status:done`
