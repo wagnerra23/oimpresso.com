@@ -98,7 +98,7 @@ class MandatoPixAutomatico
     {
         $plano = $sub->getRelation('plan');
         if ($plano !== null) {
-            return [CobradorPixAutomatico::centavos((string) $plano->getAttribute('valor')),
+            return [Centavos::de((string) $plano->getAttribute('valor')),
                 self::PERIODICIDADE[(string) $plano->getAttribute('ciclo')] ?? 'MENSAL'];
         }
         $valor = $metadata['valor'] ?? null;
@@ -107,7 +107,8 @@ class MandatoPixAutomatico
             throw new \DomainException('Assinatura sem plano e sem valor negociado: não há o que autorizar.');
         }
 
-        return [CobradorPixAutomatico::centavos(number_format((float) $valor, 2, '.', '')), $ciclo];
+        // Sem float: o texto validado vai direto (antes passava por number_format((float) …)).
+        return [Centavos::de($valor), $ciclo];
     }
 
     /** @return array{id_rec: string, status: string, pix_copia_cola: ?string} */
