@@ -276,16 +276,15 @@ it('detectBusinessSignal retorna false quando source format inválido', function
     expect($result)->toBeFalse();
 });
 
-it('detectCiHealth pass-through true quando GH_TOKEN ausente', function () {
-    // Em ambiente de teste GH_TOKEN raramente está setado
+it('detectCiHealth sem token → false (não medido não pontua — antes era true sem medir)', function () {
     if (env('GH_TOKEN') || env('GITHUB_TOKEN')) {
-        $this->markTestSkipped('GH_TOKEN setado, pass-through não dispara');
+        $this->markTestSkipped('GH_TOKEN setado no ambiente: o ramo sem-token não é alcançável aqui');
     }
     $result = $this->eval->detectCiHealth('Vestuario', [
         'source'          => 'GitHub Actions Pest workflow',
         'coverage_target' => 0.95,
     ]);
-    expect($result)->toBeTrue();
+    expect($result)->toBeFalse();
 });
 
 it('detectOtelQuery pass-through true quando mcp_observability_spans ausente', function () {

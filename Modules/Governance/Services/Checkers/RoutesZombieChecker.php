@@ -75,7 +75,7 @@ final class RoutesZombieChecker implements DriftChecker
         $accessLog = $this->fetchAccessLogStats(self::DEFAULT_HIT_WINDOW_DAYS);
 
         if ($accessLog === null) {
-            return DriftCheckResult::clean($this->name(), 0, [
+            return DriftCheckResult::notMeasured($this->name(), 'tabela system_access_log indisponível', 0, [
                 'skipped' => 'access log table not available — Sprint 2 ADR 0162',
                 'routes_total' => count($routes),
             ]);

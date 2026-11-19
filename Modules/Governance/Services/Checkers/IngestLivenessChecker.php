@@ -88,10 +88,10 @@ final class IngestLivenessChecker implements DriftChecker
             }, $hosts),
         ];
 
-        // Sem host conhecido (tabela vazia/ausente) → cego, mas não há sinal pra alarmar.
-        // blind ≠ dead: não cria lobo (espelha B-SPOF-WA do whats-active).
+        // Sem host conhecido (tabela vazia/ausente) → cego: não medido. blind ≠ dead (não
+        // alarma, sem finding) e blind ≠ verde (não é clean) — §5 proibicoes 2026-07-29.
         if ($hosts === []) {
-            return DriftCheckResult::clean($this->name(), $duration, $meta + ['reason' => 'no_known_hosts']);
+            return DriftCheckResult::notMeasured($this->name(), 'nenhum host conhecido (heartbeat vazio ou tabela ausente)', $duration, $meta + ['reason' => 'no_known_hosts']);
         }
 
         // Algum host fresco → pipe vivo.

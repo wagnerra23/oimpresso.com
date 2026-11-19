@@ -126,9 +126,7 @@ final class DesignDocsFreshnessChecker implements DriftChecker
         $docs = $this->collectDesignDocs($base);
 
         if (count($docs) === 0) {
-            return DriftCheckResult::clean($this->name(), 0, [
-                'skipped' => 'nenhum doc de design encontrado (prototipo-ui/ + _DesignSystem/ ausentes)',
-            ]);
+            return DriftCheckResult::notMeasured($this->name(), 'nenhum doc de design encontrado (prototipo-ui/ + _DesignSystem/ ausentes)');
         }
 
         $findings = [];

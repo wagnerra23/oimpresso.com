@@ -63,9 +63,10 @@ afterEach(function () {
     }
 });
 
-it('sem host conhecido → clean (blind ≠ dead, não cria lobo)', function () {
+it('sem host conhecido → NÃO MEDIDO (blind ≠ dead: sem lobo; blind ≠ verde: não é clean)', function () {
     $r = (new IngestLivenessChecker())->check();
-    expect($r->ok)->toBeTrue();
+    expect($r->status())->toBe('nao_medido');
+    expect($r->ok)->toBeFalse();
     expect($r->drift_count)->toBe(0);
     expect($r->metadata['reason'] ?? null)->toBe('no_known_hosts');
 });
@@ -89,12 +90,14 @@ it('pelo menos 1 host fresco → clean (pipe vivo)', function () {
 
     // BITE: se o checker disparasse com fresh>=1, isto viraria vermelho.
     $r = (new IngestLivenessChecker())->check();
+    expect($r->status())->toBe('clean');
     expect($r->ok)->toBeTrue();
     expect($r->drift_count)->toBe(0);
 });
 
-it('tabela ausente → clean (graceful-degrade, nunca lança)', function () {
+it('tabela ausente → NÃO MEDIDO (graceful-degrade, nunca lança, nunca verde)', function () {
     Schema::dropIfExists('mcp_ingest_heartbeat');
     $r = (new IngestLivenessChecker())->check();
-    expect($r->ok)->toBeTrue();
+    expect($r->status())->toBe('nao_medido');
+    expect($r->ok)->toBeFalse();
 });

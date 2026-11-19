@@ -35,8 +35,8 @@ trait PublishesDriftToCentrifugo
         DriftCheckResult $result,
         string $channel = 'governance:drift',
     ): bool {
-        if ($result->ok) {
-            return true; // Nada a publicar quando clean
+        if ($result->ok || ! $result->measured) {
+            return true; // Nada a publicar quando clean ou não medido (sem achado)
         }
 
         try {

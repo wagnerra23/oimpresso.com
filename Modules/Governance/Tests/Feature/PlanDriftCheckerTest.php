@@ -119,7 +119,7 @@ it('SOLTA: relatório sem achados → clean (controle negativo do caso acima)', 
     expect($r->ok)->toBeTrue()->and($r->drift_count)->toBe(0);
 });
 
-it('comando pulou (MCP offline / índice ausente) → clean COM reason — ⊘ honesto, não lobo nem verde mudo', function () {
+it('comando pulou (MCP offline / índice ausente) → NÃO MEDIDO com reason — nem lobo nem verde mudo', function () {
     planDriftFakeArtisan(json_encode([
         'ok' => true, 'skipped' => true, 'reason' => 'mcp_tasks vazia (MCP offline / não sincronizado)',
         'planos' => 0, 'fail' => 0, 'warn' => 0, 'findings' => [],
@@ -127,24 +127,26 @@ it('comando pulou (MCP offline / índice ausente) → clean COM reason — ⊘ h
 
     $r = (new PlanDriftChecker())->check();
 
-    expect($r->ok)->toBeTrue()
+    expect($r->status())->toBe('nao_medido')
+        ->and($r->ok)->toBeFalse()
         ->and($r->drift_count)->toBe(0)
+        ->and($r->motivo_nao_medido)->toContain('mcp_tasks vazia')
         ->and($r->metadata['skipped'])->toBeTrue()
         ->and($r->metadata['reason'])->toContain('mcp_tasks vazia');
 });
 
-it('JSON inválido → clean com error (degrada gracioso, nunca lança)', function () {
+it('JSON inválido → NÃO MEDIDO com error (nunca lança, nunca verde)', function () {
     planDriftFakeArtisan('erro fatal não-JSON na saída');
 
     $r = (new PlanDriftChecker())->check();
 
-    expect($r->ok)->toBeTrue()->and($r->metadata['error'])->toBe('invalid_json');
+    expect($r->status())->toBe('nao_medido')->and($r->ok)->toBeFalse()->and($r->metadata['error'])->toBe('invalid_json');
 });
 
-it('comando lança → clean com a exceção em metadata (checker NUNCA propaga)', function () {
+it('comando lança → NÃO MEDIDO com a exceção em metadata (checker NUNCA propaga)', function () {
     Artisan::shouldReceive('call')->once()->andThrow(new RuntimeException('DB offline'));
 
     $r = (new PlanDriftChecker())->check();
 
-    expect($r->ok)->toBeTrue()->and($r->metadata['error'])->toBe('DB offline');
+    expect($r->status())->toBe('nao_medido')->and($r->motivo_nao_medido)->toContain('DB offline')->and($r->metadata['error'])->toBe('DB offline');
 });

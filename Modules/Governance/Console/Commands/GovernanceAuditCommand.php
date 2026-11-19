@@ -141,23 +141,28 @@ class GovernanceAuditCommand extends Command
             ]);
             $this->error("✗ {$name} — exception: {$e->getMessage()}");
 
-            return DriftCheckResult::drifted(
+            // Exceção = não medi (não é drift: não há achado; não é verde).
+            return DriftCheckResult::notMeasured(
                 name: $name,
-                findings: [],
+                motivo: 'exception: '.$e->getMessage(),
                 duration_ms: (int) ((microtime(true) - $start) * 1000),
                 metadata: ['exception' => $e->getMessage()],
             );
         }
 
         if (! $this->option('json')) {
-            $emoji = $result->ok ? '✓' : '⚠';
-            $this->line(sprintf(
-                '%s %s — %d findings (%dms)',
-                $emoji,
-                $name,
-                $result->drift_count,
-                $result->duration_ms,
-            ));
+            if (! $result->measured) {
+                $this->line(sprintf('∅ %s — não medido (%s) (%dms)', $name, $result->motivo_nao_medido, $result->duration_ms));
+            } else {
+                $emoji = $result->ok ? '✓' : '⚠';
+                $this->line(sprintf(
+                    '%s %s — %d findings (%dms)',
+                    $emoji,
+                    $name,
+                    $result->drift_count,
+                    $result->duration_ms,
+                ));
+            }
         }
 
         if (! $this->option('no-persist') && ! $result->ok) {
@@ -181,14 +186,17 @@ class GovernanceAuditCommand extends Command
     {
         $totalDrift = array_sum(array_map(static fn (DriftCheckResult $r) => $r->drift_count, $results));
         $totalCheckers = count($results);
-        $cleanCheckers = count(array_filter($results, static fn (DriftCheckResult $r) => $r->ok));
+        $cleanCheckers = count(array_filter($results, static fn (DriftCheckResult $r) => $r->status() === 'clean'));
+        $naoMedidos = count(array_filter($results, static fn (DriftCheckResult $r) => ! $r->measured));
+        $driftedCheckers = $totalCheckers - $cleanCheckers - $naoMedidos;
 
         if ($this->option('json')) {
             $this->line(json_encode([
                 'summary' => [
                     'total_checkers' => $totalCheckers,
                     'clean' => $cleanCheckers,
-                    'drifted' => $totalCheckers - $cleanCheckers,
+                    'drifted' => $driftedCheckers,
+                    'nao_medido' => $naoMedidos,
                     'total_drift_findings' => $totalDrift,
                     'scanned_at' => now()->toIso8601String(),
                 ],
@@ -196,10 +204,11 @@ class GovernanceAuditCommand extends Command
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         } else {
             $this->info(sprintf(
-                'Governance audit: %d checkers · %d clean · %d drifted · %d findings total',
+                'Governance audit: %d checkers · %d clean · %d drifted · %d não medidos · %d findings total',
                 $totalCheckers,
                 $cleanCheckers,
-                $totalCheckers - $cleanCheckers,
+                $driftedCheckers,
+                $naoMedidos,
                 $totalDrift,
             ));
         }
