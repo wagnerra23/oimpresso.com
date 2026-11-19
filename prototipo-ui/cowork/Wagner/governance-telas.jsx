@@ -40,8 +40,15 @@ const PERIODOS_AUD = [{ id: "1h", l: "1 h", horas: 1 }, { id: "24h", l: "24 h", 
 const TETO = 200;
 const AGORA = new Date(2026, 7, 23, 19, 0, 0);
 
-function AuditoriaView() {
+function AuditoriaView({ cenario }) {
   const A = ADS();
+  // R10: sem mcp_audit_log a vista não quebra nem mostra zero — diz o motivo (contrato: tabela-ausente).
+  if (cenario === "fonte") return (
+    <div className="gov-pad" data-contract="auditoria-tabela" data-estado="tabela-ausente">
+      <A.Vazio variant="offline" title="mcp_audit_log não existe nesta base"
+        description="Sem a tabela não há o que listar: filtros e indicadores ficam fora até a migração rodar. A vista não quebra e não mostra zero — zero diria que nada aconteceu." />
+    </div>
+  );
   const { RES_LABEL, ENDPOINTS, ATORES, auditoria } = D();
   const todos = useMemo(() => auditoria(), [auditoria]);
   const [periodo, setPeriodo] = useState("24h");
@@ -153,9 +160,14 @@ function AuditoriaView() {
 
 // ───────────────────────── Drift de escopo ─────────────────────────
 
-function DriftView() {
+function DriftView({ cenario }) {
   const A = ADS();
-  const { DRIFT, SEM_SCOPE, MODULOS_TOTAL, YAML_ILEGIVEL } = D();
+  const d = D();
+  const vazio = cenario === "vazio";
+  const DRIFT = vazio ? [] : d.DRIFT;
+  const SEM_SCOPE = vazio ? [] : d.SEM_SCOPE;
+  const YAML_ILEGIVEL = vazio ? [] : d.YAML_ILEGIVEL;
+  const { MODULOS_TOTAL } = d;
   const [pronto, setPronto] = useState(false);
   useEffect(() => { const t = setTimeout(() => setPronto(true), 800); return () => clearTimeout(t); }, []);
   const totalDrift = DRIFT.reduce((s, d) => s + d.undeclared.length, 0);
@@ -163,6 +175,10 @@ function DriftView() {
 
   return (
     <>
+      {/* O scan é síncrono e caro (A6): a região viva sempre presente anuncia o início e o fim da carga. */}
+      <p className="gov-sr" role="status" aria-live="polite">
+        {pronto ? `Drift carregado: ${totalDrift} controllers fora do escopo declarado.` : "Carregando o drift de escopo…"}
+      </p>
       <div className="gov-kpis gov-kpis-pad" data-contract="drift-kpis">
         <A.Kpi l="Controllers em drift" v={pronto ? totalDrift : "—"} tone={zero ? "success" : "warning"} sub="fora do contains[] declarado" />
         <A.Kpi l="Módulos com drift" v={pronto ? DRIFT.length : "—"} tone={zero ? "success" : "warning"} sub="entre os que têm escopo" />
@@ -203,9 +219,14 @@ function DriftView() {
 
       <Secao titulo="Módulos sem SCOPE.md" contrato="drift-sem-scope"
         sub="Sem arquivo de escopo não há o que comparar. É achado próprio, e não drift zero — confundir os dois faz o painel parecer mais saudável do que é.">
-        <div className="gov-chips">
-          {SEM_SCOPE.map((m) => <span key={m} className="gov-chip">{m}</span>)}
-        </div>
+        {SEM_SCOPE.length === 0 ? (
+          <A.Vazio variant="done" title="Todos os módulos têm SCOPE.md"
+            description="Nenhum módulo fica fora da comparação." />
+        ) : (
+          <div className="gov-chips">
+            {SEM_SCOPE.map((m) => <span key={m} className="gov-chip">{m}</span>)}
+          </div>
+        )}
       </Secao>
 
       <Secao titulo="Histórico (últimos 30 dias)" contrato="drift-historico">
