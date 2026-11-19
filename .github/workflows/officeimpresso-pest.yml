@@ -69,6 +69,7 @@ on:
       - 'Modules/Connector/Routes/api.php'
       - 'Modules/Connector/Config/config.php'
       - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+      - 'tests/Feature/Api/DesktopAuthTest.php'
       - 'tests/Feature/LegacyMigration/**'
       - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
       - 'app/Providers/AuthServiceProvider.php'
@@ -113,6 +114,7 @@ jobs:
               - 'Modules/Connector/Routes/api.php'
               - 'Modules/Connector/Config/config.php'
               - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+              - 'tests/Feature/Api/DesktopAuthTest.php'
               - 'tests/Feature/LegacyMigration/**'
               - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
               - 'app/Providers/AuthServiceProvider.php'
@@ -167,6 +169,8 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/Wave25ObservabilityExpandedTest.php \
             Modules/Officeimpresso/Tests/Feature/Wave27PolishTest.php \
             Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
+            Modules/Officeimpresso/Tests/Feature/MultiTenantIsolationTest.php \
+            tests/Feature/Api/DesktopAuthTest.php \
             Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
             Modules/Officeimpresso/Tests/Feature/AlinharPacotesCatalogoCommandTest.php \
