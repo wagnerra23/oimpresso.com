@@ -15,7 +15,13 @@ use Modules\Officeimpresso\Services\FirebirdImporter\OfficeimpressoImporterServi
  *
  * ## Uso:
  *   php artisan officeimpresso:import 7 --dry-run --source-fb=/path/to/wr_comercial.fdb
- *   php artisan officeimpresso:import 7 --source-fb=C:/legacy/wr.fdb --user=SYSDBA --pass=masterkey
+ *   OFFICEIMPRESSO_FB_PASSWORD=<senha> php artisan officeimpresso:import 7 --source-fb=C:/legacy/wr.fdb
+ *
+ * ## Credencial:
+ *   - Senha SÓ por env `OFFICEIMPRESSO_FB_PASSWORD` (config `officeimpresso.firebird_importer`).
+ *     Não há `--pass`: na linha de comando a senha fica no histórico do shell e na lista
+ *     de processos. Não há senha padrão.
+ *   - Usuário: `--user`, senão `OFFICEIMPRESSO_FB_USER`, senão SYSDBA.
  *
  * ## Convenção (Tier 0):
  *   - `--detail` em vez de `--verbose` (Symfony reserved — lição PR #851)
@@ -41,8 +47,7 @@ class ImportOfficeimpressoCommand extends Command
         {biz : Business ID destino (multi-tenant Tier 0 ADR 0093)}
         {--dry-run : Não persiste — só lê e reporta o que migraria}
         {--source-fb= : Caminho absoluto pro .fdb Firebird legado (obrigatório em modo live)}
-        {--user=SYSDBA : Usuário Firebird}
-        {--pass=masterkey : Senha Firebird}
+        {--user= : Usuário Firebird (padrão: OFFICEIMPRESSO_FB_USER ou SYSDBA). Senha só por env OFFICEIMPRESSO_FB_PASSWORD}
         {--detail : Output detalhado por tabela}';
 
     protected $description = 'Importa Firebird (Delphi WR Comercial) → oimpresso (W28-4 G1 vertical bucket)';
@@ -57,8 +62,9 @@ class ImportOfficeimpressoCommand extends Command
 
         $dryRun = (bool) $this->option('dry-run');
         $sourceFb = (string) ($this->option('source-fb') ?? '');
-        $user = (string) ($this->option('user') ?? 'SYSDBA');
-        $pass = (string) ($this->option('pass') ?? 'masterkey');
+        $user = (string) ($this->option('user') ?: config('officeimpresso.firebird_importer.user', 'SYSDBA'));
+        $pass = config('officeimpresso.firebird_importer.password');
+        $pass = is_string($pass) && $pass !== '' ? $pass : null;
         $detail = (bool) $this->option('detail');
 
         $semFonte = $sourceFb === '';
@@ -77,6 +83,12 @@ class ImportOfficeimpressoCommand extends Command
             $motivo = $semFonte ? '--source-fb não informado' : 'extensão pdo_firebird ausente (ou OFFICEIMPRESSO_FB_FORCE_MOCK ligado)';
             $this->error("Modo mock ({$motivo}): os dados seriam FIXTURES fictícias, não o .fdb do cliente.");
             $this->error('Mock só roda com --dry-run. Nada foi gravado.');
+
+            return self::FAILURE;
+        }
+
+        if (! $connector->isMock() && $pass === null) {
+            $this->error('Senha do Firebird ausente: defina OFFICEIMPRESSO_FB_PASSWORD no ambiente. Não há senha padrão nem --pass.');
 
             return self::FAILURE;
         }

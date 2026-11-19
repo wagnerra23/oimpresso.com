@@ -408,6 +408,9 @@ class OfficeimpressoImporterService
 
     /**
      * Registra a falha de UMA linha no relatório e no log, sem valores da linha.
+     *
+     * A mensagem da exceção NÃO vai pro log: a do driver MySQL traz o SQL com os
+     * valores ligados (CPF/CNPJ, e-mail, telefone do cliente). Fica só o código.
      */
     private function registrarFalha(string $table, int $legacyId, \Throwable $e): void
     {
@@ -418,7 +421,6 @@ class OfficeimpressoImporterService
             'tabela' => $table,
             'legacy_id' => $legacyId,
             'erro' => $erro,
-            'err' => $e->getMessage(),
         ]);
     }
 
