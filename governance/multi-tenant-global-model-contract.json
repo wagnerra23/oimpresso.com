@@ -9,6 +9,16 @@
       "reason": "Catalogo somente leitura dos marketplaces suportados (mkt_marketplaces): nome, slug e URLs da API, iguais para toda empresa. Nao guarda dado de empresa. Credencial, conta do vendedor, pedido, anuncio e webhook continuam com business_id e global scope (mkt_accounts, mkt_orders, mkt_listings, mkt_webhook_log). O Model recusa criar, alterar e apagar; so a migration de seed escreve, e nenhuma rota expoe escrita.",
       "decision": "memory/decisions/0439-ativacao-modulo-marketplaces-mercado-livre-primeiro.md",
       "approved": "[W] 2026-10-26 (excecao da ADR 0093, relayed pela sessao coordenadora)"
+    },
+    "Modules/Officeimpresso/Entities/Licenca_Computador.php": {
+      "reason": "Maquinas Delphi dos clientes; cada linha tem o business_id da empresa do cliente. A visao de todas as empresas e do superadmin da operadora (LicencaComputadorController exige can('superadmin'), senao filtra pela empresa da sessao); a API do desktop resolve a licenca antes de existir sessao. O isolamento e por consulta, nos controllers.",
+      "decision": "memory/requisitos/Officeimpresso/adr/tech/0001-licencas-sem-escopo-automatico-visao-superadmin.md",
+      "approved": "[W] 2026-11-19 (\"Sim, registrar\" / \"isso é superadmin\")"
+    },
+    "Modules/Officeimpresso/Entities/LicencaLog.php": {
+      "reason": "Log de acesso das maquinas Delphi, com o business_id da empresa do cliente. Sem superadmin, LicencaLogController filtra pela empresa da sessao; o superadmin da operadora ve todas. Gravado tambem pelo middleware log.delphi antes de existir sessao.",
+      "decision": "memory/requisitos/Officeimpresso/adr/tech/0001-licencas-sem-escopo-automatico-visao-superadmin.md",
+      "approved": "[W] 2026-11-19 (\"Sim, registrar\" / \"isso é superadmin\")"
     }
   }
 }

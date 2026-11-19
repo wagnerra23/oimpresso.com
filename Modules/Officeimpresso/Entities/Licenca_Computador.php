@@ -14,15 +14,25 @@ class Licenca_Computador extends Model
 
     /**
      * Auditoria LGPD Tier 0 (Wave 10 D7.b — 2026-05-16): registra mudanças em
-     * licenças desktop bridge Delphi (block/unblock, troca de serial, alteração
-     * de versão_exe, validade) via Spatie ActivityLog. Campos PII (`senha`,
-     * `contra_senha`, `token`, `user_win`) são automaticamente fillable mas
-     * NÃO inclui senha plain — verificar storage encrypted ([ADR 0094](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) §LGPD Art. 6).
+     * licenças desktop bridge Delphi (block/unblock, alteração de versão_exe,
+     * validade) via Spatie ActivityLog.
+     *
+     * Credenciais ficam FORA do activity_log (auditoria Officeimpresso 2026-11-05,
+     * eixo 5, M2): até aqui o `logFillable()` copiava senha, contra-senha, token,
+     * serial, usuário e conexão em claro para `activity_log.properties` a cada
+     * save que os sujasse. O histórico registra que a licença mudou, nunca o valor
+     * do segredo.
+     *
+     * Model sem escopo automático de business por decisão [W] 2026-11-19: ver
+     * governance/multi-tenant-global-model-contract.json.
      */
+    public const SEGREDOS_FORA_DO_HISTORICO = ['senha', 'contra_senha', 'token', 'serial', 'usuario', 'conexao'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->logFillable()
+            ->logExcept(self::SEGREDOS_FORA_DO_HISTORICO)
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
