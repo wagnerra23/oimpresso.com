@@ -139,7 +139,11 @@ class GovernanceAuditCommand extends Command
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            $this->error("✗ {$name} — exception: {$e->getMessage()}");
+            // Com --json a saída inteira tem de ser JSON parseável: o erro vai no
+            // resultado (status nao_medido + motivo), não numa linha solta antes dele.
+            if (! $this->option('json')) {
+                $this->error("✗ {$name} — exception: {$e->getMessage()}");
+            }
 
             // Exceção = não medi (não é drift: não há achado; não é verde).
             return DriftCheckResult::notMeasured(
