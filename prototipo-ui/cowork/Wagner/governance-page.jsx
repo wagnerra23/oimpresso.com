@@ -1,5 +1,5 @@
 // governance-page.jsx — módulo Governança no app único. Espelha as telas vivas de
-// resources/js/Pages/governance/ (Dashboard · Policies · Audit · DriftAlerts · ModuleGrades/Index),
+// resources/js/Pages/governance/ (Dashboard · Policies · Audit · DriftAlerts),
 // lidas no main junto de routes.php, topnav.php e dos quatro controllers.
 // Quatro vistas nesta rota, nenhum .html novo: painel · politicas · auditoria · drift.
 // "Notas dos módulos" saiu (G-NOTAS, [W] 2026-09-24 — rubrica aposentada pela ADR 0399, aba removida no #7283).
@@ -76,6 +76,34 @@ function Secao({ titulo, sub, direita, contrato, children }) {
   );
 }
 
+// Estados de falha das quatro vistas (auditoria 2026-11-19, E2/E3). A permissão é a da rota no
+// main (Modules/Governance/Http/routes.php): políticas e drift herdam governance.dashboard.view.
+const PERMS = {
+  painel: "governance.dashboard.view", politicas: "governance.dashboard.view",
+  auditoria: "governance.audit.view", drift: "governance.dashboard.view",
+};
+
+function ErroCarga({ onRetry }) {
+  const A = ADS();
+  return (
+    <div className="gov-pad" data-estado="erro">
+      <A.Vazio variant="error" title="Não deu para carregar esta vista"
+        description="O servidor não respondeu a tempo. Nada foi alterado e os dados continuam onde estavam — tente de novo; se persistir, o erro já está no log estruturado."
+        action={onRetry && <button className="os-btn" onClick={onRetry}>Tentar de novo</button>} />
+    </div>
+  );
+}
+
+function SemPermissao({ aba }) {
+  const A = ADS();
+  return (
+    <div className="gov-pad" data-estado="sem-permissao">
+      <A.Vazio variant="no-perm" title={`Esta vista pede ${PERMS[aba]}`}
+        description="Sem a permissão a rota responde 403 e nada desta vista é consultado. Quem concede é o administrador do papel do usuário." />
+    </div>
+  );
+}
+
 // ───────────────────────── Painel ─────────────────────────
 
 function Conformidade() {
@@ -108,13 +136,15 @@ function Conformidade() {
   );
 }
 
-function CardSdd() {
+function CardSdd({ vazio }) {
   const { SDD } = D();
   const pronto = useDefer(900);
   return (
     <div className="gov-card gov-sdd" data-contract="card-sdd">
       <header className="gov-card-h"><h3>Scorecard SDD</h3><Selo tone="mute">chega depois</Selo></header>
-      {!pronto ? <Esqueleto variant="card" count={1} /> : (
+      {!pronto ? <Esqueleto variant="card" count={1} /> : vazio ? (
+        <p className="gov-card-d">sem snapshot ainda — a rotina do scorecard grava o primeiro. Até lá não há composta nem tendência para mostrar.</p>
+      ) : (
         <>
           <div className="gov-sdd-v">
             <span className="tabular">{SDD.composta.toFixed(1)}</span>
@@ -156,13 +186,20 @@ function Saude({ fonteAusente }) {
   );
 }
 
-function Decisoes() {
-  const { ADRS, OCORRENCIAS, RES_LABEL } = D();
+function Decisoes({ vazio }) {
+  const A = ADS();
+  const d = D();
+  const ADRS = vazio ? [] : d.ADRS;
+  const OCORRENCIAS = vazio ? [] : d.OCORRENCIAS;
+  const { RES_LABEL } = d;
   const tomRes = (r) => (r === "error" ? "danger" : r === "denied" ? "warn" : "warn");
   return (
     <div className="gov-cols">
       <Secao titulo="Aguardando decisão" sub="ADRs em estado proposto, do mais recente ao mais antigo. Teto de dez — o painel é visão de topo." contrato="aguardando-decisao">
-        <ul className="gov-adrs">
+        {ADRS.length === 0 ? (
+          <A.Vazio variant="done" title="Nada aguardando decisão"
+            description="Nenhuma ADR em estado proposto. Quando houver, ela aparece aqui com a idade." />
+        ) : <ul className="gov-adrs">
           {ADRS.map((a) => (
             <li key={a.slug}>
               <span className="mono">{a.slug.slice(0, 4)}</span>
@@ -170,10 +207,13 @@ function Decisoes() {
               <em>{a.dias === 1 ? "há 1 dia" : `há ${a.dias} dias`}</em>
             </li>
           ))}
-        </ul>
+        </ul>}
       </Secao>
       <Secao titulo="Ocorrências em 24 horas" sub="Chamadas ao servidor MCP com resultado diferente de concluído. Detalhe completo na vista de auditoria." contrato="ocorrencias-24h">
-        <ul className="gov-ocor">
+        {OCORRENCIAS.length === 0 ? (
+          <A.Vazio variant="done" title="Nenhuma ocorrência nas últimas 24 horas"
+            description="Todas as chamadas ao servidor MCP terminaram como concluídas." />
+        ) : <ul className="gov-ocor">
           {OCORRENCIAS.map((o, i) => (
             <li key={i}>
               <span className="mono gov-ocor-h">{o.h}</span>
@@ -183,7 +223,7 @@ function Decisoes() {
               <span className="mono gov-ocor-ms">{o.ms} ms</span>
             </li>
           ))}
-        </ul>
+        </ul>}
       </Secao>
     </div>
   );
@@ -268,19 +308,21 @@ function PainelView({ cenario }) {
   const { KPIS_CONST } = D();
   const fonteAusente = cenario === "fonte";
   const semPermissao = cenario === "sem-mcp";
+  const vazio = cenario === "vazio";
+  const zerado = (k) => vazio && (k.id === "adrs" || k.id === "ocor");
   return (
     <>
       <Secao titulo="Constituição" sub="Estado dos checks nas últimas 24 horas. As tabelas mcp_* são cross-tenant por design — exceção formal ao Tier 0, Art. 6 e 8." contrato="kpis-constituicao">
         <div className="gov-kpis">
-          {KPIS_CONST.map((k) => <A.Kpi key={k.id} l={k.l} v={k.v} tone={k.tone} sub={k.sub} />)}
+          {KPIS_CONST.map((k) => <A.Kpi key={k.id} l={k.l} v={zerado(k) ? 0 : k.v} tone={zerado(k) ? "success" : k.tone} sub={k.sub} />)}
         </div>
         <div className="gov-cols gov-cols-2-1">
           <Conformidade />
-          <CardSdd />
+          <CardSdd vazio={vazio} />
         </div>
       </Secao>
       <Saude fonteAusente={fonteAusente} />
-      <Decisoes />
+      <Decisoes vazio={vazio} />
       <SecaoMcp semPermissao={semPermissao} fonteAusente={fonteAusente} />
       {semPermissao && (
         <Secao titulo="Governança MCP" contrato="mcp-secao">
@@ -294,10 +336,10 @@ function PainelView({ cenario }) {
 
 // ───────────────────────── Políticas ─────────────────────────
 
-function PoliticasView({ toast }) {
+function PoliticasView({ toast, cenario }) {
   const A = ADS();
   const { POLITICAS } = D();
-  const [regras, setRegras] = useState(POLITICAS);
+  const [regras, setRegras] = useState(cenario === "vazio" ? [] : POLITICAS);
   const [busca, setBusca] = useState("");
 
   const filtradas = useMemo(() => {
@@ -315,9 +357,22 @@ function PoliticasView({ toast }) {
   const ativas = regras.filter((r) => r.on).length;
   const disparos = regras.reduce((s, r) => s + r.disparos, 0);
 
+  // R5: aplica na hora, avisa e oferece desfazer. "Falha ao gravar" reverte e diz que nada mudou.
+  const aplicar = (id, on) => setRegras((rs) => rs.map((x) => (x.id === id ? { ...x, on } : x)));
+  const estado = (on) => (on ? "ativa" : "desligada");
   const alternar = (r) => {
-    setRegras((rs) => rs.map((x) => (x.id === r.id ? { ...x, on: !x.on } : x)));
-    toast(`Política #${r.id} ${r.on ? "desativada" : "ativada"} — sem registro no histórico`);
+    aplicar(r.id, !r.on);
+    if (cenario === "falha") {
+      setTimeout(() => {
+        aplicar(r.id, r.on);
+        toast({ msg: `Não deu para gravar a política #${r.id} — ela voltou para ${estado(r.on)}. O enforcement não mudou.` });
+      }, 600);
+      return;
+    }
+    toast({
+      msg: `Política #${r.id} ${r.on ? "desativada" : "ativada"} — sem registro no histórico`,
+      acao: { label: "Desfazer", run: () => { aplicar(r.id, r.on); toast({ msg: `Política #${r.id} voltou para ${estado(r.on)} — também sem registro no histórico` }); } },
+    });
   };
 
   return (
@@ -343,7 +398,10 @@ function PoliticasView({ toast }) {
       </div>
 
       <div className="gov-pad" data-contract="politicas-lista">
-        {cats.length === 0 ? (
+        {regras.length === 0 ? (
+          <A.Vazio variant="first" title="Nenhuma política no catálogo"
+            description="A tabela de regras está vazia nesta base. Política nasce por migração ou seeder — esta tela só alterna, não cria regra." />
+        ) : cats.length === 0 ? (
           <A.Vazio variant="no-results" title="Nenhuma política bate com essa busca"
             description="Limpe o campo para ver o catálogo inteiro — ativas primeiro, depois por categoria e chave."
             action={<button className="os-btn" onClick={() => setBusca("")}>Limpar busca</button>} />
@@ -381,10 +439,15 @@ function PoliticasView({ toast }) {
 
 // ───────────────────────── Shell ─────────────────────────
 
+// Estado da base por vista — o protótipo mostra cada estado que o contrato declara.
 const CENARIOS = [
   { id: "normal", label: "Base completa" },
-  { id: "fonte", label: "Fontes ausentes" },
-  { id: "sem-mcp", label: "Sem permissão MCP" },
+  { id: "vazio", label: "Sem dados", vistas: ["painel", "politicas", "drift"] },
+  { id: "fonte", label: "Fontes ausentes", vistas: ["painel", "auditoria"] },
+  { id: "erro", label: "Falha ao carregar" },
+  { id: "sem-perm", label: "Sem permissão" },
+  { id: "sem-mcp", label: "Sem permissão MCP", vistas: ["painel"] },
+  { id: "falha", label: "Falha ao gravar", vistas: ["politicas"] },
 ];
 
 function GovernancePage({ view = "painel" }) {
@@ -392,12 +455,15 @@ function GovernancePage({ view = "painel" }) {
   const [cenario, setCenario] = useState("normal");
   const [toast, setToast] = useState(null);
   useEffect(() => setAba(view), [view]);
+  // Com ação (Desfazer) o aviso fica mais tempo: dá tempo de ler e alcançar o botão (WCAG 2.2.1).
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2800);
+    const t = setTimeout(() => setToast(null), toast.acao ? 8000 : 2800);
     return () => clearTimeout(t);
   }, [toast]);
   const t = T();
+  const cens = CENARIOS.filter((c) => !c.vistas || c.vistas.includes(aba));
+  const cen = cens.some((c) => c.id === cenario) ? cenario : "normal";
 
   return (
     <div className="os-page gov-page" data-screen-label={`Governança · ${VIEWS.find((v) => v.id === aba)?.label || aba}`}>
@@ -407,9 +473,12 @@ function GovernancePage({ view = "painel" }) {
           <p className="tabular" data-contract="aviso-rota">A raiz /governance redireciona para /ia · o painel vive em /governance/dashboard</p>
         </div>
         <div className="os-page-h-r">
-          {aba === "painel" && (
-            <window.CliSeg ariaLabel="Estado da base" value={cenario} onChange={setCenario} options={CENARIOS.map((c) => ({ key: c.id, label: c.label }))} />
-          )}
+          <label className="gov-filtro gov-cenario">
+            <span>Estado da base</span>
+            <select className="gov-sel" value={cen} onChange={(e) => setCenario(e.target.value)}>
+              {cens.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+            </select>
+          </label>
           <span className="mod-scope">superadmin · cross-tenant</span>
         </div>
       </header>
@@ -418,18 +487,28 @@ function GovernancePage({ view = "painel" }) {
         active={aba} onChange={setAba} tabs={VIEWS.map((v) => ({ key: v.id, label: v.label }))} />
 
       <div className="gov-body">
-        {!D().ARTIGOS ? <div className="gov-pad"><p className="gov-hint">Carregando os dados do módulo…</p></div> : <>
-        {aba === "painel" && <PainelView key={cenario} cenario={cenario} />}
-        {aba === "politicas" && <PoliticasView toast={setToast} />}
-        {aba === "auditoria" && t.AuditoriaView && <t.AuditoriaView />}
-        {aba === "drift" && t.DriftView && <t.DriftView />}
+        {!D().ARTIGOS ? <div className="gov-pad"><p className="gov-hint">Carregando os dados do módulo…</p></div>
+          : cen === "erro" ? <ErroCarga onRetry={() => setCenario("normal")} />
+          : cen === "sem-perm" ? <SemPermissao aba={aba} /> : <>
+        {aba === "painel" && <PainelView key={cen} cenario={cen} />}
+        {aba === "politicas" && <PoliticasView key={cen} cenario={cen} toast={setToast} />}
+        {aba === "auditoria" && t.AuditoriaView && <t.AuditoriaView key={cen} cenario={cen} />}
+        {aba === "drift" && t.DriftView && <t.DriftView key={cen} cenario={cen} />}
         </>}
       </div>
 
-      {toast && <div className="mod-toast">{toast}</div>}
+      {/* A região viva existe sempre — inserir role="status" junto do texto faz o leitor de tela perder o aviso. */}
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {toast && (
+          <div className="mod-toast gov-toast">
+            <span>{toast.msg}</span>
+            {toast.acao && <button type="button" className="gov-toast-acao" onClick={toast.acao.run}>{toast.acao.label}</button>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-Object.assign(window, { GovernancePage, GovernanceUi: { Secao, Selo, Esqueleto, useDefer } });
+Object.assign(window, { GovernancePage, GovernanceUi: { Secao, Selo, Esqueleto, useDefer, ErroCarga, SemPermissao } });
 })();
