@@ -38,6 +38,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # os regeneradores leem história (deadlink varre o repo)
+          # O sha do RUN, não a ponta do main no instante do checkout. Em 2026-11-16 o run
+          # (sha 6b7b34afef, 15:36) ficou 80 min na fila e o checkout pegou o main de 16:57;
+          # entre os dois só um workflow mudou, `arquivos-pest.yml`, e o GitHub recusou o push
+          # do GITHUB_TOKEN citando exatamente ele ("refusing to allow a GitHub App to create
+          # or update workflow ... without `workflows` permission"). Partindo do sha do run, a
+          # árvore empurrada só difere dele no baseline apertado.
+          ref: ${{ github.sha }}
 
       - uses: actions/setup-node@v4
         with:
