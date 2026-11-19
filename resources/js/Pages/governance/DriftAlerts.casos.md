@@ -4,7 +4,7 @@ casos: Drift Alerts · SCOPE.md × filesystem · /governance/drift
 irmaos: DriftAlerts.charter.md (lei) · RUNBOOK-drift-alerts.md · governance-drift-alerts-gap.md (GAP-SPEC canon)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-19"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Unit) (sqlite) e de uma lane vitest ainda não wirada"
 ---
 
@@ -65,7 +65,7 @@ Charter §Goals: card "Histórico (mcp_alertas — últimos 30d)" com empty stat
 
 ## UC-GDRF-09 — Os KPIs de drift mudam de tom conforme o dado
 Status: 🧪 (vitest — "UC-GDRF-09 — KPIs de drift ficam warning com drift e success sem drift")
-Charter §Goals: "Tone semântico dinâmico: `warning` se drift > 0, `success` se zero"; UX Anti-patterns: tom semântico, nunca cor crua. Vale para "Controllers em drift" e "Módulos com drift". O KPI "Sem SCOPE.md" fica fora deste caso — divergência aberta (ver Perguntas).
+Charter §Goals: "Tone semântico dinâmico: `warning` se drift > 0, `success` se zero"; UX Anti-patterns: tom semântico, nunca cor crua. Vale para "Controllers em drift" e "Módulos com drift". O KPI "Sem SCOPE.md" fica fora deste caso — é UC-GDRF-13.
 **Pronto quando:** com drift os dois KPIs vêm `tone="warning"`; sem drift, `tone="success"`.
 
 ## UC-GDRF-10 — Zero drift diz "Sem drift"; com drift, cada módulo mostra o que falta e as 3 saídas
@@ -83,6 +83,11 @@ Status: 🧪 (vitest — "UC-GDRF-12 — card \"Módulos sem SCOPE.md\" só apar
 Charter §Goals: card "Módulos sem SCOPE.md" com os módulos; RUNBOOK §5: "card inteiro só aparece se a lista não estiver vazia".
 **Pronto quando:** com `['Orfao']` o card aparece com o módulo; com `[]` o card não existe.
 
+## UC-GDRF-13 — "Sem SCOPE.md" é informação, não alerta
+Status: 🧪 (vitest — "UC-GDRF-13 — KPI \"Sem SCOPE.md\" fica info com ou sem módulos")
+Protótipo `governance-telas.jsx` (vista drift): o card usa `tone="info"` com sub "não é drift — é ausência de contrato". GAP-SPEC: "Alinhar". Pela cadeia de FORMA (ADR UI-0029) o protótipo vale; alinhado em 2026-11-19 (auditoria do módulo, lote L3).
+**Pronto quando:** com módulos sem SCOPE.md e sem nenhum, o KPI vem `tone="info"`.
+
 ## Backlog (sem id — 1 fonte só, ou sem teste ainda)
 
 - [BACKLOG] Paridade com `bin/check-scope.php` — o charter a chama de "obrigatória" e o RUNBOOK §10.3 manda consertar os dois juntos; nenhum teste compara os dois vereditos sobre a mesma fixture.
@@ -93,6 +98,6 @@ Charter §Goals: card "Módulos sem SCOPE.md" com os módulos; RUNBOOK §5: "car
 ## Perguntas sem fonte (decisão [W])
 
 1. **"Escopo ilegível" na tela.** O GAP-SPEC deixa em aberto expor na UI o módulo cujo SCOPE.md não parseou (hoje só loga). Construir ou rejeitar por escrito?
-2. **Tom do KPI "Sem SCOPE.md".** O protótipo usa `tone="info"` ("não é drift — é ausência de contrato"); o vivo usa warning/success. O GAP-SPEC marca "Alinhar"; o charter diz só "tone dinâmico" sem nomear qual KPI. Qual vale?
+2. ~~**Tom do KPI "Sem SCOPE.md".**~~ Resolvido em 2026-11-19 pelo protótipo (cadeia de forma, ADR UI-0029): `info`. Ver UC-GDRF-13.
 3. **Escopo da US-GOV-004.** O SPEC fala em "SCOPE.md violado, ADR ausente, charter stale"; a tela só detecta controller fora do SCOPE. "ADR ausente" e "charter stale" são desta tela ou de outro dono?
 4. **Permission.** O SPEC §Permissões atribui `/governance/drift` a `governance.drift.view`; a rota usa `can:governance.dashboard.view`. Pela precedência a rota ganha; alinhar o SPEC é decisão [W], porque trocar a permission da rota revogaria acesso em silêncio.

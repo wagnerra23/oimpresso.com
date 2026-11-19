@@ -162,9 +162,12 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   pagamento duplicado.
 - **Aceite:** Dado uma assinatura vencendo · Quando `InvoiceGeneratorService::run()` roda **duas
   vezes** no mesmo dia · Então existe **exatamente uma** fatura naquela competência `YYYY-MM` e a 2ª
-  execução conta `skipped`.
+  execução conta `skipped`. A competência já faturada **avança o vencimento** para o próximo ciclo
+  (sem criar fatura): até 2026-11-19 a assinatura ficava presa, contando `skipped` todo dia e sem
+  nunca gerar o mês seguinte (achado d7 da auditoria RecurringBilling).
 - **Teste:** [`InvoiceGeneratorServiceTest`](../../../../../Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php)
-  — `1. Cria invoice…` + `2. Idempotência: 2x run() nao duplica invoice`.
+  — `1. Cria invoice…` + `2. Idempotência: 2x run() nao duplica invoice` +
+  `d7. Competência já faturada avança o vencimento sem criar fatura`.
 - **Contrato:** `CU-RB-03` itens 1 e 2 + [ADR tech/0001](../../../../../memory/requisitos/RecurringBilling/adr/tech/0001-idempotencia-charge-attempts-e-webhooks.md).
 - **Regressão que defende:** a chave de idempotência mudar de competência pra `created_at` — o job
   reexecutado (retry, cron duplicado) passaria a cobrar 2×.

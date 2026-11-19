@@ -282,3 +282,166 @@ it('UC-FCFG-12 · a tela mostra a configuração fiscal da própria empresa, nun
         }
     }
 });
+
+it('UC-FCFG-16 · o envio automático do DANFE é escolhido por empresa e grava só na empresa da sessão', function () {
+    if (! Schema::hasColumn('nfe_business_configs', 'email_danfe_nfe')) {
+        $this->markTestSkipped('Colunas email_danfe_* ausentes — rode as migrations do NfeBrasil.');
+    }
+
+    $tenant = test()->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) test()->seededSupportClientTenant()->id;
+    $antes = DB::table('nfe_business_configs')->whereIn('business_id', [$bizA, $bizB])->get()->keyBy('business_id');
+    foreach ([$bizA, $bizB] as $biz) {
+        DB::table('nfe_business_configs')->updateOrInsert(
+            ['business_id' => $biz],
+            ['regime' => 'simples', 'tributacao_default' => json_encode([]),
+                'email_danfe_nfe' => null, 'email_danfe_nfce' => null,
+                'created_at' => now(), 'updated_at' => now()],
+        );
+    }
+    $ativo = fn (int $biz, string $modelo) => \Modules\NfeBrasil\Models\NfeBusinessConfig::envioDanfeAtivo($biz, $modelo);
+
+    try {
+        // Sem escolha: vale a chave do servidor, nos dois sentidos (controle de que não é literal).
+        config(['nfebrasil.email_danfe_on_autorizada' => true, 'nfebrasil.email_danfe_nfce_on_autorizada' => false]);
+        expect($ativo($bizA, '55'))->toBeTrue()->and($ativo($bizA, '65'))->toBeFalse();
+        config(['nfebrasil.email_danfe_on_autorizada' => false, 'nfebrasil.email_danfe_nfce_on_autorizada' => true]);
+        expect($ativo($bizA, '55'))->toBeFalse()->and($ativo($bizA, '65'))->toBeTrue();
+
+        // Sem permissão: 403 e nada grava.
+        $semPermissao = test()->usuarioComPermissoes([], $tenant);
+        $this->actingAs($semPermissao)
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->post('/fiscal/config/envio', ['nfe' => 'desligado', 'nfce' => 'desligado'])
+            ->assertStatus(403);
+        expect(DB::table('nfe_business_configs')->where('business_id', $bizA)->value('email_danfe_nfe'))->toBeNull();
+
+        // Com permissão: grava na empresa da SESSÃO; a vizinha fica intacta.
+        $this->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant))
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->post('/fiscal/config/envio', ['nfe' => 'ligado', 'nfce' => 'desligado', 'business_id' => $bizB])
+            ->assertSessionHasNoErrors();
+
+        // A escolha da empresa vence a do servidor (servidor está NF-e desligada, NFC-e ligada).
+        expect($ativo($bizA, '55'))->toBeTrue()
+            ->and($ativo($bizA, '65'))->toBeFalse()
+            ->and($ativo($bizB, '55'))->toBeFalse('a vizinha segue o servidor')
+            ->and($ativo($bizB, '65'))->toBeTrue('a vizinha segue o servidor')
+            ->and(DB::table('nfe_business_configs')->where('business_id', $bizB)->value('email_danfe_nfe'))->toBeNull();
+
+        // "padrao" devolve ao servidor.
+        $this->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant))
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->post('/fiscal/config/envio', ['nfe' => 'padrao', 'nfce' => 'padrao'])
+            ->assertSessionHasNoErrors();
+        expect($ativo($bizA, '55'))->toBeFalse()->and($ativo($bizA, '65'))->toBeTrue();
+    } finally {
+        config(['nfebrasil.email_danfe_on_autorizada' => true, 'nfebrasil.email_danfe_nfce_on_autorizada' => false]);
+        foreach ([$bizA, $bizB] as $biz) {
+            DB::table('nfe_business_configs')->where('business_id', $biz)->delete();
+            if ($antes->has($biz)) {
+                DB::table('nfe_business_configs')->insert((array) $antes->get($biz));
+            }
+        }
+    }
+});
+
+it('UC-FCFG-17 · a validade do certificado tem três tons, com os limiares de 0 e 30 dias', function () {
+    $tom = fn (?int $dias) => \Modules\Fiscal\Http\Controllers\ConfigController::alertaValidade($dias);
+
+    expect($tom(-1))->toBe('vencido')                 // venceu ontem
+        ->and($tom(0))->toBe('proximo_vencimento')    // vence hoje: ainda vale, mas é urgente
+        ->and($tom(30))->toBe('proximo_vencimento')   // último dia do aviso
+        ->and($tom(31))->toBe('ok')
+        ->and($tom(365))->toBe('ok')
+        ->and($tom(null))->toBeNull();                // sem data de validade, sem tom
+});
+
+it('UC-FCFG-18 · o painel mostra a série e o próximo número da empresa, e a tributação padrão', function () {
+    if (! Schema::hasColumn('business', 'numero_serie_nfe') || ! Schema::hasColumn('business', 'ultimo_numero_nfe')) {
+        $this->markTestSkipped('business sem numero_serie_nfe/ultimo_numero_nfe neste schema.');
+    }
+
+    $tenant = test()->seededTenant();
+    $biz = (int) $tenant->id;
+    $negocio = DB::table('business')->where('id', $biz)->first(['numero_serie_nfe', 'ultimo_numero_nfe']);
+    $config = DB::table('nfe_business_configs')->where('business_id', $biz)->first();
+
+    DB::table('business')->where('id', $biz)->update(['numero_serie_nfe' => '7', 'ultimo_numero_nfe' => 1233]);
+    DB::table('nfe_business_configs')->updateOrInsert(
+        ['business_id' => $biz],
+        ['regime' => 'simples', 'tributacao_default' => json_encode(['cfop' => '5102', 'csosn' => '102']),
+            'created_at' => now(), 'updated_at' => now()],
+    );
+
+    try {
+        $this->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant))
+            ->withSession(['business.id' => $biz, 'user.business_id' => $biz])
+            ->get('/fiscal/config')
+            ->assertStatus(200)
+            ->assertInertia(
+                fn ($page) => $page
+                    ->where('painel.serieNfe', '7')
+                    ->where('painel.ultimoNumero', 1233)
+                    ->where('painel.proximoNumero', 1234)
+                    ->where('painel.regime', 'simples')
+                    ->where('painel.cfopDefault', '5102')
+                    ->where('painel.csosnDefault', '102'),
+            );
+    } finally {
+        DB::table('business')->where('id', $biz)->update([
+            'numero_serie_nfe' => $negocio->numero_serie_nfe,
+            'ultimo_numero_nfe' => $negocio->ultimo_numero_nfe,
+        ]);
+        DB::table('nfe_business_configs')->where('business_id', $biz)->delete();
+        if ($config) {
+            DB::table('nfe_business_configs')->insert((array) $config);
+        }
+    }
+});
+
+it('UC-FCFG-15 · a aba Séries mostra as séries reais da empresa, com o próximo número do emissor', function () {
+    if (! Schema::hasTable('nfe_emissoes')) {
+        $this->markTestSkipped('nfe_emissoes ausente — rode as migrations do NfeBrasil.');
+    }
+
+    $tenant = test()->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) test()->seededSupportClientTenant()->id;
+
+    // Séries 987/986 não são padrão de ninguém: o próximo número vem só das notas emitidas.
+    $nota = fn (int $biz, string $modelo, string $serie, int $numero) => DB::table('nfe_emissoes')->insertGetId([
+        'business_id' => $biz, 'transaction_id' => null, 'modelo' => $modelo, 'serie' => $serie,
+        'numero' => $numero, 'status' => 'autorizada', 'valor_total' => 1,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $ids = [
+        $nota($bizA, '55', '987', 40),
+        $nota($bizA, '55', '987', 41),
+        $nota($bizA, '65', '986', 7),
+        $nota($bizB, '55', '985', 900), // vizinha: nunca aparece na tela da A
+    ];
+
+    try {
+        $this->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant))
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->get('/fiscal/config?tab=series')
+            ->assertStatus(200)
+            ->assertInertia(function ($page) {
+                $series = collect($page->toArray()['props']['series'] ?? []);
+                $de = fn (int $m, string $s) => $series->first(fn ($x) => $x['modelo'] === $m && $x['serie'] === $s);
+
+                expect($de(55, '987'))->not->toBeNull()
+                    ->and($de(55, '987')['proximo'])->toBe(42)
+                    ->and($de(55, '987')['emitidas'])->toBe(2)
+                    ->and($de(65, '986')['proximo'])->toBe(8)
+                    ->and($de(55, '985'))->toBeNull()
+                    // O dado de demonstração (filial inventada, série 9 com 9013) saiu.
+                    ->and($series->pluck('filial')->implode('|'))->not->toContain('Filial 02')
+                    ->and($series->pluck('proximo')->all())->not->toContain(9013);
+            });
+    } finally {
+        DB::table('nfe_emissoes')->whereIn('id', $ids)->delete();
+    }
+});

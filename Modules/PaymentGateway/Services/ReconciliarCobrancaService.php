@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\PaymentGateway\Services;
 
 use App\Domain\Fsm\Support\FsmAuthorizationFlag;
+use Illuminate\Support\Facades\DB;
 use Modules\Financeiro\Models\Titulo;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
@@ -22,7 +23,8 @@ use Modules\PaymentGateway\Models\Cobranca;
  *   2. Títulos vinculados (origem='manual' + origem_id=cobranca.id) → quitado
  *   3. Dispara evento `CobrancaPaga` (listener Financeiro cria Titulo + Baixa)
  *
- * NÃO abre transação — o caller (job/command) envolve em DB::transaction.
+ * Abre a própria transação (savepoint quando o caller já está numa) para
+ * travar a linha da cobrança — ver marcarPaga().
  *
  * Multi-tenant Tier 0 (ADR 0093): $businessId é passado explícito pelo caller
  * (queue worker / console não têm session()). Queries usam withoutGlobalScopes.
@@ -32,11 +34,19 @@ class ReconciliarCobrancaService
     /**
      * Marca a cobrança como paga + quita títulos + dispara CobrancaPaga.
      *
-     * Idempotência: a atualização da Cobranca é guardada por `status !== 'paga'`
-     * (igual ao job original). O dispatch do evento é seguro pra re-rodar porque
-     * o listener canônico `OnCobrancaPagaCreateFinanceiroTitulo` é idempotente
-     * (checa origem_id antes de criar). Quem chama no polling já filtra
-     * status='emitida', então não há re-dispatch redundante na prática.
+     * Devolve true quando ESTA chamada fez a transição para `paga`; false quando
+     * a cobrança já estava paga (ou não existe mais no business informado).
+     *
+     * Idempotência (auditoria PG lote 2.1): webhook e polling podem chegar juntos
+     * com a mesma cobrança. A linha é relida com lockForUpdate dentro de uma
+     * transação, e a decisão "já paga?" sai do valor TRAVADO no banco, não da
+     * instância em memória do caller (que pode estar velha). Já paga → nada é
+     * gravado e `CobrancaPaga` NÃO é redisparado: os listeners (venda, Financeiro,
+     * RecurringBilling, Superadmin) recebem o evento uma vez por cobrança.
+     *
+     * O evento continua sendo despachado dentro da transação, como antes: se um
+     * listener síncrono falha, a marcação de paga volta junto (o caller costuma
+     * envolver em DB::transaction; aqui vira savepoint).
      */
     public function marcarPaga(
         Cobranca $cobranca,
@@ -44,35 +54,55 @@ class ReconciliarCobrancaService
         int $valorPagoCentavos,
         \DateTimeImmutable $pagaEm,
         string $formaPagamento = 'pix',
-    ): void {
-        if ($cobranca->getAttribute('status') !== 'paga') {
-            $cobranca->update([
+    ): bool {
+        return DB::transaction(function () use ($cobranca, $businessId, $valorPagoCentavos, $pagaEm, $formaPagamento): bool {
+            // SUPERADMIN: chamado por job/command sem sessão; relê a cobrança filtrando pelo business_id explícito do caller.
+            $travada = Cobranca::withoutGlobalScopes()
+                ->where('business_id', $businessId)
+                ->whereKey($cobranca->getKey())
+                ->lockForUpdate()
+                ->first();
+
+            if ($travada === null) {
+                return false;
+            }
+
+            if ($travada->getAttribute('status') === 'paga') {
+                $cobranca->setRawAttributes($travada->getAttributes(), true);
+
+                return false;
+            }
+
+            $travada->update([
                 'status'              => 'paga',
                 'valor_pago_centavos' => $valorPagoCentavos,
                 'paga_em'             => $pagaEm,
                 'forma_pagamento'     => $formaPagamento,
             ]);
-        }
+            $cobranca->setRawAttributes($travada->getAttributes(), true);
 
-        $this->marcarTitulosQuitados($businessId, (int) $cobranca->id);
+            $this->marcarTitulosQuitados($businessId, (int) $travada->getKey());
 
-        // getAttribute() em vez de propriedade mágica: o Larastan não conhece
-        // as colunas do Eloquent e o ratchet PHPStan barra acesso direto novo.
-        $payerCpfCnpj = $cobranca->getAttribute('payer_cpf_cnpj');
-        $origemType = $cobranca->getAttribute('origem_type');
-        $origemId = $cobranca->getAttribute('origem_id');
+            // getAttribute() em vez de propriedade mágica: o Larastan não conhece
+            // as colunas do Eloquent e o ratchet PHPStan barra acesso direto novo.
+            $payerCpfCnpj = $travada->getAttribute('payer_cpf_cnpj');
+            $origemType = $travada->getAttribute('origem_type');
+            $origemId = $travada->getAttribute('origem_id');
 
-        event(new CobrancaPaga(
-            cobrancaId: (int) $cobranca->id,
-            businessId: $businessId,
-            valorPagoCentavos: $valorPagoCentavos,
-            pagaEm: $pagaEm,
-            formaPagamento: $formaPagamento,
-            occurredAt: new \DateTimeImmutable(),
-            payerCpfCnpj: $payerCpfCnpj !== null ? (string) $payerCpfCnpj : null,
-            origemType: $origemType !== null ? (string) $origemType : null,
-            origemId: $origemId !== null ? (int) $origemId : null,
-        ));
+            event(new CobrancaPaga(
+                cobrancaId: (int) $travada->getKey(),
+                businessId: $businessId,
+                valorPagoCentavos: $valorPagoCentavos,
+                pagaEm: $pagaEm,
+                formaPagamento: $formaPagamento,
+                occurredAt: new \DateTimeImmutable(),
+                payerCpfCnpj: $payerCpfCnpj !== null ? (string) $payerCpfCnpj : null,
+                origemType: $origemType !== null ? (string) $origemType : null,
+                origemId: $origemId !== null ? (int) $origemId : null,
+            ));
+
+            return true;
+        });
     }
 
     /**

@@ -50,6 +50,10 @@ class SubscriptionEventController extends Controller
 
     /**
      * POST /recurring-billing/{subscriptionId}/events — cria nota manual.
+     *
+     * Só nota humana (`kind=note`). Os kinds de sistema (cobrança, NF, status...) nascem no
+     * código que faz o ato; aceitar aqui deixava qualquer usuário forjar "cobrança disparada"
+     * ou "NF emitida" na timeline (auditoria RB d2, 2026-11-19).
      */
     public function store(Request $request, int $subscriptionId): JsonResponse
     {
@@ -61,7 +65,7 @@ class SubscriptionEventController extends Controller
 
         $data = $request->validate([
             'body' => ['required', 'string', 'max:5000'],
-            'kind' => ['nullable', 'string', 'in:note,event-create,event-status,event-plan,event-charge,event-retry,event-nf'],
+            'kind' => ['nullable', 'string', 'in:'.SubscriptionEvent::KIND_NOTE],
         ]);
 
         $user = auth()->user();
@@ -70,7 +74,7 @@ class SubscriptionEventController extends Controller
         $event = SubscriptionEvent::create([
             'business_id'     => $businessId,
             'subscription_id' => $sub->id,
-            'kind'            => $data['kind'] ?? 'note',
+            'kind'            => SubscriptionEvent::KIND_NOTE,
             'by_actor'        => $actor,
             'body'            => $data['body'],
             'occurred_at'     => now(),

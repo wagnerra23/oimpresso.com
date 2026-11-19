@@ -51,7 +51,8 @@ beforeEach(function () {
         $table->json('payload');
         $table->boolean('processed')->default(false)->index();
         $table->timestamps();
-        $table->unique(['provider', 'event_id'], 'pg_webhook_idempotency');
+        // Espelha a migration 2026_11_19_110100: idempotência por empresa.
+        $table->unique(['business_id', 'provider', 'event_id'], 'pg_webhook_idem_biz');
     });
 
     // Credencial Asaas exigida pela validação Tier 0 do webhook (asaas-access-token).
@@ -235,4 +236,38 @@ it('persiste event_type, business_id e payload completo em pg_webhook_events', f
             'event' => 'PAYMENT_OVERDUE',
             'extraData' => 'vai pro JSON',
         ]);
+});
+
+it('d5 · o mesmo id de evento em outra empresa não é descartado como duplicado', function () {
+    // Auditoria RB d5 (2026-11-19): com a chave antiga (provider, event_id), quem tinha o segredo
+    // da empresa 1 "queimava" o id da empresa 2 — o webhook legítimo da 2 virava 'duplicate'.
+    Queue::fake();
+    seedAsaasCredential(businessId: 1, secret: 'tok-1');
+    seedAsaasCredential(businessId: 2, secret: 'tok-2');
+    $payload = ['id' => 'evt_mesmo_id', 'event' => 'PAYMENT_RECEIVED',
+        'payment' => ['id' => 'pay_x', 'value' => 10.00, 'externalReference' => 'INV-X']];
+
+    $this->withHeaders(asaasAuth('tok-1'))->postJson('/api/webhooks/asaas/1', $payload)->assertOk();
+    $r2 = $this->withHeaders(asaasAuth('tok-2'))->postJson('/api/webhooks/asaas/2', $payload);
+
+    $r2->assertOk();
+    expect($r2->json('skipped'))->toBeNull()
+        ->and(DB::table('pg_webhook_events')->where('event_id', 'evt_mesmo_id')->pluck('business_id')->sort()->values()->all())
+        ->toBe([1, 2]);
+    Queue::assertPushed(ProcessAsaasWebhookJob::class, 2);
+});
+
+it('d5 · businessId não numérico na rota do webhook Asaas dá 404, não 500', function () {
+    Queue::fake();
+
+    $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/abc', ['event' => 'PAYMENT_RECEIVED'])
+        ->assertNotFound();
+    Queue::assertNothingPushed();
+});
+
+it('d5 · o stub GET /api/v1/recurringbilling (devolvia o usuário inteiro) não existe mais', function () {
+    $uris = collect(\Illuminate\Support\Facades\Route::getRoutes()->getRoutes())->map(fn ($r) => $r->uri())->all();
+
+    expect($uris)->not->toContain('api/v1/recurringbilling')
+        ->and($uris)->toContain('api/webhooks/asaas/{businessId}'); // controle: o api.php do módulo carregou
 });

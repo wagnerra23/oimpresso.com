@@ -248,18 +248,16 @@ class RecurringBillingController extends Controller
     /**
      * POST /recurring-billing/{id}/reenviar-nfe — Onda 20 wire.
      *
-     * Reenvia DANFE da última NFe autorizada vinculada à última invoice paga
-     * desta subscription. Delega 100% pra endpoint canônico NfeBrasil
-     * `nfe-brasil.emissoes.reenviar-email` (NfeEmissaoController::reenviarEmail).
+     * Reenvia o DANFE da NF-e vinculada à última fatura paga desta assinatura.
+     * Delega para NfeEmissaoController::reenviarEmail (in-process).
      *
-     * Cross-module guard: se NfeBrasil module não responder ou não houver
-     * NFe vinculada, retorna 503 com mensagem clara (fallback Constituição
-     * v2 §8 Confiabilidade com fallback).
+     * Só reenvia pela NF-e vinculada: `invoice.metadata.nfe_emissao_id`, gravado
+     * pelo listener do gateway (US-RB-044). Sem vínculo → 422. Até 2026-11-19 havia
+     * uma heurística que pegava a última NF-e autorizada da EMPRESA numa janela de
+     * ±7 dias, sem filtrar cliente — reenviava DANFE de outro cliente (auditoria RB d3).
      *
-     * Cadeia: Subscription → última paid Invoice → nfe_emissoes (lookup por
-     * (business_id, contact_id) ordenado por emitido_em DESC quando metadata
-     * não tiver `nfe_emissao_id` explícito — gateway listener US-RB-044
-     * popula esse hint).
+     * A chamada in-process pula o middleware de rota do NfeBrasil, então a
+     * permissão de reenvio (PermissaoNfe::REENVIAR) é conferida aqui.
      */
     public function reenviarNfe(Request $request, int $id): JsonResponse
     {
@@ -282,19 +280,19 @@ class RecurringBillingController extends Controller
             ], 422);
         }
 
-        // 2. Acha NFe emissão associada — hint em metadata OU lookup heurístico.
-        $emissaoId = $this->resolveNfeEmissaoId($sub, $lastPaid);
+        // 2. NF-e vinculada à fatura (sem heurística — ver docblock).
+        $emissaoId = $this->resolveNfeEmissaoId($lastPaid);
 
         if ($emissaoId === null) {
             return response()->json([
                 'ok'      => false,
-                'error'   => 'sem_nfe_emitida',
-                'message' => 'Última fatura paga não tem NFe emitida vinculada.',
+                'error'   => 'sem_nfe_vinculada',
+                'message' => 'A última fatura paga não tem NF-e vinculada. Reenvie pela tela de notas fiscais.',
             ], 422);
         }
 
         // 3. Delega pra endpoint canônico NfeBrasil (in-process call evita HTTP).
-        $controllerFqcn = '\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController';
+        $controllerFqcn = \Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class;
         if (! class_exists($controllerFqcn)) {
             return response()->json([
                 'ok'      => false,
@@ -303,14 +301,31 @@ class RecurringBillingController extends Controller
             ], 503);
         }
 
+        if (! $this->podeReenviarNfe($request)) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'sem_permissao_nfe',
+                'message' => 'Sem permissão para reenviar a nota fiscal.',
+            ], 403);
+        }
+
         try {
             /** @var \Illuminate\Http\JsonResponse $response */
             $response = app($controllerFqcn)->reenviarEmail($request, $emissaoId);
         } catch (\Throwable $e) {
+            // O detalhe vai pro log, não pro front: a mensagem da exceção pode carregar
+            // caminho de arquivo, SQL ou dado do destinatário.
+            \Illuminate\Support\Facades\Log::warning('rb.reenviar_nfe.falhou', [
+                'business_id'     => $sub->business_id,
+                'subscription_id' => $sub->id,
+                'emissao_id'      => $emissaoId,
+                'exception'       => $e::class,
+            ]);
+
             return response()->json([
                 'ok'      => false,
                 'error'   => 'nfe_reenvio_falhou',
-                'message' => 'Falha ao reenviar DANFE: '.$e->getMessage(),
+                'message' => 'Não foi possível reenviar o DANFE agora. Tente de novo em instantes.',
             ], 503);
         }
 
@@ -379,16 +394,6 @@ class RecurringBillingController extends Controller
         ], 200);
     }
 
-    public function show($id)
-    {
-        return view('recurringbilling::show');
-    }
-
-    public function edit($id)
-    {
-        return view('recurringbilling::edit');
-    }
-
     /**
      * PUT /recurring-billing/{id} — atualiza cobrança (valor / ciclo / forma).
      *
@@ -423,11 +428,6 @@ class RecurringBillingController extends Controller
             sprintf('Assinatura #%d atualizada.', $sub->id),
             ['subscription' => $sub->fresh()],
         );
-    }
-
-    public function destroy($id)
-    {
-        //
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────
@@ -467,39 +467,36 @@ class RecurringBillingController extends Controller
     }
 
     /**
-     * Resolve nfe_emissoes.id pra uma invoice paga.
-     *
-     * Estratégia (ordem):
-     *  1. Hint explícito em `invoice.metadata.nfe_emissao_id` (gateway listener US-RB-044).
-     *  2. Heurística: última nfe_emissoes status=autorizada do (business_id) — limitada
-     *     a janela pago_em±7d quando disponível.
-     *
-     * Retorna null se NfeBrasil module ausente ou nada bater.
+     * nfe_emissoes.id vinculada à fatura: só o hint explícito em
+     * `invoice.metadata.nfe_emissao_id`. Sem hint, null (o chamador responde 422).
      */
-    private function resolveNfeEmissaoId(Subscription $sub, Invoice $invoice): ?int
+    private function resolveNfeEmissaoId(Invoice $invoice): ?int
     {
         $meta = is_array($invoice->metadata) ? $invoice->metadata : [];
-        if (! empty($meta['nfe_emissao_id'])) {
-            return (int) $meta['nfe_emissao_id'];
+        $id = (int) ($meta['nfe_emissao_id'] ?? 0);
+
+        return $id > 0 ? $id : null;
+    }
+
+    /**
+     * Mesma regra do middleware de rota do NfeBrasil para o reenvio: qualquer uma das
+     * permissões de PermissaoNfe::REENVIAR (o dono do negócio passa pelo Gate::before).
+     */
+    private function podeReenviarNfe(Request $request): bool
+    {
+        $user = $request->user();
+        $middleware = 'Modules\NfeBrasil\Http\Middleware\PermissaoNfe';
+        if ($user === null || ! class_exists($middleware)) {
+            return false;
         }
 
-        if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_emissoes')) {
-            return null;
+        foreach (explode(',', (string) constant($middleware.'::REENVIAR')) as $permissao) {
+            if ($user->can(trim($permissao))) {
+                return true;
+            }
         }
 
-        $query = \Illuminate\Support\Facades\DB::table('nfe_emissoes')
-            ->where('business_id', $sub->business_id)
-            ->where('status', 'autorizada')
-            ->whereNull('deleted_at');
-
-        if ($invoice->pago_em) {
-            $query->whereBetween('emitido_em', [
-                $invoice->pago_em->copy()->subDays(7),
-                $invoice->pago_em->copy()->addDays(7),
-            ]);
-        }
-
-        return (int) ($query->orderByDesc('emitido_em')->value('id') ?? 0) ?: null;
+        return false;
     }
 
     /**

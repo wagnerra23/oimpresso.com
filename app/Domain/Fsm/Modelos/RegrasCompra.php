@@ -18,7 +18,9 @@ use InvalidArgumentException;
  * abertura × hoje e escolhe a previsão. Desde 2026-10-20 o recebimento da compra lê `metodo` e
  * `preco` da regra de custo quando a empresa a gravou (Modules/Compras AplicarCustoDoRecebimento,
  * US-COM-026). Desde 2026-10-21 o detalhe da compra lê `aprovacao` e `etapa` para a fila de preços
- * propostos (Modules/Compras PropostasDePreco, US-COM-028); `regraEm` ainda não é lido.
+ * propostos (Modules/Compras PropostasDePreco, US-COM-028). Desde 2026-11-18 o recebimento lê
+ * `regraEm = produto` para seguir a política de preço de cada produto (CU-PROD-21), só para a empresa
+ * com a chave `compraSeguePoliticaPreco` ligada.
  * A regra `trava` não pode ser desligada.
  */
 final class RegrasCompra
