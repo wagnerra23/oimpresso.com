@@ -71,7 +71,9 @@ class InterWebhookController extends Controller
                 continue;
             }
 
+            // Idempotência por empresa (unique business_id+provider+event_id desde 2026-11-19).
             $alreadyProcessed = DB::table('pg_webhook_events')
+                ->where('business_id', $businessId)
                 ->where('provider', 'inter')
                 ->where('event_id', $endToEndId)
                 ->exists();
