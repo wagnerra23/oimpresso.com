@@ -1,10 +1,12 @@
 # Modules/PaymentGateway
 
-> Camada técnica de cobrança BR — drivers Inter / C6 / Asaas / PIX Automático BCB, webhooks, credenciais, CNAB. Consumida por Sell, RecurringBilling, NFSe, Superadmin.
+> Camada técnica de cobrança BR — drivers de API (Inter, C6, Asaas, BCB Pix, Pagar.me, Sicoob), CNAB por banco, webhooks, credenciais, TEF. Consumida por Sell, Financeiro, RecurringBilling, NFSe, Superadmin.
 
-**Status:** Onda 0 (ADR 0170 proposto, módulo registrado mas não habilitado).
-**Live:** previsto biz=1 após Onda 4.
-**Origem:** extraído de `Modules/RecurringBilling` (drivers + webhooks + BoletoService).
+**Estado em 2026-11-19:** em produção, com dois agendamentos ativos em `app/Console/Kernel.php` (`inter-reconcile-pix` e `inter-importar-recebimentos`) e um terceiro registrado que só executa com flag (`retry-orphan-webhooks`). As flags que tocam valor nascem `false` em `Modules/PaymentGateway/Config/config.php`. Estado consolidado das capacidades: [BRIEFING.md](BRIEFING.md).
+**ADR de criação:** a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) foi arquivada em 2026-07-10 sem sucessora; qual ADR passa a ser o charter do módulo é decisão pendente do [W].
+**Origem:** extraído de `Modules/RecurringBilling` (drivers + webhooks).
+
+> Seções marcadas "plano original" descrevem o desenho de maio/2026 (Onda 0) e não foram reconciliadas com o código; o contrato vigente está em [CONTRACTS.md](CONTRACTS.md) e o escopo em [SCOPE.md](SCOPE.md).
 
 ## Por que existe
 
@@ -16,7 +18,7 @@ Este módulo é essa infra: **um único lugar pra falar com bancos**. Quem preci
 
 ### Cadastrar gateway
 
-1. `/payment-gateway/credenciais` (Settings → Gateways de Pagamento)
+1. `/settings/payment-gateways` (Settings → Gateways de Pagamento)
 2. "Adicionar gateway" → escolhe banco (Inter / C6 / Asaas / Pix BCB)
 3. Cola credenciais (Inter: certificado mTLS + client_id/secret; C6: agência/conta/codigo; Asaas: api_key; BCB Pix: certificado + CNPJ recebedor homologado)
 4. Vincula a **uma conta bancária** (FK pra `accounts.id`) — é onde o dinheiro vai cair
@@ -47,15 +49,20 @@ Três pontos de entrada — **mesma lista de saída** em `/cobranca`:
 
 ## Drivers suportados
 
-| Driver | Status | Tipos | Ambiente | Cred config |
-|---|---|---|---|---|
-| **InterDriver** | 🟡 Onda 3 (migrar de RB) | boleto + pix cob/cobv | sandbox + production | mTLS (cert+key) + client_id/secret |
-| **C6Driver** | 🟡 Onda 3 (migrar de RB) | boleto | production | agencia + conta + codigo_cliente |
-| **AsaasDriver** | 🟡 Onda 3 (migrar de RB) | boleto + pix + cartão | sandbox + production | api_key |
-| **PixAutomaticoBcbDriver** | 🔵 Onda 4 (novo) | pix recv (Pix Automático) | sandbox + production | mTLS BCB + CNPJ recebedor homologado |
-| **PesaPalDriver** | ⚪ vestigial (deprecated) | cartão internacional | production | api_key | substituído por Asaas em Onda 5 |
+Drivers de API em `Modules/PaymentGateway/Services/Drivers/` (lista viva: `ls` nessa pasta):
 
-Resolução via `PaymentGatewayCredentialResolver` (ex-`BoletoCredentialResolver` movido de RB).
+| Driver | Tipos (`supports()`) |
+|---|---|
+| `InterDriver` | boleto, pix_cob, pix_cobv |
+| `C6Driver` | boleto, pix_cob |
+| `AsaasDriver` | boleto, pix_cob, card |
+| `BcbPixDriver` | pix_recv (PIX Automático) |
+| `PagarmeDriver` | boleto, pix_cob, card |
+| `SicoobApiDriver` | boleto, pix_cob ([RUNBOOK-sicoob-api.md](RUNBOOK-sicoob-api.md)) |
+
+Drivers CNAB (remessa/retorno por arquivo) em `Services/Cnab/Drivers/`: Ailos, Banrisul, BB, Bradesco, BTG, Caixa, Cresol, Itaú, Santander, Sicoob, Sicredi.
+
+A credencial é resolvida por `PaymentGatewayService::for($account)` ou `comCredencial($credential)`; não existe `PaymentGatewayCredentialResolver`. `PesaPalDriver` nunca foi criado.
 
 ## Lifecycle Cobrança canônico
 
@@ -67,7 +74,7 @@ Resolução via `PaymentGatewayCredentialResolver` (ex-`BoletoCredentialResolver
            cancelada (manual) | erro (gateway recusou)
 ```
 
-States gerenciados pelo `CobrancaService` (ADR 0143 FSM pipeline pattern inspirado).
+Plano original. Não existe `CobrancaService`; as transições acontecem em `PaymentGatewayService`, `ReconciliarCobrancaService` e nos processadores de webhook/CNAB.
 
 ## Multi-tenant Tier 0
 
@@ -101,43 +108,15 @@ Métodos críticos wrap em `OtelHelper::spanBiz` (mesmo padrão D9 Wave 17 do RB
 
 ## Health check
 
-```bash
-php artisan paymentgateway:health
-php artisan paymentgateway:health --business=1 --detail
-php artisan paymentgateway:health --json --alert  # exit 0/1/2 pra cron
-```
-
-Sinais críticos (a definir em Onda 1, baseline 10 igual ao RB):
-
-- `payment_gateway.credentials_table` — schema OK
-- `cobrancas.table` — schema OK
-- `gateway_webhook_events.table` — schema OK
-- `credenciais_ativas` — pelo menos 1 credencial ativa por business com cobrança aberta
-- `driver_resolvidos` — 4 drivers respondem ao `health()` (inter, c6, asaas, bcb_pix)
-- `webhook_idempotency` — `gateway_webhook_events` sem duplicatas em última hora
-- `last_emitida_freshness` — última cobrança emitida há menos de 24h pra business ativos
-- `cobrancas_em_erro` — count de status=erro em última hora abaixo do threshold
-- `pix_recv_mandatos_ativos` — mandatos PIX Automático vigentes
-- `retention_policy` — payload_gateway em cobrancas concluídas há +90d sob retention
+Não existe comando `paymentgateway:health`. O teste de conexão por credencial é feito na tela `/settings/payment-gateways` via `Services/HealthCheckService.php`. Os comandos que existem estão em [CONTRACTS.md §5](CONTRACTS.md).
 
 ## Tests
 
-```bash
-vendor/bin/pest Modules/PaymentGateway/Tests
-```
-
-Cobertura prevista (Onda 1+):
-- `PaymentGatewayService` — contrato com mock de cada driver
-- Drivers — sandbox real Inter/Asaas/BCB; mock C6 (sem sandbox)
-- Webhooks — idempotência multi-tenant + assinatura
-- `PaymentGatewayCredentialResolver` — escolha por business/account/tipo
-- `CobrancaService` — FSM transitions
-- OTel D9 — spans presentes
-- Customer Journey — Sell → emitir → webhook → marcar paga → AccountTransaction
+Testes em `Modules/PaymentGateway/Tests/` e `tests/Feature/PaymentGateway/`. Contagem: `git ls-files 'Modules/PaymentGateway/Tests/**Test.php' 'tests/Feature/PaymentGateway/**Test.php' | wc -l`. A lane de CI é `.github/workflows/paymentgateway-pest.yml`, com quarentena em `.github/paymentgateway-pest-quarantine.list`. Rodar manualmente só no CT 100 (proibicoes.md §Ambiente).
 
 ## ADRs referência
 
-- [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — charter (este módulo)
+- [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — charter original (arquivada em 2026-07-10, sem sucessora)
 - [ADR 0017](../../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md) — emendado pela Onda 5 (Superadmin dogfooding)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 isolation
 - [ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) — FSM pattern
@@ -151,11 +130,11 @@ Cobertura prevista (Onda 1+):
 - ⛔ NÃO commit credenciais em `config` sem `Crypt::encryptString` em `client_secret` / `api_key` / `certificado_key_b64` / `certificado_senha` / `webhook_secret`
 - ⛔ NÃO `forceDelete` em Cobranca com status emitida/paga — use cancel + soft delete (audit LGPD D7.b)
 - ⛔ NÃO emitir cobrança avulsa sem `contact_id` (pagador) — viola LGPD (rastreabilidade do destinatário)
-- ⛔ NÃO bypass `PaymentGatewayCredentialResolver` direto via `PaymentGatewayCredential::find()` — use o resolver pra garantir `decryptConfig` correto
+- ⛔ NÃO resolver credencial direto via `PaymentGatewayCredential::find()` fora do serviço — use `PaymentGatewayService::for()`/`comCredencial()`
 - ⛔ NÃO processar webhook sem checar idempotência via `gateway_webhook_events.external_id` UNIQUE constraint
 - ⛔ NÃO reusar `external_id` entre `sandbox` e `production` — sempre escopo por `ambiente`
 
-## Migração de RecurringBilling (referência pra Onda 3)
+## Migração de RecurringBilling (plano original da Onda 3)
 
 Mapa de arquivos:
 

@@ -30,7 +30,6 @@ interface HistoricoEntry {
   cnpjEmitente: string | null;
   when: string;
   ack: 'confirmada' | 'ciencia' | 'desconhecida' | 'nao_realizada';
-  actor: string;
   obs: string | null;
   valor: number;
 }
@@ -92,8 +91,8 @@ interface DfeProps {
   filters: Filters;
   counts: Counts;
   rows?: { data: DfeRow[]; meta: { total: number; current_page: number; last_page: number } };
-  // Onda 2 — histórico de manifestações já processadas (mock no controller)
-  historicoMock?: HistoricoEntry[];
+  // Histórico de manifestações já feitas (DfeController::buildHistoricoPayload, deferido)
+  historico?: HistoricoEntry[];
   loteResultado?: LoteResultado | null;
 }
 
@@ -128,7 +127,7 @@ const LOTE_MAX_NOTAS = 50;
 const podeManifestarRow = (d: DfeRow): boolean =>
   d.statusManifestacao === 'pendente' || d.statusManifestacao === 'ciencia';
 
-export default function Dfe({ activeTab, filters: initialFilters, counts, rows, historicoMock = [], loteResultado = null }: DfeProps) {
+export default function Dfe({ activeTab, filters: initialFilters, counts, rows, historico, loteResultado = null }: DfeProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
   const tab = activeTab ?? 'pendente';
@@ -248,7 +247,7 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
           <PageHeaderTabs
             ghosts={[
               { key: 'pendente',  label: 'Aguardando ciência', href: '/fiscal/dfe?tab=pendente',  icon: 'inbox',         badge: counts.pendentes || undefined },
-              { key: 'historico', label: 'Histórico',          href: '/fiscal/dfe?tab=historico', icon: 'check-circle-2', badge: historicoMock.length || undefined },
+              { key: 'historico', label: 'Histórico',          href: '/fiscal/dfe?tab=historico', icon: 'check-circle-2', badge: (counts.total - counts.pendentes) || undefined },
             ]}
             activeGhostKey={tab}
             maxVisible={6}
@@ -538,11 +537,12 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
         </>)}
 
         {tab === 'historico' && (
-          historicoMock.length === 0 ? (
+          <Deferred data="historico" fallback={<div className="fx-empty"><small>Carregando histórico…</small></div>}>
+          {(historico ?? []).length === 0 ? (
             <div className="fx-empty">
               <CheckCircle2 size={20} />
               <b>Sem histórico ainda</b>
-              <small>Manifestações confirmadas/desconhecidas/não-realizadas aparecem aqui após processamento SEFAZ.</small>
+              <small>Cada ciência, confirmação, desconhecimento ou operação não realizada aceita pela SEFAZ aparece aqui.</small>
             </div>
           ) : (
             <div className="fx-table">
@@ -550,15 +550,14 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
                 <thead>
                   <tr>
                     <th>Emitente</th>
-                    <th style={{ width: 100 }}>Quando</th>
+                    <th style={{ width: 130 }}>Quando</th>
                     <th style={{ width: 150 }}>Manifestação</th>
-                    <th style={{ width: 110 }}>Por</th>
                     <th>Observação</th>
                     <th style={{ width: 110, textAlign: 'right' }}>Valor</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {historicoMock.map((h) => {
+                  {(historico ?? []).map((h) => {
                     const tone = h.ack === 'confirmada' ? 'ok' : h.ack === 'ciencia' ? 'warn' : 'bad';
                     const label = h.ack === 'confirmada' ? '✓ Confirmada'
                       : h.ack === 'ciencia' ? '~ Ciência'
@@ -576,7 +575,6 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
                             <span className="lbl">{label}</span>
                           </span>
                         </td>
-                        <td><small>{h.actor}</small></td>
                         <td><small style={{ color: 'var(--fx-text-dim)' }}>{h.obs ?? '—'}</small></td>
                         <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{brl(h.valor)}</td>
                       </tr>
@@ -585,7 +583,8 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
                 </tbody>
               </table>
             </div>
-          )
+          )}
+          </Deferred>
         )}
       </FxShell>
 

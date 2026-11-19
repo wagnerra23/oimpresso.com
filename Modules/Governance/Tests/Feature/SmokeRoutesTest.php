@@ -16,13 +16,13 @@ uses(Tests\TestCase::class);
  * SQLite guard obrigatório (ADR multi-tenant Tier 0): só roda em sqlite
  * pra não vazar pra MySQL de homolog/prod. Schema mínimo criado em-memory.
  *
- * biz=1 (Wagner WR2) — NUNCA biz=4 cliente (ADR 0101).
+ * biz=98 (tenant fictício de teste) — NUNCA biz=4 cliente (ADR 0358).
  *
  * Refs: ADR 0086 (Governance MVP UI), ADR 0011 (padrão Jana/Repair).
  */
 beforeEach(function () {
     if (config('database.default') !== 'sqlite') {
-        $this->markTestSkipped('SmokeRoutesTest roda apenas em SQLite in-memory (guard ADR 0101)');
+        $this->markTestSkipped('SmokeRoutesTest roda apenas em SQLite in-memory (guard ADR 0358)');
     }
 
     // Schemas mínimos pras tabelas que o DashboardController/AuditController consultam.
@@ -96,7 +96,7 @@ afterEach(function () {
 
 /**
  * Conjunto de rotas principais — todas devem responder <500.
- * Como nenhuma sessão biz=1 está montada, esperamos redirect/401 (não-200).
+ * Como nenhuma sessão biz=98 está montada, esperamos redirect/401 (não-200).
  * Importante: zero 500.
  */
 $rotas = [
