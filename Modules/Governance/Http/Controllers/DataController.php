@@ -90,7 +90,9 @@ class DataController extends Controller
         $user = auth()->user();
         if (!$user->can('governance.dashboard.view')) return;
 
-        Menu::modify('admin-sidebar-menu', function ($menu) {
+        $ghosts = self::ghostsPermitidos(fn (string $permissao): bool => $user->can($permissao));
+
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($ghosts) {
             // ADR 0180 Fase 4 Wave E — entry principal Governance declara:
             //  - `shortcut` G G → atalho kbd canônico (overlay visual em Fase 8)
             //  - `primary`     → botão "Gerenciar políticas" (PageHeaderTabs Fase 5)
@@ -122,25 +124,50 @@ class DataController extends Controller
                         'shortcut' => 'P',
                         'acao'     => 'navegar', // só leva à tela: sem o "+" de criação ([W] 2026-09-29)
                     ],
-                    'ghosts'   => [
-                        // Rótulos das 4 vistas desenhadas = protótipo (governance-page.jsx → VIEWS,
-                        // ADR UI-0029) e PT-BR; as 3 abaixo delas o protótipo não desenha.
-                        ['key' => 'dashboard',     'label' => 'Painel',          'href' => '/governance/dashboard'],
-                        ['key' => 'policies',      'label' => 'Políticas',       'href' => '/governance/policies'],
-                        ['key' => 'audit',         'label' => 'Auditoria',       'href' => '/governance/audit'],
-                        ['key' => 'drift',         'label' => 'Drift',           'href' => '/governance/drift'],
-                        ['key' => 'ds-rollout',    'label' => 'DS Rollout',      'href' => '/governance/ds-rollout'],
-                        // Recebidas do Modules/Jana em 2026-08-05 (ADR 0366 §D-B).
-                        // Com estas duas a lista foi a 8; desde que `module-grades` saiu (#7283,
-                        // ADR 0399) são 7, e o GovernancaSubNav usa maxVisible={5} — as 2 últimas
-                        // caem no overflow `⋯ Mais`.
-                        // Ordem é deliberada: Painel/Policies/Audit são o uso diário
-                        // do [W]-auditor; Custos e Qualidade são consulta periódica.
-                        ['key' => 'custos',        'label' => 'Custos de IA',    'href' => '/governance/custos'],
-                        ['key' => 'qualidade-ia',  'label' => 'Qualidade IA',    'href' => '/governance/qualidade-ia'],
-                    ],
+                    'ghosts'   => $ghosts,
                 ]
             )->order(199);
         });
+    }
+
+    /**
+     * Abas da Governança que o usuário consegue ABRIR.
+     *
+     * Cada aba carrega a permission que a tela de destino exige — a do `can:` da rota
+     * (`Http/routes.php`) ou, em Custos e Qualidade IA, a do construtor do controller.
+     * Antes (até 2026-11-19) as 7 saíam sob `governance.dashboard.view`, e quem tinha só
+     * essa permission via "Auditoria", "Custos de IA" e "Qualidade IA" e tomava 403.
+     *
+     * Rótulos das 4 vistas desenhadas = protótipo (governance-page.jsx → VIEWS, ADR UI-0029)
+     * e PT-BR; as 3 abaixo delas o protótipo não desenha. Custos e Qualidade IA vieram do
+     * Modules/Jana em 2026-08-05 (ADR 0366 §D-B) e seguem com permissions `jana.*`. Desde
+     * que `module-grades` saiu (#7283, ADR 0399) são 7, e o GovernancaSubNav usa
+     * maxVisible={5} — as 2 últimas caem no overflow `⋯ Mais`. Ordem deliberada: Painel,
+     * Políticas e Auditoria são uso diário; Custos e Qualidade, consulta periódica.
+     *
+     * @param  \Closure(string): bool  $pode  pergunta ao Gate se o usuário tem a permission
+     * @return array<int, array{key: string, label: string, href: string}>
+     */
+    public static function ghostsPermitidos(\Closure $pode): array
+    {
+        $abas = [
+            ['key' => 'dashboard',    'label' => 'Painel',       'href' => '/governance/dashboard',    'permissao' => 'governance.dashboard.view'],
+            ['key' => 'policies',     'label' => 'Políticas',    'href' => '/governance/policies',     'permissao' => 'governance.dashboard.view'],
+            ['key' => 'audit',        'label' => 'Auditoria',    'href' => '/governance/audit',        'permissao' => 'governance.audit.view'],
+            ['key' => 'drift',        'label' => 'Drift',        'href' => '/governance/drift',        'permissao' => 'governance.dashboard.view'],
+            ['key' => 'ds-rollout',   'label' => 'DS Rollout',   'href' => '/governance/ds-rollout',   'permissao' => 'governance.dashboard.view'],
+            ['key' => 'custos',       'label' => 'Custos de IA', 'href' => '/governance/custos',       'permissao' => 'jana.admin.custos.view'],
+            ['key' => 'qualidade-ia', 'label' => 'Qualidade IA', 'href' => '/governance/qualidade-ia', 'permissao' => 'jana.mcp.usage.all'],
+        ];
+
+        $visiveis = [];
+        foreach ($abas as $aba) {
+            if ($pode($aba['permissao'])) {
+                unset($aba['permissao']);
+                $visiveis[] = $aba;
+            }
+        }
+
+        return $visiveis;
     }
 }
