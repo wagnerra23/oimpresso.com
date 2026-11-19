@@ -45,9 +45,9 @@ it('gate_status fail → persiste alerta high com a métrica que caiu nomeada', 
         ->and($row->severidade)->toBe('high')
         ->and($row->status)->toBe('aberto')
         ->and($row->business_id)->toBeNull()            // repo-wide (ADR 0093 §Exceção)
-        ->and($meta['week'])->toBe('2026-07-26')
-        ->and($meta['context_recall_avg'])->toBe(0.3461)
-        ->and($meta['n_evaluated'])->toBe(51.0);
+        ->and($meta['evidence']['week'])->toBe('2026-07-26')
+        ->and($meta['evidence']['context_recall_avg'])->toBe(0.3461)
+        ->and($meta['evidence']['n_evaluated'])->toBe(51.0);
 
     // MORDE: a mensagem tem que dizer QUAL piso caiu — e só o do recall caiu neste caso
     // (faithfulness 0.6865 > 0.65 e relevancy 0.8294 > 0.75 estão ACIMA).
@@ -95,6 +95,6 @@ it('flags de métrica ausentes → alerta sai mesmo assim, sem inventar número'
     $meta = json_decode($row->metadata, true);
 
     expect($row)->not->toBeNull()
-        ->and($meta['context_recall_avg'])->toBeNull()
+        ->and($meta['evidence']['context_recall_avg'])->toBeNull()
         ->and($row->mensagem)->toContain('piso não identificado');
 });

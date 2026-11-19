@@ -3,3 +3,15 @@
 # o teste fica no repo, sai do run-set com o motivo à vista, e o test-lane-coverage o
 # conta como quarentena (não como órfão). Path que não existe mais vira erro na lane.
 # Encolher esta lista é o movimento desejado — cada saída vem com o conserto.
+#
+# Entradas medidas no run 44517455593 (2026-11-19, 1ª execução desta lane). Cada uma
+# tem a mensagem do erro; a classificação "teste ou código" está no motivo.
+Modules/Governance/Tests/Feature/InertiaDeferAuditTest.php  # 5 falhas: exige Inertia::defer em Dashboard/Audit/DriftAlerts/Policies, mas os 4 controllers têm "ROLLBACK Wave W7 #953" deliberado (defer quebrava as Pages). Conflito código × regra "defer default": decisão, não conserto de teste
+Modules/Governance/Tests/Feature/CustosControllerTest.php  # 1 falha de VALOR: "0.22 is identical to 0.23" no cálculo R$ de tokens × pricing × câmbio. Regra mestre de cálculo: não se ajusta o esperado sem dupla prova + antes→depois [W]
+Modules/Governance/Tests/Feature/SddScorecardSnapshotCommandTest.php  # 1 falha: "Schedule não registrado" para governance:sdd-scorecard-snapshot daily 07:10 BRT. Possível defeito de CÓDIGO (agendamento sumiu do Kernel); investigar antes de tirar daqui
+Modules/Governance/Tests/Feature/ScorecardSnapshotCommandTest.php  # 3 falhas depois do conserto de TestCase: o comando persiste 0 linhas em mcp_scorecard_runs e o teste de índices da migration falha. A investigar (scorecard yaml ausente no CI × código)
+Modules/Governance/Tests/Feature/CicloDiarioGovernancaCommandTest.php  # 1 falha: "graduação dos 2 ledgers aparece no state" — 0 ≥ 1; depende de artefato do repo. A investigar
+Modules/Governance/Tests/Feature/DesignDocsFreshnessCheckerTest.php  # 2 falhas: days_overdue 28 × 29 e check() não idempotente sobre o repo. O L2 (#11213) mexe neste arquivo; sai daqui quando ele entrar e o run ficar verde
+Modules/Governance/Tests/Feature/ResolveModulePathTest.php  # 1 falha: detectFileExists com placeholder <modulo> devolve false. A investigar
+Modules/Governance/Tests/Feature/Wave27GovernanceSaturateTest.php  # 1 falha: GovernanceHealthCommand --detail. A investigar
+Modules/Governance/Tests/Feature/DsRolloutControllerTest.php  # UC-DSR-10 casava o comentário do Controller; consertado no #11254 (L1.4), que tira esta linha
