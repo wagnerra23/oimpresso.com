@@ -26,6 +26,9 @@ last_run_ci: "2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest Co
 | UC-CVCEL-04 | A foto vai para a API; enviada recarrega o comprovante, recusada aparece no alerta | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
 | UC-CVCEL-05 | A assinatura só sai com desenho, nome e aceite do cliente, e vai para a API com os três | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
 | UC-CVCEL-06 | Concluir só libera com os três itens; concluída não oferece mais nada | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
+| UC-CVCEL-07 | O protocolo traz OS, cliente, endereço, horários, equipe, as duas fotos e a assinatura com o aceite | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
+| UC-CVCEL-08 | Instalação ainda não concluída não tem protocolo | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
+| UC-CVCEL-09 | Concluída devolve o PDF; outra empresa é não encontrada; sem permissão 403 | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
 
 ## UC-CVCEL-01 · A tela mostra OS, cliente, endereço, horário, equipe e o que o comprovante já tem · `must`
 
@@ -72,5 +75,30 @@ Status: 🧪
 foto depois e assinatura. **Dado** os três **Quando** o instalador conclui **Então** vai para
 `POST …/instalacoes/{id}/concluir` e, com 200, a tela recarrega o comprovante e a instalação. Concluída, não há
 botão de foto nem de concluir, e aparece "Instalação concluída".
+
+Status: 🧪
+
+## UC-CVCEL-07 · O protocolo traz OS, cliente, endereço, horários, equipe, as duas fotos e a assinatura com o aceite · `must`
+
+**Dado** uma instalação agendada de 19/11/2026 09:00 a 11:00, com foto antes, foto depois e a assinatura de
+"Marta Ribeiro", concluída às 11:10 **Quando** o protocolo é gerado **Então** ele traz a empresa, a OS, o nome
+e o endereço do cliente, "19/11/2026 09:00 às 11:00", a conclusão "19/11/2026 11:10", a equipe, o veículo, as
+duas fotos e a assinatura como imagem, "Assinado por Marta Ribeiro" e a hora em que o cliente aceitou guardar
+a assinatura. As imagens vão dentro do PDF; o PDF não busca nada na rede.
+
+Status: 🧪
+
+## UC-CVCEL-08 · Instalação ainda não concluída não tem protocolo · `must`
+
+**Dado** os três comprovantes gravados mas a instalação ainda não concluída **Quando** alguém pede o protocolo
+**Então** 422 "O protocolo sai depois de concluir a instalação."
+
+Status: 🧪
+
+## UC-CVCEL-09 · Concluída devolve o PDF; outra empresa é não encontrada; sem permissão 403 · `must` `[T0]`
+
+**Quando** quem tem `comvis.os.view` pede o protocolo da instalação concluída **Então** recebe o PDF
+(`application/pdf`, começa com `%PDF-`). O protocolo de uma instalação da empresa 99 dá 404, e quem não tem
+permissão da CV recebe 403.
 
 Status: 🧪
