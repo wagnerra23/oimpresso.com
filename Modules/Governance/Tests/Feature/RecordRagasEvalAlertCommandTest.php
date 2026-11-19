@@ -51,9 +51,9 @@ it('gate_status fail → persiste alerta high com a métrica que caiu nomeada', 
 
     // MORDE: a mensagem tem que dizer QUAL piso caiu — e só o do recall caiu neste caso
     // (faithfulness 0.6865 > 0.65 e relevancy 0.8294 > 0.75 estão ACIMA).
-    expect($row->mensagem)->toContain('context_recall')
-        ->and($row->mensagem)->not->toContain('faithfulness 0.6865')
-        ->and($row->mensagem)->not->toContain('answer_relevancy');
+    expect($row->descricao)->toContain('context_recall')
+        ->and($row->descricao)->not->toContain('faithfulness 0.6865')
+        ->and($row->descricao)->not->toContain('answer_relevancy');
 });
 
 it('gate_status pass → NO-OP (não cria alerta)', function () {
