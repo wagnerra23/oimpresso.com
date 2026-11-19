@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1049,
-    "edges": 1413,
+    "nodes": 1053,
+    "edges": 1421,
     "by_node_type": {
       "module": 45,
-      "table": 136,
+      "table": 139,
       "adr": 157,
-      "component": 611,
+      "component": 612,
       "api": 100
     },
     "by_edge_type": {
-      "ownsTable": 114,
+      "ownsTable": 117,
       "ownsLegacyView": 13,
       "consumesTable": 18,
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 85,
-      "hasComponent": 611,
-      "dependsOn": 157,
-      "delegatesTo": 142,
+      "hasComponent": 612,
+      "dependsOn": 159,
+      "delegatesTo": 144,
       "migratesTo": 1,
       "supersedes": 27,
       "supersedesPartially": 80,
@@ -4989,13 +4989,6 @@
       "desc": ""
     },
     {
-      "id": "component:PaymentGateway/BoletoService",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "BoletoService",
-      "desc": ""
-    },
-    {
       "id": "component:PaymentGateway/CobrancaCnabArquivosController",
       "type": "component",
       "module": "PaymentGateway",
@@ -5003,25 +4996,11 @@
       "desc": "(Settings/) GET /settings/payment-gateways/cobrancas/{cobranca}/remessa|boleto (baixar a remessa CNAB e o PDF do boleto da cobrança, só da empresa da sessão — P-157)"
     },
     {
-      "id": "component:PaymentGateway/CobrancaController",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "CobrancaController",
-      "desc": ""
-    },
-    {
       "id": "component:PaymentGateway/DataController",
       "type": "component",
       "module": "PaymentGateway",
       "name": "DataController",
       "desc": "3 hooks UltimatePOS (Onda 1)"
-    },
-    {
-      "id": "component:PaymentGateway/Drivers planejados: PesaPalDriver",
-      "type": "component",
-      "module": "PaymentGateway",
-      "name": "Drivers planejados: PesaPalDriver",
-      "desc": ""
     },
     {
       "id": "component:PaymentGateway/InstallController",
@@ -5036,6 +5015,27 @@
       "module": "PaymentGateway",
       "name": "Jobs/CnabRetornoProcessor",
       "desc": "processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
+    },
+    {
+      "id": "component:PaymentGateway/Jobs/ProcessarWebhookPixInterJob",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Jobs/ProcessarWebhookPixInterJob",
+      "desc": "processa inter_webhook_log (PIX Inter recebido → título quitado)"
+    },
+    {
+      "id": "component:PaymentGateway/Jobs/RetryOrphanWebhookJob",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Jobs/RetryOrphanWebhookJob",
+      "desc": "reprocessa gateway_webhook_events órfãos (comando paymentgateway:retry-orphan-webhooks)"
+    },
+    {
+      "id": "component:PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Listeners/LancarPagamentoDaCobrancaNaVenda",
+      "desc": "CobrancaPaga → pagamento na venda (flag PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA, default false)"
     },
     {
       "id": "component:PaymentGateway/Models/CnabRetornoUpload",
@@ -5176,6 +5176,13 @@
       "module": "PaymentGateway",
       "name": "Webhooks/SicoobApiWebhookController",
       "desc": "POST /paymentgateway/webhooks/sicoob-api/{businessId} (Onda 4f.sicoob_api · US-FIN-044) — HMAC-SHA256 via header x-sicoob-signature"
+    },
+    {
+      "id": "component:PaymentGateway/Webhooks/WebhookProcessor + Services/Webhook/CobrancaWebhookResolver",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "Webhooks/WebhookProcessor + Services/Webhook/CobrancaWebhookResolver",
+      "desc": "grava gateway_webhook_events e liga cobranca_id (US-PG-008)"
     },
     {
       "id": "component:Ponto/Api/MobileMarcacaoController",
@@ -6853,6 +6860,17 @@
       "ownership_mode": "unowned"
     },
     {
+      "id": "table:cnab_retorno_uploads",
+      "type": "table",
+      "name": "cnab_retorno_uploads",
+      "owners": [
+        "PaymentGateway"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:cobrancas",
       "type": "table",
       "name": "cobrancas",
@@ -7023,6 +7041,17 @@
       "id": "table:gateway_webhook_events",
       "type": "table",
       "name": "gateway_webhook_events",
+      "owners": [
+        "PaymentGateway"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:inter_webhook_log",
+      "type": "table",
+      "name": "inter_webhook_log",
       "owners": [
         "PaymentGateway"
       ],
@@ -8271,6 +8300,17 @@
       "name": "superadmin_frontend_pages",
       "owners": [
         "Superadmin"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:tef_transacoes",
+      "type": "table",
+      "name": "tef_transacoes",
+      "owners": [
+        "PaymentGateway"
       ],
       "consumers": [],
       "legacy_views": [],
@@ -14989,6 +15029,13 @@
     },
     {
       "from": "module:PaymentGateway",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Tela de cobrança (CobrancaController, /cobranca)"
+    },
+    {
+      "from": "module:PaymentGateway",
       "to": "module:NfeBrasil",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -15000,6 +15047,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "NFSe / NFe emissão"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "module:RecurringBilling",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "BoletoService de recorrência"
     },
     {
       "from": "module:PaymentGateway",
@@ -15024,6 +15078,13 @@
     },
     {
       "from": "module:PaymentGateway",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tela de cobrança (CobrancaController, /cobranca)"
+    },
+    {
+      "from": "module:PaymentGateway",
       "to": "module:NfeBrasil",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -15035,6 +15096,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "NFSe / NFe emissão"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "module:RecurringBilling",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "BoletoService de recorrência"
     },
     {
       "from": "module:PaymentGateway",
@@ -15075,31 +15143,13 @@
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/BoletoService",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/CobrancaCnabArquivosController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/CobrancaController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/DataController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:PaymentGateway",
-      "to": "component:PaymentGateway/Drivers planejados: PesaPalDriver",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -15112,6 +15162,24 @@
     {
       "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/Jobs/CnabRetornoProcessor",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Jobs/ProcessarWebhookPixInterJob",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Jobs/RetryOrphanWebhookJob",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -15237,6 +15305,18 @@
     },
     {
       "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/Webhooks/WebhookProcessor + Services/Webhook/CobrancaWebhookResolver",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "table:cnab_retorno_uploads",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:PaymentGateway",
       "to": "table:cobrancas",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -15249,7 +15329,19 @@
     },
     {
       "from": "module:PaymentGateway",
+      "to": "table:inter_webhook_log",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:PaymentGateway",
       "to": "table:payment_gateway_credentials",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "table:tef_transacoes",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
