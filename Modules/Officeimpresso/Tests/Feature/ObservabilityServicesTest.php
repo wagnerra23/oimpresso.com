@@ -76,12 +76,15 @@ it('cenario 6: Services nao usam OtelHelper de namespace errado (lock-in canon)'
     }
 });
 
-it('cenario 7: README do modulo Officeimpresso existe e cita ADR 0159', function () {
+it('cenario 7: README do modulo Officeimpresso existe, aponta o Tier 0 e a redação de PII', function () {
     $path = base_path('memory/requisitos/Officeimpresso/README.md');
     expect(file_exists($path))->toBeTrue('README.md deveria existir após Wave 18 D5');
 
+    // Até 2026-11-18 este caso exigia "ADR 0159" e "PII redactor". A citação 0159 apontava
+    // para um arquivo que não existe (a ADR 0159 real é a errata do module-grade v3) e o
+    // README foi reescrito no #11161; o fato que importa continua lá, em outras palavras.
     $src = file_get_contents($path);
     expect($src)->toContain('Officeimpresso')
-        ->and($src)->toContain('ADR 0159')
-        ->and($src)->toContain('PII redactor');
+        ->and($src)->toContain('ADR 0093')
+        ->and($src)->toContain('PII redigida');
 });
