@@ -4,7 +4,7 @@ casos: Audit · Drill-down forense do mcp_audit_log · /governance/audit
 irmaos: Audit.charter.md (lei) · governance-audit-gap.md (GAP-SPEC canon) · RUNBOOK-audit.md
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-19"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes governance-filtros-gate (vitest) e ci-sqlite-pest (Pest)"
 ---
 

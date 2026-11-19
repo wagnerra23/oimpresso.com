@@ -4,7 +4,7 @@ casos: Drift Alerts · SCOPE.md × filesystem · /governance/drift
 irmaos: DriftAlerts.charter.md (lei) · RUNBOOK-drift-alerts.md · governance-drift-alerts-gap.md (GAP-SPEC canon)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-19"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Unit) (sqlite) e de uma lane vitest ainda não wirada"
 ---
 
