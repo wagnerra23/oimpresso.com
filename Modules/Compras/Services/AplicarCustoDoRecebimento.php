@@ -6,6 +6,7 @@ namespace Modules\Compras\Services;
 
 use App\Contracts\Compras\CustoDoRecebimento;
 use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
+use App\Services\FeatureFlagService;
 use App\Transaction;
 use Illuminate\Support\Facades\DB;
 
@@ -32,13 +33,27 @@ use Illuminate\Support\Facades\DB;
  *                fica igual e a margem é recalculada como no so_custo.
  * Arredondamento: 4 casas, como as colunas de `variations`.
  *
+ * Política de preço do produto (CU-PROD-21, decisão do [F] em 2026-11-16): com a chave
+ * `compraSeguePoliticaPreco` ligada para a empresa E `regraEm = produto` na regra, o preço novo de
+ * `aplicar`/`propor` sai da política de cada produto (PrecoPelaPolitica), não da margem atual:
+ *   fixo       — como so_custo: preço igual, margem recalculada, sem proposta;
+ *   acompanha  — up10(preço × custo novo ÷ custo anterior);
+ *   margem     — up10(custo sem imposto ÷ (1 − alvo/100), com imposto).
+ * A margem gravada passa a ser a do preço novo. Chave desligada, ou `regraEm` diferente de
+ * `produto`: tudo como acima, sem mudança. A chave nasce desligada (padrão do FeatureFlagService para
+ * chave desconhecida) e só liga depois do antes e depois aprovado pelo [W] (REGRA MESTRE de valor).
+ *
  * Tier 0 (ADR 0093): variação só da empresa da compra (join em `products.business_id`).
  */
 final class AplicarCustoDoRecebimento implements CustoDoRecebimento
 {
+    /** Chave por empresa que faz o recebimento seguir a política de preço do produto. */
+    public const CHAVE_POLITICA = 'compraSeguePoliticaPreco';
+
     public function __construct(
         private readonly RegrasDaEmpresa $regras,
         private readonly CustoDoInsumoService $custo,
+        private readonly FeatureFlagService $chaves,
     ) {}
 
     /** @return array<string, mixed>|null os parâmetros da regra, se ela assume o recebimento */
@@ -68,6 +83,9 @@ final class AplicarCustoDoRecebimento implements CustoDoRecebimento
             return [];
         }
 
+        $porPolitica = ($params['regraEm'] ?? null) === 'produto'
+            && $this->chaves->isOn(self::CHAVE_POLITICA, ['business_id' => $biz]);
+
         $ids = DB::table('purchase_lines')->where('transaction_id', $compra->id)->distinct()->pluck('variation_id');
         $feito = [];
         foreach ($ids as $variationId) {
@@ -76,7 +94,7 @@ final class AplicarCustoDoRecebimento implements CustoDoRecebimento
                 ->leftJoin('tax_rates as tr', 'tr.id', '=', 'p.tax')
                 ->where('p.business_id', $biz)
                 ->where('v.id', $variationId)
-                ->select('v.id', 'v.dpp_inc_tax', 'v.default_sell_price', 'v.sell_price_inc_tax', 'v.profit_percent', 'tr.amount as imposto')
+                ->select('v.id', 'v.dpp_inc_tax', 'v.default_sell_price', 'v.sell_price_inc_tax', 'v.profit_percent', 'tr.amount as imposto', 'p.politica_preco', 'p.margem_alvo_pct')
                 ->first();
             if ($v === null) {
                 continue;
@@ -92,15 +110,29 @@ final class AplicarCustoDoRecebimento implements CustoDoRecebimento
             $vendaExc = round($custoExc * (1 + (float) $v->profit_percent / 100), 4);
             $vendaInc = round($vendaExc * (100 + $imposto) / 100, 4);
             $margem = $custoExc > 0 ? round(((float) $v->default_sell_price - $custoExc) / $custoExc * 100, 4) : 0.0;
+            $margemNova = (float) $v->profit_percent;
+            $mudaPreco = true;
+            if ($porPolitica) {
+                $pela = PrecoPelaPolitica::novo(
+                    (string) ($v->politica_preco ?? 'fixo'), (float) $v->sell_price_inc_tax, (float) $v->dpp_inc_tax,
+                    $custoInc, $custoExc, $imposto, $v->margem_alvo_pct === null ? null : (float) $v->margem_alvo_pct,
+                );
+                $mudaPreco = $pela !== null;
+                if ($mudaPreco) {
+                    $vendaInc = $pela;
+                    $vendaExc = round($vendaInc * 100 / (100 + $imposto), 4);
+                    $margemNova = $custoExc > 0 ? round(($vendaExc - $custoExc) / $custoExc * 100, 4) : $margemNova;
+                }
+            }
 
             $dados = ['default_purchase_price' => $custoExc, 'dpp_inc_tax' => $custoInc, 'profit_percent' => $margem, 'updated_at' => now()];
-            if ($params['preco'] === 'aplicar') {
-                $dados = ['default_sell_price' => $vendaExc, 'sell_price_inc_tax' => $vendaInc, 'profit_percent' => (float) $v->profit_percent] + $dados;
+            if ($params['preco'] === 'aplicar' && $mudaPreco) {
+                $dados = ['default_sell_price' => $vendaExc, 'sell_price_inc_tax' => $vendaInc, 'profit_percent' => $margemNova] + $dados;
             }
             DB::table('variations')->where('id', $v->id)->update($dados);
 
             $proposta = null;
-            if ($params['preco'] === 'propor' && abs($vendaInc - (float) $v->sell_price_inc_tax) >= 0.0001) {
+            if ($params['preco'] === 'propor' && $mudaPreco && abs($vendaInc - (float) $v->sell_price_inc_tax) >= 0.0001) {
                 $proposta = DB::table('compras_propostas_preco')->insertGetId([
                     'business_id' => $biz, 'variation_id' => $v->id, 'transaction_id' => $compra->id,
                     'custo_antes' => $v->dpp_inc_tax, 'custo_depois' => $custoInc,
@@ -113,7 +145,7 @@ final class AplicarCustoDoRecebimento implements CustoDoRecebimento
                 'variation_id' => (int) $v->id, 'preco' => $params['preco'],
                 'custo_antes' => (float) $v->dpp_inc_tax, 'custo_depois' => $custoInc,
                 'preco_antes' => (float) $v->sell_price_inc_tax,
-                'preco_depois' => $params['preco'] === 'aplicar' ? $vendaInc : (float) $v->sell_price_inc_tax,
+                'preco_depois' => $params['preco'] === 'aplicar' && $mudaPreco ? $vendaInc : (float) $v->sell_price_inc_tax,
                 'proposta_id' => $proposta,
             ];
         }
