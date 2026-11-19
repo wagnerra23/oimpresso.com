@@ -114,7 +114,8 @@ beforeEach(function () {
     });
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
-    $this->permitidas = new ArrayObject();
+    // notes.write: o gate de rota do PR 1 do lote (d1). A regra de autor/gestor é medida à parte.
+    $this->permitidas = new ArrayObject(['recurringbilling.notes.write']);
     $permitidas = $this->permitidas;
     Gate::before(function ($user, string $ability) use ($permitidas) {
         return in_array($ability, $permitidas->getArrayCopy(), true) ? true : null;
