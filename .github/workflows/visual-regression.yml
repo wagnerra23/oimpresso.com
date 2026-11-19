@@ -944,7 +944,8 @@ jobs:
 
       # ── E2E DE COMPORTAMENTO + AXE — PaymentGateway/CnabRetorno (NASCE ADVISORY) ────
       # Histórico do retorno CNAB (contadores, erros, pendente), tela de credencial do 99 = 404
-      # para o 98, extensão recusada sem gravar upload, axe CRITICAL. Auditoria PaymentGateway
+      # para o 98, axe CRITICAL (o envio de arquivo é Feature: o Pest Browser não repassa
+      # arquivo ao Laravel). Auditoria PaymentGateway
       # 2026-11-19, lote 4 (4.2): `screen-coverage-map` dava e2e ✗, axe 0 e nenhum UC.
       # Tenant 98 / adversário 99 (ADR 0358); sem pixel (ADR 0445). Promover = remover o
       # `continue-on-error` depois de 2 verdes que EXECUTARAM, lidos no log; é flip [W].

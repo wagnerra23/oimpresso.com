@@ -15,7 +15,7 @@ last_run: "2026-11-19"
 >
 > **Status:** ✅ passa (UC-id no manifesto) · 🧪 comportamento tem teste Feature sem UC-id (débito G-2) · ⬜ não verificado · ❌ quebrou.
 >
-> ⚠️ **Onde roda (medido 2026-11-19).** O motor é coberto por `Modules/PaymentGateway/Tests/Feature/CnabRetornoProcessorTest.php`: **7 casos**, na lane **sqlite** do `ci.yml` (`.github/ci-sqlite-pest.list`; no MySQL o arquivo pula, schema sintético). Até 2026-11-19 este arquivo dizia "8 casos Feature/MySQL verdes no CT100" — eram 7, e não rodam no MySQL. Run [44509368899](https://github.com/wagnerra23/oimpresso.com/actions/runs/44509368899) (push em main, 2026-11-19): os 7 com `✓`, ainda com os títulos sem UC-id. A tela é coberta por `tests/Browser/PaymentGateway/CnabRetornoBrowserTest.php` (UC-PGCNAB-08..10, com axe CRITICAL), no step advisory `E2E de comportamento + axe · PaymentGateway/CnabRetorno` do `visual-regression.yml`.
+> ⚠️ **Onde roda (medido 2026-11-19).** O motor é coberto por `Modules/PaymentGateway/Tests/Feature/CnabRetornoProcessorTest.php`: **7 casos**, na lane **sqlite** do `ci.yml` (`.github/ci-sqlite-pest.list`; no MySQL o arquivo pula, schema sintético). Até 2026-11-19 este arquivo dizia "8 casos Feature/MySQL verdes no CT100" — eram 7, e não rodam no MySQL. Run [44509368899](https://github.com/wagnerra23/oimpresso.com/actions/runs/44509368899) (push em main, 2026-11-19): os 7 com `✓`, ainda com os títulos sem UC-id. A tela é coberta por `tests/Browser/PaymentGateway/CnabRetornoBrowserTest.php` (UC-PGCNAB-08..09, com axe CRITICAL) e o envio de arquivo por `tests/Feature/PaymentGateway/CnabRetornoUploadContratoTest.php` (UC-PGCNAB-10), no step advisory `E2E de comportamento + axe · PaymentGateway/CnabRetorno` do `visual-regression.yml`.
 >
 > 🔴 **Dente de cálculo (D1 · REGRA MESTRE valor):** o upload move VALOR (quita títulos) **sem preview antes→depois** — processa em background direto. É a exposição Tier-0 nº 1 desta tela. Fica no backlog como P0 (PR 4.3 da auditoria de 2026-11-19).
 
@@ -27,7 +27,7 @@ last_run: "2026-11-19"
 >
 > **Prefixo `UC-PGCNAB-`**: o irmão `Index.casos.md` usa `UC-PGSET-`; prefixo por tela evita que a prova de um credite o outro (§5 2026-09-04).
 >
-> **Status:** 🧪 = tem teste citando o id, mas o manifesto `scripts/casos-test-results.json` ainda não tem veredito dele (01..07 passaram no run [44509368899](https://github.com/wagnerra23/oimpresso.com/actions/runs/44509368899) com o título antigo; 08..10 nascem neste PR, em step advisory).
+> **Status:** 🧪 = tem teste citando o id, mas o manifesto `scripts/casos-test-results.json` ainda não tem veredito dele (01..07 passaram no run [44509368899](https://github.com/wagnerra23/oimpresso.com/actions/runs/44509368899) com o título antigo; 08..09 nascem neste PR no step advisory de navegador; 10 na lane `paymentgateway-pest.yml`).
 
 ## UC-PGCNAB-01 · `💰` Liquidação (ocorrência 06) quita a cobrança
 - **Aceite:** Dado um retorno com ocorrência 06 para um nosso número emitido · Quando o retorno é processado · Então dispara `CobrancaPaga` para a cobrança liquidada e `qtd_paga` sobe.
@@ -77,7 +77,7 @@ last_run: "2026-11-19"
 
 ## UC-PGCNAB-10 · Extensão fora da lista é recusada sem gravar upload
 - **Aceite:** Dado um arquivo `.pdf` · Quando envio · Então a tela mostra "Extensão não aceita" e nenhum `cnab_retorno_uploads` é gravado (charter G2; a lista vem de `limites.extensoes`).
-- **Teste:** `CnabRetornoBrowserTest` — `UC-PGCNAB-10 …`
+- **Teste:** `tests/Feature/PaymentGateway/CnabRetornoUploadContratoTest.php` — `UC-PGCNAB-10 …` (lane `paymentgateway-pest.yml`, MySQL; com controle positivo `.ret` aceito). Não é E2E: o servidor HTTP do Pest Browser não repassa arquivos ao Laravel (`LaravelHttpServer.php`, `[], // @TODO files...`) — medido no run 44542116020, o envio pela tela chegou sem arquivo ("O campo arquivo é obrigatório").
 - **Status: 🧪** sem veredito.
 
 ---
@@ -91,11 +91,11 @@ last_run: "2026-11-19"
 - **[BACKLOG · charter draft] Non-Goals a resolver com Wagner** — reprocessamento (NG1), download do arquivo/relatório (NG2), upload em lote (NG3), AuditLog por processamento. Charter ainda `draft`.
 
 ## Como rodar a suíte
-1. **Pest:** `CnabRetornoProcessorTest` (7 casos) na lane sqlite do `ci.yml`; `CnabRetornoBrowserTest` (3 casos) no `visual-regression.yml`. Local só no CT100 ([ADR 0062]).
+1. **Pest:** `CnabRetornoProcessorTest` (7 casos) na lane sqlite do `ci.yml`; `CnabRetornoUploadContratoTest` (1 caso) na `paymentgateway-pest.yml`; `CnabRetornoBrowserTest` (2 casos) no `visual-regression.yml`. Local só no CT100 ([ADR 0062]).
 2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
-- 2026-11-19 · [CC] Auditoria PaymentGateway lote 4.2: 7 bullets do backlog promovidos a `UC-PGCNAB-01..07` (citados nos títulos do `CnabRetornoProcessorTest`) + `UC-PGCNAB-08..10` com E2E de navegador e axe. Corrigido "8 casos MySQL" → 7 casos na lane sqlite.
+- 2026-11-19 · [CC] Auditoria PaymentGateway lote 4.2: 7 bullets do backlog promovidos a `UC-PGCNAB-01..07` (citados nos títulos do `CnabRetornoProcessorTest`) + `UC-PGCNAB-08..09` com E2E de navegador e axe, `UC-PGCNAB-10` em teste Feature (o Pest Browser não envia arquivo). Corrigido "8 casos MySQL" → 7 casos na lane sqlite.
 - 2026-07-03 · [CC] criado no Passo 3 (régua por tela). Baseline de valor forte (8 casos Feature) mas 0 UC-id; charter ainda `draft` com Non-Goals abertos; falta preview antes→depois (D1 valor). Nota UX 76 (Advanced).
 
 [template-onda-modulo]: ../../../../../memory/requisitos/_Governanca/programa-ondas/template-onda-modulo.md

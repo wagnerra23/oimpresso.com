@@ -20,13 +20,15 @@ declare(strict_types=1);
  *     e o arquivo ainda não processado como "Pendente".
  *   - UC-PGCNAB-09 [T0]: a tela de uma credencial do business 99, pedida pela sessão do 98,
  *     devolve 404 (controle: a do 98 devolve 200).
- *   - UC-PGCNAB-10: enviar arquivo com extensão fora da lista mostra o erro do servidor e não
- *     grava upload.
  *   - Em cada caso com tela: 0 violações axe-core CRITICAL (`level: 0`).
  *
  * ── O QUE NÃO PROVA ──────────────────────────────────────────────────────────
  *   - Processar um arquivo válido (baixa de cobrança): é o Job, coberto por UC-PGCNAB-01..07.
  *   - Prévia antes→depois: não existe ainda (backlog P0, PR 4.3).
+ *   - Envio de arquivo (UC-PGCNAB-10): o servidor HTTP do Pest Browser não repassa arquivos ao
+ *     Laravel (`LaravelHttpServer.php`, `[], // @TODO files...`); medido no run 44542116020, o
+ *     servidor respondeu "O campo arquivo é obrigatório". O caso mora em
+ *     `tests/Feature/PaymentGateway/CnabRetornoUploadContratoTest.php`.
  *   - Pixel: nenhum `screenshot()` (ADR 0445).
  *
  * ── COMO ENTRA ────────────────────────────────────────────────────────────────
@@ -203,54 +205,3 @@ it('[T0] UC-PGCNAB-09 · a tela de retorno de uma credencial do 99 devolve 404 p
     expect($status($alheia->id))->toBe(404);
     $page->assertNoAccessibilityIssues(level: 0);
 })->after(fn () => pgCnabLimpar($this));
-
-it('UC-PGCNAB-10 · arquivo com extensão fora da lista mostra o erro e não grava upload', function () {
-    $cred = pgCnabCredencial($this, VisregEmptyTenantSeeder::BIZ_EMPTY);
-
-    $arquivo = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $this->cnMarca . '-retorno.pdf';
-    file_put_contents($arquivo, "conteudo inerte de teste\n");
-    $this->cnArquivo = $arquivo;
-
-    $antes = DB::table('cnab_retorno_uploads')->where('payment_gateway_credential_id', $cred->id)->count();
-
-    $page = pgCnabAbrir($cred->id);
-    $page->attach('input[type="file"]', $arquivo);
-
-    // O nome do arquivo aparece na prévia quando o React recebeu o `change` do input.
-    $nome = basename($arquivo);
-    $anexou = false;
-    for ($i = 0; $i < 20 && ! $anexou; $i++) {
-        $anexou = str_contains(pgCnabTexto($page), $nome);
-        if (! $anexou) {
-            $page->wait(0.1);
-        }
-    }
-    if (! $anexou) {
-        throw new RuntimeException('O arquivo anexado nao apareceu na previa do formulario: ' . mb_substr(pgCnabTexto($page), 0, 400));
-    }
-
-    $page->press('Enviar arquivo');
-
-    $viu = false;
-    for ($i = 0; $i < 60 && ! $viu; $i++) {
-        $viu = str_contains(pgCnabTexto($page), 'Extensão não aceita');
-        if (! $viu) {
-            $page->wait(0.25);
-        }
-    }
-    if (! $viu) {
-        // Falha dizendo onde parou: URL, upload gravado ou não, modal de erro do Inertia (iframe), texto.
-        $estado = (string) $page->script("JSON.stringify({ url: location.pathname, iframe: document.querySelectorAll('iframe').length,"
-            . " erros: [...document.querySelectorAll('.text-destructive')].map((e) => e.innerText).join(' | '),"
-            . " texto: document.body.innerText.replace(/\s+/g, ' ').slice(0, 500) })");
-        $gravou = DB::table('cnab_retorno_uploads')->where('payment_gateway_credential_id', $cred->id)->count() - $antes;
-        throw new RuntimeException("A tela nao mostrou 'Extensão não aceita'. Uploads gravados no envio: {$gravou}. Estado: {$estado}");
-    }
-    expect(DB::table('cnab_retorno_uploads')->where('payment_gateway_credential_id', $cred->id)->count())->toBe($antes);
-    $page->assertNoAccessibilityIssues(level: 0);
-})->after(function () {
-    pgCnabLimpar($this);
-    if (isset($this->cnArquivo) && is_file($this->cnArquivo)) {
-        unlink($this->cnArquivo);
-    }
-});
