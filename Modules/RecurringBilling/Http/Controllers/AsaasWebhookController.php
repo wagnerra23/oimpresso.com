@@ -46,7 +46,7 @@ class AsaasWebhookController extends Controller
             return $this->reject('credential_not_found', $businessId, 404);
         }
 
-        $expectedSecret = $credential->config_json['webhook_secret'] ?? null;
+        $expectedSecret = $credential->webhookSecret();
         $providedSecret = (string) $request->header(self::AUTH_HEADER, '');
 
         if (! $expectedSecret || ! hash_equals((string) $expectedSecret, $providedSecret)) {

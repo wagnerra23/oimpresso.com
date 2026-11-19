@@ -14,6 +14,12 @@ name: RecurringBilling · Pest (MySQL)
 # (DomainModelsTest, "era-sqlite"). O CartaoSalvoContratoTest continua na
 # paymentgateway-pest.yml, que já o executa.
 #
+# Também roda 2 testes da raiz que usam o RB e estavam fora de lane (2026-11-19):
+# CalculoRecurringBillingTest (fidelidade de valor plano→fatura, precisa do tenant
+# semeado) e tests/Feature/Modules/RecurringBilling/BoletoServiceTest (emissão pelo
+# serviço real). O CancelarCobrancaInterJobTest, que só roda em sqlite, foi para a
+# ci-sqlite-pest.list.
+#
 # Estrutura copiada de paymentgateway-pest.yml (setup MySQL, skip-as-pass, JUnit).
 
 on:
@@ -36,6 +42,8 @@ on:
     paths:
       - 'Modules/RecurringBilling/**'
       - 'Modules/PaymentGateway/**'
+      - 'tests/Feature/Calculo/CalculoRecurringBillingTest.php'
+      - 'tests/Feature/Modules/RecurringBilling/**'
       - 'tests/Support/WithSeededTenant.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/recurringbilling-pest.yml'
@@ -75,6 +83,8 @@ jobs:
             recurringbilling:
               - 'Modules/RecurringBilling/**'
               - 'Modules/PaymentGateway/**'
+              - 'tests/Feature/Calculo/CalculoRecurringBillingTest.php'
+              - 'tests/Feature/Modules/RecurringBilling/**'
               - 'tests/Support/WithSeededTenant.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/recurringbilling-pest.yml'
@@ -122,7 +132,9 @@ jobs:
             Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php \
-            Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php
+            Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php \
+            tests/Feature/Calculo/CalculoRecurringBillingTest.php \
+            tests/Feature/Modules/RecurringBilling/BoletoServiceTest.php
 
       # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
