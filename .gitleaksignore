@@ -101,3 +101,5 @@ edaf567a860a78952fb36814f70da9b0651461fd:.github/workflows/deploy.yml:curl-auth-
 5e035ba13e43b2d75d72688bf89be434d58cf7af:Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php:generic-api-key:357
 # 2026-10-28: token falso de fixture num commit antigo dos PRs #9982/#9998 (corrigido depois para token-de-teste-nuvemshop); o scan percorre o histórico do PR.
 9ded53652e78514c2be5af27f2c7630c17e0e1c7:Modules/Marketplaces/Tests/Feature/MarketplacesOAuthNuvemshopContratoTest.php:generic-api-key:34
+# 2026-11-18 #11154: valor FICTÍCIO do header X-API-Key num teste (OISEG-*), commit histórico do PR; a linha atual monta o valor em runtime e não casa a regra.
+65699974b827ce7395ae93c331e5d18cec3b9029:Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php:generic-api-key:79
