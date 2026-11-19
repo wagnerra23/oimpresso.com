@@ -221,3 +221,10 @@
 .gov-skel i{ display:block; height:14px; border-radius:4px; background:linear-gradient(90deg,var(--bg-2),var(--border),var(--bg-2)); background-size:200% 100%; animation:gov-shimmer 1.4s linear infinite; }
 @keyframes gov-shimmer{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
 @media (prefers-reduced-motion:reduce){ .gov-skel i{ animation:none; } }
+
+/* Estados (auditoria 2026-11-19 · L5 5.3): seletor de estado da base em todas as vistas e aviso
+   fugaz com "Desfazer" (charter R5). O botão herda o contraste do .mod-toast (texto = --bg). */
+.gov-cenario span{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); }
+.gov-toast{ display:flex; align-items:center; gap:12px; }
+.gov-toast-acao{ font:inherit; font-weight:600; color:inherit; background:transparent; border:1px solid currentColor; border-radius:var(--radius-sm); padding:4px 10px; min-height:28px; cursor:pointer; flex:none; }
+.gov-toast-acao:focus-visible{ outline:2px solid currentColor; outline-offset:2px; }
