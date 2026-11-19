@@ -82,20 +82,18 @@ it('expõe 3 KPIs (ativos, total, fail, cobs_hoje) no partial reload', function 
         'health_status' => 'ok',
     ]);
 
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/settings/payment-gateways?only=kpis', [
+        ->get('/settings/payment-gateways', [
             'X-Inertia' => 'true',
             'X-Inertia-Version' => pgctlInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'kpis',
-        ])
-        ->assertInertia(fn ($page) => $page
-            ->has('kpis.ativos')
-            ->has('kpis.total')
-            ->has('kpis.fail')
-            ->has('kpis.cobs_hoje')
-        );
+        ]);
+
+    // Partial reload devolve o JSON da página; lido direto como no contrato UC-PGSET-06.
+    $resp->assertOk();
+    expect($resp->json('props.kpis'))->toHaveKeys(['ativos', 'total', 'fail', 'cobs_hoje']);
 });
 
 it('lista gateways do business + warn deprecated PesaPal', function () {
@@ -118,7 +116,10 @@ it('lista gateways do business + warn deprecated PesaPal', function () {
         ]);
 
     $resp->assertOk();
-    expect($resp->getContent())->toContain('deprecated');
+    // O aviso é por item ("Deprecated — migrar pra Asaas…"), não uma palavra solta no corpo.
+    $pesapal = collect($resp->json('props.gateways'))->firstWhere('driver', 'pesapal');
+    expect($pesapal)->not->toBeNull();
+    expect((string) $pesapal['warn'])->toContain('Deprecated');
 });
 
 it('toggle endpoint inverte ativo do credential', function () {
