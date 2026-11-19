@@ -422,13 +422,11 @@ Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 # lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
 # Schema sintetico montado no beforeEach, sem migration MySQL-only.
 #
-# FICA DE FORA — 1 arquivo (era 4 ate 2026-08-03; os outros 3 foram consertados,
-# ver abaixo):
-#
-# PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST por
-# desenho: denuncia a assinatura com valor negociado que nunca fatura, e o remedio
-# e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o vermelho que e
-# o ACHADO travaria todo merge em main.
+# PlanoSemFaturaContratoTest.php (UC-RBSUB-05) ficou DE FORA ate 2026-11-19: era
+# FAILING-FIRST (denunciava a assinatura com valor negociado que nunca faturava) e
+# o vermelho numa lane required travaria todo merge. Deixou de ser failing-first em
+# 2026-10-19 (#9606, remedio "a" de [W]: sem plano, o gerador fatura pelo valor
+# negociado) e passa na modules-pest (run 44412487544). Entrou abaixo em 2026-11-19.
 #
 # ── OS 3 QUE VOLTARAM (2026-08-03) ───────────────────────────────────────────
 # Reprovaram no run 30778559754, quando a lane os rodou pela PRIMEIRA vez. Divida
@@ -455,6 +453,7 @@ Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 #    query-builder + pre-condicao anti-vacuo provando que a assinatura voltou a ser
 #    candidata. O servico esta correto e nao foi tocado.
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookAuthTest.php
+Modules/RecurringBilling/Tests/Feature/PlanoSemFaturaContratoTest.php
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php
 Modules/RecurringBilling/Tests/Feature/AssinaturaCobrancaServiceTest.php
 Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php
