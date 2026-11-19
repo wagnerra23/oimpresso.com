@@ -139,7 +139,7 @@ it('UC-RBPA-03 · rodar duas vezes no mesmo dia não cobra duas vezes', function
     Http::assertSentCount(2); // 1 token + 1 cobrança
 });
 
-it('UC-RBPA-04 · erro do banco marca a cobrança como erro e a rodada seguinte tenta de novo com outro txid', function () {
+it('UC-RBPA-04 · erro do banco marca a cobrança como erro e a rodada seguinte tenta de novo com o MESMO txid', function () {
     paCredencial($this->b98);
     $sub = paAssinatura($this->b98, 5);
     Http::fake([
@@ -152,8 +152,53 @@ it('UC-RBPA-04 · erro do banco marca a cobrança como erro e a rodada seguinte 
     app(CobradorPixAutomatico::class)->cobrar($this->b98, PA_HOJE);
 
     $cob = paCobrancas($sub);
+    $fatura = (int) $cob[0]->origem_id;
     expect($cob->pluck('status')->all())->toBe(['erro', 'emitida'])
-        ->and($cob[0]->idempotency_key)->not->toBe($cob[1]->idempotency_key);
+        ->and($cob[1]->idempotency_key)->toBe("rb-cobr-{$fatura}-1")             // a chave do ciclo
+        ->and($cob[0]->idempotency_key)->toBe("rb-cobr-{$fatura}-1#erro{$cob[0]->id}"); // a linha com erro fica, com a chave renomeada
+    $puts = collect(Http::recorded())->map(fn ($par) => $par[0])->filter(fn ($r) => $r->method() === 'PUT')->map(fn ($r) => $r->url())->values();
+    expect($puts)->toHaveCount(2)
+        ->and($puts->unique())->toHaveCount(1)
+        ->and($puts[0])->toEndWith('/v2/cobr/'.BcbPixDriver::txidDe("rb-cobr-{$fatura}-1"));
+});
+
+it('UC-RBPA-04 · d8: timeout depois de o banco aceitar não abre segunda cobrança — a retentativa repete o txid', function () {
+    // O banco aceitou a 1ª (a resposta se perdeu: aqui, 500) e recusa a 2ª por txid repetido.
+    // Com txid novo na retentativa (comportamento até 2026-11-19), a 2ª chamada criaria outra
+    // cobrança do mesmo ciclo no banco: o pagador pagaria duas vezes.
+    paCredencial($this->b98);
+    $sub = paAssinatura($this->b98, 5);
+    Http::fake([
+        '*/oauth/token' => Http::response(['access_token' => 'tk'], 200),
+        '*/v2/cobr/*' => Http::sequence()->push(['erro' => 'timeout'], 500)->push(['title' => 'txid em uso'], 409),
+    ]);
+
+    app(CobradorPixAutomatico::class)->cobrar($this->b98, PA_HOJE);
+    app(CobradorPixAutomatico::class)->cobrar($this->b98, PA_HOJE);
+
+    $txids = collect(Http::recorded())->map(fn ($par) => $par[0])
+        ->filter(fn ($r) => $r->method() === 'PUT')
+        ->map(fn ($r) => substr($r->url(), strrpos($r->url(), '/') + 1))->values();
+    expect($txids)->toHaveCount(2)                       // as duas rodadas chegaram ao banco
+        ->and($txids->unique())->toHaveCount(1)           // com UM txid só
+        ->and(paCobrancas($sub)->pluck('status')->all())->toBe(['erro', 'erro']);
+});
+
+it('UC-RBPA-04 · cobrança cancelada encerra a tentativa: a seguinte usa chave e txid novos', function () {
+    paCredencial($this->b98);
+    $sub = paAssinatura($this->b98, 5);
+    paBancoOk();
+
+    app(CobradorPixAutomatico::class)->cobrar($this->b98, PA_HOJE);
+    $primeira = paCobrancas($sub)->first();
+    DB::table('cobrancas')->where('id', $primeira->id)->update(['status' => 'cancelada']);
+    app(CobradorPixAutomatico::class)->cobrar($this->b98, PA_HOJE);
+
+    $cob = paCobrancas($sub);
+    $fatura = (int) $primeira->origem_id;
+    expect($cob->pluck('status')->all())->toBe(['cancelada', 'emitida'])
+        ->and($cob[0]->idempotency_key)->toBe("rb-cobr-{$fatura}-1")
+        ->and($cob[1]->idempotency_key)->toBe("rb-cobr-{$fatura}-2");
 });
 
 it('UC-RBPA-05 · dry-run lista o que seria cobrado e não grava nem chama o banco', function () {

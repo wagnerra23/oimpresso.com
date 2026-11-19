@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1049,
-    "edges": 1413,
+    "nodes": 1050,
+    "edges": 1414,
     "by_node_type": {
       "module": 45,
       "table": 136,
       "adr": 157,
-      "component": 611,
+      "component": 612,
       "api": 100
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 85,
-      "hasComponent": 611,
+      "hasComponent": 612,
       "dependsOn": 157,
       "delegatesTo": 142,
       "migratesTo": 1,
@@ -2581,11 +2581,11 @@
       "desc": "UC-CVPAC-01..03)"
     },
     {
-      "id": "component:ComunicacaoVisual/InstalacaoCampoController",
+      "id": "component:ComunicacaoVisual/InstalacaoCampoController + ProtocoloInstalacao",
       "type": "component",
       "module": "ComunicacaoVisual",
-      "name": "InstalacaoCampoController",
-      "desc": "/comunicacao-visual/instalacoes/{id}, US-COMVIS-007 · UC-PCV-25)"
+      "name": "InstalacaoCampoController + ProtocoloInstalacao",
+      "desc": "/comunicacao-visual/instalacoes/{id} e /{id}/protocolo, US-COMVIS-007 · UC-PCV-25)"
     },
     {
       "id": "component:ComunicacaoVisual/InstalacaoComprovanteController + ComprovanteInstalacao",
@@ -2642,6 +2642,13 @@
       "module": "ComunicacaoVisual",
       "name": "Public/OrcamentoAceitePublicoController",
       "desc": "página pública SEM login onde o cliente aceita ou pede ajuste do orçamento (/orcamento-cv/{token}, token sha256 de uso único, throttle 30/1, US-COMVIS-023 · UC-CVACEP-01..04)"
+    },
+    {
+      "id": "component:ComunicacaoVisual/Public/ProtocoloInstalacaoPublicoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Public/ProtocoloInstalacaoPublicoController",
+      "desc": "link público SEM login do protocolo da instalação concluída, que vai ao cliente (/instalacao-cv/{biz}/{id}/protocolo, URL assinada com validade de 7 dias, throttle 30/1, US-COMVIS-007 · UC-CVINST-15..16)"
     },
     {
       "id": "component:ComunicacaoVisual/RoteiroPadraoController",
@@ -10267,7 +10274,7 @@
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "component:ComunicacaoVisual/InstalacaoCampoController",
+      "to": "component:ComunicacaoVisual/InstalacaoCampoController + ProtocoloInstalacao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -10316,6 +10323,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Public/ProtocoloInstalacaoPublicoController",
       "type": "hasComponent",
       "source": "contains"
     },
