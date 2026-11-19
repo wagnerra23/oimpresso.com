@@ -28,7 +28,7 @@ export interface ValorDaGrade {
   preco: PrecoSimples;
   /** Sub-SKU digitado. Vazio: o servidor gera pelo formato (`generateSubSku`). */
   subSku?: string;
-  /** Fotos do valor. Não vão para o rascunho: arquivo não sobrevive ao localStorage. */
+  /** Fotos do valor. Não vão para o rascunho: arquivo não pode ser guardado no navegador. */
   imagens?: File[];
 }
 
@@ -84,7 +84,7 @@ export function aplicarATodos(grade: Grade, i: number, campo: 'compra' | 'margem
   };
 }
 
-/** A grade sem as fotos, para o rascunho (arquivo não sobrevive ao localStorage). */
+/** A grade sem as fotos, para o rascunho (arquivo não pode ser guardado no navegador). */
 export function gradeSemArquivos(grade: Grade): Grade {
   return { ...grade, valores: grade.valores.map(({ imagens: _imagens, ...v }) => v) };
 }
