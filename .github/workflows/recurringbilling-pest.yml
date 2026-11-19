@@ -114,19 +114,15 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p test-results
-          TARGETS=(
-            Modules/RecurringBilling/Tests/Feature/WebhookPixAutomaticoContratoTest.php
-            Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php
-            Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php
-            Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php
-            Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php
-          )
-          for f in "${TARGETS[@]}"; do
-            [ -f "$f" ] || { echo "::error::alvo inexistente: $f"; exit 1; }
-          done
+          # Alvos DEPOIS do vendor/bin/pest, na própria linha de comando: é o que o
+          # test-lane-coverage.mjs lê (ele não segue array de shell declarado antes).
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-recurringbilling-junit.xml \
-            "${TARGETS[@]}"
+            Modules/RecurringBilling/Tests/Feature/WebhookPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php
 
       # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
