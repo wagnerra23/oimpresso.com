@@ -20,6 +20,8 @@
 Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysControllerTest.php  # Class "App\Role" not found (classe removida)
 Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysHistoryTest.php  # Class "App\Role" not found
 Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysQuotaTest.php  # Class "App\Role" not found
+Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysWebhookEventsTest.php  # Class "App\Role" not found
+Modules/PaymentGateway/Tests/Feature/Settings/SellsCobrancaChipTest.php  # Class "App\Role" not found
 #
 # ── B. era-sqlite que FALHAM também no sqlite (run 40736895552 do ci.yml, 2026-10-28).
 # Pulam no MySQL (schema sintético) e quebram no sqlite por fixture desatualizada. Os outros

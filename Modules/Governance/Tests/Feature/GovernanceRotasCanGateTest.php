@@ -20,12 +20,14 @@ uses(Tests\TestCase::class);
  *   middleware está ARMADO na rota; quem executa a decisão é o Laravel.
  *
  * ⚠️ O QUE ELE NÃO PROVA — declarado para ninguém ler verde onde não há:
- *   Que o acesso está FECHADO. `AuthServiceProvider` registra um `Gate::before`
- *   que devolve `true` para quem tem a role `Admin#{business_id}` em qualquer
- *   ability fora de backup/superadmin/manage_modules — medido em 2026-09-08.
- *   Logo `can:` barra usuário não-admin sem a permission, e NÃO barra o admin
- *   de um business. Fechar aquele caminho é o passo 1 da ADR 0392 (o conflito
- *   A×B da CONCESSÃO), decisão [W] em aberto.
+ *   Que o acesso está FECHADO para o dono de uma empresa. `AuthServiceProvider`
+ *   registra um `Gate::before` que devolve `true` para a role `Admin#{business_id}`
+ *   em toda ability fora das três reservadas e de `permissoesDePlataforma()`
+ *   (ADR 0415, aceita 2026-09-24). `governance.*` não está nessa lista, então
+ *   `can:` barra o usuário sem a permission e NÃO barra o dono. Tratar
+ *   `governance.*` como plataforma é o passo 3 da ADR 0392, decisão [W] em
+ *   aberto (estado conferido em 2026-11-19). A recusa HTTP de quem não tem a
+ *   permission é provada em tests/Feature/Governance/DashboardAcessoGateTest.php.
  *
  * ⚠️ POR QUE NENHUM `toContain(needle, mensagem)` AQUI:
  *   `toContain` do Pest é VARIÁDICO — o 2º argumento vira outro needle, não
@@ -53,6 +55,7 @@ describe('Governance — gate can: armado por rota', function () {
 
     it('cada tela sem gate próprio passa a exigir a permission da sidebar', function () {
         $esperado = [
+            'governance.admin.dashboard.legacy' => 'can:governance.dashboard.view',
             'governance.policies.index'      => 'can:governance.dashboard.view',
             'governance.policies.toggle'     => 'can:governance.policies.edit',
             'governance.audit.index'         => 'can:governance.audit.view',
@@ -79,7 +82,7 @@ describe('Governance — gate can: armado por rota', function () {
             ->all();
 
         $usadas = collect([
-            'governance.policies.index', 'governance.policies.toggle', 'governance.audit.index',
+            'governance.admin.dashboard.legacy', 'governance.policies.index', 'governance.policies.toggle', 'governance.audit.index',
             'governance.drift.index', 'governance.ds-rollout.index',
         ])
             ->flatMap(fn (string $n) => govMiddlewareDaRota($n))

@@ -11,6 +11,7 @@ use Tests\Support\WithSeededTenant;
 uses(Tests\TestCase::class, WithSeededTenant::class);
 
 /**
+ * @covers-us US-GOV-062
  * DS Rollout · smoke + contrato da prop `census` (/governance/ds-rollout).
  *
  * A tela é um PLANO estático (blocos A/B/C/D) + o Ledger de Conformidade DS

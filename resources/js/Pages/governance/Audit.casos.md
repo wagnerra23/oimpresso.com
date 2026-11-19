@@ -4,7 +4,7 @@ casos: Audit · Drill-down forense do mcp_audit_log · /governance/audit
 irmaos: Audit.charter.md (lei) · governance-audit-gap.md (GAP-SPEC canon) · RUNBOOK-audit.md
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-19"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes governance-filtros-gate (vitest) e ci-sqlite-pest (Pest)"
 ---
 
@@ -81,6 +81,15 @@ bloqueia, ADR 0084)"; §UX Anti-patterns: "❌ Edit inline em entry". RUNBOOK §
 entry é incidente P0.
 **Pronto quando:** toda rota sob `governance/audit` aceita só GET/HEAD, e o `AuditController` não tem
 ação pública além de `index`.
+
+## UC-GAUD-09 — Filtro fora da lista é recusado no servidor
+Status: 🧪 (Pest `tests/Feature/Governance/MenuPermissaoContratoTest.php` — "UC-GAUD-09 · …")
+Fonte: docblock do `FilterAuditRequest` (whitelist de período, status e slug do actor) e o enum de
+`mcp_audit_log.status` na migration da Forja; auditoria do módulo 2026-11-19 (eixo 5, B1: a request
+existia e o controller não a usava). Até 2026-11-19 um período desconhecido caía calado no padrão de 24h.
+**Pronto quando:** o `index` recebe o `FilterAuditRequest`; período fora de 1h/24h/7d/30d, status fora de
+ok/error/denied/quota_exceeded e actor com caractere fora de letra/número/hífen são recusados; os valores
+que a tela oferece passam.
 
 ## [BACKLOG] — sem teste que os cite, por isso sem id
 

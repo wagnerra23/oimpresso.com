@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\User;
 use Carbon\CarbonImmutable;
 use Modules\PaymentGateway\Models\Cobranca;
@@ -28,12 +28,12 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  */
 
 beforeEach(function () {
-    setPermissionsTeamId(1);
-
-    $this->business = Business::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'Test HQ', 'currency_id' => 1],
-    );
+    // Tenant fictício 98 (ADR 0358), semeado pela pest-mysql-setup. Sem ele, skip.
+    $this->business = Business::find(98);
+    if (! $this->business) {
+        $this->markTestSkipped('Lane sem tenant 98 semeado (ADR 0358).');
+    }
+    setPermissionsTeamId($this->business->id);
 
     $role = Role::firstOrCreate(
         ['name' => "Admin#{$this->business->id}", 'business_id' => $this->business->id, 'guard_name' => 'web'],
@@ -107,11 +107,8 @@ it('retorna 200 + counts agrupados por tipo quando credencial tem cobranças no 
 });
 
 it('Tier 0: credencial de outro business → 404 (não vaza count cross-tenant)', function () {
-    // Cria business 2 + credencial nele
-    $otherBiz = Business::query()->firstOrCreate(
-        ['id' => 2],
-        ['name' => 'Other HQ', 'currency_id' => 1],
-    );
+    // Credencial no adversário 99
+    $otherBiz = $this->seededSupportClientTenant();
 
     $otherCred = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id'   => $otherBiz->id,
@@ -122,7 +119,7 @@ it('Tier 0: credencial de outro business → 404 (não vaza count cross-tenant)'
         'health_status' => 'unknown',
     ]);
 
-    // Cria cobranças no business 2 sem global scope
+    // Cobranças no adversário 99, sem global scope
     Cobranca::withoutGlobalScopes()->create([
         'business_id'                   => $otherBiz->id,
         'payment_gateway_credential_id' => $otherCred->id,
@@ -134,7 +131,7 @@ it('Tier 0: credencial de outro business → 404 (não vaza count cross-tenant)'
         'idempotency_key'               => 'quota-cross-'.uniqid('', true),
     ]);
 
-    // User do biz=1 tenta acessar quota da credencial do biz=2
+    // Sessão da 98 tenta ler quota da credencial da 99
     $response = $this->actingAs($this->user)
         ->withSession([
             'user.business_id' => $this->business->id,
