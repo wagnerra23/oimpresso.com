@@ -668,6 +668,7 @@ jobs:
             tests/Feature/Sells/SellsCondicaoClienteContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/Sells/CatalogueQrMenuContratoTest.php \
+            tests/Feature/Sells/VendaV3MenuContratoTest.php \
             tests/Feature/Sells/CatalogoPublicoXssContratoTest.php \
             Modules/ProductCatalogue/Tests/Feature \
             tests/Feature/Sells/CatalogoPublicoDescontoContratoTest.php \

@@ -241,3 +241,51 @@ it('idempotente: cobrança já paga não regride/duplica (status permanece paga)
 
     expect($cobranca->fresh()->status)->toBe('paga');
 });
+
+// ── Auditoria PG lote 2.1: lock + não redisparar ─────────────────────────────
+// Tenant fictício 98 (ADR 0358). Valores em centavos sintéticos.
+
+it('2.1 duas chamadas na mesma cobrança → um único CobrancaPaga', function () {
+    Event::fake([CobrancaPaga::class]);
+    $cobranca = novaCobranca(['business_id' => 98, 'valor_centavos' => 4321]);
+    $svc = app(ReconciliarCobrancaService::class);
+
+    $primeira = $svc->marcarPaga($cobranca, 98, 4321, new DateTimeImmutable('2026-06-01 10:00:00'), 'pix');
+    $segunda = $svc->marcarPaga($cobranca, 98, 4321, new DateTimeImmutable('2026-06-01 10:05:00'), 'pix');
+
+    expect($primeira)->toBeTrue();
+    expect($segunda)->toBeFalse();
+    Event::assertDispatchedTimes(CobrancaPaga::class, 1);
+});
+
+it('2.1 corrida webhook × polling: instância velha em memória não redispara nem sobrescreve', function () {
+    Event::fake([CobrancaPaga::class]);
+    $criada = novaCobranca(['business_id' => 98, 'valor_centavos' => 4321]);
+    // Dois workers carregaram a mesma linha enquanto ela ainda estava 'emitida'.
+    $doWebhook = Cobranca::withoutGlobalScopes()->find($criada->id);
+    $doPolling = Cobranca::withoutGlobalScopes()->find($criada->id);
+    expect($doPolling->status)->toBe('emitida');
+
+    $svc = app(ReconciliarCobrancaService::class);
+    $svc->marcarPaga($doWebhook, 98, 4321, new DateTimeImmutable('2026-06-01 10:00:00'), 'pix');
+    $marcou = $svc->marcarPaga($doPolling, 98, 1234, new DateTimeImmutable('2026-06-02 11:00:00'), 'boleto');
+
+    expect($marcou)->toBeFalse();
+    Event::assertDispatchedTimes(CobrancaPaga::class, 1);
+    $banco = $criada->fresh();
+    expect($banco->valor_pago_centavos)->toBe(4321);
+    expect($banco->forma_pagamento)->toBe('pix');
+    // A instância velha é sincronizada com o que está no banco.
+    expect($doPolling->status)->toBe('paga');
+});
+
+it('2.1 cobrança de outro business não é marcada (lock filtra pelo business do caller)', function () {
+    Event::fake([CobrancaPaga::class]);
+    $cobranca = novaCobranca(['business_id' => 99, 'valor_centavos' => 4321]);
+
+    $marcou = app(ReconciliarCobrancaService::class)->marcarPaga($cobranca, 98, 4321, new DateTimeImmutable(), 'pix');
+
+    expect($marcou)->toBeFalse();
+    expect($cobranca->fresh()->status)->toBe('emitida');
+    Event::assertNotDispatched(CobrancaPaga::class);
+});

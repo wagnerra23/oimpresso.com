@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Modules\Governance\Http\Controllers\DashboardController;
 
 /**
+ * @covers-us US-GOV-001
  * UC-GDSH-06 — o filtro de período da seção MCP é whitelist server-side e degrada pra `30d`.
  *
  * Contrato (não derivado do .tsx):
