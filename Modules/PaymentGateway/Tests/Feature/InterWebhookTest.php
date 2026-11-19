@@ -83,7 +83,7 @@ it('aceita webhook PIX com signature HMAC válida e cria InterWebhookLog', funct
                 // CPF sintético PONTUADO com DV inválido (nunca um CPF que possa existir): o
                 // PiiRedactor redige CPF pontuado sempre, com DV válido ou não ("formato é
                 // declaração"), então o teste prova a redação sem carregar CPF válido.
-                'cpf'  => '123.456.789-00',
+                'cpf'  => '123.456.789-00', // pii-allowlist (sintético, DV inválido)
                 'nome' => 'João da Silva',
             ],
         ]],
@@ -104,7 +104,7 @@ it('aceita webhook PIX com signature HMAC válida e cria InterWebhookLog', funct
     expect($log->signature_valid)->toBeTrue();
     expect($log->status)->toBe('received');
     // LGPD: CPF NÃO grava em raw — apenas redacted
-    expect($log->payer_cpf_cnpj_redacted)->not->toContain('123.456.789-00');
+    expect($log->payer_cpf_cnpj_redacted)->not->toContain('123.456.789-00'); // pii-allowlist (sintético)
     expect($log->payer_cpf_cnpj_redacted)->toContain('[REDACTED');
 
     Queue::assertPushed(ProcessarWebhookPixInterJob::class, function ($job) use ($log) {
