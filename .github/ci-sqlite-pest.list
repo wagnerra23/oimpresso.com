@@ -825,6 +825,10 @@ tests/Feature/Architecture/SuperadminScheduledCommandsRegisteredTest.php
 Modules/Financeiro/Tests/Feature/ListenersPorDispatcherContratoTest.php
 # Consumidor da fila nfse (auditoria NFSe, 2026-11-17): DB-less, só lê o Schedule.
 tests/Feature/Console/NfseQueueWorkerScheduleTest.php
+# Governance L1.2 (2026-11-19): os 2 Unit do módulo, sem banco (lógica pura do sentinela
+# e o registro das migrations). Rodavam só na jana-logica-pura, que não é required.
+Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php
+Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php
 # Governance L1 (2026-11-19): 20 testes do módulo que não rodavam em lane nenhuma.
 # Medido no run 44512663595 (sonda com os 34 órfãos nesta lista): estes passaram com
 # 0 falha e assertions > 0; o OtelHelperRealSdk pula 1 caso por desenho (ramo SDK
