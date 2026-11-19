@@ -784,7 +784,7 @@
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2027-02-19",
-      "anchor": "Nenhuma lane MySQL rodava testes do Governance (modules-pest.yml nao tem o modulo e roda em sqlite; ci-sqlite-pest.list sobe sem migrate). Nasce no lote L0 da auditoria do Governance (2026-11-19): /governance/dashboard passou a exigir can:governance.dashboard.view e o contrato HTTP (403 sem a permissao, 200 com ela, tenant ficticio 98) precisa de schema UltimatePOS, papel Spatie e sessao de negocio — em sqlite ele pula e skip sai exit 0 (LC-13). --check-assertions arma a regua contra verde por nao-execucao.",
+      "anchor": "Nenhuma lane MySQL rodava testes do Governance (modules-pest.yml nao tem o modulo e roda em sqlite; ci-sqlite-pest.list sobe sem migrate). Nasce no lote L0 da auditoria do Governance (2026-11-19): /governance/dashboard passou a exigir can:governance.dashboard.view e o contrato HTTP (403 sem a permissao, 200 com ela, tenant ficticio 98) precisa de schema UltimatePOS, papel Spatie e sessao de negocio — em sqlite ele pula e skip sai exit 0 (LC-13). --check-assertions arma a regua contra verde por nao-execucao. Desde o L1.2 (auditoria 2026-11-19) roda a arvore Modules/Governance/Tests menos a lista sqlite menos .github/governance-pest-quarantine.list (35 de 48 testes do modulo nao rodavam em lane nenhuma).",
       "promote_by_razao": "Nasce advisory (ADR 0275); promocao a required so com mordida provada (ADR 0336) e flip [W]."
     },
     "dashboard-pest.yml": {

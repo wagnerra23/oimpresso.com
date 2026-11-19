@@ -51,13 +51,22 @@ function interCertNaPasta(int $businessId, int $credId, string $nome, string $co
     return realpath(Storage::disk('local')->path($rel));
 }
 
-/** Chama o mtlsOptions (privado) para uma credencial. */
+/**
+ * Chama o mtlsOptions (privado) para uma credencial.
+ *
+ * O driver fica guardado até o próximo chamado: o __destruct dele apaga os PEM
+ * temporários do base64 inline, e um `new InterDriver()` descartável os apagava
+ * antes de o teste ler o arquivo devolvido.
+ */
 function interMtls(PaymentGatewayCredential $cred): array
 {
+    static $driver = null;
+    $driver = new InterDriver();
+
     $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
     $ref->setAccessible(true);
 
-    return $ref->invoke(new InterDriver(), $cred);
+    return $ref->invoke($driver, $cred);
 }
 
 /** Stub de cobrança (driver só lê gateway_external_id + tipo). */

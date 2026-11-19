@@ -5,8 +5,8 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-11-18"
-last_run_ci: "2026-11-18: a tela ganhou o bloco NFS-e (ambiente + prestador) da aba Ambiente; UC-FCFG-13/14 nascem com NfseConfiguracaoContratoTest, veredito da lane NFSe PENDENTE. UC-FCFG-01..12 não foram re-executados (backend deles não mudou). 2026-10-21: UC-FCFG-10 nasceu com ContingenciaModoTest, 12 passed no CT 100"
+last_run: "2026-11-19"
+last_run_ci: "2026-11-19: UC-FCFG-17/18 (validade do certificado e painel) entraram pelo #11249 e não citam o card de envio. o card Envio de documentos passa a ter escolha por empresa (UC-FCFG-16, ConfigControllerTest, veredito da lane NfeBrasil MySQL pendente do CI); UC-FCFG-05 segue valendo para a empresa sem escolha. A aba Séries (UC-FCFG-15, #11187) veio do main. UC-FCFG-01..04 e 06..14 relidos: nenhum cita o card de envio nem a aba Séries. 2026-11-18: a tela ganhou o bloco NFS-e (ambiente + prestador) da aba Ambiente; UC-FCFG-13/14 nascem com NfseConfiguracaoContratoTest, veredito da lane NFSe PENDENTE. UC-FCFG-01..12 não foram re-executados (backend deles não mudou). 2026-10-21: UC-FCFG-10 nasceu com ContingenciaModoTest, 12 passed no CT 100"
 related_us: [US-FISCAL-009]
 ---
 
@@ -78,9 +78,12 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-10 | a contingência é ativada com o modo escolhido (SVC-AN · SVC-RS · EPEC), e a SVC errada para a UF é recusada | `[must]` `[fiscal]` | US-NFE-071 | `ContingenciaModoTest` (3) | 🧪 |
 | UC-FCFG-11 | certificado sem CNPJ titular mostra o CNPJ da empresa | `[should]` | CU-FISC-14 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-12 | a configuração fiscal mostrada é a da própria empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-17 | a validade do certificado tem três tons | `[should]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-18 | o painel mostra série, próximo número e tributação padrão | `[should]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-13 | ambiente e prestador da NFS-e gravam na empresa da sessão | `[must]` `[T0]` | CU-FISC-12 | `NfseConfiguracaoContratoTest` | 🧪 |
 | UC-FCFG-14 | trocar o ambiente da NFS-e tem a trava da NF-e | `[must]` `[T0]` | CU-FISC-13 | `NfseConfiguracaoContratoTest` | 🧪 |
 | UC-FCFG-15 | a aba Séries mostra as séries reais da empresa | `[must]` `[T0]` | CU-FISC-16 | `ConfigControllerTest` | 🧪 |
+| UC-FCFG-16 | o envio automático do DANFE é escolhido por empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 
 ---
 
@@ -154,8 +157,9 @@ related_us: [US-FISCAL-009]
 - **Ausência declarada, não preenchida (até 2026-10-07):** a linha **Contador** do protótipo não
   tinha campo no schema, e a tela dizia *"não cadastrado — ainda não existe campo"* em vez de
   inventar endereço. Desde a thread 15c a linha é o cadastro real — contrato em `UC-FCFG-08`.
-- **Escopo dito em texto:** as duas chaves valem por **deploy**, não por empresa. O card afirma
-  isso; um selo por-empresa aqui mentiria sobre o alcance da configuração.
+- **Escopo dito em texto (até 2026-11-19):** as duas chaves valiam só por **deploy**, e o card dizia
+  isso. Desde o UC-FCFG-16 cada empresa escolhe; este caso segue valendo para a empresa sem escolha
+  ("Padrão do servidor"), que é a situação do teste.
 - **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-05 · o card de envio de documentos espelha as flags REAIS do deploy')`
 - **Status:** 🧪 teste nasce nesta corrida; veredito pendente da lane.
 
@@ -295,6 +299,26 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 
+## UC-FCFG-17 — A validade do certificado tem três tons `[should]`
+
+**Dado** o número de dias até o certificado vencer
+**Quando** a tela classifica a validade
+**Então** antes de hoje é "vencido"; de hoje até 30 dias é "perto de vencer"; acima de 30 é "tranquilo"; sem data, sem tom.
+
+- **Fonte:** `ConfigController::alertaValidade` (o cálculo saiu de dentro do `index` em 2026-11-19 para ter teste; o comportamento é o mesmo).
+- **Teste:** `ConfigControllerTest` — `it('UC-FCFG-17 · a validade do certificado tem três tons, com os limiares de 0 e 30 dias')`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FCFG-18 — O painel mostra série, próximo número e tributação padrão `[should]`
+
+**Dado** a empresa com série 7, último número 1233, regime Simples, CFOP 5102 e CSOSN 102
+**Quando** abre a tela
+**Então** o painel mostra série 7, último 1233, próximo 1234, regime, CFOP e CSOSN da empresa.
+
+- **Isolamento:** a leitura é por consulta direta, com a empresa da sessão aplicada à mão (SDD §5.2); o isolamento já é o UC-FCFG-12.
+- **Teste:** `ConfigControllerTest` — `it('UC-FCFG-18 · o painel mostra a série e o próximo número da empresa, e a tributação padrão')`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## UC-FCFG-13 — Ambiente e prestador da NFS-e gravam na empresa da sessão `[must]` `[T0]`
 
 **Dado** duas empresas e um usuário com `fiscal.config.edit` na primeira
@@ -329,17 +353,31 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 
 ---
 
+## UC-FCFG-16 — O envio automático do DANFE é escolhido por empresa `[must]` `[T0]`
+
+**Dado** duas empresas com configuração fiscal e a instalação com a NF-e desligada e a NFC-e ligada
+**Quando** um usuário com `fiscal.config.edit` liga a NF-e e desliga a NFC-e na sua empresa (mesmo mandando o `business_id` da outra no corpo)
+**Então** a escolha grava na empresa da sessão e vence a chave do servidor nos listeners do DANFE; a outra empresa continua seguindo o servidor; "Padrão do servidor" devolve à chave da instalação; sem `fiscal.config.edit` é 403 e nada grava.
+
+- **Por que existe:** decisão do lote 2 dos débitos do Fiscal (2026-11-19). Antes as duas chaves eram só de deploy. Colunas `email_danfe_nfe` / `email_danfe_nfce` em `nfe_business_configs`, nulas = segue o servidor, então nenhuma empresa existente muda de comportamento.
+- **Sem configuração fiscal:** a escolha não grava (não se cria configuração com regime padrão só para isso, porque isso mudaria a emissão).
+- **Fonte:** `NfeBusinessConfig::envioDanfeAtivo`, lido por `EnviarDanfePorEmail` e `EnviarDanfeNFCePorEmail` com o `business_id` da própria nota (a fila não tem sessão).
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-16 · o envio automático do DANFE é escolhido por empresa e grava só na empresa da sessão')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
-- **[BACKLOG · ⬜ sem teste] A validade do certificado aparece com três tons de urgência** — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
-- **[BACKLOG · ⬜ sem teste] O painel mostra regime, série, próximo número e tributação padrão** — leitura consolidada do que o NfeBrasil guarda. _Sem teste; note que esses dados são lidos por consulta direta à tabela, **fora** do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2)._
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCFG-17] ~~A validade do certificado aparece com três tons de urgência~~ — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCFG-18] ~~O painel mostra regime, série, próximo número e tributação padrão~~ — leitura consolidada do que o NfeBrasil guarda. _Sem teste; note que esses dados são lidos por consulta direta à tabela, **fora** do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2)._
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCFG-15] ~~A aba de séries mostra séries reais~~ — hoje ela é servida por **dado de demonstração** com uma filial inventada (`CU-FISC-16` do SDD §6.5 · §5.4.1). **Precisa de decisão [W].**
 - ~~**[BACKLOG · ⬜ sem contrato · decisão [W]] Trocar o ambiente SEFAZ e enviar certificado a partir desta tela**~~ → **ganhou contrato em 2026-09-04**: o charter foi reconciliado em 09-02 (a tela é editável) e o **gate** das duas ações virou `UC-FCFG-06`. A **cerimônia** da troca — destino digitado à mão + motivo de 15+ caracteres + evento de auditoria com o motivo — é a PR 3/3 do item A5, e ganha id próprio lá.
 - ~~**[BACKLOG · ⬜ sem campo · decisão [W]] Cadastrar o e-mail do contador**~~ → **ganhou contrato em 2026-10-07** (`UC-FCFG-08`): [W] decidiu na D-CONTADOR (2026-10-06) e a thread 15c criou a tabela `nfe_contadores` (tabela própria, não coluna). Segue aberto só o envio automático ao contador (cópia ou digest). Texto original: a linha existe no card
   (`UC-FCFG-05`) declarando a ausência. Dar valor a ela exige **coluna nova** em
   `nfe_business_configs` (migration em PR próprio, nunca junto de UI) e a decisão de se o envio ao
   contador é cópia automática de toda nota ou digest. _Sem contrato até [W] decidir._
-- **[BACKLOG · ⬜ sem campo · decisão [W]] Ligar/desligar o envio automático POR EMPRESA** — hoje as
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCFG-16] ~~Ligar/desligar o envio automático POR EMPRESA~~ — hoje as
   duas chaves são de deploy (`Modules/NfeBrasil/Config/config.php`), e o card diz isso. Tornar
   por-tenant é coluna nova + tela editável, não ajuste de leitura.
 - **[BACKLOG · 🧪 coberto em outra tela] O bloqueio do download de SPED por feature flag** tem contrato em [`Sped.casos.md`](Sped.casos.md) (`UC-FSPED-05`) — a aba "sped" desta tela apenas aponta para lá.
