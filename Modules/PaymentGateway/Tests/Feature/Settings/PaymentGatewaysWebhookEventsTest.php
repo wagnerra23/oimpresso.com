@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\User;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
@@ -26,12 +26,12 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  */
 
 beforeEach(function () {
-    setPermissionsTeamId(1);
-
-    $this->business = Business::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'Test HQ', 'currency_id' => 1],
-    );
+    // Tenant fictício 98 (ADR 0358), semeado pela pest-mysql-setup. Sem ele, skip.
+    $this->business = Business::find(98);
+    if (! $this->business) {
+        $this->markTestSkipped('Lane sem tenant 98 semeado (ADR 0358).');
+    }
+    setPermissionsTeamId($this->business->id);
 
     $role = Role::firstOrCreate(
         ['name' => "Admin#{$this->business->id}", 'business_id' => $this->business->id, 'guard_name' => 'web'],
@@ -112,10 +112,7 @@ it('NÃO expõe payload completo (LGPD/PCI guard)', function () {
 });
 
 it('Tier 0: credencial de outro business → 404', function () {
-    $otherBiz = Business::query()->firstOrCreate(
-        ['id' => 2],
-        ['name' => 'Other HQ', 'currency_id' => 1],
-    );
+    $otherBiz = $this->seededSupportClientTenant();
     $otherCred = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id'   => $otherBiz->id,
         'gateway_key'   => 'asaas',
