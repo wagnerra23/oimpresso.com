@@ -57,8 +57,8 @@ class PagarmeWebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'credential_not_found',
-            ], 404);
+                'error' => 'unauthorized',
+            ], 401);
         }
 
         // 2. Valida HMAC signature (X-Hub-Signature-256)
@@ -69,7 +69,7 @@ class PagarmeWebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'signature_invalid',
+                'error' => 'unauthorized',
             ], 401);
         }
 

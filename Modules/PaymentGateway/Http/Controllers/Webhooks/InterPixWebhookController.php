@@ -40,8 +40,10 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  *
  * Resposta:
  *   - 200 { ok: true, processed: int, duplicated: int } — sucesso (sempre, exceto signature inválida)
- *   - 401 { ok: false, error: "signature_invalid" } — HMAC inválido
- *   - 404 { ok: false, error: "credential_not_found" } — credentialId inválido
+ *   - 401 { ok: false, error: "unauthorized" } — credencial inexistente, de outro
+ *     gateway, INATIVA ou HMAC inválido. Mesma resposta para todos os casos, para
+ *     não revelar quais credenciais existem (US-PG-003; auditoria 2026-11-19, 3.2).
+ *     O motivo real fica no log.
  *
  * SEM auth middleware (chamado externamente pelo Inter).
  */
@@ -58,6 +60,7 @@ class InterPixWebhookController extends Controller
         $credential = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('id', $credentialId)
             ->where('gateway_key', 'inter')
+            ->where('ativo', true)
             ->first();
 
         if (! $credential) {
@@ -66,8 +69,8 @@ class InterPixWebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'credential_not_found',
-            ], 404);
+                'error' => 'unauthorized',
+            ], 401);
         }
 
         // 2. Valida HMAC signature
@@ -79,7 +82,7 @@ class InterPixWebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'signature_invalid',
+                'error' => 'unauthorized',
             ], 401);
         }
 

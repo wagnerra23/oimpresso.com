@@ -89,15 +89,15 @@ it('aceita webhook com HMAC válido e grava GatewayWebhookEvent', function () {
 it('rejeita 401 quando signature HMAC inválida', function () {
     postSicoobWebhook($this, 1, ['evento' => 'x', 'nossoNumero' => '1'], 'assinatura-falsa-deadbeef')
         ->assertStatus(401)
-        ->assertJsonFragment(['error' => 'signature_invalid']);
+        ->assertJsonFragment(['error' => 'unauthorized']);
 
     expect(GatewayWebhookEvent::query()->withoutGlobalScopes()->count())->toBe(0);
 });
 
-it('rejeita 404 quando business_id não tem credential sicoob_api ativa', function () {
+it('rejeita 401 quando business_id não tem credential sicoob_api ativa (mesma resposta da assinatura inválida)', function () {
     postSicoobWebhookSigned($this, 9999, ['evento' => 'x', 'nossoNumero' => '1'])
-        ->assertStatus(404)
-        ->assertJsonFragment(['error' => 'credential_not_found']);
+        ->assertStatus(401)
+        ->assertJsonFragment(['error' => 'unauthorized']);
 });
 
 it('rejeita 401 quando credential sem webhook_secret cadastrado (fail-secure)', function () {

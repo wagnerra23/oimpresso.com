@@ -18,7 +18,7 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  * Cenários:
  *   1. Signature válida + payload completo → InterWebhookLog created + job enfileirado
  *   2. Signature inválida → 401 + nenhuma linha em inter_webhook_log
- *   3. credentialId inexistente → 404
+ *   3. credentialId inexistente → 401 unauthorized (mesma resposta da assinatura inválida, US-PG-003)
  *   4. Sem secret cadastrado → 401 (fail-secure)
  *   5. Txid duplicado mesmo credencial → idempotente (1 linha, segundo POST devolve duplicated)
  *   6. Mesmo txid em credencial DIFERENTE → 2 linhas (UNIQUE inclui credential_id)
@@ -131,20 +131,54 @@ it('rejeita webhook com signature HMAC inválida → 401', function () {
     );
 
     $response->assertStatus(401);
-    $response->assertJson(['ok' => false, 'error' => 'signature_invalid']);
+    $response->assertJson(['ok' => false, 'error' => 'unauthorized']);
 
     expect(InterWebhookLog::withoutGlobalScopes()->count())->toBe(0);
     Queue::assertNothingPushed();
 });
 
-it('rejeita webhook quando credentialId não existe → 404', function () {
+it('credentialId inexistente responde igual à assinatura inválida (401 unauthorized)', function () {
     Queue::fake();
     $payload = ['pix' => [['txid' => 'x', 'valor' => '1.00']]];
 
-    $response = postWithValidSignature($this, 99999, $payload);
+    $inexistente = postWithValidSignature($this, 99999, $payload);
+    $assinaturaErrada = postWithValidSignature($this, $this->credential->id, $payload, 'segredo-errado');
 
-    $response->assertStatus(404);
-    $response->assertJson(['ok' => false, 'error' => 'credential_not_found']);
+    $inexistente->assertStatus(401);
+    $assinaturaErrada->assertStatus(401);
+    // Não dá para saber, pela resposta, se a credencial existe (US-PG-003).
+    expect($inexistente->json())->toBe($assinaturaErrada->json())
+        ->and($inexistente->json())->toBe(['ok' => false, 'error' => 'unauthorized']);
+    Queue::assertNothingPushed();
+});
+
+it('credencial INATIVA é recusada mesmo com assinatura válida', function () {
+    Queue::fake();
+    $this->credential->forceFill(['ativo' => false])->save();
+    $payload = ['pix' => [['txid' => 'inativa-001', 'valor' => '1.00']]];
+
+    postWithValidSignature($this, $this->credential->id, $payload)
+        ->assertStatus(401)
+        ->assertJson(['ok' => false, 'error' => 'unauthorized']);
+
+    expect(InterWebhookLog::withoutGlobalScopes()->where('txid', 'inativa-001')->count())->toBe(0);
+    Queue::assertNothingPushed();
+
+    // Controle positivo: reativada, o mesmo webhook entra.
+    $this->credential->forceFill(['ativo' => true])->save();
+    postWithValidSignature($this, $this->credential->id, $payload)->assertOk();
+    expect(InterWebhookLog::withoutGlobalScopes()->where('txid', 'inativa-001')->count())->toBe(1);
+});
+
+it('webhooks têm limite de taxa por IP: a 301ª chamada no minuto recebe 429', function () {
+    Queue::fake();
+    $payload = ['pix' => [['txid' => 'x', 'valor' => '1.00']]];
+
+    for ($i = 1; $i <= 300; $i++) {
+        postWithValidSignature($this, 99999, $payload)->assertStatus(401);
+    }
+
+    postWithValidSignature($this, 99999, $payload)->assertStatus(429);
     Queue::assertNothingPushed();
 });
 

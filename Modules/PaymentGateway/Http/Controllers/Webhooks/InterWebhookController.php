@@ -49,8 +49,8 @@ class InterWebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'credential_not_found',
-            ], 404);
+                'error' => 'unauthorized',
+            ], 401);
         }
 
         if (! $this->processor->validateSignature('inter', $request, $credential)) {
@@ -60,7 +60,7 @@ class InterWebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'signature_invalid',
+                'error' => 'unauthorized',
             ], 401);
         }
 

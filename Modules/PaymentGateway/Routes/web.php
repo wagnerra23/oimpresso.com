@@ -110,7 +110,10 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
 // ─── Webhooks (Onda 3) ───────────────────────────────────────────────────
 // SEM 'auth'/'authh' — chamados externamente pelo gateway.
 // HMAC validation chega na Onda 4 quando drivers reais existirem.
-Route::middleware(['web'])
+// Limite por IP só nas rotas de webhook (auditoria 2026-11-19, 3.2): rota pública,
+// sem auth, que consulta credencial a cada chamada. 300/min cabe as rajadas de
+// reenvio dos gateways; settings e TEF não entram.
+Route::middleware(['web', 'throttle:300,1'])
     ->prefix('paymentgateway/webhooks')
     ->group(function () {
         Route::post('inter/{businessId}', [InterWebhookController::class, 'handle'])
@@ -147,7 +150,7 @@ Route::middleware(['web'])
 // obrigatória (header x-inter-signature) + idempotência por (cred_id, txid)
 // + Job worker enfileirado pra resolver cobranca → titulo.
 // SEM auth — chamado pelo Inter externamente.
-Route::middleware(['web'])
+Route::middleware(['web', 'throttle:300,1'])
     ->group(function () {
         Route::post('webhooks/inter/{credentialId}', [InterPixWebhookController::class, 'handle'])
             ->whereNumber('credentialId')

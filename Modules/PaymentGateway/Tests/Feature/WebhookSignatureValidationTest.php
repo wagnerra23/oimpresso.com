@@ -389,7 +389,7 @@ it('asaas: token errado → 401 + NÃO grava evento', function () {
     );
 
     $response->assertStatus(401);
-    $response->assertJson(['ok' => false, 'error' => 'signature_invalid']);
+    $response->assertJson(['ok' => false, 'error' => 'unauthorized']);
     expect(GatewayWebhookEvent::withoutGlobalScopes()->count())->toBe(0);
 });
 
@@ -410,7 +410,7 @@ it('inter legacy: HMAC inválido → 401 + NÃO grava evento (anti-spoofing)', f
     );
 
     $response->assertStatus(401);
-    $response->assertJson(['ok' => false, 'error' => 'signature_invalid']);
+    $response->assertJson(['ok' => false, 'error' => 'unauthorized']);
     expect(GatewayWebhookEvent::withoutGlobalScopes()->count())->toBe(0);
 });
 
@@ -431,7 +431,7 @@ it('c6: header X-Hub-Signature-256 ausente → 401 + NÃO grava evento', functio
     );
 
     $response->assertStatus(401);
-    $response->assertJson(['ok' => false, 'error' => 'signature_invalid']);
+    $response->assertJson(['ok' => false, 'error' => 'unauthorized']);
     expect(GatewayWebhookEvent::withoutGlobalScopes()->count())->toBe(0);
 });
 
@@ -452,7 +452,7 @@ it('bcb_pix: cert fingerprint NÃO bate → 401 + NÃO grava evento', function (
     );
 
     $response->assertStatus(401);
-    $response->assertJson(['ok' => false, 'error' => 'signature_invalid']);
+    $response->assertJson(['ok' => false, 'error' => 'unauthorized']);
     expect(GatewayWebhookEvent::withoutGlobalScopes()->count())->toBe(0);
 });
 
@@ -488,7 +488,7 @@ it('BÔNUS: credencial Asaas SEM webhook_token cadastrado → 401 (fail-secure)'
     expect(GatewayWebhookEvent::withoutGlobalScopes()->count())->toBe(0);
 });
 
-it('BÔNUS: businessId sem credencial cadastrada → 404 credential_not_found', function () {
+it('BÔNUS: businessId sem credencial cadastrada → 401 unauthorized (não revela quem tem gateway)', function () {
     $response = $this->call(
         method: 'POST',
         uri: '/paymentgateway/webhooks/asaas/99999', // biz inexistente
@@ -499,6 +499,6 @@ it('BÔNUS: businessId sem credencial cadastrada → 404 credential_not_found', 
         content: json_encode(['event' => 'X']),
     );
 
-    $response->assertStatus(404);
-    $response->assertJson(['ok' => false, 'error' => 'credential_not_found']);
+    $response->assertStatus(401);
+    $response->assertJson(['ok' => false, 'error' => 'unauthorized']);
 });

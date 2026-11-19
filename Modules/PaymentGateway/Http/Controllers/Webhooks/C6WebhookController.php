@@ -44,8 +44,8 @@ class C6WebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'credential_not_found',
-            ], 404);
+                'error' => 'unauthorized',
+            ], 401);
         }
 
         if (! $this->processor->validateSignature('c6', $request, $credential)) {
@@ -55,7 +55,7 @@ class C6WebhookController extends Controller
             ]);
             return response()->json([
                 'ok'    => false,
-                'error' => 'signature_invalid',
+                'error' => 'unauthorized',
             ], 401);
         }
 
