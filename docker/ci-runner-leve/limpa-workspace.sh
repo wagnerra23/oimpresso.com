@@ -31,6 +31,49 @@ apaga_tudo() {
 
 if [ ! -d "$ws/.git" ]; then apaga_tudo "sem .git"; exit 0; fi
 
+# ── Espelho da história + poda da marca de raso ─────────────────────────────────
+# Medido 2026-11-19: 17 dos 56 workflows leves pedem fetch-depth: 0 e o resto pede 1.
+# Na mesma vaga um job raso truncava o repo e o seguinte, completo, baixava e gravava
+# ~260-500 MB de história de novo. Com um espelho bare do main por vaga (alternates)
+# e a marca de raso podada, os dois tipos de job gravam ~1-2 MB (testado num ref de PR
+# real: fsck OK, merge-base certo, só os commits do PR baixados).
+# A poda só tira da marca o commit cujos pais existem (local ou no espelho, que tem a
+# história completa do main) — commit de PR com pai ausente continua marcado, e o
+# checkout completo o aprofunda pela rede. Falha aqui não impede o job.
+ESPELHO=/home/runner/espelho.git
+espelho() {
+  local url; url=$(git -C "$ws" remote get-url origin 2>/dev/null) || return 1
+  case "$url" in https://github.com/*) ;; *) return 1 ;; esac
+  if [ -d "$ESPELHO" ]; then
+    timeout 120 git -C "$ESPELHO" fetch -q --no-tags origin +refs/heads/main:refs/heads/main || return 1
+  else
+    rm -rf "$ESPELHO.tmp"
+    timeout 600 git clone -q --bare --single-branch --branch main "$url" "$ESPELHO.tmp" || { rm -rf "$ESPELHO.tmp"; return 1; }
+    mv "$ESPELHO.tmp" "$ESPELHO"
+  fi
+  local alt="$ws/.git/objects/info/alternates"
+  mkdir -p "$(dirname "$alt")"
+  grep -qxF "$ESPELHO/objects" "$alt" 2>/dev/null || echo "$ESPELHO/objects" >> "$alt"
+}
+poda_raso() {
+  local sh="$ws/.git/shallow" c p ok
+  [ -f "$sh" ] || return 0
+  : > "$sh.novo"
+  while read -r c; do
+    ok=1
+    for p in $(git -C "$ws" cat-file -p "$c" 2>/dev/null | sed -n 's/^parent //p'); do
+      git -C "$ws" cat-file -e "$p^{commit}" 2>/dev/null || { ok=0; break; }
+    done
+    [ "$ok" = 1 ] || echo "$c" >> "$sh.novo"
+  done < "$sh"
+  if [ -s "$sh.novo" ]; then mv "$sh.novo" "$sh"; else rm -f "$sh" "$sh.novo"; fi
+}
+if espelho; then
+  poda_raso && echo "limpa-workspace: espelho do main em dia, raso=$(git -C "$ws" rev-parse --is-shallow-repository)"
+else
+  echo "limpa-workspace: espelho indisponível, segue sem ele"
+fi
+
 limpa_repo() {
   cd "$ws" || return 1
   git sparse-checkout disable >/dev/null 2>&1 || true
