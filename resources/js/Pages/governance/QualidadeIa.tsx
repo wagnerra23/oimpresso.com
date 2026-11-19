@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/Components/ui/label';
 import { ScrollArea } from '@/Components/ui/scroll-area';
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import { TrendingUp } from 'lucide-react';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -206,16 +207,15 @@ function GovernancaQualidadeIa(props: Props) {
     <>
       <GovernancaSubNav active="qualidade-ia" />
 
-      {/* Title local da tela */}
-      <div className="px-6 pt-6 flex items-center gap-3">
-        <TrendingUp className="size-6 text-primary" />
-        <div>
-          <h1 className="text-xl font-semibold">Qualidade IA</h1>
-          <p className="text-sm text-muted-foreground">
-            Trend {filtros.dias}d das 8 métricas obrigatórias + 3 RAGAS. Gates ADR 0049/0050. Eval contra gabarito {gabarito_total} perguntas.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <TrendingUp className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </span>
+        }
+        title="Qualidade IA"
+        subtitle={`Trend ${filtros.dias}d das 8 métricas obrigatórias + 3 RAGAS. Gates ADR 0049/0050. Eval contra gabarito ${gabarito_total} perguntas.`}
+      />
 
       <Card className="mt-4">
         <CardContent className="py-3 flex flex-wrap items-end gap-3">

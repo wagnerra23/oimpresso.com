@@ -425,3 +425,78 @@ it('não quebra quando arquivo de retorno não existe', function () {
     expect($upload->processado_em)->not->toBeNull();
     expect($upload->errosArray())->toContain('arquivo_inexistente:' . $upload->arquivo_path);
 });
+
+// ─── Auditoria PG lote 2.2 — tenant fictício 98 (ADR 0358), centavos sintéticos ───
+
+/** Credencial + cobrança no tenant 98 com o nosso número do fixture Bradesco. */
+function cnabTenant98(array $cobrancaAttrs = []): array
+{
+    $cred = PaymentGatewayCredential::query()->withoutGlobalScopes()->create([
+        'business_id'  => 98,
+        'gateway_key'  => 'bradesco_cnab',
+        'ambiente'     => 'production',
+        'ativo'        => true,
+        'nome_display' => 'Bradesco CNAB 98',
+        'config_json'  => ['agencia' => '1', 'conta' => '2', 'carteira' => '09'],
+    ]);
+    $cobranca = Cobranca::query()->withoutGlobalScopes()->create(array_merge([
+        'business_id'                   => 98,
+        'payment_gateway_credential_id' => $cred->id,
+        'gateway_external_id'           => '000000000011',
+        'nosso_numero'                  => '000000000011',
+        'tipo'                          => 'boleto',
+        'status'                        => 'emitida',
+        'valor_centavos'                => 4321,
+        'vencimento'                    => now()->subDays(5)->toDateString(),
+        'descricao'                     => 'Cobrança 98',
+        'idempotency_key'               => 'cnab-98-' . random_int(1000, 999999),
+    ], $cobrancaAttrs));
+
+    return [$cred, $cobranca];
+}
+
+function rodarCnab98(PaymentGatewayCredential $cred, string $ocorrencia, string $nome): void
+{
+    $path = 'cnab-retornos/biz-98/cred-' . $cred->id . '/' . $nome;
+    Storage::disk('local')->put($path, fakeCnabRetorno($ocorrencia));
+    (new CnabRetornoProcessor(credentialId: $cred->id, arquivoRetornoPath: $path))->handle();
+}
+
+it('2.2 ENTRADA depois da liquidação não devolve a cobrança paga para emitida', function () {
+    [$cred, $cobranca] = cnabTenant98();
+
+    rodarCnab98($cred, '06', 'liquida.ret');
+    expect($cobranca->fresh()->status)->toBe('paga');
+
+    rodarCnab98($cred, '02', 'entrada-atrasada.ret');
+
+    $depois = $cobranca->fresh();
+    expect($depois->status)->toBe('paga');
+    expect($depois->paga_em)->not->toBeNull();
+    // A cobrança estava "vencida há 5d", mas paga não gera CobrancaVencida.
+    Event::assertNotDispatched(CobrancaVencida::class);
+    Event::assertDispatchedTimes(CobrancaPaga::class, 1);
+});
+
+it('2.2 liquidação em cobrança já paga por outro caminho (status paga, paga_em nulo) não redispara', function () {
+    // Antes da correção só paga_em era conferido: esta cobrança era marcada de novo
+    // (forma_pagamento trocada para boleto) e CobrancaPaga saía outra vez.
+    [$cred, $cobranca] = cnabTenant98(['status' => 'paga', 'valor_pago_centavos' => 4321, 'forma_pagamento' => 'pix']);
+
+    rodarCnab98($cred, '06', 'liquida-de-novo.ret');
+
+    Event::assertNotDispatched(CobrancaPaga::class);
+    expect($cobranca->fresh()->forma_pagamento)->toBe('pix');
+});
+
+it('2.2 o mesmo arquivo de liquidação processado duas vezes gera um único CobrancaPaga', function () {
+    [$cred, $cobranca] = cnabTenant98();
+
+    rodarCnab98($cred, '06', 'a.ret');
+    rodarCnab98($cred, '06', 'b.ret');
+
+    Event::assertDispatchedTimes(CobrancaPaga::class, 1);
+    Event::assertDispatched(CobrancaPaga::class, fn (CobrancaPaga $e) => $e->cobrancaId === (int) $cobranca->id && $e->businessId === 98);
+    // A cobrança do tenant 1 (beforeEach), com o mesmo nosso número, segue intocada.
+    expect($this->cobranca->fresh()->status)->toBe('emitida');
+});
