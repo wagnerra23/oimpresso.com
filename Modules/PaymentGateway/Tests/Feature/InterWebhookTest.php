@@ -248,7 +248,7 @@ it('Job worker processa Cobranca existente: marca paga + dispatch CobrancaPaga +
         'payload'                       => ['txid' => 'inter-pix-job-001'],
     ]);
 
-    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 98), 'handle']);
 
     $log->refresh();
     $cobranca->refresh();
@@ -280,7 +280,7 @@ it('Job worker: Cobranca NÃO encontrada → status=titulo_nao_encontrado, sem C
         'payload'                       => ['txid' => 'inexistente-txid-xyz'],
     ]);
 
-    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 98), 'handle']);
 
     $log->refresh();
     expect($log->status)->toBe('titulo_nao_encontrado');
@@ -302,7 +302,7 @@ it('Job worker idempotente: re-rodar linha já processed → cedo-return sem re-
         'payload'                       => ['txid' => 'reprocessado-001'],
     ]);
 
-    app()->call([new ProcessarWebhookPixInterJob($log->id, 1), 'handle']);
+    app()->call([new ProcessarWebhookPixInterJob($log->id, 98), 'handle']);
 
     Event::assertNotDispatched(CobrancaPaga::class);
 });
