@@ -4,7 +4,7 @@ casos: Policies · Regras do ActionGate · /governance/policies
 irmaos: Policies.charter.md (lei) · governance-policies-gap.md (GAP-SPEC canon)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-13"
+last_run: "2026-11-19"
 ---
 
 # Casos de uso — /governance/policies

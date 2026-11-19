@@ -293,6 +293,7 @@ tests/Feature/Governance/ProdFlagsCommandTest.php
 # E1 regime de evolução (2026-10-14): contratos de tela de governança sem banco (rotas, função pura, árvore temporária).
 tests/Feature/Governance/AuditContratoTest.php
 tests/Feature/Governance/DriftAlertsContratoTest.php
+tests/Feature/Governance/MenuPermissaoContratoTest.php
 tests/Feature/Modules/Governance/DashboardExtensionTest.php
 tests/Feature/Modules/Governance/DashboardFiltrosMcpTest.php
 
@@ -826,3 +827,29 @@ Modules/Financeiro/Tests/Feature/ListenersPorDispatcherContratoTest.php
 tests/Feature/Console/NfseQueueWorkerScheduleTest.php
 # Governance L1.4 (2026-11-19): UC-GPOL-05/06/07 lidos do registry de rotas, sem banco.
 Modules/Governance/Tests/Feature/PoliciesRotasContratoTest.php
+# Governance L1 (2026-11-19): 20 testes do módulo que não rodavam em lane nenhuma.
+# Medido no run 44512663595 (sonda com os 34 órfãos nesta lista): estes passaram com
+# 0 falha e assertions > 0; o OtelHelperRealSdk pula 1 caso por desenho (ramo SDK
+# presente × ausente). Os outros 14 órfãos ficaram FORA: pedem MySQL
+# (mcp_alertas_eventos, schema UltimatePOS) ou falharam — vão para a lane MySQL do
+# Governance com quarentena justificada, não para cá.
+Modules/Governance/Tests/Feature/CrossTenantPolicyTest.php
+Modules/Governance/Tests/Feature/DeployDriftCheckerTest.php
+Modules/Governance/Tests/Feature/DetectOtelQueryTest.php
+Modules/Governance/Tests/Feature/DriftCheckerRegistryTest.php
+Modules/Governance/Tests/Feature/GovernancaScorecardCommandTest.php
+Modules/Governance/Tests/Feature/GovernanceAuditCommandTest.php
+Modules/Governance/Tests/Feature/GovernanceGateTest.php
+Modules/Governance/Tests/Feature/McpIndexFreshnessCheckerTest.php
+Modules/Governance/Tests/Feature/McpServedDriftCheckerTest.php
+Modules/Governance/Tests/Feature/MeilisearchSettingsDriftCheckerTest.php
+Modules/Governance/Tests/Feature/MultiTenantGovernanceTest.php
+Modules/Governance/Tests/Feature/ObservabilitySnapshotServiceTest.php
+Modules/Governance/Tests/Feature/OtelHelperRealSdkTest.php
+Modules/Governance/Tests/Feature/RoutesZombieCheckerTest.php
+Modules/Governance/Tests/Feature/ScaffoldTest.php
+Modules/Governance/Tests/Feature/ScopedScorecardEvaluatorTest.php
+Modules/Governance/Tests/Feature/ShippedLogBriefLineServiceTest.php
+Modules/Governance/Tests/Feature/SmokeRoutesTest.php
+Modules/Governance/Tests/Feature/Wave23ScorecardTest.php
+Modules/Governance/Tests/Feature/Wave28InitiativeServiceTest.php

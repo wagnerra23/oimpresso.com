@@ -67,6 +67,8 @@ interface WebhookRow {
   rotulo: string;
   metodo: string;
   url: string;
+  /** Nome do header que o controller do webhook lê (constante AUTH_HEADER). */
+  auth_header: string;
   auth: string;
   docs_link: string;
 }

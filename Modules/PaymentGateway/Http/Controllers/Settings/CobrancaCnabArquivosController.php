@@ -21,6 +21,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * Multi-tenant Tier 0 (ADR 0093): a cobrança é buscada pelo business_id da sessão, e o caminho
  * só é servido se estiver dentro da pasta da própria empresa (`.../biz-{id}/...`). Outra empresa
  * ou caminho fora da pasta → 404, sem dizer que existe.
+ *
+ * Permissão: `business_settings.access`, exigida no grupo de rotas (`can:` em Routes/web.php).
  */
 class CobrancaCnabArquivosController extends Controller
 {
