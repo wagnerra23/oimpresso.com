@@ -7,6 +7,7 @@ status: live
 last_validated: "2026-05-16"
 parent_module: Governance
 related_adrs: [79, 86, 94, 147]
+related_us: [US-GOV-004]
 tier: A
 charter_version: 1
 ---
