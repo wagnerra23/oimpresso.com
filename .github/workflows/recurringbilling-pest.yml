@@ -1,0 +1,145 @@
+name: RecurringBilling · Pest (MySQL)
+
+# Lane MySQL do RecurringBilling (cobrança recorrente).
+#
+# POR QUE existe (medido 2026-11-19, auditoria do módulo): 5 arquivos de contrato do RB
+# (20 testes) só rodam com o schema MySQL real e pulam em toda lane de PR. Na
+# modules-pest.yml (sqlite) saem "Schema real (MySQL)" como skip, exit 0 (run
+# 44412487544: 24 skipped) — verde sem provar nada (LC-13). São os casos de dinheiro do
+# Pix Automático e da baixa de fatura, com 3 casos Tier 0 de isolamento 98 x 99
+# (UC-RBPA-06, UC-RBPA-10, US-RB-057). Nenhuma lane MySQL os incluía.
+#
+# Alvos fixos e nomeados (não é árvore-menos-quarentena): o resto do módulo roda em sqlite
+# na modules-pest e na ci-sqlite-pest.list, e parte dele pula de propósito no MySQL
+# (DomainModelsTest, "era-sqlite"). O CartaoSalvoContratoTest continua na
+# paymentgateway-pest.yml, que já o executa.
+#
+# Estrutura copiada de paymentgateway-pest.yml (setup MySQL, skip-as-pass, JUnit).
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter.
+  # ⚠️ `types` SEM `synchronize` é o padrão dos advisory desde o #6622: para reexecutar no
+  # mesmo PR use o workflow_dispatch. QUEM FOR PROMOVER A REQUIRED tem de reinserir
+  # `synchronize` ANTES do flip (lápide 2026-08-08 · RUNBOOK-branch-protection §Promoção).
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+    # paths-ignore FAIL-CLOSED: PR que toca SÓ memory/, prototipo-ui/ ou o estado do
+    # design-sync não sobe esta lane. Promover a required = APAGAR este bloco.
+    paths-ignore:
+      - 'memory/**'
+      - 'prototipo-ui/**'
+      - 'scripts/design-sync/state/**'
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/RecurringBilling/**'
+      - 'Modules/PaymentGateway/**'
+      - 'tests/Support/WithSeededTenant.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/recurringbilling-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: recurringbilling-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (RecurringBilling · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do RecurringBilling (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            recurringbilling:
+              - 'Modules/RecurringBilling/**'
+              - 'Modules/PaymentGateway/**'
+              - 'tests/Support/WithSeededTenant.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/recurringbilling-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do domínio mudou)
+        if: steps.changes.outputs.recurringbilling == 'false'
+        run: echo "✅ Sem mudanças no RecurringBilling — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.recurringbilling == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.recurringbilling == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'JSON'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          JSON
+
+      - name: Run Pest (RecurringBilling · MySQL)
+        if: steps.changes.outputs.recurringbilling == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite sem force="true": a env daqui vence e a
+        # suíte roda no MySQL semeado pela action (tenants 1/2/98). Os testes usam
+        # DatabaseTransactions e criam o adversário 99 por seededSupportClientTenant().
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          set -euo pipefail
+          mkdir -p test-results
+          # Alvos DEPOIS do vendor/bin/pest, na própria linha de comando: é o que o
+          # test-lane-coverage.mjs lê (ele não segue array de shell declarado antes).
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-recurringbilling-junit.xml \
+            Modules/RecurringBilling/Tests/Feature/WebhookPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php
+
+      # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: ${{ !cancelled() && steps.changes.outputs.recurringbilling == 'true' }}
+        run: node scripts/tests/junit-summary.mjs test-results/pest-recurringbilling-junit.xml --out test-results/pest-recurringbilling-junit-summary.json
+
+      - name: Suíte provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.recurringbilling == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-recurringbilling-junit.xml --check-assertions
+
+      - name: Upload JUnit (RecurringBilling · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.recurringbilling == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-recurringbilling-junit
+          path: |
+            test-results/pest-recurringbilling-junit.xml
+            test-results/pest-recurringbilling-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
