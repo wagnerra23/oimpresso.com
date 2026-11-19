@@ -11,6 +11,7 @@ declare(strict_types=1);
  *   UC-RBSUB-01 — cria assinatura mapeando forma de pagamento PT → payment_method
  *   UC-RBSUB-02 — validação recusa contato ausente, enum inválido e data no passado
  *   UC-RBSUB-03 — busca de cliente não vaza outro business nem tipo errado [T0]
+ *   UC-RBSUB-09 — criar assinatura recusa contato de outra empresa ou excluído [T0]
  */
 
 use App\User;
@@ -240,11 +241,14 @@ function validPayload(array $override = []): array
 
 // ─── Validação do FormRequest ──────────────────────────────────────────
 
+// Desde UC-RBSUB-09 o contact_id precisa existir na empresa da sessão (biz=1 aqui).
 it('R-RB-WAVE21-1 — request aceita payload completo válido (com plan_id null)', function () {
+    \App\Contact::create(['business_id' => 1, 'name' => 'Cliente Teste', 'type' => 'customer']);
     expect(validateStoreAssinatura(validPayload())->passes())->toBeTrue();
 });
 
 it('R-RB-WAVE21-2 — request aceita plan_id inteiro (campo novo da Onda 21)', function () {
+    \App\Contact::create(['business_id' => 1, 'name' => 'Cliente Teste', 'type' => 'customer']);
     expect(validateStoreAssinatura(validPayload(['plan_id' => 7]))->passes())->toBeTrue();
 });
 
@@ -334,4 +338,60 @@ it('UC-RBSUB-03 · R-RB-WAVE21-8 — searchContacts exclui type=lead/supplier (s
 
     expect($json['contacts'])->toHaveCount(1)
         ->and($json['contacts'][0]['name'])->toBe('Lead Ambos');
+});
+
+// ─── store() recusa contato de outra empresa — Tier 0 (auditoria 2026-11-19, achado a1) ──
+//
+// Antes: contact_id era só `integer`, App\Contact não tem escopo global e o store() gravava
+// o id cru. A empresa 98 conseguia criar assinatura apontando para o cliente da 99, e a lista
+// devolvia nome, documento e telefone dele. Tenants 98 (sessão) e 99 (adversário), ADR 0358.
+
+/** Monta o FormRequest como o Laravel faria e roda store() com a sessão da empresa dada. */
+function rbStoreComo(int $businessId, int $contactId): void
+{
+    session(['user.business_id' => $businessId]);
+    $request = StoreAssinaturaRequest::create('/recurring-billing', 'POST', validPayload([
+        'contact_id' => $contactId,
+    ]));
+    $request->setUserResolver(fn () => auth()->user());
+    $request->setContainer(app())->validateResolved();
+
+    (new RecurringBillingController(new SubscriptionRepository()))->store($request);
+}
+
+it('UC-RBSUB-09 — empresa 98 não cria assinatura com contato da 99 (422 no contact_id)', function () {
+    $contatoDa99 = \App\Contact::create(['business_id' => 99, 'name' => 'Cliente da 99', 'type' => 'customer']);
+
+    $erro = null;
+    try {
+        rbStoreComo(98, (int) $contatoDa99->id);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        $erro = $e;
+    }
+
+    expect($erro)->not->toBeNull()
+        ->and($erro->status)->toBe(422)
+        ->and(array_keys($erro->errors()))->toContain('contact_id');
+    // Nada gravado em empresa nenhuma com aquele contato: a lista da 98 não tem como mostrá-lo.
+    expect(Subscription::withoutGlobalScopes()->where('contact_id', $contatoDa99->id)->count())->toBe(0)
+        ->and(Subscription::withoutGlobalScopes()->where('business_id', 98)->count())->toBe(0);
+});
+
+it('UC-RBSUB-09 — controle positivo: empresa 98 cria assinatura com contato dela', function () {
+    $contatoDa98 = \App\Contact::create(['business_id' => 98, 'name' => 'Cliente da 98', 'type' => 'customer']);
+
+    rbStoreComo(98, (int) $contatoDa98->id);
+
+    $sub = Subscription::withoutGlobalScopes()->where('business_id', 98)->first();
+    expect($sub)->not->toBeNull()
+        ->and((int) $sub->contact_id)->toBe((int) $contatoDa98->id);
+});
+
+it('UC-RBSUB-09 — contato excluído da própria empresa também é recusado', function () {
+    $excluido = \App\Contact::create(['business_id' => 98, 'name' => 'Cliente excluído', 'type' => 'customer']);
+    $excluido->delete();
+
+    expect(fn () => rbStoreComo(98, (int) $excluido->id))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect(Subscription::withoutGlobalScopes()->where('business_id', 98)->count())->toBe(0);
 });
