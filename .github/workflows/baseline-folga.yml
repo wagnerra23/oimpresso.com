@@ -38,6 +38,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # os regeneradores leem história (deadlink varre o repo)
+          # Agendado mede o main de AGORA, não o SHA do instante do agendamento. Em
+          # 2026-11-16 o job ficou ~1h20 na fila (agendado 15:36Z, push 16:57Z) e o main
+          # mudou .github/workflows/arquivos-pest.yml três vezes nesse meio-tempo. O GitHub
+          # compara o branch novo com o main e recusou o push ("refusing to allow a GitHub
+          # App to create or update workflow ... without `workflows` permission"), embora o
+          # commit só tocasse governance/deadlink-baseline.json. Dispatch manual segue o ref
+          # escolhido (string vazia = comportamento padrão do checkout).
+          ref: ${{ github.event_name == 'schedule' && 'main' || '' }}
 
       - uses: actions/setup-node@v4
         with:
@@ -101,6 +109,14 @@ jobs:
             echo 'Merge é decisão [W] (R10). Se algum aperto não fizer sentido, feche o PR —'
             echo 'ele nasce de novo na semana seguinte com a medição atualizada.'
           } > pr-body.md
+
+          # A medição leva alguns minutos e o main não espera. Se ele mexer em workflow nesse
+          # intervalo, o push volta a ser recusado pelo mesmo motivo de 2026-11-16. Leva SÓ o
+          # commit do aperto para o main fresco (--onto … HEAD~1): o resto do branch local fica
+          # para trás, então um dispatch feito de outro branch também não arrasta workflow
+          # junto. Conflito aqui falha o step visivelmente — nada é empurrado pela metade.
+          git fetch --no-tags origin main
+          git rebase --onto origin/main HEAD~1
 
           git push -u origin "$BR"
           gh pr create \

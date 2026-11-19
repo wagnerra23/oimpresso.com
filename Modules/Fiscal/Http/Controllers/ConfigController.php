@@ -143,13 +143,9 @@ class ConfigController extends Controller
             // NFS-e: ambiente + prestador (nfse_provider_configs), editados em
             // POST /nfse/configuracao. Null = módulo NFSe ausente neste deploy.
             'nfse' => $this->nfsePayload($businessId),
-            // Onda 2 I — séries fiscais (tab "Séries" do ModuleTopNav).
-            // TODO[CL]: substituir por query real (business.numero_serie_nfe +
-            // possíveis tabelas de séries auxiliares).
-            'seriesMock' => $this->mockSeriesFiscais(
-                $painel['serieNfe'] ?? '1',
-                (int) ($painel['proximoNumero'] ?? 1),
-            ),
+            // Aba "Séries" — LEITURA REAL (decisão [W] 2026-08-24, feita 2026-11-19):
+            // as séries que o emissor usa de fato e o próximo número que ele daria.
+            'series' => $this->seriesFiscais($businessId, (string) ($painel['serieNfe'] ?? '1')),
         ]);
     }
 
@@ -244,21 +240,87 @@ class ConfigController extends Controller
     }
 
     /**
-     * Mock séries fiscais. Onda 2 I — tab Séries do Config.
-
+     * Séries fiscais reais da empresa — espelha o que o NfeService usa na emissão:
+     * a série padrão (`business.numero_serie_nfe`) para NF-e e NFC-e da matriz, as
+     * séries próprias de cada local emissor (`nfe_locais_emissores`), e qualquer
+     * série que já tenha nota emitida sem estar em nenhum dos dois.
      *
-     * @return array<int, array<string, mixed>>
+     * O próximo número segue `NfeService::proximoNumeroLocked` sem o lock (aqui é
+     * só leitura): maior número emitido no par modelo+série, inclusive notas
+     * excluídas, e na série padrão o contador legado `business.ultimo_numero_nfe`.
+     *
+     * @return array<int, array{modelo:int, serie:string, proximo:int, filial:string, emitidas:int}>
      */
-    protected function mockSeriesFiscais(string $serieNfePrincipal, int $proximoNfe): array
+    protected function seriesFiscais(int $businessId, string $seriePadrao): array
     {
-        return [
-            ['modelo' => 55, 'serie' => $serieNfePrincipal, 'proximo' => $proximoNfe,
-             'filial' => 'Matriz', 'ativo' => true, 'obs' => null],
-            ['modelo' => 65, 'serie' => '9', 'proximo' => 9013,
-             'filial' => 'Matriz · balcão', 'ativo' => true, 'obs' => null],
-            ['modelo' => 55, 'serie' => '2', 'proximo' => 1,
-             'filial' => 'Filial 02 (futuro)', 'ativo' => false, 'obs' => 'Reservada — sem operação ainda'],
-        ];
+        $ultimoLegado = (int) (DB::table('business')->where('id', $businessId)->value('ultimo_numero_nfe') ?? 0);
+
+        // SUPERADMIN: leitura por business_id explícito da sessão (query builder, sem escopo global).
+        $emitidas = Schema::hasTable('nfe_emissoes')
+            ? DB::table('nfe_emissoes')
+                ->where('business_id', $businessId)
+                ->whereIn('modelo', ['55', '65'])
+                ->groupBy('modelo', 'serie')
+                ->get([
+                    'modelo', 'serie',
+                    DB::raw('MAX(numero) as ultimo'),
+                    DB::raw('COUNT(*) as total'),
+                ])
+            : collect();
+
+        $porChave = [];
+        foreach ($emitidas as $e) {
+            $porChave[$e->modelo.'|'.$e->serie] = ['ultimo' => (int) $e->ultimo, 'total' => (int) $e->total];
+        }
+
+        $linhas = [];
+        $add = function (string $modelo, string $serie, string $filial) use (&$linhas, &$porChave, $seriePadrao, $ultimoLegado) {
+            $chave = $modelo.'|'.$serie;
+            if (isset($linhas[$chave])) {
+                return;
+            }
+            $ultimo = $porChave[$chave]['ultimo'] ?? 0;
+            if ($serie === $seriePadrao) {
+                $ultimo = max($ultimo, $ultimoLegado);
+            }
+            $linhas[$chave] = [
+                'modelo'   => (int) $modelo,
+                'serie'    => $serie,
+                'proximo'  => $ultimo + 1,
+                'filial'   => $filial,
+                'emitidas' => $porChave[$chave]['total'] ?? 0,
+            ];
+        };
+
+        $add('55', $seriePadrao, 'Empresa (série padrão)');
+        $add('65', $seriePadrao, 'Empresa (série padrão)');
+
+        if (Schema::hasTable('nfe_locais_emissores')) {
+            $locais = DB::table('nfe_locais_emissores as l')
+                ->leftJoin('business_locations as bl', function ($j) {
+                    $j->on('bl.id', '=', 'l.location_id')->on('bl.business_id', '=', 'l.business_id');
+                })
+                ->where('l.business_id', $businessId)
+                ->orderBy('l.id')
+                ->get(['l.serie_nfe', 'l.serie_nfce', 'bl.name']);
+
+            foreach ($locais as $l) {
+                $nome = (string) ($l->name ?? 'Local sem nome');
+                if ($l->serie_nfe !== null && $l->serie_nfe !== '') {
+                    $add('55', (string) $l->serie_nfe, $nome);
+                }
+                if ($l->serie_nfce !== null && $l->serie_nfce !== '') {
+                    $add('65', (string) $l->serie_nfce, $nome);
+                }
+            }
+        }
+
+        foreach ($porChave as $chave => $_) {
+            [$modelo, $serie] = explode('|', $chave, 2);
+            $add($modelo, $serie, 'Sem cadastro (só notas emitidas)');
+        }
+
+        return array_values($linhas);
     }
 
     /**

@@ -80,6 +80,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-12 | a configuração fiscal mostrada é a da própria empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-13 | ambiente e prestador da NFS-e gravam na empresa da sessão | `[must]` `[T0]` | CU-FISC-12 | `NfseConfiguracaoContratoTest` | 🧪 |
 | UC-FCFG-14 | trocar o ambiente da NFS-e tem a trava da NF-e | `[must]` `[T0]` | CU-FISC-13 | `NfseConfiguracaoContratoTest` | 🧪 |
+| UC-FCFG-15 | a aba Séries mostra as séries reais da empresa | `[must]` `[T0]` | CU-FISC-16 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-16 | o envio automático do DANFE é escolhido por empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 
 ---
@@ -317,6 +318,19 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Teste:** `NfseConfiguracaoContratoTest` — `it('UC-FCFG-14 · produção exige fiscal.config.ambiente, destino digitado e motivo')`
 - **Status:** 🧪 veredito da lane `PHP / Pest (NFSe · MySQL)`.
 
+## UC-FCFG-15 — A aba Séries mostra as séries reais da empresa `[must]` `[T0]`
+
+**Dado** uma empresa com notas emitidas em duas séries e uma vizinha com notas em outra
+**Quando** ela abre a aba Séries
+**Então** vê cada série com o próximo número que o emissor daria (maior número emitido + 1, contando notas excluídas, e na série padrão também o contador `business.ultimo_numero_nfe`), quantas notas já saíram nela e onde ela vale (empresa ou local emissor); as séries da vizinha não aparecem, e o dado de demonstração (filial inventada, série 9 com 9013) não existe mais.
+
+- **Por que existe:** decisão [W] de 2026-08-24 (registrada em `cowork-inbox/fiscal/Config.divergencia.md`: "Séries → leitura real, filial inventada removida"), feita em 2026-11-19.
+- **Fonte:** `ConfigController::seriesFiscais`, que espelha `NfeService::proximoNumeroLocked` sem o lock e as séries de `nfe_locais_emissores`.
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-15 · a aba Séries mostra as séries reais da empresa, com o próximo número do emissor')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
 ## UC-FCFG-16 — O envio automático do DANFE é escolhido por empresa `[must]` `[T0]`
 
 **Dado** duas empresas com configuração fiscal e a instalação com a NF-e desligada e a NFC-e ligada
@@ -335,7 +349,7 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 
 - **[BACKLOG · ⬜ sem teste] A validade do certificado aparece com três tons de urgência** — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
 - **[BACKLOG · ⬜ sem teste] O painel mostra regime, série, próximo número e tributação padrão** — leitura consolidada do que o NfeBrasil guarda. _Sem teste; note que esses dados são lidos por consulta direta à tabela, **fora** do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2)._
-- **[BACKLOG · ⬜ sem teste · decisão [W]] A aba de séries mostra séries reais** — hoje ela é servida por **dado de demonstração** com uma filial inventada (`CU-FISC-16` do SDD §6.5 · §5.4.1). **Precisa de decisão [W].**
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCFG-15] ~~A aba de séries mostra séries reais~~ — hoje ela é servida por **dado de demonstração** com uma filial inventada (`CU-FISC-16` do SDD §6.5 · §5.4.1). **Precisa de decisão [W].**
 - ~~**[BACKLOG · ⬜ sem contrato · decisão [W]] Trocar o ambiente SEFAZ e enviar certificado a partir desta tela**~~ → **ganhou contrato em 2026-09-04**: o charter foi reconciliado em 09-02 (a tela é editável) e o **gate** das duas ações virou `UC-FCFG-06`. A **cerimônia** da troca — destino digitado à mão + motivo de 15+ caracteres + evento de auditoria com o motivo — é a PR 3/3 do item A5, e ganha id próprio lá.
 - ~~**[BACKLOG · ⬜ sem campo · decisão [W]] Cadastrar o e-mail do contador**~~ → **ganhou contrato em 2026-10-07** (`UC-FCFG-08`): [W] decidiu na D-CONTADOR (2026-10-06) e a thread 15c criou a tabela `nfe_contadores` (tabela própria, não coluna). Segue aberto só o envio automático ao contador (cópia ou digest). Texto original: a linha existe no card
   (`UC-FCFG-05`) declarando a ausência. Dar valor a ela exige **coluna nova** em

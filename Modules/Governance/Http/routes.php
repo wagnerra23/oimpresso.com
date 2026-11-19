@@ -23,18 +23,23 @@ use Modules\Governance\Http\Controllers\QualidadeIaController;
 */
 
 // ── Gate `can:` por rota (2026-09-08, ADR 0392 §D-D passo 2) ────────────────
-// As 5 telas que só tinham `auth` passam a exigir a MESMA permission que o
-// `DataController::modifyAdminMenu` já usa pra publicar o item de menu — o gate
-// de sidebar e o gate de URL deixam de divergir (recibo da 0392: "gate de
-// sidebar não é gate de URL"). Nenhuma permission NOVA foi criada: as três
-// vêm de `DataController::user_permissions()`.
+// Cada tela exige a MESMA permission que o `DataController::modifyAdminMenu` já
+// usa pra publicar o item de menu — o gate de sidebar e o gate de URL deixam de
+// divergir (recibo da 0392: "gate de sidebar não é gate de URL"). Nenhuma
+// permission NOVA foi criada: as três vêm de `DataController::user_permissions()`.
+// `/governance/dashboard` entrou em 2026-11-19 (lote L0 da auditoria do
+// Governance, aprovado pelo [W]): até então era só `auth`, e qualquer usuário de
+// qualquer empresa via o custo de IA somado de todas as empresas.
 //
-// ⚠️ O QUE ISTO NÃO FECHA — medido em 2026-09-08, não é afirmação atemporal:
-// `AuthServiceProvider` registra `Gate::before` que devolve `true` para quem
-// tem a role `Admin#{business_id}` em QUALQUER ability fora de
-// backup/superadmin/manage_modules. Logo `can:` NÃO barra o admin de um
-// business — barra usuário não-admin sem a permission. Fechar aquele caminho é
-// o passo 1 da 0392 (o conflito A×B da CONCESSÃO), decisão [W] em aberto.
+// ⚠️ O QUE ISTO NÃO FECHA — estado em 2026-11-19, conferido na ADR 0415:
+// `AuthServiceProvider` registra `Gate::before`, que devolve `true` para o papel
+// `Admin#{business_id}` em toda permission fora das três reservadas e da lista
+// `permissoesDePlataforma()`. A 0415 (aceita 2026-09-24) tirou de lá as
+// permissões de plataforma (`admin_only` do catálogo MCP + `jana.superadmin`),
+// mas `governance.*` NÃO está nessa lista. Logo `can:` barra o usuário sem a
+// permission e NÃO barra o dono de uma empresa. O passo 1 da 0392 (concessão
+// dos scopes `admin_only`) foi fechado pelo #6962; tratar `governance.*` como
+// plataforma é o passo 3 da 0392, decisão [W] em aberto.
 
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('governance')
@@ -45,7 +50,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Dashboard governance original preservado em /governance/dashboard.
         Route::get('/', fn () => redirect('/ia', 302))->name('admin.dashboard');
         Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->middleware('throttle:60,1')
+            ->middleware(['throttle:60,1', 'can:governance.dashboard.view'])
             ->name('admin.dashboard.legacy');
 
         // Policies CRUD (mcp_governance_rules) — throttle defensivo:
