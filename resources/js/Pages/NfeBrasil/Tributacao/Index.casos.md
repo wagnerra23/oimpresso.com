@@ -816,10 +816,31 @@ last_run: "2026-11-15"
 - **Teste:** [`nfe-naturezas-lancamento.test.tsx`](../../../../../tests/js/nfe-naturezas-lancamento.test.tsx) — `UC-NFTR-70 …` (mutação: PIS do Presumido 0,7% reprova).
 - **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
 
+## UC-NFTR-71 · O editor da natureza segue o protótipo: 7 passos com estado, navegação, revisão e lateral · `must`
+
+- **Aceite:** **Dado** uma natureza aberta no editor **Quando** a conferência do servidor aponta erro num passo **Então**
+  a barra mostra os 7 passos (Natureza · CFOP · ICMS · IPI · PIS e COFINS · IBS e CBS · Revisão) com o estado de cada um
+  e "1 pendência" no passo do erro; "Próximo" avança; a Revisão mostra a prévia do lançamento e a conferência com atalho
+  para o passo do erro; a lateral "No lançamento" acompanha a natureza e o salvar fica travado com o aviso
+  "N pendências nos passos marcados em vermelho". Fonte de forma: `prototipo-ui/cowork/Felipe/Configuracao de
+  Tributos.html`, `renderEditor()` e `renderAside()`.
+- **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-71 …` (mutação: sem a contagem de pendências na barra, reprova).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+
+## UC-NFTR-72 · Duplicar abre uma cópia não salva, e salvar a cópia cria uma natureza nova · `must`
+
+- **Aceite:** **Dado** uma natureza salva **Quando** clico em Duplicar **Então** o editor abre "<nome> (cópia)" como
+  natureza nova, ainda não salva; "Criar natureza" grava por `POST /naturezas`, sem id, e a original fica como estava.
+- **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-72 …`.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
 
+- `[BACKLOG]` **"Importar nota de referência" no editor da natureza**, do protótipo de naturezas (`passoNat()` e
+  `painelImport()`): ler o XML de uma nota já emitida e preencher os passos com as tags encontradas, mostrando o que foi
+  copiado, ajustado ou não encontrado. Precisa de leitura do XML no servidor; não entrou junto da forma do editor.
 - `[BACKLOG]` **Venda com mercadoria e serviço sai em duas notas: NF-e com as mercadorias, NFS-e com os
   serviços, e a soma das duas fecha o total da venda** (US-NFE-069 · UC-FLX-31). Hoje a NF-e recusa a
   venda inteira (UC-NFTR-31); a divisão não existe.

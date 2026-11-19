@@ -58,7 +58,7 @@ describe('Naturezas de operação', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Todas/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Ver Venda' }));
     expect(screen.getByText('Só leitura')).toBeTruthy();
-    expect((screen.getByLabelText('Nome') as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByLabelText('Nome da natureza') as HTMLInputElement).disabled).toBe(true);
     expect(screen.queryByRole('button', { name: /Salvar natureza|para salvar/ })).toBeNull();
   });
 
