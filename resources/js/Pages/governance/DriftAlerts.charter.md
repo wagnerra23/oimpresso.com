@@ -25,7 +25,7 @@ Mostrar a Wagner divergência entre intenção declarada (SCOPE.md de cada módu
 
 ## Goals — Features (faz)
 
-- AppShellV2 + topnav + `<PageHeader>` shared
+- AppShellV2 + topnav + `<PageHeader>` canônico (`@/Components/PageHeader`, desde 2026-11-19)
 - KpiGrid cols=4 com `<KpiCard>` shared (controllers em drift, módulos com drift, sem SCOPE.md, total módulos)
 - Tone semântico dinâmico: `warning` se drift > 0, `success` se zero
 - Card "Drift detectado em runtime" listando módulo + controllers undeclared + total controllers reais
