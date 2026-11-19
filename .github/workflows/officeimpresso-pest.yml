@@ -15,10 +15,11 @@ name: Officeimpresso · Pest (MySQL)
 # teste MySQL-only do módulo — cada novo entra na allowlist abaixo (mesma
 # disciplina do jana-pest.yml / essentials-pest.yml).
 #
-# ClientesLiberarPermissionTest (irmão, pré-existente) NÃO entra na allowlist
-# ainda: nunca rodou em CI, então seu estado é desconhecido. Entra num PR
-# próprio, depois de verificado — allowlist é catraca de verde comprovado, não
-# lista de desejos.
+# ClientesLiberarPermissionTest (irmão, pré-existente) ficou fora da allowlist
+# no nascimento da lane: nunca tinha rodado em CI. Entrou em 2026-11-18 (Lote 4
+# da auditoria) depois de medido na lane (3/3), com o caso "libera quem tem"
+# apertado de `status != 403` para assertOk — allowlist é catraca de verde
+# comprovado, não lista de desejos.
 #
 # 2026-08-19 — entra LogsBaselineTest (F2 da Onda 1 da migração React,
 # memory/requisitos/Officeimpresso/RUNBOOK-logs.md). É baseline do
@@ -42,6 +43,11 @@ name: Officeimpresso · Pest (MySQL)
 # Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate
 # (schema baseline) + seed biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant).
 # Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 nunca biz=4).
+#
+# 2026-11-18 — entra ImportadorFirebirdFailClosedTest (Lote 2 da auditoria
+# Officeimpresso): o officeimpresso:import gravava as fixtures do modo mock na
+# empresa real e contava insert com erro como migrado. Os testes Wave25/Wave28
+# do importador seguem FORA desta lane (Lote 4).
 
 on:
   workflow_dispatch: {}
@@ -68,6 +74,7 @@ on:
       - 'Modules/Connector/Routes/api.php'
       - 'Modules/Connector/Config/config.php'
       - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+      - 'tests/Feature/Api/DesktopAuthTest.php'
       - 'tests/Feature/LegacyMigration/**'
       - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
       - 'app/Providers/AuthServiceProvider.php'
@@ -112,6 +119,7 @@ jobs:
               - 'Modules/Connector/Routes/api.php'
               - 'Modules/Connector/Config/config.php'
               - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+              - 'tests/Feature/Api/DesktopAuthTest.php'
               - 'tests/Feature/LegacyMigration/**'
               - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
               - 'app/Providers/AuthServiceProvider.php'
@@ -156,7 +164,18 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-officeimpresso-junit.xml \
             Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
+            Modules/Officeimpresso/Tests/Feature/ArchitectureTest.php \
+            Modules/Officeimpresso/Tests/Feature/ScaffoldTest.php \
+            Modules/Officeimpresso/Tests/Feature/SmokeRoutesTest.php \
+            Modules/Officeimpresso/Tests/Feature/ObservabilityServicesTest.php \
+            Modules/Officeimpresso/Tests/Feature/E2EJourneyDelphiBiz1Test.php \
+            Modules/Officeimpresso/Tests/Feature/Wave23OfficeimpressoSaturationTest.php \
+            Modules/Officeimpresso/Tests/Feature/Wave25FirebirdImporterFixturesTest.php \
+            Modules/Officeimpresso/Tests/Feature/Wave25ObservabilityExpandedTest.php \
+            Modules/Officeimpresso/Tests/Feature/Wave27PolishTest.php \
             Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
+            Modules/Officeimpresso/Tests/Feature/MultiTenantIsolationTest.php \
+            tests/Feature/Api/DesktopAuthTest.php \
             Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
             Modules/Officeimpresso/Tests/Feature/AlinharPacotesCatalogoCommandTest.php \
@@ -164,8 +183,16 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ClientesIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesLiberarPermissionTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogPassportSoDelphiTest.php \
+            Modules/Officeimpresso/Tests/Feature/ImportadorFirebirdFailClosedTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogDelphiAliasDependenciaTest.php \
+            Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php \
+            Modules/Officeimpresso/Tests/Feature/RegenerateViaPostTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencaShowSemCredenciaisTest.php \
+            Modules/Officeimpresso/Tests/Feature/DesktopAuditValidacaoTest.php \
             Modules/Officeimpresso/Tests/Feature/OfficeimpressoHealthCommandTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php \
             tests/Feature/LegacyMigration/LegacyArchiveRowsContratoTest.php

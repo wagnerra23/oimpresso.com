@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a porta de entrada do suporte para os clientes do desktop; lista global mostra o cadastro de todos os clientes, então o payload tem de ser DTO.
 owner: wagner
-last_run: "2026-10-12"
+last_run: "2026-11-19"
 ---
 
 # Casos de Uso & Aceite — Empresas licenciadas (`/officeimpresso/businessall`)

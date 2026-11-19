@@ -140,3 +140,16 @@ last_run: "2026-09-29"
   fechado e nada levava `aria-current`, porque a cascata só abria por filho.
 - **Teste:** `tests/js/sidebar-filhos-inline.test.tsx` (render, 8 casos, lane
   `cockpit-sidebar-jsdom-gate`).
+
+### UC-SB-16 · Tudo de superadmin fica sob "Super Admin" na PLATAFORMA 🧪
+- **Aceite:** Dado um usuário com o item "Super Admin" no menu · Quando abre PLATAFORMA › Super
+  Admin · Então vê, dentro do sidebar, *Painel* (a tela `/superadmin`) seguido de Backup, Módulos,
+  CMS, Conector e Office Impresso (os labels de `SUPERADMIN_LABELS`). Esses itens não aparecem
+  soltos em outro grupo nem na cascata Superadmin do menu do avatar. Sem o item "Super Admin" no
+  menu, eles seguem na cascata do avatar, como antes.
+- **Origem:** pedido [W] 2026-11-19 ("eu acho que isso tudo é Super admin"). Até aqui eram dois
+  lugares: o item da PLATAFORMA (só `/superadmin`, desde 2026-11-04) e a cascata do avatar (desde
+  2026-05-22). Mecanismo: `aninharSuperadmin` (`shared.ts`), aplicado no `AppShellV2`.
+  ⚠️ O protótipo (`data.jsx`) ainda não desenha os sub-itens: a mudança precisa nascer no Cowork.
+- **Teste:** `tests/js/sidebar-superadmin-plataforma.test.tsx` (3 casos, lane
+  `cockpit-sidebar-jsdom-gate`). Mordida medida: com o menu sem aninhar, o caso de render cai.

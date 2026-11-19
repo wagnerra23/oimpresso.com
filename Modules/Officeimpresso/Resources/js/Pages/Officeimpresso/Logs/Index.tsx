@@ -15,6 +15,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import OfficeimpressoSubNav from '../_shared/OfficeimpressoSubNav';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
@@ -118,6 +119,7 @@ function LogsIndex({ maquinas, kpis, filters, permissions }: Props) {
           </>
         }
       />
+      <OfficeimpressoSubNav active="licenca_log" />
 
       <div className="space-y-4 p-6">
         <Deferred data="kpis" fallback={<GradeSkeleton n={4} altura="h-24" />}>

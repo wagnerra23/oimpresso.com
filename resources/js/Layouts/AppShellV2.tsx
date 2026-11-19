@@ -6,7 +6,7 @@
 //         AppShell legado removido em 2026-05-04 (ver git log).
 
 import { Head, usePage } from '@inertiajs/react';
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -111,7 +111,7 @@ import {
   ShellMenuItem,
   SidebarMode,
   Vibe,
-  isSuperadminMenu,
+  aninharSuperadmin,
   isUserMenuItem,
 } from '@/Components/cockpit/shared';
 
@@ -258,7 +258,15 @@ export default function AppShellV2({
     };
   };
   const shellProps = allProps?.shell;
-  const shellMenu: ShellMenuItem[] = shellProps?.menu ?? [];
+  // [W] 2026-11-19: os itens de admin de plataforma (Módulos, Backup, CMS...)
+  // viram sub-itens do "Super Admin" da PLATAFORMA. Os que sobram (sem o item
+  // "Super Admin" no menu) seguem pra cascata do avatar — ver aninharSuperadmin.
+  // useMemo: o `useSidebarShortcut` reinstala o listener quando a referência muda.
+  const menuBruto = shellProps?.menu;
+  const { menu: shellMenu, avulsos: superadminItems } = useMemo(
+    () => aninharSuperadmin(menuBruto ?? []),
+    [menuBruto],
+  );
   // Tema do user — aplicado no .cockpit pra cores ficarem coerentes com
   // shadcn (que usa dark mode automatico via classe 'dark' no <html>).
   // `ui_theme` NULL = "seguir sistema" (95% da base em 2026-07-16: 117/123).
@@ -272,7 +280,6 @@ export default function AppShellV2({
   // "Sign in as user"). Banner "Voltar para X" no topo de toda tela Inertia, espelha
   // link Blade em resources/views/layouts/partials/header.blade.php (linha 47-49).
   const switchedFrom = allProps?.auth?.switched_from ?? null;
-  const superadminItems = shellMenu.filter((i) => isSuperadminMenu(i.label));
   const userMenuItems = shellMenu.filter((i) => isUserMenuItem(i.label));
 
   // Fallback pra business + user via shell.cockpit (Inertia shared) quando a

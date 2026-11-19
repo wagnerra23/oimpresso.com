@@ -11,6 +11,19 @@
     "aliases": {},
     "files": [],
     "requires": [],
+    "provides": {
+        "middleware": {
+            "log.delphi": {
+                "classe": "Http/Middleware/LogDelphiAccess.php",
+                "registrado_em": "Providers/OfficeimpressoServiceProvider.php (boot)",
+                "consumidores": [
+                    "Modules/Connector/Routes/api.php — grupos connector/api, connector/api/crm e fieldforce"
+                ],
+                "se_desligado": "Com este módulo desligado e o Connector ligado, o alias não existe: toda requisição autenticada em connector/api quebra com 500 (Target class [log.delphi] does not exist), e a sem login segue em 401 porque o auth:api roda antes. Reproduzido em Tests/Feature/LogDelphiAliasDependenciaTest.php.",
+                "enforcement": "Nenhum no boot: o nWidart não lê requires nem provides. Desligar o Officeimpresso exige desligar o Connector junto, ou mover o alias para o núcleo (app/Http/Kernel.php)."
+            }
+        }
+    },
     "retention_days": {
         "licenca_log_api_call": 365,
         "licenca_log_login_events": 730,

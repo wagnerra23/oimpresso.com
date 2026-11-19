@@ -15,6 +15,7 @@ import { Deferred } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
+import OfficeimpressoSubNav from '../_shared/OfficeimpressoSubNav';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -67,6 +68,7 @@ function LicencasIndex({ permissions, licencas, detalhe }: Props) {
             // `licenca_computador/create`. Só para quem o `create()` aceita (gerenciar).
             ? <Button asChild variant="ghost" size="sm"><a href="/officeimpresso/licenca_computador/create">Cadastrar</a></Button>
             : undefined} />
+        <OfficeimpressoSubNav active="licenca_computador" />
       </div>
       <div className="flex flex-col gap-4 px-6 pt-4">
         <Deferred data="licencas" fallback={<Skeleton className="h-64 w-full" />}>

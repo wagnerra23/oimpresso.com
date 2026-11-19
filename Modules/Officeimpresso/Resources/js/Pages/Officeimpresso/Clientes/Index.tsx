@@ -12,6 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import OfficeimpressoSubNav from '../_shared/OfficeimpressoSubNav';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -42,16 +43,16 @@ function ClientesIndex({ is_demo, credencial, permissions, clientes }: Props) {
           actions={is_demo ? undefined : (
             <div className="flex gap-2">
               {permissions.pode_regenerar && (
-                <Button asChild variant="ghost" size="sm">
-                  <a href="/officeimpresso/regenerate"
-                    onClick={(e) => { if (!confirm('Regenerar as chaves derruba todos os Delphi conectados. Continuar?')) e.preventDefault(); }}>
-                    Regenerar chaves
-                  </a>
+                // POST (com CSRF do Inertia): a rota não responde mais a GET — regenerar derruba todos os Delphi.
+                <Button variant="ghost" size="sm"
+                  onClick={() => { if (confirm('Regenerar as chaves derruba todos os Delphi conectados. Continuar?')) router.post('/officeimpresso/regenerate'); }}>
+                  Regenerar chaves
                 </Button>
               )}
               <Button size="sm" onClick={() => setNovo(true)}>Nova credencial</Button>
             </div>
           )} />
+        <OfficeimpressoSubNav active="client" />
       </div>
 
       <div className="flex flex-col gap-4 px-6 pt-4">

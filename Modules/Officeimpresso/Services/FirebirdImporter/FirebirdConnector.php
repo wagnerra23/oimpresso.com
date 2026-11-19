@@ -26,6 +26,9 @@ use RuntimeException;
  *   - **Connection pool**: por path .fdb (clientes diferentes = pools diferentes)
  *   - **Health check**: `SELECT 1 FROM RDB$DATABASE` (canônico Firebird ping)
  *   - **Timeout**: configurável via constructor, default 5s
+ *   - **Credencial**: sem senha padrão. A senha vem de `config('officeimpresso.firebird_importer.password')`
+ *     (env OFFICEIMPRESSO_FB_PASSWORD); sem ela `connect()` recusa antes de abrir o PDO
+ *     (2026-11-18, Lote 2 da auditoria Officeimpresso).
  *   - **Encoding**: ISO-8859-1 (Windows-1252) → UTF-8 conversion automática
  *     (Delphi WR Comercial historicamente usa ISO-8859-1)
  *
@@ -42,7 +45,7 @@ class FirebirdConnector
 
     private string $username;
 
-    private string $password;
+    private ?string $password;
 
     private int $timeoutSeconds;
 
@@ -51,7 +54,7 @@ class FirebirdConnector
     public function __construct(
         string $fdbPath,
         string $username = 'SYSDBA',
-        string $password = 'masterkey',
+        ?string $password = null,
         int $timeoutSeconds = 5,
         ?bool $forceMock = null,
     ) {
@@ -123,6 +126,12 @@ class FirebirdConnector
         if ($this->isMock()) {
             throw new RuntimeException(
                 'FirebirdConnector em mock mode — chame isMock() antes ou rode com ext pdo_firebird.'
+            );
+        }
+
+        if ($this->password === null || $this->password === '') {
+            throw new RuntimeException(
+                'Senha do Firebird ausente: defina OFFICEIMPRESSO_FB_PASSWORD no ambiente (não há senha padrão).'
             );
         }
 

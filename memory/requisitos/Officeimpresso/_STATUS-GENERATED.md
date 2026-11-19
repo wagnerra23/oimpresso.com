@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 17 |
+| US no SPEC | 24 |
 | CU no SDD | 9 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 65 |
-| UC com teste que os cita | 64 |
+| UC declarados | 66 |
+| UC com teste que os cita | 65 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -63,6 +63,13 @@ authority: generated
 | US-OI-015 | `desconhecido` | — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01 |
 | US-OI-016 | `desconhecido` | — F4: QA da `Empresas/Index` — os itens `alta` viram teste |
 | US-OI-017 | `desconhecido` | — F5: cutover das 3 telas da Onda 2 e sunset dos Blades |
+| US-OI-018 | `desconhecido` | — Tela `Clientes/Index` (clients OAuth do desktop) |
+| US-OI-019 | `desconhecido` | — Delegação da gestão de licenças ao suporte |
+| US-OI-020 | `desconhecido` | — Comandos de operação do módulo |
+| US-OI-021 | `desconhecido` | — Importação Firebird de um cliente (`officeimpresso:import`) |
+| US-OI-022 | `desconhecido` | — `POST /api/officeimpresso/audit` (evento opt-in do desktop) |
+| US-OI-023 | `desconhecido` | — Audit do desktop redige a metadata vinda do Delphi (LGPD D7.a) |
+| US-OI-024 | `desconhecido` | — `Wave28FirebirdImporterTest` alinhado ao contrato novo e ao ambiente da CI |
 
 ## UC por status
 
@@ -109,6 +116,7 @@ authority: generated
 | UC-OICLI-04 | Clientes/Index | 🧪 aguarda veredito da lane |
 | UC-OICLI-05 | Clientes/Index | 🧪 aguarda veredito da lane |
 | UC-OICLI-06 | Clientes/Index | 🧪 aguarda veredito da lane |
+| UC-OICLI-07 | Clientes/Index | 🧪 aguarda veredito da lane |
 | UC-OILIC-01 | Licencas/Index | 🧪 aguarda veredito da lane |
 | UC-OILIC-02 | Licencas/Index | 🧪 aguarda veredito da lane |
 | UC-OILIC-03 | Licencas/Index | 🧪 aguarda veredito da lane |

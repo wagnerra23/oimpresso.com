@@ -16,6 +16,9 @@ related_adrs:
 
 # Paridade — Officeimpresso `Empresas/Index` (Onda 2, tela 5)
 
+> **Estado em 2026-11-18 (lote L5 da auditoria de 2026-11-05):** cutover em 2026-10-27 (#10035): a lista é só React e o Blade foi apagado. Se os 11 itens `alta` têm todos teste não foi recontado (US-OI-016). A coluna "Está no React?" abaixo continua com o `⏳` da F1: **não foi preenchida item a item** depois da F3. Ela não é fonte de estado — o estado de cada item é o teste que cita o UC (`*.casos.md` da tela) e o [SPEC](SPEC.md).
+
+
 > Entregável da **F1/F2** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 > Os itens de severidade **alta** viram teste de comportamento em **F4** — *presença deste
 > arquivo não conta pra nada* ([PARITY-TEMPLATE](../_DesignSystem/PARITY-TEMPLATE.md) §Enforcement).

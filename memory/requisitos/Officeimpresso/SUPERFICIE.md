@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 133 arquivos em 19 papéis.
+**Total mapeado:** 126 arquivos em 19 papéis.
 
 ## Controllers — 7
 
@@ -26,10 +26,11 @@ module: Officeimpresso
 - [LicencaLogController.php](../../../Modules/Officeimpresso/Http/Controllers/LicencaLogController.php)
 - [OfficeimpressoController.php](../../../Modules/Officeimpresso/Http/Controllers/OfficeimpressoController.php)
 
-## Requests (validação) — 5
+## Requests (validação) — 6
 
 - [BulkRevokeLicencaRequest.php](../../../Modules/Officeimpresso/Http/Requests/BulkRevokeLicencaRequest.php)
 - [RevokeLicencaRequest.php](../../../Modules/Officeimpresso/Http/Requests/RevokeLicencaRequest.php)
+- [StoreDesktopAuditRequest.php](../../../Modules/Officeimpresso/Http/Requests/StoreDesktopAuditRequest.php)
 - [StoreLicencaRequest.php](../../../Modules/Officeimpresso/Http/Requests/StoreLicencaRequest.php)
 - [UpdateEmpresaConfigRequest.php](../../../Modules/Officeimpresso/Http/Requests/UpdateEmpresaConfigRequest.php)
 - [UpdateLicencaRequest.php](../../../Modules/Officeimpresso/Http/Requests/UpdateLicencaRequest.php)
@@ -95,16 +96,9 @@ module: Officeimpresso
 - [config.php](../../../Modules/Officeimpresso/Config/config.php)
 - [retention.php](../../../Modules/Officeimpresso/Config/retention.php)
 
-## Views (Blade) — 14
+## Views (Blade) — 7
 
-- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/index.blade.php)
-- [combo_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/combo_product_details.blade.php)
-- [single_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/single_product_details.blade.php)
-- [variable_product_details.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/partials/variable_product_details.blade.php)
-- [show.blade.php](../../../Modules/Officeimpresso/Resources/views/catalogue/show.blade.php)
 - [index.blade.php](../../../Modules/Officeimpresso/Resources/views/clients/index.blade.php)
-- [index.blade.php](../../../Modules/Officeimpresso/Resources/views/index.blade.php)
-- [master.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/master.blade.php)
 - [nav.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/nav.blade.php)
 - [design-system.blade.php](../../../Modules/Officeimpresso/Resources/views/layouts/partials/design-system.blade.php)
 - [computadores.blade.php](../../../Modules/Officeimpresso/Resources/views/licenca_computador/computadores.blade.php)
@@ -121,10 +115,11 @@ module: Officeimpresso
 - [Index.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx)
 - [Timeline.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx)
 
-## Componentes / apoio de tela — 2
+## Componentes / apoio de tela — 3
 
 - [LicencaDrawer.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Licencas/_components/LicencaDrawer.tsx)
 - [MaquinasTable.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/_components/MaquinasTable.tsx)
+- [OfficeimpressoSubNav.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/_shared/OfficeimpressoSubNav.tsx)
 
 ## Charters (lei da tela) — 6
 
@@ -144,12 +139,12 @@ module: Officeimpresso
 - [Index.casos.md](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.casos.md)
 - [Timeline.casos.md](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.casos.md)
 
-## Testes (Pest) — 25
+## Testes (Pest) — 32
 
-- 25 em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature)
+- 32 em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 31
+## Demais arquivos (manifestos, docs, assets e misc) — 22
 
 - [.gitkeep](../../../Modules/Officeimpresso/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Console/.gitkeep)
@@ -170,15 +165,6 @@ module: Officeimpresso
 - [topnav.php](../../../Modules/Officeimpresso/Resources/menus/topnav.php)
 - [.gitkeep](../../../Modules/Officeimpresso/Resources/views/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Tests/.gitkeep)
-- [BusinessLocationResource.php](../../../Modules/Officeimpresso/Transformers/BusinessLocationResource.php)
-- [BusinessResource.php](../../../Modules/Officeimpresso/Transformers/BusinessResource.php)
-- [CommonResource.php](../../../Modules/Officeimpresso/Transformers/CommonResource.php)
-- [ExpenseResource.php](../../../Modules/Officeimpresso/Transformers/ExpenseResource.php)
-- [ProductResource.php](../../../Modules/Officeimpresso/Transformers/ProductResource.php)
-- [SellResource.php](../../../Modules/Officeimpresso/Transformers/SellResource.php)
-- [SellTransactionResource.php](../../../Modules/Officeimpresso/Transformers/SellTransactionResource.php)
-- [TypesOfServiceResource.php](../../../Modules/Officeimpresso/Transformers/TypesOfServiceResource.php)
-- [VariationResource.php](../../../Modules/Officeimpresso/Transformers/VariationResource.php)
 - [composer.json](../../../Modules/Officeimpresso/composer.json)
 - [module.json](../../../Modules/Officeimpresso/module.json)
 - [SCOPE.md](../../../memory/requisitos/Officeimpresso/SCOPE.md)

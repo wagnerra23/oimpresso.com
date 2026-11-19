@@ -75,14 +75,25 @@ class LicencaLog extends Model
      * Auditoria LGPD Tier 0 (Wave 10 D7.b — 2026-05-16): apesar de licenca_log
      * já ser append-only por design, a trait fornece audit secundário no
      * activity_log (cross-business read) pra rastrear quem criou cada entry
-     * via admin_action (block/unblock manual). Eventos source=trigger_mysql /
-     * source=passport_event acontecem sem usuário autenticado e não geram
-     * activity log (LogOnlyDirty + dontSubmitEmptyLogs filtra).
+     * via admin_action (block/unblock manual).
+     *
+     * Correção (auditoria Officeimpresso 2026-11-05, eixo 5, M3): o texto antigo
+     * dizia que eventos sem usuário não geram activity log. Não é verdade:
+     * `dontSubmitEmptyLogs` filtra propriedades vazias, não a falta de causer, e
+     * no create todos os atributos estão sujos. Por isso o corpo da requisição
+     * (`metadata`), o trecho do token, o IP e o user agent ficam fora do histórico;
+     * continuam só na própria linha de licenca_log.
+     *
+     * Model sem escopo automático de business por decisão [W] 2026-11-19: ver
+     * governance/multi-tenant-global-model-contract.json.
      */
+    public const CAMPOS_FORA_DO_HISTORICO = ['metadata', 'token_hint', 'ip', 'user_agent'];
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
             ->logFillable()
+            ->logExcept(self::CAMPOS_FORA_DO_HISTORICO)
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

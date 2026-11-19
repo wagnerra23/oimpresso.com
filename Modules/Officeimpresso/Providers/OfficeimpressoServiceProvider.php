@@ -7,8 +7,15 @@ use Illuminate\Support\ServiceProvider;
 
 class OfficeimpressoServiceProvider extends ServiceProvider
 {
-    /** @var bool flag pra evitar double-registration de listener */
-    protected static $listenerRegistered = false;
+    /**
+     * App para o qual o listener ja foi registrado. Evita registro duplo quando o
+     * nwidart carrega o provider 2x no mesmo boot, sem impedir o registro numa app
+     * nova no mesmo processo (testes, workers). Era um bool static: na 2a app do
+     * processo o listener simplesmente nao existia.
+     *
+     * @var \WeakReference<\Illuminate\Contracts\Foundation\Application>|null
+     */
+    protected static ?\WeakReference $listenerRegistradoPara = null;
 
     /**
      * Boot the application events.
@@ -38,6 +45,12 @@ class OfficeimpressoServiceProvider extends ServiceProvider
         // Middlewares de log:
         // 'log.desktop' — API moderna /api/officeimpresso/* (flat `hd`)
         // 'log.delphi'  — API legada /connector/api/* (extrai HD de NOME_TABELA=LICENCIAMENTO)
+        //
+        // DEPENDÊNCIA: as rotas do Modules/Connector usam 'log.delphi', e só este provider o
+        // registra. Desligado o Officeimpresso, toda requisicao autenticada em /connector/api/**
+        // quebra com 500 (a sem login segue em 401: o auth:api roda antes). Declarado em
+        // module.json (`provides`), que o nWidart não lê; o contrato é travado por
+        // Tests/Feature/LogDelphiAliasDependenciaTest.php.
         $this->app['router']->aliasMiddleware(
             'log.desktop',
             \Modules\Officeimpresso\Http\Middleware\LogDesktopAccess::class
@@ -58,12 +71,12 @@ class OfficeimpressoServiceProvider extends ServiceProvider
         // Listener pra AccessTokenCreated — guarded por flag static pra
         // evitar double-registration (provider pode ser carregado 2x pelo
         // nwidart/modules em algumas condicoes de boot).
-        if (! self::$listenerRegistered) {
-            \Illuminate\Support\Facades\Event::listen(
+        if (self::$listenerRegistradoPara?->get() !== $this->app) {
+            $this->app['events']->listen(
                 \Laravel\Passport\Events\AccessTokenCreated::class,
                 \Modules\Officeimpresso\Listeners\LogPassportAccessToken::class
             );
-            self::$listenerRegistered = true;
+            self::$listenerRegistradoPara = \WeakReference::create($this->app);
         }
     }
 

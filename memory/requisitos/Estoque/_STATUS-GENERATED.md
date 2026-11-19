@@ -16,16 +16,18 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 1 |
+| US no SPEC | 3 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 0 |
 | Telas com `casos.md` | 1 |
 | UC declarados | 15 |
-| UC com teste que os cita | 13 |
+| UC com teste que os cita | 14 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
+| Lacuna | O que falta escrever |
+|---|---|
+| `US-ESTOQUE-002` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Contagem de inventário: abrir, contar com coletor, ver diver |
 
 ### Backlog — NÃO é lacuna
 
@@ -37,6 +39,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | US | status | Título |
 |---|---|---|
 | US-ESTOQUE-001 | `todo` | Toda transferência cai pendente na requisição e só move o estoque quando aprovad |
+| US-ESTOQUE-003 | `desconhecido` | Sugestão de reposição e curva ABC por produto |
 
 ## UC por status
 
@@ -51,7 +54,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-EST-06 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-EST-07 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-EST-08 | Movimentacao | 🧪 aguarda veredito da lane |
-| UC-EST-08B | Movimentacao | 📝 sem_teste |
+| UC-EST-08B | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-EST-09 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-INV-02 | Movimentacao | 🧪 aguarda veredito da lane |
 | UC-INV-03 | Movimentacao | 🧪 aguarda veredito da lane |
