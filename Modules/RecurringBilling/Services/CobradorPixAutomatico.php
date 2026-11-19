@@ -85,7 +85,7 @@ class CobradorPixAutomatico
                 'fatura_id' => (int) $f->id,
                 'numero_documento' => (string) $f->numero_documento,
                 'vencimento' => substr((string) $f->vencimento, 0, 10),
-                'valor_centavos' => self::centavos((string) $f->valor),
+                'valor_centavos' => Centavos::de((string) $f->valor),
                 'acao' => 'cobrar',
             ];
 
@@ -169,13 +169,5 @@ class CobradorPixAutomatico
         }
 
         return $resultado;
-    }
-
-    /** `valor` decimal(15,2) chega como texto "123.45": centavos sem passar por float. */
-    public static function centavos(string $valor): int
-    {
-        [$inteiro, $fracao] = array_pad(explode('.', $valor, 2), 2, '0');
-
-        return (int) $inteiro * 100 + (int) str_pad(substr($fracao, 0, 2), 2, '0');
     }
 }
