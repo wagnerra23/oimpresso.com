@@ -399,16 +399,6 @@ class RecurringBillingController extends Controller
         ], 200);
     }
 
-    public function show($id)
-    {
-        return view('recurringbilling::show');
-    }
-
-    public function edit($id)
-    {
-        return view('recurringbilling::edit');
-    }
-
     /**
      * PUT /recurring-billing/{id} — atualiza cobrança (valor / ciclo / forma).
      *
@@ -443,11 +433,6 @@ class RecurringBillingController extends Controller
             sprintf('Assinatura #%d atualizada.', $sub->id),
             ['subscription' => $sub->fresh()],
         );
-    }
-
-    public function destroy($id)
-    {
-        //
     }
 
     // ─── Helpers ───────────────────────────────────────────────────────
