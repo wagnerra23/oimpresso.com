@@ -11,5 +11,5 @@ const numero = (n: number) =>
 /** Quantidade com unidade ("12 UN", "1,5 KG"). */
 export const qtdComUnidade = (qtd: number, unit: string) => `${numero(qtd)} ${unit}`;
 
-/** Valor em reais com 2 casas ("R$ 1.234,50"). */
+/** Valor em reais com 2 casas, separador de milhar e vírgula decimal (formato pt-BR). */
 export const brl = (n: number) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

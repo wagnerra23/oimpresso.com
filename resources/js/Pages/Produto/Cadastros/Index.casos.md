@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: unidade, categoria e marca são referenciadas por todo produto. Apagar uma em uso deixa produto apontando pro nada; errar o escopo mostra cadastro de outro negócio; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-11-19"
 last_run_ci: "_pendente_ — o trio nasce na thread Produto/02. O veredito por UC entra no manifesto quando a lane estoque-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -319,5 +319,5 @@ Status: 🧪
 
 - [BACKLOG] Remover valor já gravado de um modelo de variação pelo drawer — o servidor só renomeia; remover pede rota e regra de uso.
 - [BACKLOG] Desativar/ativar grupo de preço na própria linha (UC-CAD-09) — hoje a linha mostra Ativo/Inativo e a troca vai pela tela clássica.
-- [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — `/products/unificado` não tem esse filtro e é `nao_toca` da thread 03.
+- [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — a lista `/products` não tem esse filtro. (Até 2026-11-19 o destino era `/products/unificado`, apagada no #11251; unidade, categoria e marca passaram a abrir `/products?unit_id=…`, `category_id=…` e `brand_id=…`, que a lista lê da URL.)
 - [BACKLOG] Marca da Oficina na lista (UC-CAD-12), atalho `/` e busca sem resultado (UC-CAD-06/07), estados primeira-vez/carregando/densidade (UC-CAD-14..16) — a tela já tem `/`, busca e primeira-vez; falta teste de browser.
