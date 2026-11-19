@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,11 +19,14 @@ use Modules\RecurringBilling\Models\SubscriptionEvent;
  */
 class SubscriptionEventController extends Controller
 {
+    use ExigePermissaoRb;
+
     /**
      * GET /recurring-billing/{subscriptionId}/events — timeline DESC.
      */
     public function index(int $subscriptionId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.access');
         $businessId = (int) session('user.business_id');
         $sub = Subscription::query()
             ->where('business_id', $businessId)
@@ -57,6 +61,7 @@ class SubscriptionEventController extends Controller
      */
     public function store(Request $request, int $subscriptionId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
         $sub = Subscription::query()
             ->where('business_id', $businessId)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,6 +29,8 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  */
 class ConfiguracoesController extends Controller
 {
+    use ExigePermissaoRb;
+
     /**
      * GET /recurring-billing/configuracoes — Page Inertia Configurações.
      *
@@ -39,6 +42,7 @@ class ConfiguracoesController extends Controller
      */
     public function index(Request $request): InertiaResponse
     {
+        $this->exigirPermissao('recurringbilling.configuracoes.manage');
         $businessId = (int) session('user.business_id');
 
         return Inertia::render('RecurringBilling/Configuracoes/Index', [
