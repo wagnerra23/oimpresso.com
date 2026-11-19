@@ -24,8 +24,9 @@ use Modules\PaymentGateway\Services\PaymentGatewayService;
  *  3. pula a fatura que já tem cobrança viva (pending/emitida/vencida/paga) — uma por ciclo;
  *  4. cria a cobrança do ciclo pelo `PaymentGatewayService::emitirCobrancaRecorrente`, com o
  *     valor da FATURA em centavos inteiros (sem float);
- *  5. erro do banco marca a cobrança `erro`; a próxima rodada tenta de novo com chave nova
- *     (a chave vira o txid, e a spec só aceita uma cobrança viva por ciclo).
+ *  5. erro do banco marca a cobrança `erro`; a próxima rodada tenta de novo com a MESMA chave
+ *     (a chave vira o txid: se o banco tinha aceitado e só a resposta se perdeu, o txid repetido
+ *     é recusado e não sai segunda cobrança). Chave nova só depois de uma tentativa cancelada.
  *
  * `$dryRun` não grava nada e não chama o banco: devolve a lista do que seria cobrado.
  */
@@ -120,7 +121,26 @@ class CobradorPixAutomatico
                 continue;
             }
 
-            $chave = "rb-cobr-{$f->id}-".($tentativas->count() + 1);
+            // d8 (auditoria 2026-11-19): a chave vira o txid, e o txid é o que impede o banco de
+            // criar a mesma cobrança duas vezes. Erro na chamada não prova que o banco recusou —
+            // timeout depois de aceitar também sai como erro. Por isso a retentativa reusa a MESMA
+            // chave do ciclo; só uma tentativa cancelada (encerrada de fato) abre chave nova.
+            $chave = "rb-cobr-{$f->id}-".($tentativas->filter(fn ($s) => $s === 'cancelada')->count() + 1);
+
+            // A tentativa com erro ainda segura a chave na UNIQUE (business_id, idempotency_key), e o
+            // PaymentGatewayService devolveria a linha com erro sem chamar o banco. Renomeia a chave
+            // dela (a linha fica, para auditoria) e libera a chave para a nova tentativa.
+            // SUPERADMIN: mesmo contexto sem sessão; filtra pelo business_id explícito.
+            $comErro = Cobranca::withoutGlobalScopes()
+                ->where('business_id', $businessId)
+                ->where('idempotency_key', $chave)
+                ->where('status', 'erro')
+                ->first(['id']);
+            if ($comErro !== null) {
+                Cobranca::withoutGlobalScopes()->where('business_id', $businessId)->whereKey($comErro->id)
+                    ->update(['idempotency_key' => "{$chave}#erro{$comErro->id}"]);
+            }
+
             try {
                 (new PaymentGatewayService())->comCredencial($credencial)->emitirCobrancaRecorrente(
                     new EmitirCobrancaInput(
