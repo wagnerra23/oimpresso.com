@@ -177,6 +177,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ClientesLiberarPermissionTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogDelphiAliasDependenciaTest.php \
             Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php \
             Modules/Officeimpresso/Tests/Feature/RegenerateViaPostTest.php \
             Modules/Officeimpresso/Tests/Feature/LicencaShowSemCredenciaisTest.php \
