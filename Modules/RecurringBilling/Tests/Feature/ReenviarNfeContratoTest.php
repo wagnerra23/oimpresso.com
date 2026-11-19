@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-use App\User;
-use App\Utils\ModuleUtil;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Http\Controllers\NfeEmissaoController;
+use Modules\RecurringBilling\Http\Controllers\RecurringBillingController;
+use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 
-uses(Tests\TestCase::class, DatabaseTransactions::class);
+uses(Tests\TestCase::class);
 
 /**
  * POST /recurring-billing/{id}/reenviar-nfe — auditoria RecurringBilling d3 (2026-11-19).
@@ -20,30 +21,90 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *     PermissaoNfe::REENVIAR da rota do NfeBrasil;
  *  3. devolvia `$e->getMessage()` ao front.
  *
- * O NfeEmissaoController é substituído por um dublê que registra o id pedido: o que se mede é
- * a decisão do RecurringBilling (qual nota e se reenvia), não o envio do e-mail.
- * Tenant 98 (ADR 0358), nunca o 4. ⚠️ SKIP fora do MySQL: leia assertions (LC-13).
+ * O NfeEmissaoController é trocado por um dublê que registra o id pedido: o que se mede é a
+ * decisão do RecurringBilling (qual nota e se reenvia), não o e-mail. O usuário é um dublê
+ * com `can()` por lista, para medir a regra do controller sem o Spatie.
+ *
+ * SQLite in-memory (lane modules-pest, matrix RecurringBilling). Tenant 98 (ADR 0358); nunca o 4.
  */
 beforeEach(function () {
-    if (DB::connection()->getDriverName() !== 'mysql') {
-        $this->markTestSkipped('Schema real do RecurringBilling + NfeBrasil (MySQL).');
+    if (config('database.default') !== 'sqlite' || ! str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
+        $this->markTestSkipped('Rodado em SQLite in-memory (schema montado aqui).');
     }
-    $this->biz = (int) $this->seededTenant()->id;
 
-    $moduleUtil = Mockery::mock(ModuleUtil::class)->makePartial();
-    $moduleUtil->shouldReceive('hasThePermissionInSubscription')->andReturn(true);
-    app()->instance(ModuleUtil::class, $moduleUtil);
+    foreach (['rb_subscription_events', 'nfe_emissoes', 'rb_invoices', 'rb_subscriptions'] as $t) {
+        Schema::dropIfExists($t);
+    }
+    Schema::create('rb_subscriptions', function ($t) {
+        $t->id();
+        $t->unsignedInteger('business_id')->index();
+        $t->unsignedBigInteger('plan_id')->nullable();
+        $t->unsignedInteger('contact_id')->nullable();
+        $t->string('status', 20)->default('active');
+        $t->date('start_date')->nullable();
+        $t->date('next_due_date')->nullable();
+        $t->date('billing_anchor_date')->nullable();
+        $t->json('metadata')->nullable();
+        $t->timestamps();
+        $t->softDeletes();
+    });
+    Schema::create('rb_invoices', function ($t) {
+        $t->id();
+        $t->unsignedInteger('business_id')->index();
+        $t->unsignedBigInteger('subscription_id')->nullable();
+        $t->unsignedInteger('contact_id')->nullable();
+        $t->string('numero_documento', 50)->nullable();
+        $t->decimal('valor', 15, 2)->default(0);
+        $t->string('status', 20)->default('open');
+        $t->date('vencimento')->nullable();
+        $t->dateTime('pago_em')->nullable();
+        $t->json('metadata')->nullable();
+        $t->timestamps();
+        $t->softDeletes();
+    });
+    Schema::create('nfe_emissoes', function ($t) {
+        $t->id();
+        $t->unsignedInteger('business_id')->index();
+        $t->string('status', 20);
+        $t->dateTime('emitido_em')->nullable();
+        $t->json('metadata')->nullable();
+        $t->timestamps();
+        $t->softDeletes();
+    });
+    Schema::create('rb_subscription_events', function ($t) {
+        $t->id();
+        $t->unsignedInteger('business_id')->index();
+        $t->unsignedBigInteger('subscription_id');
+        $t->string('kind', 20);
+        $t->string('by_actor', 64);
+        $t->text('body');
+        $t->dateTime('occurred_at');
+        $t->timestamps();
+    });
 
+    $this->biz = 98;
+    session(['user.business_id' => $this->biz, 'business.id' => $this->biz]);
+
+    $this->sub = (int) DB::table('rb_subscriptions')->insertGetId(['business_id' => $this->biz, 'contact_id' => 501,
+        'status' => 'active', 'start_date' => '2031-01-01', 'next_due_date' => '2031-04-05',
+        'billing_anchor_date' => '2031-04-05', 'metadata' => '[]', 'created_at' => now(), 'updated_at' => now()]);
+    $this->faturaPaga = fn (array $meta) => DB::table('rb_invoices')->insertGetId(['business_id' => $this->biz,
+        'subscription_id' => $this->sub, 'contact_id' => 501, 'numero_documento' => 'RNF-'.uniqid(), 'valor' => '90.00',
+        'status' => 'paid', 'vencimento' => '2031-03-05', 'pago_em' => now()->subDay(),
+        'metadata' => json_encode($meta), 'created_at' => now(), 'updated_at' => now()]);
+
+    // Dublê do NfeBrasil: registra o id pedido; falha sob demanda.
     $this->pedidos = new ArrayObject();
-    $this->falhar = false;
-    $teste = $this;
-    app()->instance(NfeEmissaoController::class, new class($teste) {
-        public function __construct(private $teste) {}
+    $this->falha = new ArrayObject();
+    $pedidos = $this->pedidos;
+    $falha = $this->falha;
+    app()->instance(NfeEmissaoController::class, new class($pedidos, $falha) {
+        public function __construct(private ArrayObject $pedidos, private ArrayObject $falha) {}
 
         public function reenviarEmail($request, int $id)
         {
-            $this->teste->pedidos->append($id);
-            if ($this->teste->falhar) {
+            $this->pedidos->append($id);
+            if (count($this->falha) > 0) {
                 throw new RuntimeException('detalhe-interno-'.$id.' /var/www/segredo.pem');
             }
 
@@ -51,81 +112,71 @@ beforeEach(function () {
         }
     });
 
-    $owner = (int) DB::table('business')->where('id', $this->biz)->value('owner_id');
-    $contato = fn () => DB::table('contacts')->insertGetId(['business_id' => $this->biz, 'type' => 'customer',
-        'name' => 'Cliente RNF '.uniqid(), 'mobile' => '', 'contact_id' => 'RNF-'.uniqid(),
-        'created_by' => $owner, 'created_at' => now(), 'updated_at' => now()]);
-    $this->contatoAssinatura = $contato();
-    $this->contatoOutro = $contato();
+    $this->reenviar = function (array $permissoes) {
+        $user = new class($permissoes) {
+            public string $first_name = 'Teste';
 
-    $plano = DB::table('rb_plans')->insertGetId(['business_id' => $this->biz, 'name' => 'P RNF '.uniqid(),
-        'slug' => 'p-rnf-'.uniqid(), 'valor' => '90.00', 'ciclo' => 'monthly', 'created_at' => now(), 'updated_at' => now()]);
-    $this->sub = (int) DB::table('rb_subscriptions')->insertGetId(['business_id' => $this->biz, 'plan_id' => $plano,
-        'contact_id' => $this->contatoAssinatura, 'status' => 'active', 'start_date' => '2031-01-01',
-        'next_due_date' => '2031-04-05', 'billing_anchor_date' => '2031-04-05', 'metadata' => json_encode([]),
-        'created_at' => now(), 'updated_at' => now()]);
+            public function __construct(private array $permissoes) {}
 
-    $this->faturaPaga = fn (array $meta) => DB::table('rb_invoices')->insertGetId(['business_id' => $this->biz,
-        'subscription_id' => $this->sub, 'contact_id' => $this->contatoAssinatura, 'numero_documento' => 'RNF-'.uniqid(),
-        'valor' => '90.00', 'status' => 'paid', 'vencimento' => '2031-03-05', 'pago_em' => now()->subDay(),
-        'metadata' => json_encode($meta), 'created_at' => now(), 'updated_at' => now()]);
+            public function can($ability, $arguments = []): bool
+            {
+                return in_array($ability, $this->permissoes, true);
+            }
+        };
+        $request = Request::create("/recurring-billing/{$this->sub}/reenviar-nfe", 'POST');
+        $request->setUserResolver(fn () => $user);
 
-    $this->como = function (array $permissoes) {
-        $user = $this->usuarioComPermissoes($permissoes, \App\Business::find($this->biz));
-
-        return $this->actingAs($user)->withSession([
-            'user.business_id' => $this->biz, 'user.id' => $user->id,
-            'user' => ['business_id' => $this->biz, 'id' => $user->id],
-            'business.id' => $this->biz,
-            'business.date_format' => 'd/m/Y', 'business.time_format' => 24,
-        ]);
+        return (new RecurringBillingController(new SubscriptionRepository()))->reenviarNfe($request, $this->sub);
     };
 });
 
 afterEach(function () {
-    app()->forgetInstance(ModuleUtil::class);
     app()->forgetInstance(NfeEmissaoController::class);
+    session()->flush();
 });
 
 it('d3 · sem NF-e vinculada à fatura responde 422 e NÃO reenvia a nota de outro cliente da empresa', function () {
-    // A nota "da vizinhança" que a heurística antiga escolhia: autorizada, mesma empresa,
-    // emitida no dia do pagamento, mas de OUTRO cliente.
-    $notaAlheia = DB::table('nfe_emissoes')->insertGetId(['business_id' => $this->biz, 'transaction_id' => null,
-        'modelo' => '55', 'serie' => '9', 'numero' => random_int(800000, 899999), 'status' => 'autorizada',
-        'valor_total' => '90.00', 'emitido_em' => now()->subDay(), 'metadata' => json_encode(['contact_id' => $this->contatoOutro]),
+    // A nota que a heurística antiga escolhia: autorizada, mesma empresa, emitida no dia do
+    // pagamento — mas de OUTRO cliente (contato 777).
+    $notaAlheia = DB::table('nfe_emissoes')->insertGetId(['business_id' => $this->biz, 'status' => 'autorizada',
+        'emitido_em' => now()->subDay(), 'metadata' => json_encode(['contact_id' => 777]),
         'created_at' => now(), 'updated_at' => now()]);
     ($this->faturaPaga)([]);
 
-    $r = ($this->como)(['fiscal.nfe.acoes'])->postJson("/recurring-billing/{$this->sub}/reenviar-nfe");
+    $r = ($this->reenviar)(['fiscal.nfe.acoes']);
 
-    $r->assertStatus(422)->assertJson(['error' => 'sem_nfe_vinculada']);
-    expect($this->pedidos->getArrayCopy())->toBe([])
-        ->and($this->pedidos->getArrayCopy())->not->toContain($notaAlheia);
+    expect($r->getStatusCode())->toBe(422)
+        ->and($r->getData(true)['error'])->toBe('sem_nfe_vinculada')
+        ->and($this->pedidos->getArrayCopy())->toBe([])
+        ->and($notaAlheia)->toBeGreaterThan(0);
 });
 
-it('d3 · usuário sem a permissão de reenvio do NfeBrasil recebe 403; com a permissão, reenvia a nota vinculada', function () {
+it('d3 · sem a permissão de reenvio do NfeBrasil responde 403; com ela, reenvia a nota vinculada', function () {
     ($this->faturaPaga)(['nfe_emissao_id' => 424242]);
 
-    // Negativo: só acesso ao RecurringBilling.
-    ($this->como)(['recurringbilling.access'])->postJson("/recurring-billing/{$this->sub}/reenviar-nfe")
-        ->assertStatus(403)->assertJson(['error' => 'sem_permissao_nfe']);
-    expect($this->pedidos->getArrayCopy())->toBe([]);
+    // Negativo: só o acesso ao RecurringBilling.
+    $negado = ($this->reenviar)(['recurringbilling.access']);
+    expect($negado->getStatusCode())->toBe(403)
+        ->and($negado->getData(true)['error'])->toBe('sem_permissao_nfe')
+        ->and($this->pedidos->getArrayCopy())->toBe([]);
 
-    // Positivo: a permissão de reenvio do NfeBrasil — reenvia exatamente a nota vinculada.
-    ($this->como)(['fiscal.nfe.acoes'])->postJson("/recurring-billing/{$this->sub}/reenviar-nfe")
-        ->assertOk()->assertJson(['ok' => true, 'emissao_id' => 424242]);
-    expect($this->pedidos->getArrayCopy())->toBe([424242]);
+    // Positivo: uma das permissões de PermissaoNfe::REENVIAR — reenvia exatamente a vinculada.
+    $ok = ($this->reenviar)(['fiscal.nfe.acoes']);
+    expect($ok->getStatusCode())->toBe(200)
+        ->and($ok->getData(true)['emissao_id'])->toBe(424242)
+        ->and($this->pedidos->getArrayCopy())->toBe([424242])
+        ->and(DB::table('rb_subscription_events')->where('subscription_id', $this->sub)->where('kind', 'event-nf')->count())->toBe(1);
 });
 
 it('d3 · falha no reenvio devolve mensagem genérica, sem o texto da exceção', function () {
     ($this->faturaPaga)(['nfe_emissao_id' => 515151]);
-    $this->falhar = true;
+    $this->falha->append(true);
 
-    $r = ($this->como)(['nfebrasil.emit.manage'])
-        ->postJson("/recurring-billing/{$this->sub}/reenviar-nfe");
+    $r = ($this->reenviar)(['nfebrasil.emit.manage']);
 
-    $r->assertStatus(503)->assertJson(['error' => 'nfe_reenvio_falhou']);
-    expect($this->pedidos->getArrayCopy())->toBe([515151]) // chegou ao reenvio: a falha é dele
-        ->and($r->getContent())->not->toContain('detalhe-interno')
-        ->and($r->getContent())->not->toContain('segredo.pem');
+    expect($r->getStatusCode())->toBe(503)
+        ->and($r->getData(true)['error'])->toBe('nfe_reenvio_falhou')
+        ->and($this->pedidos->getArrayCopy())->toBe([515151]) // chegou ao reenvio: a falha é dele
+        ->and((string) $r->getContent())->not->toContain('detalhe-interno')
+        ->and((string) $r->getContent())->not->toContain('segredo.pem');
 });
