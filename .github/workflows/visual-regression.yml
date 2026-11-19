@@ -942,6 +942,18 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/ProductCatalogue/CatalogueQrBrowserTest.php
 
+      # ── E2E DE COMPORTAMENTO + AXE — PaymentGateway/CnabRetorno (NASCE ADVISORY) ────
+      # Histórico do retorno CNAB (contadores, erros, pendente), tela de credencial do 99 = 404
+      # para o 98, extensão recusada sem gravar upload, axe CRITICAL. Auditoria PaymentGateway
+      # 2026-11-19, lote 4 (4.2): `screen-coverage-map` dava e2e ✗, axe 0 e nenhum UC.
+      # Tenant 98 / adversário 99 (ADR 0358); sem pixel (ADR 0445). Promover = remover o
+      # `continue-on-error` depois de 2 verdes que EXECUTARAM, lidos no log; é flip [W].
+      - name: E2E de comportamento + axe · PaymentGateway/CnabRetorno (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-paymentgateway-cnab
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/PaymentGateway/CnabRetornoBrowserTest.php
+
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
       # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
@@ -994,6 +1006,7 @@ jobs:
           A_ARQUIVOS_INDEX: ${{ steps.e2e-arquivos-index.outcome }}
           A_SUPERADMIN_PLATAFORMA: ${{ steps.e2e-superadmin-plataforma.outcome }}
           A_NFSE: ${{ steps.e2e-nfse.outcome }}
+          A_PG_CNAB: ${{ steps.e2e-paymentgateway-cnab.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1043,6 +1056,7 @@ jobs:
           registrar "E2E de render · Arquivos/Index" "$A_ARQUIVOS_INDEX"
           registrar "E2E de render · Superadmin plataforma" "$A_SUPERADMIN_PLATAFORMA"
           registrar "E2E de render + axe · NFSe" "$A_NFSE"
+          registrar "E2E de comportamento + axe · PaymentGateway/CnabRetorno" "$A_PG_CNAB"
 
           {
             echo ""
