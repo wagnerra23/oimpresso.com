@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela abre o parque de máquinas dos clientes; máquina de outro negócio ou senha no payload é incidente Tier 0.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-11-19"
 ---
 
 # Casos de Uso & Aceite — Licenças de computador (`/officeimpresso/licenca_computador`)
