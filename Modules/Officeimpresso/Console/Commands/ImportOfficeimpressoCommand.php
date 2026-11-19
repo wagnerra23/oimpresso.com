@@ -22,8 +22,15 @@ use Modules\Officeimpresso\Services\FirebirdImporter\OfficeimpressoImporterServi
  *   - `{biz}` argumento obrigatório (multi-tenant ADR 0093)
  *   - `--dry-run` default-on-not-set é FALSE pra evitar import acidental
  *
+ * ## Fail-closed (2026-11-18, Lote 2 da auditoria Officeimpresso):
+ *   - Sem `--source-fb`, ou sem a extensão `pdo_firebird`, o connector entra em mock e
+ *     devolve FIXTURES fictícias. Mock só roda com `--dry-run`; sem ele o comando recusa
+ *     antes de tocar o banco. Antes ele gravava as fixtures na empresa real.
+ *   - Linha que falha conta em `Failed`; linha de tabela sem `legacy_id` conta em
+ *     `Blocked`. Qualquer uma das duas > 0 → exit 1.
+ *
  * ## Output:
- *   - Tabela: tabela | read | migrated | skipped
+ *   - Tabela: tabela | read | migrated | skipped | failed | blocked
  *   - Resumo final + indicação Wagner reviewer (ADR 0019 one-way)
  *
  * @see Modules\Officeimpresso\Services\FirebirdImporter\OfficeimpressoImporterService
@@ -54,8 +61,24 @@ class ImportOfficeimpressoCommand extends Command
         $pass = (string) ($this->option('pass') ?? 'masterkey');
         $detail = (bool) $this->option('detail');
 
-        if ($sourceFb === '') {
-            $sourceFb = ':mock:'; // sinaliza connector pra mock auto
+        $semFonte = $sourceFb === '';
+        if ($semFonte) {
+            $sourceFb = ':mock:';
+        }
+
+        $connector = new FirebirdConnector(
+            fdbPath: $sourceFb,
+            username: $user,
+            password: $pass,
+            forceMock: $semFonte ? true : null,
+        );
+
+        if ($connector->isMock() && ! $dryRun) {
+            $motivo = $semFonte ? '--source-fb não informado' : 'extensão pdo_firebird ausente (ou OFFICEIMPRESSO_FB_FORCE_MOCK ligado)';
+            $this->error("Modo mock ({$motivo}): os dados seriam FIXTURES fictícias, não o .fdb do cliente.");
+            $this->error('Mock só roda com --dry-run. Nada foi gravado.');
+
+            return self::FAILURE;
         }
 
         $this->line('');
@@ -65,13 +88,8 @@ class ImportOfficeimpressoCommand extends Command
             ['dry-run', $dryRun ? 'SIM' : 'NÃO (PERSISTE)'],
             ['source .fdb', $sourceFb],
             ['driver pdo_firebird', FirebirdConnector::driverAvailable() ? 'disponível' : 'AUSENTE → mock mode'],
+            ['modo', $connector->isMock() ? 'MOCK (fixtures fictícias)' : 'live'],
         ]);
-
-        $connector = new FirebirdConnector(
-            fdbPath: $sourceFb,
-            username: $user,
-            password: $pass,
-        );
 
         // Health check antes de tudo
         $health = $connector->healthCheck();
@@ -87,24 +105,24 @@ class ImportOfficeimpressoCommand extends Command
 
         $this->line('');
         $this->info('Resultado migração:');
-        $this->table(
-            ['Tabela Firebird → oimpresso', 'Read', 'Migrated', 'Skipped'],
-            [
-                ['CLIENTES → contacts', $report['clientes']['read'], $report['clientes']['migrated'], $report['clientes']['skipped']],
-                ['PRODUTOS → products', $report['produtos']['read'], $report['produtos']['migrated'], $report['produtos']['skipped']],
-                ['VENDAS → transactions', $report['vendas']['read'], $report['vendas']['migrated'], $report['vendas']['skipped']],
-                ['LICENCA_COMPUTADOR → licenca_computador', $report['licencas']['read'], $report['licencas']['migrated'], $report['licencas']['skipped']],
-                ['FINANCEIRO → fin_titulos [W29-1]', $report['financeiros']['read'] ?? 0, $report['financeiros']['migrated'] ?? 0, $report['financeiros']['skipped'] ?? 0],
-                ['NOTA_FISCAL → nfe_emissoes [W29-1]', $report['notas_fiscais']['read'] ?? 0, $report['notas_fiscais']['migrated'] ?? 0, $report['notas_fiscais']['skipped'] ?? 0],
-            ]
-        );
-
-        $totalMigrated = $report['clientes']['migrated']
-            + $report['produtos']['migrated']
-            + $report['vendas']['migrated']
-            + $report['licencas']['migrated']
-            + ($report['financeiros']['migrated'] ?? 0)
-            + ($report['notas_fiscais']['migrated'] ?? 0);
+        $fases = [
+            'clientes' => 'CLIENTES → contacts',
+            'produtos' => 'PRODUTOS → products',
+            'vendas' => 'VENDAS → transactions',
+            'licencas' => 'LICENCA_COMPUTADOR → licenca_computador',
+            'financeiros' => 'FINANCEIRO → fin_titulos [W29-1]',
+            'notas_fiscais' => 'NOTA_FISCAL → nfe_emissoes [W29-1]',
+        ];
+        $linhas = [];
+        $totalMigrated = $totalFailed = $totalBlocked = 0;
+        foreach ($fases as $chave => $rotulo) {
+            $f = $report[$chave];
+            $linhas[] = [$rotulo, $f['read'], $f['migrated'], $f['skipped'], $f['failed'], $f['blocked']];
+            $totalMigrated += $f['migrated'];
+            $totalFailed += $f['failed'];
+            $totalBlocked += $f['blocked'];
+        }
+        $this->table(['Tabela Firebird → oimpresso', 'Read', 'Migrated', 'Skipped', 'Failed', 'Blocked'], $linhas);
 
         $this->line('');
         if ($dryRun) {
@@ -118,12 +136,24 @@ class ImportOfficeimpressoCommand extends Command
         $this->info('Tier 0 (ADR 0019): one-way Firebird → oimpresso. Cliente continua usando Delphi paralelo ~30d.');
         $this->info('Reviewer obrigatório: Wagner [W] antes de cutover. Lei Software 9.609/98 retention preservada.');
 
+        if ($totalFailed > 0 || $totalBlocked > 0) {
+            $this->line('');
+            $this->error("Importação INCOMPLETA: {$totalFailed} linha(s) com falha, {$totalBlocked} bloqueada(s).");
+            foreach ($report['errors'] as $erro) {
+                $this->line(sprintf('  - %s · legacy_id=%s · %s · %d linha(s)',
+                    $erro['tabela'], $erro['legacy_id'] ?? '-', $erro['erro'], $erro['linhas']));
+            }
+            if ($totalBlocked > 0) {
+                $this->line('  Bloqueada = tabela sem coluna legacy_id: sem ela um 2º run duplicaria tudo.');
+            }
+        }
+
         if ($detail) {
             $this->line('');
             $this->info('Detalhe completo (JSON):');
             $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         }
 
-        return self::SUCCESS;
+        return ($totalFailed > 0 || $totalBlocked > 0) ? self::FAILURE : self::SUCCESS;
     }
 }

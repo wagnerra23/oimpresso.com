@@ -26,7 +26,7 @@ O fluxo ponta a ponta (token → registro no Connector → liberação → `S`/`
 - **Catálogo:** as rotas antigas de catálogo e QR redirecionam para o `ProductCatalogue` desde 2026-10-01.
 
 ## O que não está pronto
-- **Importador PHP** (`officeimpresso:import`): sem `pdo_firebird` ou sem `--source-fb` cai em modo mock e grava fixtures fora do `--dry-run`; o contador de migrados soma insert que falhou. As migrações de cliente usam os scripts Python de `scripts/legacy-migration/` ([ADR 0203](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md)). Lote L2 da auditoria de 2026-11-05.
+- **Importador PHP** (`officeimpresso:import`): desde 2026-11-18 recusa o modo mock fora do `--dry-run` e conta insert com erro em `Failed` (exit 1). Continua sem deduplicação em `products`, `transactions` e `licenca_computador`, que não têm coluna `legacy_id`: essas linhas saem como `Blocked` e não são gravadas (criar a coluna em tabela core é decisão do [W]). Nunca rodou contra `.fdb` real. As migrações de cliente usam os scripts Python de `scripts/legacy-migration/` ([ADR 0203](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md)). Lote L2 da auditoria de 2026-11-05.
 - **Cutover que falta:** a ficha da empresa e as duas telas de Logs ainda têm flag e Blade no repo; Clientes ainda é servida pela Blade.
 - **Decisões [W] pendentes:** a [ADR 0017](../../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md) ("superadmin exclusivo") segue aceita e sem sucessora, enquanto o código delega; e o expurgo do `licenca_log` descrito em `Config/retention.php` e na CAPTERRA esbarra na lápide §5 de 2026-07-27 (não há comando que o execute).
 
