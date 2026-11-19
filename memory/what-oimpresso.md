@@ -54,7 +54,7 @@ oimpresso (núcleo comum)
 ├── Modules/Financeiro    (visão unificada AR/AP)
 ├── Modules/NfeBrasil     (NFe/NFC-e/NFSe)
 ├── Modules/RecurringBilling (assinaturas + boletos)
-├── Modules/PaymentGateway   (🟡 parcial — código real (drivers Inter/C6/Asaas/PixAuto/CNAB + webhooks + 47 testes) porém flags OFF em prod; boleto Inter disponível — ADR 0170, extração de RecurringBilling)
+├── Modules/PaymentGateway   (🟡 parcial — drivers de API + CNAB + webhooks, extraído de RecurringBilling; flags que tocam valor nascem `false` em `Config/config.php`; estado em [BRIEFING](requisitos/PaymentGateway/BRIEFING.md), não fixar contagem de testes aqui)
 ├── Modules/Repair        (Kanban OS — shared infrastructure entre verticais)
 └── Modules/<Vertical>    ← ESPECIALIZAÇÕES PROFUNDAS
     ├── Vestuario              ✅ em prod (ROTA LIVRE) — CNAE 4781-4/00
