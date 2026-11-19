@@ -22,16 +22,16 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  *   2. mtlsOptions retorna ['cert' => [tempPath, senha]] com binary do mock
  *   3. mtlsOptions throws CredentialMisconfigured quando business sem cert
  *   4. Temp file em sys_get_temp_dir() com prefix sicoob-pfx-
- *   5. Multi-tenant Tier 0: business_id=4 e biz=99 carregam certs DIFERENTES
+ *   5. Multi-tenant Tier 0: business_id=98 e biz=99 carregam certs DIFERENTES
  *   6. Mensagens de erro mantêm ref pra /fiscal/configuracao/certificado
  */
 
 beforeEach(function () {
     Cache::flush();
-    session(['business.id' => 1]);
+    session(['business.id' => 98]);
 });
 
-function makeSicoobCredXT(int $bizId = 1, array $configExtra = []): PaymentGatewayCredential
+function makeSicoobCredXT(int $bizId = 98, array $configExtra = []): PaymentGatewayCredential
 {
     return PaymentGatewayCredential::query()->create([
         'business_id'  => $bizId,
@@ -58,15 +58,15 @@ function callMtls(PaymentGatewayCredential $cred): array
 }
 
 it('mtlsOptions chama CertificadoService::carregarParaSefaz com business_id da credential', function () {
-    $cred = makeSicoobCredXT(bizId: 4);
+    $cred = makeSicoobCredXT(bizId: 98);
 
     $stub = Mockery::mock(CertificadoService::class);
     $stub->shouldReceive('carregarParaSefaz')
-        ->with(4)
+        ->with(98)
         ->once()
         ->andReturn([
             'pfx_binary' => 'FAKE',
-            'senha'      => 's4',
+            'senha'      => 's98',
             'valido_ate' => new DateTimeImmutable('+10 days'),
             'source'     => 'nfe_brasil',
         ]);
@@ -135,14 +135,14 @@ it('mtlsOptions re-wrap mantém ref ao /fiscal pra orientar usuário', function 
     }
 });
 
-it('multi-tenant Tier 0: biz=4 e biz=99 chamam CertificadoService com business_ids DIFERENTES', function () {
-    $cred4 = makeSicoobCredXT(bizId: 4);
+it('multi-tenant Tier 0: biz=98 e biz=99 chamam CertificadoService com business_ids DIFERENTES', function () {
+    $cred98 = makeSicoobCredXT(bizId: 98);
     $cred99 = makeSicoobCredXT(bizId: 99);
 
     $stub = Mockery::mock(CertificadoService::class);
-    $stub->shouldReceive('carregarParaSefaz')->with(4)->once()->andReturn([
-        'pfx_binary' => 'cert-biz-4',
-        'senha'      => 's4',
+    $stub->shouldReceive('carregarParaSefaz')->with(98)->once()->andReturn([
+        'pfx_binary' => 'cert-biz-98',
+        'senha'      => 's98',
         'valido_ate' => new DateTimeImmutable('+90 days'),
         'source'     => 'nfe_brasil',
     ]);
@@ -154,16 +154,16 @@ it('multi-tenant Tier 0: biz=4 e biz=99 chamam CertificadoService com business_i
     ]);
     app()->instance(CertificadoService::class, $stub);
 
-    $opts4 = callMtls($cred4);
+    $opts98 = callMtls($cred98);
     $opts99 = callMtls($cred99);
 
-    expect($opts4['cert'][0])->not->toBe($opts99['cert'][0]);
-    expect(file_get_contents($opts4['cert'][0]))->toBe('cert-biz-4');
+    expect($opts98['cert'][0])->not->toBe($opts99['cert'][0]);
+    expect(file_get_contents($opts98['cert'][0]))->toBe('cert-biz-98');
     expect(file_get_contents($opts99['cert'][0]))->toBe('cert-biz-99');
-    expect($opts4['cert'][1])->toBe('s4');
+    expect($opts98['cert'][1])->toBe('s98');
     expect($opts99['cert'][1])->toBe('s99');
 
-    @unlink($opts4['cert'][0]);
+    @unlink($opts98['cert'][0]);
     @unlink($opts99['cert'][0]);
 });
 
