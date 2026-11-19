@@ -500,6 +500,11 @@ Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php
 Modules/RecurringBilling/Tests/Feature/SyncBankStatementsJobTest.php
 Modules/RecurringBilling/Tests/Feature/SyncBankBalancesJobTest.php
 
+# RecurringBilling — teste da raiz fora de lane (auditoria 2026-11-19). O job
+# CancelarCobrancaInterJob monta schema sintético e pula fora do sqlite
+# (era-sqlite), então o lugar dele é aqui.
+tests/Feature/Jobs/CancelarCobrancaInterJobTest.php
+
 # ─── IndexarMemoryGitParaDb — regressao da classe que o #5193 alterou
 # (redactor apagava run id). O #5193 poe so o teste NOVO dele numa lane; os de
 # REGRESSAO ficaram de fora. Mesmo padrao do PiiRedactor (#5169). Achados pelo
