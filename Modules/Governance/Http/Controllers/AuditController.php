@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Governance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Governance\Http\Requests\FilterAuditRequest;
 use Modules\Governance\Services\AuditDrillDownService;
 
 /**
@@ -28,19 +28,15 @@ class AuditController extends Controller
         $this->middleware('auth');
     }
 
-    public function index(Request $request): Response
+    /**
+     * Os filtros passam pelo FilterAuditRequest: período, status e slug do actor só
+     * aceitam os valores que a tela oferece e o enum de `mcp_audit_log` tem (medido em
+     * 2026-11-19 contra a migration da Forja e os selects do Audit.tsx). Valor fora da
+     * lista volta com erro de validação em vez de cair calado no padrão de 24h.
+     */
+    public function index(FilterAuditRequest $request): Response
     {
-        $period   = $request->input('period', '24h');
-        $actor    = $request->input('actor');
-        $endpoint = $request->input('endpoint');
-        $status   = $request->input('status');
-
-        $filterPayload = [
-            'period'   => $period,
-            'actor'    => $actor,
-            'endpoint' => $endpoint,
-            'status'   => $status,
-        ];
+        $filterPayload = $request->toFilterArray();
 
         // ROLLBACK Wave W7 #953: Inertia::defer quebrava Pages que esperam props eager.
         // (Closure ≠ defer: roda normal no 1º render, só é pulada em partial reload.)
