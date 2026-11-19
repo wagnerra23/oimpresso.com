@@ -210,7 +210,7 @@ beforeEach(function () {
 
 // ─── liquidação ──────────────────────────────────────────────────────────
 
-it('dispatcha CobrancaPaga para títulos liquidados (ocorrência 06)', function () {
+it('UC-PGCNAB-01 · dispatcha CobrancaPaga para títulos liquidados (ocorrência 06)', function () {
     $arquivo = fakeCnabRetorno('06'); // LIQUIDAÇÃO
     Storage::disk('local')->put('cnab-retornos/biz-1/cred-' . $this->cred->id . '/file.ret', $arquivo);
 
@@ -244,7 +244,7 @@ it('dispatcha CobrancaPaga para títulos liquidados (ocorrência 06)', function 
 
 // ─── baixa sem pagamento → cancelamento ──────────────────────────────────
 
-it('dispatcha CobrancaCancelada para baixa sem pagamento (ocorrência 09)', function () {
+it('UC-PGCNAB-02 · dispatcha CobrancaCancelada para baixa sem pagamento (ocorrência 09)', function () {
     $arquivo = fakeCnabRetorno('09'); // BAIXA AUTOM
     Storage::disk('local')->put('cnab-retornos/biz-1/cred-' . $this->cred->id . '/baixa.ret', $arquivo);
 
@@ -272,7 +272,7 @@ it('dispatcha CobrancaCancelada para baixa sem pagamento (ocorrência 09)', func
 
 // ─── entrada confirmada vencida → CobrancaVencida ────────────────────────
 
-it('dispatcha CobrancaVencida quando entrada (02) tem vencimento passado', function () {
+it('UC-PGCNAB-03 · dispatcha CobrancaVencida quando entrada (02) tem vencimento passado', function () {
     $arquivo = fakeCnabRetorno('02'); // ENTRADA — vencimento da cobranca foi há 5d
     Storage::disk('local')->put('cnab-retornos/biz-1/cred-' . $this->cred->id . '/entrada.ret', $arquivo);
 
@@ -297,7 +297,7 @@ it('dispatcha CobrancaVencida quando entrada (02) tem vencimento passado', funct
 
 // ─── idempotência ────────────────────────────────────────────────────────
 
-it('é idempotente: quando paga_em já setado, não dispatcha CobrancaPaga novamente', function () {
+it('UC-PGCNAB-04 · é idempotente: quando paga_em já setado, não dispatcha CobrancaPaga novamente', function () {
     // Pré-marca cobranca como já paga
     $this->cobranca->update([
         'status'              => 'paga',
@@ -328,7 +328,7 @@ it('é idempotente: quando paga_em já setado, não dispatcha CobrancaPaga novam
 
 // ─── métricas no CnabRetornoUpload ───────────────────────────────────────
 
-it('grava CnabRetornoUpload com métricas após processar', function () {
+it('UC-PGCNAB-06 · grava CnabRetornoUpload com métricas após processar', function () {
     $arquivo = fakeCnabRetorno('06');
     Storage::disk('local')->put('cnab-retornos/biz-1/cred-' . $this->cred->id . '/metrics.ret', $arquivo);
 
@@ -364,7 +364,7 @@ it('grava CnabRetornoUpload com métricas após processar', function () {
 
 // ─── multi-tenant Tier 0 ─────────────────────────────────────────────────
 
-it('respeita business_id global scope — não atualiza cobranca de outro business', function () {
+it('[T0] UC-PGCNAB-05 · respeita business_id global scope — não atualiza cobranca de outro business', function () {
     // Outra business com mesma nossoNumero — NUNCA pode ser tocada
     $cobrancaBiz2 = Cobranca::query()->create([
         'business_id'                    => 2,
@@ -407,7 +407,7 @@ it('respeita business_id global scope — não atualiza cobranca de outro busine
 
 // ─── arquivo inexistente ─────────────────────────────────────────────────
 
-it('não quebra quando arquivo de retorno não existe', function () {
+it('UC-PGCNAB-07 · não quebra quando arquivo de retorno não existe', function () {
     $upload = CnabRetornoUpload::query()->create([
         'business_id'                   => 1,
         'payment_gateway_credential_id' => $this->cred->id,
