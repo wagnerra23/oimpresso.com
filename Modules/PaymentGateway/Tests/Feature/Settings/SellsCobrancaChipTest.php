@@ -104,7 +104,8 @@ it('shape cobranca retorna kind=paid quando cobrança paga existe', function () 
         ->assertJsonPath('cobranca.kind', 'paid')
         ->assertJsonPath('cobranca.cob.tipo', 'boleto')
         ->assertJsonPath('cobranca.cob.gateway', 'inter')
-        ->assertJsonPath('cobranca.cob.valor', 500.0);
+        // json_encode(500.0) sai "500": compara o número, não o tipo PHP.
+        ->assertJsonPath('cobranca.cob.valor', fn ($v) => (float) $v === 500.0);
 });
 
 it('shape cobranca retorna kind=overdue quando emitida e vencimento passou', function () {

@@ -108,7 +108,9 @@ it('NÃO expõe payload completo (LGPD/PCI guard)', function () {
     $body = $response->getContent();
     expect($body)->not->toContain('must_not_leak');
     expect($body)->not->toContain('12345678900');
-    expect($body)->not->toContain('payload'); // Field name não deve aparecer
+    // A CHAVE `payload` não pode existir no item (o texto 'payload' pode aparecer em
+    // outro valor, como o gateway_event_id deste fixture).
+    expect(array_keys($response->json('events.0')))->not->toContain('payload');
 });
 
 it('Tier 0: credencial de outro business → 404', function () {
