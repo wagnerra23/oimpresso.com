@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 191 arquivos em 20 papéis.
+**Total mapeado:** 192 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -112,7 +112,7 @@ module: RecurringBilling
 - [api.php](../../../Modules/RecurringBilling/Routes/api.php)
 - [web.php](../../../Modules/RecurringBilling/Routes/web.php)
 
-## Migrations (schema) — 10
+## Migrations (schema) — 12
 
 - [2026_05_06_000001_create_rb_boleto_credentials_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000001_create_rb_boleto_credentials_table.php)
 - [2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php)
@@ -124,6 +124,8 @@ module: RecurringBilling
 - [2026_05_16_120000_recurring_v975_schema.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_16_120000_recurring_v975_schema.php)
 - [2026_10_26_130000_make_plan_id_nullable_on_rb_subscriptions.php](../../../Modules/RecurringBilling/Database/Migrations/2026_10_26_130000_make_plan_id_nullable_on_rb_subscriptions.php)
 - [2026_10_27_100000_create_rb_cartoes_salvos_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_10_27_100000_create_rb_cartoes_salvos_table.php)
+- [2026_11_19_110000_add_business_fk_rb_tables.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110000_add_business_fk_rb_tables.php)
+- [2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php)
 
 ## Seeders — 2
 
@@ -134,11 +136,6 @@ module: RecurringBilling
 
 - [config.php](../../../Modules/RecurringBilling/Config/config.php)
 - [retention.php](../../../Modules/RecurringBilling/Config/retention.php)
-
-## Views (Blade) — 2
-
-- [index.blade.php](../../../Modules/RecurringBilling/Resources/views/index.blade.php)
-- [master.blade.php](../../../Modules/RecurringBilling/Resources/views/layouts/master.blade.php)
 
 ## Telas (Inertia/React) — 6
 
@@ -178,9 +175,9 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 47
+## Testes (Pest) — 48
 
-- 47 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 48 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 36
