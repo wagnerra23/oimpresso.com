@@ -2,6 +2,8 @@
 id: reference-feedback-pageheader-largura-total
 name: feedback-pageheader-largura-total
 description: Reclamação recorrente do [W] em todos os módulos — o PageHeader tem de seguir o canon (largura total, primeiro filho da tela, abas pelo componente canon). Conferir antes de declarar qualquer tela pronta.
+type: feedback
+authority: canonical
 metadata:
   type: feedback
 ---
