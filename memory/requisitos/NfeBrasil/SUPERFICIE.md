@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 384 arquivos em 20 papéis.
+**Total mapeado:** 385 arquivos em 20 papéis.
 
 ## Controllers — 17
 
@@ -167,7 +167,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 44
+## Migrations (schema) — 45
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -213,6 +213,7 @@ module: NfeBrasil
 - [2026_11_13_000001_add_cst_pis_cofins_to_nfe_fiscal_rules.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_13_000001_add_cst_pis_cofins_to_nfe_fiscal_rules.php)
 - [2026_11_15_000001_add_campos_da_tela_naturezas_to_nfe_operacoes_fiscais.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_15_000001_add_campos_da_tela_naturezas_to_nfe_operacoes_fiscais.php)
 - [2026_11_15_000002_add_config_tela_to_nfe_operacoes_fiscais.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_15_000002_add_config_tela_to_nfe_operacoes_fiscais.php)
+- [2026_11_19_000001_add_email_danfe_por_empresa_to_nfe_business_configs.php](../../../Modules/NfeBrasil/Database/Migrations/2026_11_19_000001_add_email_danfe_por_empresa_to_nfe_business_configs.php)
 
 ## Seeders — 2
 

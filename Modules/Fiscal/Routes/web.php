@@ -70,6 +70,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // Cadastro do contador (playbook Fiscal thread 15c) — mesmo gate da tela (fiscal.config.edit).
         Route::post('/config/contador', [ConfigController::class, 'salvarContador'])
             ->middleware('throttle:20,1')->name('config.contador');
+        // Envio automático do DANFE por empresa (2026-11-19) — mesmo gate da tela.
+        Route::post('/config/envio', [ConfigController::class, 'salvarEnvio'])
+            ->middleware('throttle:20,1')->name('config.envio');
 
         // SPED & Livros (sub-página 7 — PR #3 Wave final, placeholder).
         Route::get('/sped', [SpedController::class, 'index'])->name('sped.index');
