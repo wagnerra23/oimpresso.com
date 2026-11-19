@@ -51,6 +51,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 | UC-RBCFG-06 | Token de um business não credita no outro | must `[T0]` `[V0]` | `CU-RB-07` 3/4 | `AsaasWebhookAuthTest` | 🧪 |
 | UC-RBCFG-07 | Evento repetido não é reprocessado (idempotência) | must `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookIdempotencyTest` | 🧪 |
 | UC-RBCFG-08 | O webhook do Inter tem as mesmas garantias do Asaas | must `[T0]` `[V0]` | `CU-RB-07` 1-5 | `InterWebhookControllerTest` | 🧪 |
+| UC-RBCFG-09 | Pagamento Asaas credita uma vez só, na quitação, e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookCreditoUnicoContratoTest` | 🧪 |
 
 ---
 
@@ -158,6 +159,25 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   + [ADR tech/0002](../../../../../memory/requisitos/RecurringBilling/adr/tech/0002-webhook-asaas-at-least-once-resposta-rapida.md).
 - **Regressão que defende:** a guarda de idempotência virar só um `SELECT` na aplicação (sem a UNIQUE
   no banco) — duas entregas concorrentes passariam pela janela de corrida e creditariam 2×.
+- **Status: 🧪**
+
+---
+
+## UC-RBCFG-09 · O pagamento credita uma vez só e só quando quita a fatura · `must` `[T0]` `[V0]`
+- **Persona:** o Asaas manda `PAYMENT_CONFIRMED` e `PAYMENT_RECEIVED` para o mesmo pagamento (ids
+  diferentes, então o UC-RBCFG-07 não barra) e reentrega quando o job falha. A empresa não pode ver o
+  dinheiro em dobro no saldo nem receber duas NF-e.
+- **Aceite:** Dada uma fatura `open`/`overdue` de 150,00 da empresa 98 · Quando chegam CONFIRMED,
+  RECEIVED e um retry · Então a fatura vira `paid` com `pago_em`, entra **um** crédito de 150,00 na
+  conta Asaas, o saldo sobe 150,00 e o `InvoicePaid` sai uma vez. Pagamento de 120,00 não quita nem
+  credita. Fatura cancelada não volta a paga. Número de fatura da 99 não mexe na 99. O crédito sai com
+  o dono da empresa em `created_by`.
+- **Teste:** [`AsaasWebhookCreditoUnicoContratoTest`](../../../../../Modules/RecurringBilling/Tests/Feature/AsaasWebhookCreditoUnicoContratoTest.php)
+  — os sete casos `UC-RBCFG-09`. Cada caso confere o valor por dois caminhos: soma dos créditos e
+  variação do saldo.
+- **Contrato:** `CU-RB-07` itens 5 e 6 + regra mestre de valor (`memory/proibicoes.md`).
+- **Regressão que defende:** o efeito de valor voltar a acontecer por evento recebido em vez de por
+  transição da fatura (auditoria 2026-11-19, achado a3).
 - **Status: 🧪**
 
 ---
