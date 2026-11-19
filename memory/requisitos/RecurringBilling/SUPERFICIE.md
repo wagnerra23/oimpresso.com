@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 201 arquivos em 19 papéis.
+**Total mapeado:** 203 arquivos em 20 papéis.
 
 ## Controllers — 12
 
@@ -40,6 +40,10 @@ module: RecurringBilling
 - [StorePlanRequest.php](../../../Modules/RecurringBilling/Http/Requests/StorePlanRequest.php)
 - [UpdateAssinaturaRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdateAssinaturaRequest.php)
 - [UpdatePlanRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdatePlanRequest.php)
+
+## Middleware — 1
+
+- [RecurringBillingLiberado.php](../../../Modules/RecurringBilling/Http/Middleware/RecurringBillingLiberado.php)
 
 ## Services — 18
 
@@ -178,9 +182,9 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 54
+## Testes (Pest) — 55
 
-- 54 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 55 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 36
