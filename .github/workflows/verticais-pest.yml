@@ -774,6 +774,9 @@ jobs:
         # ENTRA 2026-11-19 — ComunicacaoVisual/InstalacaoProtocoloPublicoContratoTest (US-COMVIS-007 · UC-PCV-25,
         # UC-CVINST-15..16): link assinado do protocolo abre sem login e expira em 7 dias; adulterado 403; aberta/99 → 404.
         #
+        # ENTRA 2026-11-19 — ComunicacaoVisual/InstalacaoProtocoloAvisoContratoTest (US-COMVIS-007 · UC-PCV-25,
+        # UC-CVINST-17..19): concluir manda o link do protocolo ao cliente por WhatsApp; LGPD, sem celular e contato da 99 não recebem.
+        #
         # ENTRA 2026-11-16 — Superadmin/SubscriptionConfirmContratoTest (UC-SACF-01..07): o confirm
         # só cria assinatura com gateway configurado; GET → 405; offline nasce `waiting`; pacote
         # privado ou inexistente não assina; sem permissão 403.
@@ -808,6 +811,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoProtocoloContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoProtocoloPublicoContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoProtocoloAvisoContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
