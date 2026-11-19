@@ -866,6 +866,14 @@
       "anchor": "Modules/NFSe/Tests tinha 10 de 10 arquivos fora de qualquer lane de PR (test-lane-coverage --modulo NFSe, main de6bd2b5df, 2026-11-16), e tests/Feature/Modules/NFSe/NfseEmissaoServiceTest.php tambem; so NfseTelasContratoTest rodava (ci-sqlite-pest.list). Os testes com banco pulam em sqlite (skip sai exit 0, LC-13), por isso MySQL. Lane propria: o nfebrasil-pest.yml tem outro dono (Fiscal). Arvore-menos-quarentena (.github/nfse-pest-quarantine.list), mesmo desenho da oficinaauto-pest.yml. Auditoria NFSe 2026-11-05, lote 0.",
       "promote_by_razao": "Nasce advisory (ADR 0275): os arquivos nunca rodaram em PR, promocao so com mordida provada (ADR 0336), flip de [W]. Na promocao: reinserir synchronize nos types antes do flip (lapide 2026-08-08) e re-postar branch protection so via gh api --input com arquivo UTF-8 sem BOM (o nome tem U+00B7)."
     },
+    "recurringbilling-pest.yml": {
+      "nome": "RecurringBilling · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2027-01-31",
+      "anchor": "5 contratos do RecurringBilling (20 testes: Pix Automatico UC-RBPA-01..14, baixa de fatura US-RB-057, valor negociado UC-RBSUB-05) so rodam com o schema MySQL e pulavam em toda lane de PR (medido 2026-11-19: modules-pest run 44412487544 com 24 skipped 'Schema real (MySQL)'; rg nos .github/ sem alvo). Inclui 3 casos Tier 0 de isolamento 98x99 (ADR 0358). Alvos fixos e nomeados; o CartaoSalvoContratoTest segue na paymentgateway-pest.yml.",
+      "promote_by_razao": "Nasce advisory (ADR 0275): area sem execucao conhecida em PR, promocao so com mordida provada (ADR 0336), flip de [W]. Sem continue-on-error de proposito (lapide 2026-07-09). Na promocao: reinserir synchronize nos types antes do flip (lapide 2026-08-08) e re-postar branch protection so via gh api --input com arquivo UTF-8 sem BOM (o nome tem U+00B7)."
+    },
     "paymentgateway-pest.yml": {
       "nome": "PaymentGateway · Pest (MySQL)",
       "classe": "gate",
