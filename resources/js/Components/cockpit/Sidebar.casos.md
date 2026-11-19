@@ -151,5 +151,25 @@ last_run: "2026-09-29"
   lugares: o item da PLATAFORMA (só `/superadmin`, desde 2026-11-04) e a cascata do avatar (desde
   2026-05-22). Mecanismo: `aninharSuperadmin` (`shared.ts`), aplicado no `AppShellV2`.
   ⚠️ O protótipo (`data.jsx`) ainda não desenha os sub-itens: a mudança precisa nascer no Cowork.
-- **Teste:** `tests/js/sidebar-superadmin-plataforma.test.tsx` (3 casos, lane
+- **Teste:** `tests/js/sidebar-superadmin-plataforma.test.tsx` (4 casos, lane
   `cockpit-sidebar-jsdom-gate`). Mordida medida: com o menu sem aninhar, o caso de render cai.
+- **Dropdown sem link próprio:** o Conector publica `Menu::dropdown` com um filho (Clientes) e
+  chegava como `href="/#"` (medido em produção em 2026-11-19). Com um filho, a linha leva a ele;
+  com vários, cada filho vira "Pai · Filho".
+
+### UC-SB-17 · Sub-item da tela aberta aparece marcado 🧪
+- **Aceite:** Dado um item aberto na sidebar com sub-itens (filhos ou sub-telas) · Quando a tela
+  aberta é um dos sub-itens · Então ele aparece com o fundo do item ativo, texto claro e barra de
+  acento à esquerda; os outros sub-itens ficam num bloco levemente mais claro, com trilho fino à
+  esquerda, abaixo do pai.
+- **Origem:** pedido [W] 2026-11-19 ("por que só no Fiscal o submenu fica selecionado [...] dar uma
+  diferença de cor de fundo nos sub itens"). Causa medida: o sub-item ativo só recebia
+  `aria-current="page"`, sem regra de cor; os itens do Fiscal são itens de verdade (`.active`).
+  O protótipo já marca a sub-tela ativa (`ItemRow` põe `.active` no ghost). O bloco de fundo dos
+  sub-itens é pedido [W] ainda não desenhado no Cowork.
+- **Grupo só com dropdown:** um grupo cujo único item tem filhos e nenhum link próprio deixava de
+  aparecer (`hasVisibleItem` exigia `href`). Agora conta o filho com link.
+- **Teste:** `tests/js/sidebar-subitem-ativo.test.tsx` (2 casos: `aria-current` no sub-item certo
+  e a regra no `cockpit.css`; o jsdom não aplica CSS). Cor computada medida em produção com as
+  regras injetadas em 2026-11-19: ativo `oklch(0.34 0.05 295)` com barra `oklch(0.62 0.15 295)`,
+  demais `oklch(0.28 0.035 295 / 0.35)`.

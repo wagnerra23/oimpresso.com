@@ -332,6 +332,22 @@ export function isSuperadminMenu(label: string): boolean {
  */
 export const SUPERADMIN_PAINEL_LABEL = 'Painel';
 
+/**
+ * Sub-item da sidebar é uma linha só (sem cascata dentro de cascata). Item que é
+ * dropdown no backend chega sem link próprio — o Conector publica `Menu::dropdown`
+ * com um filho (Clientes) e saía com `href="/#"` (medido em produção 2026-11-19).
+ * Sem link próprio: com um filho, a linha leva ao filho e mantém o rótulo do pai;
+ * com vários, cada filho vira uma linha "Pai · Filho".
+ */
+function linhaDeSubitem(item: ShellMenuItem): ShellMenuItem[] {
+  const temLink = !!item.href && !/^\/?#$/.test(item.href);
+  const netos = (item.children ?? []).filter((c) => c.href && !/^\/?#$/.test(c.href));
+  if (temLink || netos.length === 0) return [{ ...item, children: undefined }];
+  const [unico] = netos;
+  if (netos.length === 1 && unico) return [{ ...item, href: unico.href, children: undefined }];
+  return netos.map((c) => ({ ...c, label: `${item.label} · ${c.label}`, children: undefined }));
+}
+
 export function aninharSuperadmin(menu: ShellMenuItem[]): {
   menu: ShellMenuItem[];
   avulsos: ShellMenuItem[];
@@ -347,7 +363,7 @@ export function aninharSuperadmin(menu: ShellMenuItem[]): {
   const aninhado: ShellMenuItem = {
     ...pai,
     href: undefined,
-    children: [...painel, ...(pai.children ?? []), ...filhos],
+    children: [...painel, ...(pai.children ?? []), ...filhos.flatMap(linhaDeSubitem)],
   };
   return {
     menu: menu.filter((i) => !isSuperadminMenu(i.label)).map((i) => (i === pai ? aninhado : i)),
