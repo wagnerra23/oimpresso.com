@@ -36,6 +36,7 @@ class ProcessAsaasWebhookJob implements ShouldQueue
 
         // Marca como processado
         DB::table('pg_webhook_events')
+            ->where('business_id', $this->businessId)
             ->where('provider', 'asaas')
             ->where('event_id', $this->eventId)
             ->update(['processed' => true, 'updated_at' => now()]);
