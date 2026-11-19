@@ -13,7 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * Constituicao Art. 8 (governance policies — mcp_governance_rules):
  *   - Toggle de policy e operacao sensivel (afeta enforcement runtime)
- *   - Middleware stack ja garante: 'web' + 'authh' + 'auth' (admin gate)
+ *   - Rota exige 'auth' + 'can:governance.policies.edit' (`authh` é IsInstalled, não gate)
  *   - PolicyToggleService persiste em mcp_governance_rules + audit history
  *
  * Aqui validamos APENAS o input HTTP: enabled boolean.
@@ -27,8 +27,8 @@ class TogglePolicyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Middleware 'authh' + 'auth' ja gate admin no routes.php.
-        // Aqui so garantimos user autenticado (defesa em profundidade).
+        // `authh` é o IsInstalled (app/Http/Kernel.php), não gate de admin: quem barra
+        // o acesso é o `can:` da rota (`can:governance.policies.edit`). Aqui só garantimos usuário autenticado.
         return $this->user() !== null;
     }
 
