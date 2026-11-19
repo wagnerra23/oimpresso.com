@@ -7,9 +7,9 @@ project: COPI
 status: ativo
 authority: canonical
 version: "1.0"
-last_updated: "2026-07-02"
+last_updated: "2026-11-19"
 created_at: 2026-05-16
-updated_at: 2026-06-21
+updated_at: 2026-11-19
 related_adrs:
   - "0086-fase-5-mvp-governance-actiongate-warn"
   - "0094-constituicao-v2-7-camadas-8-principios"
@@ -17,6 +17,11 @@ related_adrs:
   - "0147-cascade-review-defesa-drift-time-mcp"
   - "0153-module-grade-rubrica-v1"
   - "0154-module-grade-v2-na-justificado"
+  - "0358-doutrina-de-teste-tenant-98-supersede-0101"
+  - "0363-governance-incorpora-ads-nucleo-sem-receptor"
+  - "0366-fronteira-jana-forja-governance-kb"
+  - "0392-fronteira-governance-audiencia-enforcement-na-concessao"
+  - "0399-aposentar-rubrica-module-grade-gate-e-baseline"
 parent_charter: mission.constituicao-v2
 tags: [governance, enforcement, actiongate, audit, policies, module-grade]
 pii: false
@@ -60,7 +65,7 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 | Persona | Contexto | Acesso |
 |---|---|---|
 | **Wagner (superadmin)** | Dono do projeto, vê projeto inteiro | global, todas permissions `governance.*` |
-| **Felipe/Maiara/Eliana/Luiz (time interno)** | Devs+suporte (entram via MCP em breve) | `governance.dashboard.view` + `module-grades.view` (read-only inicialmente) |
+| **Felipe/Maiara/Eliana/Luiz (time interno)** | Devs+suporte (entram via MCP em breve) | `governance.dashboard.view` (read-only). A permissão `module-grades.view` nunca existiu e a tela saiu com a ADR 0399 |
 | **Auditor externo (futuro)** | Contador, advogado LGPD | `governance.audit.view` + export read-only |
 | **Tenant client** | Larissa (ROTA LIVRE) | **NÃO acessa** `/governance/*` — tela é meta-camada da plataforma |
 
@@ -82,7 +87,10 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
   - Audit highlights últimas 24h (`mcp_audit_log` com erro ou kernel_action)
   - Actors count não-revogados (`mcp_actors`)
   - Compliance score heurístico Constituição v2 (8/10 plenos = 80%)
-- **Status:** done (ADR 0086 entregue MVP).
+- **Status:** done (ADR 0086 entregue MVP). Desde 2026-05-22 a rota `/governance` redireciona para `/ia`; o painel vive em `/governance/dashboard`.
+**DoD:** `/governance/dashboard` renderiza `governance/Dashboard` com os KPIs acima, e o filtro de período da seção MCP é whitelist server-side que degrada para `30d` (UC-GDSH-06).
+**Testado em:** `tests/Feature/Modules/Governance/DashboardFiltrosMcpTest.php`
+**Implementado em:** `Modules/Governance/Http/Controllers/DashboardController.php` · `resources/js/Pages/governance/Dashboard.tsx` · verificado@bedeeb0 (2026-11-19)
 
 ### Área Policies (mcp_governance_rules)
 
@@ -92,6 +100,7 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 - **Como** Wagner **quero** ver todas policies declarativas + ligar/desligar **para** calibrar gradualmente sem deploy.
 - **DoD extra:** CRUD completo (criar/editar/deletar) **pendente** próxima fase. MVP só lista + toggle.
 - **Status:** parcial — apenas index + toggle. Inline editor backlog.
+**Implementado em:** _pendente_ — index e toggle estão no ar (`PoliciesController`, `governance/Policies.tsx`); falta o CRUD completo do aceite, e nenhum teste de servidor declara `@covers-us US-GOV-002`. A âncora vira path quando os dois existirem.
 
 ### Área Audit log
 
@@ -101,6 +110,9 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 - **Como** auditor **quero** filtrar `mcp_audit_log` por actor, action, tool, data range **para** investigar uso de tools MCP + kernel actions.
 - **DoD extra:** export LGPD CSV **pendente** próxima fase.
 - **Status:** parcial — listagem básica. Filtros avançados + export backlog.
+**DoD:** a tela lista `mcp_audit_log` com os filtros que o charter declara, sem expor payload sensível; o export LGPD CSV segue fora.
+**Testado em:** `tests/Feature/Governance/AuditContratoTest.php`
+**Implementado em:** _parcial_ · `Modules/Governance/Http/Controllers/AuditController.php` · `Modules/Governance/Services/AuditDrillDownService.php` · `resources/js/Pages/governance/Audit.tsx` · verificado@bedeeb0 (2026-11-19) — falta o export LGPD CSV.
 
 ### Área Drift Alerts
 
@@ -109,7 +121,10 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 - **Controller:** `DriftAlertsController@index`
 - **Como** Wagner **quero** ver módulos com drift detectado (SCOPE.md violado, ADR ausente, charter stale) **para** agir antes que vire dívida estrutural.
 - **DoD extra:** integração com `mcp_alertas` + escalação automática via PR auto-open **pendente**.
-- **Status:** parcial — listagem manual hoje. Auto-detect via cron backlog (ver US-GOV-009).
+- **Status:** parcial — o scan em runtime (SCOPE.md × filesystem) funciona; a lista de alertas persistidos (`DriftAlertService::persistedAlerts()`) devolve vazio (medido 2026-11-19) e a escalação por PR não existe. A US-GOV-009 citada aqui foi cancelada (ADR 0399).
+**DoD:** a tela mostra os controllers presentes no filesystem e ausentes do `contains[]` do SCOPE de cada módulo.
+**Testado em:** `tests/Feature/Governance/DriftAlertsContratoTest.php`
+**Implementado em:** _parcial_ · `Modules/Governance/Http/Controllers/DriftAlertsController.php` · `Modules/Governance/Services/DriftAlertService.php` · `resources/js/Pages/governance/DriftAlerts.tsx` · verificado@bedeeb0 (2026-11-19) — faltam os alertas persistidos e a escalação.
 
 ### Área ActionGate Middleware
 
@@ -121,7 +136,8 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
   - `warn` (default MVP, env `GOVERNANCE_ACTIONGATE_MODE=warn`) — loga `Log::channel('single')->warning(...)` sem bloquear
   - `strict` — retorna `403` + audit obrigatório
 - **DoD extra:** uso em rotas via `actiongate:L1`/`actiongate:L2`/`actiongate:L3` (Trust Tier obrigatório).
-- **Status:** done modo warn. Migração warn→strict após 4 semanas calibração (ADR 0086).
+- **Status:** o middleware existe e o alias `actiongate` está registrado (`GovernanceServiceProvider`), mas em 2026-11-19 nenhuma rota o aplica (`git grep -n actiongate -- '*routes*.php'` vazio), então o "warn" nunca coletou sinal. A migração warn→strict prevista para 4 semanas depois de 2026-05-05 não foi revisitada.
+**Implementado em:** _pendente_ — `Modules/Governance/Http/Middleware/ActionGate.php` existe, sem rota que o use. Ligar em rota ou aposentar é decisão [W] aberta (ADR 0086).
 
 ### Área Module Grades (ADR 0153 — entregue PR #948) · ⚰️ CAPACIDADE APOSENTADA 2026-09-15
 
@@ -139,6 +155,7 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 - **Como** Wagner **quero** ver tabela ordenada com nota 0-100 + bucket de cor pra cada um dos 34 Modules **para** ver maturidade do projeto inteiro em 5s.
 - **DoD extra:** filtro por bucket (chips), busca por nome, KPI agregado (média projeto + distribuição buckets), `Inertia::defer` em `gradeAllModules()` (I/O filesystem 1-2s × 34 módulos), cache 5min server-side.
 - **Status:** done (PR #948 mergeado 2026-05-16).
+**Implementado em:** _pendente_ — entregue em 2026-05-16 e removido em 2026-09-15 (ADR 0399); não há path vivo para ancorar e a US não será refeita.
 
 #### US-GOV-007 · Module Grade Drill-down + botão Evoluir ✅ DONE
 - **Rota:** `GET /governance/module-grades/{name}` (regex `[A-Za-z0-9_-]+`)
@@ -147,13 +164,15 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 - **Como** Wagner **quero** clicar num módulo e ver **5 cards dimensões** (D1-D5) com breakdown sub-itens + lista top gaps ordenada **para** entender ONDE está o gap.
 - **DoD extra:** botão **"Evoluir"** primário abre drawer com batch tasks-create sugeridas (MVP A: copy-as-markdown; Fase B: integração MCP direta `tasks-create`).
 - **Status:** done (PR #948 mergeado 2026-05-16).
+**Implementado em:** _pendente_ — entregue em 2026-05-16 e removido em 2026-09-15 (ADR 0399); não há path vivo para ancorar e a US não será refeita.
 
 #### US-GOV-008 · CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
 - **Command:** `ModuleGradeCommand` (DELETADO 2026-09-15 — ADR 0399; o alias `composer module-grades-check` saiu junto)
-- **Service:** `ModuleGradeService` — método `gradeModule(string $name): ModuleGrade` retorna value object com nota total + breakdown 5 dimensões + lista gaps. Ainda EXISTE: sai na Onda 4, junto do `ModuleGradeSnapshotCommand`, que o injeta pra alimentar o cron 06:05.
+- **Service:** `ModuleGradeService` — método `gradeModule(string $name): ModuleGrade` retorna value object com nota total + breakdown 5 dimensões + lista gaps. Saiu na Onda 4 da ADR 0399, junto do `ModuleGradeSnapshotCommand` (em 2026-11-19 `git ls-files | grep -i modulegrade` não devolve nada).
 - **Como** Claude Code (Tier B skill `avaliar-modulo`) **quero** rodar `php artisan module:grade <name> --detail --json` **para** parsear output e formatar em chat sem screen-scrape.
 - **DoD extra:** flag `--all` agrega todos módulos; `--json` saída machine-readable; `--evolve` gera batch tasks markdown.
 - **Status:** done (PR #948 mergeado 2026-05-16).
+**Implementado em:** _pendente_ — entregue em 2026-05-16 e removido em 2026-09-15 (ADR 0399); não há path vivo para ancorar e a US não será refeita.
 
 ### Área Tracking 90d (backlog)
 
@@ -165,14 +184,38 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 - **Tabela:** `mcp_module_grades_history (module, score, dim1..dim5, snapshot_at)` (cross-tenant)
 - **Como** Wagner **quero** ver evolução das notas dos módulos nos últimos 90 dias **para** detectar regressão ou validar Waves de melhoria.
 - **DoD extra:** gráfico sparkline na tabela Index + linha temporal no Show.
-- **Status:** backlog — Fase B do ADR 0153.
+- **Status:** cancelada (ADR 0399).
+**Implementado em:** _pendente_ — US CANCELADA em 2026-09-15 (ADR 0399); não será feita.
 
 ### Área Integração ADS (backlog)
 
 #### US-GOV-010 · Integração ADS Brain B disparar agents auto ❌ BACKLOG
 - **Como** Wagner **quero** que botão Evoluir (US-GOV-007) **opcionalmente** dispare agent Brain B Sonnet/Opus que aplica fix pra D1.a BusinessScope ausente (gap mais comum) **para** ganhar velocidade sem perder governança.
 - **DoD extra:** gate via ActionGate strict + risk score MED+ no `decide(domain:governance, intent:auto-fix, payload:{module, gap})` (ADR 0086 ADS).
-- **Status:** backlog — depende ADS Universal S5 (~jul/2026).
+- **Status:** backlog — dependia do ADS Universal S5. O `Modules/ADS` foi removido em 2026-07-31 (ADR 0363), e ressuscitá-lo é proibido sem ADR sucessora (§5 2026-08-02 em `memory/proibicoes.md`).
+**Implementado em:** _pendente_ — não há dependência viva; reabrir exige ADR sucessora da 0363.
+
+### Área DS Rollout e Qualidade IA (US criadas em 2026-11-19)
+
+> As duas telas existiam sem US neste SPEC (auditoria 2026-11-19). Custos já tem a US-COPI-070 no SPEC da Jana.
+
+#### US-GOV-062 · DS Rollout `/governance/ds-rollout` ✅ DONE
+- **Rota:** `GET /governance/ds-rollout` (`can:governance.dashboard.view`)
+- **Controller:** `DsRolloutController@index`
+- **Como** Wagner **quero** ver o plano de portar o Design System em ondas e o Ledger de Conformidade DS **para** saber quanto do DS já foi portado sem abrir os scripts.
+- **Status:** done. O plano é estático; o ledger vem de `governance/ds-ledger.json` e, sem ele, a tela marca `measured=false` em vez de inventar número.
+**DoD:** a rota nomeada existe com `throttle:60,1`, exige autenticação, e o render Inertia expõe a prop `census` no contrato do `DsRollout.casos.md`.
+**Testado em:** `Modules/Governance/Tests/Feature/DsRolloutControllerTest.php`
+**Implementado em:** `Modules/Governance/Http/Controllers/DsRolloutController.php` · `resources/js/Pages/governance/DsRollout.tsx` · verificado@bedeeb0 (2026-11-19)
+
+#### US-GOV-063 · Qualidade IA `/governance/qualidade-ia` ✅ DONE
+- **Rota:** `GET /governance/qualidade-ia` (permissão `jana.mcp.usage.all` no construtor do controller)
+- **Controller:** `QualidadeIaController@index` (veio do Modules/Jana em 2026-08-05, ADR 0366 §D-B)
+- **Como** Wagner **quero** ver a tendência das métricas de RAG e memória contra os pisos das ADRs 0049/0050 **para** tratar a qualidade da IA como gate de conformidade, igual ao drift.
+- **Status:** done.
+**DoD:** sem `jana.mcp.usage.all` a tela responde 403; a janela fica entre 7 e 90 dias (padrão 30); os gates chegam com os alvos canônicos; o KPI do business é a leitura mais recente da janela (UC-GQIA-01 a 04).
+**Testado em:** `Modules/Jana/Tests/Feature/Governance/QualidadeIaContratoTest.php`
+**Implementado em:** `Modules/Governance/Http/Controllers/QualidadeIaController.php` · `resources/js/Pages/governance/QualidadeIa.tsx` · verificado@bedeeb0 (2026-11-19)
 
 ## Status agregado por US
 
@@ -181,13 +224,17 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 | US-GOV-001 Dashboard consolidado | ✅ done | ADR 0086 (2026-05-05) |
 | US-GOV-002 Policies CRUD | 🟡 parcial (index + toggle) | ADR 0086 MVP |
 | US-GOV-003 Audit drill-down | 🟡 parcial (listagem básica) | ADR 0086 MVP |
-| US-GOV-004 Drift alerts | 🟡 parcial (manual hoje) | ADR 0086 MVP |
-| US-GOV-005 ActionGate middleware | ✅ done modo warn | ADR 0086 (2026-05-05) |
-| US-GOV-006 ModuleGrade Index | ✅ done | PR #948 (2026-05-16) |
-| US-GOV-007 ModuleGrade Show + Evoluir | ✅ done | PR #948 (2026-05-16) |
-| US-GOV-008 CLI module:grade JSON | ✅ done | PR #948 (2026-05-16) |
-| US-GOV-009 Cron 90d snapshot | ❌ backlog | Fase B ADR 0153 |
-| US-GOV-010 ADS auto-fix | ❌ backlog | depende ADS Universal S5 |
+| US-GOV-004 Drift alerts | 🟡 parcial (scan runtime; sem alertas persistidos) | ADR 0086 MVP |
+| US-GOV-005 ActionGate middleware | 🟡 existe, nenhuma rota aplica (decisão [W]) | ADR 0086 (2026-05-05) |
+| US-GOV-006 ModuleGrade Index | ⚰️ entregue e removido | PR #948 (2026-05-16) · ADR 0399 (2026-09-15) |
+| US-GOV-007 ModuleGrade Show + Evoluir | ⚰️ entregue e removido | PR #948 (2026-05-16) · ADR 0399 (2026-09-15) |
+| US-GOV-008 CLI module:grade JSON | ⚰️ entregue e removido | PR #948 (2026-05-16) · ADR 0399 (2026-09-15) |
+| US-GOV-009 Cron 90d snapshot | ⚰️ cancelada | ADR 0399 |
+| US-GOV-010 ADS auto-fix | ❌ sem dependência viva | ADS removido (ADR 0363) |
+| US-GOV-062 DS Rollout | ✅ done | ver a US |
+| US-GOV-063 Qualidade IA | ✅ done | ver a US |
+
+> A tela de Custos é a US-COPI-070, no [SPEC da Jana](../Jana/SPEC.md); veio para cá com a ADR 0366.
 
 ## Por que Governance é cross-tenant intencional (vs ADR 0093)
 
@@ -200,19 +247,23 @@ Justificativa formal:
 3. **Cascade Review §10.4** ([ADR 0147](../../decisions/0147-cascade-review-defesa-drift-time-mcp.md)) exige rastreabilidade cross-tenant de mudanças canônicas pra detectar drift entre L5 ADRs e L6 Module Charters.
 4. **Defesa contra vazamento:** rotas `/governance/*` exigem permission `governance.*` (default só Wagner). Tenants clients **nunca acessam**. Audit log já é redacted por `PiiRedactor` antes de salvar (ADR 0085).
 
-**Auditável:** qualquer Pest test cross-tenant biz=1 vs biz=99 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) executado em Modules/Governance valida que **dados de negócio agregados** (KPI counts, drift por módulo) não vazam linha individual.
+**Auditável:** qualquer Pest test cross-tenant (tenant de teste 98) ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md), que substituiu a 0101-tests) executado em Modules/Governance valida que **dados de negócio agregados** (KPI counts, drift por módulo) não vazam linha individual.
 
 ## Permissões Spatie
 
-| Permission | Default actor | Função |
+| Permission | Onde é checada | Telas |
 |---|---|---|
-| `governance.dashboard.view` | Wagner + time interno | Acesso `/governance` raiz |
-| `governance.policies.view` | Wagner | Listagem `/governance/policies` |
-| `governance.policies.edit` | Wagner | Toggle + (futuro) CRUD inline |
-| `governance.audit.view` | Wagner + auditor externo | `/governance/audit` |
-| `governance.drift.view` | Wagner | `/governance/drift` |
-| `governance.module-grades.view` | Wagner + time interno | `/governance/module-grades` |
-| `governance.module-grades.evolve` | Wagner | Botão Evoluir → batch tasks-create |
+| `governance.dashboard.view` | `can:` na rota (Policies, Drift, DsRollout) e gate do menu (`DataController`) | Painel, Políticas, Drift, DS Rollout |
+| `governance.policies.edit` | `can:` na rota do toggle | `POST /governance/policies/{id}/toggle` |
+| `governance.audit.view` | `can:` na rota | Auditoria |
+| `jana.admin.custos.view` | construtor do `CustosController` | Custos de IA |
+| `jana.mcp.usage.all` | construtor do `QualidadeIaController` | Qualidade IA |
+
+As três `governance.*` são as que `DataController::user_permissions()` declara. As duas `jana.*` mantêm o nome antigo de propósito: renomear revogaria acesso em silêncio (ADR 0087), como registra o comentário no `routes.php`. A fonte viva é o `Modules/Governance/Http/routes.php` e os construtores dos controllers; confira lá antes de citar, porque os lotes L0 e L3 da auditoria de 2026-11-19 mexem nesses gates.
+
+Saíram desta tabela em 2026-11-19 por não existirem no código: `governance.policies.view`, `governance.drift.view`, `governance.module-grades.view` e `governance.module-grades.evolve`.
+
+Por causa do `Gate::before` que libera o Admin de cada business, `can:` não barra esse papel. Fechar isso é o passo 1 da ADR 0392, decisão [W] aberta.
 
 Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (UltimatePOS). Permissions globais (sem business_id) ficam em registry separado — ver [ADR 0065](../../decisions/0065-permission-registry-contract.md).
 
@@ -221,12 +272,13 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 - [ADR 0086](../../decisions/0086-fase-5-mvp-governance-actiongate-warn.md) — Fase 5 MVP scaffold + ActionGate warn (mãe do módulo)
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (mãe das 7 camadas + 8 princípios)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 (exceção formal explicada acima)
-- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1 nunca cliente
+- [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) — doutrina de teste, tenant 98 (substitui a 0101-tests)
 - [ADR 0147](../../decisions/0147-cascade-review-defesa-drift-time-mcp.md) — Cascade Review §10.4
 - [ADR 0153](../../decisions/0153-module-grade-rubrica-v1.md) — Rubrica `module-grade-v1` (US-GOV-006..008)
 - [ADR 0081](../../decisions/0081-identity-mesh-mcp-actors.md) — Identity Mesh `mcp_actors` (ActorResolver consumido por ActionGate)
 - [ADR 0084](../../decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md) — Trigger imutabilidade `mcp_audit_log`
-- [RUNBOOK Module Grades](RUNBOOK-module-grades.md) — receita operacional da tela
+- [RUNBOOK Module Grades](RUNBOOK-module-grades.md) — lápide da tela removida (ADR 0399)
+- [ADR 0392](../../decisions/0392-fronteira-governance-audiencia-enforcement-na-concessao.md) — fronteira Governance: `can:` por rota (passo 2 feito) e concessão (passo 1 aberto, decisão [W])
 
 ## Onda Audit Sênior 2026-05-25
 
@@ -237,6 +289,8 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 
 > owner: — · priority: p0 · estimate: 1h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 **Sintoma:** `opentelemetry-auto-laravel` instalado via composer mas extension **não carrega no Herd dev** — warning explícito na 1ª linha de `module:grade`:
 > Warning: The opentelemetry extension must be loaded in order to autoload the OpenTelemetry Laravel auto-instrumentation in vendor/open-telemetry/opentelemetry-auto-laravel/_register.php on line 13
@@ -257,6 +311,8 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — aguardando decisão [W]: o aceite pede `module:grade` e `governance/module-grades-baseline.json`, que a ADR 0399 deletou. Cancelar ou reescrever o aceite é decisão do dono.
+
 **Sintoma:** `module:grade Jana` hoje devolve **71/100** (D1 MT 15/30, D7 LGPD 6/10). Realidade canon via BRIEFING Wave 25 + Pest enforcement = **96/100** (D1 SATURATED, D7 SATURATED Wave 18).
 
 **Evidência:** 607 linhas Pest multi-tenant + LgpdComplianceTest 179 linhas + 14 Models com HasBusinessScope + 12+ com BelongsToBusinessViaParent + 8 SATURATION markers explícitos. Mas grade engine NÃO reconhece.
@@ -274,8 +330,10 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 
 ### US-GOV-013 · Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub
 
-> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 8h · status: superseded · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — superada: o objetivo (gate de pixel real) foi atingido em 2026-06 (#2221, #2224) e depois a ADR 0445 tirou a comparação de pixel do projeto. Não há o que fazer nesta US como escrita.
 
 **Contexto (descoberto 2026-06-04, sessão re-skin RecurringBilling #2212):** o gate de pixel `visual-regression.yml` (ADR 0108, Pest 4 Browser) está em **STUB / infra-only mode** — `continue-on-error: true` em Setup Laravel + Run Pest Browser, travado pela **migration-order legacy do UltimatePOS** (ex: `ALTER TABLE contacts ADD regime AFTER contribuinte` falha porque `contribuinte` é adicionado por migration posterior). Consequência: **0 testes browser fora de Sells, 0 baselines `.png`, artifact `screenshots-diff` sobe vazio.** O comentário "Visual Regression Detected" é sinal estrutural (step `failure()`), NÃO diff de pixel real.
 
@@ -302,6 +360,8 @@ Roles Spatie criadas com suffix `#{biz}` quando `roles.business_id` NOT NULL (Ul
 > owner: claude · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 Task-âncora do **Zelador** — reconciliador-agente diário (scheduled run 07:00 BRT na máquina do Wagner). Charter canônico: `scripts/governance/ZELADOR.md`. Origem: sessão 2026-06-11, Wagner "estou sofrendo com sistema burro" → "ótimo faça".
 
 **O que ele faz toda manhã:** (1) reconcilia estado declarado (my-work doing/review, HITL, next_steps dos 3 handoffs recentes) vs realidade (gh/git/MCP) — fecha com prova, rebaixa o apodrecido; (2) decide pelo trilho invariante→sinal→meta; só resíduo genuíno escala pro Wagner como draft de 1 OK (máx 3/dia); (3) propõe demote de 1 fonte de ruído/dia (bot/check que não mudou decisão em 30d); (4) roda knowledge-drift.mjs como insumo.
@@ -323,6 +383,8 @@ Se M1 e M2 não caírem, o zelador recomenda a própria morte e Wagner decide.
 > owner: wagner · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 GO Wagner 2026-06-12. Executar o lote 1 do plano `memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md` (PR #2586) via workflow `sdd-semana-0`:
 
 - 3 ADRs draft: formato anchor spec↔código · referência ADR por slug (13 colisões) · scorecard SDD 10 métricas + calendário de promoções
@@ -335,6 +397,8 @@ Emenda CT 100: nightly full-suite via cron no CT 100 (16 vCPU/32 GB ociosos) —
 
 > owner: wagner · priority: p1 · estimate: 40h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 GO Wagner 2026-06-12 ("pode disparar fase 1 e a dois na sequência"). Continuação da US-GOV-016 (Semana 0, done).
 
@@ -385,6 +449,8 @@ Ref: retest reproduzido na timeline US-GOV-017 (correção #2) · #2632 (C1) · 
 
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 Saída da re-triage 32-thread do eixo FAILURE determinístico (155 arquivos, 385 ExpectationFailed) com refutador adversarial ADR 0276. Doc: `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md`. **4 quick-wins já em PR** (ads:health #2649, superadmin:health #2647, macro_variant_id #2646, biz=4→1 fixtures #2652) — fora desta task.
 
@@ -496,6 +562,8 @@ Ref: plano `memory/requisitos/_Governanca/roadmap/P03-us-gov-021-isolamento-era-
 > blocked_by: —
 > parent_plan: governance-sprint-2-cleanup
 
+**Implementado em:** _pendente_
+
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
@@ -512,6 +580,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 > parent_plan: ia-os-onda2-endurecer
+
+**Implementado em:** _pendente_
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
@@ -530,6 +600,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > blocked_by: —
 > parent_plan: screen-qa-dim16-sentinela
 
+**Implementado em:** _pendente_
+
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
@@ -546,6 +618,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 **Origem:** auditoria de saúde/integridade 2026-06-21 (risco #3, ADR 0218). Distinto de `US-INFRA-032` (hardcodes business_id).
 
 **Achado:** o `MultiTenantScopeChecker` reporta `drift_count=0` por **bug de separador de path Windows-only** (`not_readable=217`). Não cega o CI Linux (`--diff-only` funciona lá), mas o daily `--all` que pegaria o backlog é não-bloqueante → backlog de models sem global scope fica invisível. Em paralelo, os guards Tier-0 (`WithoutGlobalScopes` + `business_id=4`) estavam **falhando no main** com `continue-on-error` (advisory reportando verde), e `business_id=4` (RotaLivre) reapareceu em fixtures.
@@ -561,6 +635,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p2 · estimate: 0.5h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — conferido em 2026-11-19: o trabalho está entregue (`memory/requisitos/_Governanca/BRIEFING.md` existe). O status durável vive no MCP (ADR 0144). Esta linha de status não vira `done` aqui porque o gate de entrada (ADR 0303) exige âncora com teste que declare `@covers-us`, e esta entrega é de processo/documento, sem teste.
+
 **Origem:** auditoria de saúde/integridade 2026-06-21 (batedor de governança).
 
 **Achado:** `memory/requisitos/_Governanca/` (trabalho em andamento) tem ≥2 `.md` e **não tem `BRIEFING.md`**. Quando o dir for commitado, ele entra no censo de módulos do `knowledge-drift` sem front-door → `front_door_coverage` cai de 100 → 98.6 e a **catraca armada do sdd-scorecard morde** (🔴). Todos os outros meta-dirs `_*` (`_DesignSystem`, `_Ideias`, `_processo`…) têm BRIEFING.
@@ -574,6 +650,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 > owner: — · priority: p3 · estimate: 2h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 **Origem:** auditoria de saúde/integridade 2026-06-21 (batedor de links). Os links seguros em rules/SPECs já foram corrigidos (#3147, #3152). Restou o que NÃO é auto-fixável:
 
@@ -591,6 +669,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p1 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 **Origem:** verificação adversarial 2026-06-21 (PR #3145 · handoff 2026-06-21-1250).
 **Problema:** gate roda `--tier=A`; `view = real.filter(r => r.tier === TIER_FILTER)` (~L363) filtra só tier A. `Schema::drop('business')` reintroduzido classifica tier S (CORE-drop) → `view.length===0` → não dá exit 1. O gate não pega o pior caso que o próprio counterfactual promete.
 **Fix:** `r.tier === TIER_FILTER || r.tier === 'S'` (tier S sempre morde). Validar `tests/sqliteCorruptors.spec.ts`.
@@ -600,6 +680,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 > owner: — · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — conferido em 2026-11-19: o trabalho está entregue (`scripts/governance/knowledge-drift.mjs` isenta `_Governanca/roadmap/` citando esta US). O status durável vive no MCP (ADR 0144). Esta linha de status não vira `done` aqui porque o gate de entrada (ADR 0303) exige âncora com teste que declare `@covers-us`, e esta entrega é de processo/documento, sem teste.
 
 **Origem:** red advisory do PR #3135 (anti-ghost).
 **Problema:** os planos do roadmap citam os módulos legados MemCofre/PontoWr2/Copiloto/DocVault (renomeados→SRS/Ponto/Jana ou removidos) em contexto de planejamento da remoção/rename → o detector os conta como ghost vivo. É falso-positivo.
@@ -611,6 +693,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 **Origem:** PR #3145 (US-GOV-021) isolou 7/18.
 **Problema:** restam 11 corruptores tier A (CoworkHandoffCrossTenant, Forja Backlog/Changelog/Mcp/Quadro Service, Claimless, FsmTransitionGuard, TaskUpdateAtomic, AcceptanceRef, WorkLease, LeaseBriefSection) que ainda dão exit 1 no auditor.
 **Fix:** mesma técnica do lote 1 (guard teardown sqlite-only, sem dropar tabela CORE).
@@ -620,6 +704,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 **Origem:** crítico de completude 2026-06-21 (PR #3157 declarou o campo + migrou 3 legacy).
 **Problema:** 132/148 charters sem `related_us` → o join US→tela que alimenta o batch SA-A5 (anchors por IA) ficou sem fonte.
@@ -631,6 +717,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: US-GOV-021
 
+**Implementado em:** _pendente_
+
 **Origem:** PR #3158 entregou o tripwire advisory com alerta OFF.
 **Problema:** ligar o alerta (gh issue / mcp_alertas na `maybeAlert()`) antes do floor estabilizar alertaria ruído de ambiente.
 **Fix:** setar `NIGHTLY_DIFF_ALERT=1` + implementar o canal depois que P03/US-GOV-021 estabilizar o floor.
@@ -640,6 +728,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 > owner: — · priority: p3 · estimate: 4h · status: todo · type: story
 > blocked_by: US-GOV-011
+
+**Implementado em:** _pendente_
 
 **Origem:** crítico de completude 2026-06-21 (ADIADO conscientemente).
 **Problema/PORQUÊ-ADIAR:** TDAD acelera o loop, mas o gargalo é o floor sujo (295 + 24% skip). Rodar "só impactados" sobre suíte que já falha mascara regressão. Prematuro até pcov medir (P07) e floor=0 (P04).
@@ -651,6 +741,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p3 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 **Origem:** aterramento das ondas tardias 2026-06-21.
 **Problema:** o `_ROADMAP.md` (#3135) ainda diz que o read-side do floor "quase resolveu" — mas o HEAD commitado é `not_yet_measured` e o "274" é working-tree sujo do #3020. P02 deve congelar o **295 vivo**, não 274.
 **Fix:** corrigir a seção P01/P02 + adicionar entries P14/P15/P16-on-hold, após #3135 mergear.
@@ -661,6 +753,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p3 · estimate: 0.5h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 **Origem:** git status do checkout principal (não é desta sessão; último commit real #3020).
 **Problema:** `M governance/sdd-scorecard.json` não-commitado mostra full_suite=274 (engana a leitura; o HEAD diz not_yet_measured). Atrapalhou o planejamento desta sessão.
 **Fix:** quem é dono do working-tree decide: `git checkout` (descartar) OU commitar o valor correto via o job de P01/#3142. NÃO tocar cego.
@@ -668,8 +762,12 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-GOV-042 · anchor-lint pula status:arquivado + decidir destino do SPEC duplicado MemCofre/SRS
 
-> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 1h · status: done · type: story
 > blocked_by: —
+
+**DoD:** `anchor-lint` e `doneness-lint` tiram do gate os SPECs com frontmatter `status: historical|arquivado`, e o SPEC duplicado MemCofre não existe mais.
+**Testado em:** `scripts/governance/spec-encerrado.test.mjs`
+**Implementado em:** `scripts/governance/anchor-lint.mjs` · `scripts/governance/spec-encerrado.test.mjs` · verificado@bedeeb0 (2026-11-19) — o diretório MemCofre de memory/requisitos foi removido; conferido nesta data.
 
 **Origem:** sweep do mês 2026-06-21 (PR #3149, bloco "PR-B · MemCofre (10 dead)").
 **Problema:** `anchor-lint.mjs` não filtra specs `status: arquivado`; `memory/requisitos/MemCofre/SPEC.md` é duplicado do módulo renomeado MemCofre→SRS (em DEPRECATION-PLAN) → 10 anchors mortos perenes.
@@ -680,6 +778,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 Reconciliar a dívida de fidelidade spec↔código que o lint SA-A2-bis (ADR 0303, [PR #3240](https://github.com/wagnerra23/oimpresso.com/pull/3240)) tornou visível na main, hoje **grandfathered** (gate advisory + diff-aware → não avermelha). É a reconciliação que a onda-0 fez mas cujos commits nunca chegaram na main (a branch derivou 93 atrás).
 
@@ -727,6 +827,8 @@ Reconciliar a dívida de fidelidade spec↔código que o lint SA-A2-bis (ADR 030
 > owner: — · priority: p2 · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 Pile de limbo exposto pela sentinela `memory-health` (Check U `proposta-em-limbo`): ~90 drafts de ADR em `memory/decisions/proposals/` sem decaimento (saudável ~25). Triar cada um: **promover** (supersede atômico, ADR 0258), **arquivar** ou **esquecer** (ADR 0316/0270).
 
 **Definition of Done (verificável):** `node scripts/governance/memory-health.mjs` → Check U `proposta-em-limbo` **= 0** (ou abaixo do limiar saudável). Não "achei que terminei".
@@ -737,6 +839,8 @@ Origem: sessão 2026-07-04 consolidação de conhecimento. Proposta pela máquin
 
 > owner: — · priority: p2 · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 Links internos mortos na canon front-facing, expostos pela sentinela `memory-health` (Check V `link-quebrado`): ~15 restantes (após 32 já consertados por nº-de-ADR e basename em #3804/#3806). Os residuais são não-determinísticos: alvo deletado/movido pra fora do repo (sessions renomeadas, `.claude`/`scripts`/`Modules` cross-tree, path Windows absoluto) ou basename ambíguo (`SKILL.md` 72 candidatos). Resolver caso-a-caso: **recriar** o alvo, **repontar** ou **remover** o link.
 
@@ -749,6 +853,8 @@ Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sy
 > owner: — · priority: p3 · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_
+
 Homônimo exposto pela sentinela `memory-health` (Check U `dir-homonimo`): `memory/dominio/` (singular, 6 arquivos — dicionário de domínio canon, fonte do gate `dominio:check` ADR 0264) coexiste com `memory/dominios/` (plural, 425 arquivos — Migration Factory legacy, ADR 0118/0119). Ambos vivos mas nome colado racha navegação/recall. **Decisão Wagner:** qual nome ganha o rename (raio alto: 425 arquivos + 12 refs). Renomear um dos dois + reapontar refs.
 
 **Definition of Done (verificável):** `node scripts/governance/memory-health.mjs` → Check U `dir-homonimo` **= 0**.
@@ -760,6 +866,8 @@ Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sy
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — conferido em 2026-11-19: o trabalho está entregue (a ADR 0329 está com `status: aceito`). O status durável vive no MCP (ADR 0144). Esta linha de status não vira `done` aqui porque o gate de entrada (ADR 0303) exige âncora com teste que declare `@covers-us`, e esta entrega é de processo/documento, sem teste.
+
 - ADR 0329 mergeada no main (#4008) com `status: proposto` — as 5 propriedades (executável/fonte-única/ligada-ao-gate/cross-plataforma/auto-fresca)
 - Ratificar = editar O MESMO arquivo `memory/decisions/0329-doutrina-documentacao-de-processo-executavel.md`: `status: proposto → aceito` (append-only, não move de pasta)
 - Depois: `node scripts/governance/adr-index-generate.mjs --write` + commitar índice junto
@@ -769,6 +877,8 @@ Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sy
 
 > owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — conferido em 2026-11-19: o trabalho está entregue (as ADRs 0299 e 0314 estão aceitas e a 0320 está em `memory/decisions/`). O status durável vive no MCP (ADR 0144). Esta linha de status não vira `done` aqui porque o gate de entrada (ADR 0303) exige âncora com teste que declare `@covers-us`, e esta entrega é de processo/documento, sem teste.
 
 - 0314 (poda de gates): `accepted_via` diz "aguarda ratificação POR ITEM" — decisão [W] item a item; já executou em prod (required 29→22)
 - 0299 (figma não é fonte): `status: proposto` mas citada como canon no CLAUDE.md — flip proposto→aceito
@@ -780,6 +890,8 @@ Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sy
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — conferido em 2026-11-19: o trabalho está entregue (os PRs #4009 e #4010 foram mergeados em 2026-07-09). O status durável vive no MCP (ADR 0144). Esta linha de status não vira `done` aqui porque o gate de entrada (ADR 0303) exige âncora com teste que declare `@covers-us`, e esta entrega é de processo/documento, sem teste.
+
 - #4009: cura 18 tombstones de path-fantasma (follow-up do knowledge-drift ghost #4006) — CLEAN, verde
 - #4010: sentinela `ref-integrity.mjs` advisory (middleware fantasma / colisão de rota / route() inexistente no sidebar / Inertia::render sem .tsx) — os 4 anti-padrões F3 que o PHPStan não vê
 - Últimos 2 dos 5 chips da revisão da memória do processo (2026-07-09); os outros 4 já mergeados (#4004/#4005/#4006/#4007)
@@ -788,6 +900,8 @@ Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sy
 
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_
 
 - Relatório completo: artifact "revisao-memoria-processo" (sessão 2026-07-09) — 26 consertos sobreviventes ao adversário, 10 rejeitados (não re-propor)
 - Restantes: P24 (portar 5-7 blockers Tier-0 .ps1→.mjs ANTES do time MCP entrar em Mac/Linux) · P31/P32/P33 (hue/skill-tier/fase fonte-única) · P6/P13/P35 (manifest duro-vs-advisory, anti-sentinela-órfã, anti-verde-no-vácuo) · P11-A (excludePaths PHPStan, prova no CT100 antes)
