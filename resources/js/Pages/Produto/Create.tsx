@@ -26,7 +26,7 @@ import { armazenagemInicial, camposDaArmazenagem } from './_components/formulari
 import type { EnderecoNoEstoque } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 import { apagarRascunho, gravarRascunho, lerRascunho, semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
-import { camposDaGrade, erroDaGrade, gradeInicial } from './_components/formulario/grade';
+import { camposDaGrade, erroDaGrade, fotosDaGrade, gradeInicial, gradeSemArquivos } from './_components/formulario/grade';
 import type { ModeloVariacao } from './_components/formulario/grade';
 
 function localUnico(locais: OptionMap): number[] {
@@ -181,8 +181,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     politica,
     armazenagem,
     metodoCusto,
-    grade,
-    arquivos: [data.image?.name ?? null, data.product_brochure?.name ?? null],
+    grade: gradeSemArquivos(grade),
+    arquivos: [data.image?.name ?? null, data.product_brochure?.name ?? null, fotosDaGrade(grade)],
   });
   const inicial = useRef<{ retrato: string; form: Record<string, unknown>; preco: typeof preco; politica: typeof politica; armazenagem: typeof armazenagem; metodoCusto: typeof metodoCusto; grade: typeof grade } | null>(null);
   if (inicial.current === null) inicial.current = { retrato, form: { ...data }, preco, politica, armazenagem, metodoCusto, grade };
@@ -209,7 +209,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
   useEffect(() => {
     if (!sujo) return;
     const t = window.setTimeout(() => {
-      const hora = gravarRascunho(chaveRascunho, { form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto, grade });
+      const hora = gravarRascunho(chaveRascunho, { form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto, grade: gradeSemArquivos(grade) });
       if (hora) setSalvoAs(hora);
     }, 800);
     return () => window.clearTimeout(t);

@@ -1989,6 +1989,40 @@ class ProductController extends Controller
         if (! $temValor) {
             throw \Illuminate\Validation\ValidationException::withMessages(['product_variation' => 'Adicione ao menos um valor da variação.']);
         }
+        $this->validarSubSkusDigitados($linhas, $business_id);
+    }
+
+    /**
+     * UC-PCAD-33: sub-SKU digitado na grade. O Blade confere antes de enviar (`product.js` chama
+     * `validateVaritionSkus`) e o `store()` não confere; aqui o servidor recusa o sub-SKU que se repete
+     * na grade ou que já é SKU ou sub-SKU de outro produto da empresa. Sub-SKU em branco o servidor gera.
+     */
+    protected function validarSubSkusDigitados(array $linhas, int $business_id): void
+    {
+        $digitados = [];
+        foreach ($linhas as $linha) {
+            foreach ((is_array($linha['variations'] ?? null) ? $linha['variations'] : []) as $valor) {
+                $sku = is_array($valor) ? trim((string) ($valor['sub_sku'] ?? '')) : '';
+                if ($sku === '') {
+                    continue;
+                }
+                if (in_array($sku, $digitados, true)) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['product_variation' => "O SKU {$sku} aparece em mais de um valor da variação."]);
+                }
+                $digitados[] = $sku;
+            }
+        }
+        if ($digitados === []) {
+            return;
+        }
+        $existente = Product::where('business_id', $business_id)->whereIn('sku', $digitados)->value('sku')
+            ?? Variation::join('products', 'variations.product_id', '=', 'products.id')
+                ->where('products.business_id', $business_id)
+                ->whereIn('variations.sub_sku', $digitados)
+                ->value('variations.sub_sku');
+        if ($existente !== null) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['product_variation' => "O SKU {$existente} já existe em outro produto."]);
+        }
     }
 
     /**
