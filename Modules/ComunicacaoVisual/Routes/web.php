@@ -12,6 +12,7 @@ use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoArquivoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OsPosCalculoController;
 use Modules\ComunicacaoVisual\Http\Controllers\Public\OrcamentoAceitePublicoController;
+use Modules\ComunicacaoVisual\Http\Controllers\Public\ProtocoloInstalacaoPublicoController;
 use Modules\ComunicacaoVisual\Http\Controllers\RoteiroPadraoController;
 use Modules\ComunicacaoVisual\Http\Middleware\ComunicacaoVisualLiberado;
 
@@ -213,3 +214,11 @@ Route::middleware(['web', 'throttle:30,1'])
         Route::post('{token}/aceitar', [OrcamentoAceitePublicoController::class, 'aceitar'])->where('token', '[A-Za-z0-9]{48}')->name('aceitar');
         Route::post('{token}/ajuste', [OrcamentoAceitePublicoController::class, 'ajuste'])->where('token', '[A-Za-z0-9]{48}')->name('ajuste');
     });
+
+// ── US-COMVIS-007 · UC-PCV-25 (1d) · protocolo da instalação para o cliente (sem login) ──
+// O link é assinado e expira (ProtocoloInstalacao::linkPublico): a empresa vem da URL assinada,
+// nunca de sessão. Throttle 30/min/IP, como o aceite do orçamento.
+Route::middleware(['signed', 'throttle:30,1'])
+    ->get('instalacao-cv/{biz}/{id}/protocolo', [ProtocoloInstalacaoPublicoController::class, 'baixar'])
+    ->whereNumber(['biz', 'id'])
+    ->name('comvis.instalacao.protocolo.publico');

@@ -14,9 +14,9 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 131 arquivos em 19 papéis.
+**Total mapeado:** 133 arquivos em 19 papéis.
 
-## Controllers — 14
+## Controllers — 15
 
 - [AgendaController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php)
 - [ApontamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php)
@@ -31,6 +31,7 @@ module: ComunicacaoVisual
 - [OrcamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php)
 - [OsPosCalculoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/OsPosCalculoController.php)
 - [OrcamentoAceitePublicoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/Public/OrcamentoAceitePublicoController.php)
+- [ProtocoloInstalacaoPublicoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/Public/ProtocoloInstalacaoPublicoController.php)
 - [RoteiroPadraoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/RoteiroPadraoController.php)
 
 ## Requests (validação) — 2
@@ -150,9 +151,9 @@ module: ComunicacaoVisual
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
 - [Instalacao.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.casos.md)
 
-## Testes (Pest) — 44
+## Testes (Pest) — 45
 
-- 44 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 45 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
