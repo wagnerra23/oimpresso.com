@@ -90,6 +90,8 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVINST-12 | Assinatura só com o aceite do cliente (LGPD), com o nome de quem assinou, e uma vez só | must `[LGPD]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
 | UC-CVINST-13 | Instalação de outra empresa é não encontrada no comprovante, e nada é gravado nela | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
 | UC-CVINST-14 | Foto refeita vale a mais nova; concluída não recebe mais nada; sem permissão 403 | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
+| UC-CVINST-15 | O link assinado do protocolo abre o PDF sem login, sem indexar, e expira no prazo | must `[LGPD]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloPublicoContratoTest` | 🧪 |
+| UC-CVINST-16 | Link do protocolo adulterado 403; instalação aberta ou de outra empresa 404 | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloPublicoContratoTest` | 🧪 |
 | UC-CVOS-01 | Aprovar cria a OS com os itens e as medidas do orçamento | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-02 | A OS vale o total do orçamento e nenhum valor do orçamento muda | must `[V0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-03 | Aprovar de novo não duplica OS, itens nem arquivos | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
@@ -634,6 +636,23 @@ Status: 🧪
 **Dado** a instalação aberta **Quando** a foto antes é mandada duas vezes **Então** as duas ficam guardadas e o comprovante
 conta uma · **Dado** a instalação concluída **Quando** chega outra foto **Então** 422 ("A instalação está concluída e não
 recebe mais comprovante.") · sem `comvis.os.update_status` **Então** 403.
+
+Status: 🧪
+
+## UC-CVINST-15 · O link assinado do protocolo abre o PDF sem login, sem indexar, e expira no prazo · `must` `[LGPD]`
+
+**Dado** uma instalação concluída **Quando** o cliente abre o link de `ProtocoloInstalacao::linkPublico()`
+(`/instalacao-cv/{empresa}/{instalação}/protocolo?expires=…&signature=…`), sem login **Então** recebe o PDF do
+protocolo, com `X-Robots-Tag: noindex, nofollow` e `Referrer-Policy: no-referrer`. A validade é de
+`comunicacao-visual.protocolo_link_dias` (7 dias por padrão): no 6º dia ainda abre, no 8º dá 403.
+
+Status: 🧪
+
+## UC-CVINST-16 · Link do protocolo adulterado 403; instalação aberta ou de outra empresa 404 · `must` `[T0]`
+
+**Quando** alguém troca a instalação ou a empresa na URL **Então** a assinatura não confere e dá 403. **Dado** um link
+assinado para a empresa 98 com a instalação da 99, ou para uma instalação ainda não concluída **Então** 404, sem
+dizer qual dos dois.
 
 Status: 🧪
 

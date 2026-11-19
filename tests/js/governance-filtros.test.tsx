@@ -51,7 +51,7 @@ vi.mock('@inertiajs/react', () => ({
   Link: ({ children, ...p }: any) => <a {...p}>{children}</a>,
 }));
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
-vi.mock('@/Components/shared/PageHeader', () => ({ default: () => null }));
+vi.mock('@/Components/PageHeader', () => ({ PageHeader: () => null }));
 vi.mock('@/Pages/governance/_shared/GovernancaSubNav', () => ({ default: () => null }));
 vi.mock('@/Components/shared/KpiGrid', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/Components/shared/KpiCard', () => ({ default: () => null }));
