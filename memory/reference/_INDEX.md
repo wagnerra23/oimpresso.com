@@ -81,6 +81,7 @@
 
 ## Feedback (regras de trabalho)
 
+- [feedback-pageheader-largura-total.md](feedback-pageheader-largura-total.md) — PageHeader em largura total, abas e primary canon: reclamação recorrente do [W] em todos os módulos
 - [feedback-agent-write-verification.md](feedback-agent-write-verification.md) — Agent pode alucinar Write; verificar com `ls -la` + `wc -l`
 - [feedback-auto-merge-quando-verde.md](feedback-auto-merge-quando-verde.md) — `gh pr merge --auto` quando CI verde + Wagner aprovou
 - [feedback-browser-mcp-smoke.md](feedback-browser-mcp-smoke.md) — Após cada feature UI, smoke via Chrome MCP em prod biz=1

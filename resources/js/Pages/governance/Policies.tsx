@@ -5,7 +5,7 @@
 import React, { useMemo, useState, type ReactNode } from 'react'
 import { router } from '@inertiajs/react'
 import { toast } from 'sonner'
-import { TriangleAlert } from 'lucide-react'
+import { Settings, TriangleAlert } from 'lucide-react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import { Button } from '@/Components/ui/button'
@@ -14,7 +14,7 @@ import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Input } from '@/Components/ui/input'
 import { Switch } from '@/Components/ui/switch'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -92,9 +92,13 @@ const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
     <div className="mx-auto max-w-7xl p-6 space-y-4">
       <GovernancaSubNav active="policies" />
       <PageHeader
-        icon="settings"
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <Settings className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </span>
+        }
         title="Policies (Governança)"
-        description="mcp_governance_rules — runtime gates enforçados pelo ActionGate (Constituição Art. 8). Toggle ativa/desativa rule. Edição inline + create vão pra próxima iteração."
+        subtitle="mcp_governance_rules — runtime gates enforçados pelo ActionGate (Constituição Art. 8). Toggle ativa/desativa rule. Edição inline + create vão pra próxima iteração."
       />
 
       <KpiGrid cols={4}>

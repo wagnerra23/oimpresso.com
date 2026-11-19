@@ -4,7 +4,8 @@
  * Âncora de design: a tela "Instalação" do celular em prototipo-ui/cowork/Wagner/producao-cv-campo.jsx
  * (OS · dia e hora, cliente, endereço com "Abrir no mapa", checklist com foto antes, foto depois e assinatura).
  * Envia as duas fotos, colhe a assinatura do cliente (com o nome e o aceite de guardá-la) e conclui a
- * instalação. Concluir só fica ativo quando o comprovante tem os três itens.
+ * instalação. Concluir só fica ativo quando o comprovante tem os três itens. Concluída, a tela oferece o
+ * protocolo em PDF (GET /comunicacao-visual/instalacoes/{id}/protocolo, ProtocoloInstalacao).
  *
  * A tela não decide o que pode: manda tudo pela API do comprovante
  * (POST /comunicacao-visual/api/instalacoes/{id}/fotos|assinatura|concluir) e, quando ela recusa
@@ -19,7 +20,7 @@
  */
 import { useState, type ChangeEvent, type ReactNode } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { Camera, Check, MapPin } from 'lucide-react';
+import { Camera, Check, FileText, MapPin } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -278,7 +279,16 @@ export default function Instalacao({ instalacao, comprovante, podeRegistrar }: P
         {comprovante.status === 'concluida' && (
           <Alert data-contract="concluida">
             <AlertTitle>Instalação concluída</AlertTitle>
-            <AlertDescription>O comprovante está completo e não recebe mais fotos nem assinatura.</AlertDescription>
+            <AlertDescription>
+              <Stack gap={2}>
+                <span>O comprovante está completo e não recebe mais fotos nem assinatura.</span>
+                <Button asChild variant="outline" className="w-full">
+                  <a href={`/comunicacao-visual/instalacoes/${instalacao.id}/protocolo`} target="_blank" rel="noreferrer">
+                    <FileText size={15} aria-hidden /> Baixar protocolo (PDF)
+                  </a>
+                </Button>
+              </Stack>
+            </AlertDescription>
           </Alert>
         )}
 

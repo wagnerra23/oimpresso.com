@@ -236,8 +236,11 @@ Status: 🧪
 Status: 🧪
 
 ## UC-RBPA-04 · Erro do banco fica registrado e a rodada seguinte tenta de novo · `must`
-**Dado** o banco devolvendo erro na 1ª tentativa **Então** a cobrança fica `erro`, e a rodada seguinte cria outra
-com chave (e txid) diferente, que sai `emitida`.
+**Dado** o banco devolvendo erro na 1ª tentativa **Então** a cobrança fica `erro` (com a chave renomeada para
+`…#erro{id}`), e a rodada seguinte cria outra com a **mesma** chave e o **mesmo** txid, que sai `emitida`. Erro na
+chamada não prova recusa: se o banco aceitou e só a resposta se perdeu, o txid repetido é recusado e não sai segunda
+cobrança do ciclo. Chave e txid novos só depois de uma tentativa `cancelada`. (Até 2026-11-19 a retentativa usava
+txid novo — achado d8 da auditoria RecurringBilling.)
 Status: 🧪
 
 ## UC-RBPA-05 · `--dry-run` mostra o que seria cobrado sem gravar nem chamar o banco · `must`

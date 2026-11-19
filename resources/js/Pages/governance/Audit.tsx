@@ -7,7 +7,8 @@ import { router } from '@inertiajs/react'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
+import { Search } from 'lucide-react'
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -93,9 +94,13 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
     <div className="mx-auto max-w-7xl p-6 space-y-4">
       <GovernancaSubNav active="audit" />
       <PageHeader
-        icon="search"
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <Search className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </span>
+        }
         title="Audit Log"
-        description="mcp_audit_log forense (Constituição Art. 9). Append-only enforced via trigger MySQL (ADR 0084). Read-only — modificação é incidente P0."
+        subtitle="mcp_audit_log forense (Constituição Art. 9). Append-only enforced via trigger MySQL (ADR 0084). Read-only — modificação é incidente P0."
       />
 
       <KpiGrid cols={3}>
