@@ -200,6 +200,9 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 > As duas telas existiam sem US neste SPEC (auditoria 2026-11-19). Custos já tem a US-COPI-070 no SPEC da Jana.
 
 #### US-GOV-062 · DS Rollout `/governance/ds-rollout` ✅ DONE
+
+> owner: — · priority: p2 · status: done · type: story
+
 - **Rota:** `GET /governance/ds-rollout` (`can:governance.dashboard.view`)
 - **Controller:** `DsRolloutController@index`
 - **Como** Wagner **quero** ver o plano de portar o Design System em ondas e o Ledger de Conformidade DS **para** saber quanto do DS já foi portado sem abrir os scripts.
@@ -209,6 +212,9 @@ Dados de negócio (transações, contatos, produtos) **continuam scoped via `bus
 **Implementado em:** `Modules/Governance/Http/Controllers/DsRolloutController.php` · `resources/js/Pages/governance/DsRollout.tsx` · verificado@bedeeb0 (2026-11-19)
 
 #### US-GOV-063 · Qualidade IA `/governance/qualidade-ia` ✅ DONE
+
+> owner: — · priority: p2 · status: done · type: story
+
 - **Rota:** `GET /governance/qualidade-ia` (permissão `jana.mcp.usage.all` no construtor do controller)
 - **Controller:** `QualidadeIaController@index` (veio do Modules/Jana em 2026-08-05, ADR 0366 §D-B)
 - **Como** Wagner **quero** ver a tendência das métricas de RAG e memória contra os pisos das ADRs 0049/0050 **para** tratar a qualidade da IA como gate de conformidade, igual ao drift.
