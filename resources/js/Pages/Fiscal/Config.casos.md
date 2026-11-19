@@ -80,6 +80,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-12 | a configuração fiscal mostrada é a da própria empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-13 | ambiente e prestador da NFS-e gravam na empresa da sessão | `[must]` `[T0]` | CU-FISC-12 | `NfseConfiguracaoContratoTest` | 🧪 |
 | UC-FCFG-14 | trocar o ambiente da NFS-e tem a trava da NF-e | `[must]` `[T0]` | CU-FISC-13 | `NfseConfiguracaoContratoTest` | 🧪 |
+| UC-FCFG-16 | o envio automático do DANFE é escolhido por empresa | `[must]` `[T0]` | CU-FISC-12 | `ConfigControllerTest` | 🧪 |
 
 ---
 
@@ -153,8 +154,9 @@ related_us: [US-FISCAL-009]
 - **Ausência declarada, não preenchida (até 2026-10-07):** a linha **Contador** do protótipo não
   tinha campo no schema, e a tela dizia *"não cadastrado — ainda não existe campo"* em vez de
   inventar endereço. Desde a thread 15c a linha é o cadastro real — contrato em `UC-FCFG-08`.
-- **Escopo dito em texto:** as duas chaves valem por **deploy**, não por empresa. O card afirma
-  isso; um selo por-empresa aqui mentiria sobre o alcance da configuração.
+- **Escopo dito em texto (até 2026-11-19):** as duas chaves valiam só por **deploy**, e o card dizia
+  isso. Desde o UC-FCFG-16 cada empresa escolhe; este caso segue valendo para a empresa sem escolha
+  ("Padrão do servidor"), que é a situação do teste.
 - **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-05 · o card de envio de documentos espelha as flags REAIS do deploy')`
 - **Status:** 🧪 teste nasce nesta corrida; veredito pendente da lane.
 
@@ -315,6 +317,18 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Teste:** `NfseConfiguracaoContratoTest` — `it('UC-FCFG-14 · produção exige fiscal.config.ambiente, destino digitado e motivo')`
 - **Status:** 🧪 veredito da lane `PHP / Pest (NFSe · MySQL)`.
 
+## UC-FCFG-16 — O envio automático do DANFE é escolhido por empresa `[must]` `[T0]`
+
+**Dado** duas empresas com configuração fiscal e a instalação com a NF-e desligada e a NFC-e ligada
+**Quando** um usuário com `fiscal.config.edit` liga a NF-e e desliga a NFC-e na sua empresa (mesmo mandando o `business_id` da outra no corpo)
+**Então** a escolha grava na empresa da sessão e vence a chave do servidor nos listeners do DANFE; a outra empresa continua seguindo o servidor; "Padrão do servidor" devolve à chave da instalação; sem `fiscal.config.edit` é 403 e nada grava.
+
+- **Por que existe:** decisão do lote 2 dos débitos do Fiscal (2026-11-19). Antes as duas chaves eram só de deploy. Colunas `email_danfe_nfe` / `email_danfe_nfce` em `nfe_business_configs`, nulas = segue o servidor, então nenhuma empresa existente muda de comportamento.
+- **Sem configuração fiscal:** a escolha não grava (não se cria configuração com regime padrão só para isso, porque isso mudaria a emissão).
+- **Fonte:** `NfeBusinessConfig::envioDanfeAtivo`, lido por `EnviarDanfePorEmail` e `EnviarDanfeNFCePorEmail` com o `business_id` da própria nota (a fila não tem sessão).
+- **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-16 · o envio automático do DANFE é escolhido por empresa e grava só na empresa da sessão')`
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
@@ -327,7 +341,7 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
   (`UC-FCFG-05`) declarando a ausência. Dar valor a ela exige **coluna nova** em
   `nfe_business_configs` (migration em PR próprio, nunca junto de UI) e a decisão de se o envio ao
   contador é cópia automática de toda nota ou digest. _Sem contrato até [W] decidir._
-- **[BACKLOG · ⬜ sem campo · decisão [W]] Ligar/desligar o envio automático POR EMPRESA** — hoje as
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCFG-16] ~~Ligar/desligar o envio automático POR EMPRESA~~ — hoje as
   duas chaves são de deploy (`Modules/NfeBrasil/Config/config.php`), e o card diz isso. Tornar
   por-tenant é coluna nova + tela editável, não ajuste de leitura.
 - **[BACKLOG · 🧪 coberto em outra tela] O bloqueio do download de SPED por feature flag** tem contrato em [`Sped.casos.md`](Sped.casos.md) (`UC-FSPED-05`) — a aba "sped" desta tela apenas aponta para lá.

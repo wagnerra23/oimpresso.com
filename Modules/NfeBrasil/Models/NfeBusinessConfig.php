@@ -49,6 +49,8 @@ class NfeBusinessConfig extends Model
         'em_contingencia', 'contingencia_ativada_em', 'contingencia_motivo',
         // US-NFE-071: epec | svc-an | svc-rs (Services\ModoContingencia). Nulo = epec.
         'contingencia_modo',
+        // Envio automático do DANFE por empresa (2026-11-19). Nulo = segue a chave do servidor.
+        'email_danfe_nfe', 'email_danfe_nfce',
     ];
 
     protected $casts = [
@@ -56,7 +58,35 @@ class NfeBusinessConfig extends Model
         'tributacao_default' => 'array',
         'em_contingencia' => 'boolean',
         'contingencia_ativada_em' => 'datetime',
+        'email_danfe_nfe' => 'boolean',
+        'email_danfe_nfce' => 'boolean',
     ];
+
+    /**
+     * A empresa manda o DANFE por e-mail ao autorizar a nota deste modelo?
+     *
+     * Escolha da empresa (`email_danfe_nfe` / `email_danfe_nfce`) quando gravada; senão a
+     * chave do servidor, como era antes. Os listeners rodam em fila, sem sessão: o
+     * `business_id` vem da própria nota.
+     */
+    public static function envioDanfeAtivo(int $businessId, string $modelo): bool
+    {
+        $nfce = $modelo === '65';
+        $padrao = $nfce
+            ? (bool) config('nfebrasil.email_danfe_nfce_on_autorizada', false)
+            : (bool) config('nfebrasil.email_danfe_on_autorizada', true);
+
+        try {
+            // SUPERADMIN: listener em fila não tem sessão; filtra pelo business_id da nota.
+            $escolha = static::withoutGlobalScopes()
+                ->where('business_id', $businessId)
+                ->value($nfce ? 'email_danfe_nfce' : 'email_danfe_nfe');
+        } catch (\Illuminate\Database\QueryException) {
+            return $padrao; // coluna ainda não migrada neste ambiente
+        }
+
+        return $escolha === null ? $padrao : (bool) $escolha;
+    }
 
     public function scopeDoBusinessAtual(Builder $q): Builder
     {

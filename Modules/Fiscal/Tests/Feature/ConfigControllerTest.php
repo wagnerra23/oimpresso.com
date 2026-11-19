@@ -282,3 +282,67 @@ it('UC-FCFG-12 · a tela mostra a configuração fiscal da própria empresa, nun
         }
     }
 });
+
+it('UC-FCFG-16 · o envio automático do DANFE é escolhido por empresa e grava só na empresa da sessão', function () {
+    if (! Schema::hasColumn('nfe_business_configs', 'email_danfe_nfe')) {
+        $this->markTestSkipped('Colunas email_danfe_* ausentes — rode as migrations do NfeBrasil.');
+    }
+
+    $tenant = test()->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) test()->seededSupportClientTenant()->id;
+    $antes = DB::table('nfe_business_configs')->whereIn('business_id', [$bizA, $bizB])->get()->keyBy('business_id');
+    foreach ([$bizA, $bizB] as $biz) {
+        DB::table('nfe_business_configs')->updateOrInsert(
+            ['business_id' => $biz],
+            ['regime' => 'simples', 'tributacao_default' => json_encode([]),
+                'email_danfe_nfe' => null, 'email_danfe_nfce' => null,
+                'created_at' => now(), 'updated_at' => now()],
+        );
+    }
+    $ativo = fn (int $biz, string $modelo) => \Modules\NfeBrasil\Models\NfeBusinessConfig::envioDanfeAtivo($biz, $modelo);
+
+    try {
+        // Sem escolha: vale a chave do servidor, nos dois sentidos (controle de que não é literal).
+        config(['nfebrasil.email_danfe_on_autorizada' => true, 'nfebrasil.email_danfe_nfce_on_autorizada' => false]);
+        expect($ativo($bizA, '55'))->toBeTrue()->and($ativo($bizA, '65'))->toBeFalse();
+        config(['nfebrasil.email_danfe_on_autorizada' => false, 'nfebrasil.email_danfe_nfce_on_autorizada' => true]);
+        expect($ativo($bizA, '55'))->toBeFalse()->and($ativo($bizA, '65'))->toBeTrue();
+
+        // Sem permissão: 403 e nada grava.
+        $semPermissao = test()->usuarioComPermissoes([], $tenant);
+        $this->actingAs($semPermissao)
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->post('/fiscal/config/envio', ['nfe' => 'desligado', 'nfce' => 'desligado'])
+            ->assertStatus(403);
+        expect(DB::table('nfe_business_configs')->where('business_id', $bizA)->value('email_danfe_nfe'))->toBeNull();
+
+        // Com permissão: grava na empresa da SESSÃO; a vizinha fica intacta.
+        $this->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant))
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->post('/fiscal/config/envio', ['nfe' => 'ligado', 'nfce' => 'desligado', 'business_id' => $bizB])
+            ->assertSessionHasNoErrors();
+
+        // A escolha da empresa vence a do servidor (servidor está NF-e desligada, NFC-e ligada).
+        expect($ativo($bizA, '55'))->toBeTrue()
+            ->and($ativo($bizA, '65'))->toBeFalse()
+            ->and($ativo($bizB, '55'))->toBeFalse('a vizinha segue o servidor')
+            ->and($ativo($bizB, '65'))->toBeTrue('a vizinha segue o servidor')
+            ->and(DB::table('nfe_business_configs')->where('business_id', $bizB)->value('email_danfe_nfe'))->toBeNull();
+
+        // "padrao" devolve ao servidor.
+        $this->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant))
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->post('/fiscal/config/envio', ['nfe' => 'padrao', 'nfce' => 'padrao'])
+            ->assertSessionHasNoErrors();
+        expect($ativo($bizA, '55'))->toBeFalse()->and($ativo($bizA, '65'))->toBeTrue();
+    } finally {
+        config(['nfebrasil.email_danfe_on_autorizada' => true, 'nfebrasil.email_danfe_nfce_on_autorizada' => false]);
+        foreach ([$bizA, $bizB] as $biz) {
+            DB::table('nfe_business_configs')->where('business_id', $biz)->delete();
+            if ($antes->has($biz)) {
+                DB::table('nfe_business_configs')->insert((array) $antes->get($biz));
+            }
+        }
+    }
+});
