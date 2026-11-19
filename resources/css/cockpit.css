@@ -526,17 +526,7 @@
 }
 .cockpit .sb-item.sb-sub.active { border-left-color: var(--accent); }
 
-/* Sub-itens (filhos de um item e sub-telas/ghosts) — [W] 2026-11-19: "por que só
-   no Fiscal o item selecionado fica com cor diferente? [...] dar uma diferença de
-   cor de fundo nos sub itens". Causa medida: o sub-item ativo só recebia
-   `aria-current="page"`, e nenhuma regra estilizava isso — só `.active` tinha cor.
-   Fiscal parecia diferente porque os itens dele são itens de verdade (`.active`),
-   não sub-itens. O protótipo já marca a sub-tela ativa (`ItemRow` põe `.active` no
-   ghost); aqui a marca vem do `aria-current`, que é o que o React publica.
-   Forma: trilho fino à esquerda + fundo levemente mais claro agrupam os sub-itens
-   sob o pai; o ativo ganha o mesmo fundo do item ativo e barra na cor de acento.
-   Só tokens existentes (`--sb-*`, `--accent-2`). Escopo `.sb-body`: o flyout do
-   rail tem layout próprio. */
+/* Sub-itens: bloco sob o pai + marca do ativo (aria-current). Porquê e medição: UC-SB-17 em Components/cockpit/Sidebar.casos.md. */
 .cockpit .sb-body .sb-item.sb-ghost {
   margin-left: 16px;
   padding-left: 12px;
