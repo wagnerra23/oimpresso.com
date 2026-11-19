@@ -7,7 +7,7 @@ import type { CSSProperties } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Inline } from '@/Components/layout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { brl } from '../../Unificado/_components/catalogo';
+import { brl } from './formato';
 import { POR_PAGINA, type RelatorioEstoqueLista } from './tipos';
 
 const qtd = (n: number, unidade = '') =>

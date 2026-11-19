@@ -15,7 +15,7 @@ import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
-import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
+import { brl, qtdComUnidade } from './formato';
 import { TIPO_ROTULO, dataBr, type LotesDoProdutoNoPainel, type ReceitaDoProdutoNoPainel, oQueE, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 

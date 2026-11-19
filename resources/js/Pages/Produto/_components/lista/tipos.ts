@@ -3,7 +3,7 @@
 // Os dados vêm de ProductController::buildProdutoListaPaginada (mesma consulta da lista Blade).
 
 import type { PaginatorShape } from '@/Components/shared/DataTable';
-import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
+import { brl, qtdComUnidade } from './formato';
 
 export type TipoProduto = 'single' | 'variable' | 'combo' | string;
 

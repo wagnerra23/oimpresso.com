@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 161 arquivos em 9 papéis.
+**Total mapeado:** 148 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -90,7 +90,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [index.blade.php](../../../resources/views/selling_price_group/index.blade.php)
 - [update_product_price.blade.php](../../../resources/views/selling_price_group/update_product_price.blade.php)
 
-## Telas (Inertia/React) — 12
+## Telas (Inertia/React) — 11
 
 - [Index.tsx](../../../resources/js/Pages/Produto/AtualizarPreco/Index.tsx)
 - [BulkEdit.tsx](../../../resources/js/Pages/Produto/BulkEdit.tsx)
@@ -103,22 +103,10 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [SellingPrices.tsx](../../../resources/js/Pages/Produto/SellingPrices.tsx)
 - [Show.tsx](../../../resources/js/Pages/Produto/Show.tsx)
 - [StockHistory.tsx](../../../resources/js/Pages/Produto/StockHistory.tsx)
-- [Index.tsx](../../../resources/js/Pages/Produto/Unificado/Index.tsx)
 
-## Componentes / apoio de tela — 42
+## Componentes / apoio de tela — 32
 
 - [CadastroDrawer.tsx](../../../resources/js/Pages/Produto/Cadastros/_components/CadastroDrawer.tsx)
-- [BulkBar.tsx](../../../resources/js/Pages/Produto/Unificado/_components/BulkBar.tsx)
-- [Colunas.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Colunas.tsx)
-- [DetalheProduto.tsx](../../../resources/js/Pages/Produto/Unificado/_components/DetalheProduto.tsx)
-- [Disponibilidade.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Disponibilidade.tsx)
-- [FiltroTrigger.tsx](../../../resources/js/Pages/Produto/Unificado/_components/FiltroTrigger.tsx)
-- [KpiFiltros.tsx](../../../resources/js/Pages/Produto/Unificado/_components/KpiFiltros.tsx)
-- [MiniaturaProduto.tsx](../../../resources/js/Pages/Produto/Unificado/_components/MiniaturaProduto.tsx)
-- [Mono.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Mono.tsx)
-- [Observacao.tsx](../../../resources/js/Pages/Produto/Unificado/_components/Observacao.tsx)
-- [PopoverAncorado.tsx](../../../resources/js/Pages/Produto/Unificado/_components/PopoverAncorado.tsx)
-- [SubTelas.tsx](../../../resources/js/Pages/Produto/Unificado/_components/SubTelas.tsx)
 - [EditarSoArmazenagem.tsx](../../../resources/js/Pages/Produto/_components/EditarSoArmazenagem.tsx)
 - [OrigemMercadoriaField.tsx](../../../resources/js/Pages/Produto/_components/OrigemMercadoriaField.tsx)
 - [AcoesDoCadastro.tsx](../../../resources/js/Pages/Produto/_components/formulario/AcoesDoCadastro.tsx)
@@ -146,11 +134,12 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [MenuColunas.tsx](../../../resources/js/Pages/Produto/_components/lista/MenuColunas.tsx)
 - [NcmEmLote.tsx](../../../resources/js/Pages/Produto/_components/lista/NcmEmLote.tsx)
 - [PainelDetalhe.tsx](../../../resources/js/Pages/Produto/_components/lista/PainelDetalhe.tsx)
+- [PopoverAncorado.tsx](../../../resources/js/Pages/Produto/_components/lista/PopoverAncorado.tsx)
 - [RelatorioEstoqueAba.tsx](../../../resources/js/Pages/Produto/_components/lista/RelatorioEstoqueAba.tsx)
 - [SaldoPorVariacao.tsx](../../../resources/js/Pages/Produto/_components/lista/SaldoPorVariacao.tsx)
 - [colunas.tsx](../../../resources/js/Pages/Produto/_components/lista/colunas.tsx)
 
-## Charters (lei da tela) — 12
+## Charters (lei da tela) — 11
 
 - [Index.charter.md](../../../resources/js/Pages/Produto/AtualizarPreco/Index.charter.md)
 - [BulkEdit.charter.md](../../../resources/js/Pages/Produto/BulkEdit.charter.md)
@@ -163,9 +152,8 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [SellingPrices.charter.md](../../../resources/js/Pages/Produto/SellingPrices.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Produto/Show.charter.md)
 - [StockHistory.charter.md](../../../resources/js/Pages/Produto/StockHistory.charter.md)
-- [Index.charter.md](../../../resources/js/Pages/Produto/Unificado/Index.charter.md)
 
-## Casos (contrato UC) — 12
+## Casos (contrato UC) — 11
 
 - [Index.casos.md](../../../resources/js/Pages/Produto/AtualizarPreco/Index.casos.md)
 - [BulkEdit.casos.md](../../../resources/js/Pages/Produto/BulkEdit.casos.md)
@@ -178,11 +166,9 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [SellingPrices.casos.md](../../../resources/js/Pages/Produto/SellingPrices.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Produto/Show.casos.md)
 - [StockHistory.casos.md](../../../resources/js/Pages/Produto/StockHistory.casos.md)
-- [Index.casos.md](../../../resources/js/Pages/Produto/Unificado/Index.casos.md)
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 22
 
-- [catalogo.ts](../../../resources/js/Pages/Produto/Unificado/_components/catalogo.ts)
 - [armazenagem.ts](../../../resources/js/Pages/Produto/_components/formulario/armazenagem.ts)
 - [cest.ts](../../../resources/js/Pages/Produto/_components/formulario/cest.ts)
 - [ean.ts](../../../resources/js/Pages/Produto/_components/formulario/ean.ts)
@@ -199,6 +185,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [cadastro-rapido-dominio.ts](../../../resources/js/Pages/Produto/_components/lista/cadastro-rapido-dominio.ts)
 - [encaixe.ts](../../../resources/js/Pages/Produto/_components/lista/encaixe.ts)
 - [estoque-inicial-dominio.ts](../../../resources/js/Pages/Produto/_components/lista/estoque-inicial-dominio.ts)
+- [formato.ts](../../../resources/js/Pages/Produto/_components/lista/formato.ts)
 - [navegacao.ts](../../../resources/js/Pages/Produto/_components/lista/navegacao.ts)
 - [tipos.ts](../../../resources/js/Pages/Produto/_components/lista/tipos.ts)
 - [useLargurasGuardadas.ts](../../../resources/js/Pages/Produto/_components/lista/useLargurasGuardadas.ts)
