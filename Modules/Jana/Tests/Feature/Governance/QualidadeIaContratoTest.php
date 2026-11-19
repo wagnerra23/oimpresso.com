@@ -12,6 +12,7 @@ use Spatie\Permission\PermissionRegistrar;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
+ * @covers-us US-GOV-063
  * Contrato da tela /governance/qualidade-ia — resources/js/Pages/governance/QualidadeIa.casos.md (UC-GQIA-*).
  *
  * ── DE ONDE OS CASOS VÊM ─────────────────────────────────────────────────────

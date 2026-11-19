@@ -22,6 +22,14 @@ beforeEach(function () {
     config()->set('governance.deploy_drift_envs', [
         ['nome' => 'mcp', 'url' => 'https://mcp.test'],
     ]);
+
+    // Os casos escrevem o SHA de main no path real do webhook. No runner da lane sqlite
+    // o storage/app pode não existir (5/5 "No such file or directory" na lane required,
+    // job 135831780724), então o diretório é criado aqui antes de qualquer escrita.
+    $dir = dirname(DeployDriftChecker::shaFilePath());
+    if (! is_dir($dir)) {
+        mkdir($dir, 0775, true);
+    }
 });
 
 it('implementa DriftChecker + registrado em governance.drift_checkers', function () {

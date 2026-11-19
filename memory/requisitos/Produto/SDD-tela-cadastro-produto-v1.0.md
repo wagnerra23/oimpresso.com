@@ -1309,6 +1309,13 @@ volta para uma margem alvo.
   comportamento muda a regra em Fluxos ou a política do produto. Continua valendo a REGRA MESTRE: o
   recebimento só passa a ler a política depois do antes e depois de uma compra de exemplo, conferido
   por dois caminhos e aprovado pelo [W].
+- **Recebimento construído e desligado (2026-11-18):** `AplicarCustoDoRecebimento` passa a ler a
+  política de cada produto quando a regra da compra tem `regraEm = produto` **e** a empresa tem a chave
+  `compraSeguePoliticaPreco` ligada. A conta fica em `PrecoPelaPolitica` (a do protótipo, com `up10`).
+  A chave nasce desligada para todas as empresas, então nada muda até ela ser ligada. Conferido por
+  três caminhos, no arranjo do teste (custo de 11,00 para 12,10 com imposto, preço 16,50, imposto 10%):
+  Preço fixo 16,50 (só a margem muda, para 36,3636%), Acompanha o custo 18,20, Margem alvo de 40%
+  20,20. Ligar a chave depende do antes e depois em produção aprovado pelo [W].
 
 #### CU-PROD-22 — Card Produção: o roteiro do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
 
@@ -1579,6 +1586,7 @@ de produção ele segue, e um link para a tela de Roteiros.
 
 **Histórico:**
 
+- 2026-11-18 — **`CU-PROD-21`: o recebimento da compra lê a política, atrás da chave `compraSeguePoliticaPreco`, desligada.** Nada muda até o [W] aprovar o antes e depois e a chave ser ligada. [F+C]
 - 2026-11-17 — **Decisões do [F] sobre os editores (§10.6):** variação com o modelo da empresa, uma por produto, primeiro no Novo (`UC-PCAD-32`); composição espera a D2 (`product_bom` como fonte única). [F+C]
 - 2026-11-16 — **`CU-PROD-21`: a compra segue a regra do administrador em Fluxos** (`regraEm`), sem migrar os produtos existentes; ligar ainda depende do antes e depois aprovado pelo [W]. Pendência registrada em §10.6: editores de variação e composição, a decidir pelo [F] em 2026-11-17. [F+C]
 - 2026-11-11 — **`CU-PROD-20`: proposta de quem edita os locais de armazenagem** (v1.0.18): permissão nova `product.armazenagem` só para os locais, sem dar acesso a preço e imposto; `product.update` continua bastando; rota própria que grava só os locais; histórico de quem mudou. Vale se o [W] mergear o PR. Pergunta do [F]. [F+C]
