@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateway\Jobs\ProcessarWebhookBcbPixJob;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Webhook\WebhookEventId;
 
 /**
  * Recebe webhooks BCB (PIX Automático — recv).
@@ -70,10 +71,15 @@ class BcbPixWebhookController extends Controller
         }
 
         $eventName = (string) $request->input('evento', $request->input('event', 'unknown'));
-        $eventId = (string) ($request->input('txid')
-            ?? $request->input('txId')
-            ?? $request->input('id')
-            ?? md5($eventName . json_encode($request->all())));
+        // Auditoria PG 2.3: `txid` é da cobrança — composto com evento + situações
+        // (cobsr[].status, pix[].endToEndId) para o CONCLUIDA não ser descartado
+        // depois de um ATIVA/REJEITADA da mesma cobrança.
+        $txid = $request->input('txid') ?? $request->input('txId');
+        $eventId = match (true) {
+            $txid !== null                 => WebhookEventId::daCobranca((string) $txid, $eventName, $request->all()),
+            $request->input('id') !== null => (string) $request->input('id'),
+            default                        => md5($eventName . json_encode($request->all())),
+        };
 
         $resposta = $this->processor->handle(
             gatewayKey: 'bcb_pix',

@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Webhook\WebhookEventId;
 
 /**
  * Recebe webhooks do C6.
@@ -60,9 +61,13 @@ class C6WebhookController extends Controller
         }
 
         $eventName = (string) $request->input('eventType', $request->input('event', 'unknown'));
-        $eventId = (string) ($request->input('transactionId')
-            ?? $request->input('id')
-            ?? md5($eventName . json_encode($request->all())));
+        // Auditoria PG 2.3: `transactionId` é da cobrança — composto com evento +
+        // situação; reenvio idêntico continua com o mesmo id.
+        $eventId = match (true) {
+            $request->input('transactionId') !== null => WebhookEventId::daCobranca((string) $request->input('transactionId'), $eventName, $request->all()),
+            $request->input('id') !== null            => (string) $request->input('id'),
+            default                                   => md5($eventName . json_encode($request->all())),
+        };
 
         return $this->processor->handle(
             gatewayKey: 'c6',
