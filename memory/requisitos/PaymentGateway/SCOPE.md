@@ -16,7 +16,6 @@ contains:
   # path real, e caiu a frase que afirmava 301 redirect após cutover da Onda 3 — não há
   # redirect de webhook em nenhum dos 56 arquivos de rota, e o RecurringBilling segue
   # servindo `/webhooks/inter/pix/{businessId}` em paralelo (coerente com "sem cutover").
-  - "CobrancaController"
   - "Settings/PaymentGatewaysController — F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
   - "Settings/PaymentGatewaysCnabRetornoController — POST /settings/payment-gateways/{credential}/cnab-retorno (upload arquivo retorno + histórico processamento, Onda 4f.0)"
   - "CobrancaCnabArquivosController — (Settings/) GET /settings/payment-gateways/cobrancas/{cobranca}/remessa|boleto (baixar a remessa CNAB e o PDF do boleto da cobrança, só da empresa da sessão — P-157)"
@@ -37,7 +36,6 @@ contains:
   - "Services/Drivers/BcbPixDriver — PSP-agnóstico PIX Automático (Resolução BCB 380/2024) — pix_recv (mandato recorrente) + revogar + consultar + healthCheck + processWebhook; Onda 4d.1. base_url configurável via credential"
   - "Services/Drivers/PagarmeDriver — Pagar.me v5 REST (boleto + pix_cob + card + refund parcial + cancelar + consultar + healthCheck + processWebhook); Onda 4e. HTTP Basic Auth via secret_key, sandbox via prefixo sk_test_*"
   - "Services/Drivers/SicoobApiDriver — Sicoob API Cobrança Bancária v3 REST OAuth2+mTLS (boleto + cancelar + consultar + healthCheck + processWebhook); Onda 4f.sicoob_api · US-FIN-044 + US-FIN-046. Convênio + carteira (1 Simples / 3 Caucionada) + modalidade. Cache token Redis-safe por business_id. mTLS REUSA NfeCertificado canon via CertificadoService::carregarParaSefaz (single source of truth — mesmo cert A1 usado pra NFe SEFAZ)"
-  - "BoletoService (Onda 4d alto-nível)"
   # Saíram de `contains` em 2026-08-10 — estes NOMES nunca existiram (0 arquivos em
   # 16.238). ⚠️ Mas a CAPACIDADE CNAB não é planejada: está entregue sob outros nomes,
   # já declarados acima ou vivos no repo — `Services/Cnab/CnabBoletoAdapter`,
@@ -54,7 +52,13 @@ contains:
   - "Services/Cnab/Drivers/* — 11 drivers CNAB por banco (Ailos · BB · Banrisul · Bradesco · BTG · Caixa · Cresol · Itaú · Santander · Sicoob · Sicredi)"
   - "Jobs/CnabRetornoProcessor — processa o arquivo de retorno enviado via Settings/PaymentGatewaysCnabRetornoController"
   - "Models/CnabRetornoUpload — histórico dos uploads de retorno (tabela cnab_retorno_uploads)"
-  - "Drivers planejados: PesaPalDriver (deprecated Onda 5/6)"
+  - "Webhooks/WebhookProcessor + Services/Webhook/CobrancaWebhookResolver — grava gateway_webhook_events e liga cobranca_id (US-PG-008)"
+  - "Jobs/ProcessarWebhookPixInterJob — processa inter_webhook_log (PIX Inter recebido → título quitado)"
+  - "Jobs/RetryOrphanWebhookJob — reprocessa gateway_webhook_events órfãos (comando paymentgateway:retry-orphan-webhooks)"
+  - "Listeners/LancarPagamentoDaCobrancaNaVenda — CobrancaPaga → pagamento na venda (flag PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA, default false)"
+  # Saíram em 2026-11-19 (auditoria): "CobrancaController" vive em Modules/Financeiro (ver
+  # not_contains); "BoletoService (Onda 4d alto-nível)" só existe em
+  # Modules/RecurringBilling/Services/Boleto/BoletoService.php; "PesaPalDriver" nunca foi criado.
 not_contains:
   - "Plan / Assinatura / Invoice recorrente → Modules/RecurringBilling (consome este módulo)"
   - "Sale / Transaction de venda → app/ core (consome este módulo via PaymentGatewayContract)"
@@ -62,6 +66,8 @@ not_contains:
   - "Subscription SaaS Wagner→tenants → Plan em RecurringBilling biz=1 + handler Superadmin"
   - "Plano de contas contábil → Modules/Accounting — módulo REMOVIDO (ADR 0174 + DEPRECATION-PLAN); hoje o plano de contas vive em Modules/Financeiro (fin_planos_conta)"
   - "Account (saldo bancário) → app/Account.php (core); só recebe FK das credenciais"
+  - "Tela de cobrança (CobrancaController, /cobranca) → Modules/Financeiro (consome este módulo)"
+  - "BoletoService de recorrência → Modules/RecurringBilling/Services/Boleto/"
 trust_required: L3
 owner: wagner
 permission_prefix: paymentgateway.*
@@ -74,16 +80,20 @@ related_adrs:
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 url_prefixes:
   # Medido em 2026-09-02: os webhooks vivem sob /paymentgateway/webhooks/* — o cutover
-  # pro topo (/webhooks/<driver>) é a Onda 3.5, que NÃO aconteceu. Rotas em Routes/web.php:102.
-  - /paymentgateway/* (install + webhooks/{inter,c6,asaas,bcb-pix,pagarme,sicoob-api})
+  # pro topo (/webhooks/<driver>) é a Onda 3.5, que NÃO aconteceu. Rotas em
+  # Modules/PaymentGateway/Routes/web.php (procure "webhooks"; número de linha apodrece).
+  - /paymentgateway/* (install + webhooks/{inter,c6,asaas,bcb-pix,pagarme,sicoob-api} + tef/cobrancas)
   - /settings/payment-gateways/* (UI de credenciais — health-check · quota · toggle · cnab-retorno)
   - /webhooks/inter/* (único no topo; o PIX de /webhooks/inter/pix/ é servido por Modules/RecurringBilling)
 db_tables_owned:
   - payment_gateway_credentials
   - cobrancas
   - gateway_webhook_events
+  - inter_webhook_log
+  - cnab_retorno_uploads
+  - tef_transacoes
 drift_alerts:
-  - "Linkage gateway_webhook_events.cobranca_id IMPLEMENTADO (US-PG-008, PR pendente): WebhookProcessor resolve a Cobrança no recebimento + RetryOrphanWebhookJob re-resolve a race, ambos via CobrancaWebhookResolver (reusa driver->processWebhook — correto p/ BCB idRec). A branch de quitação do Job deixou de ser inalcançável. PORÉM o cron paymentgateway:retry-orphan-webhooks SEGUE DORMENTE (flag PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED default OFF) — habilitar só após cutover dos webhooks Onda 3 (registrar URLs nos gateways; tabela VAZIA em prod hoje) + dry-run + tabela antes→depois + aprovação Wagner (REGRA MESTRE valor/estoque). A quitação PIX biz=1 LIVE continua por inter_webhook_log + ProcessarWebhookPixInterJob, não por aqui."
+  - "Linkage gateway_webhook_events.cobranca_id IMPLEMENTADO (US-PG-008, PR #3371 mergeado em 2026-06-25): WebhookProcessor resolve a Cobrança no recebimento + RetryOrphanWebhookJob re-resolve a race, ambos via CobrancaWebhookResolver (reusa driver->processWebhook — correto p/ BCB idRec). A branch de quitação do Job deixou de ser inalcançável. PORÉM o cron paymentgateway:retry-orphan-webhooks SEGUE DORMENTE (flag PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED default OFF) — habilitar só após cutover dos webhooks Onda 3 (registrar URLs nos gateways; tabela VAZIA em prod hoje) + dry-run + tabela antes→depois + aprovação Wagner (REGRA MESTRE valor/estoque). A quitação PIX biz=1 LIVE continua por inter_webhook_log + ProcessarWebhookPixInterJob, não por aqui."
 ---
 
 # Modules/PaymentGateway
@@ -117,3 +127,4 @@ Ver [CONTRACTS.md](CONTRACTS.md) pra interface + DTOs + payloads de evento.
 - **v0.1.0** (2026-05-19) — SCOPE.md inicial, ADR 0170 proposto. Módulo registrado mas **não habilitado** (Onda 0 do roadmap).
 - **v0.1.1** (2026-06-24) — Fix ghost-scheduled `paymentgateway:retry-orphan-webhooks` (censo artisan): docblock prometia cron `everyFiveMinutes` que NÃO existia no Kernel. Schedule **registrado** (sai do limbo + aparece em `schedule:list`) porém **DORMENTE** via flag default-OFF `PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED` (REGRA MESTRE valor/estoque — o Job quita título). Backlog prod = **0** (tabela `gateway_webhook_events` vazia, dry-run confirmou). Docblock corrigido + drift_alert + testes (schedule-registration + command). Habilitar só após cutover Onda 3 + linkage cobranca_id + dry-run aprovado.
 - **v0.1.2** (2026-06-24) — Linkage `cobranca_id` destravado (US-PG-008, PR pendente): `CobrancaWebhookResolver` (reusa `driver->processWebhook`, correto p/ BCB `idRec`) + `WebhookProcessor` linka no recebimento + persiste `payment_gateway_credential_id` + `RetryOrphanWebhookJob` re-resolve a race (antes desistia em `still_orphan`). `--dry-run` mostra taxa de linkage. Drive-by: `PagarmeWebhookController` passa `signatureValid` (corrige ArgumentCountError latente). Cron **SEGUE DORMENTE** (flag OFF) até cutover Onda 3 + dry-run/antes→depois aprovado. Pest linkage + multi-tenant biz=1/99.
+- **v0.1.3** (2026-11-19) — Reconciliação da auditoria: `db_tables_owned` passa de 3 para as 6 tabelas que as migrations do módulo criam (+ `inter_webhook_log`, `cnab_retorno_uploads`, `tef_transacoes`); saem de `contains` `CobrancaController` (Financeiro) e `BoletoService` (RecurringBilling), que viram `not_contains`, e `PesaPalDriver` (nunca criado); entram os 4 caminhos de webhook/baixa; linha de rota sem número. O registro v0.1.0 ("não habilitado") é fato de 2026-05-19: hoje há agendamentos ativos no Kernel. O `charter_adr: 0170` aponta para ADR arquivada sem sucessora — decisão pendente [W].

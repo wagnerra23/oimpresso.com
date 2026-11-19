@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Modules\Governance\Services\SddBriefLineService;
 
@@ -15,7 +15,9 @@ use Modules\Governance\Services\SddBriefLineService;
  * @see Modules/Forja/Console/Commands/GenerateBriefCommand.php (plug-point inject)
  */
 
-uses(RefreshDatabase::class);
+// Mesma correção do ScorecardSnapshotCommandTest: sem TestCase o app não subia, e
+// RefreshDatabase no MySQL da lane apagaria o seed. A tabela vem do migrate.
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 function sddG8Snapshot(string $date, ?float $composta, array $alerts = [], int $vivas = 2): void
 {
