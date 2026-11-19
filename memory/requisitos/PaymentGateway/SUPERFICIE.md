@@ -156,7 +156,7 @@ module: PaymentGateway
 
 ## Testes (Pest) — 54
 
-- 47 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
+- 48 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
 - 1 em [Modules/PaymentGateway/Tests/Feature/Cnab/Drivers/](../../../Modules/PaymentGateway/Tests/Feature/Cnab/Drivers)
 - 6 em [Modules/PaymentGateway/Tests/Feature/Settings/](../../../Modules/PaymentGateway/Tests/Feature/Settings)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
