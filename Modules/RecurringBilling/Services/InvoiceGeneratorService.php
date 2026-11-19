@@ -19,8 +19,9 @@ use Throwable;
  *
  * Pra cada Subscription ativa cujo `next_due_date <= today + leadDays`:
  *
- *   1. Idempotência — SKIP se já existe Invoice mesma competência (YYYY-MM)
- *      pra essa subscription (status != canceled).
+ *   1. Idempotência — se já existe Invoice da mesma competência (YYYY-MM)
+ *      pra essa subscription (status != canceled), não cria outra, mas avança
+ *      next_due_date (senão a assinatura fica presa na mesma competência).
  *   2. Cria Invoice (status=open, vencimento=next_due_date, valor=plan.valor,
  *      conta_bancaria_id da subscription, numero_documento RB-{id}-{YYYY-MM}).
  *   3. Avança Subscription.next_due_date += ciclo (monthly/quarterly/semiannual/
@@ -152,8 +153,46 @@ class InvoiceGeneratorService
             ->whereNotIn('status', ['canceled'])
             ->exists();
 
+        $proximo = $this->avancarCiclo($vencimento, $planCiclo);
+
         if ($exists) {
             $stats['skipped']++;
+            if ($dryRun) {
+                return $stats;
+            }
+
+            // A competência já está faturada (fatura criada por outro caminho, ou um run
+            // anterior que gravou a fatura e não chegou a mover a data). Sem avançar o
+            // vencimento, a assinatura voltava a ser candidata todo dia e nunca mais
+            // faturava. Avança só a data: não cria fatura, e a UNIQUE
+            // (business_id, numero_documento) segue barrando duplicata.
+            DB::transaction(function () use ($sub, $businessId, $subId, $vencimento, $proximo): void {
+                // Condicional na data lida: se outro processo já moveu, não move de novo.
+                $moveu = Subscription::query()
+                    ->where('business_id', $businessId)
+                    ->whereKey($subId)
+                    ->whereDate('next_due_date', $vencimento->toDateString())
+                    ->update(['next_due_date' => $proximo]);
+
+                if ($moveu === 0) {
+                    return;
+                }
+
+                SubscriptionEvent::create([
+                    'business_id'     => $businessId,
+                    'subscription_id' => $subId,
+                    'kind'            => SubscriptionEvent::KIND_NOTE,
+                    'by_actor'        => 'system:rb:generate-invoices',
+                    'body'            => sprintf(
+                        'Competência %s já tinha fatura — nenhuma fatura nova. Próximo ciclo: %s.',
+                        $vencimento->format('m/Y'),
+                        Carbon::parse($proximo)->format('d/m/Y'),
+                    ),
+                    'occurred_at'     => now(),
+                ]);
+                $sub->setAttribute('next_due_date', $proximo);
+            });
+            $stats['advanced']++;
 
             return $stats;
         }
@@ -163,8 +202,6 @@ class InvoiceGeneratorService
 
             return $stats;
         }
-
-        $proximo = $this->avancarCiclo($vencimento, $planCiclo);
         $numeroDocumento = sprintf('RB-%d-%s', $subId, $vencimento->format('Y-m'));
 
         DB::transaction(function () use ($sub, $businessId, $subId, $planId, $planValor, $planNome, $planCiclo, $vencimento, $proximo, $numeroDocumento): void {

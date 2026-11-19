@@ -134,7 +134,10 @@ jobs:
         # lane inteira) e (3) a quarentena declarada, com motivo por linha. Arquivo NOVO entra
         # rodando. Mesmo desenho da jana-pest.yml.
         run: |
-          set -uo pipefail
+          # -e (2026-11-19): sem ele, um passo da montagem que falhasse seguia em silêncio e
+          # a lane rodava uma lista errada. Todo grep que pode legitimamente não casar está
+          # em { grep … || true; }, então -e só derruba o step por falha real.
+          set -euo pipefail
           mkdir -p test-results
           QUAR_FILE=.github/paymentgateway-pest-quarantine.list
 
@@ -148,7 +151,7 @@ jobs:
           find Modules/PaymentGateway/Tests tests/Feature/PaymentGateway -name '*Test.php' | sort > /tmp/all.txt
 
           sed 's/#.*//; s/[[:space:]]*$//' .github/ci-sqlite-pest.list \
-            | grep -E '^Modules/PaymentGateway/Tests/' | sort -u > /tmp/outralane.txt
+            | { grep -E '^Modules/PaymentGateway/Tests/' || true; } | sort -u > /tmp/outralane.txt
           comm -23 /tmp/all.txt /tmp/outralane.txt > /tmp/elegiveis.txt
 
           : > /tmp/destrutivos.txt
@@ -176,9 +179,18 @@ jobs:
             "${TARGETS[@]}"
 
       # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
+      # Sem `|| true` (2026-11-19): XML ausente, vazio ou incoerente agora deixa o step
+      # vermelho. Guardado pela condição do Pest, não por `always()` sozinho: no
+      # skip-as-pass o XML não existe e o step ficaria vermelho em todo PR fora do módulo.
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
-        if: always()
-        run: node scripts/tests/junit-summary.mjs test-results/pest-paymentgateway-junit.xml --out test-results/pest-paymentgateway-junit-summary.json || true
+        if: ${{ !cancelled() && steps.changes.outputs.paymentgateway == 'true' }}
+        run: node scripts/tests/junit-summary.mjs test-results/pest-paymentgateway-junit.xml --out test-results/pest-paymentgateway-junit-summary.json
+
+      # Mesmo desenho da jana-pest.yml (passo 3 do LC-13): a lane rodou e não provou nada
+      # (0 assertions) = vermelho. Sem always(): se o Pest falhou, a lane já está vermelha.
+      - name: Suíte provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.paymentgateway == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-paymentgateway-junit.xml --check-assertions
 
       - name: Upload sumário JUnit (pest-paymentgateway-junit-summary)
         if: always()

@@ -790,6 +790,22 @@ last_run: "2026-11-15"
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela` (`base_pis`/`base_cofins`) + `NfeService::montarItensNfe` (vBC do PIS/COFINS).
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-68 · A lista de naturezas traz o resumo da própria empresa · `must` `[T0]`
+
+- **Aceite:** **Dado** a flag ligada para a empresa da sessão **Quando** a seção pede a lista **Então** vem junto o
+  resumo dela (nome, UF de origem pela mesma regra da emissão e IBS/CBS do ano da configuração), nunca o de outra empresa.
+- **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-68 …`.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-69 · A lista segue a forma do protótipo: resumo, abas com contagem e coluna Tributos · `must`
+
+- **Aceite:** **Dado** a seção aberta **Quando** a lista carrega **Então** aparece o título "Tributação padrão", a faixa
+  com empresa, regime, origem e IBS/CBS do ano, as abas com a contagem de cada filtro e a coluna Tributos com as
+  etiquetas da natureza (ICMS, ST, IPI, PIS/COFINS, IBS/CBS). Natureza sem os tributos da tela (a Venda padrão) não
+  ganha etiqueta inventada. Fonte de forma: `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`, `renderLista()`.
+- **Teste:** [`nfe-naturezas-lista.test.tsx`](../../../../../tests/js/nfe-naturezas-lista.test.tsx) — `UC-NFTR-69 …` (mutação: sem a contagem nas abas, reprova).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
