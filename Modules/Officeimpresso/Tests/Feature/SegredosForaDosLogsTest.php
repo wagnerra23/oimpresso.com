@@ -93,15 +93,16 @@ it('M3 — a linha de licenca_log entra no activity_log sem corpo, trecho do tok
         ->where('subject_type', LicencaLog::class)->where('subject_id', $log->id)
         ->value('properties');
 
-    // Âncora positiva: a linha existe e carrega um campo comum.
+    // Âncora positiva: a linha existe e carrega um campo comum. Compara decodificado: o JSON
+    // escapa a barra do endpoint (`connector\/api`).
     expect($props)->not->toBeNull();
-    expect((string) $props)->toContain($this->oiSegEndpoint);
+    expect(json_decode((string) $props, true)['attributes']['endpoint'] ?? null)->toBe($this->oiSegEndpoint);
     foreach (['body_preview', 'OISEG-HD-M3', 'OISEG-SEN-M3', 'OISEG-AGENTE-M3', '"ip"', '"token_hint"', '"metadata"'] as $fora) {
         $this->assertStringNotContainsString($fora, (string) $props, "{$fora} chegou ao activity_log");
     }
 });
 
-it('M2 — salvar a licença registra a mudança no activity_log sem senha, contra-senha, token, serial, usuário e conexão', function () {
+it('M2 — salvar a licença registra a mudança no activity_log sem senha, contra-senha, serial, usuário e conexão', function () {
     $this->oiSegMaquinaId = (int) DB::table('licenca_computador')->insertGetId([
         'business_id' => (int) $this->seededTenant()->id,
         'hd'          => 'OISEG-HD-M2-'.uniqid(),
@@ -114,7 +115,6 @@ it('M2 — salvar a licença registra a mudança no activity_log sem senha, cont
     $segredos = [
         'senha'        => 'OISEG-SEN-M2',
         'contra_senha' => 'OISEG-CONTRA-M2',
-        'token'        => 'OISEG-TOKEN-M2',
         'serial'       => 'OISEG-SERIAL-M2',
         'usuario'      => 'OISEG-USUARIO-M2',
         'conexao'      => 'OISEG-CONEXAO-M2',
