@@ -93,6 +93,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // US-COMVIS-007 · UC-PCV-25: tela do instalador no celular. Só lê; fotos, assinatura e concluir são a API do comprovante.
         Route::get('instalacoes/{id}', [InstalacaoCampoController::class, 'show'])
             ->whereNumber('id')->name('comunicacao-visual.instalacao');
+        // UC-PCV-25 (1c): protocolo da instalação concluída em PDF — fotos, assinatura e horários.
+        Route::get('instalacoes/{id}/protocolo', [InstalacaoCampoController::class, 'protocolo'])
+            ->whereNumber('id')->name('comunicacao-visual.instalacao.protocolo');
     });
 
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).

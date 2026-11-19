@@ -2581,11 +2581,11 @@
       "desc": "UC-CVPAC-01..03)"
     },
     {
-      "id": "component:ComunicacaoVisual/InstalacaoCampoController",
+      "id": "component:ComunicacaoVisual/InstalacaoCampoController + ProtocoloInstalacao",
       "type": "component",
       "module": "ComunicacaoVisual",
-      "name": "InstalacaoCampoController",
-      "desc": "/comunicacao-visual/instalacoes/{id}, US-COMVIS-007 · UC-PCV-25)"
+      "name": "InstalacaoCampoController + ProtocoloInstalacao",
+      "desc": "/comunicacao-visual/instalacoes/{id} e /{id}/protocolo, US-COMVIS-007 · UC-PCV-25)"
     },
     {
       "id": "component:ComunicacaoVisual/InstalacaoComprovanteController + ComprovanteInstalacao",
@@ -10267,7 +10267,7 @@
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "component:ComunicacaoVisual/InstalacaoCampoController",
+      "to": "component:ComunicacaoVisual/InstalacaoCampoController + ProtocoloInstalacao",
       "type": "hasComponent",
       "source": "contains"
     },
