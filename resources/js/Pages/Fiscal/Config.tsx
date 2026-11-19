@@ -30,8 +30,8 @@ export interface SerieFiscal {
   serie: string;
   proximo: number;
   filial: string;
-  ativo: boolean;
-  obs?: string | null;
+  /** Notas já emitidas nesta série (inclui excluídas). */
+  emitidas: number;
 }
 
 interface Certificado {
@@ -97,8 +97,8 @@ interface ConfigProps {
   certificado: Certificado | null;
   config: Config | null;
   painel: Painel;
-  // Onda 2 I — séries fiscais (modelo 55 NF-e + 65 NFC-e)
-  seriesMock?: SerieFiscal[];
+  // Séries fiscais reais (modelo 55 NF-e + 65 NFC-e) — ConfigController::seriesFiscais.
+  series?: SerieFiscal[];
   /** Card "Envio de documentos" — leitura real das flags de deploy (ver ConfigController). */
   envioDocumentos?: EnvioDocumentos;
   /**
@@ -174,7 +174,7 @@ function formatCnpj(raw: string | null): string {
 }
 
 export default function Config({
-  activeTab, certificado, config, painel, seriesMock = [], envioDocumentos, podeTrocarAmbiente = false,
+  activeTab, certificado, config, painel, series = [], envioDocumentos, podeTrocarAmbiente = false,
   contador = null, nfse = null,
 }: ConfigProps) {
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
@@ -452,7 +452,7 @@ export default function Config({
               // As CHAVES não mudam — `?tab=cert|series|ambiente|sped` são URL pública com
               // whitelist no ConfigController, e renomeá-las quebraria link salvo.
               { key: 'cert',     label: 'Certificado e regime',    href: '/fiscal/config?tab=cert',     icon: 'shield' },
-              { key: 'series',   label: 'Séries',                  href: '/fiscal/config?tab=series',   icon: 'file-text', badge: seriesMock.filter((s) => s.ativo).length || undefined },
+              { key: 'series',   label: 'Séries',                  href: '/fiscal/config?tab=series',   icon: 'file-text', badge: series.length || undefined },
               { key: 'ambiente', label: 'Ambiente e certificado',  href: '/fiscal/config?tab=ambiente', icon: 'settings' },
               { key: 'sped',     label: 'SPED',                    href: '/fiscal/config?tab=sped',     icon: 'archive' },
             ]}
@@ -1081,21 +1081,17 @@ export default function Config({
         )}
 
         {tab === 'series' && (
-          seriesMock.length === 0 ? (
+          series.length === 0 ? (
             <div className="fx-empty">
               <FileText size={20} />
-              <b>Nenhuma série fiscal cadastrada</b>
-              <small>Séries NFe (modelo 55) e NFCe (modelo 65) são configuradas em NfeBrasil/business.numero_serie_nfe.</small>
-              <Button asChild variant="cowork-ghost" className="mt-3">
-                <a href="/nfe-brasil/configuracao/series">Configurar em NfeBrasil</a>
-              </Button>
+              <b>Nenhuma série fiscal</b>
+              <small>A série padrão vem do cadastro da empresa; cada local que emite como estabelecimento próprio tem a sua.</small>
             </div>
           ) : (
             <section className="fx-cert-card">
               <h3>Séries fiscais</h3>
               <p className="lead">
-                Numeração ativa por modelo + filial. Read-only no Fiscal Cockpit —
-                edição em <a href="/nfe-brasil/configuracao/series" className="fx-link">NfeBrasil/Series</a>.
+                As séries que o emissor usa e o próximo número que ele vai dar em cada uma.
               </p>
               <div className="fx-table" style={{ marginTop: 12 }}>
                 <table>
@@ -1104,23 +1100,18 @@ export default function Config({
                       <th style={{ width: 140 }}>Modelo</th>
                       <th style={{ width: 100 }}>Série</th>
                       <th style={{ width: 130, textAlign: 'right' }}>Próximo nº</th>
-                      <th>Filial</th>
-                      <th style={{ width: 140 }}>Estado</th>
+                      <th style={{ width: 130, textAlign: 'right' }}>Emitidas</th>
+                      <th>Onde</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {seriesMock.map((s, i) => (
-                      <tr key={`${s.modelo}-${s.serie}-${i}`}>
+                    {series.map((s) => (
+                      <tr key={`${s.modelo}-${s.serie}`}>
                         <td><b>{s.modelo}</b> <small className="fx-mut">({s.modelo === 65 ? 'NFC-e' : 'NF-e'})</small></td>
                         <td className="fx-mono">série {s.serie}</td>
                         <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{s.proximo.toLocaleString('pt-BR')}</td>
+                        <td className="fx-mono" style={{ textAlign: 'right' }}>{s.emitidas.toLocaleString('pt-BR')}</td>
                         <td><small>{s.filial}</small></td>
-                        <td>
-                          <span className={`fx-sefaz ${s.ativo ? 'ok' : 'warn'}`}>
-                            <span className="lbl">{s.ativo ? 'ativa' : 'inativa'}</span>
-                          </span>
-                          {s.obs && <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginTop: 3 }}>{s.obs}</small>}
-                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -32,6 +32,9 @@ Contrato comportamental: [`Instalacao.casos.md`](Instalacao.casos.md).
 
 ## Fora desta versão
 
-Ainda não estão na tela (não assuma que estão): o protocolo em PDF e o envio ao cliente. Os itens de EPI,
+Concluída, a tela oferece "Baixar protocolo (PDF)" (`GET /comunicacao-visual/instalacoes/{id}/protocolo`,
+`ProtocoloInstalacao`, UC-CVCEL-07..10).
+
+Ainda não está na tela (não assuma que está): o envio do protocolo ao cliente. Os itens de EPI,
 nível e vedação do protótipo não têm onde ser gravados.
 A regra do que pode ser enviado mora no backend (`ComprovanteInstalacao`); a tela só mostra a recusa.
