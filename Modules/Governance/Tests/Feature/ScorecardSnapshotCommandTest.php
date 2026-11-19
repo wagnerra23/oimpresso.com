@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -13,21 +13,16 @@ use Illuminate\Support\Facades\Schema;
  * @see Modules/Governance/Database/Migrations/2026_05_17_000001_create_mcp_scorecard_runs_table.php
  */
 
-uses(RefreshDatabase::class);
-
-beforeEach(function () {
-    // era-sqlite: cria schema manual (sqlite-friendly). No MySQL persistente do nightly
-    // isso corrompe os testes irmãos (lever do floor SDD). Cobertura real é na lane
-    // sqlite (per-PR); pula no MySQL.
-    if (config('database.default') !== 'sqlite') {
-        $this->markTestSkipped('era-sqlite: corruptor de schema compartilhado no MySQL — sqlite-only no burn-down do floor SDD.');
-    }
-});
+// Sem `Tests\TestCase` o app nem subia (Config usado como array, medido no run
+// 44512663595). E RefreshDatabase num MySQL persistente rodaria migrate:fresh e
+// apagaria o seed multi-tenant da lane: a tabela vem do migrate da action, e
+// DatabaseTransactions desfaz o que o teste grava.
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 it('governance:scorecard-snapshot persiste rows em mcp_scorecard_runs', function () {
     expect(Schema::hasTable('mcp_scorecard_runs'))->toBeTrue();
 
-    DB::table('mcp_scorecard_runs')->truncate();
+    DB::table('mcp_scorecard_runs')->delete(); // delete: o outro comando faz commit implícito e fura a transação
 
     $this->artisan('governance:scorecard-snapshot')
         ->expectsOutputToContain('Snapshot OK')
@@ -45,7 +40,7 @@ it('governance:scorecard-snapshot persiste rows em mcp_scorecard_runs', function
 });
 
 it('governance:scorecard-snapshot --bucket=vertical_client_facing filtra módulos por bucket', function () {
-    DB::table('mcp_scorecard_runs')->truncate();
+    DB::table('mcp_scorecard_runs')->delete(); // delete: o outro comando faz commit implícito e fura a transação
 
     $this->artisan('governance:scorecard-snapshot --bucket=vertical_client_facing')
         ->expectsOutputToContain('Snapshot OK')
@@ -75,7 +70,7 @@ it('governance:scorecard-snapshot --detail mostra log linha-por-módulo', functi
 });
 
 it('governance:scorecard-snapshot detecta drift >=5pts vs ontem', function () {
-    DB::table('mcp_scorecard_runs')->truncate();
+    DB::table('mcp_scorecard_runs')->delete(); // delete: o outro comando faz commit implícito e fura a transação
 
     // Insere snapshot "de ontem" com score baixo pra Governance
     DB::table('mcp_scorecard_runs')->insert([

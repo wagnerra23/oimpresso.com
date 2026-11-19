@@ -1,0 +1,5 @@
+# Quarentena da lane governance-pest.yml (Governance · MySQL).
+# 1 path por linha + motivo inline (`path  # motivo`). Quarentena NÃO é deleção:
+# o teste fica no repo, sai do run-set com o motivo à vista, e o test-lane-coverage o
+# conta como quarentena (não como órfão). Path que não existe mais vira erro na lane.
+# Encolher esta lista é o movimento desejado — cada saída vem com o conserto.
