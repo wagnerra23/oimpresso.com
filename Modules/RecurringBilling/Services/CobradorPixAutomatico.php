@@ -137,6 +137,7 @@ class CobradorPixAutomatico
                 ->where('status', 'erro')
                 ->first(['id']);
             if ($comErro !== null) {
+                // SUPERADMIN: idem, renomeia só a linha deste business_id.
                 Cobranca::withoutGlobalScopes()->where('business_id', $businessId)->whereKey($comErro->id)
                     ->update(['idempotency_key' => "{$chave}#erro{$comErro->id}"]);
             }
