@@ -12,6 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import OfficeimpressoSubNav from '../_shared/OfficeimpressoSubNav';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -51,6 +52,7 @@ function ClientesIndex({ is_demo, credencial, permissions, clientes }: Props) {
               <Button size="sm" onClick={() => setNovo(true)}>Nova credencial</Button>
             </div>
           )} />
+        <OfficeimpressoSubNav active="client" />
       </div>
 
       <div className="flex flex-col gap-4 px-6 pt-4">
