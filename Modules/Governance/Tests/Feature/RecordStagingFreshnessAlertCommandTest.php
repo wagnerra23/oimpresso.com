@@ -37,8 +37,8 @@ it('verdict stale → persiste alerta high em mcp_alertas_eventos', function () 
         ->and($row->severidade)->toBe('high')
         ->and($row->status)->toBe('aberto')
         ->and($row->business_id)->toBeNull()          // repo-wide (ADR 0093 §Exceção)
-        ->and($meta['verdict'])->toBe('stale:4d')
-        ->and($meta['age_days'])->toBe(4);
+        ->and($meta['evidence']['verdict'])->toBe('stale:4d')
+        ->and($meta['evidence']['age_days'])->toBe(4);
 });
 
 it('verdict fresco → NO-OP (não cria alerta)', function () {

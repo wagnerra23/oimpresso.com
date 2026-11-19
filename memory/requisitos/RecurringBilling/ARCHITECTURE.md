@@ -4,6 +4,18 @@ id: requisitos-recurring-billing-architecture
 
 # Arquitetura — RecurringBilling
 
+> ⚠️ **Este documento é o DESENHO de 2026-04-24, não a arquitetura construída (nota de 2026-11-19).** As seções 1 a 9 descrevem 6 sub-módulos event-driven ([ARQ-0001](adr/arq/0001-6-modulos-event-driven.md)) que não foram construídos nessa forma; ficam como registro da intenção. Antes de usar qualquer tabela, evento ou fluxo daqui, confira o mapa abaixo, medido em `origin/main` `bedeeb0096`.
+>
+> | Seção | Desenho | Construído | Como conferir |
+> |---|---|---|---|
+> | §4 Modelos e tabelas | `rb_contracts`, `pg_charge_attempts`, `pa_*`, `nfse_*`, `dun_*`, `bol_*` | `rb_plans`, `rb_subscriptions` (não `rb_contracts`), `rb_invoices`, `rb_charge_attempts` (não `pg_charge_attempts`), `rb_boleto_credentials`, `rb_cartoes_salvos`, `rb_subscription_events`, `rb_subscription_favorites`, `rb_subscription_notes` e `pg_webhook_events` (migration do RB). Não há `pa_*`, `nfse_*`, `dun_*` nem `bol_*` | `grep -hoE "Schema::create\('[a-z_]+'" Modules/RecurringBilling/Database/Migrations/*.php` |
+> | §4.3 Pix Automático | tabelas `pa_authorizations` etc. | mandato em `rb_subscriptions.metadata.pix_automatico`; driver `BcbPixDriver` no `Modules/PaymentGateway`; comando `rb:cobrar-pix-automatico` (06:00); listener `AtualizarMandatoDaAssinatura`. Atrás da flag `RB_COBRAR_PIX_AUTOMATICO` | `Modules/RecurringBilling/Config/config.php` |
+> | §5.2/§5.3 Eventos | `InvoiceGenerated`, `RecurringInvoicePaid`, `CampaignStarted` etc. | O RB publica só `AssinaturaAtualizada` e `InvoicePaid`. Consome do PaymentGateway: `CobrancaPaga` (US-RB-057 e US-RB-011, flags `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` e `RB_SALVAR_CARTAO`) e `RecorrenciaPixAtualizada` | `ls Modules/RecurringBilling/Events` · `RecurringBillingServiceProvider` |
+> | §5.5 Financeiro | `InvoiceGenerated` → `fin_titulos`; `InvoicePaid` → `fin_titulo_baixas` | **Não existe.** A fatura paga grava `account_transactions` legado nos jobs `ProcessAsaasWebhookJob` e `ProcessInterWebhookJob`. Se haverá ponte: **pendente de decisão do Wagner** (b2) | `git grep -n "rb_invoices" -- Modules/Financeiro` → 0 linhas fora de testes |
+> | §2 ARQ-0003 | Pix Automático Jornada 3 (PAYMENTONAPPROVAL) | O código usa Jornada 2 (QR da recorrência via `/locrec`, `MandatoPixAutomatico` + `BcbPixDriver`). A ADR segue `accepted` e nenhuma a supersede. Qual vale: **pendente de decisão do Wagner** (b3) | — |
+> | Drivers (ARQ-0005) | só no RB, sem `Modules/PaymentGateway` | Duas pilhas: `Services/Boleto/Drivers/{Asaas,C6,Inter}Driver.php` + `rb_boleto_credentials` no RB, e os drivers do `Modules/PaymentGateway` + `payment_gateway_credentials`. Qual é a dona: **pendente de decisão do Wagner** (b1) | — |
+> | Dunning, smart retry, portal B2C, proração (§4.5, §6.3, ADR UI-0001, TECH-0003) | descritos | Não existem | — |
+
 ## 1. Objetivo
 
 Plataforma de billing recorrente moderna brasileira, plugada em UltimatePOS, com **6 sub-módulos event-driven**: RecurringBilling (núcleo), PaymentGateway, PixAutomatico, NFSe, Dunning, Boleto.
@@ -237,6 +249,8 @@ Por que? Garante que tudo no oimpresso usa `transactions` como fonte única de v
 
 ### 5.5 Integração com Financeiro
 
+> ⚠️ **Desenho, não construído** (ver o mapa no topo). Nada no `Modules/Financeiro` lê `rb_invoices` e o evento `InvoiceGenerated` não existe.
+
 - `InvoiceGenerated` → cria `fin_titulos` (`origem=recurring`, `origem_id=invoice.id`)
 - `InvoicePaid` → cria `fin_titulo_baixas` retro-vinculado
 - Estrutura única: relatórios Financeiro mostram MRR + outros tipos juntos
@@ -250,6 +264,8 @@ NFSe estende padrões NfeBrasil (cert A1, hooks, etc.) mas é módulo separado:
 ## 6. Fluxos críticos
 
 ### 6.1 Ciclo completo: gerar fatura → cobrar → emitir NFSe
+
+> ⚠️ **Desenho, não construído.** O fluxo real (geração por `rb:generate-invoices` às 03:00, webhook Asaas/Inter, NFe pelo NfeBrasil) está no [SDD](SDD-cobranca-recorrente-v1.0.md).
 
 ```mermaid
 sequenceDiagram
@@ -360,4 +376,4 @@ flowchart TD
 ---
 
 _Última regeneração: manual 2026-04-24_
-_Ver no MemCofre: `/memcofre/modulos/RecurringBilling`_
+_Ver no MemCofre: `/memcofre/modulos/RecurringBilling`_ — rota que não existe mais: o MemCofre (depois SRS) foi aposentado; ver `memory/proibicoes.md` §5 2026-07-29._

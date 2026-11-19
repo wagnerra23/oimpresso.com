@@ -20,7 +20,7 @@ vi.mock('@inertiajs/react', () => ({
   Head: () => null,
   Link: ({ children, ...p }: any) => <a {...p}>{children}</a>,
 }));
-vi.mock('@/Components/shared/PageHeader', () => ({ default: () => null }));
+vi.mock('@/Components/PageHeader', () => ({ PageHeader: () => null }));
 vi.mock('@/Pages/governance/_shared/GovernancaSubNav', () => ({ default: () => null }));
 vi.mock('@/Components/shared/KpiGrid', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/Components/shared/KpiCard', () => ({
@@ -67,6 +67,15 @@ describe('Governance /governance/drift — a tela', () => {
     render(<DriftAlerts {...(SEM_DRIFT as any)} />);
     expect(tomDe('Controllers em drift')).toBe('success');
     expect(tomDe('Módulos com drift')).toBe('success');
+  });
+
+  it('UC-GDRF-13 — KPI "Sem SCOPE.md" fica info com ou sem módulos', () => {
+    render(<DriftAlerts {...(COM_DRIFT as any)} />);
+    expect(tomDe('Sem SCOPE.md')).toBe('info');
+    cleanup();
+
+    render(<DriftAlerts {...(SEM_DRIFT as any)} />);
+    expect(tomDe('Sem SCOPE.md')).toBe('info');
   });
 
   it('UC-GDRF-10 — zero drift mostra "Sem drift"; com drift lista os não declarados e as 3 saídas', () => {

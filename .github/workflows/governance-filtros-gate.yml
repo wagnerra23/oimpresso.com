@@ -35,10 +35,13 @@ on:
       - 'resources/js/Pages/governance/Custos.tsx'
       - 'resources/js/Pages/governance/DriftAlerts.tsx'
       - 'resources/js/Pages/governance/QualidadeIa.tsx'
+      - 'resources/js/Pages/governance/DsRollout.tsx'
+      - 'scripts/ds-ledger.mjs'
       - 'tests/js/governance-filtros.test.tsx'
       - 'tests/js/governance-custos.test.tsx'
       - 'tests/js/governance-drift-alerts.test.tsx'
       - 'tests/js/governance-qualidade-ia.test.tsx'
+      - 'tests/js/governance-ds-rollout.test.tsx'
       - '.github/workflows/governance-filtros-gate.yml'
   push:
     branches: [main]
@@ -49,10 +52,13 @@ on:
       - 'resources/js/Pages/governance/Custos.tsx'
       - 'resources/js/Pages/governance/DriftAlerts.tsx'
       - 'resources/js/Pages/governance/QualidadeIa.tsx'
+      - 'resources/js/Pages/governance/DsRollout.tsx'
+      - 'scripts/ds-ledger.mjs'
       - 'tests/js/governance-filtros.test.tsx'
       - 'tests/js/governance-custos.test.tsx'
       - 'tests/js/governance-drift-alerts.test.tsx'
       - 'tests/js/governance-qualidade-ia.test.tsx'
+      - 'tests/js/governance-ds-rollout.test.tsx'
 
 concurrency:
   group: governance-filtros-gate-${{ github.ref }}

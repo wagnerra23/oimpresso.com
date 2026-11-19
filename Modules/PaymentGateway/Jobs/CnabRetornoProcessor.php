@@ -32,11 +32,13 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  *   3. Itera detalhes (->processar()->getDetalhes())
  *   4. Pra cada detalhe:
  *      - Match Cobranca via nossoNumero + business_id (Tier 0)
- *      - Idempotência: skip se Cobranca.paga_em já setado
+ *      - Idempotência: skip se a Cobranca já está paga (status ou paga_em),
+ *        conferido de novo com lock na transação
  *      - OCORRENCIA_LIQUIDADA → dispatch CobrancaPaga
  *      - OCORRENCIA_BAIXADA → dispatch CobrancaCancelada (baixa sem pagamento)
  *      - Vencimento ultrapassado em registradas → dispatch CobrancaVencida
- *      - ENTRADA/ALTERACAO/OUTROS → atualiza status sem evento
+ *      - ENTRADA → volta para 'emitida', exceto cobrança já paga
+ *      - ALTERACAO/OUTROS → sem mudança
  *   5. Atualiza CnabRetornoUpload com qtd_* + erros_json + processado_em
  *   6. Grava 1 GatewayWebhookEvent com source='cnab_retorno_upload' (audit)
  *   7. OTel span paymentgateway.cnab.retorno.processed
@@ -231,6 +233,13 @@ class CnabRetornoProcessor implements ShouldQueue
                 break;
 
             case DetalheContract::OCORRENCIA_ENTRADA:
+                // Auditoria PG 2.2: o arquivo pode trazer a ENTRADA depois da
+                // liquidação (retorno reprocessado, ou arquivos fora de ordem).
+                // Cobrança paga não volta para 'emitida' nem vira "vencida".
+                if ($this->jaPaga($cobranca)) {
+                    $contadores['ignorada']++;
+                    break;
+                }
                 $cobranca->update(['status' => 'emitida']);
                 $contadores['registrada']++;
                 $this->maybeDispatchVencida($cobranca, $contadores);
@@ -247,14 +256,20 @@ class CnabRetornoProcessor implements ShouldQueue
     }
 
     /**
-     * Idempotência: se paga_em já setado, skip dispatch (rerun seguro).
+     * Idempotência (auditoria PG 2.2): a cobrança é relida com lockForUpdate
+     * dentro da transação e só é marcada se ainda não estiver paga (status
+     * 'paga' OU paga_em preenchido). Assim um reprocessamento do arquivo, ou
+     * webhook/polling chegando junto, não marca de novo nem redispara.
+     *
+     * CobrancaPaga sai DEPOIS do commit: o evento só existe para uma cobrança
+     * cuja marcação já está gravada.
      */
     private function aplicarLiquidacao(
         Cobranca $cobranca,
         DetalheContract $detalhe,
         PaymentGatewayCredential $cred,
     ): void {
-        if ($cobranca->paga_em !== null) {
+        if ($this->jaPaga($cobranca)) {
             return;
         }
 
@@ -271,26 +286,50 @@ class CnabRetornoProcessor implements ShouldQueue
             $pagaEm = new \DateTimeImmutable();
         }
 
-        DB::transaction(function () use ($cobranca, $valorCentavos, $pagaEm) {
-            $cobranca->update([
+        $marcada = DB::transaction(function () use ($cobranca, $cred, $valorCentavos, $pagaEm): ?Cobranca {
+            // SUPERADMIN: job worker sem session(); relê a cobrança travada filtrando pelo business_id da credencial do arquivo.
+            $travada = Cobranca::query()
+                ->withoutGlobalScopes()
+                ->where('business_id', $cred->business_id)
+                ->whereKey($cobranca->getKey())
+                ->lockForUpdate()
+                ->first();
+
+            if ($travada === null || $this->jaPaga($travada)) {
+                return null;
+            }
+
+            $travada->update([
                 'status'              => 'paga',
                 'paga_em'             => $pagaEm,
                 'valor_pago_centavos' => $valorCentavos,
                 'forma_pagamento'     => 'boleto',
             ]);
+
+            return $travada;
         });
 
+        if ($marcada === null) {
+            return;
+        }
+
         CobrancaPaga::dispatch(
-            (int) $cobranca->id,
-            (int) $cobranca->business_id,
+            (int) $marcada->id,
+            (int) $marcada->business_id,
             $valorCentavos,
             $pagaEm,
             'boleto',
             new \DateTimeImmutable(),
-            $cobranca->payer_cpf_cnpj,
-            $cobranca->origem_type,
-            $cobranca->origem_id !== null ? (int) $cobranca->origem_id : null,
+            $marcada->payer_cpf_cnpj,
+            $marcada->origem_type,
+            $marcada->origem_id !== null ? (int) $marcada->origem_id : null,
         );
+    }
+
+    private function jaPaga(Cobranca $cobranca): bool
+    {
+        return $cobranca->getAttribute('status') === 'paga'
+            || $cobranca->getAttribute('paga_em') !== null;
     }
 
     private function aplicarBaixaSemPagamento(Cobranca $cobranca, PaymentGatewayCredential $cred): void

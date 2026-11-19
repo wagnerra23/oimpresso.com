@@ -1,6 +1,7 @@
-// governance-telas.jsx — vistas de auditoria, drift de escopo e notas dos módulos do Governança.
-// Espelha AuditController (mcp_audit_log, teto de 200, 4 filtros), DriftAlertsController (scan de
-// SCOPE.md × filesystem) e ModuleGradeController (rubrica module-grade-v3, ADR 0155), lidos no main.
+// governance-telas.jsx — vistas de auditoria e drift de escopo do Governança.
+// Espelha AuditController (mcp_audit_log, teto de 200, 4 filtros) e DriftAlertsController (scan de
+// SCOPE.md × filesystem), lidos no main. A vista "Notas dos módulos" saiu (G-NOTAS, [W] 2026-09-24;
+// rubrica aposentada pela ADR 0399) e o código dela também.
 // Carrega junto de governance-page.jsx. Expõe window.GovernanceTelas.
 (() => {
 const { useState, useMemo, useEffect } = React;
@@ -39,8 +40,15 @@ const PERIODOS_AUD = [{ id: "1h", l: "1 h", horas: 1 }, { id: "24h", l: "24 h", 
 const TETO = 200;
 const AGORA = new Date(2026, 7, 23, 19, 0, 0);
 
-function AuditoriaView() {
+function AuditoriaView({ cenario }) {
   const A = ADS();
+  // R10: sem mcp_audit_log a vista não quebra nem mostra zero — diz o motivo (contrato: tabela-ausente).
+  if (cenario === "fonte") return (
+    <div className="gov-pad" data-contract="auditoria-tabela" data-estado="tabela-ausente">
+      <A.Vazio variant="offline" title="mcp_audit_log não existe nesta base"
+        description="Sem a tabela não há o que listar: filtros e indicadores ficam fora até a migração rodar. A vista não quebra e não mostra zero — zero diria que nada aconteceu." />
+    </div>
+  );
   const { RES_LABEL, ENDPOINTS, ATORES, auditoria } = D();
   const todos = useMemo(() => auditoria(), [auditoria]);
   const [periodo, setPeriodo] = useState("24h");
@@ -152,9 +160,14 @@ function AuditoriaView() {
 
 // ───────────────────────── Drift de escopo ─────────────────────────
 
-function DriftView() {
+function DriftView({ cenario }) {
   const A = ADS();
-  const { DRIFT, SEM_SCOPE, MODULOS_TOTAL, YAML_ILEGIVEL } = D();
+  const d = D();
+  const vazio = cenario === "vazio";
+  const DRIFT = vazio ? [] : d.DRIFT;
+  const SEM_SCOPE = vazio ? [] : d.SEM_SCOPE;
+  const YAML_ILEGIVEL = vazio ? [] : d.YAML_ILEGIVEL;
+  const { MODULOS_TOTAL } = d;
   const [pronto, setPronto] = useState(false);
   useEffect(() => { const t = setTimeout(() => setPronto(true), 800); return () => clearTimeout(t); }, []);
   const totalDrift = DRIFT.reduce((s, d) => s + d.undeclared.length, 0);
@@ -162,6 +175,10 @@ function DriftView() {
 
   return (
     <>
+      {/* O scan é síncrono e caro (A6): a região viva sempre presente anuncia o início e o fim da carga. */}
+      <p className="gov-sr" role="status" aria-live="polite">
+        {pronto ? `Drift carregado: ${totalDrift} controllers fora do escopo declarado.` : "Carregando o drift de escopo…"}
+      </p>
       <div className="gov-kpis gov-kpis-pad" data-contract="drift-kpis">
         <A.Kpi l="Controllers em drift" v={pronto ? totalDrift : "—"} tone={zero ? "success" : "warning"} sub="fora do contains[] declarado" />
         <A.Kpi l="Módulos com drift" v={pronto ? DRIFT.length : "—"} tone={zero ? "success" : "warning"} sub="entre os que têm escopo" />
@@ -202,9 +219,14 @@ function DriftView() {
 
       <Secao titulo="Módulos sem SCOPE.md" contrato="drift-sem-scope"
         sub="Sem arquivo de escopo não há o que comparar. É achado próprio, e não drift zero — confundir os dois faz o painel parecer mais saudável do que é.">
-        <div className="gov-chips">
-          {SEM_SCOPE.map((m) => <span key={m} className="gov-chip">{m}</span>)}
-        </div>
+        {SEM_SCOPE.length === 0 ? (
+          <A.Vazio variant="done" title="Todos os módulos têm SCOPE.md"
+            description="Nenhum módulo fica fora da comparação." />
+        ) : (
+          <div className="gov-chips">
+            {SEM_SCOPE.map((m) => <span key={m} className="gov-chip">{m}</span>)}
+          </div>
+        )}
       </Secao>
 
       <Secao titulo="Histórico (últimos 30 dias)" contrato="drift-historico">
@@ -215,103 +237,5 @@ function DriftView() {
   );
 }
 
-// ───────────────────────── Notas dos módulos ─────────────────────────
-
-function NotasView() {
-  const A = ADS();
-  const { NOTAS, DIMS, DIM_NOME, FAIXAS, faixaDe } = D();
-  const [faixa, setFaixa] = useState("");
-  const [busca, setBusca] = useState("");
-  const [pronto, setPronto] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setPronto(true), 950); return () => clearTimeout(t); }, []);
-
-  const contagem = useMemo(() => {
-    const c = {};
-    FAIXAS.forEach((f) => { c[f.id] = 0; });
-    NOTAS.forEach((n) => { c[faixaDe(n.nota).id]++; });
-    return c;
-  }, [NOTAS, FAIXAS, faixaDe]);
-
-  const linhas = useMemo(() => {
-    const q = busca.trim().toLowerCase();
-    return NOTAS
-      .filter((n) => (!faixa || faixaDe(n.nota).id === faixa) && (!q || n.m.toLowerCase().includes(q)))
-      .sort((a, b) => b.nota - a.nota);
-  }, [NOTAS, faixa, busca, faixaDe]);
-
-  const media = Math.round(NOTAS.reduce((s, n) => s + n.nota, 0) / NOTAS.length);
-  const v3 = NOTAS.filter((n) => n.d[5] !== null).length;
-  const abaixo = NOTAS.filter((n) => n.nota < 50).length;
-
-  return (
-    <>
-      <div className="gov-kpis gov-kpis-pad" data-contract="notas-kpis">
-        <A.Kpi l="Média do projeto" v={pronto ? media : "—"} unit="/100" tone="info" sub={`${NOTAS.length} módulos na rubrica`} />
-        <A.Kpi l="Módulos avaliados" v={pronto ? `${v3}` : "—"} sub={`na rubrica v3 — ${NOTAS.length - v3} ainda sem D6 a D9`} />
-        <A.Kpi l="Abaixo da linha de base" v={pronto ? abaixo : "—"} tone={abaixo ? "warning" : "success"} sub="nota menor que 50" />
-      </div>
-
-      <div className="gov-pad gov-toolbar" data-contract="notas-faixas">
-        <div className="gov-chips-f" role="group" aria-label="Faixa">
-          {FAIXAS.map((f) => (
-            <button key={f.id} className={`gov-chip-f ${f.tone} ${faixa === f.id ? "on" : ""}`} aria-pressed={faixa === f.id}
-              onClick={() => setFaixa(faixa === f.id ? "" : f.id)}>
-              {f.l}<span className="mono">{contagem[f.id]}</span>
-            </button>
-          ))}
-        </div>
-        <label className="gov-busca">
-          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar módulo…" aria-label="Buscar módulo" />
-        </label>
-        <span className="gov-hint">A faixa filtra; dimensão não — o detalhe por dimensão é no módulo. O filtro não sobrevive ao recarregar.</span>
-      </div>
-
-      <div className="gov-pad" data-contract="notas-tabela">
-        {!pronto ? <Esqueleto variant="row" count={8} /> : linhas.length === 0 ? (
-          <A.Vazio variant="no-results" title="Nenhum módulo nessa faixa"
-            description="Solte a faixa ou limpe a busca para ver a lista inteira, ordenada da maior nota para a menor."
-            action={<button className="os-btn" onClick={() => { setFaixa(""); setBusca(""); }}>Limpar</button>} />
-        ) : (
-          <table className="gov-table gov-table-notas">
-            <thead>
-              <tr>
-                <th>Módulo</th>
-                <th className="gov-th-n">Nota</th>
-                <th className="gov-th-f">Faixa</th>
-                {DIMS.map((d) => <th key={d} className="gov-th-d" title={DIM_NOME[d]}>{d}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {linhas.map((n) => {
-                const f = faixaDe(n.nota);
-                return (
-                  <tr key={n.m}>
-                    <td><b>{n.m}</b></td>
-                    <td className="mono tabular gov-right gov-nota">{n.nota}</td>
-                    <td><Selo tone={f.tone}>{f.l}</Selo></td>
-                    {n.d.map((v, i) => (
-                      <td key={i} className="mono tabular gov-right gov-dimv">
-                        {v === null ? <span className="gov-na" title="não avaliado na v3">—</span> : v}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-        <p className="gov-teto">Travessão em D6 a D9 quer dizer <b>não avaliado na v3</b> — não é nota zero, e não entra na média daquela dimensão. Confundir os dois faria a média mentir para baixo.</p>
-      </div>
-
-      <div className="gov-pad" data-contract="notas-gate-ci">
-        <div className="gov-gate">
-          <b>Gate de CI</b>
-          <p>Nota que cai reprova o merge. A exceção existe e é explícita: a etiqueta <span className="mono">module-grades-allowed-regression</span> no pull request libera a queda, e fica registrada nele. Nada aqui é botão — a régua vive no fluxo de CI, esta é a nota de rodapé que avisa que ela existe.</p>
-        </div>
-      </div>
-    </>
-  );
-}
-
-window.GovernanceTelas = { AuditoriaView, DriftView, NotasView };
+window.GovernanceTelas = { AuditoriaView, DriftView };
 })();
