@@ -252,3 +252,55 @@ it('UC-FCKP-10 · cert válido por 90d não polui a fila', function () {
     expect(fckpAlertasComCert(now()->addDays(90)))->toBeEmpty();
     expect(fckpAlertasComCert(null))->toBeEmpty();
 });
+
+/** As séries de 14 dias do Painel, para a empresa da sessão. */
+function cockpitSparklines(int $bizId): array
+{
+    session(['business.id' => $bizId, 'user.business_id' => $bizId]);
+    $controller = app(\Modules\Fiscal\Http\Controllers\CockpitController::class);
+
+    return (fn () => $this->computeSparklines())->call($controller);
+}
+
+it('UC-FCKP-21 · a série de 14 dias sai de uma consulta agrupada, com um ponto por dia e só da empresa', function () {
+    $this->actingAs(\App\User::factory()->create(['business_id' => 98]));
+
+    // Medido pela DIFERENÇA: outros testes da lane podem deixar notas no banco.
+    $antes = cockpitSparklines(98);
+
+    $ids = [];
+    $nota = function (int $biz, string $status, $quando) use (&$ids) {
+        $ids[] = DB::table('nfe_emissoes')->insertGetId([
+            'business_id' => $biz, 'modelo' => '55', 'serie' => '988',
+            'numero' => random_int(100000, 999999), 'status' => $status,
+            'valor_total' => 10, 'emitido_em' => $quando,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    };
+    $nota(98, 'autorizada', now());
+    $nota(98, 'autorizada', now());
+    $nota(98, 'rejeitada', now());
+    $nota(98, 'autorizada', now()->subDays(3));
+    $nota(98, 'autorizada', now()->subDays(20)); // fora da janela
+    $nota(99, 'autorizada', now());              // outra empresa
+
+    try {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $depois = cockpitSparklines(98);
+        $consultas = collect(DB::getQueryLog())->pluck('query')->filter(fn ($q) => str_contains($q, 'nfe_emissoes'));
+        DB::disableQueryLog();
+
+        $delta = fn (string $serie, int $i) => $depois[$serie][$i] - $antes[$serie][$i];
+
+        expect($depois['emitidas'])->toHaveCount(14)
+            ->and($delta('emitidas', 13))->toBe(3)      // hoje: 2 autorizadas + 1 rejeitada
+            ->and($delta('autorizadas', 13))->toBe(2)
+            ->and($delta('rejeitadas', 13))->toBe(1)
+            ->and($delta('autorizadas', 10))->toBe(1)   // 3 dias atrás
+            ->and(array_sum($depois['emitidas']) - array_sum($antes['emitidas']))->toBe(4) // 20 dias e a outra empresa fora
+            ->and($consultas)->toHaveCount(1);
+    } finally {
+        DB::table('nfe_emissoes')->whereIn('id', $ids)->delete();
+    }
+});
