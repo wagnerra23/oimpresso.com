@@ -1,7 +1,31 @@
 # CHANGELOG — Modules/Governance
 
 Convenção: [Keep a Changelog](https://keepachangelog.com/) — datas BRT.
-Versionamento atrelado a Waves do projeto (ver `memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md` rubrica oficial).
+Versionamento atrelado a Waves do projeto até 2026-05; depois, por data. A rubrica module-grade citada nas Waves abaixo (ADR 0155) foi aposentada em 2026-09-15 pela [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md); as entradas antigas ficam como estão.
+
+## [2026-05-18 → 2026-11-19] — de módulo MVP a dono de 7 telas
+
+Retrato montado em 2026-11-19 a partir de `git log origin/main -- Modules/Governance resources/js/Pages/governance`; cada item cita o PR.
+
+### Added
+- Política do ADS extinto: `PolicyEngine`, `PolicyResult`, `GovernanceRulesService` e a tabela `mcp_governance_rules` (ADR 0363, #5128, 2026-07-31).
+- Telas Custos de IA e Qualidade IA, vindas do Modules/Jana (ADR 0366, #5309), e a seção MCP fundida no Painel (#5312), em 2026-08-05.
+- Sentinela da migração Blade→React no brief e no cron semanal (#5425, #5450, #6960).
+- `casos.md` e testes de contrato das telas (#7255, #9273, #9368).
+- Esqueleto de isolamento por empresa do módulo (#10940, 2026-11-16).
+
+### Changed
+- `can:` por rota em Policies, Audit, Drift e DS Rollout (ADR 0392 passo 2, #7021, 2026-09-08); charter do Audit deixa de prometer escopo por tenant (#7025).
+- Textos do Painel e abas em PT-BR, com os rótulos do protótipo (#8203, #8233, #8236, #8250).
+- Install/uninstall/update fora de GET (#8413, 2026-10-01).
+- Migrations do módulo passam a entrar no `migrate` do deploy (#5443).
+
+### Removed
+- Rubrica module-grade inteira: gate, baseline, telas `/governance/module-grades`, CLI `module:grade`, motor e a tabela `mcp_module_grades_history` (ADR 0399, ondas #7282, #7283, #7288, #7298, #7304, 2026-09-15).
+- Os 4 scorecards de módulo parados (#7939).
+
+### Aberto em 2026-11-19
+Decisões [W]: passo 1 da ADR 0392 (concessão do Admin), `ActionGate` ligar ou aposentar (ADR 0086), US-GOV-012 e a regeneração de `memory/modulos/Governance.md`. Detalhe no [BRIEFING](BRIEFING.md).
 
 ## [Wave 27] — 2026-05-17 — Auto-saturate ≥95 + mecanismos canon finais
 

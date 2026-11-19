@@ -97,14 +97,21 @@ it('cenario 7: ActionGate middleware importa PiiRedactor (D7 LGPD)', function ()
 });
 
 it('cenario 8: routes Governance aplicam throttle middleware', function () {
-    $routesSource = file_get_contents(base_path('Modules/Governance/Http/routes.php'));
+    // Lê o REGISTRY de rotas, não o texto do routes.php: a contagem antiga casava só
+    // `->middleware('throttle:` e caiu para 3 quando as rotas passaram a declarar o
+    // middleware em array (`['throttle:60,1', 'can:...']`), com o throttle ainda lá.
+    $comThrottle = collect(\Route::getRoutes()->getRoutes())
+        ->filter(fn ($r) => str_starts_with((string) $r->getName(), 'governance.'))
+        ->filter(fn ($r) => collect($r->gatherMiddleware())
+            ->contains(fn ($m) => is_string($m) && str_starts_with($m, 'throttle:')));
 
-    // Pelo menos 5 throttles distribuidos (Dashboard/Policies/Audit/Drift/ModuleGrades).
-    $throttleCount = substr_count($routesSource, "->middleware('throttle:");
-    expect($throttleCount)->toBeGreaterThanOrEqual(5);
+    // Pelo menos 5 rotas com throttle (Policies/Toggle/Audit/Drift/DsRollout/Custos/QualidadeIa).
+    expect($comThrottle->count())->toBeGreaterThanOrEqual(5);
 
     // Toggle policies tem throttle mais restritivo (10/min, operacao sensivel).
-    expect($routesSource)->toContain("throttle:10,1");
+    $toggle = \Route::getRoutes()->getByName('governance.policies.toggle');
+    expect($toggle)->not->toBeNull();
+    expect($toggle->gatherMiddleware())->toContain('throttle:10,1');
 });
 
 it('cenario 9: module.json marca fsm_n_a com reason justificada', function () {
