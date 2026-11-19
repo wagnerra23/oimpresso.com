@@ -33,6 +33,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon|null $contingencia_ativada_em
  * @property string|null $contingencia_motivo
  * @property string|null $contingencia_modo  US-NFE-071: epec | svc-an | svc-rs (nulo = epec)
+ * @property bool|null $email_danfe_nfe   envio do DANFE da NF-e por empresa (nulo = segue o servidor)
+ * @property bool|null $email_danfe_nfce  envio do DANFE da NFC-e por empresa (nulo = segue o servidor)
  */
 class NfeBusinessConfig extends Model
 {
