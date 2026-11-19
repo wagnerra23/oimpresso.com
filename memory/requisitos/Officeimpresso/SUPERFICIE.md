@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 134 arquivos em 19 papéis.
+**Total mapeado:** 125 arquivos em 19 papéis.
 
 ## Controllers — 7
 
@@ -143,7 +143,7 @@ module: Officeimpresso
 - 32 em [Modules/Officeimpresso/Tests/Feature/](../../../Modules/Officeimpresso/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 31
+## Demais arquivos (manifestos, docs, assets e misc) — 22
 
 - [.gitkeep](../../../Modules/Officeimpresso/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Console/.gitkeep)
@@ -164,15 +164,6 @@ module: Officeimpresso
 - [topnav.php](../../../Modules/Officeimpresso/Resources/menus/topnav.php)
 - [.gitkeep](../../../Modules/Officeimpresso/Resources/views/.gitkeep)
 - [.gitkeep](../../../Modules/Officeimpresso/Tests/.gitkeep)
-- [BusinessLocationResource.php](../../../Modules/Officeimpresso/Transformers/BusinessLocationResource.php)
-- [BusinessResource.php](../../../Modules/Officeimpresso/Transformers/BusinessResource.php)
-- [CommonResource.php](../../../Modules/Officeimpresso/Transformers/CommonResource.php)
-- [ExpenseResource.php](../../../Modules/Officeimpresso/Transformers/ExpenseResource.php)
-- [ProductResource.php](../../../Modules/Officeimpresso/Transformers/ProductResource.php)
-- [SellResource.php](../../../Modules/Officeimpresso/Transformers/SellResource.php)
-- [SellTransactionResource.php](../../../Modules/Officeimpresso/Transformers/SellTransactionResource.php)
-- [TypesOfServiceResource.php](../../../Modules/Officeimpresso/Transformers/TypesOfServiceResource.php)
-- [VariationResource.php](../../../Modules/Officeimpresso/Transformers/VariationResource.php)
 - [composer.json](../../../Modules/Officeimpresso/composer.json)
 - [module.json](../../../Modules/Officeimpresso/module.json)
 - [SCOPE.md](../../../memory/requisitos/Officeimpresso/SCOPE.md)
