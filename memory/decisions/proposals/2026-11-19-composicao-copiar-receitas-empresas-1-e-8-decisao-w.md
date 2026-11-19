@@ -50,9 +50,11 @@ O comando rodou em produção em modo de simulação (`manufacturing:receitas-pa
 Nada, por enquanto. Nenhuma tela lê a composição nova ainda: isso é a etapa 3, que tem a sua própria
 prova de antes e depois. A cópia é gravada numa transação só, e rodar de novo não duplica.
 
-## Antes de mergear
+## O insumo repetido na receita 5
 
-A receita 5 da empresa 1 tem o mesmo insumo duas vezes. Isso está no [PR #11262](https://github.com/wagnerra23/oimpresso.com/pull/11262). Se for erro, corrigimos a receita primeiro e só depois gravamos a cópia.
+A receita 5 da empresa 1 tem o mesmo insumo duas vezes ([PR #11262](https://github.com/wagnerra23/oimpresso.com/pull/11262)).
+Resposta recebida em 19/11, por [M]: **é intencional, a receita é de teste.** A cópia leva as duas linhas
+como estão, e o consumo continua igual ao de hoje (2 por unidade). Nada impede o merge deste PR.
 
 ## Para dizer sim ou não
 
