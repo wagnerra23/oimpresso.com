@@ -34,7 +34,7 @@
 - **Hora ativa:** alta — pode fechar tasks complexas em 2-5 dias
 - **Decisão final em:** implementação técnica dentro de ADR já aprovado, code review de Maiara/Luiz
 
-### Luiz [L] — Suporte iniciante + Dev com IA pair
+### Luiz [L] — Suporte + Dev com IA pair · responsável pelo estoque
 - **Responsabilidade primária:** triagem de suporte tier 1 + tasks dev **SIMPLES emparelhado com Claude/IA**
 - **Pode mexer em:** frontend Inertia (Pages novas baseadas em padrão existente), copy/i18n, refactors guiados, blade views legadas, tests Pest simples
 - **NÃO deve fazer (zona vermelha):**
@@ -343,6 +343,22 @@ de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência d
 >
 > **O que este registro NÃO faz, de propósito** (mesmas razões da §3.3.1): não arma o
 > `CODEOWNERS` e não abre linha na §3 — a §3 exigiria definir os 5 níveis, e o [W] decidiu só o [L].
+
+### 3.3.3 O ESTOQUE tem o [L] — confirmado pelo [W] em 2026-11-19
+
+> **[W] 2026-11-19, relatado pela [M]:** *"O Luiz é responsável pelo estoque. Confirmado pelo
+> Wagner."* Registrado aqui pela mesma regra da §3.3.1: a atribuição é ato do [W], registrar é do
+> agente.
+>
+> **Dono do estoque: [L].** Ele escreveu o dossiê da tela Estoque › Movimentação de estoque
+> (aprovado pelo [W]) e decide o que se constrói no estoque.
+>
+> **O que segue valendo:** tudo o que mexe em saldo ou valor passa pela regra mestre de
+> [`memory/proibicoes.md`](memory/proibicoes.md) — prova por dois caminhos e antes → depois
+> aprovado pelo [W] antes de entrar no ar.
+>
+> **Vocabulário:** o [L] é parte do time e divide a conta de trabalho com [M] e [F]. Não se usa
+> "iniciante" para ele em mensagem, documento, PR ou commit ([M] 2026-11-19).
 
 ---
 
