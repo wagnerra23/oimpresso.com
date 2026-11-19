@@ -586,8 +586,9 @@ function orfao98(array $cobrancaAttrs, string $evento): array
         'payload'          => ['evento' => $evento],
         'signature_valid'  => true,
     ]);
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     return [$cobranca, $orphan];
 }
