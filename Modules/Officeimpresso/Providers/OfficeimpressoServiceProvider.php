@@ -38,6 +38,12 @@ class OfficeimpressoServiceProvider extends ServiceProvider
         // Middlewares de log:
         // 'log.desktop' — API moderna /api/officeimpresso/* (flat `hd`)
         // 'log.delphi'  — API legada /connector/api/* (extrai HD de NOME_TABELA=LICENCIAMENTO)
+        //
+        // DEPENDÊNCIA: as rotas do Modules/Connector usam 'log.delphi', e só este provider o
+        // registra. Desligado o Officeimpresso, toda requisicao autenticada em /connector/api/**
+        // quebra com 500 (a sem login segue em 401: o auth:api roda antes). Declarado em
+        // module.json (`provides`), que o nWidart não lê; o contrato é travado por
+        // Tests/Feature/LogDelphiAliasDependenciaTest.php.
         $this->app['router']->aliasMiddleware(
             'log.desktop',
             \Modules\Officeimpresso\Http\Middleware\LogDesktopAccess::class
