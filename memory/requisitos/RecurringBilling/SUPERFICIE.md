@@ -114,7 +114,7 @@ module: RecurringBilling
 - [api.php](../../../Modules/RecurringBilling/Routes/api.php)
 - [web.php](../../../Modules/RecurringBilling/Routes/web.php)
 
-## Migrations (schema) — 12
+## Migrations (schema) — 13
 
 - [2026_05_06_000001_create_rb_boleto_credentials_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000001_create_rb_boleto_credentials_table.php)
 - [2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php)
@@ -126,6 +126,7 @@ module: RecurringBilling
 - [2026_05_16_120000_recurring_v975_schema.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_16_120000_recurring_v975_schema.php)
 - [2026_10_26_130000_make_plan_id_nullable_on_rb_subscriptions.php](../../../Modules/RecurringBilling/Database/Migrations/2026_10_26_130000_make_plan_id_nullable_on_rb_subscriptions.php)
 - [2026_10_27_100000_create_rb_cartoes_salvos_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_10_27_100000_create_rb_cartoes_salvos_table.php)
+- [2026_11_19_100000_cifra_webhook_secret_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_100000_cifra_webhook_secret_rb_boleto_credentials.php)
 - [2026_11_19_110000_add_business_fk_rb_tables.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110000_add_business_fk_rb_tables.php)
 - [2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php)
 
