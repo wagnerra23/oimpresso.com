@@ -343,7 +343,8 @@ function linhaDeSubitem(item: ShellMenuItem): ShellMenuItem[] {
   const temLink = !!item.href && !/^\/?#$/.test(item.href);
   const netos = (item.children ?? []).filter((c) => c.href && !/^\/?#$/.test(c.href));
   if (temLink || netos.length === 0) return [{ ...item, children: undefined }];
-  if (netos.length === 1) return [{ ...item, href: netos[0].href, children: undefined }];
+  const [unico] = netos;
+  if (netos.length === 1 && unico) return [{ ...item, href: unico.href, children: undefined }];
   return netos.map((c) => ({ ...c, label: `${item.label} · ${c.label}`, children: undefined }));
 }
 
