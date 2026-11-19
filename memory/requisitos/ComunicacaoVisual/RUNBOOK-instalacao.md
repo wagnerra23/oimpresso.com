@@ -27,6 +27,10 @@ owner: W
   que já existiam (`InstalacaoComprovanteController`). A tela não reimplementa regra: mostra a recusa 422 da API;
   no sucesso recarrega só `comprovante` (e também `instalacao` ao concluir, porque o estado muda).
 - O quadro de assinatura é `Components/shared/QuadroAssinatura` (só desenha e devolve o PNG).
+- Protocolo: `GET /comunicacao-visual/instalacoes/{id}/protocolo` → `InstalacaoCampoController@protocolo` →
+  `ProtocoloInstalacao` (dompdf, view `comunicacao-visual::pdf.protocolo-instalacao`). Só de instalação concluída
+  (senão 422). Fotos e assinatura vêm do Arquivos por `AnexosDoApp::conteudo` e entram como data URI; foto
+  maior que 1200 px é reduzida; HEIC vira nota no lugar da foto.
 - As três props são eager: é uma instalação só, e no celular a tela inteira precisa estar no primeiro paint.
 - Endereço = o do cliente da OS (`contacts.address_line_1/2`, `city`, `state`), pelo orçamento que virou a OS.
   Sem cliente ou sem endereço, a tela diz que falta.
@@ -40,7 +44,7 @@ owner: W
 | `checklist` | `<Card>` "Comprovante" com foto antes, foto depois e assinatura |
 | `assinatura` | quadro, nome de quem assinou, aceite e "Salvar assinatura" (só enquanto pendente) |
 | `concluir` | botão "Concluir instalação" e o aviso do que falta |
-| `concluida` | alerta "Instalação concluída" |
+| `concluida` | alerta "Instalação concluída" com o link "Baixar protocolo (PDF)" |
 | `erro` | alerta "Não enviado" com a mensagem da API |
 
 ## 3. Âncora de design
@@ -52,7 +56,8 @@ vedação do protótipo não têm onde ser gravados e ficam fora.
 
 ## 4. Verificação
 
-- Pest: `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoTelaContratoTest.php` (tenant 98 × 99, MySQL; no CI e no CT 100).
+- Pest: `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoTelaContratoTest.php` e `InstalacaoProtocoloContratoTest.php`
+  (tenant 98 × 99, MySQL; no CI e no CT 100).
 - Vitest: `tests/js/cv-instalacao.test.tsx` (envio da foto e a recusa visível).
 - Smoke: abrir `/comunicacao-visual/instalacoes/{id}` no celular pela Agenda, tirar as duas fotos, colher a
   assinatura e concluir; o Concluir só libera no fim.
