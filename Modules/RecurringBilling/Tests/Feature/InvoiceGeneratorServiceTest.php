@@ -351,6 +351,12 @@ function faturaJaExistente(int $bizId, int $subId, string $vencimento, float $va
     ]);
 }
 
+/** next_due_date como está gravado (texto do banco, sem o cast `date` do model). */
+function vencimentoGravado(int $subId): string
+{
+    return (string) \Illuminate\Support\Facades\DB::table('rb_subscriptions')->where('id', $subId)->value('next_due_date');
+}
+
 test('UC-RBFAT-08 · d7. Competência já faturada avança o vencimento sem criar fatura', function () {
     $plan = makePlan(98, 100.0, 'monthly');
     $sub  = makeSubscription(98, $plan->id, '2026-07-15');
@@ -361,7 +367,7 @@ test('UC-RBFAT-08 · d7. Competência já faturada avança o vencimento sem cria
 
     expect($stats)->toBe(['generated' => 0, 'skipped' => 1, 'errors' => 0, 'advanced' => 1]);
     expect(Invoice::where('subscription_id', $sub->id)->count())->toBe(1);
-    expect(Subscription::query()->whereKey($sub->id)->value('next_due_date'))->toStartWith('2026-08-15');
+    expect(vencimentoGravado($sub->id))->toStartWith('2026-08-15');
     expect(SubscriptionEvent::where('subscription_id', $sub->id)->where('kind', SubscriptionEvent::KIND_NOTE)->count())->toBe(1);
 
     // Dia seguinte: deixou de ser candidata (antes: "skipped" de novo, todo dia).
@@ -384,7 +390,7 @@ test('UC-RBFAT-10 · d7. dry-run com competência já faturada não move a data'
     $stats = (new InvoiceGeneratorService())->run(98, '2026-07-15', dryRun: true);
 
     expect($stats)->toBe(['generated' => 0, 'skipped' => 1, 'errors' => 0, 'advanced' => 0]);
-    expect(Subscription::query()->whereKey($sub->id)->value('next_due_date'))->toStartWith('2026-07-15');
+    expect(vencimentoGravado($sub->id))->toStartWith('2026-07-15');
     expect(SubscriptionEvent::count())->toBe(0);
 });
 
@@ -399,7 +405,7 @@ test('UC-RBFAT-11 · d7. Avançar a data de 98 não toca a assinatura presa de 9
 
     (new InvoiceGeneratorService())->run(98, '2026-07-15');
 
-    expect(Subscription::query()->whereKey($sub98->id)->value('next_due_date'))->toStartWith('2026-08-15');
-    expect(Subscription::query()->whereKey($sub99->id)->value('next_due_date'))->toStartWith('2026-07-15');
+    expect(vencimentoGravado($sub98->id))->toStartWith('2026-08-15');
+    expect(vencimentoGravado($sub99->id))->toStartWith('2026-07-15');
     expect(SubscriptionEvent::where('business_id', 99)->count())->toBe(0);
 });
