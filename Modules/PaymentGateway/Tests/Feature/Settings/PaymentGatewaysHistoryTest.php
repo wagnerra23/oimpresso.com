@@ -57,7 +57,10 @@ beforeEach(function () {
 
 it('retorna 200 + entries[] no shape esperado pra credencial do biz', function () {
     // Spatie LogsActivity já criou 1 entry no create acima (event=created).
-    // Faz update pra gerar entry adicional com diff.
+    // Faz update pra gerar entry adicional com diff. O history ordena só por
+    // created_at (segundos): sem avançar o relógio, created e updated empatam e a
+    // ordem entre eles fica por conta do banco.
+    $this->travel(2)->seconds();
     $this->credential->update(['nome_display' => 'Asaas Sandbox Editado']);
 
     $response = $this->actingAs($this->user)

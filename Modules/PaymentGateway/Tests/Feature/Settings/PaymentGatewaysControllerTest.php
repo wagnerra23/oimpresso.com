@@ -26,6 +26,17 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  * ADR 0358: sessão no tenant fictício 98, adversário 99. Nunca empresa real (1 ou 4).
  */
 
+/**
+ * Versão Inertia igual à do build (md5 do manifest); com '1' fixo o partial reload
+ * volta 409 assim que existe manifest (a lane cria um stub).
+ */
+function pgctlInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
 beforeEach(function () {
     // Tenant fictício 98 (ADR 0358), semeado pela pest-mysql-setup. Sem ele, skip.
     $this->business = Business::find(98);
@@ -75,7 +86,7 @@ it('expõe 3 KPIs (ativos, total, fail, cobs_hoje) no partial reload', function 
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=kpis', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => pgctlInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'kpis',
         ])
@@ -101,7 +112,7 @@ it('lista gateways do business + warn deprecated PesaPal', function () {
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=gateways', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => pgctlInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'gateways',
         ]);
@@ -145,7 +156,7 @@ it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global sc
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=gateways', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => pgctlInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'gateways',
         ]);
