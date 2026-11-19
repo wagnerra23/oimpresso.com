@@ -48,6 +48,7 @@ last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloc
 >
 > Fix: `actingAs(user biz=1)` no `beforeEach`, padrão vivo do `RefundCobrancaAsaasJobTest`.
 > **Zero mudança em código de produto.** `UC-RBSUB-05` continua fora de propósito (🔴 failing-first).
+> _(Superado em 2026-10-19: [W] escolheu o remédio "a" e o #9606 corrigiu o gerador; o UC-RBSUB-05 está 🧪 — ver o **Desfecho** dele.)_
 >
 > Status segue **🧪** em tudo: quem carimba ✅ é o cron `casos-results-publish` (07:30 BRT), e eu
 > não rodei nada localmente (CT 100, [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
@@ -148,7 +149,7 @@ last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloc
   `resolvePlanIdFromCiclo()` só casa plano por `ciclo` **E** `valor` exatos; sem match, `plan_id` fica
   `null` e o gerador descarta a assinatura com uma linha de log e **zero alarme**
   ([SDD §9.1](../../../../memory/requisitos/RecurringBilling/SDD-cobranca-recorrente-v1.0.md)).
-- **Status: ❌ vermelho esperado** — **predição, não veredito**: eu não rodei (CT 100). O teste nasce
+- **Status em 2026-08 (superado pelo Desfecho abaixo) ❌ vermelho esperado** — **predição, não veredito**: eu não rodei (CT 100). O teste nasce
   failing-first de propósito. **A correção é decisão `[V0]` de [W]** — há ≥2 remédios válidos que se
   anulam (o gerador cair pra `metadata.valor` × o `store()` recusar valor sem plano × criar plano
   implícito), e escolher remédio antes do diagnóstico é o erro catalogado em
