@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Modules\Governance\Services\Concerns\RodaSondaNode;
 use Throwable;
 
 /**
@@ -23,8 +22,8 @@ use Throwable;
  * seção `## FLAGS`.
  *
  * Degrada graciosamente (brief NUNCA quebra por causa dela):
- *  - `node` ausente / script não-deployado / timeout → null (sem linha)
- *  - JSON inválido → null
+ *  - `node` ausente / script não-deployado / timeout / sem JSON → linha "⚪ … não medido
+ *    (motivo)" (RodaSondaNode, 2026-11-19 — antes sumia calada)
  *  - sentinela em no-op (`skipped`: diretório ausente) → null
  *  - 0 cycles registrados → null
  * Kill-switch: `governance.shipped_log_brief_line` false → no-op (default ON).
@@ -35,6 +34,8 @@ use Throwable;
  */
 final class ShippedLogBriefLineService
 {
+    use RodaSondaNode;
+
     /** Teto de tempo do shell-out Node (s) — sentinela é local, sem rede; 20s folga. */
     private const TIMEOUT_SECONDS = 20;
 
@@ -77,7 +78,10 @@ final class ShippedLogBriefLineService
     {
         $data = $this->fetchHealth();
 
-        if ($data === null || ($data['skipped'] ?? false) === true) {
+        if ($data === null) {
+            return $this->linhaNaoMedida('Shipped-log');
+        }
+        if (($data['skipped'] ?? false) === true) {
             return null;
         }
 
@@ -102,19 +106,6 @@ final class ShippedLogBriefLineService
      */
     private function fetchHealth(): ?array
     {
-        try {
-            $result = Process::path(base_path())
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->run(['node', 'scripts/governance/shipped-log-generate.mjs', '--json']);
-        } catch (Throwable $e) {
-            // `node` ausente no host (ex.: shared hosting sem Node) → sem linha.
-            Log::debug('[shipped-log brief line] shell-out falhou: '.$e->getMessage());
-
-            return null;
-        }
-
-        $decoded = json_decode($result->output(), true);
-
-        return is_array($decoded) ? $decoded : null;
+        return $this->rodarSondaNode(['scripts/governance/shipped-log-generate.mjs', '--json'], self::TIMEOUT_SECONDS, 'shipped-log brief line');
     }
 }

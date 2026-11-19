@@ -71,10 +71,10 @@ it('0 cycles registrados → null', function () {
     expect((new ShippedLogBriefLineService())->line())->toBeNull();
 });
 
-it('JSON inválido (node quebrado/ausente) → null', function () {
+it('node ausente (exit 127, sem JSON) → linha "não medido", nunca some calada', function () {
     Process::fake(['*' => Process::result(output: 'node: not found', exitCode: 127)]);
 
-    expect((new ShippedLogBriefLineService())->line())->toBeNull();
+    expect((new ShippedLogBriefLineService())->line())->toBe('⚪ Shipped-log: não medido (node ausente (exit 127))');
 });
 
 it('kill-switch OFF → inject vira no-op mesmo com stale', function () {

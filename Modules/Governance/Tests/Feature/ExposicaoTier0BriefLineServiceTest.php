@@ -136,24 +136,22 @@ it('sem baseline (trend null) → linha sai, apenas sem delta', function () {
         ->toBe('🟡 Exposição Tier-0: 4/10 quentes sem teste · topo: Sells/Show.tsx');
 });
 
-it('JSON inválido (node quebrado/ausente) → null', function () {
-    // Catch-all '*' (mesma chave de fakeExposicao): chaves consistentes entre
-    // testes evitam handlers acumulados/ambíguos no Process::fake.
+it('node ausente (exit 127, sem JSON) → linha "não medido", nunca some calada', function () {
     Process::fake(['*' => Process::result(output: 'node: not found', exitCode: 127)]);
 
-    expect((new ExposicaoTier0BriefLineService())->line())->toBeNull();
+    expect((new ExposicaoTier0BriefLineService())->line())->toBe('⚪ Exposição Tier-0: não medido (node ausente (exit 127))');
 });
 
-it('relatório de TEXTO no stdout (flag errada) → null, não linha com lixo', function () {
-    // Controle-negativo do contrato do `--stdout`: se algum dia o modo voltar a
-    // imprimir o relatório humano, o json_decode falha e a linha desaparece —
-    // nunca injeta texto de relatório no brief.
+it('relatório de TEXTO no stdout (flag errada) → "não medido", nunca linha com lixo', function () {
+    // Controle-negativo do contrato do `--stdout`: se o modo voltar a imprimir o relatório
+    // humano, o json_decode falha — o brief diz que não mediu, nunca injeta o texto.
     Process::fake(['*' => Process::result(
         output: "\n=== Exposição Tier-0 × cobertura de comportamento · 243 telas ===\n",
         exitCode: 0,
     )]);
 
-    expect((new ExposicaoTier0BriefLineService())->line())->toBeNull();
+    expect((new ExposicaoTier0BriefLineService())->line())
+        ->toBe('⚪ Exposição Tier-0: não medido (sonda sem JSON legível (exit 0))');
 });
 
 it('kill-switch OFF → inject vira no-op mesmo com piso regredido', function () {

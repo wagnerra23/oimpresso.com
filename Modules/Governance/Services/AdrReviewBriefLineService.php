@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Modules\Governance\Services\Concerns\RodaSondaNode;
 use Throwable;
 
 /**
@@ -27,8 +26,8 @@ use Throwable;
  * o modelo nunca inventa esses números. Injeta um bullet na seção `## FLAGS`.
  *
  * Degrada graciosamente (brief NUNCA quebra por causa dela):
- *  - `node` ausente / script não-deployado / timeout → null (sem linha)
- *  - JSON inválido → null
+ *  - `node` ausente / script não-deployado / timeout / sem JSON → linha "⚪ … não medido
+ *    (motivo)" (RodaSondaNode, 2026-11-19 — antes sumia calada)
  *  - filas O+R vazias (ou só entries `*-error` da sentinela) → null
  * Kill-switch: `governance.adr_review_brief_line` false → no-op (default ON).
  *
@@ -39,6 +38,8 @@ use Throwable;
  */
 final class AdrReviewBriefLineService
 {
+    use RodaSondaNode;
+
     /** Teto de tempo do shell-out Node (s) — sentinela é local, sem rede; a varredura de memory/ é maior que a dos irmãos. */
     private const TIMEOUT_SECONDS = 30;
 
@@ -87,7 +88,7 @@ final class AdrReviewBriefLineService
         $data = $this->fetchHealth();
 
         if ($data === null) {
-            return null;
+            return $this->linhaNaoMedida('Revisão ADR');
         }
 
         $queues = $this->queues($data);
@@ -159,19 +160,6 @@ final class AdrReviewBriefLineService
      */
     private function fetchHealth(): ?array
     {
-        try {
-            $result = Process::path(base_path())
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->run(['node', 'scripts/governance/memory-health.mjs', '--json']);
-        } catch (Throwable $e) {
-            // `node` ausente no host (ex.: shared hosting sem Node) → sem linha.
-            Log::debug('[adr-review brief line] shell-out falhou: '.$e->getMessage());
-
-            return null;
-        }
-
-        $decoded = json_decode($result->output(), true);
-
-        return is_array($decoded) ? $decoded : null;
+        return $this->rodarSondaNode(['scripts/governance/memory-health.mjs', '--json'], self::TIMEOUT_SECONDS, 'adr-review brief line');
     }
 }

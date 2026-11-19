@@ -95,10 +95,10 @@ it('entry *-error da sentinela (check quebrou ≠ fila) → null', function () {
     expect((new AdrReviewBriefLineService())->line())->toBeNull();
 });
 
-it('JSON inválido (node quebrado/ausente) → null', function () {
+it('node ausente (exit 127, sem JSON) → linha "não medido", nunca some calada', function () {
     Process::fake(['*' => Process::result(output: 'node: not found', exitCode: 127)]);
 
-    expect((new AdrReviewBriefLineService())->line())->toBeNull();
+    expect((new AdrReviewBriefLineService())->line())->toBe('⚪ Revisão ADR: não medido (node ausente (exit 127))');
 });
 
 it('kill-switch OFF → inject vira no-op mesmo com fila cheia', function () {

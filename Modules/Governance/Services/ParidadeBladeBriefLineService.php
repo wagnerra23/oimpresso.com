@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Modules\Governance\Services\Concerns\RodaSondaNode;
 use Throwable;
 
 /**
@@ -34,8 +33,8 @@ use Throwable;
  * nunca inventa estes números.
  *
  * Degrada graciosamente (o brief NUNCA quebra por causa dela):
- *  - `node` ausente / script não-deployado / timeout → null (sem linha)
- *  - JSON inválido → null
+ *  - `node` ausente / script não-deployado / timeout / sem JSON → linha "⚪ … não medido
+ *    (motivo)" (RodaSondaNode, 2026-11-19 — antes sumia calada)
  *  - 0 endpoints Blade → null (flag só existe quando há o que reportar)
  * Kill-switch: `governance.paridade_blade_brief_line` false → no-op (default ON).
  *
@@ -46,6 +45,8 @@ use Throwable;
  */
 final class ParidadeBladeBriefLineService
 {
+    use RodaSondaNode;
+
     /** Teto do shell-out Node (s) — o censo varre rotas do repo, sem rede. */
     private const TIMEOUT_SECONDS = 60;
 
@@ -90,7 +91,7 @@ final class ParidadeBladeBriefLineService
         $data = $this->fetchCenso();
 
         if ($data === null) {
-            return null;
+            return $this->linhaNaoMedida('Blade por migrar');
         }
 
         $total = (int) ($data['total_blade'] ?? 0);
@@ -176,24 +177,6 @@ final class ParidadeBladeBriefLineService
      */
     private function fetchCenso(): ?array
     {
-        try {
-            $result = Process::path(base_path())
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->run(['node', 'scripts/governance/blade-migration-census.mjs', '--resumo-json']);
-        } catch (Throwable $e) {
-            Log::debug('[paridade-blade brief line] shell-out falhou: '.$e->getMessage());
-
-            return null;
-        }
-
-        $saida = trim($result->output());
-
-        if ($saida === '') {
-            return null;
-        }
-
-        $data = json_decode($saida, true);
-
-        return is_array($data) ? $data : null;
+        return $this->rodarSondaNode(['scripts/governance/blade-migration-census.mjs', '--resumo-json'], self::TIMEOUT_SECONDS, 'paridade-blade brief line');
     }
 }

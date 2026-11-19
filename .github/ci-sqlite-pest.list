@@ -824,3 +824,6 @@ tests/Feature/Architecture/SuperadminScheduledCommandsRegisteredTest.php
 Modules/Financeiro/Tests/Feature/ListenersPorDispatcherContratoTest.php
 # Consumidor da fila nfse (auditoria NFSe, 2026-11-17): DB-less, só lê o Schedule.
 tests/Feature/Console/NfseQueueWorkerScheduleTest.php
+# Linha "Blade por migrar" do Daily Brief — não tinha teste (auditoria Governance L2.2,
+# 2026-11-19): sonda falhando vira "não medido", sucesso formata. Process::fake, DB-less.
+Modules/Governance/Tests/Feature/ParidadeBladeBriefLineServiceTest.php

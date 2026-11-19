@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Modules\Governance\Services\Concerns\RodaSondaNode;
 use Throwable;
 
 /**
@@ -28,8 +27,8 @@ use Throwable;
  * o modelo nunca inventa esses números. Injeta um bullet na seção `## FLAGS`.
  *
  * Degrada graciosamente (brief NUNCA quebra por causa dela):
- *  - `node` ausente / script não-deployado / timeout → null (sem linha)
- *  - JSON inválido → null
+ *  - `node` ausente / script não-deployado / timeout / sem JSON → linha "⚪ … não medido
+ *    (motivo)" (RodaSondaNode, 2026-11-19 — antes sumia calada)
  *  - A+B+C = 0 (nenhuma pendência) → null (flag só existe quando N>0)
  * Kill-switch: `governance.adr_pendente_brief_line` false → no-op (default ON).
  *
@@ -39,6 +38,8 @@ use Throwable;
  */
 final class AdrPendenteBriefLineService
 {
+    use RodaSondaNode;
+
     /** Teto de tempo do shell-out Node (s) — sentinela é local (varre memory/decisions), sem rede. */
     private const TIMEOUT_SECONDS = 20;
 
@@ -79,7 +80,10 @@ final class AdrPendenteBriefLineService
     {
         $data = $this->fetchPendencias();
 
-        if ($data === null || ($data['gate'] ?? null) !== 'adr-proposto-parado') {
+        if ($data === null) {
+            return $this->linhaNaoMedida('ADR pendente');
+        }
+        if (($data['gate'] ?? null) !== 'adr-proposto-parado') {
             return null;
         }
 
@@ -103,18 +107,6 @@ final class AdrPendenteBriefLineService
      */
     private function fetchPendencias(): ?array
     {
-        try {
-            $result = Process::path(base_path())
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->run(['node', 'scripts/governance/adr-proposto-parado.mjs', '--json']);
-        } catch (Throwable $e) {
-            Log::debug('[adr-pendente brief line] shell-out falhou: '.$e->getMessage());
-
-            return null;
-        }
-
-        $decoded = json_decode($result->output(), true);
-
-        return is_array($decoded) ? $decoded : null;
+        return $this->rodarSondaNode(['scripts/governance/adr-proposto-parado.mjs', '--json'], self::TIMEOUT_SECONDS, 'adr-pendente brief line');
     }
 }

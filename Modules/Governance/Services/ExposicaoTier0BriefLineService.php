@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Modules\Governance\Services\Concerns\RodaSondaNode;
 use Throwable;
 
 /**
@@ -37,8 +36,8 @@ use Throwable;
  * SddBriefLineService (GT-G8): injeta um bullet na seção `## FLAGS`.
  *
  * Degrada graciosamente (brief NUNCA quebra por causa dela):
- *  - `node` ausente / script não-deployado / timeout → null (sem linha)
- *  - JSON inválido → null
+ *  - `node` ausente / script não-deployado / timeout / sem JSON → linha "⚪ … não medido
+ *    (motivo)" (RodaSondaNode, 2026-11-19 — antes sumia calada)
  *  - zero telas quentes (universo vazio / varredura sem match) → null
  * Kill-switch: `governance.exposicao_tier0_brief_line` false → no-op (default ON).
  *
@@ -54,6 +53,8 @@ use Throwable;
  */
 final class ExposicaoTier0BriefLineService
 {
+    use RodaSondaNode;
+
     /** Teto de tempo do shell-out Node (s). Medido 2026-07-27: ~1,4s — 20s é folga. */
     private const TIMEOUT_SECONDS = 20;
 
@@ -100,7 +101,7 @@ final class ExposicaoTier0BriefLineService
         $data = $this->fetchSnapshot();
 
         if ($data === null) {
-            return null;
+            return $this->linhaNaoMedida('Exposição Tier-0');
         }
 
         $agg = (array) ($data['aggregates'] ?? []);
@@ -168,19 +169,6 @@ final class ExposicaoTier0BriefLineService
      */
     private function fetchSnapshot(): ?array
     {
-        try {
-            $result = Process::path(base_path())
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->run(['node', 'scripts/qa/exposicao-tier0.mjs', '--stdout']);
-        } catch (Throwable $e) {
-            // `node` ausente no host (ex.: shared hosting sem Node) → sem linha.
-            Log::debug('[exposicao-tier0 brief line] shell-out falhou: '.$e->getMessage());
-
-            return null;
-        }
-
-        $decoded = json_decode($result->output(), true);
-
-        return is_array($decoded) ? $decoded : null;
+        return $this->rodarSondaNode(['scripts/qa/exposicao-tier0.mjs', '--stdout'], self::TIMEOUT_SECONDS, 'exposicao-tier0 brief line');
     }
 }
