@@ -15,6 +15,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import OfficeimpressoSubNav from '../_shared/OfficeimpressoSubNav';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -104,6 +105,7 @@ function LogsTimeline({ maquina, logs, permissions }: Props) {
           </div>
         }
       />
+      <OfficeimpressoSubNav active="licenca_log" />
 
       <div className="p-6">
         <Card className="py-0">

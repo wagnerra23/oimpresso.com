@@ -11,10 +11,11 @@
 // `permissions` só esconde botão: quem autoriza é o controller (authorizeEmpresa/authorizeGerenciar).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, router, useForm } from '@inertiajs/react';
+import { Deferred, router, useForm, usePage } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { ClipboardList } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
+import OfficeimpressoSubNav from '../_shared/OfficeimpressoSubNav';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -47,6 +48,9 @@ const corta = (s: string | null, n: number) => (!s ? '—' : s.length > n ? `${s
 
 function EmpresaShow({ empresa, permissions, computadores, assinatura }: Props) {
   const [aviso, setAviso] = useState<string | null>(null);
+  // A ficha serve duas rotas: /computadores (a própria empresa) e /licenca_computado/licencas/{id}
+  // (o superadmin abrindo uma empresa a partir de Empresas). A aba ativa segue de onde se veio.
+  const abaAtiva = usePage().url.startsWith('/officeimpresso/licenca_computado/licencas/') ? 'businessall' : 'computadores';
   return (
     <div className="pb-8">
       <div data-contract="header">
@@ -56,6 +60,7 @@ function EmpresaShow({ empresa, permissions, computadores, assinatura }: Props) 
               <a href={`${typeof window !== 'undefined' ? window.location.pathname : ''}?legacy=1`}>Abrir na tela antiga</a>
             </Button>
           } />
+        <OfficeimpressoSubNav active={abaAtiva} />
       </div>
       <div className="flex flex-col gap-4 px-6 pt-4">
         <section data-contract="ficha" className="rounded-md border p-4" aria-labelledby="oi-emp-nome">

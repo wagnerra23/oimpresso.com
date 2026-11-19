@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela emite a credencial com que cada Delphi autentica; secret reexibido ou credencial de outro negócio é incidente Tier 0.
 owner: wagner
-last_run: "2026-11-18"
+last_run: "2026-11-19"
 ---
 
 # Casos de Uso & Aceite — Clientes OAuth (`/officeimpresso/client`)
