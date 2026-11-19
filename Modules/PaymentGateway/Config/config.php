@@ -28,4 +28,19 @@ return [
     | importa: se o retorno chegar antes do lançamento manual, o manual vira o duplicado).
     */
     'lancar_pagamento_na_venda' => env('PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Import diário de boletos pagos no Inter (US-PG-008 · auditoria PG 2.6)
+    |--------------------------------------------------------------------------
+    | Empresa e conta bancária do agendamento em app/Console/Kernel.php. Antes
+    | ficavam fixas no Kernel (--business=1 --conta=12); os defaults abaixo são
+    | os MESMOS valores, então nada muda em produção até alguém definir o env.
+    | Empresa vazia (0) = o agendamento não roda.
+    */
+    'inter_importar' => [
+        'business_id' => (int) env('PAYMENTGATEWAY_INTER_IMPORTAR_BUSINESS_ID', 1),
+        'conta_id'    => env('PAYMENTGATEWAY_INTER_IMPORTAR_CONTA_ID', 12),
+        'dias'        => (int) env('PAYMENTGATEWAY_INTER_IMPORTAR_DIAS', 15),
+    ],
 ];

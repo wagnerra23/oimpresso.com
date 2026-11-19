@@ -87,6 +87,24 @@ if (! function_exists('pgImportEnsureSchema')) {
                 $t->softDeletes();
             });
         }
+        // Auditoria PG 2.6: o comando resolve o autor (created_by) pelo dono da
+        // empresa — precisa de business.owner_id e users.business_id.
+        if (! Schema::hasTable('business')) {
+            Schema::create('business', function ($t) {
+                $t->increments('id');
+                $t->unsignedInteger('owner_id')->nullable();
+            });
+        }
+        if (! Schema::hasTable('users')) {
+            Schema::create('users', function ($t) {
+                $t->increments('id');
+                $t->unsignedInteger('business_id')->nullable();
+            });
+        }
+        foreach ([[1, 1], [98, 9801]] as [$biz, $owner]) {
+            DB::table('business')->insertOrIgnore(['id' => $biz, 'owner_id' => $owner]);
+            DB::table('users')->insertOrIgnore(['id' => $owner, 'business_id' => $biz]);
+        }
         if (! Schema::hasTable('fin_titulo_baixas')) {
             Schema::create('fin_titulo_baixas', function ($t) {
                 $t->increments('id');
@@ -231,4 +249,112 @@ it('sem conta: cria título aberto sem baixa', function () {
 
 it('multi-tenant: sem credencial Inter pra biz → FAILURE', function () {
     $this->artisan('paymentgateway:inter-importar-recebimentos', ['--business' => '7'])->assertExitCode(1);
+});
+
+// ── Auditoria PG lote 2.6 — tenant fictício 98 (ADR 0358), valores sintéticos ──
+
+function itemRecebido98(string $codigo, float $nominal, float $recebido): array
+{
+    return [
+        'cobranca' => [
+            'codigoSolicitacao'  => $codigo,
+            'seuNumero'          => 'S-' . $codigo,
+            'situacao'           => 'RECEBIDO',
+            'valorNominal'       => $nominal,
+            'valorTotalRecebido' => $recebido,
+            'dataSituacao'       => '2026-06-01',
+            'pagador'            => ['nome' => 'Pagador ' . $codigo],
+        ],
+        'boleto' => ['nossoNumero' => 'NN-' . $codigo],
+    ];
+}
+
+function prepara98(): int
+{
+    session(['business.id' => 98]);
+    PaymentGatewayCredential::query()->withoutGlobalScopes()->create([
+        'business_id' => 98, 'gateway_key' => 'inter', 'ambiente' => 'production', 'ativo' => true,
+        'nome_display' => 'Inter 98', 'config_json' => ['client_id' => 'x', 'client_secret' => 'y'],
+    ]);
+
+    return (int) \Modules\Financeiro\Models\ContaBancaria::query()->withoutGlobalScopes()->create([
+        'business_id' => 98, 'nome' => 'Inter 98', 'ativo_para_boleto' => true,
+    ])->id;
+}
+
+it('2.6 pago com juros: título no nominal, baixa registra o recebido (principal + juros)', function () {
+    fakeInterLista([itemRecebido98('jur-1', 100.00, 103.50)]);
+    $conta = prepara98();
+
+    $this->artisan('paymentgateway:inter-importar-recebimentos', ['--business' => '98', '--conta' => (string) $conta])->assertExitCode(0);
+
+    $titulo = Titulo::withoutGlobalScopes()->where('business_id', 98)->sole();
+    $baixa = TituloBaixa::withoutGlobalScopes()->where('titulo_id', $titulo->id)->sole();
+    // À mão: nominal 100,00; pagou 103,50 = 100,00 + 3,50 − 0.
+    expect((float) $titulo->valor_total)->toBe(100.0);
+    expect((float) $baixa->valor_baixa)->toBe(100.0);
+    expect((float) $baixa->juros)->toBe(3.5);
+    expect((float) $baixa->desconto)->toBe(0.0);
+    // Pela soma gravada: o que entrou no banco.
+    expect((float) $baixa->valor_baixa + (float) $baixa->juros - (float) $baixa->desconto)->toBe(103.5);
+});
+
+it('2.6 pago com desconto pequeno (5%): baixa registra desconto, título quitado', function () {
+    fakeInterLista([itemRecebido98('des-1', 100.00, 95.00)]);
+    $conta = prepara98();
+
+    $this->artisan('paymentgateway:inter-importar-recebimentos', ['--business' => '98', '--conta' => (string) $conta])->assertExitCode(0);
+
+    $titulo = Titulo::withoutGlobalScopes()->where('business_id', 98)->sole();
+    $baixa = TituloBaixa::withoutGlobalScopes()->where('titulo_id', $titulo->id)->sole();
+    expect($titulo->status)->toBe('quitado');
+    expect((float) $baixa->desconto)->toBe(5.0);
+    expect((float) $baixa->valor_baixa + (float) $baixa->juros - (float) $baixa->desconto)->toBe(95.0);
+});
+
+it('2.6 recebido bem abaixo do nominal (20%) não vira título quitado — fica para conferir', function () {
+    fakeInterLista([itemRecebido98('div-1', 100.00, 80.00)]);
+    $conta = prepara98();
+
+    $this->artisan('paymentgateway:inter-importar-recebimentos', ['--business' => '98', '--conta' => (string) $conta])->assertExitCode(0);
+
+    expect(Titulo::withoutGlobalScopes()->where('business_id', 98)->count())->toBe(0);
+});
+
+it('2.6 created_by é o dono da empresa, não o usuário 1', function () {
+    fakeInterLista([itemRecebido98('aut-1', 100.00, 100.00)]);
+    $conta = prepara98();
+
+    $this->artisan('paymentgateway:inter-importar-recebimentos', ['--business' => '98', '--conta' => (string) $conta])->assertExitCode(0);
+
+    $titulo = Titulo::withoutGlobalScopes()->where('business_id', 98)->sole();
+    expect((int) $titulo->created_by)->toBe(9801);
+    expect((int) TituloBaixa::withoutGlobalScopes()->where('titulo_id', $titulo->id)->value('created_by'))->toBe(9801);
+});
+
+it('2.6 --autor de outra empresa é recusado', function () {
+    fakeInterLista([itemRecebido98('aut-2', 100.00, 100.00)]);
+    prepara98();
+
+    $this->artisan('paymentgateway:inter-importar-recebimentos', ['--business' => '98', '--autor' => '1'])->assertExitCode(1);
+    expect(Titulo::withoutGlobalScopes()->where('business_id', 98)->count())->toBe(0);
+});
+
+it('2.6 agendamento lê empresa/conta/janela da config (defaults = valores antigos)', function () {
+    expect(config('paymentgateway.inter_importar.business_id'))->toBe(1)
+        ->and((int) config('paymentgateway.inter_importar.conta_id'))->toBe(12)
+        ->and(config('paymentgateway.inter_importar.dias'))->toBe(15);
+
+    // Mesmo jeito do RetryOrphanWebhookCommandTest GUARD 1: invoca Kernel::schedule num Schedule novo.
+    $kernel = app(\App\Console\Kernel::class);
+    $schedule = new \Illuminate\Console\Scheduling\Schedule();
+    $metodo = new ReflectionMethod($kernel, 'schedule');
+    $metodo->setAccessible(true);
+    $metodo->invoke($kernel, $schedule);
+    $evento = collect($schedule->events())
+        ->first(fn ($e) => str_contains((string) $e->command, 'inter-importar-recebimentos'));
+    expect($evento)->not->toBeNull();
+    expect((string) $evento->command)->toContain('--business=1')
+        ->toContain('--conta=12')
+        ->toContain('--days=15');
 });
