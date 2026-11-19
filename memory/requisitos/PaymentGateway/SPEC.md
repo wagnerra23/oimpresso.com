@@ -235,7 +235,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-PG-010 · Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada)
 
-**Implementado em:** _parcial_ · `Modules/PaymentGateway/Services/Drivers/AsaasDriver.php` · `Modules/PaymentGateway/Services/Drivers/InterDriver.php` · `Modules/PaymentGateway/Services/Drivers/PagarmeDriver.php` · verificado@bedeeb0 (2026-11-19) — `refund()` real só nesses 3; `C6Driver`, `SicoobApiDriver` e `BcbPixDriver` lançam `DriverNotSupportedException`
+**Implementado em:** _pendente_ — o aceite (refund uniforme nos 6 drivers) não foi entregue: em 2026-11-19 @bedeeb0 só AsaasDriver, InterDriver e PagarmeDriver fazem refund pela API; C6Driver, SicoobApiDriver e BcbPixDriver lançam DriverNotSupportedException
 
 > owner: — · priority: p0 · estimate: 12h · status: todo · type: story
 > blocked_by: —

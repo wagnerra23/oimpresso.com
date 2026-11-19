@@ -1181,11 +1181,7 @@
 
 ### todo
 
-- **US-PG-010** — Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada) _(`p0`)_
-- **US-PG-011** — Boleto híbrido (boleto + QR Pix no mesmo documento) _(`p1`)_
 - **US-PG-014** — Driver da API de cobrança do Banco do Brasil (registro, PDF e baixa de boleto) _(`p1` · @wagner)_
-- **US-PG-012** — Extrato/saldo bancário unificado + conciliação contábil _(`p2`)_
-- **US-PG-013** — Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente _(`p2`)_
 - **US-PG-001** — [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest
 - **US-PG-002** — [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest
 - **US-PG-003** — [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache
@@ -1195,6 +1191,10 @@
 - **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+- **US-PG-010** — Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada)
+- **US-PG-011** — Boleto híbrido (boleto + QR Pix no mesmo documento)
+- **US-PG-012** — Extrato/saldo bancário unificado + conciliação contábil
+- **US-PG-013** — Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente
 
 ## NFSe
 
