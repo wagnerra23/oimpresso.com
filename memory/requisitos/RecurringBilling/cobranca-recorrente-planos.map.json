@@ -4,177 +4,158 @@
   "tela": "RecurringBilling/Planos/Index (/recurring-billing/planos)",
   "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-planos-gap.md",
   "prototipo_sha": "sha256:74d2159744ee",
-  "gerado_em": "2026-11-04",
+  "gerado_em": "2026-11-19",
   "partes": [
     {
-      "id": "header-sub-nav",
+      "id": "cabecalho",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "344-348,367"
+        "linhas": "1090,1096-1107"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "364-366",
-        "ancora": false
+        "linhas": "361-404",
+        "ancora": "cabecalho"
       },
-      "status": "artefato",
-      "acao": "Nada — mock/harness do protótipo (`TABS` :344-348 + `window.PageHeaderNav` :367 + `window.__selectRoute` :338 são do harness Cowork; as abas já são a linha \"Abas Planos/Faturas/Config\" da tela-mãe, veredito `— · —`)",
+      "status": "paridade",
+      "acao": "Nada — paridade; o \"Voltar\" sai junto com a decisão de navegação da tela-mãe",
       "_acionavel": false
     },
     {
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "759-768"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
         "linhas": "407-445",
-        "ancora": false
+        "ancora": "kpis"
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (o placeholder :370 não desenha nem descreve KPI; a série sintética é observação do vivo, sem âncora no protótipo)",
+      "status": "paridade",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
       "id": "distribuicao-por-ciclo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "770-779"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "172-203",
-        "ancora": false
+        "linhas": "172-203,447-452",
+        "ancora": "ciclos"
       },
       "status": "paridade",
-      "acao": "Nada — paridade (desc :370 \"distribuição por ciclo\" existe no vivo)",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
-      "id": "busca-filtros",
+      "id": "busca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "782-789"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "457-481",
+        "linhas": "456-481",
         "ancora": false
       },
-      "status": "nao-adotar",
-      "acao": "Nada — Non-Goal do charter (\"❌ Filtros por ciclo/fiscal_type/ativo na sidebar — busca cobre v1\", Index.charter.md:60); a busca em si é vivo à frente (placeholder não tem busca)",
+      "status": "paridade",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
       "id": "tabela",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "797-818"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
         "linhas": "488-560",
-        "ancora": false
+        "ancora": "lista"
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (desc :370 lista nome/ciclo/valor/tipo fiscal — todos são colunas; \"dias de trial\" vive no form, ver linha Criar/editar)",
+      "status": "paridade",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
-      "id": "acoes-por-linha",
+      "id": "excluir-plano",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "830-837"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "538-545",
+        "linhas": "338-353",
         "ancora": false
       },
-      "status": "nao-adotar",
-      "acao": "Nada — Non-Goal do charter (\"❌ Modal de confirmação custom — usa `confirm()` nativo no v1\", Index.charter.md:62 · \"❌ Toggle ativo inline\", :59); o CRUD que o desc :370 cita é paridade",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Diálogo próprio com bloqueio visível antes de enviar",
+      "_acionavel": true
     },
     {
-      "id": "criar-editar",
+      "id": "criar-e-editar",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "696-740,1059"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "n/a (Create.tsx/Edit.tsx dedicados — Non-Goal de drawer no Index)",
+        "linhas": "n/a (Planos/Create.tsx e Planos/Edit.tsx dedicadas)",
         "ancora": false
       },
-      "status": "nao-adotar",
-      "acao": "Nada — decisão já registrada (Index.charter.md:79 \"❌ Modal/Dialog pra Create/Edit — canon = páginas dedicadas (Create.tsx / Edit.tsx)\"); drawer×página é FORMA que o protótipo não desenhou (é texto de placeholder, não âncora), então só reabre via gate F1.5 + [W], mesma família da \"única ideia visual\" da tela-mãe",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Painel sobreposto (protótipo) × página dedicada (charter) — conflito de forma, o protótipo vale até o [W] dizer outra coisa",
+      "_acionavel": true
     },
     {
-      "id": "paginacao",
+      "id": "vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
-      },
-      "vivo": {
-        "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "566-575",
-        "ancora": false
-      },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (o protótipo não tem paginação; a ausência de prev/next é observação do vivo sem âncora no protótipo nem no charter — não é gap de protótipo)",
-      "_acionavel": false
-    },
-    {
-      "id": "estados-vazio-skeleton-flash",
-      "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "791-796"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
         "linhas": "612-631",
         "ancora": false
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (placeholder :332-342 não tem estado nenhum)",
+      "status": "paridade",
+      "acao": "Nada — o defeito vai ao Cowork no L7",
       "_acionavel": false
     },
     {
-      "id": "overlays-atalhos",
+      "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
+        "linhas": "821-825"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "580-582",
-        "ancora": false
-      },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (o placeholder :332-342 só tem o botão \"← Voltar pras assinaturas\" via `window.__selectRoute`, harness)",
-      "_acionavel": false
-    },
-    {
-      "id": "linguagem-visual",
-      "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,370"
-      },
-      "vivo": {
-        "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
-        "linhas": "394",
+        "linhas": "565-575",
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — paridade de família (stone/warm nos dois lados); equivalência exata de token acento×`bg-primary` não foi medida aqui — é escopo do `design-diff`, não deste gap",
+      "acao": "Nada — paridade",
+      "_acionavel": false
+    },
+    {
+      "id": "atalhos-e-ajuda",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+        "linhas": "749-752,1069-1080"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
+        "linhas": "579-597",
+        "ancora": false
+      },
+      "status": "vivo-a-frente",
+      "acao": "Nada — vivo à frente",
       "_acionavel": false
     }
   ],
-  "mapping": {
-    "source": "cobranca-recorrente-page.jsx",
-    "target": "resources/js/Pages/RecurringBilling/Planos/Index.tsx"
-  },
-  "_nota_mapeamento": "No protótipo esta aba é só o <Placeholder> (cobranca-recorrente-page.jsx:332-342, tab em :370) que se declara atrás do vivo; todas as partes ancoram nesse bloco (não há desenho por parte). vivo.ancora:false EXPLÍCITO = opt-out consciente: o .tsx não tem nenhum data-contract (grep -c data-contract → 0), ancorar exige mudança de UI com gate próprio. Ranges do vivo = 1º range citado na célula 'Estado no vivo' do gap.md (grep -n real)."
+  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main bedeeb0096: o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
 }

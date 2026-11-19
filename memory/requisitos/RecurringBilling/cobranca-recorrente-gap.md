@@ -3,70 +3,40 @@ tela: RecurringBilling/Index (/recurring-billing)
 prototipo: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx
 tela_viva: resources/js/Pages/RecurringBilling/Index.tsx
 id: requisitos-recurring-billing-cobranca-recorrente-gap
+gerado_em: 2026-11-19
 ---
 
-# Gap — Cobrança Recorrente (mockup Cowork vs tela viva)
+# Gap — Cobrança Recorrente · Assinaturas (protótipo × tela viva)
 
-> **Fase 1 da skill `aplicar-prototipo` — read-only.** Mapeia o que o mockup PROPÕE que a tela viva não tem, e onde está STALE (atrás do vivo).
-> **Data:** 2026-06-30 · **Tipo:** mapeamento semântico (mockup simplifica de propósito).
+> **Refeito em 2026-11-19** (lote L6 da auditoria RecurringBilling, item e5), base `origin/main` `bedeeb0096`.
+> A versão anterior (2026-06-30, refeita em tabela em 2026-09-06) dizia que o protótipo era um mockup atrás
+> da produção, com Planos/Faturas/Configurações como placeholders e "nada a adotar". Isso deixou de valer:
+> o #8913 (07/10) deu uma vista real a cada aba e o protótipo passou a desenhar drawer, criação, edição,
+> Pix Automático e cartão recorrente. A versão antiga está no git (`git log -- <este arquivo>`).
 >
-> - **TELA VIVA:** `resources/js/Pages/RecurringBilling/Index.tsx` (1926 linhas, MWART v9,75, +24 Ondas, Inertia/React real, backend wired)
-> - **MOCKUP:** `_cowork-handoff-staging/.../project/cobranca-recorrente-page.jsx` (378 linhas, mock client-side, `window.CobrancaRecorrentePage`)
+> **Papel do protótipo — decisão [W] 2026-11-19 (b4 da auditoria):** `cobranca-recorrente-page.jsx` é
+> **fonte de design**. O cabeçalho do arquivo ainda se descreve como porte do git; a decisão vale sobre ele.
+> Onde protótipo e produção divergem em FORMA, o protótipo é a referência (ADR UI-0029); comportamento,
+> dado e permissão seguem a produção. Âncora: `node scripts/design/ancora.mjs RecurringBilling/Index`
+> → `related_prototype (charter)`.
 >
-> Regra Tier 0: `business_id` global scope intocável; qualquer item que toque VALOR/cobrança/estoque é Tier 0 — aqui só descrevo o visual e marco ⚠️.
+> Esta tabela é leitura de código, não medição de render. A medição (design-diff nos dois lados) é o
+> PR 2 do L6 e fica registrada no `Index-visual-comparison.md`.
 
----
-
-## Veredito: **MOCKUP-STALE** (com 2 adoções parciais visuais de baixo risco)
-
-A tela viva está **muito à frente** do mockup em quase todas as partes: backend real wired (POST/PUT/fetch), drawer de criação completo com busca de cliente debounced, editar cobrança, timeline append-only persistente, favoritos persistentes, atalhos de teclado, CmdPalette ⌘K, troubleshooters, modo apresentação, tour, KPIs deferidos do presenter PHP. O mockup é uma **reescritura visual** (linguagem DS "Cockpit V2 warm" — stone + roxo `var(--accent)`) sobre dados mock, e ainda traz **domínio errado** (WR2 Sistemas/gráfica, não o vertical vivo) + abas Planos/Faturas/Config como **placeholders honestos** ("não fingir pronto") que no vivo **já são Pages reais** (rotas dedicadas Ondas 6/7/8).
-
-Logo: **nada de funcional a adotar**. O que o mockup oferece de genuíno é **direção visual** (2 ideias de UX abaixo) — e mesmo essas competem com o design já aprovado da tela viva, então só entram com gate visual + OK do Wagner.
-
-### ADOTAR-PARCIAL (só visual, P, baixo risco — sujeito a gate F1.5 + Wagner)
-1. **PeriodBar compartilhado do Financeiro** (`window.FinPeriodBar` + `finPeriodWindow`) — filtro de período por campo de data (`prox`/`inicio`) reusando o componente do Financeiro. Hoje o vivo tem presets "Próxima cobrança" próprios (any/today/tomorrow/week/month/custom). **Ideia a avaliar:** unificar a UX de período com o Financeiro. Mas é só consistência visual — o vivo já cobre o caso (inclusive intervalo custom server-side). **Não urgente.**
-2. **Drawer com aba "✦ IA"** dentro do próprio drawer (mockup separa Detalhes | ✦ IA em tabs). No vivo a IA é o `JanaPanel` inline no fim do drawer. Reorganizar IA numa aba é cosmético.
-
----
-
-## Mapa por parte
-
-| Parte | Gap real (mockup→vivo) | Vivo-à-frente (STALE) | Por quê | Esforço · risco |
-|---|---|---|---|---|
-| **Header / hero** | Mockup tem eyebrow "Assinaturas · Cobrança Recorrente" + subtítulo contextual ("Junho 2026 · WR2 Sistemas"). | Vivo: `<h1>` + linha-status `N ATIVAS · MRR · CHURN%` derivada dos KPIs reais; botão "Nova assinatura" **wired** (abre drawer real, atalho N). | Mockup tem subtítulo **com domínio errado** (WR2 gráfica). Vivo deriva do presenter real. | — · — (nada a fazer) |
-| **KPIs** | Mockup: 4 cards (MRR hero, Churn, Próximas cobranças, **A recuperar** = soma de falhas/retentando). | Vivo: 4 KPIs **deferidos** (`<Deferred data="kpis">`) do `SubscriptionIndexPresenter`, MRR hero com **sparkline SVG**, delta vs mês anterior. ⚠️ toca valor. | Vivo computa server-side (Tier 0 correto). Mockup soma client-side mock. | — · — |
-| → *micro-gap* | Card **"A recuperar" (R$ a recuperar)** — soma valor das cobranças falhou+retentando. O vivo mostra **contagem** ("Retentado falhos" = `failed_count`), não o **valor a recuperar**. ⚠️ toca valor | — | Pode ser um KPI útil (valor em risco). Mas exige cálculo no presenter PHP, não no front. | P-M · **Tier 0 ⚠️** (só propor; cálculo no backend + dupla confirmação) |
-| **Filtros / busca** | Mockup: PeriodBar (campo data + período) + busca `/` por cliente/CNPJ/plano. | Vivo: coluna de filtros (favoritos toggle persistente, presets "Próxima cobrança" incl. **custom server-side**, status com dots, lista de planos com contagem, **MRR filtrado** ao vivo) + busca `/` server-side (cliente/CNPJ/OS). | Vivo tem filtro **muito** mais rico e tudo server-side via `applyFilters` (Inertia partial reload `only:['subscriptions','kpis']`). | — · — |
-| **Tabela / lista** | Mockup: linha = star, avatar, título, sub (`plano · ciclo · desde`), pill status + `método · valor`. | Vivo: idêntico em estrutura **+** star **persistente** (POST `/favorite`), navegação `j/k`, seleção ativa com borda primary, skeleton `<Deferred>`, contador `filtrados/total`. | Mockup é subconjunto visual do vivo. | — · — |
-| **Ações por linha / drawer** | Mockup drawer: header + tabs Detalhes\|IA, card próxima cobrança, KV grid, nota pinada, PaymentHeat 12-cells, bloco fiscal + "Reenviar nota", timeline (3 eventos **mock estáticos**), footer Pausar/Diagnosticar/Reativar/Cancelar (**botões sem ação**). | Vivo (`DetailDrawer`): tudo isso **wired** — botão PDF/print extrato, card próxima cobrança, KV grid (incl. OS, motivo churn), nota pinada, `PaymentHistory`, `SubscriptionTimeline` **real** (fetch `/events`, POST nota persistente append-only), `JanaPanel`, ações **executáveis** (Pausar/Cancelar com motivo/Reativar/Diagnosticar→troubleshooter, Editar→drawer). ⚠️ ações tocam cobrança. | Mockup drawer é **decorativo** (handlers vazios); vivo é operacional. | — · — |
-| → *única ideia visual* | Drawer **lateral overlay** com aba **✦ IA** separada + footer fixo de ações. Vivo usa coluna-3 fixa (3-col body) com IA inline. | — | Layout overlay vs 3-col é decisão de design já tomada no charter do vivo (3-col base). Reorganizar IA em aba é cosmético. | P · baixo (só com gate F1.5) |
-| **Criação (Nova assinatura)** | Mockup: botão "Nova assinatura" **sem drawer** (não implementado). | Vivo: `NewSubscriptionDrawer` completo (Sheet DS) — busca cliente **debounced** (`/contacts/search`), plano opcional auto-preenche valor+ciclo, valor/ciclo/data/gateway(Inter/Asaas)/forma/descrição, validação, POST `/recurring-billing`. ⚠️ cria cobrança. | Mockup nem tenta; vivo é Onda 21 live. | — · — |
-| **Editar cobrança** | Ausente no mockup. | Vivo: `EditSubscriptionDrawer` (PUT, edita valor/ciclo/forma; cliente/plano/data imutáveis). ⚠️ toca valor. | — | — · — |
-| **Abas Planos/Faturas/Config** | Mockup: **placeholders honestos** descrevendo o que falta. | Vivo: **Pages reais** com rotas dedicadas (`/recurring-billing/planos|faturas|configuracoes`, Ondas 6/7/8). | Mockup admite que não fez; vivo já fez. | — · — |
-| **Domínio / dados** | Mockup: mock gráfica WR2 (Padaria, Auto Posto…), persona "Eliana [E] / Larissa". | Vivo: dados reais do presenter, multi-tenant `business_id`. | Mockup tem **domínio de exemplo**, não fonte de verdade. | — · — (não importar dados) |
-
----
-
-## Notas Tier 0 (não inventar)
-- **KPI "A recuperar"** e qualquer card que some valor de cobranças falhas = **Tier 0 valor**: só descrever; se adotado, cálculo vai no `SubscriptionIndexPresenter` (PHP) com dupla confirmação + antes→depois (regra-mestre cálculo de valor). Não computar no front a partir de `next_value` mock.
-- Rotas/handlers do mockup (`window.__selectRoute`, `FinPeriodBar`) são do harness de protótipo Cowork — **não** são paths do app. Equivalentes vivos: rotas Inertia `/recurring-billing/*` + `applyFilters`.
-- Nenhum dado/CNPJ do mockup deve entrar no app (são fictícios de exemplo).
-
-## Conclusão para a fila de aplicação
-**Não enfileirar aplicação de tela.** Mockup está STALE vs o vivo (24 Ondas à frente, backend wired). As 2 ideias visuais (PeriodBar unificado, aba ✦ IA no drawer) são _pendentes_ de decisão do Wagner sob gate visual F1.5 — não são gap funcional. Eventual KPI "valor a recuperar" é proposta Tier 0 separada (backend), não import de protótipo.
-
-## Tabela de partes (derivada 2026-09-06, r2)
-
-> Derivada MECANICAMENTE da prosa acima por [C] em 2026-09-06 (r2 — a r1 foi reprovada na refutação GT-G5 por ler a coluna de DESCRIÇÃO em vez da de VEREDITO; ver memory/sessions/2026-09-06-refutacao-gt-g5-lote-6897.md). Regra: "**Decidir.**" só onde a prosa registra gap real em aberto; "Nada — <veredito>" cita o veredito da prosa (esforço `— · —`, "NÃO fazer", "já é canon", decisão registrada). A fonte segue sendo a prosa; em conflito, a prosa vence.
+## Tabela de partes
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Header / hero | Gap: Mockup tem eyebrow "Assinaturas · Cobrança Recorrente" + subtítulo contextual ("Junho 2026 · WR2 Sistemas"). · Vivo à frente: Vivo: `<h1>` + linha-status `N ATIVAS · MRR · CHURN%` derivada dos KPIs reais; botão "Nova assinatura" wired (abre drawer real,… | Nada — `— · —` na coluna Esforço·risco: Vivo: `<h1>` + linha-status `N ATIVAS · MRR · CHURN%` derivada dos KPIs reais; botão "Nova assinatura" wired (abre drawer… |
-| KPIs | Gap: Mockup: 4 cards (MRR hero, Churn, Próximas cobranças, A recuperar = soma de falhas/retentando). · Vivo à frente: Vivo: 4 KPIs deferidos (`<Deferred data="kpis">`) do `SubscriptionIndexPresenter`, MRR hero com sparkline SVG, delta vs mês anterior. ⚠️… | **Decidir.** *micro-gap*: Card "A recuperar" (R$ a recuperar) — soma valor das cobranças falhou+retentando. O vivo mostra contagem ("Retentado falhos" = `failed_count`), não o valor… (esforço P-M · Tier 0 ⚠️ (só propor; cálculo no backend + dupla confirmação)) — único item acionável desta parte; o resto é `— · —`. |
-| Filtros / busca | Gap: Mockup: PeriodBar (campo data + período) + busca `/` por cliente/CNPJ/plano. · Vivo à frente: Vivo: coluna de filtros (favoritos toggle persistente, presets "Próxima cobrança" incl. custom server-side, status com dots, lista de planos com contagem, MRR… | **Decidir.** ADOTAR-PARCIAL #1 da prosa: PeriodBar (campo data + período) — só visual, P, baixo risco, sujeito a gate F1.5 + Wagner. |
-| Tabela / lista | Gap: Mockup: linha = star, avatar, título, sub (`plano · ciclo · desde`), pill status + `método · valor`. · Vivo à frente: Vivo: idêntico em estrutura + star persistente (POST `/favorite`), navegação `j/k`, seleção ativa com borda primary, skeleton… | Nada — `— · —` na coluna Esforço·risco: Vivo: idêntico em estrutura + star persistente (POST `/favorite`), navegação `j/k`, seleção ativa com borda primary, skeleton… |
-| Ações por linha / drawer | Gap: Mockup drawer: header + tabs Detalhes／IA, card próxima cobrança, KV grid, nota pinada, PaymentHeat 12-cells, bloco fiscal + "Reenviar nota", timeline (3 eventos mock estáticos), footer Pausar/Diagnosticar/Reativar/Cancelar (botões sem ação). · Vivo à… | **Decidir.** *única ideia visual*: Drawer lateral overlay com aba ✦ IA separada + footer fixo de ações. Vivo usa coluna-3 fixa (3-col body) com IA inline. (esforço P · baixo (só com gate F1.5)) — único item acionável desta parte; o resto é `— · —`. |
-| Criação (Nova assinatura) | Gap: Mockup: botão "Nova assinatura" sem drawer (não implementado). · Vivo à frente: Vivo: `NewSubscriptionDrawer` completo (Sheet DS) — busca cliente debounced (`/contacts/search`), plano opcional auto-preenche valor+ciclo,… | Nada — `— · —` na coluna Esforço·risco: Vivo: `NewSubscriptionDrawer` completo (Sheet DS) — busca cliente debounced (`/contacts/search`), plano opcional… |
-| Editar cobrança | Gap: Ausente no mockup. · Vivo à frente: Vivo: `EditSubscriptionDrawer` (PUT, edita valor/ciclo/forma; cliente/plano/data imutáveis). ⚠️ toca valor. | Nada — `— · —` na coluna Esforço·risco: Vivo: `EditSubscriptionDrawer` (PUT, edita valor/ciclo/forma; cliente/plano/data imutáveis). ⚠️ toca valor. |
-| Abas Planos/Faturas/Config | Gap: Mockup: placeholders honestos descrevendo o que falta. · Vivo à frente: Vivo: Pages reais com rotas dedicadas (`/recurring-billing/planos／faturas／configuracoes`, Ondas 6/7/8). | Nada — `— · —` na coluna Esforço·risco: Vivo: Pages reais com rotas dedicadas (`/recurring-billing/planos／faturas／configuracoes`, Ondas 6/7/8). |
-| Domínio / dados | Gap: Mockup: mock gráfica WR2 (Padaria, Auto Posto…), persona "Eliana [E] / Larissa". · Vivo à frente: Vivo: dados reais do presenter, multi-tenant `business_id`. | Nada — `— · —` na coluna Esforço·risco: Vivo: dados reais do presenter, multi-tenant `business_id`. |
+| Cabeçalho | Protótipo `:1088-1107` (`HEAD.assinaturas` `:1089`): h1 + linha mono `N ATIVAS · MRR · CHURN` + "Nova assinatura" com `kbd N`. Vivo `Index.tsx:514-573`: mesmo h1, mesma linha (dos KPIs do servidor) e mesmo CTA. | Nada — paridade |
+| Navegação entre as 4 vistas | Protótipo: a sub-nav é a do shell (`window.PageHeaderNav` `:1108`, abaixo do cabeçalho), uma rota por vista (`ROTAS` `:1056-1063`). Vivo: abas próprias dentro do cabeçalho (`:529-560`, `router.visit` para as 3 outras Pages); Planos tem só "Voltar" e Faturas/Configurações não têm navegação. | **Decidir.** Trocar as abas próprias pela sub-nav canônica (`PageHeaderTabs`/`ModuleTabs`, abaixo do cabeçalho) nas 4 Pages — mudança de forma, entra com medição |
+| KPIs | Protótipo `KpiStrip` `:165-187`: MRR hero, Churn, Próxima cobrança, Retentado falhos com dica `requer ação · <valor> a recuperar`. Vivo `:576-613`: os mesmos 4; a dica de Retentado falhos é só "requer ação". | **Decidir.** Valor a recuperar na dica — toca valor (regra mestre): soma no presenter PHP, nunca no front |
+| Filtros e busca | Protótipo: `FinPeriodBar` (campo de data + período) `:620-624` + coluna de filtros `:625-665` (favoritos, status, próxima cobrança com intervalo, por plano, MRR filtrado) + busca `/` `:667-674`. Vivo `:622-748`: coluna com os mesmos blocos, tudo no servidor; sem barra de período. | **Decidir.** Adotar a barra de período compartilhada com o Financeiro |
+| Lista | Protótipo `SubRow` `:189-208` e lista `:666-689`: estrela, avatar, cliente, `plano · ciclo · desde · próx.`, status + `método · valor`, vazio com CTA. Vivo `:751-839`: mesma linha, estrela persistida, `j/k`, skeleton. | Nada — paridade |
+| Detalhe da assinatura | Protótipo `Drawer` `:311-458`: painel sobreposto com abas Detalhes \| ✦ IA, próxima cobrança, dados, nota pinada, fiscal, Pix Automático (`:213-246`), cartão recorrente (`:253-286`), histórico de 12 meses (`:288-309`), notas e eventos, rodapé de ações. Vivo: 3ª coluna fixa `:841-849` com `DetailDrawer` `:928-1146` — tudo isso menos o cartão recorrente, IA inline (`JanaPanel`), PDF no topo. | **Decidir.** Painel sobreposto com aba IA (forma). O bloco de cartão recorrente é a b5 da auditoria — não entra aqui |
+| Nova assinatura | Protótipo `NovaAssinatura` `:482-534`: cliente, plano opcional, valor, ciclo, próxima cobrança, gateway, forma, descrição. Vivo `NewSubscriptionDrawer` `:1446-1772`: os mesmos campos, busca de cliente no servidor. | Nada — paridade. O campo de valor do protótipo usa ponto decimal sem máscara (f1 da auditoria) — o vivo não copia isso |
+| Editar cobrança | Protótipo `EditarCobranca` `:460-480`: valor, ciclo, forma. Vivo `EditSubscriptionDrawer` `:1777-1906`: os mesmos três; cliente, plano e data ficam fixos. | Nada — paridade |
+| Dados de exemplo | Protótipo `SUBS` `:44-83`: carteira fictícia de gráfica. Vivo: dados reais por empresa. | Nada — dado de exemplo não entra no app |
+
+## O que não é desta tabela
+- Defeitos do próprio protótipo (f1–f6 da auditoria: máscara de valor, estados de erro, acessibilidade do drawer, números de churn/MRR) vão ao Cowork no L7 — o espelho `prototipo-ui/cowork/Wagner/` não se edita aqui.
+- Cartão recorrente no drawer: decisão b5.

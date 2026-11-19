@@ -4,192 +4,128 @@
   "tela": "RecurringBilling/Faturas/Index (/recurring-billing/faturas)",
   "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-faturas-gap.md",
   "prototipo_sha": "sha256:74d2159744ee",
-  "gerado_em": "2026-11-04",
+  "gerado_em": "2026-11-19",
   "partes": [
     {
-      "id": "header-sub-nav",
+      "id": "cabecalho",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "344-348,367"
+        "linhas": "1091,1096-1107"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "448-450",
-        "ancora": false
+        "linhas": "445-476",
+        "ancora": "cabecalho"
       },
-      "status": "artefato",
-      "acao": "Nada — mock/harness do protótipo (`TABS` :344-348 + `window.PageHeaderNav` :367 são do harness Cowork; as abas já são a linha \"Abas Planos/Faturas/Config\" da tela-mãe, veredito `— · —`)",
-      "_acionavel": false
-    },
-    {
-      "id": "cta-nova-fatura",
-      "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
-      },
-      "vivo": {
-        "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "462-473",
-        "ancora": false
-      },
-      "status": "nao-adotar",
-      "acao": "Nada — Non-Goal do charter (\"❌ Criar fatura avulsa via UI (CTA \\\"Nova fatura\\\" stub · Onda 9 ou separado)\", Index.charter.md:59)",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Tirar o botão desabilitado — o protótipo não o desenha e criar fatura avulsa é Non-Goal do charter",
+      "_acionavel": true
     },
     {
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
+        "linhas": "880-889"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
         "linhas": "479-519",
-        "ancora": false
+        "ancora": "kpis"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade (desc :371 \"KPI de pago no mês\" existe: :483); a série sintética é observação do vivo, sem âncora no protótipo",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Tirar o sparkline sintético do hero (o protótipo não tem e a série não é dado real)",
+      "_acionavel": true
     },
     {
-      "id": "filtros-busca",
+      "id": "filtros-e-busca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
+        "linhas": "890-907"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
         "linhas": "522-607",
-        "ancora": false
+        "ancora": "filtros"
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (desc :371 cita status e gateway — ambos filtráveis; o placeholder não desenha filtro); intervalo custom é Non-Goal do charter (\"❌ Filtro avançado por intervalo de data customizado\", :64)",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Contagem por status nos chips — vem do servidor junto dos KPIs",
+      "_acionavel": true
     },
     {
       "id": "tabela",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
+        "linhas": "913-936"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
         "linhas": "624-694",
-        "ancora": false
+        "ancora": "lista"
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (desc :371 lista 4 status; o vivo tem 5, incl. reembolsada, mais coluna de gateway e vencimento relativo)",
+      "status": "paridade",
+      "acao": "Nada — paridade; o vivo tem um status a mais",
       "_acionavel": false
     },
     {
-      "id": "acoes-por-linha",
+      "id": "cancelar-fatura",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
+        "linhas": "938-946"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "676-686",
-        "ancora": false
-      },
-      "status": "nao-adotar",
-      "acao": "Nada — Non-Goal do charter (\"❌ Bulk cancel\", :61 · \"❌ Reenviar boleto/PIX manual\", :62 · \"❌ Export CSV/Excel\", :63 · \"❌ Refund manual\", :65 · \"❌ Reabrir fatura cancelada\", :66)",
-      "_acionavel": false
-    },
-    {
-      "id": "cancelamento",
-      "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
-      },
-      "vivo": {
-        "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "283-356",
+        "linhas": "283-356,419-435",
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — paridade na UI (desc :371 \"cancelamento\" existe); o resíduo C6 é backend com decisão já registrada (SPEC US-RB-042 `_parcial_`), fora do escopo de protótipo",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
-      "id": "drawer-detalhe-da-fatura",
+      "id": "vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
-      },
-      "vivo": {
-        "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "n/a (ausente — Non-Goal do charter, Onda 9)",
-        "ancora": false
-      },
-      "status": "nao-adotar",
-      "acao": "Nada — Non-Goal do charter (\"❌ Drawer detalhe completo da fatura (ChargeAttempts timeline · DanfeBoletoLink · ReceiptDownload — fica em Onda 9)\", Index.charter.md:60)",
-      "_acionavel": false
-    },
-    {
-      "id": "paginacao-rodape",
-      "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
-      },
-      "vivo": {
-        "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "700-736",
-        "ancora": false
-      },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (o placeholder não tem paginação)",
-      "_acionavel": false
-    },
-    {
-      "id": "estados-vazio-skeleton",
-      "prototipo": {
-        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
+        "linhas": "909-912"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
         "linhas": "612-621",
         "ancora": false
       },
-      "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (placeholder :332-342 não tem estado nenhum)",
+      "status": "paridade",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
-      "id": "overlays-atalhos",
+      "id": "paginacao-e-rodape",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
+        "linhas": "n/a (protótipo sem paginação)"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "758-759",
+        "linhas": "699-744",
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (o placeholder só tem \"← Voltar pras assinaturas\" via `window.__selectRoute`, harness)",
+      "acao": "Nada — vivo à frente",
       "_acionavel": false
     },
     {
-      "id": "linguagem-visual",
+      "id": "atalhos-e-ajuda",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "332-342,371"
+        "linhas": "858-861"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
-        "linhas": "208-213",
+        "linhas": "379-405,758-759",
         "ancora": false
       },
       "status": "vivo-a-frente",
-      "acao": "Nada — vivo à frente (desc do placeholder caducou: `grep -nEc 'zinc-／violet-' Faturas/Index.tsx` → 0; o vivo já está no molde stone/warm que o protótipo pede). O charter :35/:47 é o perdedor na cadeia de FORMA (UI-0029: protótipo > charter) — fica registrado aqui; a Fase 1 é read-only",
+      "acao": "Nada — vivo à frente",
       "_acionavel": false
     }
   ],
-  "mapping": {
-    "source": "cobranca-recorrente-page.jsx",
-    "target": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx"
-  },
-  "_nota_mapeamento": "No protótipo esta aba é só o <Placeholder> (cobranca-recorrente-page.jsx:332-342, tab em :371) que se declara atrás do vivo; todas as partes ancoram nesse bloco (não há desenho por parte). vivo.ancora:false EXPLÍCITO = opt-out consciente: o .tsx não tem nenhum data-contract (grep -c data-contract → 0), ancorar exige mudança de UI com gate próprio. Ranges do vivo = 1º range citado na célula 'Estado no vivo' do gap.md (grep -n real)."
+  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main bedeeb0096: o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
 }
