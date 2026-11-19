@@ -1,8 +1,7 @@
 // governance-data.jsx — dados do módulo Governança no app único. Espelha o que os controllers do
 // Modules/Governance do main servem: DashboardController (KPIs da Constituição, ADRs propostos,
 // ocorrências 24 h, saúde do ecossistema, SDD, seção MCP), PoliciesController (mcp_governance_rules),
-// AuditController (mcp_audit_log, teto 200), DriftAlertsController (scan de SCOPE.md) e
-// ModuleGradeController (rubrica module-grade-v3, ADR 0155).
+// AuditController (mcp_audit_log, teto 200) e DriftAlertsController (scan de SCOPE.md).
 // Números são de protótipo — a forma é a do vivo. Expõe window.GovernanceData.
 (() => {
 
@@ -159,43 +158,9 @@ const SEM_SCOPE = ["Spreadsheet", "Woocommerce", "TeamMcp", "AssetManagement", "
 const MODULOS_TOTAL = 34;
 const YAML_ILEGIVEL = [{ mod: "Essentials", erro: "linha 12: indentação inconsistente em contains[]" }];
 
-// ── Notas dos módulos (rubrica module-grade-v3, ADR 0155) ──
-// D6–D9 em null = ainda não avaliado na v3. Travessão nunca é zero (achado A7).
-const DIMS = ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9"];
-const DIM_NOME = { D1: "Domínio", D2: "Testes", D3: "Charter", D4: "Interface", D5: "Rotas", D6: "Desempenho", D7: "LGPD", D8: "Segurança", D9: "Observabilidade" };
-const NOTAS = [
-  { m: "Atendimento", nota: 94, d: [10, 10, 10, 10, 10, 9, 9, 9, 8] },
-  { m: "Crm", nota: 91, d: [10, 9, 10, 10, 10, 9, 9, 8, 8] },
-  { m: "Financeiro", nota: 88, d: [10, 9, 9, 10, 9, 8, 9, 8, 7] },
-  { m: "Governance", nota: 86, d: [9, 9, 10, 9, 9, 8, 8, 9, 7] },
-  { m: "Ponto", nota: 84, d: [9, 9, 9, 9, 9, 8, 9, 8, 6] },
-  { m: "Produtos", nota: 81, d: [9, 8, 9, 9, 9, 7, 8, 7, 6] },
-  { m: "Fiscal", nota: 79, d: [9, 8, 8, 8, 9, 7, 8, 8, 6] },
-  { m: "Estoque", nota: 74, d: [8, 7, 8, 8, 8, 7, 7, 7, 5] },
-  { m: "Oficina", nota: 71, d: [8, 7, 8, 8, 7, null, null, null, null] },
-  { m: "Compras", nota: 68, d: [8, 6, 7, 7, 8, null, null, null, null] },
-  { m: "Forja", nota: 66, d: [7, 6, 7, 8, 7, 6, 7, 6, 5] },
-  { m: "Jana", nota: 61, d: [7, 5, 7, 6, 7, 6, 6, 6, 4] },
-  { m: "Cms", nota: 54, d: [6, 5, 6, 6, 6, null, null, null, null] },
-  { m: "Connector", nota: 49, d: [6, 4, 6, 5, 5, null, null, null, null] },
-  { m: "Auditoria", nota: 44, d: [5, 4, 5, 5, 5, 4, 6, 5, 3] },
-  { m: "AssetManagement", nota: 31, d: [4, 2, 3, 4, 4, null, null, null, null] },
-  { m: "Woocommerce", nota: 22, d: [3, 1, 2, 3, 3, null, null, null, null] },
-  { m: "Spreadsheet", nota: 14, d: [2, 0, 2, 2, 2, null, null, null, null] },
-];
-const FAIXAS = [
-  { id: "excelente", l: "Excelente", min: 85, tone: "ok" },
-  { id: "bom", l: "Bom", min: 70, tone: "info" },
-  { id: "medio", l: "Médio", min: 50, tone: "warn" },
-  { id: "critico", l: "Crítico", min: 30, tone: "danger" },
-  { id: "embriao", l: "Embrião", min: 0, tone: "mute" },
-];
-const faixaDe = (n) => FAIXAS.find((f) => n >= f.min) || FAIXAS[FAIXAS.length - 1];
-
 window.GovernanceData = {
   ARTIGOS, KPIS_CONST, ADRS, OCORRENCIAS, SAUDE, NARRATIVAS, SDD, MCP, PERIODOS,
   POLITICAS, RES_LABEL, ENDPOINTS, ATORES, auditoria,
   DRIFT, SEM_SCOPE, MODULOS_TOTAL, YAML_ILEGIVEL,
-  DIMS, DIM_NOME, NOTAS, FAIXAS, faixaDe,
 };
 })();
