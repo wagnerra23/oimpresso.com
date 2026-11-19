@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\User;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Permission\Models\Permission;
@@ -23,16 +23,16 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  *   7) Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global scope
  *   8) não dispara mutação em GET (read-only puro)
  *
- * ADR 0101: testes biz=1 (não usar biz=4 ROTA LIVRE cliente real).
+ * ADR 0358: sessão no tenant fictício 98, adversário 99. Nunca empresa real (1 ou 4).
  */
 
 beforeEach(function () {
-    setPermissionsTeamId(1);
-
-    $this->business = Business::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'Test HQ', 'currency_id' => 1],
-    );
+    // Tenant fictício 98 (ADR 0358), semeado pela pest-mysql-setup. Sem ele, skip.
+    $this->business = Business::find(98);
+    if (! $this->business) {
+        $this->markTestSkipped('Lane sem tenant 98 semeado (ADR 0358).');
+    }
+    setPermissionsTeamId($this->business->id);
 
     $role = Role::firstOrCreate(
         ['name' => "Admin#{$this->business->id}", 'business_id' => $this->business->id, 'guard_name' => 'web'],
@@ -130,7 +130,7 @@ it('toggle endpoint inverte ativo do credential', function () {
 });
 
 it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global scope', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,
@@ -155,7 +155,7 @@ it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global sc
 });
 
 it('cross-tenant toggle: 404 ao tentar togglar credencial de outro business', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,

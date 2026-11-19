@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\User;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Activitylog\Models\Activity;
@@ -27,12 +27,12 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  */
 
 beforeEach(function () {
-    setPermissionsTeamId(1);
-
-    $this->business = Business::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'Test HQ', 'currency_id' => 1],
-    );
+    // Tenant fictício 98 (ADR 0358), semeado pela pest-mysql-setup. Sem ele, skip.
+    $this->business = Business::find(98);
+    if (! $this->business) {
+        $this->markTestSkipped('Lane sem tenant 98 semeado (ADR 0358).');
+    }
+    setPermissionsTeamId($this->business->id);
 
     $role = Role::firstOrCreate(
         ['name' => "Admin#{$this->business->id}", 'business_id' => $this->business->id, 'guard_name' => 'web'],
@@ -101,11 +101,8 @@ it('inclui diff field/from/to quando properties.old e .attributes existem', func
 });
 
 it('Tier 0: credencial de outro business → 404 (não vaza activity_log cross-tenant)', function () {
-    // Cria business 2 + credencial nele
-    $otherBiz = Business::query()->firstOrCreate(
-        ['id' => 2],
-        ['name' => 'Other HQ', 'currency_id' => 1],
-    );
+    // Credencial no adversário 99
+    $otherBiz = $this->seededSupportClientTenant();
     $otherCred = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id'   => $otherBiz->id,
         'gateway_key'   => 'asaas',
@@ -115,7 +112,7 @@ it('Tier 0: credencial de outro business → 404 (não vaza activity_log cross-t
         'health_status' => 'unknown',
     ]);
 
-    // User do biz=1 tenta acessar history da credencial do biz=2
+    // Sessão da 98 tenta ler history da credencial da 99
     $response = $this->actingAs($this->user)
         ->withSession([
             'user.business_id' => $this->business->id,
