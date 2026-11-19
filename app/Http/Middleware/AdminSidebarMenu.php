@@ -375,6 +375,18 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'sells' && request()->segment(2) == 'create' && empty(request()->get('status'))]
                             );
                         }
+                        // Venda V3 — só aparece onde ela grava (flag useV3SellsGravar, ligada nas
+                        // 101 empresas por [W] em 2026-11-19). Permissão espelha a guarda da rota
+                        // (SellsV3Controller@create: superadmin ou sell.create). Flag desligada
+                        // no GrowthBook tira o item do menu junto com a gravação.
+                        if ((auth()->user()->can('superadmin') || auth()->user()->can('sell.create'))
+                            && app(\App\Services\FeatureFlagService::class)->isOn(\App\Http\Controllers\SellsV3Controller::FLAG_GRAVAR, ['business_id' => (int) session('user.business_id')])) {
+                            $sub->url(
+                                route('sells.create-v3'),
+                                'Nova venda (V3)',
+                                ['icon' => '', 'active' => request()->segment(1) == 'sells' && request()->segment(2) == 'create-v3']
+                            );
+                        }
                         if (auth()->user()->can('sell.create')) {
                             if (in_array('pos_sale', $enabled_modules)) {
                                 if (auth()->user()->can('sell.view')) {
