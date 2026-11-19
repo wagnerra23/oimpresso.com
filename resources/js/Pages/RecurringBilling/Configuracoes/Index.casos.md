@@ -51,7 +51,8 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 | UC-RBCFG-06 | Token de um business não credita no outro | must `[T0]` `[V0]` | `CU-RB-07` 3/4 | `AsaasWebhookAuthTest` | 🧪 |
 | UC-RBCFG-07 | Evento repetido não é reprocessado (idempotência) | must `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookIdempotencyTest` | 🧪 |
 | UC-RBCFG-08 | O webhook do Inter tem as mesmas garantias do Asaas | must `[T0]` `[V0]` | `CU-RB-07` 1-5 | `InterWebhookControllerTest` | 🧪 |
-| UC-RBCFG-09 | Pagamento Asaas credita uma vez só, na quitação, e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookCreditoUnicoContratoTest` | 🧪 |
+| UC-RBCFG-09 | URL e header exibidos são os que o webhook de fato atende | must `[V0]` | `CU-RB-12` 4 · `CU-RB-07` 1 | `Wave8ConfiguracoesIndexTest` | 🧪 |
+| UC-RBCFG-10 | Pagamento Asaas credita uma vez só, na quitação, e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookCreditoUnicoContratoTest` | 🧪 |
 
 ---
 
@@ -105,6 +106,24 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 - **Contrato:** `CU-RB-12` item 4.
 - **Regressão que defende:** a URL virar constante (`/webhooks/asaas/1`) num refactor — todo cliente
   novo colaria a URL do business 1. É `[V0]` porque o desfecho é dinheiro creditado no lugar errado.
+- **Status: 🧪**
+
+---
+
+## UC-RBCFG-09 · URL e header exibidos são os que o webhook de fato atende · `must` `[V0]`
+- **Persona:** Wagner cadastra o webhook no painel do Asaas (ou do Inter) copiando a URL e o nome
+  do header desta tela. Se um dos dois não for o que o servidor atende, o gateway recebe 404 ou 401
+  e **nenhum pagamento é baixado** — sem erro visível do nosso lado.
+- **Aceite:** Dado a sessão de um business · Quando leio os webhooks · Então a URL do Asaas é a da
+  rota nomeada `webhooks.asaas` (prefixo `/api`, de `Routes/api.php`) e a do Inter é a de
+  `webhooks.inter.pix`; e o header exibido é a constante `AUTH_HEADER` que o
+  `AsaasWebhookController` (`asaas-access-token`) e o `InterWebhookController`
+  (`X-Inter-Webhook-Secret`) leem.
+- **Teste:** [`Wave8ConfiguracoesIndexTest`](../../../../../Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php)
+  — `UC-RBCFG-09 · URL e header de webhook são os que os controllers atendem`.
+- **Contrato:** `CU-RB-12` item 4 + `CU-RB-07` item 1.
+- **Regressão que defende:** até 2026-11-19 a tela montava a URL à mão sem o `/api` e mostrava o
+  header `X-Webhook-Token`, que o controller nunca leu (auditoria RecurringBilling, lote L4).
 - **Status: 🧪**
 
 ---
@@ -163,7 +182,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 
 ---
 
-## UC-RBCFG-09 · O pagamento credita uma vez só e só quando quita a fatura · `must` `[T0]` `[V0]`
+## UC-RBCFG-10 · O pagamento credita uma vez só e só quando quita a fatura · `must` `[T0]` `[V0]`
 - **Persona:** o Asaas manda `PAYMENT_CONFIRMED` e `PAYMENT_RECEIVED` para o mesmo pagamento (ids
   diferentes, então o UC-RBCFG-07 não barra) e reentrega quando o job falha. A empresa não pode ver o
   dinheiro em dobro no saldo nem receber duas NF-e.
@@ -173,7 +192,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   credita. Fatura cancelada não volta a paga. Número de fatura da 99 não mexe na 99. O crédito sai com
   o dono da empresa em `created_by`.
 - **Teste:** [`AsaasWebhookCreditoUnicoContratoTest`](../../../../../Modules/RecurringBilling/Tests/Feature/AsaasWebhookCreditoUnicoContratoTest.php)
-  — os sete casos `UC-RBCFG-09`. Cada caso confere o valor por dois caminhos: soma dos créditos e
+  — os sete casos `UC-RBCFG-10`. Cada caso confere o valor por dois caminhos: soma dos créditos e
   variação do saldo.
 - **Contrato:** `CU-RB-07` itens 5 e 6 + regra mestre de valor (`memory/proibicoes.md`).
 - **Regressão que defende:** o efeito de valor voltar a acontecer por evento recebido em vez de por

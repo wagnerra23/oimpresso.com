@@ -77,6 +77,7 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 | UC-FDFE-14 | o prazo vem da SEFAZ e tem três níveis | `[must]` | CU-FISC-07 | `DfeControllerTest` · `fiscal-dfe-prazo.test.tsx` | 🧪 |
 | UC-FDFE-15 | cada chip devolve só o seu estado | `[must]` | CU-FISC-07 | `DfeControllerTest` | 🧪 |
 | UC-FDFE-16 | a busca acha por chave, CNPJ e nome | `[must]` | CU-FISC-07 | `DfeControllerTest` | 🧪 |
+| UC-FDFE-17 | a aba Histórico mostra as manifestações reais | `[must]` | CU-FISC-16 | `DfeControllerTest` | 🧪 |
 
 ---
 
@@ -285,13 +286,24 @@ corresponde — buscar pelo nome de um emitente não traz a nota do outro.
 - **Achado (2026-11-04):** o teste nasceu vermelho na lane NfeBrasil (job 126830102081): buscar `LONAFICT` devolveu as duas notas. O Controller tirava os não-dígitos da busca, sobrava `''`, e `chave_44 like '%%'` casava tudo. Corrigido no mesmo PR: as condições de chave e CNPJ só entram quando a busca tem dígito.
 - **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-FDFE-17 — A aba Histórico mostra as manifestações reais `[must]`
+
+**Dado** notas recebidas já manifestadas (com `manifestado_em`) e uma ainda pendente
+**Quando** abro a aba Histórico
+**Então** vejo só as manifestadas, a mais recente primeiro, com o tipo de manifestação e, quando houve, a justificativa do último evento autorizado; a pendente não aparece, e o dado de demonstração (emitentes e autores inventados) não existe mais.
+
+- **Por que existe:** decisão [W] pendente desde a Onda 2, tomada em 2026-11-19 (lote 2 dos débitos do Fiscal): leitura real, mesma decisão das séries de Configurações.
+- **Sem "quem manifestou":** `nfe_dfe_eventos` não guarda o usuário; a coluna "Por" saiu em vez de mostrar autor inventado.
+- **Teste:** `DfeControllerTest` — `UC-FDFE-17 · a aba Histórico mostra as manifestações reais, com a justificativa do evento`.
+- **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · 🧪 em revisão] Nenhuma manifestação chegava à SEFAZ, por nenhum caminho** — `ManifestacaoService::buildConfig()` e `DistribuicaoDfeService::buildConfig()` fazem `select(['name','tax_number_1','state'])` em `business`. A coluna `state` **não existe**: 133 colunas no schema canônico (`database/schema/mysql-schema.sql`), 133 no staging CT 100 e 133 em produção Hostinger, sem `state` nos três — e nenhuma das 43 migrations que tocam `business` a cria. Toda manifestação morre em `SQLSTATE[42S22] Unknown column 'state'`, incluindo o `ManifestacaoController::bulkConfirmar` do próprio NfeBrasil. Os dois sites já carregam `?? 'SP'`, e o docblock diz *"UF default 35 (SP) — manifestação é nacional, mas Tools exige cUF"* — o default parece ter sido sempre a intenção, e a coluna no `select` o acidente. **Era motor fiscal, e a decisão [W] veio em 2026-09-04:** consertar pelo `resolverUF` canônico. Feito no PR [#6748](https://github.com/wagnerra23/oimpresso.com/pull/6748), nos **dois** sites (a lápide §5 2026-08-02 é explícita sobre corrigir só um de N) — e ali apareceram mais **dois** defeitos empilhados atrás deste. O #6748 **mergeou em 2026-09-04 13:59** — o item fica aqui até esta tela ganhar um UC que prove a manifestação ponta-a-ponta, que é o que falta para ele sair de vez.
 
-- **[BACKLOG · ⬜ sem teste · decisão [W]] A aba Histórico mostra manifestações reais** — hoje ela é servida por **dado de demonstração** com ator e observação inventados (`CU-FISC-16` do SDD §6.5 · §5.4.1). A consulta real está declarada como pendência no próprio código. **Precisa de decisão [W]** sobre marcar procedência, esconder atrás de flag ou declarar Non-Goal.
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FDFE-17] ~~A aba Histórico mostra manifestações reais~~ — hoje ela é servida por **dado de demonstração** com ator e observação inventados (`CU-FISC-16` do SDD §6.5 · §5.4.1). A consulta real está declarada como pendência no próprio código. **Precisa de decisão [W]** sobre marcar procedência, esconder atrás de flag ou declarar Non-Goal.
 
 ## Como rodar a suíte
 

@@ -8,7 +8,7 @@ declare(strict_types=1);
  * @covers-us US-RB-041
  *
  * UC (resources/js/Pages/RecurringBilling/Configuracoes/Index.casos.md · CU-RB-07 do SDD §6.1):
- *   UC-RBCFG-09 — pagamento credita uma vez só, só na transição para paga e só se cobre a fatura [V0]
+ *   UC-RBCFG-10 — pagamento credita uma vez só, só na transição para paga e só se cobre a fatura [V0]
  *
  * Auditoria RecurringBilling 2026-11-19, achado a3: PAYMENT_CONFIRMED e PAYMENT_RECEIVED (ids
  * diferentes, cartão manda os dois) caíam no mesmo ramo e CADA UM lançava crédito em
@@ -141,7 +141,7 @@ function rbCuDeltaSaldoCentavos(int $biz): int
     return (int) round($saldo * 100) - 100000;
 }
 
-it('UC-RBCFG-09 · CONFIRMED + RECEIVED + retry da mesma fatura creditam 150,00 uma vez só', function () {
+it('UC-RBCFG-10 · CONFIRMED + RECEIVED + retry da mesma fatura creditam 150,00 uma vez só', function () {
     $id = rbCuFatura(RB_CU_BIZ, 'INV-98-0001', '150.00');
 
     rbCuWebhook(RB_CU_BIZ, 'evt_conf', 'PAYMENT_CONFIRMED', 'INV-98-0001', 150.00);
@@ -159,7 +159,7 @@ it('UC-RBCFG-09 · CONFIRMED + RECEIVED + retry da mesma fatura creditam 150,00 
         && $e->invoiceRef === 'INV-98-0001' && abs($e->valor - 150.00) < 0.001);
 });
 
-it('UC-RBCFG-09 · pagamento de 120,00 numa fatura de 150,00 não quita nem credita', function () {
+it('UC-RBCFG-10 · pagamento de 120,00 numa fatura de 150,00 não quita nem credita', function () {
     $id = rbCuFatura(RB_CU_BIZ, 'INV-98-0002', '150.00');
 
     rbCuWebhook(RB_CU_BIZ, 'evt_parcial', 'PAYMENT_RECEIVED', 'INV-98-0002', 120.00);
@@ -170,7 +170,7 @@ it('UC-RBCFG-09 · pagamento de 120,00 numa fatura de 150,00 não quita nem cred
     Event::assertNotDispatched(InvoicePaid::class);
 });
 
-it('UC-RBCFG-09 · controle positivo do limite: 150,00 exatos numa fatura de 150,00 quita', function () {
+it('UC-RBCFG-10 · controle positivo do limite: 150,00 exatos numa fatura de 150,00 quita', function () {
     $id = rbCuFatura(RB_CU_BIZ, 'INV-98-0003', '150.00');
 
     rbCuWebhook(RB_CU_BIZ, 'evt_exato', 'PAYMENT_RECEIVED', 'INV-98-0003', 150.00);
@@ -180,7 +180,7 @@ it('UC-RBCFG-09 · controle positivo do limite: 150,00 exatos numa fatura de 150
         ->and(rbCuDeltaSaldoCentavos(RB_CU_BIZ))->toBe(15000);
 });
 
-it('UC-RBCFG-09 · o crédito sai com o dono da empresa, não com o usuário 1', function () {
+it('UC-RBCFG-10 · o crédito sai com o dono da empresa, não com o usuário 1', function () {
     rbCuFatura(RB_CU_BIZ, 'INV-98-0004', '80.00');
 
     rbCuWebhook(RB_CU_BIZ, 'evt_dono', 'PAYMENT_RECEIVED', 'INV-98-0004', 80.00);
@@ -190,7 +190,7 @@ it('UC-RBCFG-09 · o crédito sai com o dono da empresa, não com o usuário 1',
         ->not->toBe(1);
 });
 
-it('UC-RBCFG-09 · fatura cancelada não volta a paga e não credita', function () {
+it('UC-RBCFG-10 · fatura cancelada não volta a paga e não credita', function () {
     $id = rbCuFatura(RB_CU_BIZ, 'INV-98-0005', '150.00', 'canceled');
 
     rbCuWebhook(RB_CU_BIZ, 'evt_canc', 'PAYMENT_RECEIVED', 'INV-98-0005', 150.00);
@@ -200,7 +200,7 @@ it('UC-RBCFG-09 · fatura cancelada não volta a paga e não credita', function 
     Event::assertNotDispatched(InvoicePaid::class);
 });
 
-it('UC-RBCFG-09 · webhook da 98 com número de fatura da 99 não mexe na 99', function () {
+it('UC-RBCFG-10 · webhook da 98 com número de fatura da 99 não mexe na 99', function () {
     $da99 = rbCuFatura(RB_CU_OUTRA, 'INV-99-0001', '150.00');
 
     rbCuWebhook(RB_CU_BIZ, 'evt_cruzado', 'PAYMENT_RECEIVED', 'INV-99-0001', 150.00);
@@ -212,7 +212,7 @@ it('UC-RBCFG-09 · webhook da 98 com número de fatura da 99 não mexe na 99', f
     Event::assertNotDispatched(InvoicePaid::class);
 });
 
-it('UC-RBCFG-09 · pagamento sem externalReference não credita nada', function () {
+it('UC-RBCFG-10 · pagamento sem externalReference não credita nada', function () {
     (new ProcessAsaasWebhookJob(RB_CU_BIZ, 'evt_sem_ref', 'PAYMENT_RECEIVED', [
         'id' => 'pay_avulso', 'value' => 99.90, 'paymentDate' => '2026-11-19',
     ]))->handle();
