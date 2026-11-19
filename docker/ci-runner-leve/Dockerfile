@@ -11,6 +11,12 @@ USER root
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates curl unzip xz-utils \
  && rm -rf /var/lib/apt/lists/*
+# Node no PATH, como no ubuntu-latest (que traz Node 22). Medido 2026-11-19: o job
+# cron-liveness do memory-health.yml chama `node` sem setup-node ("o runner já traz
+# Node 20+") e caiu com exit 127 numa vaga. O runner embute node20 e node24; usa o 24.
+RUN d=/home/runner/externals/node24/bin \
+ && for t in node npm npx; do ln -sf "$d/$t" "/usr/local/bin/$t"; done \
+ && node --version && npm --version
 COPY --chmod=755 entrypoint.sh /usr/local/bin/ci-leve-entrypoint
 COPY --chmod=755 limpa-workspace.sh /usr/local/bin/ci-leve-limpa-workspace.sh
 # Esvazia o workspace antes de cada job (runner persistente; ver limpa-workspace.sh).
