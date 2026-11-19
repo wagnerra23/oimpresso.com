@@ -143,7 +143,7 @@ it('d3 · sem NF-e vinculada à fatura responde 422 e NÃO reenvia a nota de out
         'created_at' => now(), 'updated_at' => now()]);
     ($this->faturaPaga)([]);
 
-    $r = ($this->reenviar)(['fiscal.nfe.acoes']);
+    $r = ($this->reenviar)(['recurringbilling.access', 'fiscal.nfe.acoes']);
 
     expect($r->getStatusCode())->toBe(422)
         ->and($r->getData(true)['error'])->toBe('sem_nfe_vinculada')
@@ -161,7 +161,7 @@ it('d3 · sem a permissão de reenvio do NfeBrasil responde 403; com ela, reenvi
         ->and($this->pedidos->getArrayCopy())->toBe([]);
 
     // Positivo: uma das permissões de PermissaoNfe::REENVIAR — reenvia exatamente a vinculada.
-    $ok = ($this->reenviar)(['fiscal.nfe.acoes']);
+    $ok = ($this->reenviar)(['recurringbilling.access', 'fiscal.nfe.acoes']);
     expect($ok->getStatusCode())->toBe(200)
         ->and($ok->getData(true)['emissao_id'])->toBe(424242)
         ->and($this->pedidos->getArrayCopy())->toBe([424242])
@@ -172,7 +172,7 @@ it('d3 · falha no reenvio devolve mensagem genérica, sem o texto da exceção'
     ($this->faturaPaga)(['nfe_emissao_id' => 515151]);
     $this->falha->append(true);
 
-    $r = ($this->reenviar)(['nfebrasil.emit.manage']);
+    $r = ($this->reenviar)(['recurringbilling.access', 'nfebrasil.emit.manage']);
 
     expect($r->getStatusCode())->toBe(503)
         ->and($r->getData(true)['error'])->toBe('nfe_reenvio_falhou')
