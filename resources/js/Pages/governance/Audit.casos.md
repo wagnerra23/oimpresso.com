@@ -82,6 +82,15 @@ entry é incidente P0.
 **Pronto quando:** toda rota sob `governance/audit` aceita só GET/HEAD, e o `AuditController` não tem
 ação pública além de `index`.
 
+## UC-GAUD-09 — Filtro fora da lista é recusado no servidor
+Status: 🧪 (Pest `tests/Feature/Governance/MenuPermissaoContratoTest.php` — "UC-GAUD-09 · …")
+Fonte: docblock do `FilterAuditRequest` (whitelist de período, status e slug do actor) e o enum de
+`mcp_audit_log.status` na migration da Forja; auditoria do módulo 2026-11-19 (eixo 5, B1: a request
+existia e o controller não a usava). Até 2026-11-19 um período desconhecido caía calado no padrão de 24h.
+**Pronto quando:** o `index` recebe o `FilterAuditRequest`; período fora de 1h/24h/7d/30d, status fora de
+ok/error/denied/quota_exceeded e actor com caractere fora de letra/número/hífen são recusados; os valores
+que a tela oferece passam.
+
 ## [BACKLOG] — sem teste que os cite, por isso sem id
 
 - [BACKLOG] O corte de 200 linhas no SQL (`getRecentEntries(200, …)`), o recorte por período e a ordem

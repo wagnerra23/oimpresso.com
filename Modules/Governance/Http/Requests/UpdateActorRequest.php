@@ -36,8 +36,8 @@ class UpdateActorRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Middleware stack ('web' + 'authh' + 'auth') ja gate admin no
-        // routes.php — actor management e sensitivo (Constituicao Art. 8).
+        // `authh` é o IsInstalled (app/Http/Kernel.php), não gate de admin; esta
+        // request ainda não tem rota — actor management é sensível (Constituição Art. 8).
         // Sprint Governance futuro vai adicionar Spatie permission check
         // explicito (ex: governance.actor.update).
         return $this->user() !== null;
