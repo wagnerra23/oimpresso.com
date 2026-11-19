@@ -1,17 +1,16 @@
 {
-  "_nota": "Contrato de Tela do módulo Governança (ADR 0286). Trava seções, copy literal e estados das cinco vistas. Rodar advisory no contrato-de-tela.yml antes de promover a required.",
+  "_nota": "Contrato de Tela do módulo Governança (ADR 0286). Trava seções, copy literal e estados das quatro vistas (a vista Notas dos módulos saiu — G-NOTAS, [W] 2026-09-24; ADR 0399). Rodar advisory no contrato-de-tela.yml antes de promover a required.",
   "tela": "Governance/Index",
-  "fonte": "prototipo-ui/cowork/governance/governance-page.jsx + governance-telas.jsx + governance-data.jsx",
+  "fonte": "prototipo-ui/cowork/Wagner/governance-page.jsx + governance-telas.jsx + governance-data.jsx",
   "alvo": [
     "resources/js/Pages/governance/Dashboard.tsx",
     "resources/js/Pages/governance/Policies.tsx",
     "resources/js/Pages/governance/Audit.tsx",
-    "resources/js/Pages/governance/DriftAlerts.tsx",
-    "resources/js/Pages/governance/ModuleGrades/Index.tsx"
+    "resources/js/Pages/governance/DriftAlerts.tsx"
   ],
   "secoes": [
-    { "id": "page-header", "copy": ["Governança — painel", "Governança — políticas", "Governança — auditoria", "Governança — drift de escopo", "Governança — notas dos módulos", "superadmin · cross-tenant"] },
-    { "id": "tabs", "copy": ["Painel", "Políticas", "Auditoria", "Drift", "Notas dos módulos"] },
+    { "id": "page-header", "copy": ["Governança — painel", "Governança — políticas", "Governança — auditoria", "Governança — drift de escopo", "superadmin · cross-tenant"] },
+    { "id": "tabs", "copy": ["Painel", "Políticas", "Auditoria", "Drift"] },
     { "id": "aviso-rota", "copy": ["A raiz /governance redireciona para /ia", "O painel vive em /governance/dashboard"] },
     { "id": "kpis-constituicao", "copy": ["ADRs aguardando decisão", "Políticas ativas", "Aprovações de skill", "Atores registrados", "Ocorrências em 24 h", "Conformidade"], "estados": ["normal", "fonte-ausente"] },
     { "id": "conformidade-regua", "copy": ["auto-declarado", "7 artigos plenos", "2 parciais", "1 pendente", "O número é escrito à mão no controller, não apurado"], "estados": ["auto-declarado"] },
@@ -32,11 +31,7 @@
     { "id": "drift-kpis", "copy": ["Controllers em drift", "Módulos com drift", "Sem SCOPE.md", "Módulos no total"], "estados": ["com-drift", "zero-drift"] },
     { "id": "drift-lista", "copy": ["Divergência detectada em runtime", "não declarado", "Declare em SCOPE.md contains[]", "mova o arquivo", "registre em drift_alerts[]"], "estados": ["com-drift", "zero-drift", "yaml-ilegivel"] },
     { "id": "drift-sem-scope", "copy": ["Módulos sem SCOPE.md"], "estados": ["normal", "vazio"] },
-    { "id": "drift-historico", "copy": ["Histórico (últimos 30 dias)", "O cron de detecção ainda não roda", "mcp_alertas não aceita a categoria module_drift"], "estados": ["sem-cron"] },
-    { "id": "notas-kpis", "copy": ["Média do projeto", "Módulos avaliados", "Abaixo da linha de base"] },
-    { "id": "notas-faixas", "copy": ["Excelente", "Bom", "Médio", "Crítico", "Embrião"], "estados": ["todas", "filtrada"] },
-    { "id": "notas-tabela", "copy": ["Módulo", "Nota", "Faixa", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "não avaliado na v3"], "estados": ["carregando", "normal", "vazio"] },
-    { "id": "notas-gate-ci", "copy": ["Gate de CI", "nota que cai bloqueia o merge", "module-grades-allowed-regression"], "estados": ["sempre"] }
+    { "id": "drift-historico", "copy": ["Histórico (últimos 30 dias)", "O cron de detecção ainda não roda", "mcp_alertas não aceita a categoria module_drift"], "estados": ["sem-cron"] }
   ],
   "ordem": ["page-header", "tabs", "kpis-constituicao", "conformidade-regua", "card-sdd", "saude-ecossistema", "aguardando-decisao", "mcp-secao"],
   "proibicoes": [
@@ -50,11 +45,9 @@
     "Modal de confirmação para alternar política (ação reversível — atrito proibido pelo charter vivo).",
     "Alternar políticas em lote.",
     "Botão de ignorar, adiar ou silenciar drift; auto-correção de SCOPE.md pela interface.",
-    "Edição de nota, peso de rubrica ou disparo de avaliação na tela de notas.",
-    "Contar travessão como zero na média das dimensões D6–D9.",
-    "Período de auditoria maior que 30 dias; consulta sem o teto de 200.",
+        "Período de auditoria maior que 30 dias; consulta sem o teto de 200.",
     "Esconder política desligada por padrão.",
-    "localStorage/sessionStorage de filtro em qualquer das cinco vistas.",
+    "localStorage/sessionStorage de filtro em qualquer das quatro vistas.",
     "Cor crua de paleta (bg-red-100, emerald-500, amber-400) — só tom semântico do DS.",
     "href no KpiCard (a prop não existe).",
     "Inglês em copy cliente-facing. Emoji na tela.",
@@ -98,15 +91,6 @@
       "valores": ["sem_categoria", "module_drift"],
       "backend": "Modules/Governance/Services/DriftAlertService.php",
       "frontend": ["resources/js/Pages/governance/DriftAlerts.tsx"]
-    },
-    {
-      "id": "dimensao-nao-avaliada",
-      "verdict": "proposto",
-      "escopo": "global",
-      "descricao": "Nas dimensões D6–D9 da rubrica v3, módulo ainda não avaliado mostra travessão — estado distinto de nota zero, e excluído da média daquela dimensão. Compatibilidade retroativa é requisito, não cortesia.",
-      "valores": ["nao_avaliado", "avaliado"],
-      "backend": "Modules/Governance/Services/ModuleGradeService.php",
-      "frontend": ["resources/js/Pages/governance/ModuleGrades/Index.tsx"]
     },
     {
       "id": "escopo-das-tabelas-mcp",

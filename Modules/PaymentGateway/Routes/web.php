@@ -40,7 +40,15 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 // ─── Settings UI (Onda 4d.3 F3 Tela 2) ───────────────────────────────────
 // Persona Wagner / superadmin / owner. Stack canon UPOS auth.
 // Charter: Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md
-Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
+//
+// `can:business_settings.access` no GRUPO (auditoria PaymentGateway L0, 2026-11-19): até aqui
+// qualquer usuário logado da empresa trocava api_key/webhook_secret, apagava credencial e subia
+// retorno CNAB que dá baixa em cobrança. É a permissão das Configurações da empresa no UltimatePOS
+// (PermissionsTableSeeder, tela de papéis); o papel `Admin#{biz}` passa pelo Gate::before. Os
+// docblocks antigos citavam `system_settings.access`, que não existe no repo — nenhum papel
+// conseguiria recebê-la. Permissões granulares `paymentgateway.*` são decisão B1 do [W].
+// Contrato: Modules/PaymentGateway/Tests/Feature/Settings/PaymentGatewaysPermissaoContratoTest.php
+Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'can:business_settings.access'])
     ->prefix('settings')
     ->name('settings.')
     ->group(function () {
