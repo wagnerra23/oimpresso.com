@@ -61,9 +61,7 @@ class ConfigController extends Controller
                 ? (int) now()->startOfDay()->diffInDays($cert->valido_ate, false)
                 : null;
 
-            $alerta = $dias === null
-                ? null
-                : ($dias < 0 ? 'vencido' : ($dias <= 30 ? 'proximo_vencimento' : 'ok'));
+            $alerta = self::alertaValidade($dias);
 
             // Fallback CNPJ titular (cert antigo pode ter vazio). A chave do painel é
             // `cnpjBusiness` — até 2026-11-05 isto lia `cnpj_business`, que não existe:
@@ -160,6 +158,20 @@ class ConfigController extends Controller
         $service->salvar((int) $request->session()->get('business.id'), $dados, (int) auth()->id());
 
         return back()->with('status', ['success' => 1, 'msg' => 'Contador salvo.']);
+    }
+
+    /**
+     * Tom da validade do certificado: vencido (dia anterior a hoje), perto de vencer
+     * (de hoje até 30 dias) ou tranquilo. Sem data de validade, sem tom.
+     * Limiares travados pelo UC-FCFG-17.
+     */
+    public static function alertaValidade(?int $dias): ?string
+    {
+        if ($dias === null) {
+            return null;
+        }
+
+        return $dias < 0 ? 'vencido' : ($dias <= 30 ? 'proximo_vencimento' : 'ok');
     }
 
     /** @return array{nome: string, email: string, crc: string|null, papel: string}|null */
