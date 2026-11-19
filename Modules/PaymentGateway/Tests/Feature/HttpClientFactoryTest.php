@@ -241,3 +241,82 @@ it('headers são propagados pro PendingRequest', function () {
             && $request->hasHeader('X-Request-Id', 'req-001');
     });
 });
+
+// ─── Auditoria PG 2.4: retry só onde repetir não cria cobrança em dobro ──────
+
+it('2.4 POST que cria cobrança com 503 NÃO repete (devolve a falha na 1ª)', function () {
+    Http::fake([
+        'https://fake-bank.test/*' => Http::sequence()
+            ->push(['error' => 'unavailable'], 503)
+            ->push(['ok' => true, 'id' => 'cob_dobrada'], 200),
+    ]);
+
+    $client = HttpClientFactory::make('https://fake-bank.test');
+    $response = HttpClientFactory::send(fn () => $client->post('/v1/cobrancas', ['valor' => 4321]));
+
+    expect($response->status())->toBe(503);
+    Http::assertSentCount(1);
+});
+
+it('2.4 POST com timeout de conexão NÃO repete', function () {
+    Http::fake([
+        'https://fake-bank.test/*' => Http::sequence()
+            ->pushFailedConnection()
+            ->push(['ok' => true, 'id' => 'cob_dobrada'], 200),
+    ]);
+
+    $client = HttpClientFactory::make('https://fake-bank.test');
+
+    expect(fn () => HttpClientFactory::send(fn () => $client->post('/v1/cobrancas', ['valor' => 4321])))
+        ->toThrow(Illuminate\Http\Client\ConnectionException::class);
+});
+
+it('2.4 GET com timeout de conexão continua repetindo', function () {
+    Http::fake([
+        'https://fake-bank.test/*' => Http::sequence()
+            ->pushFailedConnection()
+            ->push(['ok' => true], 200),
+    ]);
+
+    $client = HttpClientFactory::make('https://fake-bank.test');
+
+    expect(HttpClientFactory::send(fn () => $client->get('/v1/cobrancas/1'))->successful())->toBeTrue();
+});
+
+it('2.4 PUT (idempotente por txid) com 503 continua repetindo', function () {
+    Http::fake([
+        'https://fake-bank.test/*' => Http::sequence()
+            ->push(['error' => 'unavailable'], 503)
+            ->push(['ok' => true], 200),
+    ]);
+
+    $client = HttpClientFactory::make('https://fake-bank.test');
+
+    expect(HttpClientFactory::send(fn () => $client->put('/pix/v2/cob/tx1', []))->successful())->toBeTrue();
+    Http::assertSentCount(2);
+});
+
+it('2.4 POST com Idempotency-Key repete em 503', function () {
+    Http::fake([
+        'https://fake-bank.test/*' => Http::sequence()
+            ->push(['error' => 'unavailable'], 503)
+            ->push(['ok' => true], 200),
+    ]);
+
+    $client = HttpClientFactory::make('https://fake-bank.test', ['Idempotency-Key' => 'chave-pg24']);
+
+    expect(HttpClientFactory::send(fn () => $client->post('/v1/cobrancas', []))->successful())->toBeTrue();
+    Http::assertSentCount(2);
+});
+
+it('2.4 shouldRetry: matriz método × falha', function () {
+    $conn = new Illuminate\Http\Client\ConnectionException('timeout');
+
+    expect(HttpClientFactory::shouldRetry($conn, 'POST'))->toBeFalse()
+        ->and(HttpClientFactory::shouldRetry($conn, 'PATCH'))->toBeFalse()
+        ->and(HttpClientFactory::shouldRetry($conn, null))->toBeFalse()
+        ->and(HttpClientFactory::shouldRetry($conn, 'GET'))->toBeTrue()
+        ->and(HttpClientFactory::shouldRetry($conn, 'delete'))->toBeTrue()
+        ->and(HttpClientFactory::shouldRetry($conn, 'POST', true))->toBeTrue()
+        ->and(HttpClientFactory::shouldRetry(new RuntimeException('x'), 'GET'))->toBeFalse();
+});

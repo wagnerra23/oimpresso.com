@@ -1422,6 +1422,31 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `rb_webhooks` (auditoria RecurringBilling 2026-11-19, achado a2):
+        // drena o ProcessAsaasWebhookJob e o ProcessInterWebhookJob, que o AsaasWebhookController
+        // e o InterWebhookController despacham com ->onQueue('rb_webhooks'). Nenhum queue:work
+        // acima lia esta fila: o evento ficava `processed=false` e a fatura nao virava paga.
+        //
+        // Medido em producao em 2026-11-19 (so leitura): QUEUE_CONNECTION=database, 0 jobs nesta
+        // fila, 0 em failed_jobs e `pg_webhook_events` vazia — nao ha backlog para o worker
+        // drenar, entao ele nasce sem flag. O credito do Asaas so e lancado na transicao da
+        // fatura para paga (ProcessAsaasWebhookJob, mesmo lote): reentrega e retry nao somam.
+        //
+        // POR QUE ENTRADA PROPRIA, e NAO na lista do worker de backlog: aquele esta atras de
+        // `queue.backlog_worker_enabled` (default FALSE). --tries=3 casa com o $tries dos dois
+        // jobs; o $timeout default (60s) cobre a chamada ao banco. withoutOverlapping(5):
+        // 1 processo por vez (LSPHP do Hostinger).
+        $schedule->command('queue:work database --queue=rb_webhooks --max-time=55 --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(5)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work rb_webhooks FALHOU — pagamento recebido pelo webhook do RecurringBilling pode ficar parado na jobs table'
+                );
+            });
+
         // Worker da fila `paymentgateway` (auditoria PaymentGateway L0, 2026-11-19): drena
         // ProcessarWebhookPixInterJob, ProcessarWebhookBcbPixJob e RetryOrphanWebhookJob, que
         // fazem ->onQueue('paymentgateway'). Nenhum queue:work acima lia esta fila — mesmo

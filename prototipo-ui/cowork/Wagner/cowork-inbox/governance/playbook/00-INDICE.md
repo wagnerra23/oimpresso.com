@@ -248,8 +248,9 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "nota": "Item 1 do pedido (protótipo) feito pelo [CC] em 2026-09-29: governance-page.jsx?v=gov4sem-notas (VIEWS com 4 vistas; gov-notas cai no painel; ghost saiu do data.jsx). Itens 2–4 são do main. Depois, refazer o #7138 (rótulos PT-BR das 4 abas).",
       "prefixo": [
         "governance/design/contracts/governance.contract.json",
-        "resources/js/Pages/governance/Index.charter.md",
-        "resources/js/Pages/governance/Index.casos.md"
+        "prototipo-ui/cowork/Wagner/cowork-inbox/governance/governance.contract.json",
+        "prototipo-ui/cowork/Wagner/cowork-inbox/governance/Index.charter.md",
+        "prototipo-ui/cowork/Wagner/cowork-inbox/governance/Index.casos.md"
       ],
       "nao_toca": [
         "Modules/Governance/Http/Controllers/DataController.php"
@@ -258,6 +259,11 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
         {
           "tipo": "nao_contem",
           "path": "governance/design/contracts/governance.contract.json",
+          "padrao": "notas-kpis"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/governance/governance.contract.json",
           "padrao": "notas-kpis"
         }
       ]

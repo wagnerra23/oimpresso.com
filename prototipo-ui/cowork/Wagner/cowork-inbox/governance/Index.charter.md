@@ -1,12 +1,12 @@
 ---
 id: governance-cowork-index-charter
-page: /governance (painel · políticas · auditoria · drift · notas dos módulos)
-component: prototipo-ui/cowork/governance/governance-page.jsx
+page: /governance (painel · políticas · auditoria · drift)
+component: prototipo-ui/cowork/Wagner/governance-page.jsx
 status: draft
 owner: wagner
 last_validated: "2026-08-23"
 parent_module: Governance
-related_adrs: [0079, 0084, 0086, 0094, 0110, 0147, 0153, 0154, 0155, 0264, 0275, 0286, 0366]
+related_adrs: [0079, 0084, 0086, 0094, 0110, 0147, 0153, 0154, 0264, 0275, 0286, 0366]
 tier: A
 charter_version: 1
 ---
@@ -14,6 +14,8 @@ charter_version: 1
 # Page Charter — módulo Governança (F1 Cowork)
 
 > **[CC]** F1 visual, 2026-08-23. Uma tela do app único com cinco vistas — `governance` · `gov-politicas` · `gov-auditoria` · `gov-drift` · `gov-notas`. Nenhum `.html` novo.
+>
+> **[CC] 2026-11-19:** a vista `gov-notas` saiu (G-NOTAS, [W] 2026-09-24; a rubrica module-grade foi aposentada pela ADR 0399). São **quatro** vistas; o endereço `gov-notas` cai no painel, como o 301 de produção. O parágrafo acima fica como registro do F1.
 >
 > **Lido no `main` NESTE turno** (tree `dab8e0e65484`): `Modules/Governance/Http/routes.php`, `Resources/menus/topnav.php`, `Http/Controllers/{Dashboard,Policies,Audit,DriftAlerts}Controller.php`, `resources/js/Pages/governance/{Dashboard,Policies,Audit,DriftAlerts,ModuleGrades/Index}.charter.md`, `resources/js/Pages/governance/_shared/GovernancaSubNav.tsx`, `prototipo-ui/{FRESCOR-PRODUCAO-vs-PROTOTIPO,PRE-FLIGHT-TELA}.md`.
 > ⚠️ Não commitado — as tools de GitHub aqui são read-only. Ponte = cola zero-toque ou Issue `cowork-intake`.
@@ -24,7 +26,7 @@ charter_version: 1
 
 ## Mission
 
-Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** — a pergunta do módulo ([ADR 0366](../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md) §D-A). Cinco vistas, uma pergunta cada:
+Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** — a pergunta do módulo ([ADR 0366](../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md) §D-A). Quatro vistas, uma pergunta cada:
 
 | Vista | Rota do vivo | Pergunta |
 |---|---|---|
@@ -32,7 +34,6 @@ Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** �
 | Políticas | `/governance/policies` | Quais regras estão valendo agora? |
 | Auditoria | `/governance/audit` | Quem chamou o quê, quando, com que resultado? |
 | Drift | `/governance/drift` | Onde o código andou sem o `SCOPE.md` andar junto? |
-| Notas dos módulos | `/governance/module-grades` | Qual a maturidade de cada módulo? |
 
 ---
 
@@ -52,13 +53,13 @@ Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** �
 
 **R7 · Drift não tem "ignorar".** Cada divergência exige remediação explícita: declarar em `contains[]`, mover o controller, ou registrar em `drift_alerts[]`. Sem soneca, sem auto-fix — a tela não edita `SCOPE.md`.
 
-**R8 · Notas dos módulos são leitura.** Nem editar peso de rubrica (isso é ADR 0154 append-only), nem disparar avaliação, nem guardar filtro no navegador.
+**R8 · (retirada em 2026-11-19).** Era "notas dos módulos são leitura"; a vista saiu (G-NOTAS, [W] 2026-09-24; ADR 0399). O número fica reservado para não renumerar as regras seguintes.
 
 **R9 · Multi-tenant declarado, não inventado.** As `mcp_*` são **cross-tenant por design** — exceção formal ao Tier 0 (Constituição Art. 6+8, coberta por `CrossTenantPolicyTest`). O F1 marca a tela como `superadmin · cross-tenant` e **não** finge filtro por negócio onde a coluna `business_id` não existe.
 
 **R10 · Degradação graciosa é estado de tela, não erro.** Tabela ausente (`failed_jobs`, `jana_mensagens`, `jana_health_narratives`, `mcp_sdd_scorecard_history`, `mcp_audit_log`) → KPI em travessão ou vazio com motivo. Nunca tela quebrada, nunca zero mentiroso.
 
-**R11 · O que é caro chega depois.** No vivo, `sdd` e `mcp` são `Inertia::defer`; notas dos módulos idem (o serviço faz I/O de filesystem em 34 módulos). O F1 representa isso com esqueleto de carregamento, não com número instantâneo.
+**R11 · O que é caro chega depois.** No vivo, `sdd` e `mcp` são `Inertia::defer`. O F1 representa isso com esqueleto de carregamento, não com número instantâneo.
 
 **R12 · A seção MCP tem dono de permissão próprio.** Ela herda `jana.mcp.usage.all` — **não** `governance.dashboard.view`. Somar as duas seria mais restritivo que ontem e esconderia a seção de quem a via.
 
@@ -80,7 +81,7 @@ Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** �
 
 **A6 — o scan de drift é síncrono.** ~30 módulos + parse de YAML no primeiro render, alvo p95 de 1,2 s. É o candidato número 1 a defer da tela; enquanto não for, o F1 mostra o custo com esqueleto.
 
-**A7 — a rubrica v3 tem colunas que nem todo módulo tem.** D6–D9 (perf, LGPD, segurança, observabilidade) mostram travessão quando o módulo ainda não foi avaliado na v3. Travessão ≠ zero: a tela precisa distinguir os dois, senão a média mente.
+**A7 — (retirado em 2026-11-19).** Falava das colunas D6–D9 da rubrica v3 na vista de notas; a vista e a rubrica saíram (G-NOTAS, ADR 0399).
 
 ---
 
@@ -90,7 +91,6 @@ Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** �
 - ❌ Criar política pela interface (MVP: só alternar; editor de JSON é iteração à parte).
 - ❌ Alternar várias políticas de uma vez — uma por vez força reflexão.
 - ❌ Auto-corrigir `SCOPE.md`, ou dar botão de silenciar drift.
-- ❌ Editar peso de rubrica ou disparar avaliação de módulo.
 - ❌ Exportar CSV/PDF de LGPD Art. 18 (declarado como próxima iteração no vivo).
 - ❌ Acompanhamento em tempo real (sem WebSocket; atualização é manual).
 - ❌ Absorver **Custos de IA** e **Qualidade IA** — existem no vivo sob `/governance`, mas com permissões `jana.*` próprias; entram em leva à parte, com leitura dos dois controllers.
@@ -139,7 +139,6 @@ Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** �
 - `AuditAppendOnlyTest` — trigger bloqueia UPDATE/DELETE (existe; citar no contrato).
 - `PoliciesToggleTest` — alternar grava `enabled` + `updated_at`.
 - `DriftDetectionTest` — módulo de fixture com controller não declarado.
-- `ModuleGradeServiceV3SubDimensionsTest` — travessão ≠ zero em D6–D9 (fecha A7).
 
 ---
 
@@ -148,8 +147,8 @@ Uma tela onde [W] responde, em ~5 min/dia, **"a regra está sendo cumprida?"** �
 - [ADR 0079](../../memory/decisions/0079-constituicao-oimpresso-7-camadas-governanca.md) Art. 7 · 8 · 9 — Module Charter, Policy Gating, Auditoria
 - [ADR 0084](../../memory/decisions/0084-triggers-mysql-imutabilidade-mcp-audit-log.md) — imutabilidade do `mcp_audit_log`
 - [ADR 0086](../../memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md) — Governance Fase 5 MVP (ActionGate em aviso)
-- [ADR 0155](../../memory/decisions/0155-module-grade-v3.md) — rubrica das notas de módulo
+- ADR 0399 — aposenta a rubrica module-grade (a vista de notas saiu junto)
 - [ADR 0264](../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) — trio de tela, caso↔teste
 - [ADR 0286](../../memory/decisions/0286-contrato-de-tela.md) — Contrato de Tela
 - [ADR 0366](../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md) — fronteira Jana/Forja/Governance/KB
-- Charters vivos: `resources/js/Pages/governance/{Dashboard,Policies,Audit,DriftAlerts}.charter.md` + `ModuleGrades/Index.charter.md`
+- Charters vivos: `resources/js/Pages/governance/{Dashboard,Policies,Audit,DriftAlerts}.charter.md`

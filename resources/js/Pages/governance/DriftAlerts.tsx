@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
+import { TriangleAlert } from 'lucide-react'
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -63,9 +64,13 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
       {/* key `drift` (não `drift-alerts`) — é a declarada nos ghosts do DataController. */}
       <GovernancaSubNav active="drift" />
       <PageHeader
-        icon="alert-triangle"
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <TriangleAlert className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </span>
+        }
         title="Drift Alerts"
-        description="Constituição Art. 7 — controllers fora do SCOPE.md.contains[] declarado. Mesma lógica do bin/check-scope.php em runtime. Drift detection cron (Enforcement #5) também persiste em mcp_alertas."
+        subtitle="Constituição Art. 7 — controllers fora do SCOPE.md.contains[] declarado. Mesma lógica do bin/check-scope.php em runtime. Drift detection cron (Enforcement #5) também persiste em mcp_alertas."
       />
 
       <KpiGrid cols={4}>
@@ -84,10 +89,12 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
         />
         <KpiCard
           icon="file-x"
-          tone={kpis.modules_without_scope > 0 ? 'warning' : 'success'}
+          // `info`, não warning: módulo sem SCOPE.md não é drift — é ausência de contrato
+          // (protótipo governance-telas.jsx, vista drift; ADR UI-0029).
+          tone="info"
           label="Sem SCOPE.md"
           value={kpis.modules_without_scope.toString()}
-          description="Fase 3.4 pendente"
+          description="não é drift — é ausência de contrato"
         />
         <KpiCard
           icon="check-circle"
