@@ -82,6 +82,14 @@ por uma:
   antigo para o novo, então **não precisa de token de registro nem de SSH de ninguém**;
 - se a vaga não estiver rodando 60 s depois, o container antigo volta.
 
+**Versão do runner.** As vagas rodam com `--disableupdate`: o runner não se atualiza sozinho
+dentro do container. Em 2026-11-19 as 8 vagas (imagem 2.338.0) foram achadas sem a pasta
+`/home/runner/bin`, em laço `Runner.Listener: No such file or directory`, depois de uma
+auto-atualização que não terminou. Agora o `atualiza.sh` consulta a última release do
+`actions/runner` a cada volta e, se mudou, reconstrói a imagem com `--build-arg RUNNER_VERSION`
+e troca as vagas. O carimbo guarda `<árvore> <versão>`; registro antigo ganha
+`"disableUpdate": true` na credencial copiada.
+
 O carimbo só é gravado quando todas as vagas foram trocadas. Ver o que aconteceu:
 `journalctl -u ci-runner-leve-atualiza --since today`. Forçar agora:
 `systemctl start ci-runner-leve-atualiza`.

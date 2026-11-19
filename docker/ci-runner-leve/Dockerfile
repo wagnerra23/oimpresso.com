@@ -1,7 +1,11 @@
 # Runner GitHub Actions dos gates LEVES (scripts Node de segundos).
 # Base oficial do GitHub, versão fixada. Acrescenta só o que os jobs leves usam:
 # git (actions/checkout com histórico) e certificados. Node vem do actions/setup-node.
-FROM ghcr.io/actions/actions-runner:2.338.0
+# Versão vem do atualiza.sh (última release do actions/runner). O default só vale
+# para build à mão. O runner roda com --disableupdate (entrypoint.sh): quem o
+# mantém atualizado é o timer, reconstruindo a imagem, nunca o próprio runner.
+ARG RUNNER_VERSION=2.338.2
+FROM ghcr.io/actions/actions-runner:${RUNNER_VERSION}
 
 USER root
 RUN apt-get update \

@@ -9,7 +9,8 @@ set -euo pipefail
 N="$1"
 REG_TOKEN="${2:-}"
 REPO="${CI_LEVE_REPO:-wagnerra23/oimpresso.com}"
-IMAGE="${CI_LEVE_IMAGE:-oimpresso/ci-runner-leve:2.338.0}"
+VERSAO_PADRAO=$(sed -n 's/^ARG RUNNER_VERSION=//p' "$(dirname "$0")/Dockerfile")
+IMAGE="${CI_LEVE_IMAGE:-oimpresso/ci-runner-leve:$VERSAO_PADRAO}"
 docker create --name "ci-leve-$N" --network ci-leve \
   --cap-drop ALL --security-opt no-new-privileges \
   --cpus 2 --memory 3g --pids-limit 2048 \
