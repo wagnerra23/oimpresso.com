@@ -354,6 +354,11 @@ function rbStoreComo(int $businessId, int $contactId): void
         'contact_id' => $contactId,
     ]));
     $request->setUserResolver(fn () => auth()->user());
+    // setRedirector é OBRIGATÓRIO aqui: quando a validação FALHA, o FormRequest monta a
+    // ValidationException com a URL de volta (getRedirectUrl), e o `Request::create()`
+    // sintético não traz redirector — sem isto a recusa vira `Error: getUrlGenerator() on
+    // null` em vez de 422. O caso de sucesso (R-RB-WAVE21-5) nunca passa por esse caminho.
+    $request->setRedirector(app('redirect'));
     $request->setContainer(app())->validateResolved();
 
     (new RecurringBillingController(new SubscriptionRepository()))->store($request);
