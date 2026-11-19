@@ -3,29 +3,29 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "RecurringBilling/Planos/Index (/recurring-billing/planos)",
   "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-planos-gap.md",
-  "prototipo_sha": "sha256:74d2159744ee",
+  "prototipo_sha": "sha256:5e0a56124808",
   "gerado_em": "2026-11-19",
   "partes": [
     {
       "id": "cabecalho",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "1090,1096-1107"
+        "linhas": "1255,1261-1272"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
         "linhas": "361-404",
         "ancora": "cabecalho"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade; o \"Voltar\" sai junto com a decisão de navegação da tela-mãe",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Texto \"MRR dos planos\"; o \"Voltar\" sai junto com a decisão de navegação da tela-mãe",
+      "_acionavel": true
     },
     {
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "759-768"
+        "linhas": "842-851"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -40,7 +40,7 @@
       "id": "distribuicao-por-ciclo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "770-779"
+        "linhas": "852-862"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -55,7 +55,7 @@
       "id": "busca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "782-789"
+        "linhas": "864-871"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -70,7 +70,7 @@
       "id": "tabela",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "797-818"
+        "linhas": "884-908"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -85,7 +85,7 @@
       "id": "excluir-plano",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "830-837"
+        "linhas": "918-926"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -100,7 +100,7 @@
       "id": "criar-e-editar",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "696-740,1059"
+        "linhas": "778-822,1201-1207"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -115,22 +115,22 @@
       "id": "vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "791-796"
+        "linhas": "872-883"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
         "linhas": "612-631",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — o defeito vai ao Cowork no L7",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Separar o vazio de primeira vez do vazio de busca",
+      "_acionavel": true
     },
     {
       "id": "paginacao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "821-825"
+        "linhas": "910-914"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -145,7 +145,7 @@
       "id": "atalhos-e-ajuda",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "749-752,1069-1080"
+        "linhas": "829-833"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
@@ -157,5 +157,5 @@
       "_acionavel": false
     }
   ],
-  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main bedeeb0096: o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
+  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main 99f169a688 (protótipo do #11241): o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
 }

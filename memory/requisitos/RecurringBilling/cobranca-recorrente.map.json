@@ -3,29 +3,29 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "RecurringBilling/Index (/recurring-billing)",
   "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-gap.md",
-  "prototipo_sha": "sha256:74d2159744ee",
+  "prototipo_sha": "sha256:5e0a56124808",
   "gerado_em": "2026-11-19",
   "partes": [
     {
       "id": "cabecalho",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "1088-1107"
+        "linhas": "1253-1272"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
         "linhas": "514-573",
         "ancora": "cabecalho"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Texto da linha (\"cobrando\", \"churn do mês\") — a contagem vem do servidor",
+      "_acionavel": true
     },
     {
       "id": "navegacao-entre-as-4-vistas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "1056-1063,1108"
+        "linhas": "1201-1207,1273"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -33,14 +33,14 @@
         "ancora": false
       },
       "status": "decidir-w",
-      "acao": "Decidir. Trocar as abas próprias pela sub-nav canônica (`PageHeaderTabs`/`ModuleTabs`, abaixo do cabeçalho) nas 4 Pages — mudança de forma, entra com medição",
+      "acao": "Decidir. Trocar as abas próprias pela sub-nav canônica (`PageHeaderTabs`/`ModuleTabs`, abaixo do cabeçalho) nas 4 Pages",
       "_acionavel": true
     },
     {
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "165-187"
+        "linhas": "215-240"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -48,14 +48,14 @@
         "ancora": "kpis"
       },
       "status": "decidir-w",
-      "acao": "Decidir. Valor a recuperar na dica — toca valor (regra mestre): soma no presenter PHP, nunca no front",
+      "acao": "Decidir. Rótulo do 4º KPI e valor a recuperar na dica — o valor toca a regra mestre: soma no presenter PHP, nunca no front",
       "_acionavel": true
     },
     {
       "id": "filtros-e-busca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "620-674"
+        "linhas": "702-747"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -70,7 +70,7 @@
       "id": "lista",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "189-208,666-689"
+        "linhas": "242-264,748-769"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -85,7 +85,7 @@
       "id": "detalhe-da-assinatura",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "213-309,311-458"
+        "linhas": "149-167,269-377,379-540"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -93,14 +93,14 @@
         "ancora": false
       },
       "status": "decidir-w",
-      "acao": "Decidir. Painel sobreposto com aba IA (forma). O bloco de cartão recorrente é a b5 da auditoria — não entra aqui",
+      "acao": "Decidir. Painel sobreposto com aba IA e confirmação de cancelamento com motivo (forma). O bloco de cartão recorrente é a b5 da auditoria — não entra aqui",
       "_acionavel": true
     },
     {
       "id": "nova-assinatura",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "482-534"
+        "linhas": "564-616"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -108,14 +108,14 @@
         "ancora": false
       },
       "status": "paridade",
-      "acao": "Nada — paridade. O campo de valor do protótipo usa ponto decimal sem máscara (f1 da auditoria) — o vivo não copia isso",
+      "acao": "Nada — paridade de campos; a máscara de valor do vivo segue a regra mestre de valor, não a do protótipo",
       "_acionavel": false
     },
     {
       "id": "editar-cobranca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "460-480"
+        "linhas": "542-562"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -127,10 +127,25 @@
       "_acionavel": false
     },
     {
+      "id": "carregando-erro-e-sem-permissao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+        "linhas": "1210-1226,1274-1281"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "n/a (só skeletons dos <Deferred>)",
+        "ancora": false
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Estados de erro e de acesso negado na Page",
+      "_acionavel": true
+    },
+    {
       "id": "dados-de-exemplo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "44-83"
+        "linhas": "64-108"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
@@ -142,5 +157,5 @@
       "_acionavel": false
     }
   ],
-  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main bedeeb0096: o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
+  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main 99f169a688 (protótipo do #11241): o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
 }

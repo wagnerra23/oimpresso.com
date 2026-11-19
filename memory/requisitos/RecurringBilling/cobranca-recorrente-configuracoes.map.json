@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "RecurringBilling/Configuracoes/Index (/recurring-billing/configuracoes)",
   "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-configuracoes-gap.md",
-  "prototipo_sha": "sha256:74d2159744ee",
+  "prototipo_sha": "sha256:5e0a56124808",
   "gerado_em": "2026-11-19",
   "partes": [
     {
       "id": "cabecalho",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "1092,1096-1107"
+        "linhas": "1257,1261-1272"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
@@ -25,67 +25,67 @@
       "id": "gateways-de-boleto-pix",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "951-953,1002-1016"
+        "linhas": "1062-1069,1128-1157"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
         "linhas": "208-216,476-553",
         "ancora": "gateways"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade; o vivo declara o que ainda não faz em vez de fingir",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Estado da conexão por gateway — precisa de o backend saber se a credencial vale",
+      "_acionavel": true
     },
     {
       "id": "regua-de-dunning",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "955-958,1018-1033"
+        "linhas": "1073-1082,1158-1179"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
         "linhas": "219-257",
         "ancora": "dunning"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade de forma. O aviso por e-mail/WhatsApp não existe no módulo: é a decisão b7 da auditoria, não desta tabela",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Régua do cartão depende da b5 (cartão recorrente). O aviso por e-mail/WhatsApp no texto do boleto é a b7",
+      "_acionavel": true
     },
     {
-      "id": "nf-e-de-boleto-pago",
+      "id": "nota-fiscal-na-fatura-paga",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "1035-1046"
+        "linhas": "1180-1192"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
         "linhas": "260-297",
         "ancora": "nfe"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Título novo do protótipo (vale também para pagamento que não é boleto)",
+      "_acionavel": true
     },
     {
       "id": "webhooks",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "960-963,975-997,1048-1050"
+        "linhas": "1085-1087,1100-1123,1193-1196"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
         "linhas": "300-310,555-622",
         "ancora": "webhooks"
       },
-      "status": "paridade",
-      "acao": "Nada aqui. O L4 corrige o vivo; o protótipo continua com o texto errado e o pedido de correção vai ao Cowork no L7 — comportamento é da produção, não do desenho",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Último evento e falhas em 24h — precisa de registro de recebimento por empresa. A URL e o header errados: o L4 corrige o vivo; o protótipo continua errado e o pedido vai ao Cowork",
+      "_acionavel": true
     },
     {
       "id": "grade-das-secoes",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "1001"
+        "linhas": "1127"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
@@ -112,5 +112,5 @@
       "_acionavel": false
     }
   ],
-  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main bedeeb0096: o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
+  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main 99f169a688 (protótipo do #11241): o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
 }

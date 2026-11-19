@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "RecurringBilling/Faturas/Index (/recurring-billing/faturas)",
   "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-faturas-gap.md",
-  "prototipo_sha": "sha256:74d2159744ee",
+  "prototipo_sha": "sha256:5e0a56124808",
   "gerado_em": "2026-11-19",
   "partes": [
     {
       "id": "cabecalho",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "1091,1096-1107"
+        "linhas": "1256,1261-1272"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
@@ -25,7 +25,7 @@
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "880-889"
+        "linhas": "974-983"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
@@ -40,7 +40,7 @@
       "id": "filtros-e-busca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "890-907"
+        "linhas": "984-1003"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
@@ -48,53 +48,53 @@
         "ancora": "filtros"
       },
       "status": "decidir-w",
-      "acao": "Decidir. Contagem por status nos chips — vem do servidor junto dos KPIs",
+      "acao": "Decidir. Contagem por status nos chips (vem do servidor) e os status novos",
       "_acionavel": true
     },
     {
       "id": "tabela",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "913-936"
+        "linhas": "934-936,1013-1035"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
         "linhas": "624-694",
         "ancora": "lista"
       },
-      "status": "paridade",
-      "acao": "Nada — paridade; o vivo tem um status a mais",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Paga parcial, estornada e chargeback exigem dado que o backend não grava hoje (pagamento parcial é o d6 da auditoria)",
+      "_acionavel": true
     },
     {
-      "id": "cancelar-fatura",
+      "id": "cancelar-e-estornar",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "938-946"
+        "linhas": "1038-1055"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
         "linhas": "283-356,419-435",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — paridade",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Estorno pela tela: o charter tem \"Refund manual\" como Non-Goal e o estorno toca valor (regra mestre) — decisão [W]",
+      "_acionavel": true
     },
     {
       "id": "vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "909-912"
+        "linhas": "1004-1012"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
         "linhas": "612-621",
         "ancora": false
       },
-      "status": "paridade",
-      "acao": "Nada — paridade",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Separar o vazio de primeira vez do vazio de filtro",
+      "_acionavel": true
     },
     {
       "id": "paginacao-e-rodape",
@@ -115,7 +115,7 @@
       "id": "atalhos-e-ajuda",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "858-861"
+        "linhas": "951-955"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
@@ -127,5 +127,5 @@
       "_acionavel": false
     }
   ],
-  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main bedeeb0096: o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
+  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main 99f169a688 (protótipo do #11241): o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
 }
