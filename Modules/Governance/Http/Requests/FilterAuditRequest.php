@@ -9,8 +9,8 @@ use Illuminate\Foundation\Http\FormRequest;
 /**
  * FormRequest pra GET /governance/audit (filtros drill-down).
  *
- * D8.c Security — Wave 18 saturate. Atualmente AuditController@index lê
- * request->input() direto. Este FormRequest formaliza whitelist de filtros
+ * D8.c Security — Wave 18 saturate. Usado por AuditController@index desde
+ * 2026-11-19 (antes o controller lia request->input() cru). Formaliza whitelist de filtros
  * (period enum / endpoint enum / status enum / actor slug pattern) bloqueando
  * SQL injection cosmética + payload malformado downstream em Service.
  *
@@ -21,7 +21,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *     ->where() — FormRequest aqui é defesa em profundidade.
  *
  * Pattern canônico igual TogglePolicyRequest (Wave S Batch 2):
- *   - authorize() defesa em profundidade (middleware stack já gate admin)
+ *   - authorize() só exige usuário autenticado; o gate é o `can:` da rota
  *   - rules() whitelist + messages PT-BR
  *
  * @see Modules/Governance/Http/Controllers/AuditController.php
@@ -31,8 +31,8 @@ class FilterAuditRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Middleware 'authh' + 'auth' ja gate admin no routes.php (Tier 0).
-        // Aqui so garantimos user autenticado (defesa em profundidade).
+        // `authh` é o IsInstalled (app/Http/Kernel.php), não gate de admin: quem barra
+        // o acesso é o `can:` da rota (`can:governance.audit.view`). Aqui só garantimos usuário autenticado.
         return $this->user() !== null;
     }
 
