@@ -43,7 +43,7 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 
 ## Fluxo canônico (Wagner 2026-07-15 — vale sobre qualquer inferência)
 
-1. **A tabela é criada fora do produto** — `/products/unificado?tela=tabelas` (`App\SellingPriceGroup`).
+1. **A tabela é criada fora do produto** — `/selling-price-group` (Grupos de preço; até 2026-11-19 também em `/products/unificado?tela=tabelas`, tela apagada) (`App\SellingPriceGroup`).
 2. **No cadastro do produto** (esta tela), o operador **seleciona** a tabela e define o preço que
    aquele produto assume **quando a tabela for aplicada**.
 3. **Depois**, a tabela é vinculada **ao cadastro do cliente** ou **a um tipo de venda** — fora daqui.
@@ -325,7 +325,7 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 
 ## Non-Goals
 
-- ❌ **Criar tabela de preço nova inline** — nasce em `/products/unificado?tela=tabelas` (passo 1 do fluxo)
+- ❌ **Criar tabela de preço nova inline** — nasce em `/selling-price-group` (passo 1 do fluxo)
 - ❌ **Vincular tabela ao cliente ou ao tipo de venda** — acontece fora do cadastro do produto (passo 3)
 - ❌ **Preço especial por (produto × cliente) direto** — `AR-PROD-111..116` do legado (`% Acréscimo` /
   `% Desconto` sobre o `Valor Original`, gravado por produto×cliente). **Non-Goal declarado**
@@ -610,7 +610,7 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 - Anti-regressão legado: [`ANTI-REGRESSAO-cadastro-produto-legacy.md`](../../../../memory/requisitos/Produto/ANTI-REGRESSAO-cadastro-produto-legacy.md) §I/§J/§K (`AR-PROD-090..123`)
 - Paridade: [`PARIDADE-charter-vs-legado.md`](../../../../memory/requisitos/Produto/PARIDADE-charter-vs-legado.md)
 - Charter irmão (variação): `VariacaoPrecos.charter.md`
-- Charter irmão (cadastro da tabela): [`Unificado/Index.charter.md`](Unificado/Index.charter.md) — sub-view "Tabelas de preço"
+- Cadastro da tabela: `/selling-price-group` (Grupos de preço). O charter da antiga sub-view "Tabelas de preço" (`Unificado/Index.charter.md`) saiu com a tela em 2026-11-19.
 - RUNBOOK: [`_telas/RUNBOOK-produto-selling-prices.md`](../../../../memory/requisitos/Produto/_telas/RUNBOOK-produto-selling-prices.md) · Visual comparison: [`_telas/produto-selling-prices-visual-comparison.md`](../../../../memory/requisitos/Produto/_telas/produto-selling-prices-visual-comparison.md)
   <br>_(a v1 apontava pra `memory/requisitos/Inventory/…` — os dois docs migraram pra `Produto/_telas/`; link-rot corrigido nesta v2.)_
 - ADR 0149 · ADR 0182

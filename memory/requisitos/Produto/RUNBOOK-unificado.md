@@ -3,7 +3,7 @@ title: "RUNBOOK — Catálogo Unificado (/products/unificado)"
 module: Produto
 tela: Produto/Unificado/Index
 owner: W
-status: ativo
+status: arquivado
 last_validated: "2026-08-18"
 preconditions:
   - "Usuário autenticado com product.view OU product.create no business ativo"
@@ -17,6 +17,8 @@ related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0107-emendation-0104-visual-comparison-gate-f3
 ---
+> ⛔ **Tela apagada em 2026-11-19 [F].** A Consulta de Produtos (`/products/unificado`) era o protótipo da lista e foi substituída por `/products`; o endereço redireciona para lá. Este RUNBOOK fica como registro histórico — não descreve mais nada que esteja no ar.
+
 
 # RUNBOOK — Catálogo Unificado (`/products/unificado`)
 
