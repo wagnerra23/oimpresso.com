@@ -88,9 +88,9 @@ Painel único onde [W] opera governança em ~5min/dia: checks da Constituição,
 ## Automation Anti-hooks
 
 - ⛔ **Consumir a prop `mcp` fora do `<Deferred>`** — é o incidente literal de 2026-05-25 na tela de origem: o `Governanca/Index.tsx` desestruturava as 7 props direto e deu `TypeError undefined.find` **em prod**; o fix da época foi *remover* o defer. Aqui o defer volta **com** wrapper + null-guard. Quem desestruturar direto reabre o bug.
-- ⛔ **Somar `governance.dashboard.view` ao gate da seção MCP** — a rota é gateada só por `auth`; a permission hoje decide apenas se a entry aparece na sidebar. Exigir as duas seria **mais restritivo que o estado anterior** e poderia esconder a seção de quem a enxergava ontem. O gate herdado é `jana.mcp.usage.all`, idêntico ao da tela de origem. Gatear a **rota** é decisão [W] à parte (mexe em `routes.php`).
+- ⛔ **Trocar o gate da seção MCP** — o gate herdado é `jana.mcp.usage.all`, idêntico ao da tela de origem. _Fato datado:_ até 2026-11-19 a rota era só `auth` e este item proibia somar `governance.dashboard.view`. Nesse dia o [W] aprovou gatear a **rota** por `can:governance.dashboard.view` (lote L0 da auditoria, UC-GDSH-07); desde então quem vê a seção precisa das duas permissões — a da rota e esta.
 - ⛔ **Duplicar a lista de ghosts na tela** — a fonte é `DataController::modifyAdminMenu`; tela nova entra lá e aparece aqui de graça.
-- ⛔ **Inventar `business_id` nas `mcp_*`** — elas não têm a coluna, por design.
+- ⛔ **Filtrar a trilha MCP por empresa** — o painel lê `mcp_audit_log` repo-wide de propósito (visão de plataforma, ADR 0053). _Correção 2026-11-19:_ este item dizia que as `mcp_*` não têm `business_id`; a `mcp_audit_log` tem (nullable, migration `Modules/Forja/Database/Migrations/2026_04_29_100005`).
 
 ---
 
