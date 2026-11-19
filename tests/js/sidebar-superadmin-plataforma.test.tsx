@@ -51,6 +51,24 @@ describe('aninharSuperadmin', () => {
     expect(avulsos).toEqual([]);
   });
 
+  it('dropdown sem link próprio leva ao filho (Conector chegava como /#)', () => {
+    const menu: ShellMenuItem[] = [
+      { label: 'Super Admin', href: '/superadmin', group: 'plataforma' },
+      { label: 'Conector', href: '#', children: [{ label: 'Clientes', href: '/connector/client' }] },
+      { label: 'CMS', children: [
+        { label: 'Páginas', href: '/cms/pages' },
+        { label: 'Blog', href: '/cms/blog' },
+      ] },
+    ];
+    const sa = aninharSuperadmin(menu).menu[0];
+    expect(sa.children!.map((c) => [c.label, c.href])).toEqual([
+      ['Painel', '/superadmin'],
+      ['Conector', '/connector/client'],
+      ['CMS · Páginas', '/cms/pages'],
+      ['CMS · Blog', '/cms/blog'],
+    ]);
+  });
+
   it('sem o item Super Admin, os itens seguem para a cascata do avatar', () => {
     const semPai = MENU.filter((i) => i.label !== 'Super Admin');
     const { menu, avulsos } = aninharSuperadmin(semPai);

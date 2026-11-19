@@ -66,10 +66,12 @@ php artisan route:list --path=governance/dashboard
 # GET|HEAD  governance/dashboard  governance.admin.dashboard.legacy  DashboardController@index
 ```
 
-⚠️ **A rota é gateada só por `auth`** (mais `SetSessionData`/`CheckUserLogin`/`throttle:60,1`).
-`governance.dashboard.view` **não** é middleware da rota — hoje ele só decide se a entry aparece na
-sidebar. Isso é estado de fato, não recomendação: transformar em `can:` na rota é decisão [W] à parte
-(mudaria `Modules/Governance/Http/routes.php`, com risco de trancar quem hoje entra por URL).
+A rota exige `auth` + `can:governance.dashboard.view` (mais `SetSessionData`/`CheckUserLogin`/`throttle:60,1`).
+_Fato datado:_ até 2026-11-19 ela era só `auth` e a permission decidia apenas a entry de sidebar; nesse
+dia o [W] aprovou o gate de rota (lote L0 da auditoria do Governance). Contrato HTTP em
+`tests/Feature/Governance/DashboardAcessoGateTest.php` (UC-GDSH-07), lane `governance-pest.yml`.
+⚠️ O dono de uma empresa (`Admin#{empresa}`) ainda passa pelo `Gate::before` — `governance.*` não está em
+`permissoesDePlataforma()` (ADR 0415); fechar isso é decisão [W] em aberto (passo 3 da ADR 0392).
 
 ### 2. Controller — props eager vs deferred
 

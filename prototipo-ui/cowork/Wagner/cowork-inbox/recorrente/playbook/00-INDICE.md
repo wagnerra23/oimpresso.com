@@ -23,7 +23,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/recorrente/playbook/
 Trio completo nas 6. Falta medir e contratar.
 
 ## 2 · Decisões
-Nenhuma.
+- **b4** ([W] 2026-11-19): `cobranca-recorrente-page.jsx` é fonte de design, não retrato da produção.
+- **b5** ([W] 2026-11-19): o cartão recorrente entra na produção; fica no protótipo.
 
 ## 3 · Threads
 
@@ -127,6 +128,29 @@ Nenhuma.
         {
           "tipo": "arquivo",
           "path": "governance/design/contracts/recorrente-configuracoes.contract.json"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "Correções do protótipo (auditoria 2026-11-19, f1–f6)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "02-correcoes-prototipo.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+        "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.css",
+        "prototipo-ui/cowork/Wagner/oimpresso.com.html"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/",
+        "governance/design/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/recorrente/playbook/_saida-02.md"
         }
       ]
     }

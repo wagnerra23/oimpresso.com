@@ -135,4 +135,16 @@ describe('Instalação CV · foto do comprovante', () => {
     expect(screen.queryByLabelText('Refazer foto antes')).toBeNull();
     expect(screen.getByText('Instalação concluída')).not.toBeNull();
   });
+
+  it('UC-CVCEL-10 · concluída oferece o protocolo em PDF; aberta não oferece', () => {
+    const fechado: Comprovante = { foto_antes: true, foto_depois: true, assinatura: { assinado_por: 'Marta Ribeiro', em: '2026-11-19 10:50:00' }, status: 'concluida', pode_concluir: false };
+    const { unmount } = render(<Instalacao instalacao={{ ...INST, status: 'concluida' }} comprovante={fechado} podeRegistrar={false} />);
+    const link = screen.getByRole('link', { name: /Baixar protocolo/ });
+    expect(link.getAttribute('href')).toBe('/comunicacao-visual/instalacoes/55/protocolo');
+    expect(link.getAttribute('target')).toBe('_blank');
+    unmount();
+
+    render(<Instalacao instalacao={INST} comprovante={VAZIO} podeRegistrar />);
+    expect(screen.queryByRole('link', { name: /Baixar protocolo/ })).toBeNull();
+  });
 });
