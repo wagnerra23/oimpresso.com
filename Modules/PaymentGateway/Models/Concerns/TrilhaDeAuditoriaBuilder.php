@@ -65,9 +65,9 @@ class TrilhaDeAuditoriaBuilder extends Builder
     private function colunasPermitidas(): array
     {
         $model = $this->getModel();
-        $colunas = defined($model::class . '::COLUNAS_DO_PROCESSAMENTO')
-            ? $model::COLUNAS_DO_PROCESSAMENTO
-            : [];
+        $constante = $model::class . '::COLUNAS_DO_PROCESSAMENTO';
+        /** @var list<string> $colunas */
+        $colunas = defined($constante) ? constant($constante) : [];
 
         if ($model->usesTimestamps() && $model->getUpdatedAtColumn() !== null) {
             $colunas[] = $model->getUpdatedAtColumn();
