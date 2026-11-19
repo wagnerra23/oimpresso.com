@@ -153,7 +153,7 @@ A resposta é texto, HTTP 200, inclusive no `N`.
 
 **F7 — Importação Firebird (ramo de saída).** Dois caminhos convivem:
 - **Python** (`scripts/legacy-migration/`, [ADR 0203](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md)): `migrar-tudo.py` orquestra contas → empresas → contacts → produtos → vendas → itens → financeiro → notas fiscais, com idempotência por `legacy_id` ou chave única. É o caminho usado na migração de cliente registrada na ADR.
-- **PHP** (`officeimpresso:import {biz}`): exige `{biz}`, tem `--dry-run`, e lê o Firebird só para leitura (`FirebirdConnector::assertReadOnly`). Em `ec57208855` ele **cai em modo mock** sem `--source-fb` ou sem a extensão `pdo_firebird`, e nesse modo devolve fixtures; o contador de migrados soma mesmo quando o insert falha. O lote L2 trata das duas coisas. Até lá, este caminho não é confiável fora de `--dry-run`.
+- **PHP** (`officeimpresso:import {biz}`): exige `{biz}`, tem `--dry-run`, e lê o Firebird só para leitura (`FirebirdConnector::assertReadOnly`). Desde o #11158 (2026-11-18), sem `--source-fb` ou sem a extensão `pdo_firebird` o modo mock só roda com `--dry-run`; sem ele o comando recusa antes de tocar o banco. Insert com erro conta em `Failed` e o comando sai com exit 1. `products`, `transactions` e `licenca_computador` não têm coluna `legacy_id`: essas linhas saem como `Blocked` e não são gravadas (criar a coluna em tabela core é a decisão B5 do [W]). Em 2026-11-18 o comando nunca tinha rodado contra um `.fdb` real; o teste dele (`ImportadorFirebirdFailClosedTest`) usa um connector de fixture no tenant 98.
 - Nenhum dos dois grava a própria execução em `licenca_log` ou `activity_log`.
 
 ### 5.4 Onde os mundos ainda não se conversam
@@ -242,7 +242,7 @@ _vazio_
 | — | Dependência não declarada | Connector usa `log.delphi` e escreve nas tabelas do Officeimpresso; `module.json` não declara | lote L3 |
 | — | Listener do Passport grava todo token | Sem filtro de client em `ec57208855` | lote L3 |
 | — | `POST /api/officeimpresso/audit` aceita `event` livre | `LicencaAuditService` usa o `event` do corpo | lote L3 |
-| — | Importador PHP grava fixtures sem fonte | Modo mock sem `--dry-run` | lote L2 |
+| **B5** | Importador PHP não grava `products`, `transactions` e `licenca_computador` | Sem coluna `legacy_id` nessas tabelas core, as linhas saem como `Blocked` (#11158). Criar a coluna é decisão sobre tabela core | [W] |
 | — | Mesma máquina em duas linhas | Gerações 1 e 3 usam `user_win` diferente | não medido |
 
 **Perguntas abertas ao [W]** (sem fonte no código nem nas ADRs): o que o desktop faz depois de um `N` (fecha, avisa, segue em modo leitura); quem preenche `dt_validade` (o desktop manda `DT_VALIDADE` na geração 1; nenhuma tela edita); se a geração 1 ainda deve criar empresa a partir de CNPJ desconhecido.
@@ -264,3 +264,4 @@ Lotes L0–L4 da auditoria de 2026-11-05 mexem em §5.1, §5.3 F1, F7 e §9. Est
 ## Changelog (append-only — correção não apaga, vira linha)
 
 - 1.0.0 (2026-11-18) — criado no lote L5 da auditoria do Officeimpresso de 2026-11-05, lido de `origin/main` `ec57208855`, com os lotes L0–L3 ainda abertos.
+- 1.0.1 (2026-11-18) — F7 e §9 descrevem o importador PHP depois do #11158 (lote L2): mock só com `--dry-run`, `Failed` com exit 1, `Blocked` sem `legacy_id`. A linha "Importador PHP grava fixtures sem fonte" do §9 saiu e entrou a decisão B5.

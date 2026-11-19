@@ -43,6 +43,11 @@ name: Officeimpresso · Pest (MySQL)
 # Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate
 # (schema baseline) + seed biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant).
 # Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 nunca biz=4).
+#
+# 2026-11-18 — entra ImportadorFirebirdFailClosedTest (Lote 2 da auditoria
+# Officeimpresso): o officeimpresso:import gravava as fixtures do modo mock na
+# empresa real e contava insert com erro como migrado. Os testes Wave25/Wave28
+# do importador seguem FORA desta lane (Lote 4).
 
 on:
   workflow_dispatch: {}
@@ -69,6 +74,7 @@ on:
       - 'Modules/Connector/Routes/api.php'
       - 'Modules/Connector/Config/config.php'
       - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+      - 'tests/Feature/Api/DesktopAuthTest.php'
       - 'tests/Feature/LegacyMigration/**'
       - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
       - 'app/Providers/AuthServiceProvider.php'
@@ -113,6 +119,7 @@ jobs:
               - 'Modules/Connector/Routes/api.php'
               - 'Modules/Connector/Config/config.php'
               - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+              - 'tests/Feature/Api/DesktopAuthTest.php'
               - 'tests/Feature/LegacyMigration/**'
               - 'database/migrations/2026_11_02_220000_create_legacy_archive_rows_table.php'
               - 'app/Providers/AuthServiceProvider.php'
@@ -167,6 +174,8 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/Wave25ObservabilityExpandedTest.php \
             Modules/Officeimpresso/Tests/Feature/Wave27PolishTest.php \
             Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
+            Modules/Officeimpresso/Tests/Feature/MultiTenantIsolationTest.php \
+            tests/Feature/Api/DesktopAuthTest.php \
             Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
             Modules/Officeimpresso/Tests/Feature/AlinharPacotesCatalogoCommandTest.php \
@@ -177,6 +186,8 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ClientesLiberarPermissionTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogPassportSoDelphiTest.php \
+            Modules/Officeimpresso/Tests/Feature/ImportadorFirebirdFailClosedTest.php \
             Modules/Officeimpresso/Tests/Feature/LogDelphiAliasDependenciaTest.php \
             Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php \
             Modules/Officeimpresso/Tests/Feature/RegenerateViaPostTest.php \

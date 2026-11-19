@@ -300,12 +300,12 @@ Contado em `origin/main` `5c7e0fb280` (2026-11-18). Os números se refazem com o
 
 ### US-OI-021 — Importação Firebird de um cliente (`officeimpresso:import`)
 **Como** operador, **quero** importar o Firebird de um cliente para o business dele, **pra** migrar sem SQL à mão.
-**Implementado em:** _pendente_ — o comando existe (`officeimpresso:import`, `ImportOfficeimpressoCommand` + `OfficeimpressoImporterService`) com `{biz}` obrigatório, `--dry-run` e Firebird só leitura, mas não cumpre o aceite: sem fonte real cai em modo mock e grava fixtures fora do `--dry-run`, e o contador soma insert que falhou (lote L2). Os testes dele estão fora de lane de PR. O caminho usado nas migrações de cliente é o Python de `scripts/legacy-migration/` ([ADR 0203](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md)).
+**Implementado em:** _pendente_ — o comando existe (`officeimpresso:import`, `ImportOfficeimpressoCommand` + `OfficeimpressoImporterService`) com `{biz}` obrigatório, `--dry-run` e Firebird só leitura, e desde o #11158 (2026-11-18) recusa o modo mock fora do `--dry-run` e conta insert com erro em `Failed` (exit 1). Não cumpre o aceite inteiro: `products`, `transactions` e `licenca_computador` não têm coluna `legacy_id`, e essas linhas saem como `Blocked` sem gravar (decisão B5 do [W]); nunca rodou contra um `.fdb` real. O caminho usado nas migrações de cliente é o Python de `scripts/legacy-migration/` ([ADR 0203](../../decisions/0203-legacy-migration-pipeline-firebird-oimpresso-w29.md)).
 **Aceite:**
 - `[T0]` grava só no `{biz}` informado
 - Sem fonte real, não grava nada
 - Segunda execução não duplica
-- O teste está fora de lane de PR em 2026-11-18 (`test-lane-coverage --json`); entra no lote L4
+- O teste roda em lane de PR: `ImportadorFirebirdFailClosedTest` entrou na `officeimpresso-pest` no #11158
 
 ### US-OI-022 — `POST /api/officeimpresso/audit` (evento opt-in do desktop)
 **Como** dono do módulo, **quero** que o desktop possa mandar um evento próprio para o log, **pra** registrar erro do lado do cliente sem depender do log do servidor.

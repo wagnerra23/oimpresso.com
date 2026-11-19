@@ -105,6 +105,12 @@ parameters:
 			path: Modules/Marketplaces/Config/config.php
 
 		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: Modules/Officeimpresso/Config/config.php
+
+		-
 			message: '#^Access to an undefined property App\\Variation\:\:\$product\.$#'
 			identifier: property.notFound
 			count: 1
