@@ -12,7 +12,7 @@ contains:
   - "OrcamentoArquivoController (arquivos anexados ao orçamento antes de virar OS — /comunicacao-visual/api/orcamentos/{id}/arquivos, UC-FLX-01)"
   - "OrcamentoAceiteController (gera o link de aceite do orçamento — POST /comunicacao-visual/api/orcamentos/{id}/link, US-COMVIS-023 · UC-CVACE-01/02)"
   - "Public/OrcamentoAceitePublicoController — página pública SEM login onde o cliente aceita ou pede ajuste do orçamento (/orcamento-cv/{token}, token sha256 de uso único, throttle 30/1, US-COMVIS-023 · UC-CVACEP-01..04)"
-  - "Public/ProtocoloInstalacaoPublicoController — link público SEM login do protocolo da instalação concluída, que vai ao cliente (/instalacao-cv/{biz}/{id}/protocolo, URL assinada com validade de 7 dias, throttle 30/1, US-COMVIS-007 · UC-CVINST-15..16)"
+  - "ProtocoloInstalacaoPublicoController (Http/Controllers/Public) — link público SEM login do protocolo da instalação concluída, que vai ao cliente (/instalacao-cv/{biz}/{id}/protocolo, URL assinada com validade de 7 dias, throttle 30/1, US-COMVIS-007 · UC-CVINST-15..16)"
   - "RoteiroPadraoController (roteiro padrão da OS da gráfica — GET/PUT /comunicacao-visual/api/roteiro-padrao, US-COMVIS-003 · UC-CVOS-09..11)"
   - "Services/MargemDoOrcamento (custo e margem por peça do orçamento — UC-FLX-03)"
   - "Entities/Substrato (cv_substratos)"

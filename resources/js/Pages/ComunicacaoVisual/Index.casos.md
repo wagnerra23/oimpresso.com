@@ -92,6 +92,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVINST-14 | Foto refeita vale a mais nova; concluída não recebe mais nada; sem permissão 403 | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoComprovanteContratoTest` | 🧪 |
 | UC-CVINST-15 | O link assinado do protocolo abre o PDF sem login, sem indexar, e expira no prazo | must `[LGPD]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloPublicoContratoTest` | 🧪 |
 | UC-CVINST-16 | Link do protocolo adulterado 403; instalação aberta ou de outra empresa 404 | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloPublicoContratoTest` | 🧪 |
+| UC-CVINST-17 | Concluir manda ao cliente a OS, a hora da conclusão e o link assinado do protocolo | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloAvisoContratoTest` | 🧪 |
+| UC-CVINST-18 | Cliente que recusou WhatsApp, sem celular ou OS sem cliente: conclui e não manda nada | must `[LGPD]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloAvisoContratoTest` | 🧪 |
+| UC-CVINST-19 | Contato de outra empresa no orçamento não recebe o protocolo | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloAvisoContratoTest` | 🧪 |
 | UC-CVOS-01 | Aprovar cria a OS com os itens e as medidas do orçamento | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-02 | A OS vale o total do orçamento e nenhum valor do orçamento muda | must `[V0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-03 | Aprovar de novo não duplica OS, itens nem arquivos | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
@@ -653,6 +656,29 @@ Status: 🧪
 **Quando** alguém troca a instalação ou a empresa na URL **Então** a assinatura não confere e dá 403. **Dado** um link
 assinado para a empresa 98 com a instalação da 99, ou para uma instalação ainda não concluída **Então** 404, sem
 dizer qual dos dois.
+
+Status: 🧪
+
+## UC-CVINST-17 · Concluir manda ao cliente a OS, a hora da conclusão e o link assinado do protocolo · `must`
+
+**Dado** uma instalação de uma OS cujo orçamento é de "Maria Cliente", que aceita WhatsApp e tem celular **Quando** o
+instalador conclui às 11:10 de 19/11/2026 **Então** a cliente recebe, pelo número de saída da empresa, "Olá, Maria! a
+instalação da OS … foi concluída em 19/11/2026 às 11:10. O protocolo com as fotos e a sua assinatura fica disponível
+por 7 dias no link abaixo." com o link assinado de UC-CVINST-15. A mensagem não leva quem instalou nem o veículo.
+
+Status: 🧪
+
+## UC-CVINST-18 · Cliente que recusou WhatsApp, sem celular ou OS sem cliente: conclui e não manda nada · `must` `[LGPD]`
+
+**Dado** o cliente que recusou WhatsApp, o cliente sem celular, ou a OS de orçamento balcão **Quando** o instalador
+conclui **Então** a instalação fica concluída e nada é mandado. Controle: um cliente que aceita, com celular, recebe.
+
+Status: 🧪
+
+## UC-CVINST-19 · Contato de outra empresa no orçamento não recebe o protocolo · `must` `[T0]`
+
+**Dado** um orçamento da 98 que aponta para um contato da 99 **Quando** a instalação é concluída **Então** ela fica
+concluída e ninguém recebe nada.
 
 Status: 🧪
 

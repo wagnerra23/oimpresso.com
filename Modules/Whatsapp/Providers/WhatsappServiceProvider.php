@@ -52,6 +52,8 @@ use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
 use Modules\Whatsapp\Listeners\DispatchToJanaBot;
 use Modules\ComunicacaoVisual\Events\InstalacaoAgendada;
+use Modules\ComunicacaoVisual\Events\InstalacaoConcluida;
+use Modules\Whatsapp\Listeners\NotifyInstalacaoConcluidaCvCustomer;
 use Modules\Whatsapp\Listeners\NotifyInstalacaoCvCustomer;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
 use Modules\Whatsapp\Listeners\TouchCustomerMemoryOnMessage;
@@ -193,6 +195,10 @@ class WhatsappServiceProvider extends ServiceProvider
         // class_exists: o módulo ComunicacaoVisual pode não estar instalado nesta base.
         if (class_exists(InstalacaoAgendada::class)) {
             Event::listen(InstalacaoAgendada::class, [NotifyInstalacaoCvCustomer::class, 'handle']);
+        }
+        // CV: instalação concluída → link do protocolo ao cliente, mesmas travas (US-COMVIS-007 · UC-PCV-25).
+        if (class_exists(InstalacaoConcluida::class)) {
+            Event::listen(InstalacaoConcluida::class, [NotifyInstalacaoConcluidaCvCustomer::class, 'handle']);
         }
 
         // NF-e autorizada → DANFE por WhatsApp (US-WA-321; flag whatsapp.aviso_automatico.danfe_enabled).

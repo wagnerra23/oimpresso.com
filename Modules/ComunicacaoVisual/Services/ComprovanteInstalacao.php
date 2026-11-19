@@ -10,8 +10,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Modules\ComunicacaoVisual\Entities\Instalacao;
 use Modules\ComunicacaoVisual\Entities\InstalacaoComprovante;
+use Modules\ComunicacaoVisual\Events\InstalacaoConcluida;
 
 /**
  * Comprovante da instalação de campo — US-COMVIS-007 · UC-PCV-25 (1a: gravar; a tela e o protocolo PDF vêm depois).
@@ -19,6 +21,7 @@ use Modules\ComunicacaoVisual\Entities\InstalacaoComprovante;
  * A instalação só conclui com foto antes, foto depois e a assinatura do cliente. Foto pode ser refeita
  * enquanto a instalação está aberta (vale a mais nova); a assinatura é colhida uma vez e não se troca.
  * Concluída ou cancelada, não recebe mais nada.
+ * Concluir dispara `InstalacaoConcluida` com o link público do protocolo (o módulo Whatsapp manda ao cliente).
  *
  * Os arquivos vão para o módulo Arquivos pelo contrato do núcleo (`AnexosDoApp`), anexados à linha do
  * comprovante. Sem o módulo carregado o contrato devolve null e o envio é recusado — o comprovante nunca
@@ -157,6 +160,18 @@ class ComprovanteInstalacao
             }
             $instalacao->forceFill(['status' => 'concluida', 'data_realizada' => now()])->save();
         });
+
+        // Depois do commit: quem ouve (o protocolo ao cliente) nunca vê uma conclusão que não foi gravada.
+        // A instalação já está concluída: falha no aviso vira log, nunca erro para o instalador.
+        try {
+            InstalacaoConcluida::dispatch($businessId, $instalacaoId,
+                app(ProtocoloInstalacao::class)->linkPublico($businessId, $instalacaoId),
+                max(1, (int) config('comunicacao-visual.protocolo_link_dias', 7)));
+        } catch (\Throwable $e) {
+            Log::warning('[comvis.instalacao_concluida] aviso ao cliente não saiu', [
+                'business_id' => $businessId, 'instalacao_id' => $instalacaoId, 'erro' => $e::class,
+            ]);
+        }
     }
 
     /** @param array<string, mixed> $campos */
