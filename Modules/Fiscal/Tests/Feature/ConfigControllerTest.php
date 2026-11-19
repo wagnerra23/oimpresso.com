@@ -336,3 +336,48 @@ it('UC-FCFG-18 · o painel mostra a série e o próximo número da empresa, e a 
         }
     }
 });
+
+it('UC-FCFG-15 · a aba Séries mostra as séries reais da empresa, com o próximo número do emissor', function () {
+    if (! Schema::hasTable('nfe_emissoes')) {
+        $this->markTestSkipped('nfe_emissoes ausente — rode as migrations do NfeBrasil.');
+    }
+
+    $tenant = test()->seededTenant();
+    $bizA = (int) $tenant->id;
+    $bizB = (int) test()->seededSupportClientTenant()->id;
+
+    // Séries 987/986 não são padrão de ninguém: o próximo número vem só das notas emitidas.
+    $nota = fn (int $biz, string $modelo, string $serie, int $numero) => DB::table('nfe_emissoes')->insertGetId([
+        'business_id' => $biz, 'transaction_id' => null, 'modelo' => $modelo, 'serie' => $serie,
+        'numero' => $numero, 'status' => 'autorizada', 'valor_total' => 1,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $ids = [
+        $nota($bizA, '55', '987', 40),
+        $nota($bizA, '55', '987', 41),
+        $nota($bizA, '65', '986', 7),
+        $nota($bizB, '55', '985', 900), // vizinha: nunca aparece na tela da A
+    ];
+
+    try {
+        $this->actingAs(test()->usuarioComPermissoes(['fiscal.config.edit'], $tenant))
+            ->withSession(['business.id' => $bizA, 'user.business_id' => $bizA])
+            ->get('/fiscal/config?tab=series')
+            ->assertStatus(200)
+            ->assertInertia(function ($page) {
+                $series = collect($page->toArray()['props']['series'] ?? []);
+                $de = fn (int $m, string $s) => $series->first(fn ($x) => $x['modelo'] === $m && $x['serie'] === $s);
+
+                expect($de(55, '987'))->not->toBeNull()
+                    ->and($de(55, '987')['proximo'])->toBe(42)
+                    ->and($de(55, '987')['emitidas'])->toBe(2)
+                    ->and($de(65, '986')['proximo'])->toBe(8)
+                    ->and($de(55, '985'))->toBeNull()
+                    // O dado de demonstração (filial inventada, série 9 com 9013) saiu.
+                    ->and($series->pluck('filial')->implode('|'))->not->toContain('Filial 02')
+                    ->and($series->pluck('proximo')->all())->not->toContain(9013);
+            });
+    } finally {
+        DB::table('nfe_emissoes')->whereIn('id', $ids)->delete();
+    }
+});
