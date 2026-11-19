@@ -81,7 +81,7 @@ function seedAsaasCredential(int $businessId, string $secret = 'asaas-tok-ok'): 
         'banco'       => 'asaas',
         'ambiente'    => 'production',
         'ativo'       => true,
-        'config_json' => json_encode(['webhook_secret' => $secret]),
+        'config_json' => json_encode(['webhook_secret' => \Illuminate\Support\Facades\Crypt::encryptString($secret)]),
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);
