@@ -116,7 +116,7 @@ Consequência prática: um drift que o `governance:audit` grava às 06:35 só é
 | Rota | Controller | Lê | Gate na rota (2026-11-19) |
 |---|---|---|---|
 | `/governance` | — | redirect 302 para `/ia` | — |
-| `/governance/dashboard` | `DashboardController` | `mcp_memory_documents`, `mcp_governance_rules`, `mcp_audit_log`, `mcp_actors`, `failed_jobs`, `jana_health_narratives`, via `Modules\Jana\Services\GovernancaService` | só `auth` (o PR #11216 acrescenta `can:governance.dashboard.view`) |
+| `/governance/dashboard` | `DashboardController` | `mcp_memory_documents`, `mcp_governance_rules`, `mcp_audit_log`, `mcp_skill_versions`, `mcp_actors`, `failed_jobs`, `jana_health_narratives` direto por `DB::table`; a seção MCP via `Modules\Jana\Services\GovernancaService` | só `auth` (o PR #11216 acrescenta `can:governance.dashboard.view`) |
 | `/governance/policies` | `PoliciesController` | `mcp_governance_rules` | `can:governance.dashboard.view`; toggle com `can:governance.policies.edit` |
 | `/governance/audit` | `AuditController` + `AuditDrillDownService` | `mcp_audit_log` | `can:governance.audit.view` |
 | `/governance/drift` | `DriftAlertsController` + `DriftAlertService` | SCOPE.md × filesystem, no request | `can:governance.dashboard.view` |
