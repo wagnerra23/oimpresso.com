@@ -768,6 +768,9 @@ jobs:
         # UC-CVCEL-01..03): tela do instalador traz OS, cliente, endereço e o comprovante; instalação da 99 → 404;
         # sem permissão 403; quem só vê não registra.
         #
+        # ENTRA 2026-11-18 — ComunicacaoVisual/InstalacaoProtocoloContratoTest (US-COMVIS-007 · UC-PCV-25,
+        # UC-CVCEL-07..09): protocolo em PDF só de instalação concluída, com fotos e assinatura; 99 → 404; sem permissão 403.
+        #
         # ENTRA 2026-11-16 — Superadmin/SubscriptionConfirmContratoTest (UC-SACF-01..07): o confirm
         # só cria assinatura com gateway configurado; GET → 405; offline nasce `waiting`; pacote
         # privado ou inexistente não assina; sem permissão 403.
@@ -800,6 +803,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoComprovanteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoTelaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoProtocoloContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \

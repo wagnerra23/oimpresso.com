@@ -14,7 +14,7 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 128 arquivos em 18 papéis.
+**Total mapeado:** 131 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -42,7 +42,7 @@ module: ComunicacaoVisual
 
 - [ComunicacaoVisualLiberado.php](../../../Modules/ComunicacaoVisual/Http/Middleware/ComunicacaoVisualLiberado.php)
 
-## Services — 10
+## Services — 11
 
 - [AceiteDoOrcamento.php](../../../Modules/ComunicacaoVisual/Services/AceiteDoOrcamento.php)
 - [AgendaInstalacao.php](../../../Modules/ComunicacaoVisual/Services/AgendaInstalacao.php)
@@ -53,6 +53,7 @@ module: ComunicacaoVisual
 - [OrcamentoGravador.php](../../../Modules/ComunicacaoVisual/Services/OrcamentoGravador.php)
 - [OrcamentoViraOs.php](../../../Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php)
 - [PosCalculoDaOs.php](../../../Modules/ComunicacaoVisual/Services/PosCalculoDaOs.php)
+- [ProtocoloInstalacao.php](../../../Modules/ComunicacaoVisual/Services/ProtocoloInstalacao.php)
 - [RoteiroPadraoDaOs.php](../../../Modules/ComunicacaoVisual/Services/RoteiroPadraoDaOs.php)
 
 ## Models / Entities — 13
@@ -120,6 +121,10 @@ module: ComunicacaoVisual
 - [config.php](../../../Modules/ComunicacaoVisual/Config/config.php)
 - [retention.php](../../../Modules/ComunicacaoVisual/Config/retention.php)
 
+## Views (Blade) — 1
+
+- [protocolo-instalacao.blade.php](../../../Modules/ComunicacaoVisual/Resources/views/pdf/protocolo-instalacao.blade.php)
+
 ## Telas (Inertia/React) — 4
 
 - [AceitePublico.tsx](../../../resources/js/Pages/ComunicacaoVisual/AceitePublico.tsx)
@@ -145,9 +150,9 @@ module: ComunicacaoVisual
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
 - [Instalacao.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.casos.md)
 
-## Testes (Pest) — 43
+## Testes (Pest) — 44
 
-- 43 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 44 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
