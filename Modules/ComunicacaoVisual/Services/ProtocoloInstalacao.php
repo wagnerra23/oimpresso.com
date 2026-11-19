@@ -9,6 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as Documento;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Protocolo da instalação em PDF — US-COMVIS-007 · UC-PCV-25 (1c: gerar; o envio ao cliente vem depois).
@@ -63,6 +64,18 @@ class ProtocoloInstalacao
             ],
             'gerado_em' => Carbon::now()->format('d/m/Y H:i'),
         ];
+    }
+
+    /**
+     * Link para o cliente abrir o protocolo sem login: assinado (trocar empresa ou instalação o invalida)
+     * e com validade de `comunicacao-visual.protocolo_link_dias` (7 por padrão).
+     */
+    public function linkPublico(int $businessId, int $instalacaoId): string
+    {
+        $dias = max(1, (int) config('comunicacao-visual.protocolo_link_dias', 7));
+
+        return URL::temporarySignedRoute('comvis.instalacao.protocolo.publico', now()->addDays($dias),
+            ['biz' => $businessId, 'id' => $instalacaoId]);
     }
 
     public function pdf(int $businessId, int $instalacaoId): Documento
