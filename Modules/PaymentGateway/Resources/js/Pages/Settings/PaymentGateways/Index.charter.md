@@ -90,7 +90,7 @@ Wagner gerencia credenciais dos 5 drivers (Inter + C6 + Asaas + BCB Pix + PesaPa
 - `PaymentGatewaysController::healthCheck(Request, ?int): JsonResponse` — endpoint async fetch
 - `PaymentGatewaysController::toggle(Request, int): JsonResponse` — flip ativo
 - Multi-tenant: `HasBusinessScope` trait em `PaymentGatewayCredential`
-- Permission canon: `paymentgateway.credenciais.*` (granular em backlog, hoje `auth` global)
+- Permissão: `business_settings.access` no grupo de rotas desde 2026-11-19 (auditoria L0; antes era só `auth`). Granular `paymentgateway.credenciais.*` é decisão B1 do [W]
 
 ---
 

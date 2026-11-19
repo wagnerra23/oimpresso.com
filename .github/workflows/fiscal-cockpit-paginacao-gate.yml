@@ -30,6 +30,8 @@ on:
       - 'resources/js/Pages/Fiscal/Cockpit.tsx'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-cockpit-paginacao.test.tsx'
+      - 'tests/js/fiscal-cockpit-filtros.test.tsx'
+      - 'resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts'
       - 'tests/js/setup.ts'
       - '.github/workflows/fiscal-cockpit-paginacao-gate.yml'
   push:
@@ -38,6 +40,8 @@ on:
       - 'resources/js/Pages/Fiscal/Cockpit.tsx'
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-cockpit-paginacao.test.tsx'
+      - 'tests/js/fiscal-cockpit-filtros.test.tsx'
+      - 'resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher
       # colhe: mexer na lane sem re-rodar deixaria o artifact envelhecer até expirar,
@@ -71,6 +75,7 @@ jobs:
         run: |
           npx vitest run \
             tests/js/fiscal-cockpit-paginacao.test.tsx \
+            tests/js/fiscal-cockpit-filtros.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-fiscal-cockpit-paginacao-junit.xml

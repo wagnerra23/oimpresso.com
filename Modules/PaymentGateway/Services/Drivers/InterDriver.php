@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Dto\CardToken;
 use Modules\PaymentGateway\Dto\CobrancaEmitidaResult;
@@ -402,7 +403,7 @@ class InterDriver implements PaymentDriverContract
 
         try {
             $response = Http::asForm()
-                ->withOptions($this->mtlsOptions($config))
+                ->withOptions($this->mtlsOptions($cred))
                 ->timeout(10)
                 ->post($this->baseUrl($cred) . '/oauth/v2/token', [
                     'client_id'     => $config['client_id'] ?? '',
@@ -532,14 +533,12 @@ class InterDriver implements PaymentDriverContract
      */
     private function client(PaymentGatewayCredential $cred): PendingRequest
     {
-        $config = $this->config($cred);
-
         return HttpClientFactory::make(
             baseUrl: $this->baseUrl($cred),
             timeoutSec: 30,
         )
             ->withToken($this->getAccessToken($cred))
-            ->withOptions($this->mtlsOptions($config));
+            ->withOptions($this->mtlsOptions($cred));
     }
 
     /**
@@ -553,8 +552,12 @@ class InterDriver implements PaymentDriverContract
     /**
      * mTLS — suporta DUAS formas de armazenar o certificado:
      *
-     *   1. **Caminho de arquivo** (`certificado_crt` / `certificado_key`) — usado
-     *      quando o cert já está no disco do servidor.
+     *   1. **Caminho de arquivo** (`certificado_crt` / `certificado_key`) — só vale
+     *      se o arquivo estiver na pasta DESTA credencial no disco privado
+     *      (`payment-gateway/{business_id}/{credencial}/`, onde a tela grava o upload).
+     *      Caminho fora dela é recusado: o valor vem de `config_json`, que o
+     *      formulário alimenta, e apontaria para o cert de outra empresa ou para
+     *      qualquer arquivo do servidor (auditoria PaymentGateway 2026-11-19, A5).
      *   2. **Base64 inline** (`certificado_crt_b64` / `certificado_key_b64`) —
      *      formato gravado pelo `scripts/inter-credentials/install-biz.py` em
      *      `rb_boleto_credentials` e migrado pra cá. Pode vir Crypt-encriptado
@@ -562,16 +565,18 @@ class InterDriver implements PaymentDriverContract
      *
      * Em test (Http::fake) o mTLS é bypass — os arquivos só importam pro Guzzle real.
      */
-    private function mtlsOptions(array $config): array
+    private function mtlsOptions(PaymentGatewayCredential $cred): array
     {
+        $config = $this->config($cred);
+        $dir = $this->certDir($cred);
         $opts = [];
 
-        $crt = $this->resolveCertFile($config['certificado_crt'] ?? null, $config['certificado_crt_b64'] ?? null);
+        $crt = $this->resolveCertFile($config['certificado_crt'] ?? null, $config['certificado_crt_b64'] ?? null, $dir);
         if ($crt !== null) {
             $opts['cert'] = $crt;
         }
 
-        $key = $this->resolveCertFile($config['certificado_key'] ?? null, $config['certificado_key_b64'] ?? null);
+        $key = $this->resolveCertFile($config['certificado_key'] ?? null, $config['certificado_key_b64'] ?? null, $dir);
         if ($key !== null) {
             $opts['ssl_key'] = $key;
         }
@@ -580,13 +585,39 @@ class InterDriver implements PaymentDriverContract
     }
 
     /**
-     * Resolve um arquivo de cert utilizável: caminho existente OU materializa
-     * o PEM a partir do base64 inline (cacheado por hash do conteúdo).
+     * Pasta onde a tela grava o certificado desta credencial (mesmo caminho de
+     * PaymentGatewaysController::storeCertFiles). Null se ainda não existe.
      */
-    private function resolveCertFile(?string $path, ?string $b64): ?string
+    private function certDir(PaymentGatewayCredential $cred): ?string
+    {
+        if (empty($cred->business_id) || empty($cred->id)) {
+            return null;
+        }
+
+        $dir = realpath(Storage::disk('local')->path(
+            'payment-gateway/' . (int) $cred->business_id . '/' . (int) $cred->id
+        ));
+
+        return ($dir !== false && is_dir($dir)) ? $dir : null;
+    }
+
+    /**
+     * Resolve um arquivo de cert utilizável: caminho existente dentro da pasta da
+     * credencial OU materializa o PEM a partir do base64 inline (cacheado por
+     * hash do conteúdo). Caminho existente fora da pasta lança exceção.
+     */
+    private function resolveCertFile(?string $path, ?string $b64, ?string $allowedDir): ?string
     {
         if (! empty($path) && is_file($path)) {
-            return $path;
+            $real = realpath($path);
+            if ($real === false || $allowedDir === null
+                || ! str_starts_with($real, $allowedDir . DIRECTORY_SEPARATOR)) {
+                throw new CredentialMisconfiguredException(
+                    'Certificado mTLS do Inter fora da pasta desta credencial. Envie o certificado de novo pela tela de gateways.'
+                );
+            }
+
+            return $real;
         }
         if (empty($b64)) {
             return null;
@@ -668,7 +699,7 @@ class InterDriver implements PaymentDriverContract
 
         $config = $this->config($cred);
         $response = Http::asForm()
-            ->withOptions($this->mtlsOptions($config))
+            ->withOptions($this->mtlsOptions($cred))
             ->timeout(10)
             ->post($this->baseUrl($cred) . '/oauth/v2/token', [
                 'client_id'     => $config['client_id'] ?? '',

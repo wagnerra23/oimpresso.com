@@ -7,6 +7,7 @@ use Modules\Governance\Http\Controllers\AuditController;
 use Modules\Governance\Services\AuditDrillDownService;
 
 /**
+ * @covers-us US-GOV-003
  * governance/Audit — contrato de servidor do Audit.casos.md (UC-GAUD-03, -07, -08).
  *
  * De onde os casos vêm: Audit.charter.md (lei) · SPEC US-GOV-003 · RUNBOOK-audit.md ·

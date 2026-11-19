@@ -189,6 +189,7 @@ jobs:
             Modules/Compras/Tests/Feature/AlcadaDoPedidoTest.php \
             Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php \
             Modules/Compras/Tests/Feature/CompraDePedidoOutraEmpresaTest.php \
+            Modules/Compras/Tests/Feature/CompraSeguePoliticaPrecoTest.php \
             Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php \
             Modules/Compras/Tests/Feature/ComprasEscopoLocalDetalheKpisTest.php \
             Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php \

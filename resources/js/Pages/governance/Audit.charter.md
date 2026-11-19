@@ -26,7 +26,7 @@ Permitir a Wagner (operador sênior) investigar atividade do MCP server `mcp.oim
 
 ## Goals — Features (faz)
 
-- AppShellV2 + topnav + `<PageHeader>` shared
+- AppShellV2 + topnav + `<PageHeader>` canônico (`@/Components/PageHeader`, desde 2026-11-19)
 - KpiGrid cols=3 com `<KpiCard>` shared (total entries, errors, users distintos)
 - 4 filtros combinados via `router.get` (period 1h/24h/7d/30d, actor via `mcp_actors.slug`, endpoint enum, status ok/error) com `preserveState` + `preserveScroll` + `replace`
 - Tabela `mcp_audit_log` limit 200 entries por query (quando, user_id, endpoint, tool/resource, status badge semântico, duração ms)
