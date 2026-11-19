@@ -52,8 +52,7 @@ prova de antes e depois. A cópia é gravada numa transação só, e rodar de no
 
 ## Antes de mergear
 
-A receita 5 da empresa 1 tem o mesmo insumo duas vezes. Isso está no PR "Composição: o insumo repetido
-na receita 5". Se for erro, corrigimos a receita primeiro e só depois gravamos a cópia.
+A receita 5 da empresa 1 tem o mesmo insumo duas vezes. Isso está no [PR #11262](https://github.com/wagnerra23/oimpresso.com/pull/11262). Se for erro, corrigimos a receita primeiro e só depois gravamos a cópia.
 
 ## Para dizer sim ou não
 
