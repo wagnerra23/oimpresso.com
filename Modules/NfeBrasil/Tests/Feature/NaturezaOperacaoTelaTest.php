@@ -144,3 +144,23 @@ it('UC-NFTR-50 · rota: a página da Tributação diz à tela se a seção de na
     $this->get('/nfe-brasil/tributacao')->assertOk()
         ->assertInertia(fn ($page) => $page->where('naturezasLiberado', true));
 });
+
+it('UC-NFTR-68 · rota: a lista traz o resumo da própria empresa (nome, UF de origem e IBS/CBS do ano)', function () {
+    config(['feature-flags.forced_on' => 'useV2NfeNaturezas']);
+    $biz = $this->seededTenant()->id;
+    $vizinha = $this->seededSupportClientTenant()->id;
+    $nome = DB::table('business')->where('id', $biz)->value('name');
+    $nomeVizinha = DB::table('business')->where('id', $vizinha)->value('name');
+    $ano = (int) now()->year;
+    $padrao = config('nfebrasil.ibs_cbs_por_ano', [])[$ano] ?? [];
+
+    $empresa = $this->getJson(NOT_URL)->assertOk()->json('empresa');
+
+    // O resumo é da empresa da sessão, nunca da vizinha (ADR 0093).
+    expect($empresa['nome'])->toBe($nome)
+        ->and($empresa['nome'])->not->toBe($nomeVizinha)
+        ->and($empresa['uf'])->toMatch('/^[A-Z]{2}$/')
+        ->and($empresa['ano'])->toBe($ano)
+        ->and($empresa['ibs'])->toBe(isset($padrao['ibs']) ? (float) $padrao['ibs'] : null)
+        ->and($empresa['cbs'])->toBe(isset($padrao['cbs']) ? (float) $padrao['cbs'] : null);
+});

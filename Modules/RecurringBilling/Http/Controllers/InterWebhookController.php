@@ -32,6 +32,12 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  */
 class InterWebhookController extends Controller
 {
+    /**
+     * Header que carrega o segredo do webhook. Fonte única: a tela de
+     * Configurações exibe este mesmo valor (UC-RBCFG-09).
+     */
+    public const AUTH_HEADER = 'X-Inter-Webhook-Secret';
+
     public function handle(Request $request, int $businessId): JsonResponse
     {
         $credential = BoletoCredential::where('business_id', $businessId)
@@ -44,7 +50,7 @@ class InterWebhookController extends Controller
         }
 
         $expectedSecret = $credential->config_json['webhook_secret'] ?? null;
-        $providedSecret = (string) $request->header('X-Inter-Webhook-Secret', '');
+        $providedSecret = (string) $request->header(self::AUTH_HEADER, '');
 
         if (! $expectedSecret || ! hash_equals((string) $expectedSecret, $providedSecret)) {
             return $this->reject('secret_mismatch', $businessId, 401);
@@ -65,7 +71,9 @@ class InterWebhookController extends Controller
                 continue;
             }
 
+            // Idempotência por empresa (unique business_id+provider+event_id desde 2026-11-19).
             $alreadyProcessed = DB::table('pg_webhook_events')
+                ->where('business_id', $businessId)
                 ->where('provider', 'inter')
                 ->where('event_id', $endToEndId)
                 ->exists();

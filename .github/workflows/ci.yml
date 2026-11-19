@@ -57,7 +57,7 @@ jobs:
           restore-keys: composer-${{ runner.os }}-
 
       - name: Prepare storage + bootstrap dirs
-        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app bootstrap/cache
 
       - name: Install PHP deps (sem scripts ate .env existir)
         run: composer install --no-interaction --prefer-dist --no-progress --no-scripts

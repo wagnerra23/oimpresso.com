@@ -36,18 +36,15 @@ use Spatie\Activitylog\Models\Activity;
  * Multi-tenant Tier 0 IRREVOGÁVEL — `PaymentGatewayCredential` herda
  * business_id global scope via HasBusinessScope.
  *
- * Permission canon: `paymentgateway.credenciais.view` (granular). Hoje
- * usamos `system_settings.access` como fallback (UPOS canon) — granular
- * em backlog post-merge.
+ * Permissão: `business_settings.access`, exigida no grupo de rotas
+ * (`can:` em Routes/web.php); o construtor só exige login. Granulares
+ * `paymentgateway.*` são decisão B1 do [W].
  */
 class PaymentGatewaysController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        // TODO[follow-up]: criar permission granular paymentgateway.credenciais.*
-        // e adicionar via PermissionSeeder. Por hora usa system_settings.access
-        // (UPOS canon — superadmin/owner já têm).
     }
 
     public function index(Request $request): Response

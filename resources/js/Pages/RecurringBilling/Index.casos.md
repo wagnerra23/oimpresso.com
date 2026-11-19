@@ -48,6 +48,7 @@ last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloc
 >
 > Fix: `actingAs(user biz=1)` no `beforeEach`, padrão vivo do `RefundCobrancaAsaasJobTest`.
 > **Zero mudança em código de produto.** `UC-RBSUB-05` continua fora de propósito (🔴 failing-first).
+> _(Superado em 2026-10-19: [W] escolheu o remédio "a" e o #9606 corrigiu o gerador; o UC-RBSUB-05 está 🧪 — ver o **Desfecho** dele.)_
 >
 > Status segue **🧪** em tudo: quem carimba ✅ é o cron `casos-results-publish` (07:30 BRT), e eu
 > não rodei nada localmente (CT 100, [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
@@ -149,7 +150,7 @@ last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloc
   `resolvePlanIdFromCiclo()` só casa plano por `ciclo` **E** `valor` exatos; sem match, `plan_id` fica
   `null` e o gerador descarta a assinatura com uma linha de log e **zero alarme**
   ([SDD §9.1](../../../../memory/requisitos/RecurringBilling/SDD-cobranca-recorrente-v1.0.md)).
-- **Status: ❌ vermelho esperado** — **predição, não veredito**: eu não rodei (CT 100). O teste nasce
+- **Status em 2026-08 (superado pelo Desfecho abaixo) ❌ vermelho esperado** — **predição, não veredito**: eu não rodei (CT 100). O teste nasce
   failing-first de propósito. **A correção é decisão `[V0]` de [W]** — há ≥2 remédios válidos que se
   anulam (o gerador cair pra `metadata.valor` × o `store()` recusar valor sem plano × criar plano
   implícito), e escolher remédio antes do diagnóstico é o erro catalogado em
@@ -254,8 +255,11 @@ Status: 🧪
 Status: 🧪
 
 ## UC-RBPA-04 · Erro do banco fica registrado e a rodada seguinte tenta de novo · `must`
-**Dado** o banco devolvendo erro na 1ª tentativa **Então** a cobrança fica `erro`, e a rodada seguinte cria outra
-com chave (e txid) diferente, que sai `emitida`.
+**Dado** o banco devolvendo erro na 1ª tentativa **Então** a cobrança fica `erro` (com a chave renomeada para
+`…#erro{id}`), e a rodada seguinte cria outra com a **mesma** chave e o **mesmo** txid, que sai `emitida`. Erro na
+chamada não prova recusa: se o banco aceitou e só a resposta se perdeu, o txid repetido é recusado e não sai segunda
+cobrança do ciclo. Chave e txid novos só depois de uma tentativa `cancelada`. (Até 2026-11-19 a retentativa usava
+txid novo — achado d8 da auditoria RecurringBilling.)
 Status: 🧪
 
 ## UC-RBPA-05 · `--dry-run` mostra o que seria cobrado sem gravar nem chamar o banco · `must`
