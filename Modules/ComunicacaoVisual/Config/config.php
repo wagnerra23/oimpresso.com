@@ -19,6 +19,8 @@ return [
     /*
      * Dias de validade do link do protocolo da instalação que vai ao cliente (UC-PCV-25 · 1d).
      * Passado o prazo o link expira; o protocolo continua na tela da instalação para quem tem login.
+     * Valor fixo, sem env(): a regra do Larastan (ratchet do PHPStan) só aceita env() dentro de config/
+     * na raiz. Para mudar, edite aqui ou publique o config do módulo.
      */
-    'protocolo_link_dias' => (int) env('COMVIS_PROTOCOLO_LINK_DIAS', 7),
+    'protocolo_link_dias' => 7,
 ];
