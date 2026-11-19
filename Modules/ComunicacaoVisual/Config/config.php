@@ -15,4 +15,10 @@ return [
      * Configurável por business futuramente.
      */
     'unidade_medida_default' => 'm2',
+
+    /*
+     * Dias de validade do link do protocolo da instalação que vai ao cliente (UC-PCV-25 · 1d).
+     * Passado o prazo o link expira; o protocolo continua na tela da instalação para quem tem login.
+     */
+    'protocolo_link_dias' => (int) env('COMVIS_PROTOCOLO_LINK_DIAS', 7),
 ];
