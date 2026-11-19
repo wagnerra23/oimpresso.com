@@ -40,7 +40,7 @@ module: RecurringBilling
 - [UpdateAssinaturaRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdateAssinaturaRequest.php)
 - [UpdatePlanRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdatePlanRequest.php)
 
-## Services — 17
+## Services — 18
 
 - [AssinaturaCobrancaService.php](../../../Modules/RecurringBilling/Services/AssinaturaCobrancaService.php)
 - [AssinaturaService.php](../../../Modules/RecurringBilling/Services/AssinaturaService.php)
@@ -55,6 +55,7 @@ module: RecurringBilling
 - [C6Driver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php)
 - [InterDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php)
 - [CartaoSalvoService.php](../../../Modules/RecurringBilling/Services/CartaoSalvoService.php)
+- [Centavos.php](../../../Modules/RecurringBilling/Services/Centavos.php)
 - [CobradorPixAutomatico.php](../../../Modules/RecurringBilling/Services/CobradorPixAutomatico.php)
 - [GatewayBackfillService.php](../../../Modules/RecurringBilling/Services/GatewayBackfillService.php)
 - [InvoiceGeneratorService.php](../../../Modules/RecurringBilling/Services/InvoiceGeneratorService.php)

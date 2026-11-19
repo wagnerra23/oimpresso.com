@@ -187,7 +187,7 @@ class AdminSidebarMenu
                 || $abasVisiveis) {
                 $menu->dropdown(
                     __('sale.products'),
-                    function ($sub) use ($pode, $abasVisiveis) {
+                    function ($sub) use ($abasVisiveis) {
                         if (auth()->user()->can('product.view')) {
                             $sub->url(
                                 action([\App\Http\Controllers\ProductController::class, 'index']),
@@ -196,19 +196,10 @@ class AdminSidebarMenu
                             );
                         }
 
-                        // Consulta de Produtos (cockpit denso Inertia, /products/unificado).
-                        // [W] 2026-09-21: "liga a navegacao agora, mesmo em draft" - antes desta
-                        // entrada a tela era NAO-LINKADA (nenhuma navegacao do app apontava pra
-                        // ela; so quem digitava a URL chegava). O guard espelha exatamente o do
-                        // controller (ProdutoUnificadoController:139: view OU create, abort 403,
-                        // UC-PUNI-06) - nao mostrar link que da 403, nem esconder link que abre.
-                        if ($pode('product.view', 'product.create')) {
-                            $sub->url(
-                                route('products.unificado.index'),
-                                'Consulta de Produtos',
-                                ['icon' => '', 'active' => request()->segment(1) == 'products' && request()->segment(2) == 'unificado']
-                            );
-                        }
+                        // A entrada "Consulta de Produtos" (/products/unificado), ligada em
+                        // 2026-09-21, saiu do menu em 2026-11-18 a pedido de [F]: era o protótipo
+                        // inicial, substituído pela lista que já está em produção em /products.
+                        // A rota continua existindo; só não tem mais link no menu.
 
                         if (auth()->user()->can('product.create')) {
                             $sub->url(
