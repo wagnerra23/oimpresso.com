@@ -215,16 +215,37 @@ it('UC-PGCNAB-10 · arquivo com extensão fora da lista mostra o erro e não gra
 
     $page = pgCnabAbrir($cred->id);
     $page->attach('input[type="file"]', $arquivo);
+
+    // O nome do arquivo aparece na prévia quando o React recebeu o `change` do input.
+    $nome = basename($arquivo);
+    $anexou = false;
+    for ($i = 0; $i < 20 && ! $anexou; $i++) {
+        $anexou = str_contains(pgCnabTexto($page), $nome);
+        if (! $anexou) {
+            $page->wait(0.1);
+        }
+    }
+    if (! $anexou) {
+        throw new RuntimeException('O arquivo anexado nao apareceu na previa do formulario: ' . mb_substr(pgCnabTexto($page), 0, 400));
+    }
+
     $page->press('Enviar arquivo');
 
     $viu = false;
-    for ($i = 0; $i < 40 && ! $viu; $i++) {
+    for ($i = 0; $i < 60 && ! $viu; $i++) {
         $viu = str_contains(pgCnabTexto($page), 'Extensão não aceita');
         if (! $viu) {
             $page->wait(0.25);
         }
     }
-    expect($viu)->toBeTrue();
+    if (! $viu) {
+        // Falha dizendo onde parou: URL, upload gravado ou não, modal de erro do Inertia (iframe), texto.
+        $estado = (string) $page->script("JSON.stringify({ url: location.pathname, iframe: document.querySelectorAll('iframe').length,"
+            . " erros: [...document.querySelectorAll('.text-destructive')].map((e) => e.innerText).join(' | '),"
+            . " texto: document.body.innerText.replace(/\s+/g, ' ').slice(0, 500) })");
+        $gravou = DB::table('cnab_retorno_uploads')->where('payment_gateway_credential_id', $cred->id)->count() - $antes;
+        throw new RuntimeException("A tela nao mostrou 'Extensão não aceita'. Uploads gravados no envio: {$gravou}. Estado: {$estado}");
+    }
     expect(DB::table('cnab_retorno_uploads')->where('payment_gateway_credential_id', $cred->id)->count())->toBe($antes);
     $page->assertNoAccessibilityIssues(level: 0);
 })->after(function () {
