@@ -13,7 +13,10 @@ use Illuminate\Validation\Rule;
  * Cobre cadastro de assinatura recorrente (boletos automáticos via Asaas/Inter).
  *
  * Multi-tenant Tier 0 (ADR 0093):
- *   - contact_id validado existindo no business da sessão (Rule\Exists scoped no Controller).
+ *   - contact_id tem de existir na empresa da sessão e não estar excluído (Rule::exists
+ *     filtrado por business_id abaixo). `App\Contact` não tem escopo global, então sem este
+ *     filtro um id de outra empresa passava e a lista devolvia nome, documento e telefone
+ *     desse cliente (auditoria RecurringBilling 2026-11-19, achado a1).
  *   - business_id NUNCA aceito via request — sempre da sessão.
  */
 class StoreAssinaturaRequest extends FormRequest
@@ -25,8 +28,17 @@ class StoreAssinaturaRequest extends FormRequest
 
     public function rules(): array
     {
+        $businessId = (int) session('user.business_id');
+
         return [
-            'contact_id' => ['required', 'integer', 'min:1'],
+            'contact_id' => [
+                'required',
+                'integer',
+                'min:1',
+                Rule::exists('contacts', 'id')
+                    ->where('business_id', $businessId)
+                    ->whereNull('deleted_at'),
+            ],
             'plan_id' => ['nullable', 'integer', 'min:1'],
             'valor' => ['required', 'numeric', 'min:0.01'],
             'ciclo' => ['required', 'string', Rule::in(['mensal', 'trimestral', 'semestral', 'anual'])],
@@ -41,6 +53,7 @@ class StoreAssinaturaRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'contact_id.exists' => 'Cliente não encontrado nesta empresa.',
             'ciclo.in' => 'Ciclo deve ser mensal, trimestral, semestral ou anual.',
             'gateway.in' => 'Gateway suportado: asaas ou inter.',
             'forma_pagamento.in' => 'Forma de pagamento suportada: boleto, pix ou cartao.',
