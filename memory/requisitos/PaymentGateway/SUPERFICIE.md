@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 179 arquivos em 16 papéis.
+**Total mapeado:** 180 arquivos em 16 papéis.
 
 ## Controllers — 14
 
@@ -33,7 +33,7 @@ module: PaymentGateway
 - [SicoobApiWebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php)
 - [WebhookProcessor.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php)
 
-## Services — 29
+## Services — 30
 
 - [BaixaDeBoletoMigrado.php](../../../Modules/PaymentGateway/Services/BaixaDeBoletoMigrado.php)
 - [CnabBoletoAdapter.php](../../../Modules/PaymentGateway/Services/Cnab/CnabBoletoAdapter.php)
@@ -64,6 +64,7 @@ module: PaymentGateway
 - [SimuladorTefDriver.php](../../../Modules/PaymentGateway/Services/Tef/SimuladorTefDriver.php)
 - [TefService.php](../../../Modules/PaymentGateway/Services/Tef/TefService.php)
 - [CobrancaWebhookResolver.php](../../../Modules/PaymentGateway/Services/Webhook/CobrancaWebhookResolver.php)
+- [WebhookEventId.php](../../../Modules/PaymentGateway/Services/Webhook/WebhookEventId.php)
 
 ## Models / Entities — 7
 
