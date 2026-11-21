@@ -73,6 +73,7 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 - Busca primeiro, em faixa própria, com a dica "/ pra focar · ⌘K global"; embaixo, 7 dropdowns filtro: Status · Tipo (PF/PJ) · UF (27) · Tags (multi) · Sem compra há (15d/30d/90d/180d/365d) · Grupo (grupos de cliente da empresa) · Saldo (devedor/zerado)
 - Tabela densa: avatar redondo de cor sólida (paleta de 8 tons do protótipo, cor por hash do nome), Nome + sub-nome (fantasia/contato), Tipo pill, Documento mascarado em mono, Cidade em cima e UF em mono embaixo (só a UF quando falta a cidade), FrescorPill com bolinha (fresc/recente/distante/frio com cor), ★ e ⋮ centralizadas, Saldo destacado vermelho se devedor, Tags chips coloridas (9 valores semânticos), Star pessoal localStorage
 - KB-9.75 Slice A atalhos (`⌘K` · `?` · `J/K` · Enter · `/`) — preservar PR #1309
+- Menus: "Mais ações" com Importar, Exportar CSV, Grupos de clientes e Mapa de clientes (os dois últimos só com `customer.view`); ⋮ da linha com Ver detalhes, Editar, Extrato, Desativar/Ativar cadastro (com "Desfazer") e Excluir
 - "32 clientes encontrados" count inline — o total do servidor (`meta.total`); com filtro da página ativo, "X de Y nesta página"
 - Inertia::defer em customers + kpis (skill `inertia-defer-default`)
 - ~~**PTDP Onda 1 (v4 · 2026-05-24):**~~ ❌ **REVOGADA (v6 · 2026-05-24)** · Wagner reprovou BrunaGreeting + SavedViews em validação visual produção · removidos `Components/clientes/BrunaGreeting.tsx` e `SavedViews.tsx` · charter mantém histórico (append-only)

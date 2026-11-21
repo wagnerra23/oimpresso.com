@@ -45,6 +45,7 @@ import {
   Truck,
   Upload,
   UserCheck,
+  UserX,
   Users,
   X,
 } from 'lucide-react';
@@ -184,6 +185,8 @@ interface ClienteRow {
   // Consumidor/fornecedor padrão (walk-in). destroy() protege server-side;
   // front esconde "Excluir" pra ele. Wagner 2026-06-08.
   is_default?: boolean | null;
+  /** contacts.contact_status ('active' | 'inactive') — Ativar/Desativar cadastro no ⋮. */
+  contact_status?: string | null;
   // Wagner 2026-05-27 iteracao 2 — contador veiculos pro botao header drawer.
   // Lazy: count so existe se modulo OficinaAuto instalado (gate hasTable).
   vehicles_count?: number | null;
@@ -274,6 +277,10 @@ export interface ClienteIndexPageProps {
     import: boolean;
     /** customer.delete || supplier.delete — gate do "Excluir" no menu ⋮. */
     delete: boolean;
+    /** customer.update || supplier.update — gate do "Ativar/Desativar cadastro" no menu ⋮. */
+    update?: boolean;
+    /** customer.view — gate de "Grupos de clientes" e "Mapa de clientes" (as rotas exigem). */
+    view_all?: boolean;
   };
   /**
    * Tabelas de preço REAIS do business (customer_groups id+name). Server-side
@@ -617,6 +624,52 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       setRestaurando(null);
     }
   }, [restaurando]);
+
+  // Ativar/Desativar cadastro pelo ⋮ da linha, como no protótipo ("muda na hora, avisa e deixa
+  // desfazer"). Usa o endpoint que a ficha já usava (ContactController::updateStatus): manda o estado
+  // pedido, e não "inverta", para não reativar um cadastro que outra pessoa acabou de desativar.
+  const [alternandoStatus, setAlternandoStatus] = useState<number | null>(null);
+  const enviarStatusCadastro = useCallback(async (row: ClienteRow, status: 'active' | 'inactive'): Promise<boolean> => {
+    const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+    const fd = new FormData();
+    fd.append('status', status);
+    const r = await fetch(`/contacts/update-status/${row.id}`, {
+      method: 'POST',
+      body: fd,
+      headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    });
+    const json = await r.json().catch(() => null);
+    return r.ok && !!json?.success;
+  }, []);
+  const alternarStatusCadastro = useCallback(async (row: ClienteRow) => {
+    if (alternandoStatus !== null) return;
+    const estavaAtivo = (row.contact_status ?? 'active') === 'active';
+    const novo = estavaAtivo ? 'inactive' : 'active';
+    setAlternandoStatus(row.id);
+    try {
+      if (await enviarStatusCadastro(row, novo)) {
+        router.reload({ only: ['customers', 'kpis', 'tab_counts'] });
+        toast.success(estavaAtivo ? `Cadastro de ${row.name} desativado.` : `Cadastro de ${row.name} ativado.`, {
+          action: {
+            label: 'Desfazer',
+            onClick: () => {
+              void enviarStatusCadastro(row, estavaAtivo ? 'active' : 'inactive').then((ok) => {
+                if (ok) router.reload({ only: ['customers', 'kpis', 'tab_counts'] });
+                else toast.error('Não foi possível desfazer. Altere o cadastro de novo pelo menu.');
+              });
+            },
+          },
+        });
+      } else {
+        toast.error('Não foi possível alterar este cadastro.');
+      }
+    } catch {
+      toast.error('Falha de rede ao alterar o cadastro. Verifique a conexão e tente de novo.');
+    } finally {
+      setAlternandoStatus(null);
+    }
+  }, [alternandoStatus, enviarStatusCadastro]);
 
   useEffect(() => {
     setPage(1);
@@ -1013,19 +1066,33 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           </a>
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuSeparator />
+                      {props.permissions.view_all && <DropdownMenuSeparator />}
                     </>
                   )}
-                  {/* SEÇÃO CONFIGURAÇÃO */}
-                  <div className="px-2 pt-1 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Configuração
-                  </div>
-                  <DropdownMenuItem asChild>
-                    <a href="/customer-group" title="Cadastrar grupos/tipos de cliente (VIP, atacado, varejo, etc)">
-                      <Layers className="mr-2 h-4 w-4 shrink-0" strokeWidth={1.75} style={{ vectorEffect: 'non-scaling-stroke' }} />
-                      Grupos de clientes
-                    </a>
-                  </DropdownMenuItem>
+                  {/* SEÇÃO CONFIGURAÇÃO — só aparece com customer.view (os dois itens exigem). */}
+                  {props.permissions.view_all && (
+                    <div className="px-2 pt-1 pb-1 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Configuração
+                    </div>
+                  )}
+                  {/* As duas rotas exigem customer.view: sem ela, quem só vê os próprios clientes
+                      recebia 403 ao clicar em "Grupos de clientes". "Mapa de clientes" vem do protótipo. */}
+                  {props.permissions.view_all && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <a href="/customer-group" title="Cadastrar grupos/tipos de cliente (VIP, atacado, varejo, etc)">
+                          <Layers className="mr-2 h-4 w-4 shrink-0" strokeWidth={1.75} style={{ vectorEffect: 'non-scaling-stroke' }} />
+                          Grupos de clientes
+                        </a>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <a href="/contacts/map" title="Ver os clientes no mapa">
+                          <MapPin className="mr-2 h-4 w-4 shrink-0" strokeWidth={1.75} style={{ vectorEffect: 'non-scaling-stroke' }} />
+                          Mapa de clientes
+                        </a>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -1437,6 +1504,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                               onDelete={() => setDeleteTarget(row)}
                               onRestore={() => restaurar(row)}
                               restoring={restaurando === row.id}
+                              canToggleStatus={!!props.permissions.update}
+                              onToggleStatus={() => alternarStatusCadastro(row)}
+                              togglingStatus={alternandoStatus === row.id}
                             />
                           </td>
                         </tr>
@@ -1894,9 +1964,15 @@ function ActionsMenu({
   onDelete,
   onRestore,
   restoring = false,
+  canToggleStatus = false,
+  onToggleStatus,
+  togglingStatus = false,
 }: {
   row: ClienteRow;
   canDelete: boolean;
+  canToggleStatus?: boolean;
+  onToggleStatus?: () => void;
+  togglingStatus?: boolean;
   onView: () => void;
   onEdit: () => void;
   onExtrato: () => void;
@@ -1940,6 +2016,26 @@ function ActionsMenu({
           <CreditCard size={14} className="mr-2" />
           Extrato
         </DropdownMenuItem>
+        {/* Ativar/Desativar cadastro (protótipo). O consumidor final padrão (walk-in) fica de fora,
+            como no Excluir: desativá-lo tiraria o cliente padrão das vendas. */}
+        {canToggleStatus && onToggleStatus && !row.is_default && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onToggleStatus} disabled={togglingStatus}>
+              {(row.contact_status ?? 'active') === 'active' ? (
+                <>
+                  <UserX size={14} className="mr-2" />
+                  Desativar cadastro
+                </>
+              ) : (
+                <>
+                  <UserCheck size={14} className="mr-2" />
+                  Ativar cadastro
+                </>
+              )}
+            </DropdownMenuItem>
+          </>
+        )}
         {showDelete && (
           <>
             <DropdownMenuSeparator />
