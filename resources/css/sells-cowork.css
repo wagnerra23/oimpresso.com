@@ -2502,10 +2502,9 @@
   font-weight: 600; padding: 9px 12px;
 }
 .sells-cowork .vendas-aplus .vd-aplus-table tbody td {
-  /* Wagner 2026-05-21 — densidade compacta v2 (era 10px). Esta regra com 3
-     classes vence em especificidade sobre .sells-cowork .os-table tbody td
-     (2 classes) do PR #1337 — fix de density. */
-  padding: 6px 12px; vertical-align: middle;
+  /* 2026-11-21 — volta às medidas do protótipo (vendas-page.jsx: 13px · 10px 12px). A densidade
+     6px de 2026-05-21 cede ao protótipo (UI-0029; [W] autorizou). 3 classes vencem .os-table tbody td. */
+  padding: 10px 12px; font-size: 13px; vertical-align: middle;
 }
 .sells-cowork .vendas-aplus .vd-aplus-table .vd-chk { padding: 0 0 0 12px; width: 24px; }
 .sells-cowork .vendas-aplus .vd-aplus-table .os-row.selected td { background: var(--vd-green-soft); }
