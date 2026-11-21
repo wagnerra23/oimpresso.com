@@ -59,7 +59,7 @@ describe('Editor de natureza', () => {
 
     // A lateral "No lançamento" e o salvar travado pelo erro.
     expect(screen.getByRole('heading', { name: 'No lançamento' })).toBeTruthy();
-    expect((screen.getByRole('button', { name: '1 erro para salvar' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /^(Criar|Salvar) natureza$/ }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText('1 pendência nos passos marcados em vermelho.')).toBeTruthy();
   });
 
