@@ -288,3 +288,23 @@ Fatos que mudam o plano:
 - No cadastro do produto: NCM, CEST e origem. A lista de produtos filtra "sem NCM".
 
 **Critério de aceite fiscal da migração:** Saúde fiscal com "pronto" sem bloqueante, e o simulador reproduzindo a tabela de gabarito acima nos 3 NCMs, mais a devolução. A conferência final é emitir em homologação uma nota de cada linha e comparar o XML com o de uma nota real do Delphi.
+
+## Clientes sem CPF/CNPJ (medido em 2026-11-21)
+
+> Fato datado. Delphi lido por `SELECT` na cópia `Auditar` (até 26/10); empresa 199 lida em produção pelo `tinker`, só leitura. Documentos comparados por hash, sem sair do processo.
+
+**O que faltava:** dos 434 cadastros de `PESSOAS`, 250 estavam na 199. Os 146 clientes que faltavam têm 129 com venda (551 vendas, 13 compraram desde 2024) e 8 com título a receber em aberto. **134 deles não têm CPF/CNPJ**, e o `import-contacts-from-venda.py` deduplica pelo documento, então os pulou. As vendas deles estão no cliente padrão: 898 vendas da 199 apontam para ele.
+
+**Importador novo:** `scripts/legacy-migration/import-contacts-from-pessoas.py` lê o cadastro `PESSOAS` e usa `PES:<CODIGO>` como `legacy_id` quando não há documento. Não sobrescreve quem já existe; só promove cliente que também é fornecedor para "ambos". Representante, funcionário e pessoa sem papel não viram contato.
+
+Dry-run na cópia `Auditar`:
+
+| | Clientes | Fornecedores |
+|---|---:|---:|
+| Entram (novos) | 146 (12 com documento, 134 sem; 16 inativos) | 12 |
+| Já existem (nada muda, ou vira "ambos") | 245 | 3 |
+| Fora | 22 representantes, 5 sem papel, 1 documento repetido | |
+
+**Ainda não aplicado.** Aplicar em produção exige o ok [W] sobre este dry-run.
+
+**Fica para PR próprio, porque mexe em valor** (regra mestre de `proibicoes.md`): % de comissão (113 clientes já migrados deveriam ter), desconto de pontualidade (45) e tabela de preço (167). E religar as 898 vendas do cliente padrão ao cliente certo, que depende deste importador aplicado.

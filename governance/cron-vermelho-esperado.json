@@ -1,3 +1,10 @@
 {
-  "silencios": []
+  "silencios": [
+    {
+      "workflow": "baseline-folga.yml",
+      "razao": "A run agendada de 2026-11-16 falhou no push (bot sem permissão de workflow, base defasada na fila). Conserto mergeado em 2026-11-19 no #11184; a próxima run agendada é 2026-11-23 e é ela que prova o conserto. O silêncio acaba antes dela.",
+      "expira_em": "2026-11-22",
+      "declarado_por": "F"
+    }
+  ]
 }
