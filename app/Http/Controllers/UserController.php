@@ -264,8 +264,9 @@ class UserController extends Controller
 
             if ($request->input('remove_photo') === '1' && ! $request->hasFile('profile_photo')) {
                 // "Remover" na tela: apaga a foto do próprio usuário (escopo pelo business dele).
-                if ($user->media) {
-                    Media::deleteMedia($user->business_id, $user->media->id);
+                $foto = $user->media()->first();
+                if ($foto) {
+                    Media::deleteMedia($user->business_id, $foto->id);
                 }
             } else {
                 Media::uploadMedia($user->business_id, $user, $request, 'profile_photo', true);
