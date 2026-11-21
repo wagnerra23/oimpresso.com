@@ -37,7 +37,7 @@ mwart_pattern_reuse:
 >
 > Versão v1 (2026-05-09) referenciava `prod-page.jsx` (6.5 KB grid-first). v2 promove para blueprint cockpit completo. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
-> ⚠️ **Relação com `/products/unificado`:** essa Page é a versão SIMPLES (catálogo grid only). `/products/unificado` é a versão DENSA (5 sub-views). Wagner decide na aprovação se mantém ambas ou unifica em uma só. Backend canon: `app/Http/Controllers/ProductController.php` (UPOS herdado). Produto = `App\Product` direto em `app/`, **NÃO** em `Modules\Produto\`.
+> ⚠️ **`/products/unificado` não existe mais:** a versão densa (Consulta de Produtos) foi apagada em 2026-11-19 [F] e o endereço redireciona para esta lista, que é a única do catálogo. Backend canon: `app/Http/Controllers/ProductController.php` (UPOS herdado). Produto = `App\Product` direto em `app/`, **NÃO** em `Modules\Produto\`.
 
 ---
 
@@ -152,7 +152,7 @@ função da lista Blade que roda hoje em produção.
 - ❌ Função a menos que a lista Blade (`product.index`) — o que ela faz, esta faz
 - ❌ Cadastro/edição do produto dentro da lista (abre `create`/`edit`, Blade — US-PROD-029)
 - ❌ Edição de preço inline na tabela
-- ❌ Editar a ficha técnica (receita, insumos) na consulta — ela se edita na Fabricação; o painel só mostra o resumo, sem editar (D-29, decisão [F] 2026-11-12). Tabelas continuam em `/products/unificado`
+- ❌ Editar a ficha técnica (receita, insumos) na consulta — ela se edita na Fabricação; o painel só mostra o resumo, sem editar (D-29, decisão [F] 2026-11-12). Tabelas de preço ficam em `/selling-price-group`
 - ❌ Árvore de categorias (filtro é a lista plana da categoria, como no Blade)
 
 ---
@@ -263,7 +263,6 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
   _(a linha anterior apontava `ui_kits/cowork-2026-05-09/prod-page.jsx`; caminho **inexistente** — `ls` → No such file. Corrigido 2026-07-26.)_
 - Contrato de casos: [`Index.casos.md`](Index.casos.md) — `UC-PIDX-01..06` (`CU-PROD-15` do SDD)
 - Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
-- Charter relacionado: [`/products/unificado`](Unificado/Index.charter.md) — versão densa
 - [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 - [LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../memory/reference/prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pré-flight obrigatório

@@ -141,7 +141,6 @@ on:
       - 'app/Http/Controllers/PurchaseController.php'
       # Playbook Produto · thread 08 — SOB TESTE do ProdutoMenuPermissaoContratoTest.
       - 'app/Http/Middleware/AdminSidebarMenu.php'
-      - 'app/Http/Controllers/ProdutoUnificadoController.php'
       # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest (§5 2026-08-02).
       - 'app/Http/Controllers/UnitController.php'
       # SOB TESTE do UnidadeMultiplicadorAuditoriaTest (dano gravado pelo bug do #8394).
@@ -245,9 +244,6 @@ jobs:
               - 'app/Http/Controllers/PurchaseController.php'
               # Playbook Produto · thread 08 — SOB TESTE do ProdutoMenuPermissaoContratoTest.
               - 'app/Http/Middleware/AdminSidebarMenu.php'
-              # Arquivos SOB TESTE do ProdutoUnificadoCategoriasContratoTest. Sem eles no
-              # trigger, mexer no controller não dispara o teste dele (§5 2026-08-02).
-              - 'app/Http/Controllers/ProdutoUnificadoController.php'
               # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest.
               - 'app/Http/Controllers/UnitController.php'
               # SOB TESTE do UnidadeMultiplicadorAuditoriaTest (dano gravado pelo bug do #8394).

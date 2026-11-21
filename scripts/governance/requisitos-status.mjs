@@ -339,9 +339,11 @@ if (IS_MAIN && args.includes('--selftest')) {
 
   // (1) escopo de tela: subpasta CONTA, auxiliar NÃO. Antes do fix, `Unificado/Index` era
   // invisível e o painel do Produto fechava "7/7" sendo 7 de 8.
+  // 2026-11-19: o exemplo era `Unificado/Index`, tela apagada no #11251 (Consulta de Produtos).
+  // A prova é a mesma com outra tela em subpasta que segue viva.
   const telasProduto = telasDoModulo('Produto');
-  ok('MORDE: tela em subpasta entra na conta (Unificado/Index)',
-    telasProduto.includes('Unificado/Index'));
+  ok('MORDE: tela em subpasta entra na conta (Cadastros/Index)',
+    telasProduto.includes('Cadastros/Index'));
   ok('controle-negativo: _components NÃO vira tela',
     !telasProduto.some((t) => t.startsWith('_')));
   // 2026-10-01 (thread Produto/02): era `=== 8`, número congelado de uma árvore viva — reprovou

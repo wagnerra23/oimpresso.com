@@ -55,7 +55,7 @@
 | Status | Tela | Material canon | Charter draft |
 |---|---|---|---|
 | `[~]` | `Cliente/Index` (a criar) | [`clientes-page.jsx`](../../../prototipo-ui/cowork/Wagner/clientes-page.jsx) (10 KB) | [draft](../../../resources/js/Pages/Cliente/Index.charter.md) — Wagner aprova Non-Goals + Anti-hooks |
-| `[~]` | `Produto/Unificado/Index` (a criar) | ``produto-app.jsx`` (arquivo histórico removido) (60 KB) + `screenshot-06` (arquivo histórico removido) + [pino F1](prototipos/produto-unificado/) | [draft](../../../resources/js/Pages/Produto/Unificado/Index.charter.md) — decisões pendentes (multiplier schema → ADR `Produto/arq/0001`, MfgRecipe namespace, cache strategy) |
+| `[~]` | `Produto/Unificado/Index` (a criar) | ``produto-app.jsx`` (arquivo histórico removido) (60 KB) + `screenshot-06` (arquivo histórico removido) + [pino F1](prototipos/produto-unificado/) | draft _(removido em 2026-11-19, #11251)_ — decisões pendentes (multiplier schema → ADR `Produto/arq/0001`, MfgRecipe namespace, cache strategy) |
 | `[~]` | `Produto/Index` (a criar) | ``prod-page.jsx`` (arquivo histórico removido) (6.5 KB) | [draft](../../../resources/js/Pages/Produto/Index.charter.md) — decisão pendente: simples vs unificado coexistem? |
 | `[~]` | `Orcamento/Index` (a criar) | [`orc-page.jsx`](../../../prototipo-ui/cowork/Wagner/orc-page.jsx) (6.3 KB) | [draft](../../../memory/requisitos/Orcamento/_arquivo/Index.charter.md) — decisão pendente: Model `App\Transaction` (`type: quotation`) vs dedicado |
 

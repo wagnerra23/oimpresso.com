@@ -793,17 +793,10 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     Route::get('/products/download-excel', [ProductController::class, 'downloadExcel']);
 
-    // Catálogo Unificado (Cockpit V2) — 5 sub-telas em uma rota.
-    // Persona Larissa [L] · 1280×1024 · ROTA LIVRE.
-    // Gate de permissão: está DENTRO do controller (ProdutoUnificadoController:139), e isso
-    // é deliberado — ele aborta 403 aceitando `product.view` OU `product.create`, como a lista
-    // irmã (ProductController@index), porque quem pode cadastrar produto precisa alcançar o
-    // catálogo. Contrato em UC-PUNI-06, com teste (ProdutoUnificadoContratoTest.php:340).
-    // ⚠️ NÃO adicionar middleware('can:product.view') aqui: seria MAIS ESTRITO que o
-    // controller e trancaria quem só tem `product.create` — regressão, e o teste cai. O TODO
-    // que pedia isso foi removido em 2026-09-21 por medição (proposal produto-8-telas-react-limbo).
-    Route::get('/products/unificado', [\App\Http\Controllers\ProdutoUnificadoController::class, 'index'])
-        ->name('products.unificado.index');
+    // A Consulta de Produtos (/products/unificado) foi apagada em 2026-11-19 [F]: era o protótipo
+    // da lista, substituído por /products. Quem tiver o endereço salvo cai na lista; sem isto o
+    // `products/{product}` do resource tentaria abrir um produto com id "unificado".
+    Route::redirect('/products/unificado', '/products', 301);
 
     Route::get('/products/stock-history/{id}', [ProductController::class, 'productStockHistory']);
     // CU-PROD-20 (#10765): só os locais de armazenagem; product.update ou product.armazenagem.

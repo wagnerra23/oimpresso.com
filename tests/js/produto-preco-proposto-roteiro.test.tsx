@@ -19,7 +19,7 @@ import { render, screen, cleanup, fireEvent, within } from '@testing-library/rea
 import PainelDetalheProduto from '@/Pages/Produto/_components/lista/PainelDetalhe';
 import { colunasDaLista } from '@/Pages/Produto/_components/lista/colunas';
 import type { AbaDoDetalhe, DetalheProdutoDados, LinhaProduto } from '@/Pages/Produto/_components/lista/tipos';
-import { brl } from '@/Pages/Produto/Unificado/_components/catalogo';
+import { brl } from '@/Pages/Produto/_components/lista/formato';
 
 const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados => ({
   id: 7,

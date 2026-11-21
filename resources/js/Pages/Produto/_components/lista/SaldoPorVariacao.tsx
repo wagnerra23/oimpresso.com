@@ -1,5 +1,5 @@
 // Painel do saldo por variação na coluna Estoque da lista (UC-PIDX-37 · D7).
-import { qtdComUnidade } from '../../Unificado/_components/catalogo';
+import { qtdComUnidade } from './formato';
 import { somaDasVariacoes, type LinhaProduto, type SaldoDaVariacao } from './tipos';
 /** Painel do saldo por variação (UC-PIDX-37 · D7). O total é a soma das linhas, que o servidor
  *  calcula com a mesma conta da coluna Estoque; por isso bate com o saldo da linha. */

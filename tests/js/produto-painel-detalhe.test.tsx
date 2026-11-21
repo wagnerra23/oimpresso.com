@@ -31,7 +31,7 @@ import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-li
 import PainelDetalheProduto from '@/Pages/Produto/_components/lista/PainelDetalhe';
 import type { AbaDoDetalhe, DetalheProdutoDados } from '@/Pages/Produto/_components/lista/tipos';
 // Formatador de moeda da própria tela: o que se prova aqui é QUAL número aparece, não o formato.
-import { brl } from '@/Pages/Produto/Unificado/_components/catalogo';
+import { brl } from '@/Pages/Produto/_components/lista/formato';
 
 const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados => ({
   id: 7,

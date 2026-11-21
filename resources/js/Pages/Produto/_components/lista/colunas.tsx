@@ -21,8 +21,8 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 import { Globe } from 'lucide-react';
 import { Inline } from '@/Components/layout';
-import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import PopoverAncorado from '../../Unificado/_components/PopoverAncorado';
+import { brl, qtdComUnidade } from './formato';
+import PopoverAncorado from './PopoverAncorado';
 import SaldoPorVariacao from './SaldoPorVariacao';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
 import {

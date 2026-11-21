@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import PainelDetalheProduto from '@/Pages/Produto/_components/lista/PainelDetalhe';
 import type { AbaDoDetalhe, DetalheProdutoDados, ReceitaDoProdutoNoPainel } from '@/Pages/Produto/_components/lista/tipos';
-import { brl } from '@/Pages/Produto/Unificado/_components/catalogo';
+import { brl } from '@/Pages/Produto/_components/lista/formato';
 
 const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados => ({
   id: 7,

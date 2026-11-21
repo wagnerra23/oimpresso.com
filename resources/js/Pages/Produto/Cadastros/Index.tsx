@@ -55,7 +55,7 @@ interface Props {
   garantias?: Garantia[] | null;
 }
 // `filtro`: query do índice de produtos (subcategoria abre pela categoria pai — R3/R7). Vazio = o índice não
-// filtra por aquilo (variação: `/products/unificado` não tem filtro por modelo) e o número não vira link.
+// filtra por aquilo (variação: `/products` não tem filtro por modelo) e o número não vira link.
 // `filhas`: subcategorias vivas — junto com `em_uso`, é o que faz o servidor recusar a exclusão.
 type Linha = { id: number; nome: string; busca: string; em_uso: number; filhas: number; filtro: string; celulas: ReactNode[] };
 
@@ -154,14 +154,14 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
         w.descricao || '—', <span className="font-mono text-xs">{w.duracao ?? '—'}</span>,
       ] })) ?? null
     : aba === 'unidades'
-    ? unidades?.map((u) => ({ id: u.id, nome: u.nome, busca: u.nome, em_uso: u.em_uso, filhas: 0, filtro: `unidade=${u.id}`, celulas: [
+    ? unidades?.map((u) => ({ id: u.id, nome: u.nome, busca: u.nome, em_uso: u.em_uso, filhas: 0, filtro: `unit_id=${u.id}`, celulas: [
       <><b>{u.nome}</b> <span className="text-muted-foreground">({u.simbolo})</span></>,
       u.decimal ? 'Sim' : 'Não',
       <span className="font-mono text-xs">{u.base ?? '—'}</span>,
     ] })) ?? null
     : aba === 'categorias'
       ? categorias?.map((c) => ({ id: c.id, nome: c.nome, busca: `${c.nome} ${c.codigo}`, em_uso: c.em_uso, filhas: c.filhas,
-        filtro: `categoria=${c.pai_id ?? c.id}`, celulas: [
+        filtro: `category_id=${c.pai_id ?? c.id}`, celulas: [
           <Stack gap={0}>
             <b className={c.pai_id ? 'pl-4' : undefined}>{c.pai_id ? `↳ ${c.nome}` : c.nome}</b>
             <span className={`text-xs text-muted-foreground${c.pai_id ? ' pl-4' : ''}`}>
@@ -171,7 +171,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
           <span className="font-mono text-xs">{c.codigo || '—'}</span>,
           c.descricao || '—',
         ] })) ?? null
-      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `marca=${m.id}`, celulas: [<b>{m.nome}</b>, m.descricao || '—'] })) ?? null;
+      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `brand_id=${m.id}`, celulas: [<b>{m.nome}</b>, m.descricao || '—'] })) ?? null;
 
   // Drawer (thread 10). Base válida = unidade que não é múltiplo de outra (protótipo :332); pai válido =
   // categoria principal (o mesmo filtro da lista de pais do modal clássico).
@@ -290,7 +290,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
                             {cfg.uso && (
                               <td className="py-2 pr-3 text-right tabular-nums">
                                 {l.em_uso > 0 && l.filtro
-                                  ? <Link href={`/products/unificado?${l.filtro}`} className="text-primary underline-offset-2 hover:underline">{l.em_uso}</Link>
+                                  ? <Link href={`/products?${l.filtro}`} className="text-primary underline-offset-2 hover:underline">{l.em_uso}</Link>
                                   : l.em_uso}
                               </td>
                             )}

@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 13 |
 | CU no SDD | 21 |
-| Telas (.tsx) | 12 |
-| Telas com `casos.md` | 16 |
-| UC declarados | 257 |
-| UC com teste que os cita | 240 |
+| Telas (.tsx) | 11 |
+| Telas com `casos.md` | 15 |
+| UC declarados | 235 |
+| UC com teste que os cita | 219 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -287,28 +287,6 @@ authority: generated
 | UC-PTAB-02 | SellingPrices | 🧪 aguarda veredito da lane |
 | UC-PTAB-03 | SellingPrices | 🧪 aguarda veredito da lane |
 | UC-PTAB-04 | SellingPrices | 🧪 aguarda veredito da lane |
-| UC-PUNI-01 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-02 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-02B | Unificado/Index | 📝 sem_teste |
-| UC-PUNI-03 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-04 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-05 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-06 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-07 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-08 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-09 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-10 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-11 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-11B | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-11C | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-11D | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-12 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-12B | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-13 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-14 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-15 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-16 | Unificado/Index | 🧪 aguarda veredito da lane |
-| UC-PUNI-17 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-PURCRE-09 | Index | 🧪 aguarda veredito da lane |
 | UC-RLT-06 | Index | 🧪 aguarda veredito da lane |
 | UC-RLT-07 | Index | 🧪 aguarda veredito da lane |
