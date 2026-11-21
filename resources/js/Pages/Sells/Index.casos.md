@@ -13,6 +13,11 @@ last_run: "2026-11-21"
 > já usava; a Visão passou para logo depois do Foco, com o mesmo desenho dele (rótulo + segmentos, sem ícones). Nenhum UC
 > desta tela trata da busca nem da ordem dos controles; nenhum foi reexecutado. O bump registra a reconciliação do trio.
 
+> ℹ️ **`last_run` segue 2026-11-21 (G-6), onda 3 da paridade com o protótipo.** O card "PIX hoje" ganhou a barra
+> da fatia PIX e o "/ faturado" ao lado do valor (mesma conta que o subtítulo já fazia), e o menu ⋮ "Ações da venda" saiu
+> da célula de Status para uma coluna própria no fim da linha. UC-S11 e UC-SIDX-08 acham o menu pelo nome "Ações da
+> venda", que não mudou; o UC-SIDX-08 foi reexecutado (Vitest, 4/4 verdes) e o UC-S11 roda no e2e do PR.
+
 > ℹ️ **`last_run` segue 2026-11-21 (G-6), onda 2 da paridade com o protótipo: só layout da tabela.** Saiu a moldura
 > `.os-table-wrap` duplicada em volta da tabela (ela ficava 24px recuada em relação aos KPIs) e a célula ganhou o respiro
 > do protótipo (10px 12px). Nenhum UC desta tela trata de alinhamento ou espaçamento; nenhum foi reexecutado por causa
