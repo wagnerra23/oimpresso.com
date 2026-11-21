@@ -32,6 +32,7 @@ import {
   Layers,
   List,
   Loader2,
+  MapPin,
   MoreVertical,
   Paperclip,
   Phone,
@@ -231,6 +232,16 @@ const SLOT2_TABS: Array<{
   // obrigatório (prospects, leads, contatos avulsos, migração legacy WR Comercial).
   { key: 'other',          label: 'Outros',         shortLabel: 'Outros',   href: '/cliente?type=other',          Icon: Layers,    iconName: 'layers' },
 ];
+
+// Rótulo do contador da barra de filtros, por papel (singular, plural), como o Toolbar do protótipo.
+const CONTADOR_ROTULO: Record<ContactRoleType, [string, string]> = {
+  customer: ['cliente', 'clientes'],
+  supplier: ['fornecedor', 'fornecedores'],
+  employee: ['funcionário', 'funcionários'],
+  representative: ['representante', 'representantes'],
+  other: ['cadastro', 'cadastros'],
+  all: ['contato', 'contatos'],
+};
 
 const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; collective: string }> = {
   customer:       { title: 'Clientes',       singular: 'cliente',       collective: 'cadastrados' },
@@ -523,6 +534,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [staleFilter, setStaleFilter] = useState<string>('');
   const [saldoFilter, setSaldoFilter] = useState<string>('');
+  // Grupo de clientes (FK `customer_group_id`), como o filtro "Grupo" do protótipo. Filtra a
+  // página carregada, igual aos outros filtros desta barra (os grupos vêm em `priceGroups`).
+  const [grupoFilter, setGrupoFilter] = useState<string>('');
 
   // PTDP Onda 2 — KPI strip clicável (5 cards-filtro).
   // Filtros adicionais (não cobertos pelos 6 FilterDropdown): novos do mês.
@@ -606,7 +620,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
 
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
+  }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, grupoFilter, recentMonthFilter]);
 
   const rows = props.customers?.data ?? [];
   const meta = props.customers?.meta ?? null;
@@ -707,6 +721,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     // Wave G — filtros novos. Cada um é AND independente (espelha protótipo Cowork).
     if (tipoFilter) r = r.filter((x) => x.tipo === tipoFilter);
     if (ufFilter) r = r.filter((x) => (x.uf ?? x.state ?? '') === ufFilter);
+    if (grupoFilter) r = r.filter((x) => String(x.customer_group_id ?? '') === grupoFilter);
     if (tagsFilter.length > 0) {
       // Multi-select: cliente deve ter TODAS as tags marcadas (AND, não OR).
       // Espelha protótipo Cowork (clientes-table.jsx: `fTags.every(t => c.tags.includes(t))`).
@@ -750,7 +765,28 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       });
     }
     return r;
-  }, [rows, statusFilter, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
+  }, [rows, statusFilter, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, grupoFilter, recentMonthFilter]);
+
+  // Opções do filtro Grupo: os grupos de cliente da empresa (customer_groups, escopo business_id no
+  // ContactController::index — a mesma lista da tabela de preço da aba Comercial).
+  const gruposOptions = useMemo(
+    () => (props.priceGroups ?? []).map((g) => ({ value: String(g.id), label: g.name })),
+    [props.priceGroups],
+  );
+
+  // Contador da barra de filtros. Filtro da página ("Excluídos" é do servidor e não conta aqui).
+  const filtrosDaPaginaAtivos = !!(
+    (statusFilter && statusFilter !== 'excluidos') || tipoFilter || ufFilter || tagsFilter.length > 0 ||
+    staleFilter || saldoFilter || grupoFilter || recentMonthFilter
+  );
+  const contadorTexto = (() => {
+    if (filtrosDaPaginaAtivos) {
+      return `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')} nesta página`;
+    }
+    const total = meta?.total ?? rows.length;
+    const [um, varios] = CONTADOR_ROTULO[activeType];
+    return total === 1 ? `1 ${um} encontrado` : `${total.toLocaleString('pt-BR')} ${varios} encontrados`;
+  })();
 
   // Onda 3 (2026-06-12) — os 5 counts dos KPI cards agora vêm TODOS reais do backend
   // (`kpis.*`, scoped business_id). Removido o estimado client-side sobre as 50 rows da
@@ -910,10 +946,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
           {/* ZONA L · identidade */}
           <div className="flex-1 min-w-0">
-            {/* H1 canon v3.2 (LEARNINGS Decisao #3 · 2026-05-25): 22px font-weight 700 —
-                peso espelhando /sells canon Cowork. v3.1 anterior era 16px/600 (compact
-                demais pra entidade principal da pagina). */}
-            <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-snug">
+            {/* H1 22px peso 600 — o do protótipo (`clientes-page.jsx`, cabeçalho `.os-page-h`),
+                medido nos dois lados em 2026-11-21. Até essa data era 700 (canon v3.2 de 2026-05-25,
+                que espelhava /sells). */}
+            <h1 className="text-[22px] font-semibold tracking-tight text-foreground leading-snug">
               {ROLE_TITLE[activeType].title}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
@@ -1046,11 +1082,49 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           className="px-4 py-3 border-b"
           style={{ borderBottomColor: 'var(--border)' }}
         >
-          <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca de contato" data-contract="filtros-busca">
-            {/* Filtros combobox a esquerda — 6 FilterDropdown.
-                Cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
+          {/* Barra no desenho do protótipo (`clientes-page.jsx` Toolbar · `.cli-toolbar-v2`): a busca vem
+              primeiro, em faixa própria, com a dica de atalho à direita; os filtros vêm embaixo, com o
+              contador encostado na direita. Até 2026-11-21 a busca ficava por último, à direita. */}
+          <div className="flex flex-col gap-2.5" aria-label="Filtros e busca de contato" data-contract="filtros-busca">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              {/* Espaço dos ícones via `.cw-input-icon-*` (o `pl-9/pr-9` do Tailwind perde para o `.cw-input`
+                  sem layer — ver cowork-fields.css). O recuo da dica vai em style, que vence a classe. */}
+              <Input
+                ref={searchInputRef}
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar nome, CNPJ/CPF, contato, telefone, cidade..."
+                className="cw-input-icon-left cw-input-icon-right"
+                style={{ borderColor: 'var(--border)', ...(searchInput ? {} : { paddingRight: 190 }) }}
+                aria-label="Buscar contato"
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchInput('')}
+                  aria-label="Limpar busca"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : (
+                <span
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 whitespace-nowrap text-[11px] text-muted-foreground pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <kbd className="rounded-[3px] border border-border bg-muted px-[5px] py-px font-mono text-[10px] text-muted-foreground">/</kbd>
+                  pra focar ·
+                  <kbd className="rounded-[3px] border border-border bg-muted px-[5px] py-px font-mono text-[10px] text-muted-foreground">⌘K</kbd>
+                  global
+                </span>
+              )}
+            </div>
+
+            {/* Filtros combobox — cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
             <nav
-              className="flex items-center gap-2 flex-wrap"
+              className="flex items-center gap-1.5 flex-wrap"
               aria-label="Filtros de contato"
             >
               <FilterDropdown
@@ -1090,51 +1164,28 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 options={STALE_OPTIONS}
               />
               <FilterDropdown
+                label="Grupo"
+                value={grupoFilter}
+                onChange={(v) => setGrupoFilter(v as string)}
+                options={gruposOptions}
+              />
+              <FilterDropdown
                 label="Saldo"
                 value={saldoFilter}
                 onChange={setSaldoFilter}
                 options={SALDO_OPTIONS}
               />
-              {/* Contagem inline "X de Y" — Wave G UX paridade Cowork. */}
-              <span className="text-xs text-muted-foreground tabular-nums ml-1">
-                {filteredRows.length === rows.length
-                  ? `${rows.length.toLocaleString('pt-BR')} ${rows.length !== 1 ? 'registros' : 'registro'}`
-                  : `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')}`}
+              {/* Contador do protótipo ("N clientes encontrados"). Sem filtro da página, é o total do
+                  servidor (`meta.total`) — antes mostrava o tamanho da página ("50 registros"). Com filtro
+                  da página, diz que conta só a página carregada, porque é o que esses filtros alcançam. */}
+              <span className="ml-auto self-end text-[11.5px] text-muted-foreground tabular-nums">
+                {contadorTexto}
               </span>
             </nav>
-
-            {/* Busca a direita (Wagner v3.5): `ml-auto` empurra pra direita extrema.
-                border warm `oklch(0.9 0.004 90)` (afinidade familia cream). Placeholder
-                simplificado: tira meta-info "(/ pra focar · ⌘K global)" — atalhos no cheat-sheet.
-                Espaço pros ícones (lupa + X) via `.cw-input-search` — NÃO `pl-9/pr-9` tailwind,
-                que são ignorados pelo `.cw-input` unlayered no Tailwind v4 (ver cowork-fields.css). */}
-            <div className="relative ml-auto min-w-[200px] max-w-md w-full sm:w-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                ref={searchInputRef}
-                type="search"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Buscar nome, CNPJ/CPF, contato, telefone, cidade..."
-                className="cw-input-icon-left cw-input-icon-right"
-                style={{ borderColor: 'oklch(0.9 0.004 90)' }}
-                aria-label="Buscar contato"
-              />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={() => setSearchInput('')}
-                  aria-label="Limpar busca"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
           </div>
 
           {/* Z-2.1 — ActiveChips removíveis (alinhado ao protótipo Cowork). */}
-          {(tipoFilter || statusFilter || ufFilter || tagsFilter.length > 0 || staleFilter || saldoFilter) && (
+          {(tipoFilter || statusFilter || ufFilter || tagsFilter.length > 0 || staleFilter || grupoFilter || saldoFilter) && (
             <div className="flex flex-wrap items-center gap-1.5 mt-3" aria-label="Filtros ativos">
               {tipoFilter && (
                 <ActiveChip label="Tipo" value={tipoFilter} onRemove={() => setTipoFilter('')} />
@@ -1150,6 +1201,13 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               )}
               {staleFilter && (
                 <ActiveChip label="Sem compra há" value={staleFilter} onRemove={() => setStaleFilter('')} />
+              )}
+              {grupoFilter && (
+                <ActiveChip
+                  label="Grupo"
+                  value={gruposOptions.find((g) => g.value === grupoFilter)?.label ?? grupoFilter}
+                  onRemove={() => setGrupoFilter('')}
+                />
               )}
               {saldoFilter && (
                 <ActiveChip
@@ -1167,6 +1225,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   setUfFilter('');
                   setTagsFilter([]);
                   setStaleFilter('');
+                  setGrupoFilter('');
                   setSaldoFilter('');
                 }}
                 className="text-[10px] text-muted-foreground underline-offset-2 hover:underline hover:text-foreground ml-1"
@@ -1202,8 +1261,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     <SortableTh sortKey="total_os" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-14">OS</SortableTh>
                     <Th>Tags</Th>
                     <Th className="w-24">Última OS</Th>
-                    <Th className="w-10">&nbsp;</Th>
-                    <Th className="w-10 text-right pr-4">&nbsp;</Th>
+                    <Th className="w-10 text-center">&nbsp;</Th>
+                    <Th className="w-10 text-center">&nbsp;</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1295,21 +1354,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                             <TipoPill tipo={row.tipo ?? null} />
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                            <span className="font-mono text-[11.5px] tracking-[-0.01em] text-muted-foreground tabular-nums whitespace-nowrap">
                               {row.tax_number_masked ?? '—'}
                             </span>
                           </td>
                           <td className="px-4 py-2.5">
-                            {(row.cidade ?? row.city) ? (
-                              <span className="text-xs text-foreground">
-                                {row.cidade ?? row.city}
-                                {(row.uf ?? row.state) && (
-                                  <span className="text-muted-foreground">/{row.uf ?? row.state}</span>
-                                )}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground/50">—</span>
-                            )}
+                            <CidadeUf cidade={row.cidade ?? row.city} uf={row.uf ?? row.state} />
                           </td>
                           <td className="px-4 py-2.5">
                             <FrescorPill lastPurchaseAt={row.last_purchase_at ?? row.last_os_at ?? null} />
@@ -1354,7 +1404,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           </td>
                           {/* Star pessoal localStorage — toggle não abre drawer. */}
                           <td
-                            className="px-2 py-2.5"
+                            className="px-2 py-2.5 text-center"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
@@ -1377,7 +1427,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                               />
                             </button>
                           </td>
-                          <td className="px-2 py-2.5 text-right pr-4" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-2 py-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                             <ActionsMenu
                               row={row}
                               canDelete={props.permissions.delete}
@@ -1739,6 +1789,29 @@ function Avatar({ initial }: { initial: string }) {
   );
 }
 
+// Cidade/UF da linha, no desenho do protótipo (`.cli-city-line` + `.cli-city-uf`): cidade com o
+// alfinete em cima, UF em mono embaixo. Sem cidade, a UF aparece sozinha; sem as duas, "—".
+function CidadeUf({ cidade, uf }: { cidade?: string | null; uf?: string | null }) {
+  const c = cidade?.trim();
+  const u = uf?.trim();
+  if (!c && !u) return <span className="text-xs text-muted-foreground/50">—</span>;
+  return (
+    <div className="min-w-0">
+      {c && (
+        <div className="inline-flex items-center gap-1 text-xs leading-[1.3] text-foreground">
+          <MapPin size={10} className="shrink-0 opacity-50" aria-hidden="true" />
+          <span className="truncate">{c}</span>
+        </div>
+      )}
+      {u && (
+        <div className={'font-mono text-[10.5px] font-semibold tracking-[0.04em] text-muted-foreground' + (c ? ' mt-px' : '')}>
+          {u}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Th({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <th
@@ -1773,6 +1846,7 @@ function SortableTh({
   const Icon = !active ? ArrowUpDown : dir === 'asc' ? ArrowUp : ArrowDown;
   return (
     <th
+      aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
       className={
         (align === 'right' ? 'text-right ' : 'text-left ') +
         'px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ' +
@@ -1786,7 +1860,6 @@ function SortableTh({
           'inline-flex items-center gap-1 transition-colors hover:text-foreground ' +
           (active ? 'text-foreground' : '')
         }
-        aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
       >
         {children}
         <Icon size={12} className={active ? '' : 'opacity-40'} />
@@ -2065,7 +2138,6 @@ function ClienteSheet({
               name={contact?.name ?? '?'}
               seed={contact?.avatar_hash_seed ?? String(contact?.id ?? 0)}
               size={40}
-              shape="circle"
             />
 
             <div className="flex-1 min-w-0">
