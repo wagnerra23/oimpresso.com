@@ -231,6 +231,14 @@ last_run: "2026-11-21"
 - **Teste:** `tests/Feature/Cliente/ClienteAnotacaoPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-23 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## UC-CIDX-24 · Menus da lista só oferecem o que o usuário pode abrir `[must]`
+- **Persona:** atendente que só vê os próprios clientes; quem administra o cadastro (ativa e desativa clientes).
+- **Como usa:** lista de clientes, botão **Mais ações** (Grupos de clientes, Mapa de clientes) e o **⋮** da linha (Desativar cadastro / Ativar cadastro, com "Desfazer" no aviso).
+- **Aceite:** Dado quem só tem "ver os próprios clientes" · Quando abre a lista · Então não recebe Grupos de clientes, Mapa de clientes nem Ativar/Desativar (antes via Grupos e recebia 403 ao clicar) · E com "ver todos os clientes" e "alterar cliente" os três aparecem · E "alterar fornecedor" também libera Ativar/Desativar, como no `updateStatus`.
+- **Âncora de contrato:** protótipo `prototipo-ui/cowork/Wagner/clientes-page.jsx` (menus "Mais ações" e ⋮ da linha) · `CustomerGroupController::index` e `ContactController::contactMap` exigem `customer.view` · `ContactController::updateStatus` exige `customer.update` ou `supplier.update` · verificação de 2026-11-21 (403 em Grupos com `customer.view_own`).
+- **Teste:** `tests/Feature/Cliente/ClienteMenusListaPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-24 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
@@ -352,6 +360,7 @@ last_run: "2026-11-21"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-11-21 · [F+C] **UC-CIDX-24**: "Mapa de clientes" no Mais ações e "Ativar/Desativar cadastro" no ⋮ da linha (protótipo); Grupos e Mapa só com `customer.view`, Ativar/Desativar só com `customer.update`/`supplier.update` (flags `permissions.view_all` e `permissions.update`).
 - 2026-11-21 · [F+C] Barra de filtros no desenho do protótipo: busca primeiro com a dica de atalho, filtro Grupo (filtra a página, como os demais) e contador pelo total do servidor (antes "50 registros", o tamanho da página). Só a barra mudou; nenhum UC reexecutado. `last_run` já em 2026-11-21 (onda 1).
 - 2026-11-16 · [F+C] **UC-CIDX-17**: anexos (listar/enviar/apagar) e extrato por e-mail passam a exigir permissão de ver clientes; ativar/desativar recebe o estado confirmado por POST (o GET do Blade segue invertendo) e id de outra empresa dá 404 em vez de 500. Não mexe em `Index.tsx`.
 - 2026-11-16 · [F+C] **UC-CIDX-16**: filtro Status › Excluídos (servidor, `onlyTrashed`) e Restaurar (`POST /contacts/{id}/restore`, mesma permissão de excluir). Charter v11. `last_run` 2026-10-29 → 2026-11-16 (G-6).
