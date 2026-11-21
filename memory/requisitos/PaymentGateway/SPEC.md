@@ -12,7 +12,7 @@ related_adrs:
   - "0106-recalibracao-velocidade-fator-10x-ia-pair"
   - "0170-paymentgateway-extracao-camada-cobranca"
 pii: true
-updated_at: "2026-06-24"
+updated_at: "2026-11-19"
 last_updated: "2026-06-24"
 version: "0.1"
 owner: wagner
@@ -84,7 +84,7 @@ protected $casts = [
 
 ### US-PG-003 · [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache
 
-**Implementado em:** _pendente_ — nenhum dos 3 itens landou: rotas webhook `Modules/PaymentGateway/Routes/web.php:101-131` seguem só `['web']` (sem `throttle:120,1`), `WebhookProcessor.php` não tem timestamp window nem nonce-cache (grep sem hit de throttle/nonce; sem timestamp-window de replay-protection — ocorrências de timestamp no módulo são timestamps() de migration/vencimento/Retry-After, inócuas @176f9bc)
+**Implementado em:** _pendente_ — nenhum dos 3 itens landou: rotas webhook em `Modules/PaymentGateway/Routes/web.php` (bloco `webhooks`) seguem só `['web']` (sem `throttle:120,1`), `WebhookProcessor.php` não tem timestamp window nem nonce-cache (grep sem hit de throttle/nonce; sem timestamp-window de replay-protection — ocorrências de timestamp no módulo são timestamps() de migration/vencimento/Retry-After, inócuas @176f9bc; re-medido 2026-11-19 @bedeeb0: `git grep -i -E "throttle|nonce"` no módulo fora de Tests = 0)
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
@@ -115,7 +115,7 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-004 · Doc mínimo: BRIEFING + CAPTERRA-FICHA + RUNBOOK-integrar-provider
 
-**Implementado em:** _parcial_ · `memory/requisitos/PaymentGateway/BRIEFING.md` · `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md` · `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md` · verificado@176f9bc (2026-07-01) — falta `CAPTERRA-FICHA.md` e `RUNBOOK-integrar-provider.md` (só existem RUNBOOK-settings-gateways.md + RUNBOOK-sicoob-api.md)
+**Implementado em:** _parcial_ · `memory/requisitos/PaymentGateway/BRIEFING.md` · `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.charter.md` · `Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md` · `memory/requisitos/PaymentGateway/CAPTERRA-FICHA.md` · verificado@bedeeb0 (2026-11-19) — falta `RUNBOOK-integrar-provider.md` (a CAPTERRA-FICHA existe desde 2026-08-12)
 
 > owner: — · priority: p1 · estimate: 12h · type: story
 > blocked_by: —
@@ -132,7 +132,7 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-005 · Registrar URL de webhook PIX no Inter (PUT /pix/v2/webhook)
 
-**Implementado em:** `Modules/PaymentGateway/Services/Drivers/InterDriver.php` · `Modules/PaymentGateway/Console/Commands/RegisterInterWebhookCommand.php` · `Modules/PaymentGateway/Tests/Feature/InterDriverRegisterWebhookTest.php` · verificado@98cae0a (2026-06-18)
+**Implementado em:** _parcial_ · `Modules/PaymentGateway/Services/Drivers/InterDriver.php` · `Modules/PaymentGateway/Console/Commands/RegisterInterWebhookCommand.php` · `Modules/PaymentGateway/Tests/Feature/InterDriverRegisterWebhookTest.php` · verificado@bedeeb0 (2026-11-19) — existe só o comando; faltam o botão/step no wizard `/settings/payment-gateways` (nenhuma ocorrência de registerWebhook nas pastas Resources e Http do módulo) e o smoke no sandbox Inter
 
 > owner: eliana · priority: p2 · status: todo · type: story
 > blocked_by: US-PG-006, US-PG-007
@@ -235,6 +235,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-PG-010 · Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada)
 
+**Implementado em:** _pendente_ — o aceite (refund uniforme nos 6 drivers) não foi entregue: em 2026-11-19 @bedeeb0 só AsaasDriver, InterDriver e PagarmeDriver fazem refund pela API; C6Driver, SicoobApiDriver e BcbPixDriver lançam DriverNotSupportedException
+
 > owner: — · priority: p0 · estimate: 12h · status: todo · type: story
 > blocked_by: —
 
@@ -253,6 +255,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Refs:** CAPTERRA-FICHA §4 (refund-api, pix-devolucao), ADR 0170, ADR 0093 (multi-tenant nos jobs de refund).
 
 ### US-PG-011 · Boleto híbrido (boleto + QR Pix no mesmo documento)
+
+**Implementado em:** _pendente_ — nenhum driver emite boleto com QR Pix embutido nem a UI oferece a opção (2026-11-19 @bedeeb0)
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -273,6 +277,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-PG-012 · Extrato/saldo bancário unificado + conciliação contábil
 
+**Implementado em:** _pendente_ — só existe o import de recebimentos do Inter (`Modules/PaymentGateway/Console/Commands/InterImportarRecebimentosCommand.php`); sem extrato/saldo unificado nem relatório de conciliação (`git grep saldo_cached` no módulo = 0, 2026-11-19 @bedeeb0)
+
 > owner: — · priority: p2 · estimate: 20h · status: todo · type: story
 > blocked_by: —
 
@@ -291,6 +297,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Refs:** CAPTERRA-FICHA §4 (extrato-saldo-api), §6 G9, ADR 0170, integração Modules/Financeiro.
 
 ### US-PG-013 · Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente
+
+**Implementado em:** _pendente_ — feature-wish (ADR 0105), sem código de split no módulo (2026-11-19 @bedeeb0)
 
 > owner: — · priority: p2 · estimate: 24h · status: todo · type: story
 > blocked_by: —

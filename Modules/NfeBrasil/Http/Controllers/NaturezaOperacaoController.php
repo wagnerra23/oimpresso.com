@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Services\FeatureFlagService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\NfeBrasil\Http\Requests\UpsertNaturezaRequest;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
+use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
 use Modules\NfeBrasil\Services\Tributacao\ConferenciaNaturezaService;
 
 /**
@@ -27,6 +29,8 @@ use Modules\NfeBrasil\Services\Tributacao\ConferenciaNaturezaService;
  */
 class NaturezaOperacaoController extends Controller
 {
+    use ResolveUfEmitente;
+
     public const FLAG = 'useV2NfeNaturezas';
 
     public function __construct(private readonly ConferenciaNaturezaService $conferencia)
@@ -42,6 +46,7 @@ class NaturezaOperacaoController extends Controller
 
         return response()->json([
             'regime'    => $regime,
+            'empresa'   => $this->empresa($businessId),
             'naturezas' => $todas->map(function (NfeOperacaoFiscal $op) use ($todas, $regime) {
                 $tela = $this->paraTela($op);
                 // Só confere o que a tela edita: a Venda e as do CSV não têm os campos da tela, e
@@ -159,6 +164,32 @@ class NaturezaOperacaoController extends Controller
     private function daEmpresa(int $businessId)
     {
         return NfeOperacaoFiscal::query()->where('business_id', $businessId);
+    }
+
+    /**
+     * Faixa de resumo do topo da lista (protótipo `Configuracao de Tributos.html`, `.dados`): quem
+     * emite, de onde saem as notas e o IBS/CBS do ano. Só leitura, escopo explícito por
+     * `business_id` (query builder não passa por global scope — ADR 0093). A UF segue a regra da
+     * emissão (`ResolveUfEmitente`), para a tela mostrar a mesma origem que o motor usa.
+     *
+     * @return array{nome:?string,cnpj:?string,municipio:?string,uf:string,ano:int,ibs:?float,cbs:?float}
+     */
+    private function empresa(int $businessId): array
+    {
+        $business = DB::table('business')->where('id', $businessId)->first(['name', 'tax_number_1']);
+        $municipio = DB::table('business_locations')->where('business_id', $businessId)->orderBy('id')->value('city');
+        $ano = (int) now()->year;
+        $ibsCbs = config('nfebrasil.ibs_cbs_por_ano', [])[$ano] ?? [];
+
+        return [
+            'nome'      => $business?->name,
+            'cnpj'      => $business?->tax_number_1 ?: null,
+            'municipio' => $municipio ?: null,
+            'uf'        => $this->resolverUfEmitente($businessId),
+            'ano'       => $ano,
+            'ibs'       => isset($ibsCbs['ibs']) ? (float) $ibsCbs['ibs'] : null,
+            'cbs'       => isset($ibsCbs['cbs']) ? (float) $ibsCbs['cbs'] : null,
+        ];
     }
 
     private function regime(int $businessId): string

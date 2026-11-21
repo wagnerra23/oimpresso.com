@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "governance/Audit (/governance/audit)",
   "gap_fonte": "memory/requisitos/Governance/governance-audit-gap.md",
-  "prototipo_sha": "sha256:48d1ebf86ca8",
-  "gerado_em": "2026-09-29",
+  "prototipo_sha": "sha256:64507ff41786",
+  "gerado_em": "2026-11-19",
   "partes": [
     {
       "id": "header-pageheader",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "404-415"
+        "linhas": "470-484"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -25,7 +25,7 @@
       "id": "abas-do-shell",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "417-418"
+        "linhas": "486-487"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -40,7 +40,7 @@
       "id": "nota-registro-imutavel",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "70-74"
+        "linhas": "78-82"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -55,7 +55,7 @@
       "id": "filtros",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "76-104"
+        "linhas": "84-112"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -70,7 +70,7 @@
       "id": "filtro-resultado-com-4-valores",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "95-101"
+        "linhas": "103-109"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -85,7 +85,7 @@
       "id": "botao-limpar-filtros",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "102,116"
+        "linhas": "110,124"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -101,7 +101,7 @@
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "106-110"
+        "linhas": "114-118"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -116,7 +116,7 @@
       "id": "tabela-de-entries",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "119-142"
+        "linhas": "127-150"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -131,7 +131,7 @@
       "id": "estado-vazio",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "113-116"
+        "linhas": "121-124"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",
@@ -146,7 +146,7 @@
       "id": "rodape-do-teto",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-telas.jsx",
-        "linhas": "143-145"
+        "linhas": "151-153"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Audit.tsx",

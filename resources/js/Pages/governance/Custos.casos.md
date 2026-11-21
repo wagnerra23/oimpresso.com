@@ -4,7 +4,7 @@ casos: Custos · Custos de IA do business · /governance/custos
 irmaos: Custos.charter.md (lei) · memory/requisitos/Governance/RUNBOOK-custos.md (F1)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-19"
 last_run_ci: "0 UC executado no manifesto — trio nasce neste PR; Pest na jana-pest, vitest na governance-filtros-gate"
 ---
 

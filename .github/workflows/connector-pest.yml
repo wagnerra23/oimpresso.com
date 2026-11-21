@@ -169,7 +169,7 @@ jobs:
         #     APP_DEBUG despejava o hash do secret; agora redireciona pro painel.
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-connector-junit.xml \
             --exclude-filter 'check-update.responde.text.plain|ProcessaDadosCliente.rejeita.JSON.sem|ProcessaDadosCliente.com.HD.nao.cadastrado' \
             Modules/Connector/Tests/Feature/ApiClientsPanelTest.php \
@@ -186,7 +186,8 @@ jobs:
             Modules/Connector/Tests/Feature/Wave18SaturationTest.php \
             Modules/Connector/Tests/Feature/Wave23ConnectorSaturationTest.php \
             Modules/Connector/Tests/Feature/Wave28PolishTest.php \
-            tests/Feature/Connector/DelphiOImpressoContractTest.php
+            tests/Feature/Connector/DelphiOImpressoContractTest.php \
+            --colors=always
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)

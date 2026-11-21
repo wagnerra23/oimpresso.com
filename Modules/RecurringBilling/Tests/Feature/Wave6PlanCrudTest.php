@@ -162,7 +162,7 @@ function makeControllerSkippingAuth(): PlanController
         // Override ensurePermission pra evitar dependência de auth()->user() + Spatie.
         // Multi-tenant scope NÃO testado aqui (HasBusinessScope é noop sem auth()->check());
         // cobertura cross-tenant feita via where('business_id') explícito no Controller.
-        protected function ensurePermission(): void
+        protected function ensurePermission(string $permissao = 'recurringbilling.access'): void
         {
             // no-op em testes
         }
