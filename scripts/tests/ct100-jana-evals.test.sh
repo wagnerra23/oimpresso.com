@@ -164,6 +164,70 @@ else
   fail "fail-open quebrado: rc=$RC (esperado 1) ou escalou sem JSON"
 fi
 
+# ── 11-13. CORPUS DO EVAL (2026-11-21): repõe se vazio ───────────────────────
+# Mock com estado: a 1ª contagem devolve $1, a contagem depois do sync devolve $2.
+mk_docker_corpus() {
+  local antes="$1" depois="$2"
+  mkdir -p "$TMP/bin"
+  : > "$TMP/corpus-state"
+  cat > "$TMP/bin/docker" <<EOF
+#!/usr/bin/env bash
+echo "\$@" >> "$TMP/docker-calls.log"
+case "\$1" in
+  inspect) exit 0 ;;
+  exec)
+    if [[ "\$*" == *'CORPUS='* ]]; then
+      if [ -s "$TMP/corpus-state" ]; then echo "CORPUS=$depois"; else echo "CORPUS=$antes"; echo x > "$TMP/corpus-state"; fi
+    fi
+    exit 0 ;;
+  *) exit 0 ;;
+esac
+EOF
+  chmod +x "$TMP/bin/docker"
+  : > "$TMP/docker-calls.log"
+}
+
+# 11. MORDE: corpus vazio → repõe ANTES dos evals, sem escrever índice de busca
+mk_docker_corpus 0 2700
+RC="$(run_script)"
+if grep -q "mcp:sync-memory" "$TMP/docker-calls.log"; then
+  ok "MORDE: corpus vazio → invoca mcp:sync-memory (8 domingos skipped em set-nov/2026)"
+else
+  fail "corpus vazio → NÃO repôs (o eval seguiria sem medir nada)"
+fi
+if grep "mcp:sync-memory" "$TMP/docker-calls.log" | grep -q "withoutSyncingToSearch"; then
+  ok "sync roda dentro de withoutSyncingToSearch (zero escrita em índice de busca)"
+else
+  fail "sync sem withoutSyncingToSearch — poderia escrever no Meilisearch"
+fi
+L_SYNC="$(grep -n 'mcp:sync-memory' "$TMP/docker-calls.log" | head -1 | cut -d: -f1)"
+L_EVAL="$(grep -n 'artisan jana:recall-eval' "$TMP/docker-calls.log" | head -1 | cut -d: -f1)"
+if [ -n "$L_SYNC" ] && [ -n "$L_EVAL" ] && [ "$L_SYNC" -lt "$L_EVAL" ]; then
+  ok "ordem: repõe o corpus ANTES do 1º eval"
+else
+  fail "ordem errada: sync=$L_SYNC eval=$L_EVAL"
+fi
+if grep -q "depois do sync = 2700" "$TMP/out.log"; then ok "loga a contagem depois do sync (recibo)"; else fail "não registrou a contagem pós-sync"; fi
+
+# 12. CONTROLE NEGATIVO: corpus presente → NÃO sincroniza
+mk_docker_corpus 2555 2555
+RC="$(run_script)"
+if ! grep -q "mcp:sync-memory" "$TMP/docker-calls.log"; then
+  ok "controle: corpus presente → NÃO sincroniza"
+else
+  fail "corpus presente e sincronizou mesmo assim"
+fi
+
+# 13. FAIL-OPEN: contagem ilegível → não sincroniza às cegas e os evals rodam
+mk_docker 0 0   # mock sem saída: a contagem não volta número
+RC="$(run_script)"
+if [ "$RC" = "0" ] && ! grep -q "mcp:sync-memory" "$TMP/docker-calls.log" \
+   && grep -q "artisan jana:ragas-real-eval" "$TMP/docker-calls.log"; then
+  ok "fail-open: contagem ilegível → não sincroniza às cegas e os evals rodam"
+else
+  fail "fail-open quebrado: rc=$RC, ou sincronizou sem contar, ou pulou os evals"
+fi
+
 echo ""
 if [ "$FAILS" -eq 0 ]; then
   echo "ct100-jana-evals.test.sh: TODOS OS CASOS PASSARAM"

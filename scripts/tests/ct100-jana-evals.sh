@@ -121,6 +121,51 @@ run_eval() {
 
 log "=== ct100-jana-evals (US-COPI-140) · container=$CONTAINER · sample=$SAMPLE ==="
 
+# ── CORPUS DO EVAL: repõe se estiver vazio ─────────────────────────────────────
+# Medido 2026-11-21 na órfã governance/ragas-real-trend: de 2026-09-27 a 2026-11-15
+# foram 8 domingos SEGUIDOS com corpus_docs=0 → n_no_context=51 → gate_status=skipped.
+# Em 2026-09-20 eram 2555 docs. O banco oimpresso_staging é o mesmo onde se roda Pest
+# (`docker exec oimpresso-staging php artisan test`), e o 1º teste RefreshDatabase faz
+# migrate:fresh e zera TODAS as tabelas (tests/TestCase.php documenta isso). Qual
+# execução zerou a tabela em set/2026 NÃO foi medido — o que está medido é que nada a
+# repõe: mcp:sync-memory é ->environments(['live']) no Kernel e o staging não tem
+# scheduler. A reposição de 2026-09-03 foi manual (2555 docs em 32s).
+#
+# Por que withoutSyncingToSearch: a recuperação do eval é FULLTEXT no banco (o híbrido
+# fica atrás de flag; os runs válidos registram docs_pipeline=false), então basta a
+# linha no banco. O único caminho do indexador até o Meilisearch é o observer do Scout,
+# e esta forma o desliga em código — vale mesmo com config em cache, onde um
+# `-e SCOUT_DRIVER=null` seria ignorado. Assim o reparo não escreve índice nenhum.
+#
+# Fail-open de propósito: se a contagem falhar, NÃO sincroniza às cegas e os evals rodam
+# do mesmo jeito (o skip honesto continua sendo registrado no trend).
+contar_corpus() {
+  docker exec -e DB_CONNECTION=mysql "$CONTAINER" php artisan tinker \
+    --execute='echo "CORPUS=".\DB::table("mcp_memory_documents")->count().PHP_EOL;' 2>/dev/null \
+    | sed -n 's/.*CORPUS=\([0-9][0-9]*\).*/\1/p' | head -1 || true
+}
+
+garantir_corpus() {
+  local n n2 rc
+  n="$(contar_corpus)"
+  if [ -z "$n" ]; then
+    log "--- corpus: NÃO consegui contar mcp_memory_documents — não sincronizo às cegas; evals seguem"
+    return 0
+  fi
+  log "--- corpus: mcp_memory_documents = $n"
+  [ "$n" -gt 0 ] && return 0
+  log "--- corpus: VAZIO — repondo via mcp:sync-memory (withoutSyncingToSearch: zero escrita em índice de busca)"
+  set +e
+  docker exec -e DB_CONNECTION=mysql "$CONTAINER" php artisan tinker \
+    --execute='\Modules\Jana\Entities\Mcp\McpMemoryDocument::withoutSyncingToSearch(function () { $rc = \Illuminate\Support\Facades\Artisan::call("mcp:sync-memory", ["--reason" => "fallback"]); echo \Illuminate\Support\Facades\Artisan::output(); echo "SYNC_RC=".$rc.PHP_EOL; });'
+  rc=$?
+  set -e
+  n2="$(contar_corpus)"
+  log "--- corpus: depois do sync = ${n2:-ilegível} (exit do tinker $rc)"
+  return 0
+}
+garantir_corpus
+
 # Ordem = a mesma intenção do Kernel (06:30 → 07:00), agora serializada.
 # jana:drift-sentinel NÃO entra aqui de propósito: é ->environments(['live']) e já roda
 # em prod pelo scheduler do hPanel (log copiloto-ai 05/07 e 12/07 06:01). Invocá-lo
