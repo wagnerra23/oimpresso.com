@@ -4,6 +4,14 @@ id: requisitos-recurring-billing-index-visual-comparison
 
 # Visual canon — Recurring/Index (Cobrança recorrente)
 
+> **Fonte atual (2026-11-19, lote L6 da auditoria RecurringBilling):** `prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx`,
+> resolvida por `node scripts/design/ancora.mjs RecurringBilling/Index` → `related_prototype (charter)`.
+> Papel: **fonte de design** (decisão [W] 2026-11-19, b4 da auditoria). Os arquivos `prototipo-ui/prototipos/recurring/*`
+> e `prototipo-ui/cowork-snapshot/` citados abaixo saíram do repo; o texto abaixo é o registro de 2026-05-16 e não
+> descreve a fonte de hoje. Gap por parte: `cobranca-recorrente-gap.md`. Veredito de medição: seção
+> "Medição 2026-11" (L6 PR 2) — até lá, **não medido** (a medição de 18/09 é inválida: os 4 `design.json`
+> eram a mesma aba e a captura de produção pegou o banner de cookies e o tour).
+
 > **Status:** Cowork output renderizado e validado em 2026-05-16. Match exato com 2 screenshots Wagner.
 > **Destino visual:** `9,75/10` (Método KB-9.75 alvo final, **NÃO** R#1 intermediário `3,8/10`).
 > **Fonte canônica:** `prototipo-ui/prototipos/recurring/recurring-page.jsx` _(removido em 2026-05-20, 1070e3759b7)_ (1.637 linhas IIFE expondo `window.RecurringPage`) + `prototipo-ui/prototipos/recurring/recurring-data.jsx` _(removido em 2026-05-20, 1070e3759b7)_ (mock 18 assinaturas + 5 planos + timelines + troubleshooters) + `prototipo-ui/prototipos/recurring/recurring-icons.jsx` _(removido em 2026-05-20, 1070e3759b7)_
