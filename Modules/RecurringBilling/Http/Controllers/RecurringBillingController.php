@@ -265,7 +265,7 @@ class RecurringBillingController extends Controller
      */
     public function reenviarNfe(Request $request, int $id): JsonResponse
     {
-        $this->exigirPermissao('recurringbilling.access');
+        $this->exigirPermissao('recurringbilling.access', $request);
         $sub = $this->loadOwnedOrFail($id);
 
         // 1. Acha última invoice paga (timeline business-correta).
