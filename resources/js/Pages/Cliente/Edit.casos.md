@@ -55,6 +55,15 @@ last_run_nota: "2026-10-06 revalidado na thread Crm/09: o Edit.tsx ganhou o modo
 
 ---
 
+## UC-CEDI-05 · A edição abre com o grupo do cliente selecionado
+- **Persona:** Larissa — abre a edição em página inteira de um cliente do grupo Atacado e precisa ver o formulário com o grupo preenchido, não uma tela em branco.
+- **Aceite:** Dado a lista `customer_groups` como o `ContactController@edit` entrega (com o "Nenhum" de id vazio na frente) e um cliente com `customer_group_id` de um grupo da empresa · Quando a tela desenha o formulário · Então o formulário aparece com esse grupo no campo "Grupo de clientes".
+- **Teste:** `tests/js/cliente-form-grupo-nenhum.test.tsx` (Vitest, lane `Frontend / Vite build`) — `UC-CEDI-05 cliente do grupo Atacado: a edição aparece com Atacado no campo`.
+- **Regressão que defende:** tela em branco em produção para qualquer empresa (medido em 2026-11-21): o Radix recusa `<SelectItem value="">` e o erro derrubava a página inteira. O `ClienteEditInertiaTest` só confere o nome do componente Inertia e seguia verde.
+- **Status: ⬜** — teste novo; vira 🧪 com o run verde da lane `Frontend / Vite build`.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] `opening_balance` exibido já descontado do pago** (via `getTotalAmountPaid`) — anchor em teste de payload dedicado.
@@ -68,6 +77,7 @@ last_run_nota: "2026-10-06 revalidado na thread Crm/09: o Edit.tsx ganhou o modo
 | UC-CEDI-02 | CU-CLI-02 | — |
 | UC-CEDI-03 | CU-CLI-02 · CU-CLI-11 | — |
 | UC-CEDI-04 | CU-CLI-03 | — |
+| UC-CEDI-05 | CU-CLI-02 | — |
 
 > Coluna US **vazia de propósito**: nenhuma das 22 US do SPEC declara estes dois testes no seu `**Testado em:**` (a US-CRM-073, a mais próxima, aponta pra `tests/br-inputs.test.tsx`). Declarar vínculo por semelhança de tema tiraria a US do backlog sem prova — é a gamificação que o `citadoComoAncora` foi endurecido pra impedir.
 
@@ -75,8 +85,10 @@ last_run_nota: "2026-10-06 revalidado na thread Crm/09: o Edit.tsx ganhou o modo
 1. **Pest:** `docker exec oimpresso-staging php artisan test --filter="ClienteEditInertiaTest|ClienteDrawerCadastroAutosaveTest"` no CT100.
 2. **Manifesto:** `npm run casos:results` → 🧪 vira ✅.
 3. **Cadência:** rodar ao fim de toda mexida em `Edit.tsx` / `_form/ClienteForm` / `ClienteAutosaveController`.
+4. **Vitest (UC-CEDI-05):** `npx vitest run tests/js/cliente-form-grupo-nenhum.test.tsx` — roda no job `Frontend / Vite build`.
 
 ## Trilha do tempo
+- 2026-11-21 · [F+C] UC-CEDI-05: a página ficava em branco porque o "Nenhum" do grupo chegava com id vazio ao `<SelectItem>` do Radix. O `_form/ClienteForm` passa a usar só os grupos de verdade (o "Nenhum" é a sentinela dele). Teste Vitest que desenha o formulário; os testes de servidor não pegavam.
 - 2026-10-27 · [CC] cutover F5: tela só React, fallback Blade apagado (sessão mig-nucleo-contatos-geral).
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Correções factuais: "lane ativa" era falso (lane criada agora, **advisory**, força declarada) + o 404 do UC-CEDI-03 **não** vem de global scope (`app/Contact.php` tem 0 `addGlobalScope` — medido), vem do `where()` manual. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) §5.4.2/§6.1 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). 4 UCs ancorados em `ClienteEditInertiaTest` (edit/update + Tier 0 404) e `ClienteDrawerCadastroAutosaveTest` (PATCH autosave mod 11). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0179](../../../../memory/decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md).

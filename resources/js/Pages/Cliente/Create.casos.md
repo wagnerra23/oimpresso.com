@@ -58,6 +58,15 @@ last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx
 
 ---
 
+## UC-CCRE-05 · O cadastro abre com o grupo "Nenhum" que vem do servidor
+- **Persona:** Larissa — abre o cadastro de cliente em página inteira (por link, ou pelo "Criar novo" do seletor de contato do WhatsApp) e precisa ver o formulário, não uma tela em branco.
+- **Aceite:** Dado a lista `customer_groups` como o `ContactController@create` entrega (o `CustomerGroup::forDropdown` põe na frente o "Nenhum" com id vazio) · Quando a tela desenha o formulário · Então o formulário aparece, o campo "Grupo de clientes" lista "— Nenhum —" uma vez só seguido dos grupos da empresa, e empresa sem grupo cadastrado não vê o campo.
+- **Teste:** `tests/js/cliente-form-grupo-nenhum.test.tsx` (Vitest, lane `Frontend / Vite build`) — `UC-CCRE-05 o formulário aparece e o grupo lista "Nenhum" uma vez só` + `UC-CCRE-05 empresa sem grupo cadastrado: o formulário aparece e o campo de grupo não`.
+- **Regressão que defende:** tela em branco em produção para qualquer empresa (medido em 2026-11-21): o Radix recusa `<SelectItem value="">` e o erro derrubava a página inteira. O `Wave1CreateInertiaTest` só confere o nome do componente Inertia e seguia verde.
+- **Status: ⬜** — teste novo; vira 🧪 com o run verde da lane `Frontend / Vite build`.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão.
@@ -74,6 +83,7 @@ last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx
 | UC-CCRE-02 | CU-CLI-01 | US-CRM-076 |
 | UC-CCRE-03 | CU-CLI-01 | US-CRM-076 |
 | UC-CCRE-04 | CU-CLI-01 | — |
+| UC-CCRE-05 | CU-CLI-01 | — |
 
 > A US é declarada porque o `StoreContactRequestTest` **é** o `**Testado em:**` da US-CRM-076 no SPEC e carrega `// @covers-us US-CRM-076` — não por semelhança de tema. Onde o vínculo não é verificável assim, a coluna fica vazia (US sem UC segue aparecendo como lacuna no `requisitos-status.mjs`, que é o certo).
 
@@ -81,8 +91,10 @@ last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx
 1. **Pest:** `docker exec oimpresso-staging php artisan test --filter=StoreContactRequestTest` no CT100 (nunca local/Hostinger).
 2. **Manifesto:** `npm run casos:results` regrava `scripts/casos-test-results.json` → 🧪 vira ✅.
 3. **Cadência:** rodar ao fim de toda mexida em `Create.tsx` / `_form/ClienteForm` / `StoreContactRequest`.
+4. **Vitest (UC-CCRE-05):** `npx vitest run tests/js/cliente-form-grupo-nenhum.test.tsx` — roda no job `Frontend / Vite build`.
 
 ## Trilha do tempo
+- 2026-11-21 · [F+C] UC-CCRE-05: a página ficava em branco porque o "Nenhum" do grupo chegava com id vazio ao `<SelectItem>` do Radix. O `_form/ClienteForm` passa a usar só os grupos de verdade (o "Nenhum" é a sentinela dele). Teste Vitest que desenha o formulário; os testes de servidor não pegavam.
 - 2026-10-27 · [CC] cutover F5: tela só React, fallback Blade apagado (sessão mig-nucleo-contatos-geral).
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito.** Correção factual: "lane ativa" era falso (0 entradas de Cliente em `ci-sqlite-pest.list`) — lane criada no mesmo PR, **advisory**, força declarada; + ponteiro pro SDD §6.1. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente). 3 UCs ancorados no `StoreContactRequestTest` (validação fiscal mod 11). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · US-CRM-076.

@@ -27,6 +27,11 @@ last_run: "2026-11-21"
 > só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
 
+> ℹ️ **`last_run` 2026-11-16 → 2026-11-21 (G-6): a gaveta de 760px passou a montar dentro do `.cockpit`.**
+> O que mudou em `Index.tsx`: a prop `container` do `SheetContent` da gaveta (o portal deixa de montar no `<body>`),
+> para a gaveta receber a fonte e os tokens do Design System. Nenhum handler, aba, campo ou endpoint mudou.
+> **Nenhum UC foi reexecutado**; o bump marca o trio reconciliado com a tela nesta data.
+
 # Casos de Uso & Aceite — Lista de clientes
 
 > Fase 2 (lanes do Cliente). Tela principal do módulo. UCs ancorados em `ClienteTypeOtherRouteTest` (render HTTP real), `ClientePaginacaoServerSideTest`, `ClienteSortServerSideTest`, `ClienteKpisServerSideTest`. Onde o teste é guard estrutural do query (a semântica É a corretude), o **número real** vira ✅ só com smoke — por isso os status são 🧪.

@@ -30,6 +30,7 @@ import {
   Printer,
   Search,
   SlidersHorizontal,
+  X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
@@ -914,6 +915,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const deltaRevenue = props.coworkAggregates?.deltaRevenueVsYesterday ?? null;
   const deltaTicket = props.coworkAggregates?.deltaTicketVsLastWeek ?? null;
   const topSeller = props.coworkAggregates?.topSeller ?? null;
+  // Fatia PIX no faturamento do dia (KPI "PIX hoje"): mesma conta que o sub-título já fazia.
+  const pixHoje = props.coworkAggregates?.pixHojeTotal ?? 0;
+  const faturadoHoje = props.coworkAggregates?.faturadoHojeTotal ?? 0;
+  const pixPct = faturadoHoje > 0 ? Math.round((pixHoje / faturadoHoje) * 100) : 0;
 
   // Selection helpers.
   const toggleSel = useCallback(
@@ -1134,6 +1139,14 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             {/* Tab bar Dashboard | Insights Jana removida — Insights V2 migrado pra
                 /ia/dashboard (canon Jana). */}
           </div>
+
+          {/* Busca ⌘K no cabeçalho, entre o título e as ações, como no protótipo (vendas-page.jsx).
+              Esteve na linha de filtros de 2026-05-21 a 2026-11-21; lá agora fica o campo de busca. */}
+          <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
+            <Search size={12} />
+            <span>Buscar venda, cliente, chave SEFAZ…</span>
+            <kbd>⌘K</kbd>
+          </button>
 
           <div className="os-head-r">
             <button
@@ -1380,18 +1393,20 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
             <span className="os-kpi-label">PIX hoje</span>
             <span className="os-kpi-value">
-              {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
+              {fmtShort(pixHoje)}
+              <small> / {fmtShort(faturadoHoje)}</small>
             </span>
             <span className="os-kpi-sub">
-              {(() => {
-                const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
-                const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
-                if (!props.coworkAggregates) return 'carregando…';
-                if (fat <= 0) return 'sem faturamento hoje';
-                const pct = Math.round((pix / fat) * 100);
-                return `${pct}% do faturamento — imediato`;
-              })()}
+              {!props.coworkAggregates
+                ? 'carregando…'
+                : faturadoHoje <= 0
+                  ? 'sem faturamento hoje'
+                  : `${pixPct}% do faturamento — imediato`}
             </span>
+            {/* Barra da fatia PIX no faturamento do dia, como no protótipo (vendas-page.jsx). */}
+            <div className="vd-pix-prog">
+              <div style={{ width: `${Math.min(100, Math.max(0, pixPct))}%` }} />
+            </div>
           </div>
         </div>
 
@@ -1463,6 +1478,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 Comissão
               </button>
             </div>
+
+            {/* ADR 0178 — Visão sempre visível (Operacional/Financeira/Produção), logo depois do Foco,
+                como no protótipo: Foco · Visão · | · visão salva · Filtros avançados. */}
+            <SellsTabsVisao visao={visao} onChange={setVisao} />
 
             <span className="vd-toolbar-sep" />
 
@@ -1567,9 +1586,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 </div>
               )}
             </div>
-            <span className="vd-toolbar-sep" />
-            {/* ADR 0178 — tabs Visão sempre visíveis (Operacional/Financeira/Produção). */}
-            <SellsTabsVisao visao={visao} onChange={setVisao} />
             <button
               type="button"
               className={'vd-filters-toggle' + (advancedOpen ? ' on' : '')}
@@ -1589,13 +1605,22 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </button>
           </div>
           <div className="vd-toolbar-r">
-            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
-                fica próxima dos filtros, contextualmente coerente. */}
-            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
-              <Search size={12} />
-              <span>Buscar venda, cliente, chave SEFAZ…</span>
-              <kbd>⌘K</kbd>
-            </button>
+            {/* Campo de busca da lista, como no protótipo. Usa o mesmo estado da paleta ⌘K
+                (searchInput → q no /sells-list-json, debounce 300ms). */}
+            <div className="vd-search" role="search">
+              <Search size={13} />
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar venda, cliente ou chave…"
+                aria-label="Buscar vendas"
+              />
+              {searchInput && (
+                <button className="vd-search-x" type="button" onClick={() => setSearchInput('')} title="Limpar" aria-label="Limpar busca">
+                  <X size={12} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1617,34 +1642,32 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             2026-05-21 (cleanup pós-Onda Unificação — Wagner aprovou delete).
             Onda 3+4 (ADR 0192): coluna Origem entra no preset Operacional/Produção
             + onPickOs navega pra Repair quando user clica ↗ #OS-NNNN. */}
-        <div className="os-table-wrap">
-          <SellsTabelaUnificada
-            rows={filtered as UnifiedSaleRow[]}
-            loading={loading}
-            visibleColumns={visibleColumns}
-            selectedIds={selectedIds}
-            favSet={favSet}
-            focusIdx={focusIdx}
-            filteredCount={filtered.length}
-            rowsRef={rowsRef}
-            onToggleSel={toggleSel}
-            onToggleAll={toggleAll}
-            onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
-            onPaySuccess={() => setRefetchToken((t) => t + 1)}
-            onPickOs={(osRef) => {
-              // Cross-módulo Onda 3 + extensão ServiceOrderObserver 2026-05-25:
-              // Roteia por prefix do os_ref pra evitar levar SO-NNNN pra Repair
-              // (que só conhece JobSheet · resultaria em kanban vazio).
-              //   OS-{id}  → Modules/Repair/JobSheet         → /repair/producao-oficina
-              //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/ordens-servico/board (ADR 0265)
-              const isOficinaAuto = osRef.startsWith('SO-');
-              const targetPath = isOficinaAuto
-                ? '/oficina-auto/ordens-servico/board'
-                : '/repair/producao-oficina';
-              window.location.href = `${targetPath}?os=${encodeURIComponent(osRef)}`;
-            }}
-          />
-        </div>
+        <SellsTabelaUnificada
+          rows={filtered as UnifiedSaleRow[]}
+          loading={loading}
+          visibleColumns={visibleColumns}
+          selectedIds={selectedIds}
+          favSet={favSet}
+          focusIdx={focusIdx}
+          filteredCount={filtered.length}
+          rowsRef={rowsRef}
+          onToggleSel={toggleSel}
+          onToggleAll={toggleAll}
+          onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
+          onPaySuccess={() => setRefetchToken((t) => t + 1)}
+          onPickOs={(osRef) => {
+            // Cross-módulo Onda 3 + extensão ServiceOrderObserver 2026-05-25:
+            // Roteia por prefix do os_ref pra evitar levar SO-NNNN pra Repair
+            // (que só conhece JobSheet · resultaria em kanban vazio).
+            //   OS-{id}  → Modules/Repair/JobSheet         → /repair/producao-oficina
+            //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/ordens-servico/board (ADR 0265)
+            const isOficinaAuto = osRef.startsWith('SO-');
+            const targetPath = isOficinaAuto
+              ? '/oficina-auto/ordens-servico/board'
+              : '/repair/producao-oficina';
+            window.location.href = `${targetPath}?os=${encodeURIComponent(osRef)}`;
+          }}
+        />
 
         {/* Totais do filtro (US-SELL-017 · UC-SIDX-06) — números do servidor, nada somado aqui. */}
         <SellsTotalBar
