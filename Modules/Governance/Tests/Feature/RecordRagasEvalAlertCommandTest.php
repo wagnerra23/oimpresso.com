@@ -16,7 +16,11 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *                             texto NOMEIA qual piso caiu (alerta que só diz "falhou"
  *                             obriga o humano a cavar log no CT 100 — o que este elo
  *                             veio evitar)
- *   - gate_status pass/skip → NO-OP (não polui mcp_alertas com verde)
+ *   - gate_status pass      → NO-OP (não polui mcp_alertas com verde)
+ *   - gate_status skipped   → NÃO vira alerta de qualidade (sem infra não é regressão)
+ *                             e vira drift_ragas_eval_skipped (medium): o eval não mediu.
+ *                             Era no-op até 2026-11-21, e 8 semanas seguidas de skipped
+ *                             (09-27 → 11-15, corpus_docs=0) passaram sem ninguém saber
  *   - 2× no mesmo dia       → idempotente (1 alerta/dia, não spam)
  *
  * Caso real que motivou: domingo 2026-07-26 o eval deu fail (context_recall 0.3461 <
@@ -25,7 +29,9 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  */
 beforeEach(function () {
     // delete() (DML transaction-safe) — TRUNCATE dá implicit commit e quebra DatabaseTransactions.
-    DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_quality')->delete();
+    DB::table('mcp_alertas_eventos')
+        ->whereIn('tipo', ['drift_ragas_eval_quality', 'drift_ragas_eval_skipped'])
+        ->delete();
 });
 
 it('gate_status fail → persiste alerta high com a métrica que caiu nomeada', function () {
@@ -63,13 +69,60 @@ it('gate_status pass → NO-OP (não cria alerta)', function () {
         '--context-recall' => '0.4016',
     ])->assertExitCode(0);
 
-    expect(DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_quality')->count())->toBe(0);
+    expect(DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_quality')->count())->toBe(0)
+        ->and(DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_skipped')->count())->toBe(0);
 });
 
-it('gate_status skipped → NO-OP (sem infra não é regressão)', function () {
-    $this->artisan('governance:ragas-eval-alert', ['--gate-status' => 'skipped'])->assertExitCode(0);
+it('gate_status skipped → alerta de NÃO-MEDIÇÃO, nunca de qualidade', function () {
+    $this->artisan('governance:ragas-eval-alert', [
+        '--gate-status' => 'skipped',
+        '--week' => '2026-11-15',
+        '--n-no-context' => '51',
+        '--corpus-docs' => '0',
+        '--reason' => 'Nenhuma pergunta avaliável (no_context=51, synth_failed=0, judge_failed=0)',
+    ])->assertExitCode(0);
 
+    // Sem infra não é regressão: o alerta de qualidade NÃO nasce.
     expect(DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_quality')->count())->toBe(0);
+
+    $row = DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_skipped')->first();
+    expect($row)->not->toBeNull();
+
+    $meta = json_decode($row->metadata, true);
+    expect($row->severidade)->toBe('medium')
+        ->and($row->status)->toBe('aberto')
+        ->and($row->business_id)->toBeNull()
+        ->and($meta['evidence']['week'])->toBe('2026-11-15')
+        ->and($meta['evidence']['corpus_docs'])->toEqual(0)
+        ->and($meta['evidence']['n_no_context'])->toEqual(51);
+
+    // MORDE: com corpus 0 o texto aponta a causa; sem isso o humano cava o log no CT 100.
+    expect($row->descricao)->toContain('corpus VAZIO')
+        ->and($row->descricao)->toContain('no_context=51');
+});
+
+it('gate_status skipped com corpus cheio → alerta sai sem acusar corpus vazio', function () {
+    $this->artisan('governance:ragas-eval-alert', [
+        '--gate-status' => 'skipped',
+        '--week' => '2026-11-22',
+        '--corpus-docs' => '2555',
+        '--reason' => 'OPENAI_API_KEY ausente',
+    ])->assertExitCode(0);
+
+    $row = DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_skipped')->first();
+    expect($row)->not->toBeNull();
+    // Controle: a pista do corpus vazio só aparece quando o dado diz 0.
+    expect($row->descricao)->not->toContain('corpus VAZIO')
+        ->and($row->descricao)->toContain('OPENAI_API_KEY ausente');
+});
+
+it('gate_status skipped 2× no mesmo dia → idempotente', function () {
+    $args = ['--gate-status' => 'skipped', '--week' => '2026-11-15', '--corpus-docs' => '0'];
+
+    $this->artisan('governance:ragas-eval-alert', $args)->assertExitCode(0);
+    $this->artisan('governance:ragas-eval-alert', $args)->assertExitCode(0);
+
+    expect(DB::table('mcp_alertas_eventos')->where('tipo', 'drift_ragas_eval_skipped')->count())->toBe(1);
 });
 
 it('2× no mesmo dia → idempotente (1 alerta/dia, não spam)', function () {
