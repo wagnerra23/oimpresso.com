@@ -777,6 +777,9 @@ jobs:
         # ENTRA 2026-11-19 — ComunicacaoVisual/InstalacaoProtocoloAvisoContratoTest (US-COMVIS-007 · UC-PCV-25,
         # UC-CVINST-17..19): concluir manda o link do protocolo ao cliente por WhatsApp; LGPD, sem celular e contato da 99 não recebem.
         #
+        # ENTRA 2026-11-21 — ComunicacaoVisual/TipoInstalacaoContratoTest (US-COMVIS-007 · UC-PCV-25,
+        # UC-CVTIPO-01..05): cadastro dos tipos de instalação com os itens de verificação; 99 → 404; sem permissão 403.
+        #
         # ENTRA 2026-11-16 — Superadmin/SubscriptionConfirmContratoTest (UC-SACF-01..07): o confirm
         # só cria assinatura com gateway configurado; GET → 405; offline nasce `waiting`; pacote
         # privado ou inexistente não assina; sem permissão 403.
@@ -839,6 +842,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/PacoteRotasContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/TipoInstalacaoContratoTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \

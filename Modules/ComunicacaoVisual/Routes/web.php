@@ -14,6 +14,7 @@ use Modules\ComunicacaoVisual\Http\Controllers\OsPosCalculoController;
 use Modules\ComunicacaoVisual\Http\Controllers\Public\OrcamentoAceitePublicoController;
 use Modules\ComunicacaoVisual\Http\Controllers\Public\ProtocoloInstalacaoPublicoController;
 use Modules\ComunicacaoVisual\Http\Controllers\RoteiroPadraoController;
+use Modules\ComunicacaoVisual\Http\Controllers\TipoInstalacaoController;
 use Modules\ComunicacaoVisual\Http\Middleware\ComunicacaoVisualLiberado;
 
 // Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
@@ -151,6 +152,11 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         // US-COMVIS-003 (decisão [W] 2026-10-26): roteiro padrão com que a OS nasce no quadro do PCP
         Route::get('roteiro-padrao', [RoteiroPadraoController::class, 'show'])->name('comvis.api.roteiro-padrao.show');
         Route::put('roteiro-padrao', [RoteiroPadraoController::class, 'update'])->name('comvis.api.roteiro-padrao.update');
+        // US-COMVIS-007 · UC-PCV-25: tipos de instalação e os itens que o instalador marca no celular
+        Route::get('tipos-instalacao', [TipoInstalacaoController::class, 'index'])->name('comvis.api.tipos-instalacao.index');
+        Route::post('tipos-instalacao', [TipoInstalacaoController::class, 'store'])->name('comvis.api.tipos-instalacao.store');
+        Route::put('tipos-instalacao/{id}', [TipoInstalacaoController::class, 'update'])
+            ->whereNumber('id')->name('comvis.api.tipos-instalacao.update');
 
         // Arquivos do orçamento (arte, foto do local) — copiados para a OS ao aprovar (UC-FLX-01)
         Route::post('orcamentos/{id}/arquivos', [OrcamentoArquivoController::class, 'store'])

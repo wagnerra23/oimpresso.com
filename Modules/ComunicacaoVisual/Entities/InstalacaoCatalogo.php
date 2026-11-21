@@ -17,6 +17,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * - preco_base + preco_m2 + preco_km cobrem composição completa
  * - exige_nr35 dispara checklist trabalho em altura ≥2m
  * - ferramentas_necessarias_json snapshot da lista (escada/andaime/parafusadeira/EPI)
+ * - itens_verificacao_json: o que o instalador marca no celular para este tipo (UC-PCV-25)
  *
  * Multi-tenant Tier 0 ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
  * global scope obrigatório.
@@ -29,6 +30,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property float  $preco_km
  * @property bool   $exige_nr35
  * @property array|null $ferramentas_necessarias_json
+ * @property list<string>|null $itens_verificacao_json
  * @property bool   $ativo
  *
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md §12.1 US-COMVIS-007
@@ -46,7 +48,7 @@ class InstalacaoCatalogo extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['nome', 'preco_base', 'preco_m2', 'preco_km', 'exige_nr35', 'ativo'])
+            ->logOnly(['nome', 'preco_base', 'preco_m2', 'preco_km', 'exige_nr35', 'itens_verificacao_json', 'ativo'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('comvis.instalacao_catalogo');
@@ -62,6 +64,7 @@ class InstalacaoCatalogo extends Model
         'preco_km',
         'exige_nr35',
         'ferramentas_necessarias_json',
+        'itens_verificacao_json',
         'ativo',
         'observacoes',
     ];
@@ -73,6 +76,7 @@ class InstalacaoCatalogo extends Model
         'preco_km'                     => 'decimal:2',
         'exige_nr35'                   => 'boolean',
         'ferramentas_necessarias_json' => 'array',
+        'itens_verificacao_json'       => 'array',
         'ativo'                        => 'boolean',
     ];
 

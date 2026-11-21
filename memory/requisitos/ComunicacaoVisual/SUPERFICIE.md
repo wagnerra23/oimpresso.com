@@ -14,9 +14,9 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 135 arquivos em 19 papéis.
+**Total mapeado:** 138 arquivos em 19 papéis.
 
-## Controllers — 15
+## Controllers — 16
 
 - [AgendaController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php)
 - [ApontamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php)
@@ -33,6 +33,7 @@ module: ComunicacaoVisual
 - [OrcamentoAceitePublicoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/Public/OrcamentoAceitePublicoController.php)
 - [ProtocoloInstalacaoPublicoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/Public/ProtocoloInstalacaoPublicoController.php)
 - [RoteiroPadraoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/RoteiroPadraoController.php)
+- [TipoInstalacaoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/TipoInstalacaoController.php)
 
 ## Requests (validação) — 2
 
@@ -92,7 +93,7 @@ module: ComunicacaoVisual
 
 - [web.php](../../../Modules/ComunicacaoVisual/Routes/web.php)
 
-## Migrations (schema) — 18
+## Migrations (schema) — 19
 
 - [2026_05_10_000040_create_comvis_materiais_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000040_create_comvis_materiais_table.php)
 - [2026_05_10_000041_create_comvis_orcamentos_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000041_create_comvis_orcamentos_table.php)
@@ -112,6 +113,7 @@ module: ComunicacaoVisual
 - [2026_10_26_200000_create_comvis_orcamento_aceites_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_200000_create_comvis_orcamento_aceites_table.php)
 - [2026_11_10_100000_add_retrato_ao_comvis_orcamento_aceites.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_11_10_100000_add_retrato_ao_comvis_orcamento_aceites.php)
 - [2026_11_18_120000_create_cv_instalacao_comprovantes_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_11_18_120000_create_cv_instalacao_comprovantes_table.php)
+- [2026_11_21_100000_add_itens_verificacao_ao_cv_instalacoes_catalogo.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_11_21_100000_add_itens_verificacao_ao_cv_instalacoes_catalogo.php)
 
 ## Seeders — 2
 
@@ -152,9 +154,9 @@ module: ComunicacaoVisual
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
 - [Instalacao.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Instalacao.casos.md)
 
-## Testes (Pest) — 46
+## Testes (Pest) — 47
 
-- 46 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 47 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
