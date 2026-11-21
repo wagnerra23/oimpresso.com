@@ -16,8 +16,9 @@ use Modules\Governance\Services\PolicyToggleService;
  * CRUD inline de policies (mcp_governance_rules) — Constituição Art. 8.
  *
  * Permite Wagner editar rules no painel /governance/policies sem precisar
- * tocar em código. Toda mudança vira INSERT em mcp_governance_rule_history
- * (a criar — Fase 5+1) pra audit.
+ * tocar em código. Toda alternância que muda o estado vira uma linha em
+ * `activity_log` (log `governance`) — ver PolicyToggleService. Id inexistente
+ * responde 404.
  *
  * MVP: list + toggle enabled. Edit inline + create new ficam pra próxima
  * iteração quando frontend ganhar editor JSON.
@@ -60,7 +61,10 @@ class PoliciesController extends Controller
     {
         // FormRequest valida enabled boolean (Wave S Batch 2 D8.c).
         $enabled = (bool) $request->validated('enabled', false);
-        $this->service->togglePolicy($id, $enabled);
+        $novo = $this->service->togglePolicy($id, $enabled, $request->user()?->id);
+        if ($novo === null) {
+            abort(404);
+        }
 
         return back()->with('status', "Policy #{$id} " . ($enabled ? 'ativada' : 'desativada'));
     }
