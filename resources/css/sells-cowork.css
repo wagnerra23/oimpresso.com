@@ -1764,7 +1764,7 @@
 .sells-cowork .cli-kpi.danger .cli-kpi-v { color: #b91c1c; }
 .sells-cowork .cli-fin-row b.danger { color: #b91c1c; }
 /* ════════════ VENDAS ════════════ */
-.sells-cowork .vendas-page .vd-id { font-family:var(--font-mono); font-size:var(--fs-3); color:oklch(0.40 0.04 250); font-weight:600; }
+.sells-cowork .vendas-page .vd-id { font-family:var(--font-mono); font-size:var(--fs-3); color:var(--text); font-weight:600; }
 .sells-cowork .vendas-page .vd-date { font-size:var(--fs-2); }
 .sells-cowork .vendas-page .vd-time { font-size:var(--fs-1); color:oklch(0.55 0.02 250); }
 .sells-cowork .vendas-page .vd-client-name { font-weight:600; font-size:var(--fs-4); }
@@ -2330,6 +2330,8 @@
   --vd-green-hero:  oklch(0.21 0.025 155);
   --vd-green-hero-2:oklch(0.27 0.03 155);
   --vd-green-fg:    oklch(0.78 0.05 155);
+  /* Azul do avatar de vendedor = `--av-5` do protótipo (o cockpit não tem a paleta --av-*). */
+  --vd-av-azul:     oklch(0.56 0.12 230);
 
   /* DS v6 (PR3 slice 2) — camada semântica local da tela redireciona pros tokens
      canônicos (cockpit.css: --pos/--warn/--neg + -soft), espelhando o gabarito.
@@ -2486,14 +2488,15 @@
 .sells-cowork .vendas-aplus .vd-av {
   display: inline-grid; place-items: center;
   width: 24px; height: 24px; border-radius: 50%;
-  font-size: 10.5px; font-weight: 700; color: #fff;
+  font-size: 10.5px; font-weight: 700; color: var(--surface);
   font-family: var(--font-mono); letter-spacing: 0.02em;
   flex-shrink: 0;
 }
-.sells-cowork .vendas-aplus .vd-av-1 { background: oklch(0.55 0.12 30); }
-.sells-cowork .vendas-aplus .vd-av-2 { background: oklch(0.50 0.13 200); }
-.sells-cowork .vendas-aplus .vd-av-3 { background: oklch(0.55 0.13 290); }
-.sells-cowork .vendas-aplus .vd-av-4 { background: oklch(0.50 0.13 120); }
+/* Tons do protótipo (vendas-page.jsx · styles.css "Avatar vendedor"). */
+.sells-cowork .vendas-aplus .vd-av-1 { background: var(--neg); }
+.sells-cowork .vendas-aplus .vd-av-2 { background: var(--vd-av-azul); }
+.sells-cowork .vendas-aplus .vd-av-3 { background: var(--accent); }
+.sells-cowork .vendas-aplus .vd-av-4 { background: var(--pos); }
 /* ── Table: tweaks A+ ── */
 .sells-cowork .vendas-aplus .vd-aplus-table { font-size: 12.5px; }
 .sells-cowork .vendas-aplus .vd-aplus-table thead th {
@@ -4001,6 +4004,7 @@
   --vd-green-hero:   oklch(0.30 0.04 155);
   --vd-green-hero-2: oklch(0.36 0.05 155);
   --vd-green-fg:     oklch(0.88 0.04 155);
+  --vd-av-azul:      oklch(0.64 0.12 230);
 }
 .cockpit[data-theme="dark"] .sells-cowork,
 .dark .sells-cowork {
