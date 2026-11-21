@@ -202,8 +202,9 @@ it('GUARD 1: re-dispatcha CobrancaPaga quando órfão tem cobranca_id + evento p
         'signature_valid' => true,
     ]);
     // backdate created_at pra fora da janela "espera 1h"
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -231,8 +232,9 @@ it('GUARD 2a: pula evento órfão com cobranca_id NULL — processed_at PERMANEC
         'payload' => ['raw' => 'received'],
         'signature_valid' => true,
     ]);
-    $orphan->created_at = now()->subHours(3);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(3)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -256,8 +258,9 @@ it('GUARD 2b: pula órfão quando Cobranca não encontrada — processed_at PERM
         'payload' => ['raw' => 'ok'],
         'signature_valid' => true,
     ]);
-    $orphan->created_at = now()->subHours(4);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(4)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -292,8 +295,9 @@ it('GUARD 3: ignora evento muito antigo (> 24h) — fora da janela', function ()
         'signature_valid' => true,
     ]);
     // backdate created_at pra MAIS DE 24h atrás → fora da janela
-    $orphan->created_at = now()->subDays(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subDays(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -327,8 +331,9 @@ it('GUARD 3b: ignora evento muito recente (< 1h) — espera fluxo original grava
         'signature_valid' => true,
     ]);
     // 10min atrás → ainda dentro da espera 1h
-    $orphan->created_at = now()->subMinutes(10);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subMinutes(10)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -359,8 +364,9 @@ it('GUARD 4: evento que NÃO matches paid pattern → marca processed sem dispat
         'payload' => ['raw' => 'created'],
         'signature_valid' => true,
     ]);
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -394,8 +400,9 @@ it('GUARD 5: respeita limit 50 — só processa 50 órfãos por run', function (
             'payload' => ['raw' => 'paid'],
             'signature_valid' => true,
         ]);
-        $orphan->created_at = now()->subHours(2)->subMinutes($i); // ordem cronológica
-        $orphan->saveQuietly();
+        // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table. // ordem cronológica
+        DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)->subMinutes($i)]);
+        $orphan->refresh();
     }
 
     (new RetryOrphanWebhookJob())->handle();
@@ -435,8 +442,9 @@ it('GUARD 6: dispatch propaga business_id correto em multi-tenant (biz=99 NÃO c
         'payload' => ['raw' => 'paid'],
         'signature_valid' => true,
     ]);
-    $orphan99->created_at = now()->subHours(2);
-    $orphan99->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan99->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan99->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -486,8 +494,9 @@ it('GUARD 7: re-resolve linka órfão cobranca_id NULL quando a Cobranca já exi
         'payload'                       => ['event' => 'PAYMENT_RECEIVED', 'payment' => ['id' => 'pay-race-001']],
         'signature_valid'               => true,
     ]);
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -543,8 +552,9 @@ it('GUARD 8: re-resolve respeita business_id — biz=99 não casa Cobranca biz=1
         'payload'                       => ['payment' => ['id' => 'cross-id']],
         'signature_valid'               => true,
     ]);
-    $orphan99->created_at = now()->subHours(2);
-    $orphan99->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan99->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan99->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -576,8 +586,9 @@ function orfao98(array $cobrancaAttrs, string $evento): array
         'payload'          => ['evento' => $evento],
         'signature_valid'  => true,
     ]);
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     return [$cobranca, $orphan];
 }

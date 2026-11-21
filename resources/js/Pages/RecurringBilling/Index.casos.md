@@ -68,6 +68,7 @@ last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloc
 | UC-RBSUB-06 | MRR normaliza o ciclo e churn ignora trial | must `[V0]` | `CU-RB-14` 2/3 | `Wave4PresenterIndexTest` | 🧪 |
 | UC-RBSUB-07 | Status visual deriva do estado do banco (5 estados) | must | `CU-RB-14` 1 | `Wave4PresenterIndexTest` | 🧪 |
 | UC-RBSUB-08 | Ciclo de vida completo (criar → pausar → retomar → cancelar) sem vazar tenant | must `[T0]` | `CU-RB-05` · `CU-RB-10` | `CustomerJourneyTest` | 🧪 |
+| UC-RBSUB-09 | Criar assinatura recusa contato de outra empresa ou excluído | must `[T0]` | `CU-RB-02` 1/2 | `Wave21NewSubscriptionTest` | 🧪 |
 
 > ℹ️ **`last_run` 2026-07-28 → 2026-08-25 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` foi **comentário de ponteiro de design**: a linha citava um
@@ -210,6 +211,23 @@ last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloc
 - **Regressão que defende:** transições isoladas passam nos testes unitários e quebram **em
   sequência** (pausar depois de cancelar, retomar assinatura de outro tenant). É o único teste do
   módulo que exercita a máquina de estados inteira de ponta a ponta.
+- **Status: 🧪**
+
+---
+
+## UC-RBSUB-09 · Criar assinatura recusa contato de outra empresa · `must` `[T0]`
+- **Persona:** qualquer tenant. O drawer só oferece clientes da empresa (UC-RBSUB-03), mas o
+  `POST /recurring-billing` aceitava qualquer `contact_id` que chegasse no corpo.
+- **Aceite:** Dado a sessão da empresa 98 · Quando envio `contact_id` de um contato da 99, ou de um
+  contato excluído da própria 98 · Então o pedido volta 422 no `contact_id` e nenhuma assinatura é
+  gravada. Com contato da própria 98 a assinatura nasce normalmente (controle positivo).
+- **Teste:** [`Wave21NewSubscriptionTest`](../../../../Modules/RecurringBilling/Tests/Feature/Wave21NewSubscriptionTest.php)
+  — os três casos `UC-RBSUB-09`.
+- **Contrato:** `CU-RB-02` itens 1 e 2 +
+  [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Regressão que defende:** `App\Contact` não tem escopo global. Sem o `Rule::exists` filtrado por
+  empresa no `StoreAssinaturaRequest`, a assinatura da 98 apontava para o cliente da 99 e a lista da
+  98 mostrava nome, documento e telefone dele (auditoria 2026-11-19, achado a1).
 - **Status: 🧪**
 
 ---

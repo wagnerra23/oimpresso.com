@@ -5,7 +5,7 @@
 | **Wagner** | [W] | líder, dono, aprovação final | 2 |
 | **Maiara** | [M] | suporte+dev | 2 |
 | **Felipe** | [F] | dev+suporte | 2 |
-| **Luiz** | [L] | iniciante+dev IA-pair | 1 |
+| **Luiz** | [L] | suporte+dev IA-pair · responsável pelo estoque | 1 |
 | **Eliana** (esposa) | [E] | **advogada + financeiro + dev IA** | 1 |
 
 > ⚠️ **2 Elianas no projeto:** `Eliana[E]` (esposa, time interno) ≠ `Eliana(WR2)` (cliente externa, PontoWr2). Sempre desambiguar em commits/notas.

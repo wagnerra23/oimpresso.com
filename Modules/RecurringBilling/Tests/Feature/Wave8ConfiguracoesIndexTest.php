@@ -76,6 +76,12 @@ beforeEach(function () {
 
     // Session: business_id=1 (ADR 0101 — Wagner biz superadmin, NUNCA biz=4 cliente).
     session(['user' => ['business_id' => 1]]);
+
+    // Desde 2026-11-19 a tela exige `recurringbilling.configuracoes.manage` (auditoria RB d1).
+    // Usuário dublê com a permissão; o caso sem ela está em PermissoesRotasContratoTest.
+    $usuario = Mockery::mock(App\User::class)->makePartial();
+    $usuario->shouldReceive('can')->andReturnUsing(fn ($a) => $a === 'recurringbilling.configuracoes.manage');
+    $this->actingAs($usuario);
 });
 
 afterEach(function () {
