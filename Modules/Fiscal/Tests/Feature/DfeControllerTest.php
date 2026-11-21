@@ -236,3 +236,58 @@ it('UC-FDFE-16 · a busca acha pela chave, pelo CNPJ digitado com pontuação e 
     expect($achadas($cnpjComMascara))->toBe([$lona->id], 'busca por CNPJ com pontuação');
     expect($achadas('LONAFICT'))->toBe([$lona->id], 'busca pelo nome do emitente trouxe nota de outro emitente');
 });
+
+/** O que a tela recebe em `historico`. */
+function dfeHistoricoPayload(): array
+{
+    $controller = new \Modules\Fiscal\Http\Controllers\DfeController();
+
+    return (fn () => $this->buildHistoricoPayload())->call($controller);
+}
+
+it('UC-FDFE-17 · a aba Histórico mostra as manifestações reais, com a justificativa do evento', function () {
+    if (! Schema::hasTable('nfe_dfe_eventos')) {
+        $this->markTestSkipped('nfe_dfe_eventos ausente — rode as migrations do NfeBrasil.');
+    }
+    dfeListaUsuario();
+
+    $desconhecida = dfeListaSemear('17000001', [
+        'status_manifestacao' => NfeDfeRecebido::STATUS_DESCONHECIDA,
+        'manifestado_em'      => now()->subDay(),
+    ]);
+    $confirmada = dfeListaSemear('17000002', [
+        'status_manifestacao' => NfeDfeRecebido::STATUS_CONFIRMADA,
+        'manifestado_em'      => now()->subDays(3),
+    ]);
+    $pendente = dfeListaSemear('17000003');
+
+    // SUPERADMIN: plantar o evento do fixture sem depender do escopo
+    $evento = \Modules\NfeBrasil\Models\NfeDfeEvento::withoutGlobalScopes()->create([
+        'business_id'     => DFE_LISTA_BIZ,
+        'dfe_recebido_id' => $desconhecida->id,
+        'tipo'            => \Modules\NfeBrasil\Models\NfeDfeEvento::TIPO_DESCONHECIMENTO,
+        'justificativa'   => 'Fornecedor errou o destinatario ' . DFE_LISTA_TAG,
+        'status'          => 'autorizado',
+        'nseq_evento'     => 1,
+    ]);
+
+    try {
+        $porId = collect(dfeHistoricoPayload())->keyBy('id');
+
+        expect($porId->has($desconhecida->id))->toBeTrue('a manifestação do fixture não voltou')
+            ->and($porId[$desconhecida->id]['ack'])->toBe('desconhecida')
+            ->and($porId[$desconhecida->id]['obs'])->toBe('Fornecedor errou o destinatario ' . DFE_LISTA_TAG)
+            ->and($porId[$confirmada->id]['obs'])->toBeNull()
+            ->and($porId->has($pendente->id))->toBeFalse('nota sem manifestação não é histórico');
+
+        // Mais recente primeiro.
+        $ordem = array_values(array_intersect($porId->keys()->all(), [$desconhecida->id, $confirmada->id]));
+        expect($ordem)->toBe([$desconhecida->id, $confirmada->id]);
+
+        // O dado de demonstração saiu.
+        expect($porId->pluck('nomeEmitente')->implode('|'))->not->toContain('TechSupply');
+    } finally {
+        // SUPERADMIN: limpeza do evento do fixture
+        \Modules\NfeBrasil\Models\NfeDfeEvento::withoutGlobalScopes()->whereKey($evento->id)->delete();
+    }
+});

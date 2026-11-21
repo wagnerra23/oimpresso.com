@@ -54,7 +54,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 - Multi-tenant Tier 0: `HasBusinessScope` automático em Subscription/Plan/Invoice + Repository scopa explícito + Pest cross-tenant biz=1 vs biz=99
 - Permission gate Spatie: `recurringbilling.access` OR `superadmin`
 - Sidebar AppShellV2 entry: `Modules/RecurringBilling/Http/Controllers/DataController@modifyAdminMenu` injeta item label `Cobrança Recorrente` order=86 (entre Financeiro=85 e PontoWr2=88), agrupado visualmente em SIDEBAR_GROUPS['fin'] no frontend
-- Routes nomeadas: `recurring-billing.index` (GET `/recurring-billing`), legacy `/recurringbilling` intacta (Onda 10 cuta)
+- Routes nomeadas: `recurring-billing.index` (GET `/recurring-billing`); o legacy `/recurringbilling` redireciona com 301 (cutover da Onda 10 feito — `Route::redirect` em `Modules/RecurringBilling/Routes/web.php`)
 - **Onda 21 v9,75 — Nova assinatura ativa:** CTA header + primary sidebar (`?new=1`) + atalho `N` abrem drawer lateral 760px de criação (Sheet DS — busca de cliente debounced via `recurring-billing.contacts.search` Tier 0 + seletor de plano que pré-preenche valor/ciclo + valor/ciclo/data/gateway/forma/descrição) → POST `recurring-billing.store`. Substitui o stub "(em breve)" e conserta o primary do sidebar (que apontava pra `/recurring-billing/create` 404). Form usa componentes DS (Sheet/Input/Select/Textarea/Label/FieldError) — ui:lint R1 + eslint ds/* limpos.
 
 ---
@@ -73,7 +73,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 - ❌ Atalhos J/K/B/⌘K/P/R/E (esqueleto KeyHandler instalado mas no-op no v1)
 - ❌ Cancelar contrato (US-RB-005 — separado em PR próprio)
 - ❌ Real-time updates Centrifugo
-- ❌ Migrar Blade `view('recurringbilling::index')` — fallback intacto (cutover Onda 10)
+- ~~❌ Migrar Blade `view('recurringbilling::index')` — fallback intacto (cutover Onda 10)~~ — **feito**: `/recurringbilling` e `/recurringbilling/*` redirecionam com 301 para `/recurring-billing` (medido 2026-11-19 em `Routes/web.php`; `module-surface --migracao` mede 0 Blade servido). Só `/recurringbilling/install*` segue no InstallController.
 - ~~❌ Pix Automático JRC (US-RB-006 — gap remanescente catalogado)~~ — **saiu dos Non-Goals por decisão [W] 2026-10-26** (Pix Automático pelo BCB direto; construir a tela de aprovação do mandato). Ver Goal "Pix Automático" abaixo do bloco fiscal.
 - ❌ Dunning automatizado (régua 3/7/15d — gap remanescente)
 
@@ -110,7 +110,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 | GET | `/recurring-billing?new=1` (Onda 21) | mesmo render do index + prop `openCreate=true` → auto-abre drawer Nova assinatura (primary do sidebar aponta pra cá) |
 | GET | `/recurring-billing/contacts/search?q=` (Onda 21) | JSON `{contacts:[{id,name,mobile,email,tax_number}]}` scoped business_id (Tier 0), type customer/both, min 2 chars |
 | POST | `/recurring-billing` (Onda 21 — drawer submit) | cria Subscription (StoreAssinaturaRequest: contact_id, plan_id?, valor, ciclo, data_proxima_cobranca, gateway, forma_pagamento, descricao?) + redirect flash |
-| GET | `/recurringbilling` (legacy Blade `view('recurringbilling::index')` "Hello World") | preservado intacto até Onda 10 cutover 301 |
+| GET | `/recurringbilling` e `/recurringbilling/*` | 301 para `/recurring-billing` (cutover da Onda 10 feito; antes servia a Blade "Hello World") |
 
 ---
 

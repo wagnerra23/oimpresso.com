@@ -1052,8 +1052,11 @@ export function SidebarMenu({ items, mode = 'expanded' }: { items: ShellMenuItem
   // header sem destination ou item invisible). Smoke 2026-05-26 17:50 mostrou
   // FINANÇAS/PRODUÇÃO/ESTOQUE/RH como labels SEM children renderizados —
   // grupos eram populated com items que SidebarMenuItem ignorava (url vazia).
+  // Item que só tem filhos (dropdown, ou o Super Admin desde 2026-11-19) chega sem
+  // href e também conta: sem isso, um grupo cujo único item é um dropdown sumia.
   const hasVisibleItem = (items: ShellMenuItem[] | undefined): boolean =>
-    !!items && items.some((it) => Boolean(it.href) && Boolean(it.label));
+    !!items && items.some((it) =>
+      Boolean(it.label) && (Boolean(it.href) || (it.children ?? []).some((c) => Boolean(c.href))));
   const groupsToRender = [
     ...SIDEBAR_GROUPS.filter((g) => hasVisibleItem(groupedItems[g.key])),
     ...(hasVisibleItem(groupedItems.mais)

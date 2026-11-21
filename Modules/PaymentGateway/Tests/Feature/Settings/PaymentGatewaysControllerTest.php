@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\User;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Permission\Models\Permission;
@@ -23,16 +23,27 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  *   7) Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global scope
  *   8) não dispara mutação em GET (read-only puro)
  *
- * ADR 0101: testes biz=1 (não usar biz=4 ROTA LIVRE cliente real).
+ * ADR 0358: sessão no tenant fictício 98, adversário 99. Nunca empresa real (1 ou 4).
  */
 
-beforeEach(function () {
-    setPermissionsTeamId(1);
+/**
+ * Versão Inertia igual à do build (md5 do manifest); com '1' fixo o partial reload
+ * volta 409 assim que existe manifest (a lane cria um stub).
+ */
+function pgctlInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
 
-    $this->business = Business::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'Test HQ', 'currency_id' => 1],
-    );
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
+beforeEach(function () {
+    // Tenant fictício 98 (ADR 0358), semeado pela pest-mysql-setup. Sem ele, skip.
+    $this->business = Business::find(98);
+    if (! $this->business) {
+        $this->markTestSkipped('Lane sem tenant 98 semeado (ADR 0358).');
+    }
+    setPermissionsTeamId($this->business->id);
 
     $role = Role::firstOrCreate(
         ['name' => "Admin#{$this->business->id}", 'business_id' => $this->business->id, 'guard_name' => 'web'],
@@ -71,20 +82,18 @@ it('expõe 3 KPIs (ativos, total, fail, cobs_hoje) no partial reload', function 
         'health_status' => 'ok',
     ]);
 
-    $this->actingAs($this->user)
+    $resp = $this->actingAs($this->user)
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
-        ->get('/settings/payment-gateways?only=kpis', [
+        ->get('/settings/payment-gateways', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => pgctlInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'kpis',
-        ])
-        ->assertInertia(fn ($page) => $page
-            ->has('kpis.ativos')
-            ->has('kpis.total')
-            ->has('kpis.fail')
-            ->has('kpis.cobs_hoje')
-        );
+        ]);
+
+    // Partial reload devolve o JSON da página; lido direto como no contrato UC-PGSET-06.
+    $resp->assertOk();
+    expect($resp->json('props.kpis'))->toHaveKeys(['ativos', 'total', 'fail', 'cobs_hoje']);
 });
 
 it('lista gateways do business + warn deprecated PesaPal', function () {
@@ -101,13 +110,16 @@ it('lista gateways do business + warn deprecated PesaPal', function () {
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=gateways', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => pgctlInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'gateways',
         ]);
 
     $resp->assertOk();
-    expect($resp->getContent())->toContain('deprecated');
+    // O aviso é por item ("Deprecated — migrar pra Asaas…"), não uma palavra solta no corpo.
+    $pesapal = collect($resp->json('props.gateways'))->firstWhere('driver', 'pesapal');
+    expect($pesapal)->not->toBeNull();
+    expect((string) $pesapal['warn'])->toContain('Deprecated');
 });
 
 it('toggle endpoint inverte ativo do credential', function () {
@@ -130,7 +142,7 @@ it('toggle endpoint inverte ativo do credential', function () {
 });
 
 it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global scope', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,
@@ -145,7 +157,7 @@ it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global sc
         ->withSession(['user.business_id' => $this->business->id, 'business.id' => $this->business->id])
         ->get('/settings/payment-gateways?only=gateways', [
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => pgctlInertiaVersion(),
             'X-Inertia-Partial-Component' => 'Settings/PaymentGateways/Index',
             'X-Inertia-Partial-Data' => 'gateways',
         ]);
@@ -155,7 +167,7 @@ it('Tier 0 IRREVOGÁVEL: PaymentGatewayCredential respeita business_id global sc
 });
 
 it('cross-tenant toggle: 404 ao tentar togglar credencial de outro business', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,

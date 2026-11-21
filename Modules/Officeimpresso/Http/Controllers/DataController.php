@@ -126,13 +126,18 @@ class DataController extends Controller
             $ghosts[] = ['key' => 'computadores',       'label' => 'Computadores', 'href' => '/officeimpresso/computadores'];
         }
 
+        // Ordem e rótulos do protótipo (officeimpresso-page.jsx, OI_ABAS): Empresas · Licenças ·
+        // Clientes OAuth · Máquinas. "Clientes OAuth" e "Máquinas" são também o título das telas.
+        if ($canAccess) {
+            $ghosts[] = ['key' => 'licenca_computador', 'label' => 'Licenças',     'href' => '/officeimpresso/licenca_computador'];
+        }
+
         if ($canLiberarClientes) {
-            $ghosts[] = ['key' => 'client',             'label' => 'Clientes',     'href' => '/officeimpresso/client'];
+            $ghosts[] = ['key' => 'client',             'label' => 'Clientes OAuth', 'href' => '/officeimpresso/client'];
         }
 
         if ($canAccess) {
-            $ghosts[] = ['key' => 'licenca_computador', 'label' => 'Licenças',     'href' => '/officeimpresso/licenca_computador'];
-            $ghosts[] = ['key' => 'licenca_log',        'label' => 'Logs',         'href' => '/officeimpresso/licenca_log'];
+            $ghosts[] = ['key' => 'licenca_log',        'label' => 'Máquinas',     'href' => '/officeimpresso/licenca_log'];
         }
 
         // Base = a primeira tela que o usuário consegue abrir.

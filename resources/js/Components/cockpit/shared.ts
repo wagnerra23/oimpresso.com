@@ -319,6 +319,58 @@ export function isSuperadminMenu(label: string): boolean {
   return SUPERADMIN_LABELS.has(label.trim());
 }
 
+/**
+ * [W] 2026-11-19: "eu acho que isso tudo é Super admin". Desde 2026-11-04 havia
+ * dois lugares: o item "Super Admin" no grupo PLATAFORMA (só levava a /superadmin)
+ * e a cascata Superadmin do menu do avatar (Módulos, Backup, CMS, Conector, Office
+ * Impresso, Personalizar). Os dois viram um: o item da PLATAFORMA ganha esses
+ * itens como sub-itens, e a primeira linha leva à tela /superadmin.
+ *
+ * Só aninha quando o item "Super Admin" existe no menu (o backend publica com o
+ * gate `can('superadmin')`). Sem ele, os itens seguem pra cascata do avatar, como
+ * antes — nada some para quem não tem o item.
+ */
+export const SUPERADMIN_PAINEL_LABEL = 'Painel';
+
+/**
+ * Sub-item da sidebar é uma linha só (sem cascata dentro de cascata). Item que é
+ * dropdown no backend chega sem link próprio — o Conector publica `Menu::dropdown`
+ * com um filho (Clientes) e saía com `href="/#"` (medido em produção 2026-11-19).
+ * Sem link próprio: com um filho, a linha leva ao filho e mantém o rótulo do pai;
+ * com vários, cada filho vira uma linha "Pai · Filho".
+ */
+function linhaDeSubitem(item: ShellMenuItem): ShellMenuItem[] {
+  const temLink = !!item.href && !/^\/?#$/.test(item.href);
+  const netos = (item.children ?? []).filter((c) => c.href && !/^\/?#$/.test(c.href));
+  if (temLink || netos.length === 0) return [{ ...item, children: undefined }];
+  const [unico] = netos;
+  if (netos.length === 1 && unico) return [{ ...item, href: unico.href, children: undefined }];
+  return netos.map((c) => ({ ...c, label: `${item.label} · ${c.label}`, children: undefined }));
+}
+
+export function aninharSuperadmin(menu: ShellMenuItem[]): {
+  menu: ShellMenuItem[];
+  avulsos: ShellMenuItem[];
+} {
+  const ehPai = (i: ShellMenuItem) => /^super\s?admin$/i.test(i.label.trim());
+  const pai = menu.find(ehPai);
+  const filhos = menu.filter((i) => isSuperadminMenu(i.label));
+  if (!pai || filhos.length === 0) return { menu, avulsos: filhos };
+
+  const painel: ShellMenuItem[] = pai.href && pai.href !== '#'
+    ? [{ label: SUPERADMIN_PAINEL_LABEL, href: pai.href }]
+    : [];
+  const aninhado: ShellMenuItem = {
+    ...pai,
+    href: undefined,
+    children: [...painel, ...(pai.children ?? []), ...filhos.flatMap(linhaDeSubitem)],
+  };
+  return {
+    menu: menu.filter((i) => !isSuperadminMenu(i.label)).map((i) => (i === pai ? aninhado : i)),
+    avulsos: [],
+  };
+}
+
 // Items que vão pro user dropdown footer (botão de avatar/usuário no rodapé)
 // em vez de aparecerem no menu principal — Wagner 2026-05-05.
 // Mantém shell.menu canônico (LegacyMenuAdapter); o SidebarMenu filtra

@@ -158,30 +158,35 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-whatsapp-junit.xml \
-            Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php \
             Modules/Whatsapp/Tests/Feature/AppAtendimentoApiContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/BotMenuAtendimentoContratoTest.php \
             Modules/Whatsapp/Tests/Feature/BotMenuConfigContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php \
             Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/IsolamentoTabelasSemCoberturaContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php \
-            Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php \
-            Modules/Whatsapp/Tests/Feature/ChannelDisplayIdentifierIndexTest.php \
+            Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php \
             Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php \
             Modules/Whatsapp/Tests/Feature/CentrifugoTokenIssuerTest.php \
+            Modules/Whatsapp/Tests/Feature/ChannelDisplayIdentifierIndexTest.php \
+            Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php \
             Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php \
             Modules/Whatsapp/Tests/Feature/FetchTemplatesTest.php \
+            Modules/Whatsapp/Tests/Feature/IsolamentoTabelasSemCoberturaContratoTest.php \
             Modules/Whatsapp/Tests/Feature/LegacyConversationsRemovedTest.php \
             Modules/Whatsapp/Tests/Feature/MessageHasArquivosTraitTest.php \
+            Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/PropagateTraceparentTest.php \
+            Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php \
+            Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php \
+            Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php \
+            Modules/Whatsapp/Tests/Feature/Wave26WhatsappSaturationTest.php \
+            Modules/Whatsapp/Tests/Feature/Wave27WhatsappSaturationTest.php \
+            Modules/Whatsapp/Tests/Feature/Wave28WhatsappPolishTest.php \
             Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php \
             Modules/Whatsapp/Tests/Feature/WebhookSignatureCheckerTest.php \
             Modules/Whatsapp/Tests/Feature/WhatsmeowAuthHeaderTest.php \
@@ -190,11 +195,7 @@ jobs:
             Modules/Whatsapp/Tests/Feature/WhatsmeowReconcilerTest.php \
             Modules/Whatsapp/Tests/Feature/WhatsmeowSessionStatusParseTest.php \
             Modules/Whatsapp/Tests/Feature/WhatsmeowSubscribeLoggedOutTest.php \
-            Modules/Whatsapp/Tests/Feature/Wave23SaturationTest.php \
-            Modules/Whatsapp/Tests/Feature/Wave25WhatsappSaturationTest.php \
-            Modules/Whatsapp/Tests/Feature/Wave26WhatsappSaturationTest.php \
-            Modules/Whatsapp/Tests/Feature/Wave27WhatsappSaturationTest.php \
-            Modules/Whatsapp/Tests/Feature/Wave28WhatsappPolishTest.php
+            --colors=always
 
       - name: Sumario JUnit (prova de EXECUÇÃO — skip sai exit 0, leia assertions)
         if: always() && steps.changes.outputs.whatsapp == 'true'

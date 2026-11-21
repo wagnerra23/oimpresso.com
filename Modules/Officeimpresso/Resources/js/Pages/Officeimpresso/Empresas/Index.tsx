@@ -14,6 +14,7 @@ import { Deferred } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { ClipboardList, Monitor, Search } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
+import OfficeimpressoSubNav from '../_shared/OfficeimpressoSubNav';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -38,6 +39,7 @@ function EmpresasIndex({ empresas, kpis }: Props) {
     <div className="pb-8">
       <div data-contract="header">
         <PageHeader title="Empresas Licenciadas" subtitle="Todas as empresas com licença Office Impresso ativa" />
+        <OfficeimpressoSubNav active="businessall" />
       </div>
       <div className="flex flex-col gap-4 px-6 pt-4">
         <Deferred data="kpis" fallback={<Skeleton className="h-20 w-full" />}>

@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha mostra o cadastro da empresa e as máquinas do desktop, cujo registro guarda senha e serial; a visão é cross-empresa para a operadora, então escopo e payload são Tier 0.
 owner: wagner
-last_run: "2026-10-12"
+last_run: "2026-11-19"
 ---
 
 # Casos de Uso & Aceite — Ficha da empresa licenciada

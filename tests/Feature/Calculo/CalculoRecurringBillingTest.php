@@ -106,7 +106,7 @@ class CalculoRecurringBillingTest extends TestCase
     {
         [$plan, $sub] = $this->novoPlanoComAssinatura($valor, 'monthly', '2026-07-10');
 
-        // O tenant canônico (biz=1, clone-de-prod) pode ter outras assinaturas dogfood
+        // O tenant canônico de teste (biz=98, ADR 0358) pode ter outras assinaturas dogfood
         // vencidas — por isso NÃO ancoramos no agregado stats['generated'] (é por-business),
         // e sim na fatura da NOSSA subscription. Tudo dentro de DatabaseTransactions (rollback).
         (new InvoiceGeneratorService())->run(businessId: (int) $sub->business_id, date: '2026-07-10');
@@ -136,7 +136,10 @@ class CalculoRecurringBillingTest extends TestCase
     {
         [$plan, $sub] = $this->novoPlanoComAssinatura(1234.56, 'monthly', '2026-07-10');
 
-        (new InvoiceGeneratorService())->run(businessId: 1, date: '2026-07-10');
+        // Era `businessId: 1` fixo: o tenant semeado virou 98 em 2026-07-28 (ADR 0358) e o
+        // gerador passou a rodar numa empresa sem a assinatura do teste. Ficou escondido
+        // porque este arquivo não rodava em lane nenhuma até 2026-11-19.
+        (new InvoiceGeneratorService())->run(businessId: (int) $sub->business_id, date: '2026-07-10');
 
         $invoice = Invoice::query()->where('subscription_id', $sub->id)->first();
         $this->assertNotNull($invoice);
@@ -323,14 +326,14 @@ class CalculoRecurringBillingTest extends TestCase
     // ---------------------------------------------------------------------
 
     /**
-     * Cria Plan + Subscription ativa em biz=1 (ADR 0101) com um contact real seedado.
+     * Cria Plan + Subscription ativa no tenant semeado (biz=98, ADR 0358) com um contact real seedado.
      * Skip-graceful (acionável) quando o seed mínimo do tenant canônico não rodou.
      *
      * @return array{0: Plan, 1: Subscription}
      */
     private function novoPlanoComAssinatura(float $valor, string $ciclo, string $nextDueDate): array
     {
-        $tenant = $this->seededTenant(); // biz=1 canônico; markTestSkipped acionável se ausente.
+        $tenant = $this->seededTenant(); // biz=98 canônico; markTestSkipped acionável se ausente.
 
         $contact = DB::table('contacts')->where('business_id', $tenant->id)->first();
         if (! $contact) {

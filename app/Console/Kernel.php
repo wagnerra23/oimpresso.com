@@ -97,8 +97,15 @@ class Kernel extends ConsoleKernel
         // RECEBIDO) e cria título recebido + baixa na conta Inter (id=12).
         // Idempotente (dedup por metadata->inter_ref) — janela 15d cobre runs
         // perdidos sem duplicar. 07h BRT (antes do dia operacional).
-        $schedule->command('paymentgateway:inter-importar-recebimentos --business=1 --conta=12 --days=15')
+        // Empresa/conta/janela vêm de config('paymentgateway_inter_importar')
+        // (auditoria PG 2.6); defaults = os valores que estavam fixos aqui.
+        $schedule->command('paymentgateway:inter-importar-recebimentos', array_filter([
+            '--business' => (int) config('paymentgateway_inter_importar.business_id', 1),
+            '--conta'    => config('paymentgateway_inter_importar.conta_id', 12),
+            '--days'     => (int) config('paymentgateway_inter_importar.dias', 15),
+        ], fn ($v) => $v !== null && $v !== ''))
             ->dailyAt('07:00')
+            ->when(fn () => (int) config('paymentgateway_inter_importar.business_id', 1) > 0)
             ->timezone('America/Sao_Paulo')
             ->withoutOverlapping()
             ->environments(['live'])
@@ -115,12 +122,14 @@ class Kernel extends ConsoleKernel
         //
         // ⚠️ DORMENTE por flag default-OFF (REGRA MESTRE valor/estoque): o fluxo
         // genérico de webhooks multi-gateway (Onda 3 — asaas/c6/bcb_pix/pagarme/
-        // sicoob) ainda NÃO fez cutover (gateway_webhook_events vazia em prod) NEM
-        // popula cobranca_id, então a branch de quitação do Job é inalcançável hoje.
-        // O schedule fica REGISTRADO (sai do limbo "ghost-scheduled" + aparece em
+        // sicoob) ainda NÃO tinha feito cutover quando este bloco foi escrito. O
+        // linkage cobranca_id JÁ existe: o WebhookProcessor resolve a Cobranca no
+        // recebimento (best-effort) e grava cobranca_id; o Job re-resolve os que
+        // chegaram antes da emissão. O schedule fica REGISTRADO (aparece em
         // `schedule:list`) mas NÃO executa até: (1) cutover dos webhooks Onda 3,
-        // (2) linkage cobranca_id no WebhookProcessor, (3) Wagner habilitar
-        // PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED=true após dry-run aprovado.
+        // (2) Wagner habilitar PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED=true
+        // após dry-run aprovado. O Job vai para a fila `paymentgateway`, drenada
+        // pelo worker próprio mais abaixo.
         // A quitação PIX biz=1 LIVE roda por outro caminho (inter_webhook_log +
         // ProcessarWebhookPixInterJob), NÃO tocado aqui.
         $schedule->command('paymentgateway:retry-orphan-webhooks')
@@ -1417,6 +1426,57 @@ class Kernel extends ConsoleKernel
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule queue:work nfse FALHOU — emissao de NFS-e pode ficar parada na jobs table'
+                );
+            });
+
+        // Worker da fila `rb_webhooks` (auditoria RecurringBilling 2026-11-19, achado a2):
+        // drena o ProcessAsaasWebhookJob e o ProcessInterWebhookJob, que o AsaasWebhookController
+        // e o InterWebhookController despacham com ->onQueue('rb_webhooks'). Nenhum queue:work
+        // acima lia esta fila: o evento ficava `processed=false` e a fatura nao virava paga.
+        //
+        // Medido em producao em 2026-11-19 (so leitura): QUEUE_CONNECTION=database, 0 jobs nesta
+        // fila, 0 em failed_jobs e `pg_webhook_events` vazia — nao ha backlog para o worker
+        // drenar, entao ele nasce sem flag. O credito do Asaas so e lancado na transicao da
+        // fatura para paga (ProcessAsaasWebhookJob, mesmo lote): reentrega e retry nao somam.
+        //
+        // POR QUE ENTRADA PROPRIA, e NAO na lista do worker de backlog: aquele esta atras de
+        // `queue.backlog_worker_enabled` (default FALSE). --tries=3 casa com o $tries dos dois
+        // jobs; o $timeout default (60s) cobre a chamada ao banco. withoutOverlapping(5):
+        // 1 processo por vez (LSPHP do Hostinger).
+        $schedule->command('queue:work database --queue=rb_webhooks --max-time=55 --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(5)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work rb_webhooks FALHOU — pagamento recebido pelo webhook do RecurringBilling pode ficar parado na jobs table'
+                );
+            });
+
+        // Worker da fila `paymentgateway` (auditoria PaymentGateway L0, 2026-11-19): drena
+        // ProcessarWebhookPixInterJob, ProcessarWebhookBcbPixJob e RetryOrphanWebhookJob, que
+        // fazem ->onQueue('paymentgateway'). Nenhum queue:work acima lia esta fila — mesmo
+        // defeito da `nfse` (2026-11-17): o webhook de PIX pago entraria na tabela `jobs` e a
+        // baixa da cobrança nunca aconteceria.
+        //
+        // Antes de agendar, leitura de produção em 2026-11-19 (QUEUE_CONNECTION=database):
+        // 0 jobs com queue='paymentgateway' e 0 em failed_jobs. Sem backlog parado, ligar o
+        // worker não processa nenhuma baixa antiga de uma vez (regra de valor, decisão B10).
+        //
+        // Entrada PRÓPRIA pela mesma razão da `nfse`: o worker de backlog está atrás de
+        // `queue.backlog_worker_enabled` (default FALSE). NÃO gated: a fila só recebe job
+        // despachado por webhook do banco ou pelo cron de órfãos (este, atrás de flag).
+        // --tries=3 casa com o $tries dos dois jobs de PIX; withoutOverlapping(5) deixa
+        // 1 processo por vez (LSPHP do Hostinger).
+        $schedule->command('queue:work database --queue=paymentgateway --max-time=55 --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping(5)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work paymentgateway FALHOU — baixa de cobranca por webhook pode ficar parada na jobs table'
                 );
             });
 
