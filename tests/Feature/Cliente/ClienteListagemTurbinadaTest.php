@@ -21,26 +21,33 @@ declare(strict_types=1);
 use App\Contact;
 use Illuminate\Support\Facades\Schema;
 
-// ─── GUARD 1: Avatar.tsx HSL hash deterministico criado ──────────────────────
+// ─── GUARD 1: Avatar.tsx — círculo de cor sólida, paleta do protótipo ────────
 
-test('GUARD 1 — Pages/Cliente/_components/Avatar.tsx tem gradients oklch deterministicos', function () {
+// Forma reescrita em 2026-11-21 (paridade da lista com o protótipo `clientes-page.jsx`, onda 1):
+// o avatar era um quadrado de 6px com degradê; o protótipo desenha um círculo de cor sólida
+// (`CLI_AVATAR_PALETTE` + `.cli-avatar { border-radius: 999px }`). Pela UI-0029 o protótipo manda
+// na forma, e o teste que fixava a forma antiga é reescrito junto.
+test('GUARD 1 — Pages/Cliente/_components/Avatar.tsx é círculo de cor sólida com a paleta do protótipo', function () {
     $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_components/Avatar.tsx';
     expect($path)->toBeReadableFile();
 
     $contents = file_get_contents($path);
     expect($contents)
-        // Z-2.1: gradients oklch (alinhado ao protótipo Cowork — 12 cores vivas).
-        ->toContain('hashStr')
-        ->toContain('gradientForName')
-        ->toContain('oklch(')
-        ->toContain('AVATAR_GRADIENTS')
-        ->toContain('linear-gradient(135deg')
-        // Avatar initials helper (1-2 letras maiusculas — espelha Cowork).
+        // Paleta de 8 tons do protótipo (1º e último tons cravados).
+        ->toContain('AVATAR_PALETTE')
+        ->toContain("'oklch(0.62 0.13 255)'")
+        ->toContain("'oklch(0.62 0.13 320)'")
+        // Hash do protótipo (`cliHash`): inteiro com sinal + valor absoluto.
+        ->toContain('(h * 31 + str.charCodeAt(i)) | 0')
+        ->toContain('Math.abs(h)')
         ->toContain('avatarInitial')
-        // Z-2.1: shape circle pra drawer header (Cowork 40px round).
-        ->toContain("shape === 'circle'")
-        // Default size 28px (linha tabela Cowork) — drawer header passa size={40}.
-        ->toContain('size = 28');
+        ->toContain('rounded-full')
+        ->toContain('backgroundColor: background')
+        // Default 32px (linha da tabela, `.cli-avatar`).
+        ->toContain('size = 32')
+        // A forma antiga não volta: nada de degradê nem de canto quadrado.
+        ->not->toContain('linear-gradient')
+        ->not->toContain('rounded-md');
 });
 
 // ─── GUARD 2: Pills.tsx tem 4 componentes Wave G ─────────────────────────────
