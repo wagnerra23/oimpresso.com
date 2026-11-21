@@ -71,11 +71,18 @@ describe('Wave 25 RecurringBilling Polish', function () {
         expect($content)->toContain('canônico irrevogável');
     });
 
-    it('D5 — README documenta health command com 10 sinais', function () {
+    it('D5 — README documenta o rb:health só com opções que o comando tem', function () {
         $content = file_get_contents(__DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md');
 
-        expect($content)->toContain('recurring:health');
-        expect($content)->toContain('--detail');
-        expect($content)->toMatch('/10 sinais|--alert/');
+        // O README dizia `recurring:health --detail`, que nunca existiram (corrigido no #11214).
+        // O contrato é o comando real: o nome e cada opção citada no bloco de health.
+        expect($content)->toContain('php artisan rb:health');
+        $definicao = \Illuminate\Support\Facades\Artisan::all()['rb:health']->getDefinition();
+        preg_match_all('/php artisan rb:health(.*)$/m', $content, $linhas);
+        preg_match_all('/--([a-z-]+)/', implode(' ', $linhas[1]), $opcoes);
+        expect($opcoes[1])->not->toBeEmpty();
+        foreach (array_unique($opcoes[1]) as $opcao) {
+            expect($definicao->hasOption($opcao))->toBeTrue("README cita --{$opcao}, que o rb:health não tem");
+        }
     });
 });

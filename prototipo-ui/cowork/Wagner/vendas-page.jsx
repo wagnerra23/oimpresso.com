@@ -14,6 +14,9 @@ const vdFmtChave = (k) => (k || "").replace(/(\d{4})/g, "$1 ").trim();
 const vdHasProduto = (v) => v.itemsList?.some((i) => i.type === "produto");
 const vdHasServico = (v) => v.itemsList?.some((i) => i.type === "servico");
 const vdIsToday = (v) => v.date === "2026-05-14";
+// Fundo tingido da pílula de status. A cor do status é oklch(...); somar "1f" ao fim (alfa hex)
+// gerava valor inválido e o fundo sumia. 12% ≈ 0x1f/255, o que o "1f" pretendia.
+const vdTint = (c, pct = 12) => `color-mix(in oklch, ${c} ${pct}%, transparent)`;
 
 // ──────────────────────────────────────────────────────────────
 // SUB-COMPONENTES VISUAIS
@@ -1038,7 +1041,7 @@ function VendasListPage() {
                     {caso.perdido && vdTemEnviado(colModelo) ?
                     <VdColInfo info={{ txt: "Perdido", tone: "danger" }} /> :
                     <span className="os-stage" style={{
-                      background: (stDef?.color || "#888") + "1f",
+                      background: vdTint(stDef?.color || "#888"),
                       color: stDef?.color || "#888"
                     }}>
                       {stDef?.label || stKey}
@@ -1770,7 +1773,7 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
           <div className="os-drawer-head-r">
             <span className="vd-drawer-total">{v.total}</span>
             <span className="os-stage" style={{
-              background: (VENDAS_STATUS[v.status]?.color || "#888") + "1f",
+              background: vdTint(VENDAS_STATUS[v.status]?.color || "#888"),
               color: VENDAS_STATUS[v.status]?.color || "#888"
             }}>{VENDAS_STATUS[v.status]?.label}</span>
             {onEdit &&
@@ -1945,7 +1948,7 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
                   <dt>Parcelas</dt><dd>{v.installments > 1 ? `${v.installments}×` : "À vista"}</dd>
                   <dt>Prazo</dt><dd>{v.payTerm || 0} dias <VdSlaPill v={v} /></dd>
                   <dt>Status</dt><dd><span className="os-stage" style={{
-                    background: (VENDAS_STATUS[v.status]?.color || "#888") + "1f",
+                    background: vdTint(VENDAS_STATUS[v.status]?.color || "#888"),
                     color: VENDAS_STATUS[v.status]?.color || "#888"
                   }}>{VENDAS_STATUS[v.status]?.label}</span></dd>
                   <dt>Comissão</dt><dd className="vd-comm">{vdFmt(comm)} <small>({((s.commissionPct || 0) * 100).toFixed(1)}%)</small></dd>

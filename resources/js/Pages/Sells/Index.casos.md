@@ -8,10 +8,15 @@ owner: wagner
 last_run: "2026-11-21"
 ---
 
-> ℹ️ **`last_run` 2026-11-05 → 2026-11-21 (G-6), onda 3 da paridade com o protótipo.** O card "PIX hoje" ganhou a barra
+> ℹ️ **`last_run` segue 2026-11-21 (G-6), onda 3 da paridade com o protótipo.** O card "PIX hoje" ganhou a barra
 > da fatia PIX e o "/ faturado" ao lado do valor (mesma conta que o subtítulo já fazia), e o menu ⋮ "Ações da venda" saiu
 > da célula de Status para uma coluna própria no fim da linha. UC-S11 e UC-SIDX-08 acham o menu pelo nome "Ações da
 > venda", que não mudou; o UC-SIDX-08 foi reexecutado (Vitest, 4/4 verdes) e o UC-S11 roda no e2e do PR.
+
+> ℹ️ **`last_run` 2026-11-05 → 2026-11-21 (G-6), onda 1 da paridade com o protótipo: só cor.** O número da venda passou
+> a usar a cor do texto (era cor fixa do tema claro) e o avatar do vendedor ganhou os 4 tons do protótipo (as classes
+> `vd-av-a..f` não tinham estilo). Nenhum UC desta tela trata de cor; nenhum foi reexecutado por causa disso. O bump
+> registra a reconciliação do trio nesta data, não um re-run.
 
 > ℹ️ **`last_run` 2026-11-04 → 2026-11-05 (G-6): só a fileira de KPIs mudou de largura.** Os 5 KPIs ficam numa linha
 > a 1280px (decisão [W] 2026-11-05), e o detalhamento por origem do Faturado hoje passa a 1 item por linha. Nenhum UC desta
