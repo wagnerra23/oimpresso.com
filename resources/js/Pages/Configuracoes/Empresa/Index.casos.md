@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o salvar é substituição total e mexe em margem e pontos; a tela nova não pode mudar valor gravado nem expor segredo.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-21"
 ---
 
 # Casos de Uso & Aceite — Configuração da empresa
@@ -166,3 +166,4 @@ last_run: "2026-11-04"
 - 2026-10-21 · [CL] UC-EMP-16 (pesquisa depois da entrega na aba Vendas). `last_run` 2026-10-13 → 2026-10-21 por conferência, não por run novo: o `Index.tsx` só ganhou o bloco da pesquisa dentro da aba Vendas; UC-EMP-01..14 seguem batendo com a tela.
 - 2026-10-26 · [C] UC-EMP-17 (aba App das lojas, 18 de 18 abas da Blade). UC-EMP-01..16 sem mudança.
 - 2026-10-27 · [C] UC-EMP-18 (cutover para todas as empresas, [W]). UC-EMP-02 passa a medir a Blade com a flag OFF explícita.
+- 2026-11-21 · [F+C] Revalidado depois do cabeçalho comum das telas de Configurações (#10342, 2026-11-05): a tela trocou o `PageHeader` pelo `ConfiguracoesCabecalho`, que mantém `data-contract="page-header"` e `"escopo"`. Nenhum UC descreve o cabeçalho; UC-EMP-01..18 seguem valendo. `last_run` 2026-11-04 → 2026-11-21 por conferência, não por run novo. O #10342 revalidou as 7 telas irmãs e esta ficou de fora, o que deixou o `Casos-coverage` vermelho no main desde 05/11.
