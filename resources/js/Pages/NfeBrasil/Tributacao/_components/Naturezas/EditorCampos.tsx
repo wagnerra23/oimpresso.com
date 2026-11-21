@@ -18,6 +18,9 @@ export type Passo = 'nat' | 'cfop' | 'icms' | 'ipi' | 'pc' | 'ibs' | 'rev';
 type Muda = (f: (x: Natureza) => Natureza) => void;
 
 const LBL = 'mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-[var(--text-dim)]';
+// O `Label` do DS põe `.cw-label`, que fica fora de @layer e vence os utilitários de tamanho e peso
+// (11px/500, medido em produção 2026-11-21). Inline é o que ganha dele: o protótipo pede 10,5px/600.
+const LBL_ESTILO = { fontSize: '10.5px', fontWeight: 600 } as const;
 const AJUDA = 'mt-1 block text-[11.5px] leading-snug text-[var(--text-dim)]';
 // Grades do protótipo: `.fgrid` (campos, mín. 190px) e `.chks` (marcações, mín. 220px).
 const FGRID = { gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))' };
@@ -33,7 +36,7 @@ function pct(v: number): string {
 function Campo({ id, rotulo, ajuda, children }: { id: string; rotulo: string; ajuda?: ReactNode; children: ReactNode }) {
   return (
     <div className="min-w-0">
-      <Label htmlFor={id} className={LBL}>{rotulo}</Label>
+      <Label htmlFor={id} className={LBL} style={LBL_ESTILO}>{rotulo}</Label>
       {children}
       {ajuda && <span className={AJUDA}>{ajuda}</span>}
     </div>

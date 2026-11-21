@@ -262,12 +262,12 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
 
             <Inline wrap gap={2} className="border-t border-[var(--border)] bg-[var(--bg-2)] px-4 py-3">
               {passo > 0 && (
-                <Button variant="outline" onClick={() => ir(passo - 1)}>
+                <Button size="sm" variant="outline" onClick={() => ir(passo - 1)}>
                   <ArrowLeft className="mr-1.5 h-4 w-4" />{passoEm(passo - 1).l}
                 </Button>
               )}
               {passo < PASSOS.length - 1 && (
-                <Button className="ml-auto" onClick={() => ir(passo + 1)}>
+                <Button size="sm" className="ml-auto" onClick={() => ir(passo + 1)}>
                   Próximo: {passoEm(passo + 1).l}<ArrowRight className="ml-1.5 h-4 w-4" />
                 </Button>
               )}
@@ -307,7 +307,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
                       </Grid>
                     ))}
                   </Stack>
-                  <p className="m-0 rounded-lg border border-[var(--border)] bg-[var(--bg-2)] px-2.5 py-2 text-[11.5px] leading-[1.45] text-[var(--text-dim)]">
+                  <p className="m-0 rounded-[8px] border border-[var(--border)] bg-[var(--bg-2)] px-2.5 py-2 text-[11.5px] leading-[1.45] text-[var(--text-dim)]">
                     Sem valores: base, imposto e totais são calculados no lançamento, com os produtos e preços da nota.
                   </p>
                 </Stack>
@@ -317,9 +317,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
                 <Stack gap={2} className="sticky bottom-3 z-30 rounded-lg border bg-[var(--surface)] p-3"
                   style={{ borderColor: mistura('var(--accent)', 22, 'var(--border)') }}>
                   <Button size="lg" onClick={gravar} disabled={salvando || erros.length > 0 || alertas === null}>
-                    {erros.length > 0
-                      ? `${erros.length} ${erros.length === 1 ? 'erro' : 'erros'} para salvar`
-                      : novo ? 'Criar natureza' : 'Salvar natureza'}
+                    {novo ? 'Criar natureza' : 'Salvar natureza'}
                   </Button>
                   <Grid cols={2} gap={2}>
                     <Button variant="outline" onClick={duplicar} disabled={novo}>

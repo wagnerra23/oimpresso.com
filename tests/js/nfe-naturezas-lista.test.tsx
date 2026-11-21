@@ -59,7 +59,7 @@ describe('Naturezas de operação', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ver Venda' }));
     expect(screen.getByText('Só leitura')).toBeTruthy();
     expect((screen.getByLabelText('Nome da natureza') as HTMLInputElement).disabled).toBe(true);
-    expect(screen.queryByRole('button', { name: /Salvar natureza|para salvar/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Salvar natureza/ })).toBeNull();
   });
 
   it('UC-NFTR-52 · o salvar trava enquanto a conferência do servidor apontar erro', async () => {
@@ -68,8 +68,9 @@ describe('Naturezas de operação', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Editar Remessa em garantia' }));
 
-    const botao = await screen.findByRole('button', { name: '1 erro para salvar' });
-    expect((botao as HTMLButtonElement).disabled).toBe(true);
+    // Como no protótipo, o botão mantém o rótulo e só fica desabilitado; a contagem vai na mensagem abaixo.
+    await screen.findByText('1 pendência nos passos marcados em vermelho.');
+    expect((screen.getByRole('button', { name: 'Salvar natureza' }) as HTMLButtonElement).disabled).toBe(true);
     // A conferência foi pedida ao servidor, não calculada na tela.
     await waitFor(() => expect(fetchMock.mock.calls.some(([u]) => String(u).endsWith('/naturezas/conferir'))).toBe(true));
   });

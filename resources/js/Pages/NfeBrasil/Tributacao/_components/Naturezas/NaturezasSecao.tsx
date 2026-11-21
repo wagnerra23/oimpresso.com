@@ -168,7 +168,7 @@ export default function NaturezasSecao() {
             produtos e preços da nota.
           </p>
         </div>
-        <Button className="ml-auto" onClick={() => setAberta({ natureza: vazia(), editavel: true })}>
+        <Button size="sm" className="ml-auto" onClick={() => setAberta({ natureza: vazia(), editavel: true })}>
           <Plus className="mr-1.5 h-4 w-4" />
           Nova natureza
         </Button>
@@ -228,7 +228,7 @@ export default function NaturezasSecao() {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  <th className={`${TH} pl-4`}>Natureza</th>
+                  <th className={TH}>Natureza</th>
                   <th className={TH}>CFOP</th>
                   <th className={TH}>ICMS</th>
                   <th className={TH}>Tributos</th>
@@ -257,7 +257,7 @@ export default function NaturezasSecao() {
                       className="cursor-pointer hover:[&>td]:bg-[color-mix(in_oklch,var(--accent)_4%,var(--surface))]"
                       onClick={() => abrir(l)}
                     >
-                      <td className={`${TD} min-w-[200px] pl-4`}>
+                      <td className={`${TD} min-w-[200px]`}>
                         <b className={`block font-semibold ${inativa ? 'text-[var(--text-dim)]' : ''}`}>{n.nome}</b>
                         <span className="block text-[11.5px] leading-snug text-[var(--text-dim)]">
                           {n.tipo === 'E' ? 'Entrada' : 'Saída'} · finalidade {rotulo(FINS, n.fin).replace(/^\d · /, '').toLowerCase()}
