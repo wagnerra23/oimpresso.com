@@ -61,9 +61,7 @@ class ConfigController extends Controller
                 ? (int) now()->startOfDay()->diffInDays($cert->valido_ate, false)
                 : null;
 
-            $alerta = $dias === null
-                ? null
-                : ($dias < 0 ? 'vencido' : ($dias <= 30 ? 'proximo_vencimento' : 'ok'));
+            $alerta = self::alertaValidade($dias);
 
             // Fallback CNPJ titular (cert antigo pode ter vazio). A chave do painel é
             // `cnpjBusiness` — até 2026-11-05 isto lia `cnpj_business`, que não existe:
@@ -127,22 +125,25 @@ class ConfigController extends Controller
             // Ambas vivem em Modules/NfeBrasil/Config/config.php — são de DEPLOY, não
             // por business; a tela DIZ isso em texto, porque um selo por-empresa aqui
             // mentiria sobre o escopo.
+            // Desde 2026-11-19 cada empresa pode escolher (`email_danfe_nfe/nfce`); sem
+            // escolha vale a chave do servidor. `*Ativo` é o que de fato acontece.
             'envioDocumentos' => [
-                'nfeAtivo'  => (bool) config('nfebrasil.email_danfe_on_autorizada', true),
-                'nfceAtivo' => (bool) config('nfebrasil.email_danfe_nfce_on_autorizada', false),
+                'nfeAtivo'     => NfeBusinessConfig::envioDanfeAtivo($businessId, '55'),
+                'nfceAtivo'    => NfeBusinessConfig::envioDanfeAtivo($businessId, '65'),
+                'nfeEscolha'   => $config?->email_danfe_nfe,
+                'nfceEscolha'  => $config?->email_danfe_nfce,
+                'nfePadrao'    => (bool) config('nfebrasil.email_danfe_on_autorizada', true),
+                'nfcePadrao'   => (bool) config('nfebrasil.email_danfe_nfce_on_autorizada', false),
+                'temConfig'    => (bool) $config,
             ],
             // Contador da empresa (playbook Fiscal thread 15c). Null = não cadastrado.
             'contador' => $this->contadorPayload($businessId),
             // NFS-e: ambiente + prestador (nfse_provider_configs), editados em
             // POST /nfse/configuracao. Null = módulo NFSe ausente neste deploy.
             'nfse' => $this->nfsePayload($businessId),
-            // Onda 2 I — séries fiscais (tab "Séries" do ModuleTopNav).
-            // TODO[CL]: substituir por query real (business.numero_serie_nfe +
-            // possíveis tabelas de séries auxiliares).
-            'seriesMock' => $this->mockSeriesFiscais(
-                $painel['serieNfe'] ?? '1',
-                (int) ($painel['proximoNumero'] ?? 1),
-            ),
+            // Aba "Séries" — LEITURA REAL (decisão [W] 2026-08-24, feita 2026-11-19):
+            // as séries que o emissor usa de fato e o próximo número que ele daria.
+            'series' => $this->seriesFiscais($businessId, (string) ($painel['serieNfe'] ?? '1')),
         ]);
     }
 
@@ -164,6 +165,51 @@ class ConfigController extends Controller
         $service->salvar((int) $request->session()->get('business.id'), $dados, (int) auth()->id());
 
         return back()->with('status', ['success' => 1, 'msg' => 'Contador salvo.']);
+    }
+
+    /**
+     * POST /fiscal/config/envio — liga, desliga ou devolve ao padrão do servidor o envio
+     * automático do DANFE desta empresa. Mesmo gate da tela. Sem configuração fiscal
+     * (regime) a empresa não tem onde guardar a escolha: recusa em vez de criar uma
+     * configuração com regime padrão, que mudaria a emissão.
+     */
+    public function salvarEnvio(Request $request): RedirectResponse
+    {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.config.edit')) {
+            abort(403, 'Sem permissão fiscal.config.edit');
+        }
+        $dados = $request->validate([
+            'nfe'  => ['required', 'in:padrao,ligado,desligado'],
+            'nfce' => ['required', 'in:padrao,ligado,desligado'],
+        ]);
+
+        $businessId = (int) $request->session()->get('business.id');
+        // SUPERADMIN: business_id explícito da sessão; nunca do request.
+        $config = NfeBusinessConfig::withoutGlobalScopes()->where('business_id', $businessId)->first();
+        if (! $config) {
+            return back()->withErrors(['nfe' => 'Configure o regime fiscal da empresa antes de escolher o envio.']);
+        }
+
+        $valor = fn (string $v) => $v === 'padrao' ? null : $v === 'ligado';
+        $config->email_danfe_nfe = $valor($dados['nfe']);
+        $config->email_danfe_nfce = $valor($dados['nfce']);
+        $config->save();
+
+        return back()->with('status', ['success' => 1, 'msg' => 'Envio de documentos salvo.']);
+    }
+
+    /**
+     * Tom da validade do certificado: vencido (dia anterior a hoje), perto de vencer
+     * (de hoje até 30 dias) ou tranquilo. Sem data de validade, sem tom.
+     * Limiares travados pelo UC-FCFG-17.
+     */
+    public static function alertaValidade(?int $dias): ?string
+    {
+        if ($dias === null) {
+            return null;
+        }
+
+        return $dias < 0 ? 'vencido' : ($dias <= 30 ? 'proximo_vencimento' : 'ok');
     }
 
     /** @return array{nome: string, email: string, crc: string|null, papel: string}|null */
@@ -206,21 +252,87 @@ class ConfigController extends Controller
     }
 
     /**
-     * Mock séries fiscais. Onda 2 I — tab Séries do Config.
-
+     * Séries fiscais reais da empresa — espelha o que o NfeService usa na emissão:
+     * a série padrão (`business.numero_serie_nfe`) para NF-e e NFC-e da matriz, as
+     * séries próprias de cada local emissor (`nfe_locais_emissores`), e qualquer
+     * série que já tenha nota emitida sem estar em nenhum dos dois.
      *
-     * @return array<int, array<string, mixed>>
+     * O próximo número segue `NfeService::proximoNumeroLocked` sem o lock (aqui é
+     * só leitura): maior número emitido no par modelo+série, inclusive notas
+     * excluídas, e na série padrão o contador legado `business.ultimo_numero_nfe`.
+     *
+     * @return array<int, array{modelo:int, serie:string, proximo:int, filial:string, emitidas:int}>
      */
-    protected function mockSeriesFiscais(string $serieNfePrincipal, int $proximoNfe): array
+    protected function seriesFiscais(int $businessId, string $seriePadrao): array
     {
-        return [
-            ['modelo' => 55, 'serie' => $serieNfePrincipal, 'proximo' => $proximoNfe,
-             'filial' => 'Matriz', 'ativo' => true, 'obs' => null],
-            ['modelo' => 65, 'serie' => '9', 'proximo' => 9013,
-             'filial' => 'Matriz · balcão', 'ativo' => true, 'obs' => null],
-            ['modelo' => 55, 'serie' => '2', 'proximo' => 1,
-             'filial' => 'Filial 02 (futuro)', 'ativo' => false, 'obs' => 'Reservada — sem operação ainda'],
-        ];
+        $ultimoLegado = (int) (DB::table('business')->where('id', $businessId)->value('ultimo_numero_nfe') ?? 0);
+
+        // SUPERADMIN: leitura por business_id explícito da sessão (query builder, sem escopo global).
+        $emitidas = Schema::hasTable('nfe_emissoes')
+            ? DB::table('nfe_emissoes')
+                ->where('business_id', $businessId)
+                ->whereIn('modelo', ['55', '65'])
+                ->groupBy('modelo', 'serie')
+                ->get([
+                    'modelo', 'serie',
+                    DB::raw('MAX(numero) as ultimo'),
+                    DB::raw('COUNT(*) as total'),
+                ])
+            : collect();
+
+        $porChave = [];
+        foreach ($emitidas as $e) {
+            $porChave[$e->modelo.'|'.$e->serie] = ['ultimo' => (int) $e->ultimo, 'total' => (int) $e->total];
+        }
+
+        $linhas = [];
+        $add = function (string $modelo, string $serie, string $filial) use (&$linhas, &$porChave, $seriePadrao, $ultimoLegado) {
+            $chave = $modelo.'|'.$serie;
+            if (isset($linhas[$chave])) {
+                return;
+            }
+            $ultimo = $porChave[$chave]['ultimo'] ?? 0;
+            if ($serie === $seriePadrao) {
+                $ultimo = max($ultimo, $ultimoLegado);
+            }
+            $linhas[$chave] = [
+                'modelo'   => (int) $modelo,
+                'serie'    => $serie,
+                'proximo'  => $ultimo + 1,
+                'filial'   => $filial,
+                'emitidas' => $porChave[$chave]['total'] ?? 0,
+            ];
+        };
+
+        $add('55', $seriePadrao, 'Empresa (série padrão)');
+        $add('65', $seriePadrao, 'Empresa (série padrão)');
+
+        if (Schema::hasTable('nfe_locais_emissores')) {
+            $locais = DB::table('nfe_locais_emissores as l')
+                ->leftJoin('business_locations as bl', function ($j) {
+                    $j->on('bl.id', '=', 'l.location_id')->on('bl.business_id', '=', 'l.business_id');
+                })
+                ->where('l.business_id', $businessId)
+                ->orderBy('l.id')
+                ->get(['l.serie_nfe', 'l.serie_nfce', 'bl.name']);
+
+            foreach ($locais as $l) {
+                $nome = (string) ($l->name ?? 'Local sem nome');
+                if ($l->serie_nfe !== null && $l->serie_nfe !== '') {
+                    $add('55', (string) $l->serie_nfe, $nome);
+                }
+                if ($l->serie_nfce !== null && $l->serie_nfce !== '') {
+                    $add('65', (string) $l->serie_nfce, $nome);
+                }
+            }
+        }
+
+        foreach ($porChave as $chave => $_) {
+            [$modelo, $serie] = explode('|', $chave, 2);
+            $add($modelo, $serie, 'Sem cadastro (só notas emitidas)');
+        }
+
+        return array_values($linhas);
     }
 
     /**

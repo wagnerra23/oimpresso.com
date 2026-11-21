@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,6 +29,8 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  */
 class ConfiguracoesController extends Controller
 {
+    use ExigePermissaoRb;
+
     /**
      * GET /recurring-billing/configuracoes — Page Inertia Configurações.
      *
@@ -39,6 +42,7 @@ class ConfiguracoesController extends Controller
      */
     public function index(Request $request): InertiaResponse
     {
+        $this->exigirPermissao('recurringbilling.configuracoes.manage');
         $businessId = (int) session('user.business_id');
 
         return Inertia::render('RecurringBilling/Configuracoes/Index', [
@@ -99,8 +103,12 @@ class ConfiguracoesController extends Controller
                     'gateway_label' => 'Asaas',
                     'rotulo'      => 'Webhook unificado (pagamento, assinatura, transferência)',
                     'metodo'      => 'POST',
-                    'url'         => url('/webhooks/asaas/' . $businessId),
-                    'auth'        => 'Header X-Webhook-Token configurado no Asaas (Account → Integrações → Webhooks).',
+                    // URL e header derivados da rota nomeada e da constante que o
+                    // AsaasWebhookController lê — a tela não monta nenhum dos dois à mão.
+                    'url'         => route('webhooks.asaas', ['businessId' => $businessId]),
+                    'auth_header' => AsaasWebhookController::AUTH_HEADER,
+                    'auth'        => 'Header ' . AsaasWebhookController::AUTH_HEADER
+                        . ' com o token de autenticação configurado no Asaas (Account → Integrações → Webhooks).',
                     'docs_link'   => 'https://docs.asaas.com/docs/sobre-os-webhooks',
                 ],
                 [
@@ -108,8 +116,10 @@ class ConfiguracoesController extends Controller
                     'gateway_label' => 'Banco Inter PJ',
                     'rotulo'      => 'Webhook PIX recebido (pix.recebido)',
                     'metodo'      => 'POST',
-                    'url'         => url('/webhooks/inter/pix/' . $businessId),
-                    'auth'        => 'Header X-Inter-Webhook-Secret validado contra config_json.webhook_secret da credencial Inter ativa.',
+                    'url'         => route('webhooks.inter.pix', ['businessId' => $businessId]),
+                    'auth_header' => InterWebhookController::AUTH_HEADER,
+                    'auth'        => 'Header ' . InterWebhookController::AUTH_HEADER
+                        . ' validado contra o segredo de webhook da credencial Inter ativa.',
                     'docs_link'   => 'https://developers.bancointer.com.br/v4/reference/criarwebhookpix',
                 ],
             ],

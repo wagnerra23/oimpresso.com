@@ -7,6 +7,7 @@ namespace Modules\PaymentGateway\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 use Modules\PaymentGateway\Services\Tef\TefService;
 
 /**
@@ -31,7 +32,13 @@ class TefController extends Controller
             'modalidade'      => ['required', 'in:credito,debito,pix'],
             'parcelas'        => ['nullable', 'integer', 'min:1', 'max:24'],
             'idempotency_key' => ['required', 'string', 'max:64'],
-            'location_id'     => ['nullable', 'integer'],
+            // Tier 0: a loja tem de ser da empresa da sessão (auditoria PaymentGateway
+            // 2026-11-19, A14). Sem isso a transação nascia apontando loja de outra empresa.
+            'location_id'     => [
+                'nullable',
+                'integer',
+                Rule::exists('business_locations', 'id')->where('business_id', $businessId),
+            ],
             'terminal_id'     => ['nullable', 'string', 'max:80'],
         ]);
 

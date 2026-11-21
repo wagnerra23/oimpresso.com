@@ -21,14 +21,14 @@ uses(Tests\TestCase::class);
  * Quando Fase 5+1 promover ActionGate pra `strict`, este teste deve ser
  * expandido pra cobrir: user sem trust_level → 403; user com L0/L1 → 200.
  *
- * SQLite guard obrigatório. biz=1 NUNCA biz=4 (ADR 0101).
+ * SQLite guard obrigatório. biz=98 NUNCA biz=4 (ADR 0358).
  *
  * Refs: ADR 0086 (Governance MVP UI), ADR 0093 (Multi-tenant Tier 0),
  * Constituição Art. 8 (Policy Gating).
  */
 beforeEach(function () {
     if (config('database.default') !== 'sqlite') {
-        $this->markTestSkipped('GovernanceGateTest roda apenas em SQLite in-memory (guard ADR 0101)');
+        $this->markTestSkipped('GovernanceGateTest roda apenas em SQLite in-memory (guard ADR 0358)');
     }
 
     // Tabelas mínimas pra Controllers não explodirem no boot

@@ -303,150 +303,151 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-nfebrasil-junit.xml \
-            Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php \
-            Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php \
-            Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
-            Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/CertificadoPfxLegadoTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
-            Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
-            Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
-            Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php \
-            Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
-            Modules/NfeBrasil/Tests/Feature/ContingenciaSchemaContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/ContingenciaAtivacaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/SefazStatusRecorderTest.php \
-            Modules/NfeBrasil/Tests/Feature/ContingenciaEmissaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php \
-            Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php \
-            Modules/NfeBrasil/Tests/Feature/InutilizacaoFaixaContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/ArquivoFiscalPrivadoContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/XmlAutorizadoComProtocoloContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/DuplicidadeSefazContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/CertificadoLegadoSemFallbackContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/DfeEsperaSefazContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/CartaCorrecaoEmitenteContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmissaoTravaDaVendaContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/NotaAutorizadaAvisoContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/GatesAcoesFiscaisContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmitirPermissaoContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/PacoteFiscalRotasContratoTest.php \
-            tests/Feature/Calculo/CalculoTributarioTest.php \
-            Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
-            Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
-            Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php \
-            Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php \
-            Modules/NfeBrasil/Tests/Feature/CertificadoControllerTest.php \
-            Modules/NfeBrasil/Tests/Feature/DanfeServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php \
-            Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php \
-            Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeStDentroDoEstadoTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeCestGtinNoXmlTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeBonificacaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeBonificacaoSemStTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeRegimePorLocalTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfceCscConfigTest.php \
-            Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeAliquotaPercentualTest.php \
-            Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php \
-            Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php \
-            Modules/NfeBrasil/Tests/Feature/AmbienteDoEmitenteTest.php \
-            Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/TributacaoTemplateAplicarTest.php \
-            Modules/Fiscal/Tests/Feature/ConfigControllerTest.php \
-            Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php \
-            Modules/Fiscal/Tests/Feature/BuscaEventosPermissaoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
-            Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php \
-            Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesErroTecnicoTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesEscritaEntreEmpresasTest.php \
+            Modules/Fiscal/Tests/Feature/BuscaEventosPermissaoTest.php \
+            Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \
             Modules/Fiscal/Tests/Feature/CockpitAtalhoNaturezasTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
+            Modules/Fiscal/Tests/Feature/ConfigControllerTest.php \
+            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php \
+            Modules/Fiscal/Tests/Feature/DasControllerTest.php \
+            Modules/Fiscal/Tests/Feature/DfeControllerTest.php \
+            Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php \
+            Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
             Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
-            Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \
+            Modules/Fiscal/Tests/Feature/HabilitarBusinessDryRunTest.php \
             Modules/Fiscal/Tests/Feature/MenuPermissaoTest.php \
+            Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
+            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php \
+            Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php \
+            Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php \
+            Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateConfigTest.php \
             Modules/Fiscal/Tests/Feature/SimplesOnlyGateTest.php \
             Modules/Fiscal/Tests/Feature/SpedControllerTest.php \
             Modules/Fiscal/Tests/Feature/SpedIcmsIpiGeneratorServiceTest.php \
             Modules/Fiscal/Tests/Feature/SpedMotorTributarioIntegrationTest.php \
-            Modules/Fiscal/Tests/Feature/DfeControllerTest.php \
-            Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
-            Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
-            Modules/Fiscal/Tests/Feature/AcoesErroTecnicoTest.php \
-            Modules/Fiscal/Tests/Feature/AcoesEscritaEntreEmpresasTest.php \
-            Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
-            Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
-            Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoCamposTelaTest.php \
-            Modules/NfeBrasil/Tests/Feature/ConferenciaNaturezaServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php \
-            Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php \
-            Modules/NfeBrasil/Tests/Feature/IpiNaturezaXmlTest.php \
-            Modules/NfeBrasil/Tests/Feature/NaturezaLancamentoTest.php \
-            Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
-            Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfseRetencoesDpsTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php \
-            Modules/NfeBrasil/Tests/Feature/ListaServicoNacionalTest.php \
-            Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php \
-            Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php \
-            Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php \
-            Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
-            Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php \
-            Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeBloqueioComSaidaTest.php \
-            Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php \
-            Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php \
-            Modules/Fiscal/Tests/Feature/DasControllerTest.php \
-            Modules/Fiscal/Tests/Feature/FiscalPacoteGateTest.php \
-            Modules/Fiscal/Tests/Feature/HabilitarBusinessDryRunTest.php \
-            Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
-            Modules/NfeBrasil/Tests/Feature/ContadorDfeIsolamentoTenantTest.php \
-            Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php \
             Modules/Fiscal/Tests/Feature/TrocaAmbienteCerimoniaTest.php \
-            Modules/Fiscal/Tests/Feature/HabilitarBusinessCommandTest.php \
-            Modules/Fiscal/Tests/Feature/CertHealthCheckCommandTest.php \
-            Modules/Fiscal/Tests/Feature/CockpitControllerTest.php \
-            Modules/Fiscal/Tests/Feature/NfseCockpitControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/AbrasfV204CancelDriverTest.php \
+            Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php \
+            Modules/NfeBrasil/Tests/Feature/AmbienteDoEmitenteTest.php \
+            Modules/NfeBrasil/Tests/Feature/ApuracaoDasTest.php \
+            Modules/NfeBrasil/Tests/Feature/ArquivoFiscalPrivadoContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/BuscarDfesRecebidosJobTest.php \
+            Modules/NfeBrasil/Tests/Feature/CartaCorrecaoEmitenteContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoLegadoSemFallbackContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoPfxLegadoTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php \
+            Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ConferenciaNaturezaServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContadorDfeIsolamentoTenantTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaAtivacaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaEmissaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaSchemaContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/DanfeServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php \
+            Modules/NfeBrasil/Tests/Feature/DfeEsperaSefazContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/DuplicidadeSefazContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmissaoTravaDaVendaContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirParaInvoiceFallbackTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirPermissaoContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php \
+            Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
+            Modules/NfeBrasil/Tests/Feature/FatorRTest.php \
+            Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php \
+            Modules/NfeBrasil/Tests/Feature/GatesAcoesFiscaisContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/HasArquivosTraitTest.php \
+            Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php \
+            Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
+            Modules/NfeBrasil/Tests/Feature/InutilizacaoFaixaContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/IpiNaturezaXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/ListaServicoNacionalTest.php \
             Modules/NfeBrasil/Tests/Feature/ManifestacaoContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php \
+            Modules/NfeBrasil/Tests/Feature/NaturezaLancamentoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoCamposTelaTest.php \
+            Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php \
+            Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfceCscConfigTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeAliquotaPercentualTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBloqueioComSaidaTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBonificacaoSemStTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBonificacaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeCartaCorrecaoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeCestGtinNoXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeRegimePorLocalTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeServiceCancelarTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeServiceEmitirParaTransactionTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeServiceRetransmitirTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeServiceDoubleWriteTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmitirParaInvoiceFallbackTest.php \
-            Modules/NfeBrasil/Tests/Feature/FatorRTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceEmitirParaTransactionTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceRetransmitirTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeStDentroDoEstadoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseRetencoesDpsTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php \
+            Modules/NfeBrasil/Tests/Feature/NotaAutorizadaAvisoContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
+            Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
+            Modules/NfeBrasil/Tests/Feature/PacoteFiscalRotasContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php \
+            Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
+            Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
+            Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php \
+            Modules/NfeBrasil/Tests/Feature/SefazStatusRecorderTest.php \
+            Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
+            Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoTemplateAplicarTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
             Modules/NfeBrasil/Tests/Feature/Wave23SaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php \
             Modules/NfeBrasil/Tests/Feature/Wave27NfeSaturationTest.php \
             Modules/NfeBrasil/Tests/Feature/Wave28NfePolishTest.php \
-            tests/Unit/NfeCertStatusSharedPropTest.php
+            Modules/NfeBrasil/Tests/Feature/XmlAutorizadoComProtocoloContratoTest.php \
+            tests/Feature/Calculo/CalculoTributarioTest.php \
+            tests/Unit/NfeCertStatusSharedPropTest.php \
+            --colors=always
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

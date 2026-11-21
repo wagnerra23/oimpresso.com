@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,11 +22,14 @@ use Modules\RecurringBilling\Models\SubscriptionNote;
  */
 class SubscriptionNoteController extends Controller
 {
+    use ExigePermissaoRb;
+
     /**
      * POST /recurring-billing/{subscriptionId}/notes — criar nota.
      */
     public function store(Request $request, int $subscriptionId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
         $sub = Subscription::query()
             ->where('business_id', $businessId)
@@ -67,9 +71,13 @@ class SubscriptionNoteController extends Controller
 
     /**
      * DELETE /recurring-billing/{subscriptionId}/notes/{noteId} — soft delete.
+     *
+     * Só o autor apaga a própria nota; nota de outro exige `recurringbilling.subscriptions.manage`
+     * (quem gerencia a assinatura). Antes qualquer usuário da empresa apagava (auditoria RB d2).
      */
     public function destroy(int $subscriptionId, int $noteId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
 
         $note = SubscriptionNote::query()
@@ -77,6 +85,16 @@ class SubscriptionNoteController extends Controller
             ->where('subscription_id', $subscriptionId)
             ->whereKey($noteId)
             ->firstOrFail();
+
+        $user = auth()->user();
+        $ehAutor = $user !== null && (int) $note->user_id === (int) $user->getAuthIdentifier();
+        if (! $ehAutor && ! ($user?->can('recurringbilling.subscriptions.manage') ?? false)) {
+            return response()->json([
+                'ok'      => false,
+                'error'   => 'nota_de_outro_usuario',
+                'message' => 'Só quem escreveu a nota pode apagá-la.',
+            ], 403);
+        }
 
         $note->delete();
 
@@ -88,6 +106,7 @@ class SubscriptionNoteController extends Controller
      */
     public function togglePin(int $subscriptionId, int $noteId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
 
         $note = SubscriptionNote::query()

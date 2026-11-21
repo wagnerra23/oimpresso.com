@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Modules\PaymentGateway\Dto\CobrancaStatus;
 use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
 use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
@@ -21,24 +22,51 @@ uses(Tests\TestCase::class);
  * DB-FREE: credencial não-salva (new + forceFill) + stub de cobrança + Http::fake.
  * Roda em qualquer ambiente (inclusive CI SQLite sem migrations).
  *
- * Multi-tenant Tier 0: business_id=1 (ADR 0101 — nunca cliente real).
+ * Multi-tenant Tier 0: business_id=98 (ADR 0358 — tenant fictício de teste).
  */
 
 /** Credencial Inter NÃO-salva (não toca DB). */
-function interCredStub(array $config = []): PaymentGatewayCredential
+function interCredStub(array $config = [], int $businessId = 98, int $credId = 1): PaymentGatewayCredential
 {
     $cred = new PaymentGatewayCredential();
     $cred->forceFill([
-        'business_id'  => 1,
+        'business_id'  => $businessId,
         'gateway_key'  => 'inter',
         'ambiente'     => 'sandbox',
         'ativo'        => true,
         'nome_display' => 'Inter Driver Test',
         'config_json'  => array_merge(['client_id' => 'cli', 'client_secret' => 'sec'], $config),
     ]);
-    $cred->id = 1;
+    $cred->id = $credId;
 
     return $cred;
+}
+
+/** Grava um arquivo na pasta de certificado de uma credencial (disco local fake). */
+function interCertNaPasta(int $businessId, int $credId, string $nome, string $conteudo): string
+{
+    $rel = "payment-gateway/{$businessId}/{$credId}/{$nome}";
+    Storage::disk('local')->put($rel, $conteudo);
+
+    return realpath(Storage::disk('local')->path($rel));
+}
+
+/**
+ * Chama o mtlsOptions (privado) para uma credencial.
+ *
+ * O driver fica guardado até o próximo chamado: o __destruct dele apaga os PEM
+ * temporários do base64 inline, e um `new InterDriver()` descartável os apagava
+ * antes de o teste ler o arquivo devolvido.
+ */
+function interMtls(PaymentGatewayCredential $cred): array
+{
+    static $driver = null;
+    $driver = new InterDriver();
+
+    $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
+    $ref->setAccessible(true);
+
+    return $ref->invoke($driver, $cred);
 }
 
 /** Stub de cobrança (driver só lê gateway_external_id + tipo). */
@@ -174,20 +202,17 @@ it('credencial sem client_id/secret → CredentialMisconfiguredException', funct
 });
 
 it('certificado mTLS configurado: mtlsOptions inclui cert + ssl_key e a consulta funciona', function () {
-    // Cria arquivos de certificado temporários (is_file precisa existir)
-    $crt = tempnam(sys_get_temp_dir(), 'inter_crt_');
-    $key = tempnam(sys_get_temp_dir(), 'inter_key_');
-    file_put_contents($crt, "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----");
-    file_put_contents($key, "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----");
+    // Arquivos na pasta desta credencial, onde a tela grava o upload
+    Storage::fake('local');
+    $crt = interCertNaPasta(98, 1, 'cert.crt', "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----");
+    $key = interCertNaPasta(98, 1, 'key.key', "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----");
 
     try {
         $cred = interCredStub(['certificado_crt' => $crt, 'certificado_key' => $key]);
         $driver = new InterDriver();
 
         // (a) mtlsOptions (private) monta cert + ssl_key a partir dos arquivos
-        $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
-        $ref->setAccessible(true);
-        $opts = $ref->invoke($driver, $cred->config_json);
+        $opts = interMtls($cred);
 
         expect($opts['cert'] ?? null)->toBe($crt);
         expect($opts['ssl_key'] ?? null)->toBe($key);
@@ -208,29 +233,62 @@ it('certificado mTLS configurado: mtlsOptions inclui cert + ssl_key e a consulta
     }
 });
 
-it('SEM certificado configurado: mtlsOptions vazio (não quebra)', function () {
-    $driver = new InterDriver();
-    $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
-    $ref->setAccessible(true);
+it('certificado de OUTRA empresa (caminho previsível) é recusado', function () {
+    Storage::fake('local');
+    interCertNaPasta(98, 7, 'cert.crt', "-----BEGIN CERTIFICATE-----\nDA98\n-----END CERTIFICATE-----");
+    $alheio = interCertNaPasta(99, 3, 'key.key', "-----BEGIN PRIVATE KEY-----\nDA99\n-----END PRIVATE KEY-----");
 
-    $opts = $ref->invoke($driver, ['client_id' => 'x', 'client_secret' => 'y']);
-    expect($opts)->toBe([]);
+    $cred = interCredStub(['certificado_key' => $alheio], 98, 7);
+
+    expect(fn () => interMtls($cred))
+        ->toThrow(CredentialMisconfiguredException::class, 'fora da pasta desta credencial');
+});
+
+it('certificado de outra credencial da MESMA empresa é recusado', function () {
+    Storage::fake('local');
+    interCertNaPasta(98, 7, 'cert.crt', 'x');
+    $outraCred = interCertNaPasta(98, 8, 'cert.crt', "-----BEGIN CERTIFICATE-----\nC8\n-----END CERTIFICATE-----");
+
+    expect(fn () => interMtls(interCredStub(['certificado_crt' => $outraCred], 98, 7)))
+        ->toThrow(CredentialMisconfiguredException::class);
+});
+
+it('arquivo qualquer do servidor é recusado como certificado', function () {
+    Storage::fake('local');
+    $qualquer = tempnam(sys_get_temp_dir(), 'nao_e_cert_');
+    file_put_contents($qualquer, 'conteudo qualquer');
+
+    try {
+        expect(fn () => interMtls(interCredStub(['certificado_crt' => $qualquer], 98, 7)))
+            ->toThrow(CredentialMisconfiguredException::class);
+    } finally {
+        @unlink($qualquer);
+    }
+});
+
+it('caminho com .. que escapa da pasta da credencial é recusado', function () {
+    Storage::fake('local');
+    interCertNaPasta(98, 7, 'cert.crt', 'x');
+    interCertNaPasta(99, 3, 'key.key', 'segredo-da-99');
+    $disfarcado = Storage::disk('local')->path('payment-gateway/98/7/../../99/3/key.key');
+
+    expect(is_file($disfarcado))->toBeTrue();
+    expect(fn () => interMtls(interCredStub(['certificado_key' => $disfarcado], 98, 7)))
+        ->toThrow(CredentialMisconfiguredException::class);
+});
+
+it('SEM certificado configurado: mtlsOptions vazio (não quebra)', function () {
+    expect(interMtls(interCredStub(['client_id' => 'x', 'client_secret' => 'y'])))->toBe([]);
 });
 
 it('certificado via base64 inline (crt_b64/key_b64) materializa arquivos temp com o PEM', function () {
     $crtPem = "-----BEGIN CERTIFICATE-----\nMIIBcrtFake\n-----END CERTIFICATE-----";
     $keyPem = "-----BEGIN PRIVATE KEY-----\nMIIBkeyFake\n-----END PRIVATE KEY-----";
 
-    $driver = new InterDriver();
-    $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
-    $ref->setAccessible(true);
-
-    $opts = $ref->invoke($driver, [
-        'client_id'           => 'x',
-        'client_secret'       => 'y',
+    $opts = interMtls(interCredStub([
         'certificado_crt_b64' => base64_encode($crtPem),
         'certificado_key_b64' => base64_encode($keyPem),
-    ]);
+    ]));
 
     expect($opts['cert'] ?? null)->not->toBeNull();
     expect($opts['ssl_key'] ?? null)->not->toBeNull();
@@ -243,15 +301,9 @@ it('certificado via base64 inline (crt_b64/key_b64) materializa arquivos temp co
 it('certificado_key_b64 cifrado por-campo (Crypt, como install-biz.py grava) é decifrado e materializado', function () {
     $keyPem = "-----BEGIN PRIVATE KEY-----\nMIIBkeyCrypt\n-----END PRIVATE KEY-----";
 
-    $driver = new InterDriver();
-    $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
-    $ref->setAccessible(true);
-
-    $opts = $ref->invoke($driver, [
-        'client_id'           => 'x',
-        'client_secret'       => 'y',
+    $opts = interMtls(interCredStub([
         'certificado_key_b64' => Crypt::encryptString(base64_encode($keyPem)),
-    ]);
+    ]));
 
     expect($opts['ssl_key'] ?? null)->not->toBeNull();
     expect(file_get_contents($opts['ssl_key']))->toBe($keyPem);
@@ -259,18 +311,14 @@ it('certificado_key_b64 cifrado por-campo (Crypt, como install-biz.py grava) é 
 
 it('caminho de arquivo tem prioridade sobre base64 quando ambos presentes', function () {
     $pathPem = "-----BEGIN CERTIFICATE-----\nDoArquivo\n-----END CERTIFICATE-----";
-    $crtFile = tempnam(sys_get_temp_dir(), 'prio_crt_');
-    file_put_contents($crtFile, $pathPem);
+    Storage::fake('local');
+    $crtFile = interCertNaPasta(98, 1, 'cert.crt', $pathPem);
 
     try {
-        $driver = new InterDriver();
-        $ref = new ReflectionMethod(InterDriver::class, 'mtlsOptions');
-        $ref->setAccessible(true);
-
-        $opts = $ref->invoke($driver, [
+        $opts = interMtls(interCredStub([
             'certificado_crt'     => $crtFile,
             'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nDoB64\n-----END CERTIFICATE-----"),
-        ]);
+        ]));
 
         expect($opts['cert'])->toBe($crtFile);
     } finally {

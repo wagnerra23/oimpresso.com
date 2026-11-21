@@ -107,8 +107,9 @@ it('GUARD 4: --dry-run lista órfãos na janela 1h..24h e NÃO dispatcha Job', f
         'payload' => ['raw' => 'paid'],
         'signature_valid' => true,
     ]);
-    $naJanela->created_at = now()->subHours(3);
-    $naJanela->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $naJanela->id)->update(['created_at' => now()->subHours(3)]);
+    $naJanela->refresh();
 
     // Fora da janela (10min atrás) — NÃO deve contar
     $foraJanela = GatewayWebhookEvent::query()->create([
@@ -120,8 +121,9 @@ it('GUARD 4: --dry-run lista órfãos na janela 1h..24h e NÃO dispatcha Job', f
         'payload' => ['raw' => 'paid'],
         'signature_valid' => true,
     ]);
-    $foraJanela->created_at = now()->subMinutes(10);
-    $foraJanela->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $foraJanela->id)->update(['created_at' => now()->subMinutes(10)]);
+    $foraJanela->refresh();
 
     $this->artisan('paymentgateway:retry-orphan-webhooks', ['--dry-run' => true])
         ->expectsOutputToContain('1 órfão(s) na janela 1h..24h.')

@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -36,18 +37,15 @@ use Spatie\Activitylog\Models\Activity;
  * Multi-tenant Tier 0 IRREVOGÁVEL — `PaymentGatewayCredential` herda
  * business_id global scope via HasBusinessScope.
  *
- * Permission canon: `paymentgateway.credenciais.view` (granular). Hoje
- * usamos `system_settings.access` como fallback (UPOS canon) — granular
- * em backlog post-merge.
+ * Permissão: `business_settings.access`, exigida no grupo de rotas
+ * (`can:` em Routes/web.php); o construtor só exige login. Granulares
+ * `paymentgateway.*` são decisão B1 do [W].
  */
 class PaymentGatewaysController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        // TODO[follow-up]: criar permission granular paymentgateway.credenciais.*
-        // e adicionar via PermissionSeeder. Por hora usa system_settings.access
-        // (UPOS canon — superadmin/owner já têm).
     }
 
     public function index(Request $request): Response
@@ -362,9 +360,12 @@ class PaymentGatewaysController extends Controller
      *   - Apaga arquivos cert.* + key.* em storage/app/private/payment-gateway/{biz}/{cred}/
      *   - Remove o diretório completo se vazio
      *
-     * Hard delete (PaymentGatewayCredential não tem soft deletes no schema).
-     * Cobranças vinculadas continuam (FK cobrancas.payment_gateway_credential_id
-     * permanece NULL após delete — não cascateia pra preservar histórico).
+     * Hard delete (PaymentGatewayCredential não tem soft deletes no schema)
+     * SÓ para credencial sem histórico. Com cobrança, webhook recebido ou
+     * retorno CNAB, a credencial é DESATIVADA (ativo=false) e os certificados
+     * ficam: apagar deixaria a trilha órfã e, com log do Inter, a FK
+     * iwl_cred_fk (restrict) estourava em 500 depois de já ter apagado os
+     * certificados (auditoria PaymentGateway 2026-11-19, 3.4).
      */
     public function destroy(Request $request, int $credentialId): RedirectResponse|JsonResponse
     {
@@ -373,6 +374,28 @@ class PaymentGatewaysController extends Controller
         $cred = PaymentGatewayCredential::query()
             ->where('business_id', $businessId)
             ->findOrFail($credentialId);
+
+        if ($this->temHistorico($businessId, (int) $cred->id)) {
+            $cred->forceFill(['ativo' => false])->save();
+
+            Log::info('[paymentgateway.credential.desativada_em_vez_de_excluida]', [
+                'business_id'   => $businessId,
+                'credential_id' => $credentialId,
+            ]);
+
+            $msg = 'A credencial tem cobranças ou webhooks registrados e foi desativada em vez de excluída.';
+            if ($request->header('X-Inertia') || ! $request->expectsJson()) {
+                return redirect()->route('settings.payment-gateways.index')
+                    ->with('status', ['success' => 1, 'msg' => $msg]);
+            }
+
+            return response()->json([
+                'success'       => true,
+                'credential_id' => $credentialId,
+                'desativada'    => true,
+                'msg'           => $msg,
+            ]);
+        }
 
         $certDir = 'payment-gateway/' . $businessId . '/' . $cred->id;
         try {
@@ -403,6 +426,25 @@ class PaymentGatewaysController extends Controller
             'success' => true,
             'credential_id' => $credentialId,
         ]);
+    }
+
+    /**
+     * A credencial já foi usada? (cobrança emitida, webhook recebido ou retorno
+     * CNAB processado). Filtra business_id explícito — não depende do scope.
+     */
+    private function temHistorico(int $businessId, int $credentialId): bool
+    {
+        foreach (['cobrancas', 'gateway_webhook_events', 'inter_webhook_log', 'cnab_retorno_uploads'] as $tabela) {
+            $existe = DB::table($tabela)
+                ->where('business_id', $businessId)
+                ->where('payment_gateway_credential_id', $credentialId)
+                ->exists();
+            if ($existe) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

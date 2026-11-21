@@ -15,7 +15,7 @@
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-11-18"
+      "generated_at": "2026-11-20"
     }
   },
   "stats": {
@@ -81,7 +81,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 0,
@@ -382,7 +382,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 58
         },
         "graph": {
           "depends_on": 1,
@@ -484,7 +484,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 56
+          "idade_max_dias": 58
         },
         "graph": {
           "depends_on": 3,
@@ -688,7 +688,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
@@ -887,7 +887,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 0,
@@ -1091,7 +1091,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
@@ -1193,7 +1193,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 7
+          "idade_max_dias": 9
         },
         "graph": {
           "depends_on": 4,
@@ -1203,7 +1203,7 @@
           "owns_legacy_views": 0,
           "consumes_tables": 0,
           "governed_by_adr": 4,
-          "components": 25,
+          "components": 26,
           "dangling_edges": 0,
           "connected": true
         },
@@ -1299,7 +1299,7 @@
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 1,
+          "dependents": 2,
           "provides_api": 1,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1397,7 +1397,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 5,
@@ -1601,7 +1601,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 0,
@@ -1703,11 +1703,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
-          "dependents": 7,
+          "dependents": 8,
           "provides_api": 3,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -1805,7 +1805,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 6,
@@ -2009,7 +2009,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
@@ -2111,7 +2111,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 5,
@@ -2213,7 +2213,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 8,
@@ -2315,7 +2315,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 7,
@@ -2417,7 +2417,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
@@ -2621,7 +2621,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 7,
@@ -2723,7 +2723,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
@@ -2733,13 +2733,13 @@
           "owns_legacy_views": 0,
           "consumes_tables": 1,
           "governed_by_adr": 3,
-          "components": 9,
+          "components": 10,
           "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-11-17",
+          "last_commit": "2026-11-18",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2810,7 +2810,7 @@
       "permission_prefix": "officeimpresso.*",
       "charter_adr": "0080",
       "scope": "memory/requisitos/Officeimpresso/SCOPE.md",
-      "purpose": "Licenciamento, bloqueio e auditoria das máquinas do Office Impresso desktop (Delphi) — CRUD de licenças e logs, credenciais OAuth Passport e API de acesso do desktop, delegáveis ao suporte por permissão. Inclui o importador Firebird do WR Comercial legado.",
+      "purpose": "Administração do licenciamento do Office Impresso desktop (Delphi): máquinas, empresas bloqueadas, versão exigida, log de acesso (licenca_log) e clients OAuth Passport do desktop, por superadmin ou por permissão delegada ao suporte da empresa operadora. A API que o desktop chama para registrar e verificar licença é do Modules/Connector; este módulo cria as tabelas que ela grava e registra o middleware log.delphi que ela usa. API própria pequena (ping e POST /audit). Inclui o importador Firebird do WR Comercial legado.",
       "signals": {
         "grade": null,
         "screens": {
@@ -2825,10 +2825,10 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 58
         },
         "graph": {
-          "depends_on": 3,
+          "depends_on": 6,
           "dependents": 1,
           "provides_api": 2,
           "owns_tables": 0,
@@ -2841,7 +2841,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-30",
+          "last_commit": "2026-11-19",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2927,7 +2927,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 138
+          "idade_max_dias": 140
         },
         "graph": {
           "depends_on": 3,
@@ -3029,17 +3029,17 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 138
+          "idade_max_dias": 140
         },
         "graph": {
-          "depends_on": 5,
+          "depends_on": 7,
           "dependents": 3,
           "provides_api": 3,
-          "owns_tables": 3,
+          "owns_tables": 6,
           "owns_legacy_views": 0,
           "consumes_tables": 0,
           "governed_by_adr": 6,
-          "components": 27,
+          "components": 28,
           "dangling_edges": 0,
           "connected": true
         },
@@ -3131,7 +3131,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
@@ -3335,11 +3335,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 6
+          "idade_max_dias": 8
         },
         "graph": {
           "depends_on": 0,
-          "dependents": 0,
+          "dependents": 1,
           "provides_api": 3,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3437,7 +3437,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 0,
@@ -3636,11 +3636,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 4,
-          "dependents": 4,
+          "dependents": 5,
           "provides_api": 6,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3738,7 +3738,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 3,
@@ -3840,7 +3840,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 0,
@@ -4141,11 +4141,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 56
+          "idade_max_dias": 58
         },
         "graph": {
           "depends_on": 7,
-          "dependents": 0,
+          "dependents": 1,
           "provides_api": 6,
           "owns_tables": 4,
           "owns_legacy_views": 0,
@@ -4243,7 +4243,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 3,
@@ -4447,7 +4447,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 136
+          "idade_max_dias": 138
         },
         "graph": {
           "depends_on": 8,
