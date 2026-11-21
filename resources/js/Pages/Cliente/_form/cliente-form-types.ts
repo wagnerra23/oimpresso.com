@@ -27,6 +27,7 @@ export type ClienteFormShared = DadosFiscaisBRData & {
 }
 
 export interface CustomerGroup {
-  id: number
+  // O ContactController entrega a opção "Nenhum" do CustomerGroup::forDropdown com id ''.
+  id: number | ""
   name: string
 }
