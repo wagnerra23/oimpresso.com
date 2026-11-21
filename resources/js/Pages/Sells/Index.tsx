@@ -278,7 +278,9 @@ export function classifyPill(r: SaleRow): PillKey {
 }
 
 // avatar palette index by seller_id (consistent across renders).
-const AVATAR_PALETTES = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
+// Os 4 tons são os do protótipo (`vd-av-1..4` em vendas-page.jsx). Até 2026-11-21 esta lista
+// gerava `vd-av-a..f`, que nenhuma regra CSS estilizava: o avatar saía sem o círculo colorido.
+const AVATAR_PALETTES = ['1', '2', '3', '4'] as const;
 export function avatarPaletteFor(sellerId: number | null): string {
   if (sellerId == null) return AVATAR_PALETTES[0];
   return AVATAR_PALETTES[sellerId % AVATAR_PALETTES.length] ?? AVATAR_PALETTES[0];

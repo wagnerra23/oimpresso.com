@@ -158,18 +158,17 @@ it('D5 — README contém 4 estados canon lifecycle Subscription', function () {
     }
 });
 
-it('D5 — README declara 10 sinais health command (rb:health saturation)', function () {
+it('D5 — README declara quantos sinais o rb:health roda, e o número bate com o comando', function () {
     $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
-    // 10 sinais canon Wave 16+
-    foreach ([
-        'subscriptions_table', 'invoices_table', 'plans_table',
-        'credenciais_ativas', 'mrr_baseline', 'ciclos_inadimplencia',
-        'webhook_idempotency', 'retention_policy', 'last_invoice_freshness',
-        'boleto_drivers_resolvidos',
-    ] as $signal) {
-        expect($readme)->toContain($signal);
-    }
+    // A lista de "10 sinais" que este teste exigia nunca correspondeu ao comando (#11214).
+    // O número vem do próprio comando, pela saída JSON.
+    \Illuminate\Support\Facades\Artisan::call('rb:health', ['--json' => true]);
+    $saida = json_decode(\Illuminate\Support\Facades\Artisan::output(), true);
+    $total = count($saida['checks'] ?? []);
+
+    expect($total)->toBeGreaterThan(0);
+    expect($readme)->toContain("{$total} sinais");
 });
 
 it('D5 — README cita 4 anti-patterns proibidos Tier 0', function () {
@@ -214,14 +213,14 @@ it('D9 — RecurringHealthCommand registrado em Artisan + signature canon (--bus
     expect($cmd->getDefinition()->hasOption('json'))->toBeTrue();
 });
 
-it('D9 — recurring:health alias canon documentado no README', function () {
+it('D9 — README documenta o rb:health com --json e --alert, e não o nome antigo', function () {
     $readme = file_get_contents(base_path('memory/requisitos/RecurringBilling/README.md'));
 
-    // README cita comando "recurring:health" como alias UX-friendly
-    // (rb:health é o nome curto efetivo do command)
-    expect($readme)->toContain('recurring:health');
-    expect($readme)->toContain('--detail');
+    // `recurring:health` e `--detail` nunca existiram no comando (corrigido no #11214).
+    expect($readme)->toContain('php artisan rb:health');
+    expect($readme)->toContain('--json');
     expect($readme)->toContain('--alert');
+    expect($readme)->not->toContain('recurring:health');
 });
 
 // ---------- US-RB-044 sentry IRREVOGÁVEL ----------
