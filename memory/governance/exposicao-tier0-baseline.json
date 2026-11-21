@@ -754,14 +754,6 @@
       "exposure_score": 4
     },
     {
-      "screen": "Produto/Unificado/Index.tsx",
-      "module": "Produto",
-      "categories": [
-        "estoque"
-      ],
-      "exposure_score": 4
-    },
-    {
       "screen": "Repair/Index.tsx",
       "module": "Repair",
       "categories": [

@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Webhook\WebhookEventId;
 
 /**
  * Recebe webhooks Sicoob API v3 (boleto liquidado/vencido/cancelado).
@@ -84,15 +85,17 @@ class SicoobApiWebhookController extends Controller
 
         $eventName = (string) $request->input('evento', $request->input('event', 'unknown'));
 
-        // Sicoob: tenta id explícito; fallback hash determinístico do payload
-        // (evento + nossoNumero + dataLiquidacao quando presentes).
-        $eventId = (string) (
-            $request->input('id')
-            ?? $request->input('eventId')
-            ?? $request->input('nossoNumero')
-            ?? $request->input('boleto.nossoNumero')
-            ?? md5($eventName . json_encode($request->all()))
-        );
+        // Sicoob: id próprio do evento quando vier; senão o nosso número da
+        // cobrança composto com evento + situação (auditoria PG 2.3 — sem isso a
+        // liquidação depois de "registrado" era descartada como duplicata);
+        // sem nenhum dos dois, hash determinístico do payload.
+        $idEvento = $request->input('id') ?? $request->input('eventId');
+        $idCobranca = $request->input('nossoNumero') ?? $request->input('boleto.nossoNumero');
+        $eventId = match (true) {
+            $idEvento !== null   => (string) $idEvento,
+            $idCobranca !== null => WebhookEventId::daCobranca((string) $idCobranca, $eventName, $request->all()),
+            default              => md5($eventName . json_encode($request->all())),
+        };
 
         return $this->processor->handle(
             gatewayKey: 'sicoob_api',

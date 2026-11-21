@@ -26,24 +26,24 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1054,
-    "edges": 1422,
+    "nodes": 1069,
+    "edges": 1452,
     "by_node_type": {
       "module": 45,
-      "table": 139,
-      "adr": 157,
-      "component": 613,
+      "table": 147,
+      "adr": 158,
+      "component": 619,
       "api": 100
     },
     "by_edge_type": {
-      "ownsTable": 117,
+      "ownsTable": 122,
       "ownsLegacyView": 13,
-      "consumesTable": 18,
+      "consumesTable": 26,
       "providesApi": 104,
       "charteredByAdr": 30,
-      "governedByAdr": 85,
-      "hasComponent": 613,
-      "dependsOn": 159,
+      "governedByAdr": 90,
+      "hasComponent": 619,
+      "dependsOn": 165,
       "delegatesTo": 144,
       "migratesTo": 1,
       "supersedes": 27,
@@ -654,6 +654,13 @@
       "type": "adr",
       "num": "0208",
       "slug": "0208-larastan-baseline-ratchet",
+      "exists": true
+    },
+    {
+      "id": "adr:0216",
+      "type": "adr",
+      "num": "0216",
+      "slug": "",
       "exists": true
     },
     {
@@ -4223,7 +4230,7 @@
       "type": "component",
       "module": "Governance",
       "name": "ActionGate middleware",
-      "desc": "runtime gate (modo warn|strict por config)"
+      "desc": "alias `actiongate` registrado no ServiceProvider, modo warn|strict por config. Em 2026-11-19 nenhuma rota o aplica (`git grep -n actiongate -- '*routes*.php'` vazio); ligar ou aposentar é decisão [W] aberta (ADR 0086)"
     },
     {
       "id": "component:Governance/AuditController",
@@ -4231,6 +4238,13 @@
       "module": "Governance",
       "name": "AuditController",
       "desc": "drill-down mcp_audit_log filtrável (período/actor/endpoint/status)"
+    },
+    {
+      "id": "component:Governance/Console/Commands",
+      "type": "component",
+      "module": "Governance",
+      "name": "Console/Commands",
+      "desc": "comandos artisan `governance:*`, `governanca:*`, `charter:*` e `observability:aggregate-daily`. Quais estão agendados: `app/Console/Kernel.php` (procure a assinatura). Os que não aparecem lá rodam sob demanda ou são chamados por outro artefato (ex. `governance:ragas-eval-alert` por `scripts/tests/ct100-jana-evals.sh`)"
     },
     {
       "id": "component:Governance/CustosController",
@@ -4258,7 +4272,7 @@
       "type": "component",
       "module": "Governance",
       "name": "DriftAlertsController",
-      "desc": "runtime scan SCOPE.md vs filesystem real + persisted alerts cron"
+      "desc": "runtime scan SCOPE.md vs filesystem real (a lista de alertas persistidos, `DriftAlertService::persistedAlerts()`, devolve vazio — medido 2026-11-19)"
     },
     {
       "id": "component:Governance/DsRolloutController",
@@ -4289,11 +4303,46 @@
       "desc": "/governance/qualidade-ia trend das métricas de RAG/memória (MEM-MET-4, ADR 0050; recebido do Modules/Jana em 2026-08-05 — decisão [W]: eval é gate de conformidade, medido contra piso igual ao drift — e igual ao module-grade, que era o outro exemplo até ser aposentado em 2026-09-15 pela ADR 0399)"
     },
     {
+      "id": "component:Governance/Services/*BriefLineService + AgentOutcomeBriefSectionService",
+      "type": "component",
+      "module": "Governance",
+      "name": "Services/*BriefLineService + AgentOutcomeBriefSectionService",
+      "desc": "linhas que o Daily Brief injeta; quem as chama é `Modules/Forja/Console/Commands/GenerateBriefCommand.php`"
+    },
+    {
+      "id": "component:Governance/Services/Checkers",
+      "type": "component",
+      "module": "Governance",
+      "name": "Services/Checkers",
+      "desc": "os DriftChecker plugáveis (ADR 0216 framework) que `governance:audit` executa via `DriftCheckerRegistry`; resultado em `DriftCheckResult`/`DriftFinding`"
+    },
+    {
+      "id": "component:Governance/Services/Concerns",
+      "type": "component",
+      "module": "Governance",
+      "name": "Services/Concerns",
+      "desc": "`PersistsDriftAlert` (grava em `mcp_alertas`) e `PublishesDriftToCentrifugo` (canal `governance:drift`)"
+    },
+    {
+      "id": "component:Governance/Services/DriftAlertService, AuditDrillDownService, GovernanceRulesService, PolicyToggleService",
+      "type": "component",
+      "module": "Governance",
+      "name": "Services/DriftAlertService, AuditDrillDownService, GovernanceRulesService, PolicyToggleService",
+      "desc": "backends das telas Drift, Audit e Policies"
+    },
+    {
       "id": "component:Governance/Services/PolicyEngine",
       "type": "component",
       "module": "Governance",
       "name": "Services/PolicyEngine",
-      "desc": "decision flow (Risk/Confidence/Policy) que o ActionGate consulta em runtime"
+      "desc": "decision flow (Risk/Confidence/Policy). O `ActionGate::handle` não o chama (só o cita em docblock); o consumidor em runtime medido em 2026-11-19 é o grafo de conhecimento do Modules/KB (tela admin do grafo)"
+    },
+    {
+      "id": "component:Governance/Services/ScopedScorecardEvaluator + InitiativeService + ObservabilitySnapshotService",
+      "type": "component",
+      "module": "Governance",
+      "name": "Services/ScopedScorecardEvaluator + InitiativeService + ObservabilitySnapshotService",
+      "desc": "scorecard snapshot, iniciativas e agregação de spans"
     },
     {
       "id": "component:Jana/AcaoHitlController",
@@ -6512,7 +6561,7 @@
       "id": "module:Governance",
       "type": "module",
       "module": "Governance",
-      "purpose": "A regra está sendo cumprida? — mede e mostra o cumprimento (drift de escopo/deploy/índice, nota de módulo, scorecard SDD, policies, trilha de tool MCP) e injeta o veredito no Daily Brief. Quem bloqueia merge é o CI em scripts/governance/, não este módulo.",
+      "purpose": "A regra está sendo cumprida? — mede e mostra o cumprimento (drift de escopo/deploy/índice, scorecard SDD, policies, trilha de tool MCP, custo e qualidade de IA) e injeta o veredito no Daily Brief. Quem bloqueia merge é o CI em scripts/governance/, não este módulo. (A nota de módulo saiu em 2026-09-15, ADR 0399.)",
       "trust": "L1",
       "owner": "wagner",
       "permission_prefix": "governance.*",
@@ -7045,6 +7094,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:failed_jobs",
+      "type": "table",
+      "name": "failed_jobs",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
+    },
+    {
       "id": "table:gateway_webhook_events",
       "type": "table",
       "name": "gateway_webhook_events",
@@ -7100,6 +7160,17 @@
       ],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:jana_health_narratives",
+      "type": "table",
+      "name": "jana_health_narratives",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:jana_memoria_facts",
@@ -7354,7 +7425,9 @@
       "owners": [
         "Forja"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -7365,7 +7438,9 @@
       "owners": [
         "Forja"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -7376,7 +7451,9 @@
       "owners": [
         "Forja"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -7526,6 +7603,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_governance_initiatives",
+      "type": "table",
+      "name": "mcp_governance_initiatives",
+      "owners": [
+        "Governance"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_governance_rules",
       "type": "table",
       "name": "mcp_governance_rules",
@@ -7621,7 +7709,9 @@
         "Forja",
         "KB"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "shared-declared"
     },
@@ -7636,6 +7726,28 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "shared-declared"
+    },
+    {
+      "id": "table:mcp_observability_aggregates_daily",
+      "type": "table",
+      "name": "mcp_observability_aggregates_daily",
+      "owners": [
+        "Governance"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_observability_spans",
+      "type": "table",
+      "name": "mcp_observability_spans",
+      "owners": [
+        "Governance"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_project_parts",
@@ -7693,6 +7805,28 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:mcp_scorecard_runs",
+      "type": "table",
+      "name": "mcp_scorecard_runs",
+      "owners": [
+        "Governance"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
+      "id": "table:mcp_sdd_scorecard_history",
+      "type": "table",
+      "name": "mcp_sdd_scorecard_history",
+      "owners": [
+        "Governance"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:mcp_skill_approvals",
       "type": "table",
       "name": "mcp_skill_approvals",
@@ -7732,7 +7866,9 @@
       "owners": [
         "Forja"
       ],
-      "consumers": [],
+      "consumers": [
+        "Governance"
+      ],
       "legacy_views": [],
       "ownership_mode": "single"
     },
@@ -8311,6 +8447,17 @@
       "consumers": [],
       "legacy_views": [],
       "ownership_mode": "single"
+    },
+    {
+      "id": "table:system_access_log",
+      "type": "table",
+      "name": "system_access_log",
+      "owners": [],
+      "consumers": [
+        "Governance"
+      ],
+      "legacy_views": [],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:tef_transacoes",
@@ -12792,7 +12939,19 @@
     },
     {
       "from": "module:Governance",
+      "to": "table:failed_jobs",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
       "to": "table:jana_conversas",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:jana_health_narratives",
       "type": "consumesTable",
       "source": "db_tables_consumed"
     },
@@ -12810,13 +12969,49 @@
     },
     {
       "from": "module:Governance",
+      "to": "table:mcp_actors",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_alertas_eventos",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_alertas",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
       "to": "table:mcp_audit_log",
       "type": "consumesTable",
       "source": "db_tables_consumed"
     },
     {
       "from": "module:Governance",
+      "to": "table:mcp_memory_documents",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_skill_versions",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
       "to": "table:mcp_usage_diaria",
+      "type": "consumesTable",
+      "source": "db_tables_consumed"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:system_access_log",
       "type": "consumesTable",
       "source": "db_tables_consumed"
     },
@@ -12874,7 +13069,42 @@
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_actors"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_alertas"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_alertas_eventos"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
       "note": "mcp_audit_log"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_memory_documents"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Forja",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_skill_versions"
     },
     {
       "from": "module:Governance",
@@ -12927,6 +13157,13 @@
     },
     {
       "from": "module:Governance",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_memory_documents"
+    },
+    {
+      "from": "module:Governance",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -12945,7 +13182,37 @@
     },
     {
       "from": "module:Governance",
-      "to": "adr:0122",
+      "to": "adr:0216",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Governance",
+      "to": "adr:0360",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Governance",
+      "to": "adr:0363",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Governance",
+      "to": "adr:0366",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Governance",
+      "to": "adr:0392",
+      "type": "governedByAdr",
+      "source": "related_adrs"
+    },
+    {
+      "from": "module:Governance",
+      "to": "adr:0399",
       "type": "governedByAdr",
       "source": "related_adrs"
     },
@@ -12958,6 +13225,12 @@
     {
       "from": "module:Governance",
       "to": "component:Governance/AuditController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "component:Governance/Console/Commands",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13011,13 +13284,73 @@
     },
     {
       "from": "module:Governance",
+      "to": "component:Governance/Services/*BriefLineService + AgentOutcomeBriefSectionService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "component:Governance/Services/Checkers",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "component:Governance/Services/Concerns",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "component:Governance/Services/DriftAlertService, AuditDrillDownService, GovernanceRulesService, PolicyToggleService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
       "to": "component:Governance/Services/PolicyEngine",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Governance",
+      "to": "component:Governance/Services/ScopedScorecardEvaluator + InitiativeService + ObservabilitySnapshotService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_governance_initiatives",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Governance",
       "to": "table:mcp_governance_rules",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_observability_aggregates_daily",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_observability_spans",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_scorecard_runs",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Governance",
+      "to": "table:mcp_sdd_scorecard_history",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
@@ -17260,6 +17593,18 @@
         ]
       },
       {
+        "table": "failed_jobs",
+        "consumers": [
+          "Governance"
+        ]
+      },
+      {
+        "table": "jana_health_narratives",
+        "consumers": [
+          "Governance"
+        ]
+      },
+      {
         "table": "product_variations",
         "consumers": [
           "Manufacturing"
@@ -17275,6 +17620,12 @@
         "table": "purchase_lines",
         "consumers": [
           "Manufacturing"
+        ]
+      },
+      {
+        "table": "system_access_log",
+        "consumers": [
+          "Governance"
         ]
       },
       {

@@ -3,41 +3,28 @@ id: requisitos-recurring-billing-cobranca-recorrente-faturas-gap
 tela: RecurringBilling/Faturas/Index (/recurring-billing/faturas)
 prototipo: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx
 tela_viva: resources/js/Pages/RecurringBilling/Faturas/Index.tsx
-gerado_em: 2026-09-06
+gerado_em: 2026-11-19
 ---
 
-# GAP-SPEC — RecurringBilling/Faturas/Index
+# Gap — Cobrança Recorrente · Faturas (protótipo × tela viva)
 
-> No protótipo esta aba é um placeholder honesto (cobranca-recorrente-page.jsx:332-342, :371) que se declara atrás do vivo ("Espelha /recurring-billing/faturas do git"). Tela-mãe: `cobranca-recorrente-gap.md` (veredito MOCKUP-STALE). Charter: `resources/js/Pages/RecurringBilling/Faturas/Index.charter.md` (Non-Goals respeitados, nunca reabertos).
+> **Refeito em 2026-11-19** (lote L6 da auditoria RecurringBilling, item e5), sobre `origin/main` `99f169a688`,
+> com o protótipo do #11241 (L7). A versão de 2026-09-06 comparava com um placeholder de 3 elementos que deixou de
+> existir no #8913 (07/10); hoje a vista Faturas do protótipo é `Faturas()` `:940-1056`. A versão antiga está no git.
 >
-> Base medida: `origin/main` 80bc4ef8b9 · âncora resolvida por `node scripts/design/ancora.mjs RecurringBilling/Faturas/Index --staging prototipo-ui/cowork` → `âncora ✓ [-page.jsx (bundle · bundle_source)] cobranca-recorrente-page.jsx`. O `desc` do placeholder (:371) cita: lista de faturas por status (paga / pendente / atrasada / cancelada) · por gateway (Inter · C6 · Asaas) · KPI de pago no mês · cancelamento · e a afirmação de FORMA "a tela que hoje está em zinc/violet vai entrar neste mesmo molde warm". Cada item foi conferido no `.tsx` abaixo.
+> **Papel do protótipo — decisão [W] 2026-11-19 (b4):** fonte de design. Forma: o protótipo vale (UI-0029);
+> comportamento, dado e permissão: a produção e o charter. Tela-mãe: `cobranca-recorrente-gap.md`.
+> Leitura de código; a medição de render é o PR 2 do L6.
 
-**Veredito:** VIVO-À-FRENTE — 0 itens a decidir; as 4 capacidades citadas no placeholder existem no vivo e a afirmação de FORMA caducou (o vivo já está em stone/warm: `zinc-`/`violet-` → 0, `stone-` → 65).
+## Tabela de partes
 
 | Parte | Estado no vivo | Ação |
 |---|---|---|
-| Header / sub-nav | `Faturas/Index.tsx:445-476`: h1 "Faturas · cobrança recorrente" (:448-450) + subtítulo mono com `total_faturas` e `count_overdue` (:451-459). Sem tab-strip nem link Voltar nesta Page (grep `SubNav／PageHeaderNav／href="/recurring-billing"` → 0); a navegação entre abas vive na Index-mãe (`RecurringBilling/Index.tsx:533-539`). | Nada — mock/harness do protótipo (`TABS` :344-348 + `window.PageHeaderNav` :367 são do harness Cowork; as abas já são a linha "Abas Planos/Faturas/Config" da tela-mãe, veredito `— · —`) |
-| CTA "Nova fatura" | Botão `disabled` com selo "em breve" (:462-473); não abre nada. | Nada — Non-Goal do charter ("❌ Criar fatura avulsa via UI (CTA \"Nova fatura\" stub · Onda 9 ou separado)", Index.charter.md:59) |
-| KPIs | 4 cards em `<Deferred data="kpis">` (:479-519): "Pago este mês" hero verde com `Sparkline` (:482-495), Pendente (:496-502), Atrasado com contagem de vencidas (:503-509), Total de faturas (:510-516); agregados no Controller (`InvoiceController.php:60-63`). A série do sparkline é sintética a partir de `total_pago_mes` (:489-494, comentário "sparkline mock"). | Nada — paridade (desc :371 "KPI de pago no mês" existe: :483); a série sintética é observação do vivo, sem âncora no protótipo |
-| Filtros / busca | Barra (:522-607): pills de status Todas/Pagas/Pendentes/Atrasadas/Canceladas (:525-544), Select de gateway Todos/Inter/C6/Asaas (:547-562), Select de período (:565-580), busca por cliente/CNPJ/número com Enter (:583-599), contador `N / total` (:601-605); tudo server-side via `applyFilters` → `router.reload only:['invoices','kpis']` (:407-417); atalho `/` (:392-394). Sem intervalo de data customizado (grep `DateRange／date_from／data_inicio／data_fim` → 0). | Nada — vivo à frente (desc :371 cita status e gateway — ambos filtráveis; o placeholder não desenha filtro); intervalo custom é Non-Goal do charter ("❌ Filtro avançado por intervalo de data customizado", :64) |
-| Tabela | `<table>` (:624-694) com 8 colunas: Número (:640-644), Cliente + CNPJ (:645-652), Plano ou "avulsa" (:653-655), Valor (:656-658), Vencimento com `dueLabel` hoje/amanhã/há Nd/em Nd (:659-668, helper :102-109), Status (:669-671), Gateway (:672-674), Ações (:675-690). `STATUS_STYLES` cobre 5 estados — open/paid/overdue/canceled/refunded (:111-132); `GATEWAY_STYLES` Inter/C6/Asaas (:134-138, badge :175-189). | Nada — vivo à frente (desc :371 lista 4 status; o vivo tem 5, incl. reembolsada, mais coluna de gateway e vencimento relativo) |
-| Ações por linha | Só "Cancelar" (:676-686), exibido quando `is_cancelavel` (Controller `InvoiceController.php:92` → status open/overdue); senão traço (:687-689). Sem reenviar/bulk/CSV/reabrir (grep → 0) nem refund manual (grep `onRefund／reembolsar／refund(` → 0). | Nada — Non-Goal do charter ("❌ Bulk cancel", :61 · "❌ Reenviar boleto/PIX manual", :62 · "❌ Export CSV/Excel", :63 · "❌ Refund manual", :65 · "❌ Reabrir fatura cancelada", :66) |
-| Cancelamento (dialog) | `CancelDialog` (:283-356) com motivo opcional (:322-332) e aviso de propagação ao gateway + audit (:315-318); `handleCancel` (:419-435) faz `router.post(route('rb-invoices.cancel'))` (rota `Modules/RecurringBilling/Routes/web.php:128-129` → `InvoiceController::cancel` :113) e recarrega kpis+invoices (:431). Backend: `C6Driver::cancelar()` lança `BadMethodCallException` (`C6Driver.php:80-85`), registrado como `_parcial_` na SPEC US-RB-042 (`SPEC.md:549-554`). | Nada — paridade na UI (desc :371 "cancelamento" existe); o resíduo C6 é backend com decisão já registrada (SPEC US-RB-042 `_parcial_`), fora do escopo de protótipo |
-| Drawer / detalhe da fatura | Ausente: nenhum Drawer/Sheet/detalhe (grep `<Drawer／<Sheet／DetailDrawer／InvoiceDrawer` → 0); a linha não abre nada além do botão Cancelar. | Nada — Non-Goal do charter ("❌ Drawer detalhe completo da fatura (ChargeAttempts timeline · DanfeBoletoLink · ReceiptDownload — fica em Onda 9)", Index.charter.md:60) |
-| Paginação / rodapé | Rodapé com "Página X de Y · N faturas" e botões Anterior/Próxima via `router.reload only:['invoices']` (:700-736); nota de rodapé citando o endpoint de cancelamento e US-RB-042 (:740-744). | Nada — vivo à frente (o placeholder não tem paginação) |
-| Estados vazio / skeleton | Empty state com ícone e texto (:612-621); `KpiSkeleton` (:251-259) e `TableSkeleton` (:261-277) como fallback dos `<Deferred>` (:479, :611). | Nada — vivo à frente (placeholder :332-342 não tem estado nenhum) |
-| Overlays / atalhos | `TourOnboarding` + `CheatSheet` (:758-759), atalhos `/` `?` Esc (:387-405), `installPrintStyles()` no mount (:379). Sem `CmdPalette` nesta Page (grep → 0; a Planos tem) — diferença entre irmãs, sem âncora no protótipo. | Nada — vivo à frente (o placeholder só tem "← Voltar pras assinaturas" via `window.__selectRoute`, harness) |
-| Linguagem visual (zinc/violet → warm) | `zinc-`/`violet-` → 0 ocorrências; `stone-` → 65; tons do hero KPI emerald/amber/rose/stone (:208-213); tokens semânticos `bg-destructive-soft`/`text-destructive-fg` (:303, :663, :680). Protótipo declara stone + `var(--accent)` (:1-6; `.css` → `var(--accent)` 10, zinc/violet 0). O charter ainda escreve "(zinc)" em :35 e :47 (2 ocorrências) — texto que descreve um estado que o vivo não tem. | Nada — vivo à frente (desc do placeholder caducou: `grep -nEc 'zinc-／violet-' Faturas/Index.tsx` → 0; o vivo já está no molde stone/warm que o protótipo pede). O charter :35/:47 é o perdedor na cadeia de FORMA (UI-0029: protótipo > charter) — fica registrado aqui; a Fase 1 é read-only |
-
-## Recibos de ausência
-- `grep -nEc 'zinc-|violet-' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (afirmação de FORMA do desc :371 caducou)
-- `grep -nEc 'stone-' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 65   (controle positivo da família stone)
-- `grep -nc 'zinc' resources/js/Pages/RecurringBilling/Faturas/Index.charter.md` → 2   (charter :35 e :47 ainda dizem zinc)
-- `grep -nEc '<Drawer|<Sheet|DetailDrawer|InvoiceDrawer' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (sem drawer de detalhe)
-- `grep -nEic 'reenviar|bulk|checkbox|csv|reabrir' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (Non-Goals :61-63, :66 de fato ausentes)
-- `grep -nEic 'onRefund|reembolsar|refund\(' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (sem refund manual; `refunded` em :38/:128 é só estilo de status)
-- `grep -nEic 'DateRange|date_from|data_inicio|data_fim' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (sem intervalo custom)
-- `grep -nEc 'SubNav|PageHeaderNav|href="/recurring-billing"' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (sem tab-strip nem Voltar; o "Voltar" de :341 é o botão do dialog)
-- `grep -nEc '<CmdPalette' resources/js/Pages/RecurringBilling/Faturas/Index.tsx` → 0   (sem palette nesta Page)
-- `grep -nE 'function cancelar|BadMethodCallException' Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php` → :80, :85   (stub C6 continua como a SPEC :554 descreve)
-- `grep -nEc 'zinc|violet' prototipo-ui/cowork/Wagner/cobranca-recorrente-page.css` → 0 · `grep -nc 'var(--accent)' …page.css` → 10   (linguagem do protótipo)
+| Cabeçalho | Protótipo `:1256` + hero `:1261-1272`: "Faturas · cobrança recorrente", linha `N FATURAS · ATRASADAS N`, **sem CTA**. Vivo `Faturas/Index.tsx:445-476`: mesmo título e linha, mais o botão "Nova fatura" desabilitado com selo "em breve" (`:462-473`). | **Decidir.** Tirar o botão desabilitado — o protótipo não o desenha e criar fatura avulsa é Non-Goal do charter |
+| KPIs | Protótipo `:974-983`: Pago este mês (hero, sem gráfico), Pendente, Atrasado com contagem, Total de faturas. Vivo `:479-519`: os mesmos 4; o hero leva um sparkline com série sintética derivada de `total_pago_mes` (`:489-494`). | **Decidir.** Tirar o sparkline sintético do hero (o protótipo não tem e a série não é dado real) |
+| Filtros e busca | Protótipo `:984-993`: chips de 9 status **com contagem** e `aria-pressed`, gateway, período; busca `/` `:994-1003`. Vivo `:522-607`: pills de 5 status sem contagem, gateway, período, busca, contador, tudo no servidor. | **Decidir.** Contagem por status nos chips (vem do servidor) e os status novos |
+| Tabela | Protótipo `:1013-1035`: Número, Cliente + CNPJ, Plano ou "avulsa", Valor, Vencimento, Status (8: paga, pendente, atrasada, paga parcial, estornada, reembolsada, chargeback, cancelada — `:934-936`), Gateway, Ações. Vivo `:624-694`: as mesmas colunas e 5 status. | **Decidir.** Paga parcial, estornada e chargeback exigem dado que o backend não grava hoje (pagamento parcial é o d6 da auditoria) |
+| Cancelar e estornar | Protótipo: cancelar com motivo opcional (`:1038-1044`) e **estornar pagamento** com valor e motivo obrigatórios (`:1045-1055`). Vivo: só cancelar — `CancelDialog` `:283-356` + `handleCancel` `:419-435`. | **Decidir.** Estorno pela tela: o charter tem "Refund manual" como Non-Goal e o estorno toca valor (regra mestre) — decisão [W] |
+| Vazio | Protótipo `:1004-1012`: dois textos — "Nenhuma fatura gerada ainda" (sem dado) e "Nenhuma fatura encontrada" (filtro). Vivo `:612-621`: um texto só. | **Decidir.** Separar o vazio de primeira vez do vazio de filtro |
+| Paginação e rodapé | Protótipo: sem paginação. Vivo `:699-744`: página X de Y + nota de rodapé. | Nada — vivo à frente |
+| Atalhos e ajuda | Protótipo: só `/` (`:951-955`). Vivo: tour, `?`, Esc, estilos de impressão (`:379-405`, `:758-759`). | Nada — vivo à frente |

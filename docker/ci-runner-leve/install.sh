@@ -11,11 +11,12 @@ set -euo pipefail
 DIR=$(cd "$(dirname "$0")" && pwd)
 VAGAS="${VAGAS:-8}"
 REPO="${CI_LEVE_REPO:-wagnerra23/oimpresso.com}"
-IMAGE="${CI_LEVE_IMAGE:-oimpresso/ci-runner-leve:2.338.0}"
+VERSAO=$(sed -n 's/^ARG RUNNER_VERSION=//p' "$DIR/Dockerfile")
+IMAGE="${CI_LEVE_IMAGE:-oimpresso/ci-runner-leve:$VERSAO}"
 read -r REG_TOKEN
 [ -n "$REG_TOKEN" ] || { echo "token de registro vazio na entrada padrão" >&2; exit 2; }
 
-docker build -q -t "$IMAGE" "$DIR" >/dev/null
+docker build -q --build-arg RUNNER_VERSION="$VERSAO" -t "$IMAGE" "$DIR" >/dev/null
 bash "$DIR/firewall.sh"
 mkdir -p /opt/oimpresso
 ln -sfn "$DIR" /opt/oimpresso/ci-runner-leve
@@ -36,5 +37,5 @@ systemctl --no-pager --plain list-units 'ci-runner-leve@*' | grep -c running | x
 # acompanha o main, não o branch de um PR (que é apagado depois do merge).
 git -C "$DIR/../.." config remote.origin.fetch "+refs/heads/main:refs/remotes/origin/main"
 mkdir -p /var/lib/ci-runner-leve
-git -C "$DIR/../.." rev-parse HEAD:docker/ci-runner-leve > /var/lib/ci-runner-leve/arvore-implantada
+echo "$(git -C "$DIR/../.." rev-parse HEAD:docker/ci-runner-leve) $VERSAO" > /var/lib/ci-runner-leve/arvore-implantada
 systemctl enable --now ci-runner-leve-atualiza.timer >/dev/null

@@ -8,7 +8,7 @@
 // continuam de leitura, sem clique: placa que não recorta não pode parecer botão.
 
 import KpiCard from '@/Components/shared/KpiCard';
-import { brl } from '../../Unificado/_components/catalogo';
+import { brl } from './formato';
 import type { FiltrosLista, KpisLista } from './tipos';
 
 const horaDe = (iso: string | null) =>

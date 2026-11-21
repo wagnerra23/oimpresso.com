@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Modules\Governance\Services\Concerns\RodaSondaNode;
 use Throwable;
 
 /**
@@ -30,8 +29,9 @@ use Throwable;
  * canônicos em ordem; header extra entre eles é permitido).
  *
  * Degrada graciosamente (brief NUNCA quebra por causa dela):
- *  - `node`/`gh` ausentes no host do cron (ex.: shared hosting) / timeout → null
- *  - JSON inválido / script sem PRs terminais na janela 7d → null
+ *  - `node`/`gh` ausentes / timeout / sem JSON na janela 7d → seção com 1 bullet
+ *    "⚪ … não medido (motivo)" (RodaSondaNode, 2026-11-19 — antes sumia calada)
+ *  - script sem PRs terminais na janela 7d → null
  *  - janela 30d falhou → seção sai sem o bullet de tendência
  * Kill-switch: `governance.agent_outcome_brief_section` false → no-op (default ON).
  *
@@ -42,6 +42,8 @@ use Throwable;
  */
 final class AgentOutcomeBriefSectionService
 {
+    use RodaSondaNode;
+
     /** Teto do shell-out (s) — este medidor chama `gh pr list` (rede), mais folga que os irmãos locais. */
     private const TIMEOUT_SECONDS = 60;
 
@@ -89,7 +91,10 @@ final class AgentOutcomeBriefSectionService
     {
         $r7 = $this->fetchReport(self::WINDOW_DAYS);
 
-        if ($r7 === null || ($r7['ok'] ?? false) !== true) {
+        if ($r7 === null) {
+            return implode("\n", ['## OUTCOME DO AGENTE (7d)', '- '.$this->linhaNaoMedida('Outcome do agente')]);
+        }
+        if (($r7['ok'] ?? false) !== true) {
             return null;
         }
 
@@ -176,18 +181,10 @@ final class AgentOutcomeBriefSectionService
      */
     private function fetchReport(int $days): ?array
     {
-        try {
-            $result = Process::path(base_path())
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->run(['node', 'scripts/governance/agent-pr-outcomes.mjs', '--json', '--days', (string) $days]);
-        } catch (Throwable $e) {
-            Log::debug('[agent-outcome brief section] shell-out falhou: '.$e->getMessage());
-
-            return null;
-        }
-
-        $decoded = json_decode($result->output(), true);
-
-        return is_array($decoded) ? $decoded : null;
+        return $this->rodarSondaNode(
+            ['scripts/governance/agent-pr-outcomes.mjs', '--json', '--days', (string) $days],
+            self::TIMEOUT_SECONDS,
+            'agent-outcome brief section',
+        );
     }
 }

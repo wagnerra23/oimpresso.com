@@ -143,6 +143,7 @@ jobs:
           sort -u /tmp/quar.txt /tmp/sqlite.txt > /tmp/fora.txt
           comm -23 /tmp/all.txt /tmp/fora.txt > /tmp/run.txt
           echo 'tests/Feature/Governance/DashboardAcessoGateTest.php' >> /tmp/run.txt
+          echo 'tests/Feature/Governance/PoliciesContratoTest.php' >> /tmp/run.txt
 
           echo "Árvore: $(wc -l < /tmp/all.txt) · lista sqlite: $(wc -l < /tmp/sqlite.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
           echo "--- em quarentena (NÃO rodam) ---"; cat /tmp/quar.txt

@@ -3,7 +3,7 @@ title: "RUNBOOK — Catálogo Unificado (/products/unificado)"
 module: Produto
 tela: Produto/Unificado/Index
 owner: W
-status: ativo
+status: arquivado
 last_validated: "2026-08-18"
 preconditions:
   - "Usuário autenticado com product.view OU product.create no business ativo"
@@ -17,6 +17,8 @@ related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0107-emendation-0104-visual-comparison-gate-f3
 ---
+> ⛔ **Tela apagada em 2026-11-19 [F].** A Consulta de Produtos (`/products/unificado`) era o protótipo da lista e foi substituída por `/products`; o endereço redireciona para lá. Este RUNBOOK fica como registro histórico — não descreve mais nada que esteja no ar.
+
 
 # RUNBOOK — Catálogo Unificado (`/products/unificado`)
 
@@ -49,18 +51,18 @@ Cockpit denso com **5 sub-telas numa rota só**, trocadas por partial reload (`s
 | Tabelas de preço | `tabelas` | `App\SellingPriceGroup` |
 | Histórico de uso | `historico` | `App\TransactionSellLine` (30d, vendas `final`) |
 
-Backend: [`app/Http/Controllers/ProdutoUnificadoController.php`](../../../app/Http/Controllers/ProdutoUnificadoController.php).
+Backend: `app/Http/Controllers/ProdutoUnificadoController.php` _(removido em 2026-11-19, #11251)_.
 Ele mora em `app/` porque **não existe módulo nWidart homônimo** — o domínio produto é
 UltimatePOS herdado (`App\Product`, `App\Variation`, `App\Category` direto em `app/`), o que faz
 do Produto um módulo CLASSE B (ver `SUPERFICIE.md`).
-Frontend: [`resources/js/Pages/Produto/Unificado/Index.tsx`](../../../resources/js/Pages/Produto/Unificado/Index.tsx).
+Frontend: `resources/js/Pages/Produto/Unificado/Index.tsx` _(removido em 2026-11-19, #11251)_.
 Rota: `routes/web.php` → `products.unificado.index`.
 
 ## 2. Contrato de visibilidade — a razão de existir deste RUNBOOK
 
 A tela reúne, numa rota só, **tudo que as outras telas do Produto gateiam separadamente**: custo,
 preço de venda, tabelas de preço e composição. O contrato está em
-[`Index.casos.md`](../../../resources/js/Pages/Produto/Unificado/Index.casos.md) (UC-PUNI-01..06);
+`Index.casos.md` _(removido em 2026-11-19, #11251)_ (UC-PUNI-01..06);
 aqui fica só o mapa operacional de quem gateia o quê:
 
 | Dado | Permissão | Onde o gate mora |

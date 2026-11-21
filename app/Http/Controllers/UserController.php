@@ -152,9 +152,17 @@ class UserController extends Controller
         $user = User::where('id', $user_id)->with(['media'])->firstOrFail();
 
         $config_languages = config('constants.langs');
+        // Nome do idioma em português na tela; o config traz o nome em inglês
+        // ("Portuguese"). Chave sem tradução cai no nome do config.
+        $nomesPtBr = [
+            'en' => 'Inglês', 'es' => 'Espanhol', 'sq' => 'Albanês', 'hi' => 'Híndi',
+            'nl' => 'Holandês', 'fr' => 'Francês', 'de' => 'Alemão', 'ar' => 'Árabe',
+            'tr' => 'Turco', 'id' => 'Indonésio', 'ps' => 'Pashto', 'pt' => 'Português',
+            'vi' => 'Vietnamita', 'ce' => 'Chinês', 'ro' => 'Romeno', 'lo' => 'Laosiano',
+        ];
         $languages = [];
         foreach ((array) $config_languages as $key => $value) {
-            $languages[$key] = is_array($value) ? ($value['full_name'] ?? $key) : $key;
+            $languages[$key] = $nomesPtBr[$key] ?? (is_array($value) ? ($value['full_name'] ?? $key) : $key);
         }
 
         $bankRaw = $user->bank_details;
@@ -254,7 +262,15 @@ class UserController extends Controller
             $user = User::where('id', $user_id)->firstOrFail();
             $user->update($input);
 
-            Media::uploadMedia($user->business_id, $user, $request, 'profile_photo', true);
+            if ($request->input('remove_photo') === '1' && ! $request->hasFile('profile_photo')) {
+                // "Remover" na tela: apaga a foto do próprio usuário (escopo pelo business dele).
+                $foto = $user->media()->first();
+                if ($foto) {
+                    Media::deleteMedia($user->business_id, $foto->id);
+                }
+            } else {
+                Media::uploadMedia($user->business_id, $user, $request, 'profile_photo', true);
+            }
 
             // refresh do nome de exibição na sessão (sem clobber do blob inteiro)
             session()->put('user.surname', $user->surname);

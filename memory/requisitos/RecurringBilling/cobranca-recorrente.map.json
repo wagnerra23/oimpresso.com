@@ -3,143 +3,159 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "RecurringBilling/Index (/recurring-billing)",
   "gap_fonte": "memory/requisitos/RecurringBilling/cobranca-recorrente-gap.md",
-  "prototipo_sha": "sha256:74d2159744ee",
-  "gerado_em": "2026-11-04",
+  "prototipo_sha": "sha256:5e0a56124808",
+  "gerado_em": "2026-11-19",
   "partes": [
     {
-      "id": "header-hero",
+      "id": "cabecalho",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "1253-1272"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
+        "linhas": "514-573",
+        "ancora": "cabecalho"
+      },
+      "status": "decidir-w",
+      "acao": "Decidir. Texto da linha (\"cobrando\", \"churn do mês\") — a contagem vem do servidor",
+      "_acionavel": true
+    },
+    {
+      "id": "navegacao-entre-as-4-vistas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+        "linhas": "1201-1207,1273"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
+        "linhas": "529-560",
         "ancora": false
       },
-      "status": "pendente-mapeamento",
-      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: `<h1>` + linha-status `N ATIVAS · MRR · CHURN%` derivada dos KPIs reais; botão \"Nova assinatura\" wired (abre drawer…",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Trocar as abas próprias pela sub-nav canônica (`PageHeaderTabs`/`ModuleTabs`, abaixo do cabeçalho) nas 4 Pages",
+      "_acionavel": true
     },
     {
       "id": "kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "215-240"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "576-613",
+        "ancora": "kpis"
       },
-      "status": "pendente-mapeamento",
-      "acao": "Decidir. *micro-gap*: Card \"A recuperar\" (R$ a recuperar) — soma valor das cobranças falhou+retentando. O vivo mostra contagem (\"Retentado falhos\" = `failed_count`), não o valor… (esforço P-M · Tier 0 ⚠️ (só propor; cálculo no backend + dupla confirmação)) — único item acionável desta parte; o resto é `— · —`.",
+      "status": "decidir-w",
+      "acao": "Decidir. Rótulo do 4º KPI e valor a recuperar na dica — o valor toca a regra mestre: soma no presenter PHP, nunca no front",
       "_acionavel": true
     },
     {
-      "id": "filtros-busca",
+      "id": "filtros-e-busca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "702-747"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "622-748",
+        "ancora": "filtros"
       },
-      "status": "pendente-mapeamento",
-      "acao": "Decidir. ADOTAR-PARCIAL #1 da prosa: PeriodBar (campo data + período) — só visual, P, baixo risco, sujeito a gate F1.5 + Wagner.",
+      "status": "decidir-w",
+      "acao": "Decidir. Adotar a barra de período compartilhada com o Financeiro",
       "_acionavel": true
     },
     {
-      "id": "tabela-lista",
+      "id": "lista",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "242-264,748-769"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
-        "ancora": false
+        "linhas": "751-839",
+        "ancora": "lista"
       },
-      "status": "pendente-mapeamento",
-      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: idêntico em estrutura + star persistente (POST `/favorite`), navegação `j/k`, seleção ativa com borda primary, skeleton…",
+      "status": "paridade",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
-      "id": "acoes-por-linha-drawer",
+      "id": "detalhe-da-assinatura",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "149-167,269-377,379-540"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
+        "linhas": "841-849,928-1146",
         "ancora": false
       },
-      "status": "pendente-mapeamento",
-      "acao": "Decidir. *única ideia visual*: Drawer lateral overlay com aba ✦ IA separada + footer fixo de ações. Vivo usa coluna-3 fixa (3-col body) com IA inline. (esforço P · baixo (só com gate F1.5)) — único item acionável desta parte; o resto é `— · —`.",
+      "status": "decidir-w",
+      "acao": "Decidir. Painel sobreposto com aba IA e confirmação de cancelamento com motivo (forma). O bloco de cartão recorrente é a b5 da auditoria — não entra aqui",
       "_acionavel": true
     },
     {
-      "id": "criacao",
+      "id": "nova-assinatura",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "564-616"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
+        "linhas": "1446-1772",
         "ancora": false
       },
-      "status": "pendente-mapeamento",
-      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: `NewSubscriptionDrawer` completo (Sheet DS) — busca cliente debounced (`/contacts/search`), plano opcional…",
+      "status": "paridade",
+      "acao": "Nada — paridade de campos; a máscara de valor do vivo segue a regra mestre de valor, não a do protótipo",
       "_acionavel": false
     },
     {
       "id": "editar-cobranca",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "542-562"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
+        "linhas": "1777-1906",
         "ancora": false
       },
-      "status": "pendente-mapeamento",
-      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: `EditSubscriptionDrawer` (PUT, edita valor/ciclo/forma; cliente/plano/data imutáveis). ⚠️ toca valor.",
+      "status": "paridade",
+      "acao": "Nada — paridade",
       "_acionavel": false
     },
     {
-      "id": "abas-planos-faturas-config",
+      "id": "carregando-erro-e-sem-permissao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "1210-1226,1274-1281"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
+        "linhas": "n/a (só skeletons dos <Deferred>)",
         "ancora": false
       },
-      "status": "pendente-mapeamento",
-      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: Pages reais com rotas dedicadas (`/recurring-billing/planos／faturas／configuracoes`, Ondas 6/7/8).",
-      "_acionavel": false
+      "status": "decidir-w",
+      "acao": "Decidir. Estados de erro e de acesso negado na Page",
+      "_acionavel": true
     },
     {
-      "id": "dominio-dados",
+      "id": "dados-de-exemplo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
-        "linhas": "TODO"
+        "linhas": "64-108"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/RecurringBilling/Index.tsx",
-        "linhas": "TODO",
+        "linhas": "n/a (dados reais por empresa)",
         "ancora": false
       },
-      "status": "pendente-mapeamento",
-      "acao": "Nada — `— · —` na coluna Esforço·risco: Vivo: dados reais do presenter, multi-tenant `business_id`.",
+      "status": "nao-adotar",
+      "acao": "Nada — dado de exemplo não entra no app",
       "_acionavel": false
     }
-  ]
+  ],
+  "_nota_mapeamento": "Refeito em 2026-11-19 (L6/e5 da auditoria RecurringBilling) sobre origin/main 99f169a688 (protótipo do #11241): o map anterior tinha só sha e data regravados (#10376) e apontava linhas do protótipo que eram outros blocos. Linhas medidas por grep -n nos dois lados; protótipo = fonte de design (decisão [W] b4, 2026-11-19). vivo.ancora=false onde o .tsx não tem data-contract para a parte (opt-out consciente: ancorar exige mudança de UI)."
 }

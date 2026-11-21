@@ -258,7 +258,7 @@ class ProductController extends Controller
             // UC-PIDX-03 — o MESMO gate que o outro branch deste método aplica na Blade
             // (`product/index.blade.php:287,294`): preço de compra e de venda não viajam pra
             // quem não tem o direito de vê-los. Resolvido AQUI (uma vez) e passado ao builder,
-            // como o `ProdutoUnificadoController::index` já faz (`:145-146`).
+            // como a antiga Consulta de Produtos (`/products/unificado`, apagada em 2026-11-19) fazia.
             $podeVerCusto = (bool) auth()->user()->can('view_purchase_price');
             $podeVerPreco = (bool) auth()->user()->can('access_default_selling_price');
 

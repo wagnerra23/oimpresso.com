@@ -834,6 +834,9 @@ tests/Feature/Console/NfseQueueWorkerScheduleTest.php
 # testes de checker do Governance (Scorecard, AuditCommand) estão fora de lane, por isso
 # os casos novos moram neste arquivo. Sqlite-safe: Process/Http/Artisan fakes + temp dir.
 Modules/Governance/Tests/Feature/DriftNaoMedidoTest.php
+# Linha "Blade por migrar" do Daily Brief — não tinha teste (auditoria Governance L2.2,
+# 2026-11-19): sonda falhando vira "não medido", sucesso formata. Process::fake, DB-less.
+Modules/Governance/Tests/Feature/ParidadeBladeBriefLineServiceTest.php
 # Governance L1.4 (2026-11-19): UC-GPOL-05/06/07 lidos do registry de rotas, sem banco.
 Modules/Governance/Tests/Feature/PoliciesRotasContratoTest.php
 # Governance L1.2 (2026-11-19): os 2 Unit do módulo, sem banco (lógica pura do sentinela

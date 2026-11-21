@@ -50,7 +50,7 @@ exige que **todo UC declarado tenha teste Pest citando o id** (UC órfão = queb
 |---|---|:-:|
 | [BulkEdit](../../../resources/js/Pages/Produto/BulkEdit.tsx) | CU-PROD-06 ✅ | Sim |
 | [StockHistory](../../../resources/js/Pages/Produto/StockHistory.tsx) | CU-PROD-11 🟡 fachada (G-01) | Sim — bug real p/ o teste defender |
-| [Unificado/Index](../../../resources/js/Pages/Produto/Unificado/Index.tsx) | CU-PROD-12 🟡 valor ausente (G-03) | Sim |
+| Unificado/Index _(removido em 2026-11-19, #11251)_ | CU-PROD-12 🟡 valor ausente (G-03) | Sim |
 | [Index](../../../resources/js/Pages/Produto/Index.tsx) | — sem CU dedicado | Não — CU novo no SDD (decisão [W]) |
 | [Edit](../../../resources/js/Pages/Produto/Edit.tsx) | deriva do CU-PROD-01 | Não — contrato próprio a definir |
 | [Show](../../../resources/js/Pages/Produto/Show.tsx) | — sem CU | Não — CU novo no SDD (decisão [W]) |
@@ -75,11 +75,11 @@ precisam de CU novo. Cada um é **código + teste no CT 100**, não documentaç�
 | BulkEdit | [✅](../../../resources/js/Pages/Produto/BulkEdit.tsx) | [✅](../../../resources/js/Pages/Produto/BulkEdit.charter.md) | ❌ | [✅](_telas/RUNBOOK-produto-bulk-edit.md) | [✅](_telas/produto-bulk-edit-visual-comparison.md) | [B](../../../tests/Feature/Produto/Wave2BulkEditBaselineTest.php) / [I](../../../tests/Feature/Produto/Wave2BulkEditInertiaTest.php) |
 | SellingPrices | [✅](../../../resources/js/Pages/Produto/SellingPrices.tsx) | [✅](../../../resources/js/Pages/Produto/SellingPrices.charter.md) | [✅](../../../resources/js/Pages/Produto/SellingPrices.casos.md) | [✅](_telas/RUNBOOK-produto-selling-prices.md) | [✅](_telas/produto-selling-prices-visual-comparison.md) | [B](../../../tests/Feature/Produto/Wave2SellingPricesBaselineTest.php) / [I](../../../tests/Feature/Produto/Wave2SellingPricesInertiaTest.php) |
 | StockHistory | [✅](../../../resources/js/Pages/Produto/StockHistory.tsx) | [✅](../../../resources/js/Pages/Produto/StockHistory.charter.md) | ❌ | [✅](_telas/RUNBOOK-produto-stock-history.md) | [✅](_telas/produto-stock-history-visual-comparison.md) | [B](../../../tests/Feature/Produto/Wave2StockHistoryBaselineTest.php) / [I](../../../tests/Feature/Produto/Wave2StockHistoryInertiaTest.php) |
-| Unificado/Index | [✅](../../../resources/js/Pages/Produto/Unificado/Index.tsx) | [✅](../../../resources/js/Pages/Produto/Unificado/Index.charter.md) | ❌ | ❌ | ❌ | ❌ |
+| Unificado/Index | ✅ _(removido em 2026-11-19, #11251)_ | ✅ _(removido em 2026-11-19, #11251)_ | ❌ | ❌ | ❌ | ❌ |
 
 **Backend** (todos âncoras na [seção 7](#backend)):
 - Controllers: [ProductController.php](../../../app/Http/Controllers/ProductController.php) (~2.729 LOC, serve **7 telas** — **1:N**),
-  [ProdutoUnificadoController.php](../../../app/Http/Controllers/ProdutoUnificadoController.php) (**1:1** com Unificado),
+  ProdutoUnificadoController.php _(removido em 2026-11-19, #11251)_ (**1:1** com Unificado),
   [OpeningStockController.php](../../../app/Http/Controllers/OpeningStockController.php),
   [ImportProductsController.php](../../../app/Http/Controllers/ImportProductsController.php),
   [Inventory/ProductBomController.php](../../../app/Http/Controllers/Inventory/ProductBomController.php).
@@ -138,7 +138,7 @@ Gatilhos: [ProductController.php](../../../app/Http/Controllers/ProductControlle
 | [BRIEFING.md](BRIEFING.md) | tocar no mesmo PR | **`[trava]`** |
 | _(nenhum doc por-tela)_ | — | por design: não dá pra saber qual tela |
 
-### Classe D — Backend dedicado (1:1): [ProdutoUnificadoController.php](../../../app/Http/Controllers/ProdutoUnificadoController.php)
+### Classe D — Backend dedicado (1:1): ProdutoUnificadoController.php _(removido em 2026-11-19, #11251)_
 | Doc exigido | Regra | Mecanismo |
 |---|---|---|
 | [SDD](SDD-tela-cadastro-produto-v1.0.md) + [BRIEFING](BRIEFING.md) | como Classe C | **`[trava]`** |
@@ -295,11 +295,11 @@ Show [tsx](../../../resources/js/Pages/Produto/Show.tsx) · [charter](../../../r
 BulkEdit [tsx](../../../resources/js/Pages/Produto/BulkEdit.tsx) · [charter](../../../resources/js/Pages/Produto/BulkEdit.charter.md) —
 SellingPrices [tsx](../../../resources/js/Pages/Produto/SellingPrices.tsx) · [charter](../../../resources/js/Pages/Produto/SellingPrices.charter.md) · [casos](../../../resources/js/Pages/Produto/SellingPrices.casos.md) —
 StockHistory [tsx](../../../resources/js/Pages/Produto/StockHistory.tsx) · [charter](../../../resources/js/Pages/Produto/StockHistory.charter.md) —
-Unificado [tsx](../../../resources/js/Pages/Produto/Unificado/Index.tsx) · [charter](../../../resources/js/Pages/Produto/Unificado/Index.charter.md)
+Unificado tsx _(removido em 2026-11-19, #11251)_ · charter _(removido em 2026-11-19, #11251)_
 
 ### Backend
 Controllers: [ProductController](../../../app/Http/Controllers/ProductController.php) ·
-[ProdutoUnificadoController](../../../app/Http/Controllers/ProdutoUnificadoController.php) ·
+ProdutoUnificadoController _(removido em 2026-11-19, #11251)_ ·
 [OpeningStockController](../../../app/Http/Controllers/OpeningStockController.php) ·
 [ImportProductsController](../../../app/Http/Controllers/ImportProductsController.php) ·
 [ProductBomController](../../../app/Http/Controllers/Inventory/ProductBomController.php) —

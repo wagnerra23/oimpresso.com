@@ -11,7 +11,6 @@ flock -n 9 || { echo "outra atualização em curso"; exit 0; }
 
 SRC=/opt/oimpresso-ci-src
 DIR="$SRC/docker/ci-runner-leve"
-IMAGE="${CI_LEVE_IMAGE:-oimpresso/ci-runner-leve:2.338.0}"
 STAMP_DIR=/var/lib/ci-runner-leve
 STAMP="$STAMP_DIR/arvore-implantada"
 CREDS=(.runner .credentials .credentials_rsaparams)
@@ -21,10 +20,25 @@ cd "$SRC"
 git fetch -q origin
 git checkout -q -B main origin/main
 ARVORE=$(git rev-parse HEAD:docker/ci-runner-leve)
-if [ "$(cat "$STAMP" 2>/dev/null)" = "$ARVORE" ]; then exit 0; fi
-echo "docker/ci-runner-leve mudou ($ARVORE); atualizando as vagas"
 
-docker build -q -t "$IMAGE" "$DIR" >/dev/null
+# Versão do runner: a última release do actions/runner. As vagas rodam com
+# --disableupdate, então é esta rotina que acompanha a versão; o GitHub recusa
+# runner que fica velho demais. Sem rede para a API, mantém a versão implantada
+# (ou a default do Dockerfile) em vez de falhar.
+VERSAO=$(curl -fsS --max-time 20 https://api.github.com/repos/actions/runner/releases/latest \
+  | jq -r '.tag_name // empty' | sed 's/^v//') || VERSAO=""
+if ! [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  VERSAO=$(awk '{print $2}' "$STAMP" 2>/dev/null || true)
+  [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || VERSAO=$(sed -n 's/^ARG RUNNER_VERSION=//p' "$DIR/Dockerfile")
+  echo "API de releases indisponível; seguindo com a versão $VERSAO"
+fi
+IMAGE="${CI_LEVE_IMAGE:-oimpresso/ci-runner-leve:$VERSAO}"
+export CI_LEVE_IMAGE="$IMAGE"
+
+if [ "$(cat "$STAMP" 2>/dev/null)" = "$ARVORE $VERSAO" ]; then exit 0; fi
+echo "docker/ci-runner-leve ($ARVORE) ou versão do runner ($VERSAO) mudou; atualizando as vagas"
+
+docker build -q --build-arg RUNNER_VERSION="$VERSAO" -t "$IMAGE" "$DIR" >/dev/null
 install -m 644 "$DIR/ci-runner-leve@.service" "$DIR/ci-runner-leve-atualiza.service" \
   "$DIR/ci-runner-leve-atualiza.timer" /etc/systemd/system/
 systemctl daemon-reload
@@ -40,6 +54,10 @@ for C in $(docker ps -a --format '{{.Names}}' | grep -E '^ci-leve-[0-9]+$' | sor
 
   tmp=$(mktemp -d)
   for f in "${CREDS[@]}"; do docker cp -a "$C:/home/runner/$f" "$tmp/$f"; done
+  # Registro antigo pode não ter --disableupdate; marca na credencial copiada,
+  # que é o mesmo campo que o config.sh grava (RunnerSettings.DisableUpdate).
+  jq '.disableUpdate = true' "$tmp/.runner" > "$tmp/.runner.novo" && cat "$tmp/.runner.novo" > "$tmp/.runner"
+  rm -f "$tmp/.runner.novo"
   systemctl stop "ci-runner-leve@$N"
   docker rename "$C" "$C-anterior"
   bash "$DIR/cria-vaga.sh" "$N"
@@ -62,5 +80,5 @@ done
 
 # Só marca como implantado quando todas as vagas foram trocadas; senão a
 # próxima volta do timer tenta de novo.
-[ "$falhas" = 0 ] && echo "$ARVORE" > "$STAMP"
+[ "$falhas" = 0 ] && echo "$ARVORE $VERSAO" > "$STAMP"
 exit "$falhas"

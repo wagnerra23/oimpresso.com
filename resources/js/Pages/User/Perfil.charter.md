@@ -36,13 +36,14 @@ de processo. PageHeader v3 canônico forçado (decisão Wagner 2026-06-24).
 - **Mais informações**: nascimento, gênero, estado civil, grupo sanguíneo, responsável, contatos (3 telefones), redes sociais, documento, endereços, **campos personalizados** (`custom_field_1..4` com labels da empresa — paridade total c/ legado).
 - **Dados bancários**: titular, conta, banco, código, agência, CPF/CNPJ (chaves reais `bank_details.*`) + nota LGPD.
 - **Segurança**: alterar senha (senha atual + nova + confirmação, validação `confirmed`).
+- **Layout (2026-11-19, [W]):** header em largura total, primeiro filho da tela (sem a coluna centrada `max-w-5xl mx-auto`); corpo com recuo 20/24/24 e colunas até 1240px, como o protótipo; abas pelo `SubNav` canon.
 - **Rota nova** `/perfil` (Inertia) — o legado `/user/profile` (Blade) **fica intacto** (cutover decidido depois).
 - **2026-10-27 · cutover F5:** `/user/profile` passou a redirecionar para `/perfil`, a sidebar aponta para `/perfil` e o Blade `user/profile.blade.php` foi apagado (migração do núcleo ordenada pelo [W] em 2026-10-27; o merge é o ato de cutover).
 
 ## Non-Goals
 
 - ❌ Editar outro usuário — a tela só edita o `auth()->user()` (controller escopa por `session('user.id')`).
-- ❌ Cutover do `/user/profile` legado neste PR (decisão Wagner: rota nova, legado intacto).
+- ❌ Cutover do `/user/profile` legado no PR de criação (decisão Wagner na época: rota nova, legado intacto). _Superado pelo cutover F5 de 2026-10-27, registrado em Goals._
 - ❌ Header de identidade `pf-head` do protótipo (avatar+chip no topo) — cedeu ao PageHeader canon (decisão Wagner).
 - ❌ Gerenciar permissões/papéis do usuário (fora de escopo — é Equipe/Admin).
 

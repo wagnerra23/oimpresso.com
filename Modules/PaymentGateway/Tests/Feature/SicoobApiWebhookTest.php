@@ -82,7 +82,8 @@ it('aceita webhook com HMAC válido e grava GatewayWebhookEvent', function () {
     expect($event->gateway_key)->toBe('sicoob_api')
         ->and($event->business_id)->toBe(1)
         ->and($event->evento)->toBe('cobranca.liquidada')
-        ->and($event->gateway_event_id)->toBe('12345678')
+        // Auditoria PG 2.3: nosso número composto com evento + situação.
+        ->and($event->gateway_event_id)->toBe('12345678|cobranca.liquidada|liquidado')
         ->and($event->signature_valid)->toBeTrue();
 });
 
@@ -175,4 +176,67 @@ it('multi-tenant Tier 0: biz=98 e biz=99 webhooks ISOLADOS', function () {
 it('rota nomeada paymentgateway.webhooks.sicoob-api existe', function () {
     expect(route('paymentgateway.webhooks.sicoob-api', ['businessId' => 1]))
         ->toContain('/paymentgateway/webhooks/sicoob-api/1');
+});
+
+// ── Auditoria PG lote 2.3 — tenant fictício 98 (ADR 0358) ─────────────────────
+
+function credSicoob98(): void
+{
+    PaymentGatewayCredential::query()->withoutGlobalScopes()->create([
+        'business_id' => 98,
+        'gateway_key' => 'sicoob_api',
+        'ambiente'    => 'sandbox',
+        'ativo'       => true,
+        'config_json' => [
+            'client_id' => 'c98', 'client_secret' => 's98', 'numero_cliente' => 98,
+            'codigo_modalidade' => 1, 'numero_conta' => 98, 'webhook_secret' => 'secret-pg23',
+        ],
+    ]);
+}
+
+it('2.3 liquidação depois de "registrado" da mesma cobrança NÃO é descartada como duplicata', function () {
+    credSicoob98();
+    $registrado = ['evento' => 'cobranca.registrada', 'nossoNumero' => 'pg23-001', 'boleto' => ['situacaoBoleto' => 'EM_ABERTO']];
+    $liquidado = ['evento' => 'cobranca.liquidada', 'nossoNumero' => 'pg23-001', 'boleto' => ['situacaoBoleto' => 'LIQUIDADO']];
+
+    postSicoobWebhookSigned($this, 98, $registrado, 'secret-pg23')->assertOk()->assertJson(['duplicate' => false]);
+    postSicoobWebhookSigned($this, 98, $liquidado, 'secret-pg23')->assertOk()->assertJson(['duplicate' => false]);
+
+    $ids = GatewayWebhookEvent::query()->withoutGlobalScopes()->where('business_id', 98)->pluck('gateway_event_id')->all();
+    expect($ids)->toHaveCount(2);
+    expect(in_array('pg23-001|cobranca.liquidada|liquidado', $ids, true))->toBeTrue();
+});
+
+it('2.3 reenvio idêntico da liquidação continua deduplicado', function () {
+    credSicoob98();
+    $liquidado = ['evento' => 'cobranca.liquidada', 'nossoNumero' => 'pg23-002', 'boleto' => ['situacaoBoleto' => 'LIQUIDADO']];
+
+    postSicoobWebhookSigned($this, 98, $liquidado, 'secret-pg23')->assertOk()->assertJson(['duplicate' => false]);
+    postSicoobWebhookSigned($this, 98, $liquidado, 'secret-pg23')->assertOk()->assertJson(['duplicate' => true]);
+
+    expect(GatewayWebhookEvent::query()->withoutGlobalScopes()->where('business_id', 98)->count())->toBe(1);
+});
+
+it('2.3 id próprio do evento (id) é usado como veio, sem composição', function () {
+    credSicoob98();
+
+    postSicoobWebhookSigned($this, 98, ['id' => 'evt-pg23', 'evento' => 'x', 'nossoNumero' => 'pg23-003'], 'secret-pg23')->assertOk();
+
+    expect(GatewayWebhookEvent::query()->withoutGlobalScopes()->where('business_id', 98)->value('gateway_event_id'))->toBe('evt-pg23');
+});
+
+it('2.3 WebhookEventId: BCB Pix ATIVA e CONCLUIDA do mesmo txid geram ids distintos; mesmo payload, mesmo id', function () {
+    $ativa = ['cobsr' => [['txid' => 'tx-pg23', 'status' => 'ATIVA']]];
+    $concluida = ['cobsr' => [['txid' => 'tx-pg23', 'status' => 'CONCLUIDA']]];
+
+    $a = \Modules\PaymentGateway\Services\Webhook\WebhookEventId::daCobranca('tx-pg23', 'unknown', $ativa);
+    $c = \Modules\PaymentGateway\Services\Webhook\WebhookEventId::daCobranca('tx-pg23', 'unknown', $concluida);
+
+    expect($a)->toBe('tx-pg23|ativa');
+    expect($c)->toBe('tx-pg23|concluida');
+    expect(\Modules\PaymentGateway\Services\Webhook\WebhookEventId::daCobranca('tx-pg23', 'unknown', $concluida))->toBe($c);
+    // Sem evento nem situação: id da cobrança como estava.
+    expect(\Modules\PaymentGateway\Services\Webhook\WebhookEventId::daCobranca('tx-pg23', 'unknown', ['valor' => 1]))->toBe('tx-pg23');
+    // Nunca passa do tamanho da coluna.
+    expect(strlen(\Modules\PaymentGateway\Services\Webhook\WebhookEventId::daCobranca(str_repeat('n', 180), 'evento-longo', ['status' => str_repeat('s', 80)])))->toBeLessThanOrEqual(191);
 });

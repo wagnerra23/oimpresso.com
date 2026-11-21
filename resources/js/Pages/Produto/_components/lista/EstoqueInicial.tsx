@@ -13,7 +13,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
 import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
-import { brl } from '../../Unificado/_components/catalogo';
+import { brl } from './formato';
 import {
   buscarEstoqueInicial,
   comLinhaAlterada,

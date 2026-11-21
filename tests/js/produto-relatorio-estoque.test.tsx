@@ -15,7 +15,7 @@ import { render, screen, cleanup, fireEvent, within } from '@testing-library/rea
 import RelatorioEstoqueAba from '@/Pages/Produto/_components/lista/RelatorioEstoqueAba';
 import type { LinhaRelatorioEstoque, RelatorioEstoqueLista } from '@/Pages/Produto/_components/lista/tipos';
 // Formatador de moeda da própria tela: o que se prova aqui é a COR e o seletor, não o formato.
-import { brl } from '@/Pages/Produto/Unificado/_components/catalogo';
+import { brl } from '@/Pages/Produto/_components/lista/formato';
 
 const linha = (sku: string, compra: number | null, venda: number | null, parte: Partial<LinhaRelatorioEstoque> = {}): LinhaRelatorioEstoque => ({
   sku, produto: `Produto ${sku}`, variacao: '', categoria: 'Camisetas', local: 'Matriz', unidade: 'Un',

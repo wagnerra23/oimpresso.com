@@ -101,7 +101,7 @@ class SaudeFiscalService
 
         return $ids === [] ? null : $this->item('emitido_com_ncm_padrao', false,
             'Produtos que saíram em nota com o NCM padrão', count($ids), array_slice($ids, 0, self::AMOSTRA),
-            'products.unificado.index');
+            'products.index');
     }
 
     /** Produtos que saíram em nota com CST/CFOP incoerente nos últimos dias. Aviso, nunca bloqueia. */

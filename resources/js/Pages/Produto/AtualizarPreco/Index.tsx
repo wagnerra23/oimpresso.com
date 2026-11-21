@@ -130,7 +130,7 @@ export default function AtualizarPrecoIndex({ grupos, total_linhas, erro }: Prop
             <Inline gap={2} wrap>
               {grupos.map((g) => <span key={g.id} className="rounded-full border border-border px-2 py-0.5 text-xs">{g.nome}</span>)}
               <Button asChild variant="outline" size="sm"><a href="/selling-price-group">Gerenciar grupos</a></Button>
-              <Button asChild variant="outline" size="sm"><Link href="/products/unificado">Editar preço na tela</Link></Button>
+              <Button asChild variant="outline" size="sm"><Link href="/products">Editar preço na tela</Link></Button>
             </Inline>
           </Stack>
         </CardContent>
