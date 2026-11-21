@@ -5,8 +5,13 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-11-05"
+last_run: "2026-11-21"
 ---
+
+> ℹ️ **`last_run` 2026-11-05 → 2026-11-21 (G-6), onda 2 da paridade com o protótipo: só layout da tabela.** Saiu a moldura
+> `.os-table-wrap` duplicada em volta da tabela (ela ficava 24px recuada em relação aos KPIs) e a célula ganhou o respiro
+> do protótipo (10px 12px). Nenhum UC desta tela trata de alinhamento ou espaçamento; nenhum foi reexecutado por causa
+> disso. O bump registra a reconciliação do trio nesta data, não um re-run.
 
 > ℹ️ **`last_run` 2026-11-04 → 2026-11-05 (G-6): só a fileira de KPIs mudou de largura.** Os 5 KPIs ficam numa linha
 > a 1280px (decisão [W] 2026-11-05), e o detalhamento por origem do Faturado hoje passa a 1 item por linha. Nenhum UC desta
