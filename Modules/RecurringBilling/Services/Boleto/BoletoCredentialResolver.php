@@ -43,6 +43,7 @@ class BoletoCredentialResolver implements BoletoCredentialResolverInterface
         'api_key',
         'certificado_senha',
         'certificado_key_b64',
+        'webhook_secret', // cifrado desde 2026-11-19 (auditoria RB d4)
     ];
 
     /**

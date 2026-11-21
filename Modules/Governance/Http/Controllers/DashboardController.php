@@ -71,13 +71,9 @@ class DashboardController extends Controller
 
         // ADR 0366 §D-B — a seção MCP herda EXATAMENTE o gate que a tela original
         // tinha (`middleware('can:jana.mcp.usage.all')` no Jana\Admin\GovernancaController).
-        // Não somamos `governance.dashboard.view` aqui de propósito: a permission
-        // hoje gateia só a ENTRY de sidebar (DataController::modifyAdminMenu) — a
-        // rota `/governance/dashboard` é gateada apenas por `auth`. Exigir as duas
-        // seria ESTRITAMENTE mais restritivo que o estado anterior e poderia esconder
-        // a seção de quem a enxergava ontem. Preservar o gate original = zero
-        // regressão de acesso, nos dois sentidos. Gatear a ROTA inteira por
-        // `can:governance.dashboard.view` é decisão [W] à parte (mexe em routes.php).
+        // Desde 2026-11-19 a ROTA exige `can:governance.dashboard.view` (lote L0 da
+        // auditoria, aprovado pelo [W] — routes.php). Logo, para ver esta seção, o
+        // usuário precisa das duas: a da rota para abrir a tela, e esta para a seção.
         $mcpVisivel = Gate::allows('jana.mcp.usage.all');
         $mcpFilters = $this->resolverFiltrosMcp($request);
 
@@ -176,9 +172,12 @@ class DashboardController extends Controller
     /**
      * Seção Governança MCP — consumo cross-team do MCP server (ADR 0053).
      *
-     * Multi-tenant: `mcp_audit_log` é REPO-WIDE por design (não tem `business_id`) —
-     * exceção formal ao Tier 0 justificada pela Constituição Art. 6+8 e coberta pelo
-     * `CrossTenantPolicyTest`. Não inventar escopo onde a tabela não tem coluna.
+     * Multi-tenant: `mcp_audit_log` TEM a coluna `business_id` (nullable, índice
+     * `mcp_al_biz_ts_idx` — Modules/Forja/Database/Migrations/2026_04_29_100005), mas
+     * este painel lê a trilha REPO-WIDE de propósito: é a visão de plataforma do MCP
+     * (ADR 0053), exceção formal ao Tier 0 pela Constituição Art. 6+8 e coberta pelo
+     * `CrossTenantPolicyTest`. Quem a enxerga é decidido pelo gate `jana.mcp.usage.all`,
+     * que a ADR 0415 tirou do bypass do papel `Admin#{empresa}`.
      *
      * Degrada graciosamente (mesmo padrão de `buildSddPayload`/`saudeEcosistema`):
      * sem a tabela → null → a Page mostra empty-state em vez de estourar.

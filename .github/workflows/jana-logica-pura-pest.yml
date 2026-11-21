@@ -182,23 +182,23 @@ jobs:
         # explícitos). Teste novo em Tests/Unit precisa entrar AQUI e no paths: acima.
         run: |
           vendor/bin/pest \
-            Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
-            Modules/Jana/Tests/Unit/SupersedeDetectorTest.php \
-            Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
+            --no-coverage \
+            Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
+            Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
+            Modules/Jana/Tests/Feature/Mcp/McpSyncMemoryRobustezTest.php \
             Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
-            Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php \
+            Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
+            Modules/Jana/Tests/Unit/BriefCuradoriaTest.php \
             Modules/Jana/Tests/Unit/DesignDossieAssemblerTest.php \
             Modules/Jana/Tests/Unit/DesignIngestPlannerTest.php \
             Modules/Jana/Tests/Unit/DistillerFreshnessStatsTest.php \
-            Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php \
-            Modules/Jana/Tests/Unit/PiiRedactorTest.php \
+            Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
             Modules/Jana/Tests/Unit/IndexarMemoryRedactorRunIdTest.php \
-            Modules/Jana/Tests/Feature/Mcp/McpSyncMemoryRobustezTest.php \
+            Modules/Jana/Tests/Unit/JanaCommandsRegistradosTest.php \
             Modules/Jana/Tests/Unit/JanaViewsSemAndaimeTest.php \
             Modules/Jana/Tests/Unit/McpToolsNaoCitamComandoInexistenteTest.php \
-            Modules/Jana/Tests/Unit/JanaCommandsRegistradosTest.php \
-            Modules/Jana/Tests/Unit/BriefCuradoriaTest.php \
-            Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php \
-            Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php \
-            --no-coverage \
+            Modules/Jana/Tests/Unit/ModuleTruthEventCollectorTest.php \
+            Modules/Jana/Tests/Unit/PiiRedactorNumeroCruTest.php \
+            Modules/Jana/Tests/Unit/PiiRedactorTest.php \
+            Modules/Jana/Tests/Unit/SupersedeDetectorTest.php \
             --colors=always

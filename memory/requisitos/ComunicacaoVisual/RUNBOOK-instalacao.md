@@ -44,7 +44,7 @@ owner: W
 | `checklist` | `<Card>` "Comprovante" com foto antes, foto depois e assinatura |
 | `assinatura` | quadro, nome de quem assinou, aceite e "Salvar assinatura" (só enquanto pendente) |
 | `concluir` | botão "Concluir instalação" e o aviso do que falta |
-| `concluida` | alerta "Instalação concluída" |
+| `concluida` | alerta "Instalação concluída" com o link "Baixar protocolo (PDF)" |
 | `erro` | alerta "Não enviado" com a mensagem da API |
 
 ## 3. Âncora de design

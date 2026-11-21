@@ -47,7 +47,8 @@ class InterImportarRecebimentosCommand extends Command
                             {--days=60 : Janela de pagamentos a importar (dias atrás)}
                             {--conta= : ID da fin_contas_bancarias destino da baixa}
                             {--dry-run : Só lista o que importaria, sem gravar}
-                            {--pendencias : No fim, lista os boletos em aberto e vencidos por banco}';
+                            {--pendencias : No fim, lista os boletos em aberto e vencidos por banco}
+                            {--autor= : users.id gravado em created_by (default: dono da empresa)}';
 
     protected $description = 'Importa boletos pagos no Inter como título recebido + baixa no Financeiro (US-PG-008)';
 
@@ -71,6 +72,15 @@ class InterImportarRecebimentosCommand extends Command
 
         if (! $cred) {
             $this->error("Sem credencial Inter ativa pra biz={$businessId}.");
+
+            return self::FAILURE;
+        }
+
+        // Auditoria PG 2.6: created_by era 1 fixo — usuário de outra empresa
+        // quando --business ≠ 1. Agora: --autor, ou o dono da própria empresa.
+        $autor = $this->resolveAutor($businessId, $this->option('autor'));
+        if ($autor === null) {
+            $this->error("Sem usuário autor para biz={$businessId} (dono da empresa não encontrado). Use --autor=ID.");
 
             return self::FAILURE;
         }
@@ -108,7 +118,14 @@ class InterImportarRecebimentosCommand extends Command
             $codigo = (string) ($cob['codigoSolicitacao'] ?? '');
             $seuNumero = (string) ($cob['seuNumero'] ?? '');
             $nossoNumero = (string) ($item['boleto']['nossoNumero'] ?? $cob['nossoNumero'] ?? '');
-            $valor = (float) ($cob['valorNominal'] ?? 0);
+            // Auditoria PG 2.6: o título nasce com o valor NOMINAL e a baixa
+            // registra o que de fato entrou (recebido = nominal + juros − desconto),
+            // na convenção de BaixaDeBoletoMigrado / OnCobrancaPagaCreateFinanceiroTitulo.
+            // Antes, título e baixa usavam só o nominal: juros e multa pagos sumiam.
+            $valor = round((float) ($cob['valorNominal'] ?? 0), 2);
+            $recebido = round((float) ($cob['valorTotalRecebido'] ?? $cob['valorTotalRecebimento'] ?? $valor), 2);
+            $juros = $recebido > $valor ? round($recebido - $valor, 2) : 0.0;
+            $desconto = $recebido < $valor ? round($valor - $recebido, 2) : 0.0;
             $pagadorNome = $cob['pagador']['nome'] ?? null;
             $dataPagRaw = $cob['dataSituacao'] ?? $cob['dataHoraSituacao'] ?? null;
             $pagaEm = $dataPagRaw ? \Carbon\Carbon::parse((string) $dataPagRaw) : now();
@@ -139,7 +156,7 @@ class InterImportarRecebimentosCommand extends Command
             $rec = [
                 'ref' => $refId, 'seu_numero' => $seuNumero, 'nosso_numero' => $nossoNumero, 'banco' => '077',
                 'valor_nominal' => $valor,
-                'valor_pago' => (float) ($cob['valorTotalRecebido'] ?? $cob['valorTotalRecebimento'] ?? $valor),
+                'valor_pago' => $recebido,
                 'vencimento' => isset($cob['dataVencimento']) ? (string) $cob['dataVencimento'] : null,
                 'pago_em' => $pagaEm->format('Y-m-d'),
                 'pagador_doc' => isset($cob['pagador']['cpfCnpj']) ? (string) $cob['pagador']['cpfCnpj'] : null,
@@ -148,7 +165,7 @@ class InterImportarRecebimentosCommand extends Command
                 DB::beginTransaction();
             }
             try {
-                $r = $migrado->baixar($businessId, $rec, $contaId);
+                $r = $migrado->baixar($businessId, $rec, $contaId, $autor);
             } finally {
                 if ($dryRun) {
                     DB::rollBack();
@@ -166,11 +183,19 @@ class InterImportarRecebimentosCommand extends Command
                 continue;
             }
 
+            // Recebido bem abaixo do nominal não vira título quitado sozinho: mesma
+            // trava de BaixaDeBoletoMigrado (desconto acima do máximo → conferir).
+            if ($desconto > round($valor * BaixaDeBoletoMigrado::DESCONTO_MAXIMO, 2)) {
+                $conferir[] = [BaixaDeBoletoMigrado::DIVERGENTE, $seuNumero ?: '-', $nossoNumero ?: '-', number_format($valor, 2, ',', '.'), '-'];
+                continue;
+            }
+
             if ($dryRun) {
                 $importados++;
                 $this->line(sprintf(
-                    '  [dry-run] importaria: R$ %s · seuNumero=%s · nossoNumero=%s · pagador=%s · pago em %s',
+                    '  [dry-run] importaria: R$ %s (recebido %s) · seuNumero=%s · nossoNumero=%s · pagador=%s · pago em %s',
                     number_format($valor, 2, ',', '.'),
+                    number_format($recebido, 2, ',', '.'),
                     $seuNumero ?: '-',
                     $nossoNumero ?: '-',
                     $pagadorNome ?? '?',
@@ -180,7 +205,7 @@ class InterImportarRecebimentosCommand extends Command
             }
 
             try {
-                DB::transaction(function () use ($businessId, $refId, $seuNumero, $nossoNumero, $valor, $pagadorNome, $pagaEm, $contaId): void {
+                DB::transaction(function () use ($businessId, $refId, $seuNumero, $nossoNumero, $valor, $juros, $desconto, $autor, $pagadorNome, $pagaEm, $contaId): void {
                     $titulo = Titulo::create([
                         'business_id'       => $businessId,
                         'numero'            => substr('INT-' . ($nossoNumero ?: $seuNumero ?: $refId), 0, 20),
@@ -201,7 +226,7 @@ class InterImportarRecebimentosCommand extends Command
                             'inter_seu_numero'  => $seuNumero,
                             'inter_nosso_numero' => $nossoNumero,
                         ],
-                        'created_by'        => 1,
+                        'created_by'        => $autor,
                     ]);
 
                     if ($contaId !== null) {
@@ -210,14 +235,14 @@ class InterImportarRecebimentosCommand extends Command
                             'titulo_id'         => $titulo->id,
                             'conta_bancaria_id' => $contaId,
                             'valor_baixa'       => $valor,
-                            'juros'             => 0,
+                            'juros'             => $juros,
                             'multa'             => 0,
-                            'desconto'          => 0,
+                            'desconto'          => $desconto,
                             'data_baixa'        => $pagaEm->format('Y-m-d'),
                             'meio_pagamento'    => 'boleto',
                             'idempotency_key'   => $this->buildIdempotencyKey($refId),
                             'observacoes'       => 'Auto-baixa import Inter · ' . $refId,
-                            'created_by'        => 1,
+                            'created_by'        => $autor,
                         ]);
                     }
                 });
@@ -255,6 +280,19 @@ class InterImportarRecebimentosCommand extends Command
         }
 
         return $erros > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function resolveAutor(int $businessId, mixed $autorOption): ?int
+    {
+        if ($autorOption !== null && $autorOption !== '') {
+            $id = (int) $autorOption;
+
+            return DB::table('users')->where('id', $id)->where('business_id', $businessId)->exists() ? $id : null;
+        }
+
+        $owner = DB::table('business')->where('id', $businessId)->value('owner_id');
+
+        return $owner !== null ? (int) $owner : null;
     }
 
     private function emitidaPeloOimpresso(int $businessId, string $codigo, string $nossoNumero): bool

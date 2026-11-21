@@ -26,6 +26,12 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  */
 class AsaasWebhookController extends Controller
 {
+    /**
+     * Header que carrega o segredo do webhook. Fonte única: a tela de
+     * Configurações exibe este mesmo valor (UC-RBCFG-09).
+     */
+    public const AUTH_HEADER = 'asaas-access-token';
+
     public function handle(Request $request, int $businessId): JsonResponse
     {
         // Tier 0 multi-tenant: autenticidade ANTES de qualquer processamento/dispatch.
@@ -40,8 +46,8 @@ class AsaasWebhookController extends Controller
             return $this->reject('credential_not_found', $businessId, 404);
         }
 
-        $expectedSecret = $credential->config_json['webhook_secret'] ?? null;
-        $providedSecret = (string) $request->header('asaas-access-token', '');
+        $expectedSecret = $credential->webhookSecret();
+        $providedSecret = (string) $request->header(self::AUTH_HEADER, '');
 
         if (! $expectedSecret || ! hash_equals((string) $expectedSecret, $providedSecret)) {
             return $this->reject('secret_mismatch', $businessId, 401);
@@ -53,7 +59,9 @@ class AsaasWebhookController extends Controller
 
         // Idempotência — ignora evento já processado
         $eventId = $request->input('id') ?? md5($event . ($payment['id'] ?? ''));
+        // Idempotência por empresa (unique business_id+provider+event_id desde 2026-11-19).
         $alreadyProcessed = DB::table('pg_webhook_events')
+            ->where('business_id', $businessId)
             ->where('provider', 'asaas')
             ->where('event_id', $eventId)
             ->exists();

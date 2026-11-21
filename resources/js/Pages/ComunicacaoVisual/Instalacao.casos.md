@@ -5,7 +5,7 @@ irmaos: Instalacao.charter.md (lei) · Instalacao.tsx (código)
 tecnica: Caso de uso = narrativa do instalador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o instalador só deixa o comprovante se a tela abrir a instalação certa e se a foto recusada não parecer enviada; instalação ou cliente de outra empresa na tela é vazamento.
 owner: wagner
-last_run: "2026-11-18"
+last_run: "2026-11-19"
 last_run_ci: "2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest ComunicacaoVisual MySQL e vitest)."
 ---
 
@@ -29,6 +29,7 @@ last_run_ci: "2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest Co
 | UC-CVCEL-07 | O protocolo traz OS, cliente, endereço, horários, equipe, as duas fotos e a assinatura com o aceite | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
 | UC-CVCEL-08 | Instalação ainda não concluída não tem protocolo | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
 | UC-CVCEL-09 | Concluída devolve o PDF; outra empresa é não encontrada; sem permissão 403 | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
+| UC-CVCEL-10 | Concluída oferece "Baixar protocolo (PDF)"; aberta não oferece | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
 
 ## UC-CVCEL-01 · A tela mostra OS, cliente, endereço, horário, equipe e o que o comprovante já tem · `must`
 
@@ -100,5 +101,13 @@ Status: 🧪
 **Quando** quem tem `comvis.os.view` pede o protocolo da instalação concluída **Então** recebe o PDF
 (`application/pdf`, começa com `%PDF-`). O protocolo de uma instalação da empresa 99 dá 404, e quem não tem
 permissão da CV recebe 403.
+
+Status: 🧪
+
+## UC-CVCEL-10 · Concluída oferece "Baixar protocolo (PDF)"; aberta não oferece · `must`
+
+**Dado** uma instalação concluída **Quando** alguém abre a tela **Então** o aviso "Instalação concluída" traz o
+link "Baixar protocolo (PDF)" para `/comunicacao-visual/instalacoes/{id}/protocolo`, abrindo em outra aba. Com a
+instalação aberta o link não aparece (o protocolo só existe depois de concluir — UC-CVCEL-08).
 
 Status: 🧪
