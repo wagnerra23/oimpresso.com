@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 8 |
 | Telas com `casos.md` | 10 |
-| UC declarados | 179 |
-| UC com teste que os cita | 173 |
+| UC declarados | 183 |
+| UC com teste que os cita | 177 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -90,6 +90,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCFG-13 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-14 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-15 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-16 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-17 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-18 | Config | 🧪 aguarda veredito da lane |
 | UC-FCKP-01 | Cockpit | 🧪 aguarda veredito da lane |
@@ -142,6 +143,9 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FEVT-06 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-07 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-08 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FEVT-09 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FEVT-10 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FEVT-11 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FLX-26 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FLX-27 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FLX-31 | Nfse | 🧪 aguarda veredito da lane |

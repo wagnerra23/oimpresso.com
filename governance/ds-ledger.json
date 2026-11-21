@@ -730,8 +730,8 @@
   "progressPct": 64,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "32687e1447",
-  "generatedAt": "2026-11-19T18:32:11.903Z",
+  "measuredAgainstSha": "2321fc6c85",
+  "generatedAt": "2026-11-20T17:57:35.210Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

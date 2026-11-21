@@ -14,4 +14,3 @@ Modules/Governance/Tests/Feature/CicloDiarioGovernancaCommandTest.php  # 1 falha
 Modules/Governance/Tests/Feature/DesignDocsFreshnessCheckerTest.php  # 2 falhas: days_overdue 28 × 29 e check() não idempotente sobre o repo. O L2 (#11213) mexe neste arquivo; sai daqui quando ele entrar e o run ficar verde
 Modules/Governance/Tests/Feature/ResolveModulePathTest.php  # 1 falha: detectFileExists com placeholder <modulo> devolve false. A investigar
 Modules/Governance/Tests/Feature/Wave27GovernanceSaturateTest.php  # 1 falha: GovernanceHealthCommand --detail. A investigar
-Modules/Governance/Tests/Feature/DsRolloutControllerTest.php  # UC-DSR-10 casava o comentário do Controller; consertado no #11254 (L1.4), que tira esta linha

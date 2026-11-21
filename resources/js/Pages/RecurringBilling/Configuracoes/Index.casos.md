@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela que diz COMO o business cobra — URL de webhook errada é dinheiro que não entra.
 owner: wagner
-last_run: "2026-10-13"
-last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (ancoras do contrato de tela), sem dado, handler, copy nem classe; nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-09-11. 2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: last_run 2026-07-28."
+last_run: "2026-11-19"
+last_run_ci: "2026-11-19 (PR #11223, lote L0 do RecurringBilling) — REVALIDACAO ANALITICA, suite NAO executada localmente (Pest so no CI/CT 100). A tela mudou no #11203 (L4): passou a exibir a URL e o header reais dos webhooks, coberto pelo UC-RBCFG-09 (Wave8ConfiguracoesIndexTest), que o proprio #11203 trouxe. Este PR nao toca o Index.tsx: acrescenta o UC-RBCFG-10 (credito unico do webhook Asaas), que e regra de backend provada pelo AsaasWebhookCreditoUnicoContratoTest. Os demais UCs nao dependem do que mudou na tela. ---- REGISTRO ANTERIOR: 2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (ancoras do contrato de tela), sem dado, handler, copy nem classe; nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-09-11. 2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: last_run 2026-07-28."
 ---
 
 > ℹ️ **`last_run` 2026-09-08 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -52,6 +52,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 | UC-RBCFG-07 | Evento repetido não é reprocessado (idempotência) | must `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookIdempotencyTest` | 🧪 |
 | UC-RBCFG-08 | O webhook do Inter tem as mesmas garantias do Asaas | must `[T0]` `[V0]` | `CU-RB-07` 1-5 | `InterWebhookControllerTest` | 🧪 |
 | UC-RBCFG-09 | URL e header exibidos são os que o webhook de fato atende | must `[V0]` | `CU-RB-12` 4 · `CU-RB-07` 1 | `Wave8ConfiguracoesIndexTest` | 🧪 |
+| UC-RBCFG-10 | Pagamento Asaas credita uma vez só, na quitação, e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookCreditoUnicoContratoTest` | 🧪 |
 
 ---
 
@@ -177,6 +178,25 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   + [ADR tech/0002](../../../../../memory/requisitos/RecurringBilling/adr/tech/0002-webhook-asaas-at-least-once-resposta-rapida.md).
 - **Regressão que defende:** a guarda de idempotência virar só um `SELECT` na aplicação (sem a UNIQUE
   no banco) — duas entregas concorrentes passariam pela janela de corrida e creditariam 2×.
+- **Status: 🧪**
+
+---
+
+## UC-RBCFG-10 · O pagamento credita uma vez só e só quando quita a fatura · `must` `[T0]` `[V0]`
+- **Persona:** o Asaas manda `PAYMENT_CONFIRMED` e `PAYMENT_RECEIVED` para o mesmo pagamento (ids
+  diferentes, então o UC-RBCFG-07 não barra) e reentrega quando o job falha. A empresa não pode ver o
+  dinheiro em dobro no saldo nem receber duas NF-e.
+- **Aceite:** Dada uma fatura `open`/`overdue` de 150,00 da empresa 98 · Quando chegam CONFIRMED,
+  RECEIVED e um retry · Então a fatura vira `paid` com `pago_em`, entra **um** crédito de 150,00 na
+  conta Asaas, o saldo sobe 150,00 e o `InvoicePaid` sai uma vez. Pagamento de 120,00 não quita nem
+  credita. Fatura cancelada não volta a paga. Número de fatura da 99 não mexe na 99. O crédito sai com
+  o dono da empresa em `created_by`.
+- **Teste:** [`AsaasWebhookCreditoUnicoContratoTest`](../../../../../Modules/RecurringBilling/Tests/Feature/AsaasWebhookCreditoUnicoContratoTest.php)
+  — os sete casos `UC-RBCFG-10`. Cada caso confere o valor por dois caminhos: soma dos créditos e
+  variação do saldo.
+- **Contrato:** `CU-RB-07` itens 5 e 6 + regra mestre de valor (`memory/proibicoes.md`).
+- **Regressão que defende:** o efeito de valor voltar a acontecer por evento recebido em vez de por
+  transição da fatura (auditoria 2026-11-19, achado a3).
 - **Status: 🧪**
 
 ---

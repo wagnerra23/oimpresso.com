@@ -140,9 +140,21 @@ interface Contador {
  * `Modules/NfeBrasil/Config/config.php` — logo valem por DEPLOY, não por empresa.
  */
 interface EnvioDocumentos {
+  /** O que de fato acontece ao autorizar (escolha da empresa ou, sem ela, o servidor). */
   nfeAtivo: boolean;
   nfceAtivo: boolean;
+  /** Escolha da empresa; null = segue o servidor. */
+  nfeEscolha?: boolean | null;
+  nfceEscolha?: boolean | null;
+  nfePadrao?: boolean;
+  nfcePadrao?: boolean;
+  /** Sem configuração fiscal (regime) não há onde guardar a escolha. */
+  temConfig?: boolean;
 }
+
+type EscolhaEnvio = 'padrao' | 'ligado' | 'desligado';
+const escolhaDe = (v: boolean | null | undefined): EscolhaEnvio =>
+  v === null || v === undefined ? 'padrao' : v ? 'ligado' : 'desligado';
 
 interface FlashProps extends PageProps {
   flash?: { success?: string };
@@ -301,6 +313,19 @@ export default function Config({
     email: contador?.email ?? '',
     crc: contador?.crc ?? '',
   });
+  const envioForm = useForm<{ nfe: EscolhaEnvio; nfce: EscolhaEnvio }>({
+    nfe: escolhaDe(envioDocumentos?.nfeEscolha),
+    nfce: escolhaDe(envioDocumentos?.nfceEscolha),
+  });
+  const salvarEnvio = (e: FormEvent) => {
+    e.preventDefault();
+    envioForm.post('/fiscal/config/envio', {
+      preserveScroll: true,
+      onSuccess: () => toast.success('Envio de documentos salvo.'),
+      onError: (err) => toast.error(err.nfe || err.nfce || 'Não foi possível salvar o envio.'),
+    });
+  };
+
   const salvarContador = (e: FormEvent) => {
     e.preventDefault();
     contadorForm.post('/fiscal/config/contador', {
@@ -697,17 +722,50 @@ export default function Config({
             <dt>Envio automático ao autorizar</dt>
             <dd>
               {envioDocumentos ? (
-                <>
-                  NF-e (55):{' '}
-                  <b style={{ color: envioDocumentos.nfeAtivo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
-                    {envioDocumentos.nfeAtivo ? 'Ativo' : 'Desligado'}
-                  </b>
-                  {' · '}
-                  NFC-e (65):{' '}
-                  <b style={{ color: envioDocumentos.nfceAtivo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
-                    {envioDocumentos.nfceAtivo ? 'Ativo' : 'Desligado'}
-                  </b>
-                </>
+                <form onSubmit={salvarEnvio} style={{ display: 'grid', gap: 10, maxWidth: 520 }} data-contract="fiscal-config-envio">
+                  {([
+                    { key: 'nfe', rotulo: 'NF-e (55)', ativo: envioDocumentos.nfeAtivo, padrao: envioDocumentos.nfePadrao },
+                    { key: 'nfce', rotulo: 'NFC-e (65)', ativo: envioDocumentos.nfceAtivo, padrao: envioDocumentos.nfcePadrao },
+                  ] as const).map((m) => (
+                    <div key={m.key}>
+                      <div style={{ fontSize: 13, marginBottom: 4 }}>
+                        {m.rotulo}:{' '}
+                        <b style={{ color: m.ativo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
+                          {m.ativo ? 'Ativo' : 'Desligado'}
+                        </b>
+                      </div>
+                      <RadioGroup
+                        value={envioForm.data[m.key]}
+                        onValueChange={(v) => envioForm.setData(m.key, v as EscolhaEnvio)}
+                        disabled={!envioDocumentos.temConfig}
+                        aria-label={`Envio automático da ${m.rotulo}`}
+                        style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
+                      >
+                        {([
+                          ['padrao', `Padrão do servidor (${m.padrao ? 'ligado' : 'desligado'})`],
+                          ['ligado', 'Ligado'],
+                          ['desligado', 'Desligado'],
+                        ] as const).map(([v, label]) => (
+                          <label key={v} htmlFor={`envio-${m.key}-${v}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                            <RadioGroupItem id={`envio-${m.key}-${v}`} value={v} />
+                            {label}
+                          </label>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  ))}
+                  {envioDocumentos.temConfig ? (
+                    <div>
+                      <Button type="submit" size="sm" disabled={envioForm.processing || !envioForm.isDirty}>
+                        Salvar envio
+                      </Button>
+                    </div>
+                  ) : (
+                    <small style={{ color: 'var(--fx-text-mute)' }}>
+                      Configure o regime fiscal da empresa para escolher o envio. Até lá vale o padrão do servidor.
+                    </small>
+                  )}
+                </form>
               ) : '—'}
             </dd>
             <dt>Cópia pro cliente</dt>
@@ -718,9 +776,8 @@ export default function Config({
             </dd>
           </dl>
           <small style={{ display: 'block', marginTop: 12, color: 'var(--fx-text-mute)' }}>
-            Estas duas chaves valem pra <b>toda a instalação</b>, não por empresa — moram em{' '}
-            <code className="fx-mono">Modules/NfeBrasil/Config/config.php</code> e mudam por
-            variável de ambiente. Ligar/desligar por empresa exigiria coluna própria, que ainda não existe.
+            Cada empresa escolhe o seu envio. "Padrão do servidor" segue a chave da instalação,
+            em <code className="fx-mono">Modules/NfeBrasil/Config/config.php</code>.
           </small>
         </section>
         </div>
