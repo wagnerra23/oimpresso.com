@@ -2703,38 +2703,6 @@
 .sells-cowork .vd-drawer-aplus .vd-drawer-tab.on .vd-drawer-tab-ct {
   background: var(--vd-green-soft); color: var(--vd-green);
 }
-/* Itens cards */
-/* Emit panel */
-.sells-cowork .vd-drawer-aplus .vd-emit .os-btn { margin-left: auto; flex-shrink: 0; }
-/* Sub-tabs fiscal */
-.sells-cowork .vd-drawer-aplus .vd-fsub button.on { background: var(--bg-2); color: var(--text); }
-/* Fiscal card grid */
-.sells-cowork .vd-drawer-aplus .vd-fcard-grid.single {
-  grid-template-columns: 1fr; max-width: 500px;
-}
-/* Fiscal card */
-.sells-cowork .vd-drawer-aplus .vd-fcard-fail.neutral {
-  background: var(--vd-neutral-soft);
-  border-left-color: var(--vd-neutral);
-  color: var(--text-dim);
-}
-.sells-cowork .vd-drawer-aplus .vd-fcard-copy.copied {
-  background: var(--vd-ok-soft); color: oklch(0.36 0.10 145);
-  border-color: transparent;
-}
-/* Timeline SEFAZ horizontal */
-.sells-cowork .vd-drawer-aplus .vd-fcard-step.done .vd-fcard-step-d {
-  background: var(--vd-green); border-color: var(--vd-green); color: #fff;
-}
-.sells-cowork .vd-drawer-aplus .vd-fcard-step.done::before { background: var(--vd-green); }
-.sells-cowork .vd-drawer-aplus .vd-fcard-step.failed .vd-fcard-step-d {
-  background: var(--vd-bad); border-color: var(--vd-bad); color: #fff;
-}
-.sells-cowork .vd-drawer-aplus .vd-fcard.failed .vd-fcard-step.done .vd-fcard-step-d { background: var(--vd-bad); border-color: var(--vd-bad); }
-.sells-cowork .vd-drawer-aplus .vd-fcard.failed .vd-fcard-step.done::before { background: var(--vd-bad); }
-/* Breakdown box */
-/* Payment tab */
-/* Timeline tab */
 /* responsive — KPIs em 2 cols se viewport apertado */
 @media (max-width: 1180px) {
 .sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(2, 1fr); }
@@ -3663,6 +3631,7 @@
 .sells-cowork .vendas-aplus .vd-head-clean {
   align-items: center; gap: 16px;
 }
+.sells-cowork .vendas-aplus .vd-head-clean .os-head-l { flex: 1 1 auto; min-width: 0; } /* protótipo: busca ⌘K encosta nas ações */
 .sells-cowork .vendas-aplus .vd-head-clean .os-head-l h1 {
   margin: 0; font-size: 22px; font-weight: 700;
   letter-spacing: -0.018em;
@@ -3696,6 +3665,18 @@
 .sells-cowork .vendas-aplus .vd-toolbar-r {
   display: inline-flex; align-items: center; gap: 4px;
 }
+/* Campo de busca da lista — porte de vendas.css do protótipo (.vd-filterbar .vd-search), 2026-11-21. */
+.sells-cowork .vendas-aplus .vd-toolbar .vd-search {
+  flex: 0 0 200px; min-width: 0; display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  transition: border-color var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+}
+.sells-cowork .vendas-aplus .vd-toolbar .vd-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.sells-cowork .vendas-aplus .vd-toolbar .vd-search svg { flex: 0 0 auto; color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-toolbar .vd-search input { flex: 1 1 auto; min-width: 0; border: 0; background: transparent; outline: none; font: var(--fs-3)/1 var(--font-sans); color: var(--text); }
+.sells-cowork .vendas-aplus .vd-toolbar .vd-search input::placeholder { color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-toolbar .vd-search-x { flex: 0 0 auto; display: grid; place-items: center; width: 20px; height: 20px; border: 0; border-radius: 5px; background: transparent; color: var(--text-mute); cursor: pointer; }
+.sells-cowork .vendas-aplus .vd-toolbar .vd-search-x:hover { background: var(--bg-2); color: var(--text); }
 .sells-cowork .vendas-aplus .vd-toolbar-sep {
   width: 1px; height: 18px; background: var(--border);
   margin: 0 4px;
