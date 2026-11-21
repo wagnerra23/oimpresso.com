@@ -20,6 +20,7 @@
 #   7. sample default (0)             → NÃO passa --sample-size (gold-set completo)
 #  11-13. pré-voo do corpus          → mcp:sync-memory antes dos evals; falha dele sai 1
 #                                       sem abortar os evals
+#  14-16. gate skipped              → escala como skipped (semana do ran_at, corpus_docs)
 set -uo pipefail
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/ct100-jana-evals.sh"
@@ -164,6 +165,60 @@ if [ "$RC" = "1" ] && ! grep -q "governance:ragas-eval-alert" "$TMP/docker-calls
   ok "fail-open: JSON ilegível → não escala e o exit do eval (1) é preservado"
 else
   fail "fail-open quebrado: rc=$RC (esperado 1) ou escalou sem JSON"
+fi
+
+# ── 14-16. SKIPPED também escala (o eval não mediu) ──────────────────────────
+# O buraco medido em 2026-11-21: 8 semanas de skipped seguidas sem alerta nenhum,
+# porque o parse só escalava `fail`. O JSON de SKIP é o que o eval emite de fato:
+# sem `week` (a data sai do ran_at) e com corpus_docs dentro de config_vigente.
+mk_docker_json_skip() {
+  mkdir -p "$TMP/bin"
+  if [ ! -x "$TMP/bin/python3" ] && command -v python >/dev/null 2>&1; then
+    printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$(command -v python)" > "$TMP/bin/python3"
+    chmod +x "$TMP/bin/python3"
+  fi
+  cat > "$TMP/bin/docker" <<EOF
+#!/usr/bin/env bash
+echo "\$@" >> "$TMP/docker-calls.log"
+case "\$1" in
+  inspect) exit 0 ;;
+  exec)
+    if [[ "\$*" == *"jana:ragas-real-eval"* ]]; then
+      echo '{"eval_kind":"real_pipeline","gate_status":"skipped","reason":"Nenhuma pergunta avaliável (no_context=51, synth_failed=0, judge_failed=0) — corpus/infra/juiz insuficiente. Não inventamos score.","ran_at":"2026-11-15T06:00:09-03:00","n_no_context":51,"config_vigente":{"corpus_docs":0}}'
+      exit 0
+    fi
+    exit 0 ;;
+  *) exit 0 ;;
+esac
+EOF
+  chmod +x "$TMP/bin/docker"
+  : > "$TMP/docker-calls.log"
+}
+
+# 14. MORDE: gate_status=skipped → escala, no container certo, como skipped
+mk_docker_json_skip
+RC="$(run_script)"
+if grep -q "exec oimpresso-mcp php artisan governance:ragas-eval-alert --gate-status=skipped" "$TMP/docker-calls.log"; then
+  ok "MORDE: gate skipped → escala como skipped (o eval que não mede deixa de ser silêncio)"
+else
+  fail "gate skipped → NÃO escalou (8 semanas mudas foi exatamente isto)"
+fi
+
+# 15. a evidência viaja: semana do ran_at, corpus_docs=0, no_context e a razão
+if grep -q -- "--week=2026-11-15" "$TMP/docker-calls.log" \
+   && grep -q -- "--corpus-docs=0" "$TMP/docker-calls.log" \
+   && grep -q -- "--n-no-context=51" "$TMP/docker-calls.log" \
+   && grep -q -- "--reason=" "$TMP/docker-calls.log"; then
+  ok "skipped: carrega semana (do ran_at), corpus_docs=0, n_no_context=51 e a razão"
+else
+  fail "skipped: evidência incompleta no alerta ($(grep governance:ragas "$TMP/docker-calls.log" | head -1))"
+fi
+
+# 16. o skip continua NÃO sendo falha do script (exit 0): quem avisa é o alerta
+if [ "$RC" = "0" ]; then
+  ok "skipped: exit do script segue 0 (o SKIP honesto não vira erro do invocador)"
+else
+  fail "skipped: esperava exit 0, veio $RC"
 fi
 
 # ── 11-13. PRÉ-VOO DO CORPUS: mcp:sync-memory antes dos evals ────────────────

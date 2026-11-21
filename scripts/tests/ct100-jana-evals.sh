@@ -178,6 +178,9 @@ fi
 
 # Escala pro canal HITL do brief (mcp_alertas_eventos) reusando a régua canônica
 # PersistsDriftAlert (ADR 0216): idempotência diária + escalonamento >3d.
+# Escala `fail` (qualidade abaixo do piso) E `skipped` (o eval não mediu). Até
+# 2026-11-21 só `fail` escalava, e as 8 semanas seguidas de skipped de 09-27 a 11-15
+# (corpus_docs=0) passaram sem aviso nenhum.
 # ⚠️ O artisan do ALERTA roda no container `oimpresso-mcp`, NÃO no de staging: o banco
 # do staging tem 15 tabelas e não tem `mcp_alertas_eventos`. Mesmo split do
 # staging-freshness — detecção onde o dado está, persistência onde o alerta vive.
@@ -192,19 +195,32 @@ i, j = raw.find("{"), raw.rfind("}")
 if i < 0 or j <= i:
     sys.exit(1)
 d = json.loads(raw[i:j+1])
-if str(d.get("gate_status", "")).lower() != "fail":
-    sys.exit(2)   # pass/skipped: nada a escalar
-out = ["--gate-status=fail"]
-for flag, key in (("--week", "week"), ("--faithfulness", "faithfulness_avg"),
-                  ("--relevancy", "relevancy_avg"), ("--context-recall", "context_recall_avg"),
-                  ("--n-evaluated", "n_evaluated")):
+status = str(d.get("gate_status", "")).lower()
+if status == "fail":
+    out = ["--gate-status=fail"]
+    pares = (("--week", "week"), ("--faithfulness", "faithfulness_avg"),
+             ("--relevancy", "relevancy_avg"), ("--context-recall", "context_recall_avg"),
+             ("--n-evaluated", "n_evaluated"))
+elif status == "skipped":
+    # O report de SKIP nao traz `week`: a data do run (ran_at) faz o papel.
+    if not d.get("week") and d.get("ran_at"):
+        d["week"] = str(d["ran_at"])[:10]
+    cfg = d.get("config_vigente") or {}
+    d["corpus_docs"] = cfg.get("corpus_docs")
+    d["reason"] = (d.get("reason") or "")[:300] or None
+    out = ["--gate-status=skipped"]
+    pares = (("--week", "week"), ("--n-no-context", "n_no_context"),
+             ("--corpus-docs", "corpus_docs"), ("--reason", "reason"))
+else:
+    sys.exit(2)   # pass: nada a escalar
+for flag, key in pares:
     v = d.get(key)
     if v is not None:
         out.append("%s=%s" % (flag, v))
 print(" ".join(shlex.quote(a) for a in out))
 PY
 )"
-  [ -z "$args" ] && { log "--- alerta: gate_status != fail (ou JSON ilegível) — nada a escalar"; return 0; }
+  [ -z "$args" ] && { log "--- alerta: gate_status pass (ou JSON ilegível) — nada a escalar"; return 0; }
   log "--- alerta: escalando pro HITL (mcp_alertas_eventos) — $args"
   set +e
   # shellcheck disable=SC2086
