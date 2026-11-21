@@ -30,6 +30,7 @@ import {
   Printer,
   Search,
   SlidersHorizontal,
+  X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
@@ -1133,6 +1134,14 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 /ia/dashboard (canon Jana). */}
           </div>
 
+          {/* Busca ⌘K no cabeçalho, entre o título e as ações, como no protótipo (vendas-page.jsx).
+              Esteve na linha de filtros de 2026-05-21 a 2026-11-21; lá agora fica o campo de busca. */}
+          <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
+            <Search size={12} />
+            <span>Buscar venda, cliente, chave SEFAZ…</span>
+            <kbd>⌘K</kbd>
+          </button>
+
           <div className="os-head-r">
             <button
               className="vd-toolbar-act"
@@ -1462,6 +1471,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               </button>
             </div>
 
+            {/* ADR 0178 — Visão sempre visível (Operacional/Financeira/Produção), logo depois do Foco,
+                como no protótipo: Foco · Visão · | · visão salva · Filtros avançados. */}
+            <SellsTabsVisao visao={visao} onChange={setVisao} />
+
             <span className="vd-toolbar-sep" />
 
             <div className="vd-views" ref={viewsRef} data-contract="saved-tree">
@@ -1565,9 +1578,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 </div>
               )}
             </div>
-            <span className="vd-toolbar-sep" />
-            {/* ADR 0178 — tabs Visão sempre visíveis (Operacional/Financeira/Produção). */}
-            <SellsTabsVisao visao={visao} onChange={setVisao} />
             <button
               type="button"
               className={'vd-filters-toggle' + (advancedOpen ? ' on' : '')}
@@ -1587,13 +1597,22 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             </button>
           </div>
           <div className="vd-toolbar-r">
-            {/* Busca ⌘K movida do header pra cá 2026-05-21 (Wagner) —
-                fica próxima dos filtros, contextualmente coerente. */}
-            <button className="vd-cmdk" onClick={() => setPalOpen(true)} type="button">
-              <Search size={12} />
-              <span>Buscar venda, cliente, chave SEFAZ…</span>
-              <kbd>⌘K</kbd>
-            </button>
+            {/* Campo de busca da lista, como no protótipo. Usa o mesmo estado da paleta ⌘K
+                (searchInput → q no /sells-list-json, debounce 300ms). */}
+            <div className="vd-search" role="search">
+              <Search size={13} />
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar venda, cliente ou chave…"
+                aria-label="Buscar vendas"
+              />
+              {searchInput && (
+                <button className="vd-search-x" type="button" onClick={() => setSearchInput('')} title="Limpar" aria-label="Limpar busca">
+                  <X size={12} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

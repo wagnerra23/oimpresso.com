@@ -14,16 +14,23 @@
 //
 // PT-BR enforce: labels "Operacional / Financeira / Produção" são UX visíveis.
 
-import { Briefcase, DollarSign, Factory } from 'lucide-react';
+// 2026-11-21 — desenho do protótipo (vendas-page.jsx): rótulo "Visão" + segmentos no mesmo
+// `.vd-vista` do Foco, sem ícones. Antes era um pill Tailwind com ícones (Briefcase/DollarSign/Factory).
 
 export type SellsVisao = 'operacional' | 'financeira' | 'producao';
 
 interface SellsTabsVisaoProps {
   visao: SellsVisao;
   onChange: (v: SellsVisao) => void;
-  /** Desabilita as tabs (ex: durante fetch). Default: false. */
+  /** Desabilita as opções (ex: durante fetch). Default: false. */
   disabled?: boolean;
 }
+
+const OPCOES: ReadonlyArray<{ key: SellsVisao; label: string; title: string }> = [
+  { key: 'operacional', label: 'Operacional', title: 'Pipeline, fiscal, SLA, ações rápidas — visão do dia-a-dia (padrão ROTA LIVRE biz=4)' },
+  { key: 'financeira', label: 'Financeira', title: 'Total, pago, a receber, comissão + multiseleção, totalizador, agrupamento' },
+  { key: 'producao', label: 'Produção', title: 'Localização, estágio FSM, sub-linha produtos — power-user OfficeImpresso migrado' },
+];
 
 export default function SellsTabsVisao({
   visao,
@@ -31,67 +38,21 @@ export default function SellsTabsVisao({
   disabled = false,
 }: SellsTabsVisaoProps) {
   return (
-    <div
-      role="tablist"
-      aria-label="Visão da lista de vendas"
-      className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5"
-    >
-      <TabButton
-        active={visao === 'operacional'}
-        onClick={() => onChange('operacional')}
-        disabled={disabled}
-        icon={<Briefcase size={14} />}
-        label="Operacional"
-        title="Pipeline, fiscal, SLA, ações rápidas — visão do dia-a-dia (padrão ROTA LIVRE biz=4)"
-      />
-      <TabButton
-        active={visao === 'financeira'}
-        onClick={() => onChange('financeira')}
-        disabled={disabled}
-        icon={<DollarSign size={14} />}
-        label="Financeira"
-        title="Total, pago, a receber, comissão + multiseleção, totalizador, agrupamento"
-      />
-      <TabButton
-        active={visao === 'producao'}
-        onClick={() => onChange('producao')}
-        disabled={disabled}
-        icon={<Factory size={14} />}
-        label="Produção"
-        title="Localização, estágio FSM, sub-linha produtos — power-user OfficeImpresso migrado"
-      />
+    <div className="vd-vista" role="group" aria-label="Visão da lista de vendas">
+      <span className="vd-vista-lbl">Visão</span>
+      {OPCOES.map((o) => (
+        <button
+          key={o.key}
+          type="button"
+          className={visao === o.key ? 'on' : ''}
+          aria-pressed={visao === o.key}
+          onClick={() => onChange(o.key)}
+          disabled={disabled}
+          title={o.title}
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
-  );
-}
-
-interface TabButtonProps {
-  active: boolean;
-  onClick: () => void;
-  disabled: boolean;
-  icon: React.ReactNode;
-  label: string;
-  title: string;
-}
-
-function TabButton({ active, onClick, disabled, icon, label, title }: TabButtonProps) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      aria-disabled={disabled}
-      onClick={onClick}
-      disabled={disabled}
-      title={title}
-      className={
-        'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ' +
-        (active
-          ? 'bg-background text-foreground shadow-sm'
-          : 'text-muted-foreground hover:text-foreground hover:bg-background/50')
-      }
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
   );
 }

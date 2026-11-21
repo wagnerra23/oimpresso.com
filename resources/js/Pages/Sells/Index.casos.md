@@ -5,8 +5,13 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-11-05"
+last_run: "2026-11-21"
 ---
+
+> ℹ️ **`last_run` 2026-11-05 → 2026-11-21 (G-6), onda 4 da paridade com o protótipo: cabeçalho e linha de filtros.** A
+> busca ⌘K voltou ao cabeçalho; na linha de filtros entrou o campo de busca do protótipo, ligado ao mesmo `q` que a paleta
+> já usava; a Visão passou para logo depois do Foco, com o mesmo desenho dele (rótulo + segmentos, sem ícones). Nenhum UC
+> desta tela trata da busca nem da ordem dos controles; nenhum foi reexecutado. O bump registra a reconciliação do trio.
 
 > ℹ️ **`last_run` 2026-11-04 → 2026-11-05 (G-6): só a fileira de KPIs mudou de largura.** Os 5 KPIs ficam numa linha
 > a 1280px (decisão [W] 2026-11-05), e o detalhamento por origem do Faturado hoje passa a 1 item por linha. Nenhum UC desta
