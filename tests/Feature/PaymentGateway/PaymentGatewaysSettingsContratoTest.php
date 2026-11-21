@@ -111,12 +111,9 @@ beforeEach(function () {
         $this->markTestSkipped('Lane sem tenant 98 semeado (ADR 0358) — contrato não exercitável.');
     }
 
-    $this->user = \App\User::factory()->create([
-        'business_id' => PGSET_TENANT,
-        'username' => 'ct_pgset_' . uniqid(),
-        'user_type' => 'user',
-        'allow_login' => 1,
-    ]);
+    // A tela exige `business_settings.access` desde 2026-11-19 (can: no grupo de rotas);
+    // o 403 sem ela é contrato de PaymentGatewaysPermissaoContratoTest.
+    $this->user = $this->usuarioComPermissoes(['business_settings.access'], $this->tenant);
 
     $this->sessao = ['user.business_id' => PGSET_TENANT, 'business.id' => PGSET_TENANT];
 

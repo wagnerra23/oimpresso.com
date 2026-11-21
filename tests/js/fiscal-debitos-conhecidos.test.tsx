@@ -24,7 +24,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@inertiajs/react', () => ({
   Head: () => null,
@@ -33,7 +33,7 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 import FxShell from '@/Pages/Fiscal/_components/FxShell';
-import { DEBITOS_CONHECIDOS } from '@/Pages/Fiscal/_lib/debitos-conhecidos';
+import { DEBITOS_CONHECIDOS, type DebitoConhecido } from '@/Pages/Fiscal/_lib/debitos-conhecidos';
 
 const PAGES = resolve(__dirname, '../../resources/js/Pages/Fiscal');
 
@@ -133,6 +133,28 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
 });
 
 describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
+  // ⚠️ AS DECISÕES AQUI SÃO DE EXEMPLO, PLANTADAS NA LISTA VIVA E RETIRADAS NO FIM.
+  // Até 2026-11-19 estes casos usavam as decisões reais do DF-e e da Configuração, e
+  // exigiam `> 0` delas. No dia em que [W] decidiu as três que existiam (lote 2 dos
+  // débitos do Fiscal), o teste passaria a reprovar POR GANHO: decidir não pode quebrar o
+  // teste de "a tela mostra o que falta decidir". O contrato é o desenho do bloco, não a
+  // existência de decisões em aberto — então os itens vêm do teste.
+  const PLANTADAS: DebitoConhecido[] = [
+    { tela: 'dfe', tom: 'warning', decisao: true, ancora: 'Dfe.casos.md', rotulo: 'sem teste',
+      titulo: 'EXEMPLO-DECISAO-DFE-1', texto: 'item plantado pelo teste' },
+    { tela: 'dfe', tom: 'warning', decisao: true, ancora: 'Dfe.casos.md', rotulo: 'sem teste',
+      titulo: 'EXEMPLO-DECISAO-DFE-2', texto: 'item plantado pelo teste' },
+    { tela: 'fiscal_config', tom: 'warning', decisao: true, ancora: 'Config.casos.md', rotulo: 'sem campo',
+      titulo: 'EXEMPLO-DECISAO-CONFIG', texto: 'item plantado pelo teste' },
+  ];
+  const lista = DEBITOS_CONHECIDOS as DebitoConhecido[];
+  beforeEach(() => {
+    lista.push(...PLANTADAS);
+  });
+  afterEach(() => {
+    for (const p of PLANTADAS) lista.splice(lista.indexOf(p), 1);
+  });
+
   it('UC-FDFE-06 · a tela com item de decisão desenha o bloco, com um item por decisão em aberto', () => {
     renderTela('dfe');
 
@@ -141,13 +163,13 @@ describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
     expect(screen.getByText('Decisão [W] pendente')).toBeTruthy();
 
     const esperados = DEBITOS_CONHECIDOS.filter(d => d.tela === 'dfe' && d.decisao);
-    expect(esperados.length).toBeGreaterThan(0);
+    expect(esperados.length).toBeGreaterThanOrEqual(2);
     expect(secao!.querySelectorAll('[data-ancora]')).toHaveLength(esperados.length);
     for (const d of esperados) expect(screen.getByText(d.titulo)).toBeTruthy();
   });
 
   it('UC-FDFE-06 · tela sem decisão em aberto não desenha NÓ NENHUM', () => {
-    // O Eventos tem 4 débitos e ZERO decisões — logo desenha o bloco de dívida e NÃO o de
+    // O Eventos tem débitos e ZERO decisões — logo desenha o bloco de dívida e NÃO o de
     // decisão. É o par que prova que os dois blocos são independentes, e não um só com
     // título trocado.
     renderTela('fiscal_eventos');
@@ -156,15 +178,9 @@ describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
   });
 
   it('UC-FDFE-06 · item de decisão aparece em UM bloco só — nunca nos dois', () => {
-    // O Config é a tela mais dura: tem itens dos dois tipos. Se o filtro `!decisao` do bloco
-    // de dívida cair, os de decisão aparecem duas vezes na mesma tela, e a repetição lê como
-    // duas dívidas onde há uma.
-    //
-    // ⚠️ OS NÚMEROS SÃO DERIVADOS, NUNCA FIXOS. Até 2026-09-04 este caso assertava `toBe(2)`
-    // e `toBe(3)`, e reprovou por GANHO: o `main` declarou 2 débitos novos no `Config.casos.md`
-    // e o teste acusou uma regressão que não existia. Número derivado de artefato vivo não se
-    // congela em assert — o contrato aqui é a PARTIÇÃO (interseção vazia, união completa), e
-    // ela vale para qualquer contagem.
+    // O Config tem itens dos dois tipos (o de decisão é plantado acima). Se o filtro
+    // `!decisao` do bloco de dívida cair, os de decisão aparecem duas vezes na mesma tela.
+    // Os números são DERIVADOS, nunca fixos: o contrato é a PARTIÇÃO.
     renderTela('fiscal_config');
 
     const naDivida = Array.from(bloco()!.querySelectorAll('[data-slot="alert-title"]')).map(
@@ -177,30 +193,27 @@ describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
     const doConfig = DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_config');
     const esperadoDecisao = doConfig.filter(d => d.decisao).length;
 
-    // A tela precisa exercitar os DOIS blocos, senão o caso não prova partição nenhuma.
     expect(esperadoDecisao).toBeGreaterThan(0);
     expect(doConfig.length - esperadoDecisao).toBeGreaterThan(0);
 
     expect(naDecisao.length).toBe(esperadoDecisao);
     expect(naDivida.length).toBe(doConfig.length - esperadoDecisao);
     expect(naDivida.filter(t => naDecisao.includes(t))).toEqual([]);
-
-    // E nada se perdeu no caminho: os dois blocos somados são todos os itens da tela.
     expect(naDivida.length + naDecisao.length).toBe(doConfig.length);
   });
+});
 
+describe('UC-FDFE-06 · a lista VIVA de decisões vem dos casos.md', () => {
   it('UC-FDFE-06 · só entra item cujo bullet [BACKLOG] diz `decisão [W]` — nada inventado', async () => {
-    renderTela('fiscal_config');
-
+    // Roda sobre a lista viva, em todas as telas: com zero decisões em aberto o laço não tem
+    // o que conferir, e isso é o estado certo depois que [W] decide — não um vazio a evitar.
     const { coletar } = await import('../../scripts/governance/fiscal-debitos-derive.mjs');
-    const exibidos = Array.from(
-      blocoDecisao()!.querySelectorAll('[data-slot="alert-title"]')
-    ).map(el => el.textContent);
+    const vivos = coletar();
 
-    for (const titulo of exibidos) {
-      const vivo = coletar().find(v => v.titulo === titulo);
-      expect(vivo, `"${titulo}" não é mais um bullet vivo`).toBeTruthy();
-      expect(vivo!.decisao, `"${titulo}" está no bloco de decisão sem dizer "decisão [W]"`).toBe(
+    for (const d of DEBITOS_CONHECIDOS.filter(x => x.decisao)) {
+      const vivo = vivos.find(v => v.titulo === d.titulo);
+      expect(vivo, `"${d.titulo}" não é mais um bullet vivo`).toBeTruthy();
+      expect(vivo!.decisao, `"${d.titulo}" está no bloco de decisão sem dizer "decisão [W]"`).toBe(
         true
       );
     }

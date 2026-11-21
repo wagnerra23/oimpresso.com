@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1098 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1097 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -13,7 +13,7 @@
 | [`Sells`](#sells) | 73 | 6 | 0 | 0 | 67 |
 | [`Financeiro`](#financeiro) | 57 | 6 | 1 | 0 | 50 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
+| [`Governance`](#governance) | 45 | 0 | 0 | 2 | 42 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 35 | 0 | 0 | 6 | 29 |
 | [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
@@ -478,7 +478,6 @@
 - **US-GOV-050** — Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/ _(`p1` · @wagner)_
 - **US-GOV-051** — Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10) _(`p1` · @wagner)_
 - **US-GOV-060** — 5 testes dropam tabela CORE sem skip — risco sobre o `oimpresso-staging` persistente _(`p1`)_
-- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
 - **US-GOV-028** — Governance sprint 2 cleanup — remover/atualizar 3 blocos legados do pre-commit _(`p2`)_
 - **US-GOV-029** — IA-OS onda 2 — promover anchor-gate de advisory a required _(`p2`)_
 - **US-GOV-030** — Screen-QA dim16 — adicionar workflow sentinela ausente no CI _(`p2`)_
@@ -487,7 +486,6 @@
 - **US-GOV-036** — Isolar corruptores era-sqlite restantes (lotes 2-3 — 11 de 18) _(`p2`)_
 - **US-GOV-037** — Backfill related_us em 132 charters sem link (join US→tela do SA-A5) _(`p2`)_
 - **US-GOV-038** — Ligar alerta do nightly-diff tripwire (NIGHTLY_DIFF_ALERT=1) pós-floor estável _(`p2`)_
-- **US-GOV-042** — anchor-lint pula status:arquivado + decidir destino do SPEC duplicado MemCofre/SRS _(`p2`)_
 - **US-GOV-044** — Reconciliar dívida anchor-fidelity residual na main (pós-ADR 0303) _(`p2`)_
 - **US-GOV-046** — Triar drafts acumulados em decisions/proposals/ _(`p2`)_
 - **US-GOV-047** — Consertar links internos quebrados na canon _(`p2`)_
@@ -510,6 +508,10 @@
 - **US-GOV-008** — CLI `php artisan module:grade` (machine-readable JSON) ✅ DONE
 - **US-GOV-009** — Cron daily snapshot histórico 90d ⚰️ CANCELADA (ADR 0399)
 - **US-GOV-010** — Integração ADS Brain B disparar agents auto ❌ BACKLOG
+
+### superseded
+
+- **US-GOV-013** — Tornar o gate visual ADR 0108 (visual-regression) REAL — sair do stub _(`p2`)_
 
 ## OficinaAuto
 
@@ -1181,11 +1183,7 @@
 
 ### todo
 
-- **US-PG-010** — Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada) _(`p0`)_
-- **US-PG-011** — Boleto híbrido (boleto + QR Pix no mesmo documento) _(`p1`)_
 - **US-PG-014** — Driver da API de cobrança do Banco do Brasil (registro, PDF e baixa de boleto) _(`p1` · @wagner)_
-- **US-PG-012** — Extrato/saldo bancário unificado + conciliação contábil _(`p2`)_
-- **US-PG-013** — Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente _(`p2`)_
 - **US-PG-001** — [SEC P0] Encrypted cast config_json (drift ADR 0170 §G) + rewrap command + 3 Pest
 - **US-PG-002** — [SEC P0] HMAC validation 4 webhooks legacy (espelhar Pagarme/InterPix) + WebhookProcessor refactor + 8 Pest
 - **US-PG-003** — [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache
@@ -1195,6 +1193,10 @@
 - **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+- **US-PG-010** — Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada)
+- **US-PG-011** — Boleto híbrido (boleto + QR Pix no mesmo documento)
+- **US-PG-012** — Extrato/saldo bancário unificado + conciliação contábil
+- **US-PG-013** — Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente
 
 ## NFSe
 

@@ -161,41 +161,42 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-officeimpresso-junit.xml \
-            Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
+            Modules/Officeimpresso/Tests/Feature/AlinharPacotesCatalogoCommandTest.php \
             Modules/Officeimpresso/Tests/Feature/ArchitectureTest.php \
-            Modules/Officeimpresso/Tests/Feature/ScaffoldTest.php \
-            Modules/Officeimpresso/Tests/Feature/SmokeRoutesTest.php \
-            Modules/Officeimpresso/Tests/Feature/ObservabilityServicesTest.php \
+            Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesIndexContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesLiberarPermissionTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php \
+            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresasIndexContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/DesktopAuditValidacaoTest.php \
             Modules/Officeimpresso/Tests/Feature/E2EJourneyDelphiBiz1Test.php \
+            Modules/Officeimpresso/Tests/Feature/ImportadorFirebirdFailClosedTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencaShowSemCredenciaisTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogDelphiAliasDependenciaTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogPassportSoDelphiTest.php \
+            Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
+            Modules/Officeimpresso/Tests/Feature/MultiTenantIsolationTest.php \
+            Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
+            Modules/Officeimpresso/Tests/Feature/ObservabilityServicesTest.php \
+            Modules/Officeimpresso/Tests/Feature/OfficeimpressoHealthCommandTest.php \
+            Modules/Officeimpresso/Tests/Feature/RegenerateViaPostTest.php \
+            Modules/Officeimpresso/Tests/Feature/ScaffoldTest.php \
+            Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php \
+            Modules/Officeimpresso/Tests/Feature/SmokeRoutesTest.php \
             Modules/Officeimpresso/Tests/Feature/Wave23OfficeimpressoSaturationTest.php \
             Modules/Officeimpresso/Tests/Feature/Wave25FirebirdImporterFixturesTest.php \
             Modules/Officeimpresso/Tests/Feature/Wave25ObservabilityExpandedTest.php \
             Modules/Officeimpresso/Tests/Feature/Wave27PolishTest.php \
-            Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
-            Modules/Officeimpresso/Tests/Feature/MultiTenantIsolationTest.php \
             tests/Feature/Api/DesktopAuthTest.php \
-            Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
-            Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
-            Modules/Officeimpresso/Tests/Feature/AlinharPacotesCatalogoCommandTest.php \
-            Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php \
-            Modules/Officeimpresso/Tests/Feature/ClientesIndexContratoTest.php \
-            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresasIndexContratoTest.php \
-            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php \
-            Modules/Officeimpresso/Tests/Feature/ClientesLiberarPermissionTest.php \
-            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
-            Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
-            Modules/Officeimpresso/Tests/Feature/LogPassportSoDelphiTest.php \
-            Modules/Officeimpresso/Tests/Feature/ImportadorFirebirdFailClosedTest.php \
-            Modules/Officeimpresso/Tests/Feature/LogDelphiAliasDependenciaTest.php \
-            Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php \
-            Modules/Officeimpresso/Tests/Feature/RegenerateViaPostTest.php \
-            Modules/Officeimpresso/Tests/Feature/LicencaShowSemCredenciaisTest.php \
-            Modules/Officeimpresso/Tests/Feature/DesktopAuditValidacaoTest.php \
-            Modules/Officeimpresso/Tests/Feature/OfficeimpressoHealthCommandTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php \
-            tests/Feature/LegacyMigration/LegacyArchiveRowsContratoTest.php
+            tests/Feature/LegacyMigration/LegacyArchiveRowsContratoTest.php \
+            --colors=always
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

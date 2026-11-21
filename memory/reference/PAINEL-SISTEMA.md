@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-18**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-20**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -44,8 +44,8 @@ lente: [construir]
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-26 |
 | Marketplaces | [BRIEFING](../requisitos/Marketplaces/BRIEFING.md) | 2026-10-27 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-11-12 |
-| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-11-17 |
-| Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
+| NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-11-18 |
+| Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-11-19 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-11-05 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-27 |
@@ -136,13 +136,13 @@ lente: [construir]
 - Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 158 workflows por classe
+### Censo — 160 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 120 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 122 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 27 | affects-clientes-label, agent-cost-per-pr, agent-pr-outcomes, baseline-folga, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -433,14 +433,14 @@ lente: [construir]
 
 ## Rastro
 
-- **636** handoffs · **813** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **636** handoffs · **814** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-11-18-refutacao-gt-g5-lote-11161-r1`
   - `2026-11-17-gerente-merge-fila`
   - `2026-11-17-arefi-calendario-captacao-2027`
   - `2026-11-16-associacoes-merge-das-6-ondas`
   - `2026-11-15-smoke-clientes-vivos`
   - `2026-11-14-runbook-deploy-producao`
-  - `2026-11-14-captacao-onda1-adr-esqueleto`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-11-18 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-11-20 · deriva das fontes canônicas, não as substitui._

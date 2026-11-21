@@ -33,7 +33,8 @@ class GenerateReportRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Middleware stack ('web' + 'authh' + 'auth') gate admin.
+        // `authh` é o IsInstalled (app/Http/Kernel.php), não gate de admin; esta
+        // request ainda não tem rota.
         // Sprint futuro vai adicionar Spatie permission check explicito
         // (ex: governance.reports.generate).
         return $this->user() !== null;

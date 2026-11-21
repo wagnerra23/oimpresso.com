@@ -5,8 +5,13 @@
 // linha. O envio segue o que `ProductUtil::createVariableProductVariations` lê do
 // `variable_product_form_part.blade.php`: `product_variation[0]` com o modelo e os valores, e os
 // cinco preços de cada valor no formato que o `Util::num_uf` não lê errado (vírgula, sem milhar).
+//
+// Paridade com o Blade pedida pelo [F] em 2026-11-19, antes de ligar a chave para todas as empresas:
+// escolher o modelo traz os valores dele (`getVariationTemplate`), o sub-SKU de cada valor pode ser
+// digitado (`sub_sku`, o código do fornecedor), cada valor leva fotos (`variation_images_0_<n>[]`) e
+// a compra e o lucro de uma linha podem ir para todas (o "aplicar a todos" do `product.js`).
 import { paraNumUf } from '@/Lib/numberPtBR';
-import { CASAS_PRECO, arredondar, precoInicial, somarPercentual } from './precos';
+import { CASAS_PRECO, arredondar, mudarCompra, mudarMargem, precoInicial, somarPercentual } from './precos';
 import type { PrecoSimples } from './precos';
 
 /** Modelo de variação da empresa, como o `ProductController::modelosDeVariacao` manda. */
@@ -21,6 +26,10 @@ export type FormatoSubSku = 'with_out_variation' | 'with_variation';
 export interface ValorDaGrade {
   nome: string;
   preco: PrecoSimples;
+  /** Sub-SKU digitado. Vazio: o servidor gera pelo formato (`generateSubSku`). */
+  subSku?: string;
+  /** Fotos do valor. Não vão para o rascunho: arquivo não pode ser guardado no navegador. */
+  imagens?: File[];
 }
 
 export interface Grade {
@@ -42,6 +51,60 @@ export function valorDoModelo(nome: string, modelo: ModeloVariacao | undefined):
   const alvo = nome.trim().toLowerCase();
   if (alvo === '' || !modelo) return null;
   return modelo.valores.find((v) => v.nome.trim().toLowerCase() === alvo)?.id ?? null;
+}
+
+/**
+ * Escolher o modelo traz os valores dele, como o Blade (`getVariationTemplate` monta uma linha por
+ * valor). Linhas já preenchidas ficam, com o preço que tinham; os valores do modelo que ainda não estão
+ * na grade entram depois delas, com o preço da primeira linha. Quem não vende um valor tira a linha.
+ */
+export function aoEscolherModelo(grade: Grade, modelo: ModeloVariacao | undefined, margemPadrao: number): Grade {
+  const base = { ...grade, modeloId: modelo?.id ?? null };
+  if (!modelo || modelo.valores.length === 0) return base;
+  const preenchidas = valoresPreenchidos(grade);
+  const jaTem = new Set(preenchidas.map((v) => v.nome.trim().toLowerCase()));
+  const preco = grade.valores[0]?.preco ?? precoInicial(margemPadrao);
+  const novos = modelo.valores
+    .filter((v) => !jaTem.has(v.nome.trim().toLowerCase()))
+    .map((v) => ({ nome: v.nome, preco: { ...preco } }));
+  return { ...base, valores: [...preenchidas, ...novos] };
+}
+
+/** "Aplicar a todos" do Blade: a compra ou o lucro da linha `i` vai para todas, refazendo a venda. */
+export function aplicarATodos(grade: Grade, i: number, campo: 'compra' | 'margem'): Grade {
+  const origem = grade.valores[i];
+  if (!origem) return grade;
+  const valor = origem.preco[campo];
+  return {
+    ...grade,
+    valores: grade.valores.map((v) => ({
+      ...v,
+      preco: campo === 'compra' ? mudarCompra(v.preco, valor) : mudarMargem(v.preco, valor),
+    })),
+  };
+}
+
+/** A grade sem as fotos, para o rascunho (arquivo não pode ser guardado no navegador). */
+export function gradeSemArquivos(grade: Grade): Grade {
+  return { ...grade, valores: grade.valores.map(({ imagens: _imagens, ...v }) => v) };
+}
+
+/** Nomes das fotos de cada valor, para o retrato que diz se a tela tem alteração não salva. */
+export function fotosDaGrade(grade: Grade): string[][] {
+  return grade.valores.map((v) => (v.imagens ?? []).map((f) => f.name));
+}
+
+/**
+ * As fotos no nome que o `ProductUtil::createVariableProductVariations` procura:
+ * `variation_images_<variação>_<posição do valor no envio>`. A posição é a dos valores preenchidos,
+ * a mesma de `camposDaGrade`, para a foto não cair no valor do lado.
+ */
+export function arquivosDaGrade(grade: Grade): Record<string, File[]> {
+  const saida: Record<string, File[]> = {};
+  valoresPreenchidos(grade).forEach((v, k) => {
+    if (v.imagens && v.imagens.length > 0) saida[`variation_images_0_${k}`] = v.imagens;
+  });
+  return saida;
 }
 
 /** Valores que vão ao servidor: os que têm nome. */
@@ -79,7 +142,7 @@ export function camposDaGrade(grade: Grade, modelo: ModeloVariacao | undefined, 
         variations: valoresPreenchidos(grade).map((v) => ({
           value: v.nome.trim(),
           variation_value_id: valorDoModelo(v.nome, modelo) ?? '',
-          sub_sku: '',
+          sub_sku: (v.subSku ?? '').trim(),
           default_purchase_price: texto(v.preco.compra),
           dpp_inc_tax: texto(somarPercentual(v.preco.compra, aliquota)),
           profit_percent: texto(v.preco.margem),
@@ -88,5 +151,6 @@ export function camposDaGrade(grade: Grade, modelo: ModeloVariacao | undefined, 
         })),
       },
     ],
+    ...arquivosDaGrade(grade),
   };
 }

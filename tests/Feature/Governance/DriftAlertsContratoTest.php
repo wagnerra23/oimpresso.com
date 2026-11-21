@@ -8,6 +8,7 @@ use Modules\Governance\Http\Controllers\DriftAlertsController;
 use Modules\Governance\Services\DriftAlertService;
 
 /**
+ * @covers-us US-GOV-004
  * Governance · /governance/drift — contrato do scan SCOPE.md × filesystem.
  *
  * Casos: resources/js/Pages/governance/DriftAlerts.casos.md (UC-GDRF-*).
