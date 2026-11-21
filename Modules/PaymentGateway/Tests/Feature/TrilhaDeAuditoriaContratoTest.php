@@ -26,7 +26,7 @@ use Modules\PaymentGateway\Services\Drivers\SicoobApiDriver;
  *
  * Tenant 98 (ADR 0358). Fica em Modules/PaymentGateway/Tests: roda na lane do módulo.
  */
-uses(DatabaseTransactions::class, \Tests\Support\WithSeededTenant::class);
+uses(\Tests\TestCase::class, DatabaseTransactions::class, \Tests\Support\WithSeededTenant::class);
 
 const TRILHA_BIZ = 98;
 
