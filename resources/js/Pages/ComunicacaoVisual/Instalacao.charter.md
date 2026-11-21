@@ -35,6 +35,13 @@ Contrato comportamental: [`Instalacao.casos.md`](Instalacao.casos.md).
 Concluída, a tela oferece "Baixar protocolo (PDF)" (`GET /comunicacao-visual/instalacoes/{id}/protocolo`,
 `ProtocoloInstalacao`, UC-CVCEL-07..10).
 
-Ainda não está na tela (não assuma que está): o envio do protocolo ao cliente. Os itens de EPI,
-nível e vedação do protótipo não têm onde ser gravados.
+Ao concluir, o servidor manda ao cliente pelo WhatsApp o link assinado do protocolo (`InstalacaoConcluida` →
+`NotifyInstalacaoConcluidaCvCustomer`, [`Index.casos.md`](Index.casos.md) UC-CVINST-15..19). A tela não mostra
+nada sobre esse envio.
+
+Ainda não está na tela (não assuma que está):
+- os itens de verificação que no protótipo mudam por instalação ("Andaime e EPI", "Nível e prumo", "Teste de
+  vedação", "Ponto elétrico conferido"…) — não há onde gravá-los nem de onde vem a lista de cada instalação;
+- as despesas da instalação com foto do recibo (UC-PCV-52 do protótipo) — esperam a decisão sobre cobrar ou não
+  do cliente.
 A regra do que pode ser enviado mora no backend (`ComprovanteInstalacao`); a tela só mostra a recusa.

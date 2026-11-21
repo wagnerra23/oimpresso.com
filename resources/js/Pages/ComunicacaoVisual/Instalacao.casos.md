@@ -5,8 +5,8 @@ irmaos: Instalacao.charter.md (lei) · Instalacao.tsx (código)
 tecnica: Caso de uso = narrativa do instalador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o instalador só deixa o comprovante se a tela abrir a instalação certa e se a foto recusada não parecer enviada; instalação ou cliente de outra empresa na tela é vazamento.
 owner: wagner
-last_run: "2026-11-19"
-last_run_ci: "2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest ComunicacaoVisual MySQL e vitest)."
+last_run: "2026-11-21"
+last_run_ci: "2026-11-21 — UC-CVCEL-01..03 e 07..09 viram ✅: verdict pass no manifesto publicado (scripts/casos-test-results.json); GH run 44573304458 (verticais-pest, PR #11256) também os passou. UC-CVCEL-04..06 e 10 (vitest, tests/js/cv-instalacao.test.tsx) passam no CI mas ainda não estão no manifesto, então seguem 🧪. ---- 2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest ComunicacaoVisual MySQL e vitest)."
 ---
 
 # Casos de Uso & Aceite — Instalação no celular (`/comunicacao-visual/instalacoes/{id}`)
@@ -20,15 +20,15 @@ last_run_ci: "2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest Co
 
 | UC | Caso | Prioridade | Origem | Teste | Status |
 |---|---|---|---|---|---|
-| UC-CVCEL-01 | A tela mostra OS, cliente, endereço, horário, equipe e o que o comprovante já tem | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoTelaContratoTest` | 🧪 |
-| UC-CVCEL-02 | Instalação de outra empresa é não encontrada | must `[T0]` | US-COMVIS-007 | `InstalacaoTelaContratoTest` | 🧪 |
-| UC-CVCEL-03 | Sem permissão não abre; quem só vê abre sem poder registrar | must | US-COMVIS-007 | `InstalacaoTelaContratoTest` | 🧪 |
+| UC-CVCEL-01 | A tela mostra OS, cliente, endereço, horário, equipe e o que o comprovante já tem | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoTelaContratoTest` | ✅ |
+| UC-CVCEL-02 | Instalação de outra empresa é não encontrada | must `[T0]` | US-COMVIS-007 | `InstalacaoTelaContratoTest` | ✅ |
+| UC-CVCEL-03 | Sem permissão não abre; quem só vê abre sem poder registrar | must | US-COMVIS-007 | `InstalacaoTelaContratoTest` | ✅ |
 | UC-CVCEL-04 | A foto vai para a API; enviada recarrega o comprovante, recusada aparece no alerta | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
 | UC-CVCEL-05 | A assinatura só sai com desenho, nome e aceite do cliente, e vai para a API com os três | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
 | UC-CVCEL-06 | Concluir só libera com os três itens; concluída não oferece mais nada | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
-| UC-CVCEL-07 | O protocolo traz OS, cliente, endereço, horários, equipe, as duas fotos e a assinatura com o aceite | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
-| UC-CVCEL-08 | Instalação ainda não concluída não tem protocolo | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
-| UC-CVCEL-09 | Concluída devolve o PDF; outra empresa é não encontrada; sem permissão 403 | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | 🧪 |
+| UC-CVCEL-07 | O protocolo traz OS, cliente, endereço, horários, equipe, as duas fotos e a assinatura com o aceite | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | ✅ |
+| UC-CVCEL-08 | Instalação ainda não concluída não tem protocolo | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | ✅ |
+| UC-CVCEL-09 | Concluída devolve o PDF; outra empresa é não encontrada; sem permissão 403 | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloContratoTest` | ✅ |
 | UC-CVCEL-10 | Concluída oferece "Baixar protocolo (PDF)"; aberta não oferece | must | US-COMVIS-007 · UC-PCV-25 | `cv-instalacao.test.tsx` | 🧪 |
 
 ## UC-CVCEL-01 · A tela mostra OS, cliente, endereço, horário, equipe e o que o comprovante já tem · `must`
@@ -37,21 +37,21 @@ last_run_ci: "2026-11-18 — nasce com a tela; veredito vem do CI do PR (Pest Co
 endereço, e a foto antes já enviada **Quando** o instalador abre a instalação **Então** a tela traz a OS, o
 nome e o endereço do cliente, o horário, a equipe, foto antes marcada, foto depois e assinatura pendentes.
 
-Status: 🧪
+Status: ✅ — verde no manifesto publicado (`scripts/casos-test-results.json`, verdict pass).
 
 ## UC-CVCEL-02 · Instalação de outra empresa é não encontrada · `must` `[T0]`
 
 **Quando** o instalador abre o endereço de uma instalação da empresa 99 **Então** 404, e nada dela aparece.
 Controle: a da própria empresa abre.
 
-Status: 🧪
+Status: ✅ — verde no manifesto publicado (`scripts/casos-test-results.json`, verdict pass).
 
 ## UC-CVCEL-03 · Sem permissão não abre; quem só vê abre sem poder registrar · `must`
 
 **Quando** quem não tem permissão da CV abre a instalação **Então** 403. Com `comvis.os.view` abre e não pode
 registrar; com `comvis.os.update_status` pode registrar.
 
-Status: 🧪
+Status: ✅ — verde no manifesto publicado (`scripts/casos-test-results.json`, verdict pass).
 
 ## UC-CVCEL-04 · A foto vai para a API; enviada recarrega o comprovante, recusada aparece no alerta · `must`
 
@@ -87,14 +87,14 @@ e o endereço do cliente, "19/11/2026 09:00 às 11:00", a conclusão "19/11/2026
 duas fotos e a assinatura como imagem, "Assinado por Marta Ribeiro" e a hora em que o cliente aceitou guardar
 a assinatura. As imagens vão dentro do PDF; o PDF não busca nada na rede.
 
-Status: 🧪
+Status: ✅ — verde no manifesto publicado (`scripts/casos-test-results.json`, verdict pass).
 
 ## UC-CVCEL-08 · Instalação ainda não concluída não tem protocolo · `must`
 
 **Dado** os três comprovantes gravados mas a instalação ainda não concluída **Quando** alguém pede o protocolo
 **Então** 422 "O protocolo sai depois de concluir a instalação."
 
-Status: 🧪
+Status: ✅ — verde no manifesto publicado (`scripts/casos-test-results.json`, verdict pass).
 
 ## UC-CVCEL-09 · Concluída devolve o PDF; outra empresa é não encontrada; sem permissão 403 · `must` `[T0]`
 
@@ -102,7 +102,7 @@ Status: 🧪
 (`application/pdf`, começa com `%PDF-`). O protocolo de uma instalação da empresa 99 dá 404, e quem não tem
 permissão da CV recebe 403.
 
-Status: 🧪
+Status: ✅ — verde no manifesto publicado (`scripts/casos-test-results.json`, verdict pass).
 
 ## UC-CVCEL-10 · Concluída oferece "Baixar protocolo (PDF)"; aberta não oferece · `must`
 
