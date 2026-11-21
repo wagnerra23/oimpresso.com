@@ -1,115 +1,85 @@
-// Editor da natureza em 4 passos (protótipo aprovado: natureza → CFOP → tributos → conferência).
-// A conferência é do servidor (POST /naturezas/conferir), chamada a cada alteração; o salvar trava
-// enquanto houver erro. RUNBOOK-tributacao §Naturezas · onda 3b.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ArrowLeft, Save } from 'lucide-react';
+// Editor da natureza em 7 passos — forma do protótipo `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`
+// (`renderEditor()`, `stepsHtml()`, `renderAside()`): Natureza · CFOP · ICMS · IPI · PIS e COFINS · IBS e CBS ·
+// Revisão, com a barra de passos mostrando o estado de cada um, navegação Anterior/Próximo, e a lateral
+// "No lançamento" com as ações. A conferência continua sendo do servidor (POST /naturezas/conferir), chamada a
+// cada alteração; o salvar trava enquanto houver erro. RUNBOOK-tributacao §Naturezas.
+//
+// Fora daqui (ainda não existe no produto): "Importar nota de referência", que lê o XML de uma nota e preenche
+// os passos. Precisa de leitura do XML no servidor e vem em PR próprio.
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+  ArrowLeft, ArrowRight, Check, CheckCircle2, CircleAlert, Copy, Info, Layers, MousePointerClick, Route, Tag,
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
-import { Switch } from '@/Components/ui/switch';
-import { Grid, Inline } from '@/Components/layout';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import {
-  CSOSN, CST_COM_ST, CST_IBS, CST_ICMS_NATUREZA, CST_IPI_E, CST_IPI_S, CST_PC_E, CST_PC_S, FINS, MODBC, MODBCST,
-  ORIG_IBS, ORIG_ICMS, ORIG_IPI, ORIG_MVA, ORIG_PC, TIPOS_NOTA, conferir, salvar,
-  type Alerta, type Natureza, type Opcao, type Regime,
-} from './natureza';
+import { Grid, Inline, Stack } from '@/Components/layout';
+import { CamposDoPasso, type Passo } from './EditorCampos';
+import { DESTINOS, lancamento, type Destino } from './lancamento';
+import { REGIME_NOME, conferir, salvar, type Alerta, type EmpresaResumo, type Natureza, type Regime } from './natureza';
 
-const PASSOS = [
-  { value: '0', label: '1 · Natureza' },
-  { value: '1', label: '2 · CFOP' },
-  { value: '2', label: '3 · Tributos' },
-  { value: '3', label: '4 · Conferência' },
+const PASSOS: { k: Passo; l: string; ico: typeof Tag; cor?: string; sub: (n: Natureza, sn: boolean, novo: boolean) => string }[] = [
+  { k: 'nat', l: 'Natureza', ico: Tag, sub: () => 'Nome, tipo e finalidade da natureza.' },
+  { k: 'cfop', l: 'CFOP', ico: Route, sub: (n) => `O lançamento escolhe o CFOP pela UF do ${n.tipo === 'E' ? 'remetente' : 'cliente'}.` },
+  { k: 'icms', l: 'ICMS', ico: Layers, cor: 'var(--origin-CRM-fg)', sub: (_n, sn) => `${sn ? 'CSOSN' : 'CST'}, base, origem da alíquota, ST e DIFAL.` },
+  { k: 'ipi', l: 'IPI', ico: Layers, cor: 'var(--origin-MFG-fg)', sub: () => 'Só para quem destaca IPI.' },
+  { k: 'pc', l: 'PIS e COFINS', ico: Layers, cor: 'var(--origin-FIN-fg)', sub: () => 'CST e alíquota do PIS e da COFINS.' },
+  { k: 'ibs', l: 'IBS e CBS', ico: Layers, cor: 'var(--stage-violet)', sub: () => 'Grupos da reforma tributária (ano de teste em 2026).' },
+  { k: 'rev', l: 'Revisão', ico: CheckCircle2, sub: () => 'Confira o que a natureza preenche no lançamento e salve.' },
 ];
 
-const ABAS = [
-  { value: 'icms', label: 'ICMS' },
-  { value: 'ipi', label: 'IPI' },
-  { value: 'pc', label: 'PIS e COFINS' },
-  { value: 'ibs', label: 'IBS e CBS' },
-];
+type DefPasso = (typeof PASSOS)[number];
+/** Passo pelo índice, sempre dentro da lista (o índice vem só de 0..6, mas o tipo não sabe). */
+const passoEm = (i: number): DefPasso => PASSOS[Math.min(Math.max(i, 0), PASSOS.length - 1)] as DefPasso;
 
-const SECAO_DO_PASSO: Record<string, Alerta['secao'][]> = {
-  '0': ['nat'], '1': ['cfop'], '2': ['icms', 'ipi', 'pc', 'ibs'], '3': ['nat', 'cfop', 'icms', 'ipi', 'pc', 'ibs'],
-};
+const COR_NIVEL: Record<Alerta['nivel'], string> = { erro: 'var(--neg)', aviso: 'var(--warn)', info: 'var(--accent)' };
+const SUPERFICIE = 'min-w-0 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]';
 
-function Campo({ id, rotulo, ajuda, children }: { id: string; rotulo: string; ajuda?: string; children: ReactNode }) {
+function mistura(cor: string, p: number, base = 'var(--surface)') {
+  return `color-mix(in oklch, ${cor} ${p}%, ${base})`;
+}
+
+function Alertas({ lista, irPara }: { lista: (Alerta | { nivel: 'ok'; mensagem: string; secao?: undefined })[]; irPara?: (i: number) => void }) {
+  if (!lista.length) return null;
   return (
-    <div className="space-y-1">
-      <Label htmlFor={id}>{rotulo}</Label>
-      {children}
-      {ajuda && <p className="text-xs text-muted-foreground">{ajuda}</p>}
-    </div>
+    <Stack gap={2}>
+      {lista.map((a, i) => {
+        const cor = a.nivel === 'ok' ? 'var(--pos)' : COR_NIVEL[a.nivel];
+        const Ico = a.nivel === 'ok' ? CheckCircle2 : a.nivel === 'info' ? Info : CircleAlert;
+        const passo = a.secao ? PASSOS.findIndex((p) => p.k === a.secao) : -1;
+        return (
+          <Inline key={i} align="start" gap={3} className="rounded-lg border px-3 py-2.5 text-[12.5px] leading-[1.45] text-[var(--text)]"
+            style={{ background: mistura(cor, 9), borderColor: `color-mix(in oklch, ${cor} 26%, transparent)` }}>
+            <Ico aria-hidden className="mt-0.5 h-[15px] w-[15px] flex-none" style={{ color: mistura(cor, 62, 'var(--text)') }} />
+            <div className="min-w-0">{a.mensagem}</div>
+            {irPara && passo >= 0 && (
+              <Button size="sm" variant="ghost" className="ml-auto h-[26px] flex-none px-2 text-[11.5px]" onClick={() => irPara(passo)}>
+                Passo {passo + 1} · {passoEm(passo).l}
+              </Button>
+            )}
+          </Inline>
+        );
+      })}
+    </Stack>
   );
 }
 
-function Escolha({ id, rotulo, valor, opcoes, onChange, disabled }: {
-  id: string; rotulo: string; valor: string; opcoes: readonly Opcao[]; onChange: (v: string) => void; disabled?: boolean;
-}) {
-  return (
-    <Campo id={id} rotulo={rotulo}>
-      <Select value={valor} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger id={id}><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {opcoes.map(([v, r]) => <SelectItem key={v} value={v}>{r}</SelectItem>)}
-        </SelectContent>
-      </Select>
-    </Campo>
-  );
-}
-
-function Percentual({ id, rotulo, valor, onChange, disabled }: {
-  id: string; rotulo: string; valor: number; onChange: (v: number) => void; disabled?: boolean;
-}) {
-  const [texto, setTexto] = useState(valor ? String(valor).replace('.', ',') : '');
-  return (
-    <Campo id={id} rotulo={`${rotulo} (%)`}>
-      <Input
-        id={id}
-        inputMode="decimal"
-        placeholder="0"
-        value={texto}
-        disabled={disabled}
-        onChange={(e) => {
-          setTexto(e.target.value);
-          const n = parseFloat(e.target.value.replace(/\./g, '').replace(',', '.'));
-          onChange(Number.isFinite(n) ? n : 0);
-        }}
-      />
-    </Campo>
-  );
-}
-
-function Liga({ id, rotulo, valor, onChange, disabled }: {
-  id: string; rotulo: string; valor: boolean; onChange: (v: boolean) => void; disabled?: boolean;
-}) {
-  return (
-    <Inline gap={2}>
-      <Switch id={id} checked={valor} onCheckedChange={onChange} disabled={disabled} />
-      <Label htmlFor={id}>{rotulo}</Label>
-    </Inline>
-  );
-}
-
-const VARIANTE: Record<Alerta['nivel'], 'danger' | 'warning' | 'info'> = { erro: 'danger', aviso: 'warning', info: 'info' };
-const NOME_NIVEL: Record<Alerta['nivel'], string> = { erro: 'Erro', aviso: 'Aviso', info: 'Informação' };
-
-export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: {
-  inicial: Natureza; editavel: boolean; regime: Regime; onFechar: (salvou: boolean) => void;
+export default function NaturezaEditor({ inicial, editavel, regime, empresa, onFechar }: {
+  inicial: Natureza; editavel: boolean; regime: Regime; empresa?: EmpresaResumo | null; onFechar: (salvou: boolean) => void;
 }) {
   const [n, setN] = useState<Natureza>(inicial);
-  const [passo, setPasso] = useState('0');
-  const [aba, setAba] = useState('icms');
+  const [base, setBase] = useState<string>(() => JSON.stringify(inicial));
+  const [passo, setPasso] = useState(0);
+  const [visto, setVisto] = useState<Set<Passo>>(() => new Set(inicial.id ? PASSOS.map((p) => p.k) : ['nat']));
+  const [destino, setDestino] = useState<Destino>('in');
   const [alertas, setAlertas] = useState<Alerta[] | null>(null);
   const [salvando, setSalvando] = useState(false);
   const pedido = useRef(0);
   const sn = regime === 'SN';
-  const entrada = n.tipo === 'E';
   const ro = !editavel;
+  const novo = !n.id;
+  const alterada = JSON.stringify(n) !== base;
 
   useEffect(() => {
     if (ro) return;
@@ -121,243 +91,254 @@ export default function NaturezaEditor({ inicial, editavel, regime, onFechar }: 
   }, [n, ro]);
 
   const muda = (f: (x: Natureza) => Natureza) => setN((x) => f(structuredClone(x)));
-  const erros = (alertas ?? []).filter((a) => a.nivel === 'erro').length;
-  const cstAtual = sn ? n.icms.csosn : n.icms.cst;
-  const temSt = CST_COM_ST.includes(cstAtual);
+  const erros = (alertas ?? []).filter((a) => a.nivel === 'erro');
+  const errosDo = (k: Passo) => (k === 'rev' ? erros.length : erros.filter((a) => a.secao === k).length);
+  const previa = useMemo(() => lancamento(n, destino, regime, empresa ?? null), [n, destino, regime, empresa]);
+  const st = passoEm(passo);
+
+  const ir = (i: number) => {
+    if (i < 0 || i >= PASSOS.length) return;
+    setPasso(i);
+    setVisto((v) => new Set(v).add(passoEm(i).k));
+  };
 
   const gravar = async () => {
     setSalvando(true);
     const r: Awaited<ReturnType<typeof salvar>> = await salvar(n)
       .catch(() => ({ ok: false as const, mensagem: 'Não foi possível salvar agora.' }));
     setSalvando(false);
-    if (r.ok) { toast.success('Natureza salva.'); onFechar(true); return; }
-    if (r.alertas) { setAlertas(r.alertas); setPasso('3'); }
+    if (r.ok) { toast.success(novo ? 'Natureza criada.' : 'Natureza salva.'); onFechar(true); return; }
+    if (r.alertas) { setAlertas(r.alertas); ir(PASSOS.length - 1); }
     toast.error(r.mensagem ?? 'A conferência encontrou erro. Corrija antes de salvar.');
   };
 
-  const visiveis = (alertas ?? []).filter((a) => (SECAO_DO_PASSO[passo] ?? []).includes(a.secao));
+  // Duplicar: abre uma cópia ainda não salva, com outro nome — o salvar cria uma natureza nova.
+  const duplicar = () => {
+    const copia: Natureza = { ...structuredClone(n), id: undefined, nome: `${n.nome} (cópia)` };
+    setN(copia);
+    setBase('');
+    setVisto(new Set(PASSOS.map((p) => p.k)));
+    ir(0);
+    toast.success('Cópia aberta. Ajuste o nome e salve.');
+  };
+
+  const situacao = novo ? null
+    : !n.ativo ? { t: 'Inativa', c: 'var(--text-mute)' }
+    : erros.length ? { t: `${erros.length} ${erros.length === 1 ? 'pendência' : 'pendências'}`, c: 'var(--neg)' }
+    : { t: 'Em uso', c: 'var(--pos)' };
+
+  const doPasso = st.k === 'rev' ? [] : erros.concat((alertas ?? []).filter((a) => a.nivel !== 'erro')).filter((a) => a.secao === st.k);
+  const Ico = st.ico;
+  const hue = st.cor ?? 'var(--accent)';
 
   return (
-    <Card id="naturezas" data-contract="naturezas-editor">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">
-          <Inline justify="between" gap={2}>
-          <Inline gap={2}>
-            <Button size="sm" variant="ghost" aria-label="Voltar para a lista" onClick={() => onFechar(false)}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            {n.id ? n.nome || 'Natureza sem nome' : 'Nova natureza'}
-            {ro && <Badge variant="info">Só leitura</Badge>}
-          </Inline>
-          {!ro && (
-            <Button size="sm" onClick={gravar} disabled={salvando || erros > 0 || alertas === null}>
-              <Save className="h-4 w-4 mr-1.5" />
-              {erros > 0 ? `${erros} ${erros === 1 ? 'erro' : 'erros'} para salvar` : 'Salvar natureza'}
-            </Button>
-          )}
-          </Inline>
-        </CardTitle>
+    <Stack asChild gap={4}>
+      <section id="naturezas" data-contract="naturezas-editor" aria-labelledby="ed-titulo">
+        <Inline asChild wrap align="end" gap={3} className="gap-x-6">
+          <header>
+            <div className="min-w-0">
+              <button type="button" onClick={() => onFechar(false)}
+                className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-dim)] hover:text-[var(--text)]">
+                <ArrowLeft aria-hidden className="h-3.5 w-3.5" />
+                {alterada && !ro ? 'Voltar sem salvar' : 'Naturezas de operação'}
+              </button>
+              <h2 id="ed-titulo" className="m-0 text-[22px] font-semibold leading-tight tracking-[-.02em] text-[var(--text)]">
+                {n.nome || 'Nova natureza'}
+              </h2>
+              <p className="mt-1 text-[12.5px] leading-[1.45] text-[var(--text-dim)]">
+                Passo {passo + 1} de {PASSOS.length} · {st.l} · {ro ? 'só leitura'
+                  : novo ? 'natureza nova, ainda não salva' : alterada ? 'alterações não salvas' : 'sem alterações'} · {REGIME_NOME[regime]}
+              </p>
+            </div>
+            <Inline gap={2} className="ml-auto">
+              {ro && <Badge variant="info">Só leitura</Badge>}
+              {situacao && (
+                <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[.04em]"
+                  style={{ color: mistura(situacao.c, 62, 'var(--text)') }}>
+                  <span aria-hidden className="h-1.5 w-1.5 rounded-full" style={{ background: situacao.c }} />{situacao.t}
+                </span>
+              )}
+            </Inline>
+          </header>
+        </Inline>
+
         {ro && (
-          <p className="text-xs text-muted-foreground">
+          <p className="m-0 text-xs text-[var(--text-dim)]">
             Esta natureza já é usada pelo cálculo da nota. Ela poderá ser editada aqui quando o cálculo passar a ler esta tela.
           </p>
         )}
-        <Segmented value={passo} onValueChange={(v) => v && setPasso(v)} options={PASSOS} />
-      </CardHeader>
-      <CardContent>
-        <Grid cols={1} gap={6} className="lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-4">
-            {passo === '0' && (
-              <Grid cols={1} gap={4} className="sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <Campo id="nat-nome" rotulo="Nome" ajuda="Vai no campo natOp da nota.">
-                    <Input id="nat-nome" value={n.nome} disabled={ro} maxLength={80}
-                      onChange={(e) => muda((x) => ({ ...x, nome: e.target.value }))} />
-                  </Campo>
-                </div>
-                <Escolha id="nat-tipo" rotulo="Tipo da nota" valor={n.tipo} opcoes={TIPOS_NOTA} disabled={ro}
-                  onChange={(v) => muda((x) => {
-                    const e = v === 'E';
-                    x.tipo = v as Natureza['tipo'];
-                    x.ipi.cst = e ? '49' : '53';
-                    x.pis.cst = e ? '98' : '01';
-                    x.cofins.cst = e ? '98' : '01';
-                    x.pis.cstSN = e ? '98' : '49';
-                    x.cofins.cstSN = e ? '98' : '49';
-                    return x;
-                  })} />
-                <Escolha id="nat-fin" rotulo="Finalidade" valor={n.fin} opcoes={FINS} disabled={ro}
-                  onChange={(v) => muda((x) => ({ ...x, fin: v as Natureza['fin'], ref: v === '4' ? true : x.ref }))} />
-                <Liga id="nat-ref" rotulo="Pede a chave da nota de origem" valor={n.ref} disabled={ro}
-                  onChange={(v) => muda((x) => ({ ...x, ref: v }))} />
-                <Liga id="nat-ativo" rotulo="Ativa" valor={n.ativo} disabled={ro}
-                  onChange={(v) => muda((x) => ({ ...x, ativo: v }))} />
-              </Grid>
-            )}
 
-            {passo === '1' && (
-              <Grid cols={1} gap={4} className="sm:grid-cols-3">
-                {([['in', 'Dentro do estado'], ['out', 'Outro estado'], ['ext', 'Exterior (opcional)']] as const).map(([k, r]) => (
-                  <Campo key={k} id={`nat-cfop-${k}`} rotulo={r}>
-                    <Input id={`nat-cfop-${k}`} className="font-mono" inputMode="numeric" maxLength={4} disabled={ro}
-                      placeholder={(entrada ? { in: '1', out: '2', ext: '3' } : { in: '5', out: '6', ext: '7' })[k] + '000'}
-                      value={n.cfop[k]}
-                      onChange={(e) => muda((x) => { x.cfop[k] = e.target.value.replace(/\D/g, ''); return x; })} />
-                  </Campo>
-                ))}
-              </Grid>
-            )}
+        <Grid cols={1} gap={4} className="items-start lg:grid-cols-[minmax(0,1fr)_336px]">
+          <section className={SUPERFICIE} aria-labelledby="passo-titulo">
+            <Inline asChild gap={0} align="stretch" className="m-0 list-none overflow-x-auto bg-[var(--surface)] px-2">
+            <ol aria-label="Passos">
+              {PASSOS.map((p, i) => {
+                const atual = i === passo;
+                const nErr = visto.has(p.k) ? errosDo(p.k) : 0;
+                const ok = !atual && visto.has(p.k) && !nErr && alertas !== null;
+                const sub = atual ? 'agora' : nErr ? `${nErr} ${nErr === 1 ? 'pendência' : 'pendências'}`
+                  : visto.has(p.k) ? (p.k === 'rev' ? 'pronta' : 'conferido') : 'a fazer';
+                const corN = atual ? 'var(--accent)' : nErr ? 'var(--neg)' : ok ? 'var(--pos)' : null;
+                const estilo: CSSProperties = corN
+                  ? atual
+                    ? { background: corN, borderColor: corN, color: 'var(--accent-fg)' }
+                    : { background: mistura(corN, nErr ? 12 : 14), borderColor: mistura(corN, nErr ? 45 : 40, 'var(--border)'), color: mistura(corN, 70, 'var(--text)') }
+                  : {};
+                return (
+                  <Inline asChild key={p.k} gap={0} align="stretch" className="flex-[1_0_auto]">
+                  <li>
+                    <button type="button" onClick={() => ir(i)} aria-current={atual ? 'step' : undefined}
+                      className={`flex w-full items-center gap-2 border-b-2 px-2.5 py-3 text-left ${atual ? 'border-[var(--accent)]' : 'border-transparent'}`}>
+                      <span className="inline-flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)] font-mono text-[11.5px] font-semibold text-[var(--text-dim)]"
+                        style={estilo}>
+                        {ok ? <Check aria-hidden className="h-[13px] w-[13px]" /> : i + 1}
+                      </span>
+                      <span>
+                        <b className={`block whitespace-nowrap text-[12.5px] font-semibold leading-tight ${atual || ok ? 'text-[var(--text)]' : 'text-[var(--text-dim)]'}`}>{p.l}</b>
+                        <small className="block whitespace-nowrap text-[11px] leading-tight"
+                          style={{ color: nErr && !atual ? mistura('var(--neg)', 62, 'var(--text)') : 'var(--text-mute)' }}>{sub}</small>
+                      </span>
+                    </button>
+                  </li>
+                  </Inline>
+                );
+              })}
+            </ol>
+            </Inline>
 
-            {passo === '2' && (
-              <div className="space-y-4">
-                <Segmented value={aba} onValueChange={(v) => v && setAba(v)} options={ABAS} />
+            <Inline wrap gap={3} className="border-y border-[var(--border)] px-4 py-3" style={{ background: mistura(hue, 5) }}>
+              <span aria-hidden className="inline-flex h-[30px] w-[30px] flex-none items-center justify-center rounded-lg"
+                style={{ background: `color-mix(in oklch, ${hue} 14%, transparent)`, color: mistura(hue, 62, 'var(--text)') }}>
+                <Ico className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <Inline asChild gap={0}>
+                <h3 id="passo-titulo" className="m-0 text-[15px] font-semibold leading-snug text-[var(--text)]">
+                  <span aria-hidden className="mr-2 inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--accent)] font-mono text-[11.5px] font-semibold text-[var(--accent-fg)]">
+                    {passo + 1}
+                  </span>
+                  {st.l}
+                </h3>
+                </Inline>
+                <p className="mt-0.5 text-[11.5px] leading-snug text-[var(--text-dim)]">{st.sub(n, sn, novo)}</p>
+              </div>
+            </Inline>
 
-                {aba === 'icms' && (
-                  <Grid cols={1} gap={4} className="sm:grid-cols-2">
-                    {sn
-                      ? <Escolha id="icms-csosn" rotulo="CSOSN" valor={n.icms.csosn} opcoes={CSOSN} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.csosn = v; return x; })} />
-                      : <Escolha id="icms-cst" rotulo="CST" valor={n.icms.cst} opcoes={CST_ICMS_NATUREZA} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.cst = v; return x; })} />}
-                    <Escolha id="icms-modbc" rotulo="Modalidade da base" valor={n.icms.modbc} opcoes={MODBC} disabled={ro}
-                      onChange={(v) => muda((x) => { x.icms.modbc = v; return x; })} />
-                    <Escolha id="icms-origem" rotulo="Origem da alíquota" valor={n.icms.origem} opcoes={ORIG_ICMS} disabled={ro}
-                      onChange={(v) => muda((x) => { x.icms.origem = v as Natureza['icms']['origem']; return x; })} />
-                    {n.icms.origem === 'fixa' && <Percentual id="icms-p" rotulo="Alíquota" valor={n.icms.p} disabled={ro}
-                      onChange={(v) => muda((x) => { x.icms.p = v; return x; })} />}
-                    {!sn && ['20', '70'].includes(n.icms.cst) && <Percentual id="icms-red" rotulo="Redução da base" valor={n.icms.red} disabled={ro}
-                      onChange={(v) => muda((x) => { x.icms.red = v; return x; })} />}
-                    {!sn && n.icms.cst === '51' && <Percentual id="icms-dif" rotulo="Diferimento" valor={n.icms.pDif} disabled={ro}
-                      onChange={(v) => muda((x) => { x.icms.pDif = v; return x; })} />}
-                    {sn && ['101', '201'].includes(n.icms.csosn) && <Percentual id="icms-cred" rotulo="Crédito do Simples" valor={n.icms.pCredSN} disabled={ro}
-                      onChange={(v) => muda((x) => { x.icms.pCredSN = v; return x; })} />}
-                    <Inline wrap gap={4} className="sm:col-span-2">
-                      <Liga id="icms-frete" rotulo="Frete e despesas na base" valor={n.icms.bFrete} disabled={ro}
-                        onChange={(v) => muda((x) => { x.icms.bFrete = v; return x; })} />
-                      <Liga id="icms-ipi" rotulo="IPI na base" valor={n.icms.bIPI} disabled={ro}
-                        onChange={(v) => muda((x) => { x.icms.bIPI = v; return x; })} />
-                      <Liga id="icms-desc" rotulo="Desconta o desconto da base" valor={n.icms.bDesc} disabled={ro}
-                        onChange={(v) => muda((x) => { x.icms.bDesc = v; return x; })} />
-                    </Inline>
-                    {temSt && (
-                      <>
-                        <Escolha id="st-modbc" rotulo="Modalidade da base do ST" valor={n.icms.st.modbcst} opcoes={MODBCST} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.st.modbcst = v; return x; })} />
-                        <Escolha id="st-mva" rotulo="Origem da MVA" valor={n.icms.st.mvaOrig} opcoes={ORIG_MVA} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.st.mvaOrig = v as 'produto' | 'fixa'; return x; })} />
-                        {n.icms.st.mvaOrig === 'fixa' && <Percentual id="st-mva-p" rotulo="MVA" valor={n.icms.st.mva} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.st.mva = v; return x; })} />}
-                        <Percentual id="st-red" rotulo="Redução da base do ST" valor={n.icms.st.redB} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.st.redB = v; return x; })} />
-                      </>
-                    )}
-                    {!entrada && n.fin !== '4' && (
-                      <Inline wrap gap={4} className="sm:col-span-2">
-                        <Liga id="icms-difal" rotulo="Calcular DIFAL" valor={n.icms.difal} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.difal = v; return x; })} />
-                        <Liga id="icms-fcp" rotulo="Calcular FCP" valor={n.icms.fcp} disabled={ro}
-                          onChange={(v) => muda((x) => { x.icms.fcp = v; return x; })} />
-                      </Inline>
-                    )}
-                  </Grid>
-                )}
-
-                {aba === 'ipi' && (
-                  <Grid cols={1} gap={4} className="sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <Liga id="ipi-on" rotulo="Destacar IPI" valor={n.ipi.on} disabled={ro}
-                        onChange={(v) => muda((x) => { x.ipi.on = v; return x; })} />
-                    </div>
-                    {n.ipi.on && (
-                      <>
-                        <Escolha id="ipi-cst" rotulo="CST do IPI" valor={n.ipi.cst} opcoes={entrada ? CST_IPI_E : CST_IPI_S} disabled={ro}
-                          onChange={(v) => muda((x) => { x.ipi.cst = v; return x; })} />
-                        <Campo id="ipi-cenq" rotulo="Enquadramento (cEnq)">
-                          <Input id="ipi-cenq" className="font-mono" maxLength={3} disabled={ro} value={n.ipi.cEnq}
-                            onChange={(e) => muda((x) => { x.ipi.cEnq = e.target.value.replace(/\D/g, ''); return x; })} />
-                        </Campo>
-                        <Escolha id="ipi-origem" rotulo="Origem da alíquota" valor={n.ipi.origem} opcoes={ORIG_IPI} disabled={ro}
-                          onChange={(v) => muda((x) => { x.ipi.origem = v as Natureza['ipi']['origem']; return x; })} />
-                        {n.ipi.origem === 'fixa' && <Percentual id="ipi-p" rotulo="Alíquota" valor={n.ipi.p} disabled={ro}
-                          onChange={(v) => muda((x) => { x.ipi.p = v; return x; })} />}
-                      </>
-                    )}
-                  </Grid>
-                )}
-
-                {aba === 'pc' && (
-                  <Grid cols={1} gap={6} className="sm:grid-cols-2">
-                    {(['pis', 'cofins'] as const).map((k) => (
-                      <div key={k} className="space-y-4">
-                        <p className="text-sm font-medium">{k === 'pis' ? 'PIS' : 'COFINS'}</p>
-                        <Escolha id={`${k}-cst`} rotulo={sn ? 'CST no Simples' : 'CST'}
-                          valor={sn ? n[k].cstSN : n[k].cst}
-                          opcoes={entrada ? CST_PC_E : CST_PC_S} disabled={ro}
-                          onChange={(v) => muda((x) => { if (sn) x[k].cstSN = v; else x[k].cst = v; return x; })} />
-                        <Escolha id={`${k}-origem`} rotulo="Origem da alíquota" valor={n[k].origem} opcoes={ORIG_PC} disabled={ro}
-                          onChange={(v) => muda((x) => { x[k].origem = v as Natureza['pis']['origem']; return x; })} />
-                        {n[k].origem === 'fixa' && <Percentual id={`${k}-p`} rotulo="Alíquota" valor={n[k].p} disabled={ro}
-                          onChange={(v) => muda((x) => { x[k].p = v; return x; })} />}
-                        <Liga id={`${k}-excl`} rotulo="Tirar o ICMS da base" valor={n[k].exclICMS} disabled={ro}
-                          onChange={(v) => muda((x) => { x[k].exclICMS = v; return x; })} />
+            <Stack gap={4} className="p-4">
+              {st.k === 'rev' ? (
+                <>
+                  <div>
+                    <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-[var(--text-dim)]">Cliente</span>
+                    <Segmented aria-label="Destino do cliente" value={destino} onValueChange={(v) => setDestino(v as Destino)} options={DESTINOS} />
+                  </div>
+                  <Grid gap={0} className="gap-px overflow-hidden rounded-lg border border-[var(--border-2)] bg-[var(--border-2)]"
+                    style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}>
+                    {previa.map((x) => (
+                      <div key={x.rotulo} className="min-w-0 border-t-[3px] bg-[var(--surface)] px-3 py-2.5" style={{ borderTopColor: x.cor }}>
+                        <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-[var(--text-dim)]">{x.rotulo}</span>
+                        <b className="block break-words text-[13px] font-semibold leading-snug text-[var(--text)]">
+                          {x.codigo && <code className="font-mono text-xs font-semibold" style={{ color: mistura(x.cor, 62, 'var(--text)') }}>{x.codigo}</code>}
+                          {x.codigo && x.texto ? ' ' : ''}{x.texto}
+                        </b>
+                        {x.sub && <span className="mt-0.5 block text-[11.5px] leading-snug text-[var(--text-dim)]">{x.sub}</span>}
                       </div>
                     ))}
                   </Grid>
-                )}
+                  <Stack gap={2}>
+                    <span className="block text-[10.5px] font-semibold uppercase tracking-[.04em] text-[var(--text-dim)]">Conferência</span>
+                    {ro ? <p className="m-0 text-xs text-[var(--text-dim)]">Natureza só de leitura: não é conferida aqui.</p>
+                      : alertas === null ? <p className="m-0 text-xs text-[var(--text-dim)]">Conferindo…</p>
+                      : <Alertas irPara={ir} lista={alertas.length ? alertas
+                          : [{ nivel: 'ok', mensagem: 'Natureza consistente. Pode ser usada no lançamento.' }]} />}
+                  </Stack>
+                </>
+              ) : (
+                <>
+                  <CamposDoPasso passo={st.k} n={n} muda={muda} regime={regime} ro={ro} uf={empresa?.uf ?? 'da empresa'} />
+                  <Alertas lista={doPasso} />
+                </>
+              )}
+            </Stack>
 
-                {aba === 'ibs' && (
-                  <Grid cols={1} gap={4} className="sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <Liga id="ibs-on" rotulo="Informar IBS e CBS" valor={n.ibs.on} disabled={ro}
-                        onChange={(v) => muda((x) => { x.ibs.on = v; return x; })} />
-                    </div>
-                    {n.ibs.on && (
-                      <>
-                        <Escolha id="ibs-cst" rotulo="CST" valor={n.ibs.cst} opcoes={CST_IBS} disabled={ro}
-                          onChange={(v) => muda((x) => { x.ibs.cst = v; return x; })} />
-                        <Campo id="ibs-cclass" rotulo="cClassTrib" ajuda="6 dígitos.">
-                          <Input id="ibs-cclass" className="font-mono" maxLength={6} disabled={ro} value={n.ibs.cClass}
-                            onChange={(e) => muda((x) => { x.ibs.cClass = e.target.value.replace(/\D/g, ''); return x; })} />
-                        </Campo>
-                        <Escolha id="ibs-origem" rotulo="Origem das alíquotas" valor={n.ibs.origem} opcoes={ORIG_IBS} disabled={ro}
-                          onChange={(v) => muda((x) => { x.ibs.origem = v as 'padrao' | 'fixa'; return x; })} />
-                        {n.ibs.cst === '200' && <Percentual id="ibs-red" rotulo="Redução" valor={n.ibs.pRed} disabled={ro}
-                          onChange={(v) => muda((x) => { x.ibs.pRed = v; return x; })} />}
-                      </>
-                    )}
-                  </Grid>
-                )}
-              </div>
-            )}
+            <Inline wrap gap={2} className="border-t border-[var(--border)] bg-[var(--bg-2)] px-4 py-3">
+              {passo > 0 && (
+                <Button variant="outline" onClick={() => ir(passo - 1)}>
+                  <ArrowLeft className="mr-1.5 h-4 w-4" />{passoEm(passo - 1).l}
+                </Button>
+              )}
+              {passo < PASSOS.length - 1 && (
+                <Button className="ml-auto" onClick={() => ir(passo + 1)}>
+                  Próximo: {passoEm(passo + 1).l}<ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+              )}
+            </Inline>
+          </section>
 
-            {passo === '3' && (
-              <p className="text-sm text-muted-foreground">
-                Erro bloqueia o salvar. Aviso e informação não bloqueiam. As regras desta conferência ainda não passaram por
-                revisão fiscal.
-              </p>
-            )}
-          </div>
-
-          <aside aria-label="Conferência" className="space-y-2">
-            <p className="text-sm font-medium">Conferência</p>
-            {ro && <p className="text-xs text-muted-foreground">Natureza só de leitura: não é conferida aqui.</p>}
-            {!ro && alertas === null && <p className="text-xs text-muted-foreground">Conferindo…</p>}
-            {!ro && alertas !== null && visiveis.length === 0 && (
-              <p className="text-xs text-muted-foreground">Nada a apontar {passo === '3' ? 'nesta natureza' : 'neste passo'}.</p>
-            )}
-            <ul className="space-y-2">
-              {visiveis.map((a, i) => (
-                <Inline key={i} asChild gap={2} align="start" className="text-sm">
-                  <li>
-                    <Badge variant={VARIANTE[a.nivel]}>{NOME_NIVEL[a.nivel]}</Badge>
-                    <span>{a.mensagem}</span>
-                  </li>
+          <Stack gap={3} asChild>
+            <aside aria-label="No lançamento">
+              <section className={SUPERFICIE} aria-labelledby="aside-titulo">
+                <Inline gap={3} className="border-b border-[var(--border)] px-4 py-3" style={{ background: mistura('var(--accent)', 5) }}>
+                  <span aria-hidden className="inline-flex h-[30px] w-[30px] flex-none items-center justify-center rounded-lg"
+                    style={{ background: 'color-mix(in oklch, var(--accent) 14%, transparent)', color: mistura('var(--accent)', 62, 'var(--text)') }}>
+                    <MousePointerClick className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 id="aside-titulo" className="m-0 text-[15px] font-semibold leading-snug text-[var(--text)]">No lançamento</h3>
+                    <p className="mt-0.5 text-[11.5px] leading-snug text-[var(--text-dim)]">O que esta natureza preenche nos itens.</p>
+                  </div>
                 </Inline>
-              ))}
-            </ul>
-          </aside>
+                <Stack gap={3} className="p-4">
+                  <div>
+                    <span className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-[var(--text-dim)]">Cliente</span>
+                    <Segmented aria-label="Destino do cliente na lateral" value={destino} onValueChange={(v) => setDestino(v as Destino)} options={DESTINOS} />
+                  </div>
+                  <Stack gap={0}>
+                    {previa.map((x, i) => (
+                      <Grid key={x.rotulo} gap={0} className={`grid-cols-[10px_minmax(0,1fr)] gap-x-2 py-[9px] ${i ? 'border-t border-[var(--border-2)]' : 'pt-0'}`}>
+                        <i aria-hidden className="mt-[5px] h-2 w-2 rounded-[2px]" style={{ background: x.cor }} />
+                        <div className="min-w-0">
+                          <span className="mb-0.5 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-[var(--text-dim)]">{x.rotulo}</span>
+                          <b className="block break-words text-[12.5px] font-semibold leading-[1.4] text-[var(--text)]">
+                            {x.codigo && <code className="font-mono text-xs font-semibold" style={{ color: mistura(x.cor, 62, 'var(--text)') }}>{x.codigo}</code>}
+                            {x.codigo && x.texto ? ' ' : ''}{x.texto}
+                          </b>
+                          {x.sub && <span className="block text-[11.5px] leading-[1.4] text-[var(--text-dim)]">{x.sub}</span>}
+                        </div>
+                      </Grid>
+                    ))}
+                  </Stack>
+                  <p className="m-0 rounded-lg border border-[var(--border)] bg-[var(--bg-2)] px-2.5 py-2 text-[11.5px] leading-[1.45] text-[var(--text-dim)]">
+                    Sem valores: base, imposto e totais são calculados no lançamento, com os produtos e preços da nota.
+                  </p>
+                </Stack>
+              </section>
+
+              {!ro && (
+                <Stack gap={2} className="sticky bottom-3 z-30 rounded-lg border bg-[var(--surface)] p-3"
+                  style={{ borderColor: mistura('var(--accent)', 22, 'var(--border)') }}>
+                  <Button size="lg" onClick={gravar} disabled={salvando || erros.length > 0 || alertas === null}>
+                    {erros.length > 0
+                      ? `${erros.length} ${erros.length === 1 ? 'erro' : 'erros'} para salvar`
+                      : novo ? 'Criar natureza' : 'Salvar natureza'}
+                  </Button>
+                  <Grid cols={2} gap={2}>
+                    <Button variant="outline" onClick={duplicar} disabled={novo}>
+                      <Copy className="mr-1.5 h-4 w-4" />Duplicar
+                    </Button>
+                    <Button variant="outline" onClick={() => onFechar(false)}>Cancelar</Button>
+                  </Grid>
+                  <p className="m-0 text-center text-[11.5px] leading-snug"
+                    style={{ color: erros.length ? mistura('var(--neg)', 62, 'var(--text)') : 'var(--text-dim)' }}>
+                    {erros.length
+                      ? `${erros.length} ${erros.length === 1 ? 'pendência' : 'pendências'} nos passos marcados em vermelho.`
+                      : 'Vale para as próximas notas lançadas com esta natureza.'}
+                  </p>
+                </Stack>
+              )}
+            </aside>
+          </Stack>
         </Grid>
-      </CardContent>
-    </Card>
+      </section>
+    </Stack>
   );
 }

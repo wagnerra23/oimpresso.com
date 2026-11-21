@@ -140,6 +140,7 @@ export default function NaturezasSecao() {
         inicial={aberta.natureza}
         editavel={aberta.editavel}
         regime={regime}
+        empresa={empresa}
         onFechar={(salvou) => { setAberta(null); if (salvou) carregar(); }}
       />
     );
