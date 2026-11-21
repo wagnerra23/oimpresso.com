@@ -206,7 +206,7 @@ jobs:
 
           mapfile -t TARGETS < /tmp/run.txt
           [ "${#TARGETS[@]}" -gt 0 ] || { echo "::error::run-set vazio"; exit 1; }
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage --colors=always --random-order-seed=1795109593 \
             --log-junit test-results/pest-oficinaauto-junit.xml \
             "${TARGETS[@]}"
 
