@@ -121,7 +121,7 @@ class TipoInstalacaoController extends Controller
             'id' => (int) $t->id,
             'nome' => (string) $t->nome,
             'exige_nr35' => (bool) $t->exige_nr35,
-            'itens' => array_values($t->itens_verificacao_json ?? []),
+            'itens' => $t->itens_verificacao_json ?? [],
             'ativo' => (bool) $t->ativo,
         ];
     }
