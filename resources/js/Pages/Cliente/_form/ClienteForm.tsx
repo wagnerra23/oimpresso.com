@@ -61,6 +61,10 @@ export function ClienteForm<T extends ClienteFormShared>({
   // Acesso solto pros erros por nome de campo (a prop genérica tipa as chaves).
   const err = errors as Record<string, string | undefined>
   const showFinanceiro = data.type === "customer" || data.type === "both"
+  // O servidor manda o "Nenhum" do CustomerGroup::forDropdown com id vazio, e o Radix recusa
+  // <SelectItem value="">: a página inteira ficava em branco (2026-11-21). O "Nenhum" daqui é a
+  // sentinela GRUPO_NENHUM, então só os grupos de verdade viram opção.
+  const grupos = customerGroups.filter((g) => g.id !== "")
 
   return (
     <form onSubmit={onSubmit} className="cw-form-layout">
@@ -236,7 +240,7 @@ export function ClienteForm<T extends ClienteFormShared>({
                   placeholder="0,00"
                 />
               </Field>
-              {customerGroups.length > 0 && (
+              {grupos.length > 0 && (
                 <Field label="Grupo de clientes" error={err.customer_group_id} fullRow>
                   <Select
                     value={data.customer_group_id || GRUPO_NENHUM}
@@ -247,7 +251,7 @@ export function ClienteForm<T extends ClienteFormShared>({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={GRUPO_NENHUM}>— Nenhum —</SelectItem>
-                      {customerGroups.map((g) => (
+                      {grupos.map((g) => (
                         <SelectItem key={g.id} value={String(g.id)}>
                           {g.name}
                         </SelectItem>
