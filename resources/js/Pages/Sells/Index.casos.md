@@ -8,6 +8,11 @@ owner: wagner
 last_run: "2026-11-21"
 ---
 
+> ℹ️ **`last_run` segue 2026-11-21 (G-6), onda 4 da paridade com o protótipo: cabeçalho e linha de filtros.** A
+> busca ⌘K voltou ao cabeçalho; na linha de filtros entrou o campo de busca do protótipo, ligado ao mesmo `q` que a paleta
+> já usava; a Visão passou para logo depois do Foco, com o mesmo desenho dele (rótulo + segmentos, sem ícones). Nenhum UC
+> desta tela trata da busca nem da ordem dos controles; nenhum foi reexecutado. O bump registra a reconciliação do trio.
+
 > ℹ️ **`last_run` segue 2026-11-21 (G-6), onda 3 da paridade com o protótipo.** O card "PIX hoje" ganhou a barra
 > da fatia PIX e o "/ faturado" ao lado do valor (mesma conta que o subtítulo já fazia), e o menu ⋮ "Ações da venda" saiu
 > da célula de Status para uma coluna própria no fim da linha. UC-S11 e UC-SIDX-08 acham o menu pelo nome "Ações da
