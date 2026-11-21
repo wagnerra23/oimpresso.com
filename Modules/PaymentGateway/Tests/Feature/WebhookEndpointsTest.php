@@ -215,7 +215,8 @@ it('Inter webhook cria GatewayWebhookEvent na 1ª chamada (signature válida)', 
     expect($event->business_id)->toBe(1);
     expect($event->gateway_key)->toBe('inter');
     expect($event->evento)->toBe('cobranca.paga');
-    expect($event->gateway_event_id)->toBe('inter-tx-001');
+    // Auditoria PG 2.3: txid é da cobrança → composto com o evento.
+    expect($event->gateway_event_id)->toBe('inter-tx-001|cobranca.paga');
     // US-PG-002: signature_valid agora TRUE quando HMAC bate
     expect($event->signature_valid)->toBeTrue();
     expect($event->processed_at)->toBeNull();
@@ -280,7 +281,7 @@ it('Asaas webhook extrai event_id de id ou payment.id', function () {
     expect($event->gateway_event_id)->toBe('PAYMENT_CONFIRMED:p123');
 });
 
-it('C6 webhook usa transactionId', function () {
+it('C6 webhook usa transactionId composto com o evento (auditoria PG 2.3)', function () {
     postC6h($this, 1, [
         'eventType'     => 'PAYMENT_OK',
         'transactionId' => 'c6-tx-999',
@@ -288,7 +289,7 @@ it('C6 webhook usa transactionId', function () {
 
     $event = GatewayWebhookEvent::query()->withoutGlobalScopes()->first();
     expect($event->gateway_key)->toBe('c6');
-    expect($event->gateway_event_id)->toBe('c6-tx-999');
+    expect($event->gateway_event_id)->toBe('c6-tx-999|payment_ok');
 });
 
 it('Webhook sem id/txid usa fallback md5 (não trava)', function () {

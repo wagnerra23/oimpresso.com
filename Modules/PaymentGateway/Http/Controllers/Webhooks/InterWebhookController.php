@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Webhook\WebhookEventId;
 
 /**
  * Recebe webhooks do Inter (boleto + Pix Cob — controller LEGACY).
@@ -65,10 +66,15 @@ class InterWebhookController extends Controller
         }
 
         $eventName = (string) $request->input('evento', $request->input('event', 'unknown'));
-        $eventId = (string) ($request->input('id')
-            ?? $request->input('txid')
-            ?? $request->input('nossoNumero')
-            ?? md5($eventName . json_encode($request->all())));
+        // Auditoria PG 2.3: `txid`/`nossoNumero` identificam a cobrança, não o
+        // evento — compostos com evento + situação para a liquidação não ser
+        // descartada como duplicata de um evento anterior da mesma cobrança.
+        $idCobranca = $request->input('txid') ?? $request->input('nossoNumero');
+        $eventId = match (true) {
+            $request->input('id') !== null => (string) $request->input('id'),
+            $idCobranca !== null           => WebhookEventId::daCobranca((string) $idCobranca, $eventName, $request->all()),
+            default                        => md5($eventName . json_encode($request->all())),
+        };
 
         return $this->processor->handle(
             gatewayKey: 'inter',
