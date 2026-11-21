@@ -8,7 +8,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   AlertTriangle,
   ArrowDown,
@@ -1977,6 +1977,13 @@ function ClienteSheet({
    * que pode não popular paginação). EnderecoTab re-renderiza com campos novos. */
   onContactUpdated?: (patched: Record<string, unknown>) => void;
 }) {
+  // A gaveta é um portal do Radix e, sem `container`, monta no <body>, fora do `.cockpit` — onde
+  // moram os tokens e a fonte do Design System. Medido em produção em 2026-11-21 (empresa 1, tema
+  // escuro): a gaveta saía na fonte do sistema em vez da IBM Plex Sans e com 7 tokens do DS vazios.
+  // O conserto é o mesmo da gaveta da Fabricação (lápide §5 2026-10-19): o portal monta no
+  // `.cockpit`. Layout effect para que, aberta na 1ª renderização (`?contact_id=`), ela já nasça lá.
+  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
   const contact = useMemo(() => {
     // Prioridade: draftContact (modo novo) → rows.find (modo edit).
     if (draftContact && draftContact.id === contactId) return draftContact;
@@ -2045,6 +2052,7 @@ function ClienteSheet({
       <SheetContent
         data-contract="drawer-de-detalhe"
         side="right"
+        container={cockpit}
         // 760px conforme ADR 0179 + Cowork blueprint. Larissa biz=4 1280x1024:
         // 760 + AppShellV2 sidebar 240 + main padding ~= 1024px (cabe sem
         // scroll horizontal). Pest Wave B asserta `w-[760px]` no HTML.

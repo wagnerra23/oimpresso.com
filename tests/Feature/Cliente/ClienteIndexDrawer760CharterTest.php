@@ -65,6 +65,19 @@ test('GUARD 3 — Cliente/Index.tsx ClienteSheet renderiza com w-[760px]', funct
         ->not->toContain('w-[480px]'); // 480 era Wave A; Wave B substitui
 });
 
+// ─── GUARD 3b: a gaveta monta dentro do `.cockpit` ───────────────────────────
+// Sem `container`, o portal do Radix monta no <body>, fora do `.cockpit`, e a gaveta perde a fonte
+// e os tokens do Design System (medido em produção em 2026-11-21: fonte do sistema no lugar da IBM
+// Plex Sans e 7 tokens vazios). Este teste só confere que o fonte passa o contêiner; o efeito (fonte e
+// tokens no navegador) se mede com `design-diff --check-drawer` depois do deploy, porque nem o PHP
+// nem o jsdom resolvem `var(--…)` de folha de estilo.
+test('GUARD 3b — ClienteSheet monta o portal no .cockpit (prop container)', function () {
+    $contents = file_get_contents(__DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx');
+    expect($contents)
+        ->toContain("document.querySelector<HTMLElement>('.cockpit')")
+        ->toContain('container={cockpit}');
+});
+
 // ─── GUARD 4: 8 tabs presentes no DOM ────────────────────────────────────────
 
 test('GUARD 4 — Cliente/Index.tsx tem 6 abas principais + chips; Auditoria migrou p/ OssTab', function () {
