@@ -293,6 +293,7 @@ tests/Feature/Governance/ProdFlagsCommandTest.php
 # E1 regime de evolução (2026-10-14): contratos de tela de governança sem banco (rotas, função pura, árvore temporária).
 tests/Feature/Governance/AuditContratoTest.php
 tests/Feature/Governance/DriftAlertsContratoTest.php
+tests/Feature/Governance/MenuPermissaoContratoTest.php
 tests/Feature/Modules/Governance/DashboardExtensionTest.php
 tests/Feature/Modules/Governance/DashboardFiltrosMcpTest.php
 
@@ -422,13 +423,11 @@ Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 # lane e o unico lugar onde eles de fato EXECUTAM; na lane MySQL viram skip.
 # Schema sintetico montado no beforeEach, sem migration MySQL-only.
 #
-# FICA DE FORA — 1 arquivo (era 4 ate 2026-08-03; os outros 3 foram consertados,
-# ver abaixo):
-#
-# PlanoSemFaturaContratoTest.php (UC-RBSUB-05, 🔴 no casos.md) — FAILING-FIRST por
-# desenho: denuncia a assinatura com valor negociado que nunca fatura, e o remedio
-# e decisao [V0] de [W] (ha 3 que se anulam). Numa lane REQUIRED, o vermelho que e
-# o ACHADO travaria todo merge em main.
+# PlanoSemFaturaContratoTest.php (UC-RBSUB-05) ficou DE FORA ate 2026-11-19: era
+# FAILING-FIRST (denunciava a assinatura com valor negociado que nunca faturava) e
+# o vermelho numa lane required travaria todo merge. Deixou de ser failing-first em
+# 2026-10-19 (#9606, remedio "a" de [W]: sem plano, o gerador fatura pelo valor
+# negociado) e passa na modules-pest (run 44412487544). Entrou abaixo em 2026-11-19.
 #
 # ── OS 3 QUE VOLTARAM (2026-08-03) ───────────────────────────────────────────
 # Reprovaram no run 30778559754, quando a lane os rodou pela PRIMEIRA vez. Divida
@@ -455,6 +454,7 @@ Modules/VozDoCliente/Tests/Feature/SinalCrossTenantTest.php
 #    query-builder + pre-condicao anti-vacuo provando que a assinatura voltou a ser
 #    candidata. O servico esta correto e nao foi tocado.
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookAuthTest.php
+Modules/RecurringBilling/Tests/Feature/PlanoSemFaturaContratoTest.php
 Modules/RecurringBilling/Tests/Feature/AsaasWebhookIdempotencyTest.php
 Modules/RecurringBilling/Tests/Feature/AssinaturaCobrancaServiceTest.php
 Modules/RecurringBilling/Tests/Feature/InvoiceGeneratorServiceTest.php
@@ -499,6 +499,11 @@ Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php
 # DELIBERADA — nunca foram executados. Verde por nao-execucao (LC-13).
 Modules/RecurringBilling/Tests/Feature/SyncBankStatementsJobTest.php
 Modules/RecurringBilling/Tests/Feature/SyncBankBalancesJobTest.php
+
+# RecurringBilling — teste da raiz fora de lane (auditoria 2026-11-19). O job
+# CancelarCobrancaInterJob monta schema sintético e pula fora do sqlite
+# (era-sqlite), então o lugar dele é aqui.
+tests/Feature/Jobs/CancelarCobrancaInterJobTest.php
 
 # ─── IndexarMemoryGitParaDb — regressao da classe que o #5193 alterou
 # (redactor apagava run id). O #5193 poe so o teste NOVO dele numa lane; os de
@@ -829,3 +834,35 @@ tests/Feature/Console/NfseQueueWorkerScheduleTest.php
 # testes de checker do Governance (Scorecard, AuditCommand) estão fora de lane, por isso
 # os casos novos moram neste arquivo. Sqlite-safe: Process/Http/Artisan fakes + temp dir.
 Modules/Governance/Tests/Feature/DriftNaoMedidoTest.php
+# Governance L1.4 (2026-11-19): UC-GPOL-05/06/07 lidos do registry de rotas, sem banco.
+Modules/Governance/Tests/Feature/PoliciesRotasContratoTest.php
+# Governance L1.2 (2026-11-19): os 2 Unit do módulo, sem banco (lógica pura do sentinela
+# e o registro das migrations). Rodavam só na jana-logica-pura, que não é required.
+Modules/Governance/Tests/Unit/BladeMigrationSentinelVerdictTest.php
+Modules/Governance/Tests/Unit/GovernanceMigrationsRegisteredTest.php
+# Governance L1 (2026-11-19): 20 testes do módulo que não rodavam em lane nenhuma.
+# Medido no run 44512663595 (sonda com os 34 órfãos nesta lista): estes passaram com
+# 0 falha e assertions > 0; o OtelHelperRealSdk pula 1 caso por desenho (ramo SDK
+# presente × ausente). Os outros 14 órfãos ficaram FORA: pedem MySQL
+# (mcp_alertas_eventos, schema UltimatePOS) ou falharam — vão para a lane MySQL do
+# Governance com quarentena justificada, não para cá.
+Modules/Governance/Tests/Feature/CrossTenantPolicyTest.php
+Modules/Governance/Tests/Feature/DeployDriftCheckerTest.php
+Modules/Governance/Tests/Feature/DetectOtelQueryTest.php
+Modules/Governance/Tests/Feature/DriftCheckerRegistryTest.php
+Modules/Governance/Tests/Feature/GovernancaScorecardCommandTest.php
+Modules/Governance/Tests/Feature/GovernanceAuditCommandTest.php
+Modules/Governance/Tests/Feature/GovernanceGateTest.php
+Modules/Governance/Tests/Feature/McpIndexFreshnessCheckerTest.php
+Modules/Governance/Tests/Feature/McpServedDriftCheckerTest.php
+Modules/Governance/Tests/Feature/MeilisearchSettingsDriftCheckerTest.php
+Modules/Governance/Tests/Feature/MultiTenantGovernanceTest.php
+Modules/Governance/Tests/Feature/ObservabilitySnapshotServiceTest.php
+Modules/Governance/Tests/Feature/OtelHelperRealSdkTest.php
+Modules/Governance/Tests/Feature/RoutesZombieCheckerTest.php
+Modules/Governance/Tests/Feature/ScaffoldTest.php
+Modules/Governance/Tests/Feature/ScopedScorecardEvaluatorTest.php
+Modules/Governance/Tests/Feature/ShippedLogBriefLineServiceTest.php
+Modules/Governance/Tests/Feature/SmokeRoutesTest.php
+Modules/Governance/Tests/Feature/Wave23ScorecardTest.php
+Modules/Governance/Tests/Feature/Wave28InitiativeServiceTest.php

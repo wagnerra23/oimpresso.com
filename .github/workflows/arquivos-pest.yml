@@ -236,38 +236,39 @@ jobs:
         #   onde o guard Schema::hasTable('arquivos') os pulava em 100% das runs.
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-arquivos-junit.xml \
-            Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
-            Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
-            Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
-            tests/Feature/ArquivosMinioDiskTest.php \
-            tests/Feature/Console/ArquivosHealthCheckScheduleTest.php \
-            Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
-            Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
-            Modules/Arquivos/Tests/Feature/Wave28ArquivosSaturationTest.php \
-            Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
-            Modules/Arquivos/Tests/Feature/ReencryptVaultPreviousKeysTest.php \
-            Modules/Arquivos/Tests/Feature/DownloadVaultDecryptFalhaTest.php \
-            Modules/Arquivos/Tests/Feature/AuditLogAppendOnlyTest.php \
-            Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
-            Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
-            Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php \
-            Modules/Arquivos/Tests/Feature/MultiTenantTest.php \
-            Modules/Arquivos/Tests/Feature/ReencryptVaultCommandTest.php \
-            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandTest.php \
-            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandV2Test.php \
             Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php \
-            Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
-            Modules/Arquivos/Tests/Feature/DiscoPadraoPrivadoTest.php \
+            Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
+            Modules/Arquivos/Tests/Feature/ArquivosTenantIsolationTest.php \
+            Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
+            Modules/Arquivos/Tests/Feature/AuditLogAppendOnlyTest.php \
+            Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
+            Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php \
             Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php \
             Modules/Arquivos/Tests/Feature/BackfillConsumersTest.php \
             Modules/Arquivos/Tests/Feature/BackfillNfeXmlTest.php \
-            Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
-            Modules/Arquivos/Tests/Feature/ArquivosTenantIsolationTest.php \
-            Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php \
+            Modules/Arquivos/Tests/Feature/ConsumersTraitTest.php \
             Modules/Arquivos/Tests/Feature/CuradorEngineTest.php \
-            Modules/Arquivos/Tests/Feature/CuradorParityTest.php
+            Modules/Arquivos/Tests/Feature/CuradorParityTest.php \
+            Modules/Arquivos/Tests/Feature/CuradorStatsReaderTest.php \
+            Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
+            Modules/Arquivos/Tests/Feature/DedupeStatsCommandTest.php \
+            Modules/Arquivos/Tests/Feature/DiscoPadraoPrivadoTest.php \
+            Modules/Arquivos/Tests/Feature/DownloadAuditTest.php \
+            Modules/Arquivos/Tests/Feature/DownloadVaultDecryptFalhaTest.php \
+            Modules/Arquivos/Tests/Feature/ExportZipCommandTest.php \
+            Modules/Arquivos/Tests/Feature/HealthCheckCommandTest.php \
+            Modules/Arquivos/Tests/Feature/MultiTenantTest.php \
+            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandTest.php \
+            Modules/Arquivos/Tests/Feature/RecalcularMetadataCommandV2Test.php \
+            Modules/Arquivos/Tests/Feature/ReencryptVaultCommandTest.php \
+            Modules/Arquivos/Tests/Feature/ReencryptVaultPreviousKeysTest.php \
+            Modules/Arquivos/Tests/Feature/RetentionCleanupCommandTest.php \
+            Modules/Arquivos/Tests/Feature/Wave28ArquivosSaturationTest.php \
+            tests/Feature/ArquivosMinioDiskTest.php \
+            tests/Feature/Console/ArquivosHealthCheckScheduleTest.php \
+            --colors=always
 
 
       # +1 em 2026-11-16 (Auditoria Arquivos 2026-11-05, lote L1, PR 1.6):

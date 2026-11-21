@@ -130,30 +130,31 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-essentials-junit.xml \
-            Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
-            tests/Feature/Essentials/TodoIndexContratoTest.php \
-            Modules/Essentials/Tests/Feature/TodoFormsContratoTest.php \
-            tests/Feature/Essentials/AppTarefaDetalheApiContratoTest.php \
+            Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
+            Modules/Essentials/Tests/Feature/FolhaModeloVerbaContratoTest.php \
+            Modules/Essentials/Tests/Feature/HolidaysIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
-            tests/Feature/Essentials/RemindersIndexContratoTest.php \
-            Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
-            tests/Feature/Essentials/MessagesIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmMetasTest.php \
-            tests/Feature/Essentials/DocumentsIndexContratoTest.php \
-            Modules/Essentials/Tests/Feature/SettingsIndexContratoTest.php \
-            Modules/Essentials/Tests/Feature/HolidaysIndexContratoTest.php \
-            Modules/Essentials/Tests/Feature/AttendanceImportMultiTenantTest.php \
+            Modules/Essentials/Tests/Feature/HrmPainelTest.php \
             Modules/Essentials/Tests/Feature/HrmPresencaCedeAoPontoTest.php \
             Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
-            Modules/Essentials/Tests/Feature/HrmPainelTest.php \
-            tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/KnowledgeFormsContratoTest.php \
+            Modules/Essentials/Tests/Feature/SalesTargetFaixaValidacaoTest.php \
+            Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
+            Modules/Essentials/Tests/Feature/SettingsIndexContratoTest.php \
+            Modules/Essentials/Tests/Feature/TodoFormsContratoTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php \
             tests/Feature/Calculo/FolhaCasosVerdadeFixturesTest.php \
-            Modules/Essentials/Tests/Feature/FolhaModeloVerbaContratoTest.php
+            tests/Feature/Essentials/AppTarefaDetalheApiContratoTest.php \
+            tests/Feature/Essentials/DocumentsIndexContratoTest.php \
+            tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
+            tests/Feature/Essentials/MessagesIndexContratoTest.php \
+            tests/Feature/Essentials/RemindersIndexContratoTest.php \
+            tests/Feature/Essentials/TodoIndexContratoTest.php \
+            --colors=always
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

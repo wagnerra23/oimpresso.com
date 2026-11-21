@@ -83,7 +83,7 @@ function seedInterCredential(int $businessId, string $secret = 'sek-abc'): void
         'ambiente'    => 'production',
         'ativo'       => true,
         'config_json' => json_encode([
-            'webhook_secret' => $secret,
+            'webhook_secret' => \Illuminate\Support\Facades\Crypt::encryptString($secret),
             'client_id'      => 'cid',
         ]),
         'created_at'  => now(),
@@ -228,7 +228,7 @@ it('credencial inativa também rejeita 404', function () {
         'business_id' => 1,
         'banco'       => 'inter',
         'ativo'       => false,
-        'config_json' => json_encode(['webhook_secret' => 'sek']),
+        'config_json' => json_encode(['webhook_secret' => \Illuminate\Support\Facades\Crypt::encryptString('sek')]),
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);

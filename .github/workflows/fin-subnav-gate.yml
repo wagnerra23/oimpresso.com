@@ -32,6 +32,12 @@ concurrency:
   group: fin-subnav-gate-${{ github.ref }}
   cancel-in-progress: true
 
+# Token só de leitura: estes jobs rodam nas vagas self-hosted ct100-leve (repo público)
+# e não escrevem nada pela API. pull-requests:read cobre o dorny/paths-filter.
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   fin-subnav:
     name: Fin subnav · abas seguem a entry do active (não cair no Caixa)

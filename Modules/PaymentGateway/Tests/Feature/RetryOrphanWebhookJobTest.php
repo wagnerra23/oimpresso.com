@@ -87,6 +87,34 @@ function setupOrphanWebhookSchema(): void
         });
     }
 
+    // fin_titulos: desde a auditoria PG 2.5 o replay passa pelo
+    // ReconciliarCobrancaService, que quita títulos vinculados à cobrança.
+    // Tabela do Financeiro — criada se faltar, NUNCA dropada no teardown.
+    if (! Schema::hasTable('fin_titulos')) {
+        Schema::create('fin_titulos', function (Blueprint $t) {
+            $t->increments('id');
+            $t->integer('business_id')->unsigned()->index();
+            $t->string('numero', 20)->nullable();
+            $t->string('tipo')->nullable();
+            $t->string('status')->default('aberto');
+            $t->integer('cliente_id')->unsigned()->nullable();
+            $t->string('cliente_descricao')->nullable();
+            $t->decimal('valor_total', 22, 4)->default(0);
+            $t->decimal('valor_aberto', 22, 4)->default(0);
+            $t->char('moeda', 3)->default('BRL');
+            $t->date('emissao')->nullable();
+            $t->date('vencimento')->nullable();
+            $t->char('competencia_mes', 7)->nullable();
+            $t->string('origem')->nullable();
+            $t->integer('origem_id')->unsigned()->nullable();
+            $t->json('metadata')->nullable();
+            $t->integer('created_by')->unsigned()->nullable();
+            $t->integer('updated_by')->unsigned()->nullable();
+            $t->timestamps();
+            $t->softDeletes();
+        });
+    }
+
     // payment_gateway_credentials: o re-resolve do Job carrega a credencial
     // (o driver precisa dela) a partir de payment_gateway_credential_id.
     if (! Schema::hasTable('payment_gateway_credentials')) {
@@ -174,8 +202,9 @@ it('GUARD 1: re-dispatcha CobrancaPaga quando órfão tem cobranca_id + evento p
         'signature_valid' => true,
     ]);
     // backdate created_at pra fora da janela "espera 1h"
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -203,8 +232,9 @@ it('GUARD 2a: pula evento órfão com cobranca_id NULL — processed_at PERMANEC
         'payload' => ['raw' => 'received'],
         'signature_valid' => true,
     ]);
-    $orphan->created_at = now()->subHours(3);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(3)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -228,8 +258,9 @@ it('GUARD 2b: pula órfão quando Cobranca não encontrada — processed_at PERM
         'payload' => ['raw' => 'ok'],
         'signature_valid' => true,
     ]);
-    $orphan->created_at = now()->subHours(4);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(4)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -264,8 +295,9 @@ it('GUARD 3: ignora evento muito antigo (> 24h) — fora da janela', function ()
         'signature_valid' => true,
     ]);
     // backdate created_at pra MAIS DE 24h atrás → fora da janela
-    $orphan->created_at = now()->subDays(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subDays(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -299,8 +331,9 @@ it('GUARD 3b: ignora evento muito recente (< 1h) — espera fluxo original grava
         'signature_valid' => true,
     ]);
     // 10min atrás → ainda dentro da espera 1h
-    $orphan->created_at = now()->subMinutes(10);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subMinutes(10)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -331,8 +364,9 @@ it('GUARD 4: evento que NÃO matches paid pattern → marca processed sem dispat
         'payload' => ['raw' => 'created'],
         'signature_valid' => true,
     ]);
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -366,8 +400,9 @@ it('GUARD 5: respeita limit 50 — só processa 50 órfãos por run', function (
             'payload' => ['raw' => 'paid'],
             'signature_valid' => true,
         ]);
-        $orphan->created_at = now()->subHours(2)->subMinutes($i); // ordem cronológica
-        $orphan->saveQuietly();
+        // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table. // ordem cronológica
+        DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)->subMinutes($i)]);
+        $orphan->refresh();
     }
 
     (new RetryOrphanWebhookJob())->handle();
@@ -407,8 +442,9 @@ it('GUARD 6: dispatch propaga business_id correto em multi-tenant (biz=99 NÃO c
         'payload' => ['raw' => 'paid'],
         'signature_valid' => true,
     ]);
-    $orphan99->created_at = now()->subHours(2);
-    $orphan99->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan99->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan99->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -458,8 +494,9 @@ it('GUARD 7: re-resolve linka órfão cobranca_id NULL quando a Cobranca já exi
         'payload'                       => ['event' => 'PAYMENT_RECEIVED', 'payment' => ['id' => 'pay-race-001']],
         'signature_valid'               => true,
     ]);
-    $orphan->created_at = now()->subHours(2);
-    $orphan->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
@@ -515,13 +552,105 @@ it('GUARD 8: re-resolve respeita business_id — biz=99 não casa Cobranca biz=1
         'payload'                       => ['payment' => ['id' => 'cross-id']],
         'signature_valid'               => true,
     ]);
-    $orphan99->created_at = now()->subHours(2);
-    $orphan99->saveQuietly();
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan99->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan99->refresh();
 
     (new RetryOrphanWebhookJob())->handle();
 
     $orphan99->refresh();
     expect($orphan99->cobranca_id)->toBeNull();              // biz=99 não pega Cobranca biz=1
     expect($orphan99->error_message)->toContain('still_orphan');
+    Event::assertNotDispatched(CobrancaPaga::class);
+});
+
+// ── Auditoria PG lote 2.5 — tenant fictício 98 (ADR 0358), centavos sintéticos ──
+
+function orfao98(array $cobrancaAttrs, string $evento): array
+{
+    $cobranca = Cobranca::query()->withoutGlobalScopes()->create(array_merge([
+        'business_id'     => 98,
+        'tipo'            => 'pix_cob',
+        'status'          => 'emitida',
+        'valor_centavos'  => 4321,
+        'idempotency_key' => 'pg25-' . random_int(1000, 999999),
+        'payload_gateway' => [],
+    ], $cobrancaAttrs));
+
+    $orphan = GatewayWebhookEvent::query()->withoutGlobalScopes()->create([
+        'business_id'      => 98,
+        'gateway_key'      => 'asaas',
+        'evento'           => $evento,
+        'gateway_event_id' => 'pg25-' . random_int(1000, 999999),
+        'cobranca_id'      => $cobranca->id,
+        'payload'          => ['evento' => $evento],
+        'signature_valid'  => true,
+    ]);
+    // created_at é coluna de origem da trilha (TrilhaDeAuditoriaBuilder): backdate só por DB::table.
+    DB::table('gateway_webhook_events')->where('id', $orphan->id)->update(['created_at' => now()->subHours(2)]);
+    $orphan->refresh();
+
+    return [$cobranca, $orphan];
+}
+
+it('2.5 padrões ancorados: UNPAID e estorno NÃO contam como pago', function (string $evento, bool $pago) {
+    expect(RetryOrphanWebhookJob::isPaidEvent($evento))->toBe($pago);
+})->with([
+    ['PAYMENT_RECEIVED', true],
+    ['PAYMENT_CONFIRMED', true],
+    ['PAYMENT_RECEIVED_IN_CASH', true],
+    ['cob.paid', true],
+    ['pix_recebido', true],
+    ['PAYMENT_UNPAID', false],
+    ['UNPAID', false],
+    ['PAYMENT_RECEIVED_IN_CASH_UNDONE', false],
+    ['PAYMENT_REFUNDED', false],
+    ['PAYMENT_CHARGEBACK_REQUESTED', false],
+    ['prepaid_card', false],
+    ['cob.created', false],
+]);
+
+it('2.5 replay MARCA a cobrança paga (não só dispara o evento)', function () {
+    Event::fake([CobrancaPaga::class]);
+    [$cobranca, $orphan] = orfao98([], 'PAYMENT_RECEIVED');
+
+    (new RetryOrphanWebhookJob())->handle();
+
+    $depois = $cobranca->fresh();
+    expect($depois->status)->toBe('paga');
+    expect($depois->valor_pago_centavos)->toBe(4321);
+    expect($orphan->fresh()->processed_at)->not->toBeNull();
+    Event::assertDispatchedTimes(CobrancaPaga::class, 1);
+});
+
+it('2.5 estorno órfão (PAYMENT_RECEIVED_IN_CASH_UNDONE) não marca nem dispara', function () {
+    Event::fake([CobrancaPaga::class]);
+    [$cobranca, $orphan] = orfao98([], 'PAYMENT_RECEIVED_IN_CASH_UNDONE');
+
+    (new RetryOrphanWebhookJob())->handle();
+
+    expect($cobranca->fresh()->status)->toBe('emitida');
+    expect($orphan->fresh()->error_message)->toStartWith('orphan_event_not_mapped_to_dispatch');
+    Event::assertNotDispatched(CobrancaPaga::class);
+});
+
+it('2.5 cobrança já paga: órfão processado sem redisparar CobrancaPaga', function () {
+    Event::fake([CobrancaPaga::class]);
+    [$cobranca, $orphan] = orfao98(['status' => 'paga', 'valor_pago_centavos' => 4321], 'PAYMENT_RECEIVED');
+
+    (new RetryOrphanWebhookJob())->handle();
+
+    expect($orphan->fresh()->error_message)->toBe('orphan_cobranca_ja_paga');
+    Event::assertNotDispatched(CobrancaPaga::class);
+});
+
+it('2.5 cobrança cancelada: órfão "pago" não ressuscita a cobrança', function () {
+    Event::fake([CobrancaPaga::class]);
+    [$cobranca, $orphan] = orfao98(['status' => 'cancelada'], 'PAYMENT_RECEIVED');
+
+    (new RetryOrphanWebhookJob())->handle();
+
+    expect($cobranca->fresh()->status)->toBe('cancelada');
+    expect($orphan->fresh()->error_message)->toBe('orphan_cobranca_status_incompativel: cancelada');
     Event::assertNotDispatched(CobrancaPaga::class);
 });

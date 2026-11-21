@@ -40,11 +40,11 @@ name: Modules Pest
 # Medido no main: 40 arquivos em Modules/RecurringBilling/Tests/Feature, dos quais
 # 15 rodavam em CI pela .github/ci-sqlite-pest.list (lane ci.yml). Os outros 25
 # nao rodavam em lane nenhuma. O registro no phpunit.xml nao supre: nenhuma lane
-# usa --testsuite. Aqui roda o diretorio inteiro, inclusive o
-# PlanoSemFaturaContratoTest (UC-RBSUB-05), FAILING-FIRST por desenho: a lista
-# sqlite o deixa de fora porque la e required; esta matrix nao e required, entao
-# o vermelho dele aparece como achado, sem travar merge. Os 15 continuam na lista
-# sqlite de proposito (la rodam em todo PR; aqui so quando o modulo muda).
+# usa --testsuite. Aqui roda o diretorio inteiro. O PlanoSemFaturaContratoTest
+# (UC-RBSUB-05) era FAILING-FIRST e por isso so rodava aqui; deixou de ser em
+# 2026-10-19 (#9606) e desde 2026-11-19 tambem esta na lista sqlite required. Os
+# arquivos da lista sqlite continuam la de proposito (la rodam em todo PR; aqui so
+# quando o modulo muda).
 
 on:
   workflow_dispatch:
