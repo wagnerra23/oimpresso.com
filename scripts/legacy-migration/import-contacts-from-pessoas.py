@@ -225,7 +225,7 @@ def selftest() -> int:
     # IS_CLI nulo (cadastro antigo) não é cliente
     ok(papel({**base, "IS_CLI": None}) == "skip:sem_papel", "IS_CLI nulo")
 
-    ok(chave_legada({**base, "CNPJCPF": "12.345.678/0001-90"}) == ("12345678000190", "12345678000190"), "CNPJ vira dígitos")
+    ok(chave_legada({**base, "CNPJCPF": "12.345.678/0001-90"}) == ("12345678000190", "12345678000190"), "CNPJ vira dígitos")  # pii-allowlist (CNPJ fictício do selftest)
     ok(chave_legada({**base, "CNPJCPF": ""}) == ("PES:12-1", None), "sem documento vira PES:<CODIGO>")
     ok(chave_legada({**base, "CNPJCPF": "123"}) == ("PES:12-1", None), "documento inválido conta como sem documento")
     try:
