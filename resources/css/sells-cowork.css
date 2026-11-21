@@ -2330,8 +2330,7 @@
   --vd-green-hero:  oklch(0.21 0.025 155);
   --vd-green-hero-2:oklch(0.27 0.03 155);
   --vd-green-fg:    oklch(0.78 0.05 155);
-  /* Azul do avatar de vendedor = `--av-5` do protótipo (o cockpit não tem a paleta --av-*). */
-  --vd-av-azul:     oklch(0.56 0.12 230);
+  --vd-av-azul:     oklch(0.56 0.12 230); /* = --av-5 do protótipo; o cockpit não tem a paleta --av-* */
 
   /* DS v6 (PR3 slice 2) — camada semântica local da tela redireciona pros tokens
      canônicos (cockpit.css: --pos/--warn/--neg + -soft), espelhando o gabarito.
@@ -2492,11 +2491,8 @@
   font-family: var(--font-mono); letter-spacing: 0.02em;
   flex-shrink: 0;
 }
-/* Tons do protótipo (vendas-page.jsx · styles.css "Avatar vendedor"). */
-.sells-cowork .vendas-aplus .vd-av-1 { background: var(--neg); }
-.sells-cowork .vendas-aplus .vd-av-2 { background: var(--vd-av-azul); }
-.sells-cowork .vendas-aplus .vd-av-3 { background: var(--accent); }
-.sells-cowork .vendas-aplus .vd-av-4 { background: var(--pos); }
+.sells-cowork .vendas-aplus .vd-av-1 { background: var(--neg); } .sells-cowork .vendas-aplus .vd-av-2 { background: var(--vd-av-azul); } /* tons do protótipo */
+.sells-cowork .vendas-aplus .vd-av-3 { background: var(--accent); } .sells-cowork .vendas-aplus .vd-av-4 { background: var(--pos); }
 /* ── Table: tweaks A+ ── */
 .sells-cowork .vendas-aplus .vd-aplus-table { font-size: 12.5px; }
 .sells-cowork .vendas-aplus .vd-aplus-table thead th {
