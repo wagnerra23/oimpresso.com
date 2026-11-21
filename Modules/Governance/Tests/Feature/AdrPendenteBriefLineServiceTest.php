@@ -55,10 +55,10 @@ it('zero pendências (A+B+C = 0) → null — flag só existe quando N>0', funct
     expect((new AdrPendenteBriefLineService())->line())->toBeNull();
 });
 
-it('JSON inválido (node quebrado/ausente) → null', function () {
+it('node ausente (exit 127, sem JSON) → linha "não medido", nunca some calada', function () {
     Process::fake(['*' => Process::result(output: 'node: not found', exitCode: 127)]);
 
-    expect((new AdrPendenteBriefLineService())->line())->toBeNull();
+    expect((new AdrPendenteBriefLineService())->line())->toBe('⚪ ADR pendente: não medido (node ausente (exit 127))');
 });
 
 it('JSON de outro gate (output inesperado) → null', function () {

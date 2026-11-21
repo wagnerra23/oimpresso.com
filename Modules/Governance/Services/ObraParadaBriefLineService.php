@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Governance\Services;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
+use Modules\Governance\Services\Concerns\RodaSondaNode;
 use Throwable;
 
 /**
@@ -36,8 +35,9 @@ use Throwable;
  * o modelo nunca inventa esses números.
  *
  * Degrada graciosamente (brief NUNCA quebra por causa dela):
- *  - `node` ausente / script não-deployado / timeout → null (sem linha)
- *  - JSON inválido ou de outro gate → null
+ *  - `node` ausente / script não-deployado / timeout / sem JSON → linha "⚪ … não medido
+ *    (motivo)" (RodaSondaNode, 2026-11-19 — antes sumia calada)
+ *  - JSON de outro gate → null
  *  - 0 parados → null (flag só existe quando há o que reportar)
  * Kill-switch: `governance.obra_parada_brief_line` false → no-op (default ON).
  *
@@ -47,6 +47,8 @@ use Throwable;
  */
 final class ObraParadaBriefLineService
 {
+    use RodaSondaNode;
+
     /** Teto do shell-out Node (s) — a sentinela é local (varre o repo), sem rede. */
     private const TIMEOUT_SECONDS = 20;
 
@@ -86,7 +88,10 @@ final class ObraParadaBriefLineService
     {
         $data = $this->fetchParados();
 
-        if ($data === null || ($data['gate'] ?? null) !== 'obra-parada') {
+        if ($data === null) {
+            return $this->linhaNaoMedida('Obra parada');
+        }
+        if (($data['gate'] ?? null) !== 'obra-parada') {
             return null;
         }
 
@@ -130,18 +135,6 @@ final class ObraParadaBriefLineService
      */
     private function fetchParados(): ?array
     {
-        try {
-            $result = Process::path(base_path())
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->run(['node', 'scripts/governance/cron-watchdog.mjs', '--json']);
-        } catch (Throwable $e) {
-            Log::debug('[obra-parada brief line] shell-out falhou: '.$e->getMessage());
-
-            return null;
-        }
-
-        $decoded = json_decode($result->output(), true);
-
-        return is_array($decoded) ? $decoded : null;
+        return $this->rodarSondaNode(['scripts/governance/cron-watchdog.mjs', '--json'], self::TIMEOUT_SECONDS, 'obra-parada brief line');
     }
 }

@@ -72,10 +72,10 @@ it('JSON de OUTRO gate → null (não confia em payload alheio)', function () {
     expect((new ObraParadaBriefLineService())->line())->toBeNull();
 });
 
-it('JSON inválido (node ausente/quebrado) → null', function () {
+it('node ausente (exit 127, sem JSON) → linha "não medido", nunca some calada', function () {
     Process::fake(['*' => Process::result(output: 'node: not found', exitCode: 127)]);
 
-    expect((new ObraParadaBriefLineService())->line())->toBeNull();
+    expect((new ObraParadaBriefLineService())->line())->toBe('⚪ Obra parada: não medido (node ausente (exit 127))');
 });
 
 it('inject() põe a flag como 1º bullet de ## FLAGS e preserva o resto do brief', function () {

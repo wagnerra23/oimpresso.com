@@ -91,12 +91,10 @@ it('índice vazio (0 planos) → null', function () {
     expect((new PlanHealthBriefLineService())->line())->toBeNull();
 });
 
-it('JSON inválido (node quebrado/ausente) → null', function () {
-    // Catch-all '*' (mesma chave de fakePlanHealth): chaves consistentes entre
-    // testes evitam handlers acumulados/ambíguos no Process::fake.
+it('node ausente (exit 127, sem JSON) → linha "não medido", nunca some calada', function () {
     Process::fake(['*' => Process::result(output: 'node: not found', exitCode: 127)]);
 
-    expect((new PlanHealthBriefLineService())->line())->toBeNull();
+    expect((new PlanHealthBriefLineService())->line())->toBe('⚪ Planos: não medido (node ausente (exit 127))');
 });
 
 it('kill-switch OFF → inject vira no-op mesmo com órfão', function () {
@@ -123,3 +121,14 @@ it('inject coloca a linha como bullet no FLAGS sem quebrar o markdown', function
         ->and($out)->toContain('- 🟢 Migration aging: ok') // bullet original preservado
         ->and(trim($out))->toEndWith('---END---');
 });
+
+it('processo não inicia (exceção) → "não medido" com o motivo, e o inject põe a linha no FLAGS', function () {
+    Process::fake(['*' => fn () => throw new RuntimeException('proc_open falhou')]);
+
+    $svc = new PlanHealthBriefLineService();
+    expect($svc->line())->toBe('⚪ Planos: não medido (node indisponível: proc_open falhou)');
+
+    $brief = $svc->inject("## FLAGS\n- outra flag\n");
+    expect($brief)->toContain('- ⚪ Planos: não medido (node indisponível: proc_open falhou)');
+});
+

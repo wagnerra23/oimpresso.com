@@ -102,10 +102,13 @@ it('0 PRs terminais na janela 7d → null (nada a reportar)', function () {
     expect((new AgentOutcomeBriefSectionService())->section())->toBeNull();
 });
 
-it('JSON inválido na janela 7d (node/gh ausentes) → null', function () {
+it('sem JSON na janela 7d (node/gh ausentes) → seção "não medido", nunca some calada', function () {
     fakeAgentOutcome(null, null);
 
-    expect((new AgentOutcomeBriefSectionService())->section())->toBeNull();
+    expect((new AgentOutcomeBriefSectionService())->section())->toBe(implode(chr(10), [
+        '## OUTCOME DO AGENTE (7d)',
+        '- ⚪ Outcome do agente: não medido (sonda sem JSON legível (exit 0))',
+    ]));
 });
 
 it('kill-switch OFF → inject vira no-op mesmo com dados', function () {
