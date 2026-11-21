@@ -13,6 +13,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import SubNav from '@/Components/shared/SubNav';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import NaturezaEditor from './NaturezaEditor';
+import ComoFicaNoLancamento from './ComoFicaNoLancamento';
 import {
   CST_COM_ST, FINS, REGIME_NOME, completar, listar, rotulo, vazia,
   type EmpresaResumo, type LinhaNatureza, type Natureza, type Regime,
@@ -197,6 +198,8 @@ export default function NaturezasSecao() {
           />
         </Grid>
       )}
+
+      {linhas && <ComoFicaNoLancamento linhas={linhas} regime={regime} empresa={empresa} />}
 
       <div className="min-w-0 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]">
         <SubNav

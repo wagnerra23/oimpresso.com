@@ -39,12 +39,15 @@ function servidor(alertas: unknown[] = []) {
 
 afterEach(() => vi.unstubAllGlobals());
 
+// O nome da natureza também aparece no seletor da prévia; as asserções da LISTA olham só a tabela.
+const tabela = async () => within(await screen.findByRole('table'));
+
 describe('Naturezas de operação', () => {
   it('UC-NFTR-51 · a lista mostra a situação de cada natureza e a do cálculo abre só para leitura', async () => {
     servidor();
     render(<NaturezasSecao />);
 
-    expect(await screen.findByText('Remessa em garantia')).toBeTruthy();
+    expect((await tabela()).getByText('Remessa em garantia')).toBeTruthy();
     expect(screen.getByText('1 pendência')).toBeTruthy();
     expect(screen.getByText('Usada no cálculo')).toBeTruthy();
     // Inativa fica fora de "Todas" e aparece no filtro próprio.
@@ -75,7 +78,8 @@ describe('Naturezas de operação', () => {
     servidor();
     render(<NaturezasSecao />);
 
-    expect(await screen.findByText('Remessa em garantia')).toBeTruthy();
+    const t = await tabela();
+    expect(t.getByText('Remessa em garantia')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Tributação padrão' })).toBeTruthy();
     // Faixa de resumo: empresa, regime, origem e IBS/CBS do ano.
     expect(screen.getByText('Empresa Teste')).toBeTruthy();
@@ -87,12 +91,12 @@ describe('Naturezas de operação', () => {
     expect(screen.getByRole('tab', { name: /Inativas/ }).textContent).toContain('1');
     // Colunas do protótipo e as etiquetas de tributo da natureza com ST, IPI, PIS/COFINS e IBS/CBS.
     expect(screen.getByRole('columnheader', { name: 'Tributos' })).toBeTruthy();
-    const remessa = within(screen.getByText('Remessa em garantia').closest('tr') as HTMLElement);
+    const remessa = within(t.getByText('Remessa em garantia').closest('tr') as HTMLElement);
     for (const tag of ['ICMS', 'ST', 'IPI 50', 'PIS/COFINS 01', 'IBS/CBS 000']) {
       expect(remessa.getByText(tag)).toBeTruthy();
     }
     // A Venda padrão não tem os tributos da tela: não inventa etiqueta para ela.
-    const venda = within(screen.getByText('Venda').closest('tr') as HTMLElement);
+    const venda = within(t.getByText('Venda').closest('tr') as HTMLElement);
     expect(venda.queryByText('ICMS')).toBeNull();
   });
 });
