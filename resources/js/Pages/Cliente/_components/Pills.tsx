@@ -170,19 +170,22 @@ export interface FrescorPillProps {
 export function FrescorPill({ lastPurchaseAt, hideRelative = false }: FrescorPillProps) {
   const state = useMemo(() => calcFrescor(lastPurchaseAt), [lastPurchaseAt]);
   const rel = useMemo(() => relativeFromIso(lastPurchaseAt), [lastPurchaseAt]);
+  // Desenho do protótipo (`.cli-frescor`): bolinha na cor do estado, estado em negrito,
+  // separador e o tempo relativo. 11px, padding 3px 9px 3px 7px, gap 5px.
   return (
     <span
       className={
-        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ' +
+        'inline-flex items-center gap-[5px] whitespace-nowrap rounded-full border py-[3px] pl-[7px] pr-[9px] text-[11px] font-medium ' +
         FRESCOR_STYLE[state]
       }
       title={lastPurchaseAt ? `Última compra: ${rel}` : 'Sem compras registradas'}
     >
-      <span>{FRESCOR_LABEL[state]}</span>
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-70" aria-hidden="true" />
+      <span className="font-semibold">{FRESCOR_LABEL[state]}</span>
       {!hideRelative && (
         <>
-          <span className="opacity-60" aria-hidden="true">·</span>
-          <span className="opacity-80 font-normal">{rel}</span>
+          <span className="opacity-50" aria-hidden="true">·</span>
+          <span className="opacity-80 tabular-nums">{rel}</span>
         </>
       )}
     </span>

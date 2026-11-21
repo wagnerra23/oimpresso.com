@@ -1,108 +1,85 @@
-// Wave G — Pages/Cliente/_components/Avatar.tsx
+// Pages/Cliente/_components/Avatar.tsx
 //
-// Avatar colorido determinístico via HSL hash do nome do cliente. Mesmo nome
-// sempre gera mesma cor — reconhecimento visual instantâneo na listagem.
+// Avatar de iniciais do cliente: círculo de COR SÓLIDA, texto branco, cor escolhida por hash do
+// nome — o mesmo nome sempre ganha a mesma cor, que é o que faz a lista ser reconhecível de relance.
 //
-// Refs:
-//   - ADR 0179 (drawer 760 substitui Show.tsx full-page) §dim 2 paleta cor semântica
-//   - prototipo-ui/cowork/Wagner/legado/clientes/clientes-icons.jsx (MORTO 2026-08-13 — sem fonte no repo) (avatarFor + initialsFor)
-//   - HANDOFF_CLIENTES.md §5.3 helpers (avatar.ts)
-//   - visual-comparison cliente-drawer-760 dim 2 score 15→95
+// Fonte de design: prototipo-ui/cowork/Wagner/clientes-page.jsx (`CLI_AVATAR_PALETTE`, `cliHash`,
+// `initialsOf`, componente `Avatar`) + clientes-page.css (`.cli-avatar`, `.cli-avatar.lg`).
+// Paleta, hash e iniciais são portados do protótipo 1:1, para o mesmo nome dar a mesma cor e as
+// mesmas iniciais nos dois lados (a comparação medida pareia as duas telas).
 //
-// Algoritmo: HSL hash com 12 hues distribuídas (0, 30, 60... 330) garante 12
-// cores distinguíveis com WCAG AA contrast (text foreground hsl(hue, 55%, 30%)
-// sobre background hsl(hue, 60%, 88%)).
+// Histórico: até 2026-11-21 este componente desenhava um quadrado de 6px com degradê oklch (12
+// gradientes). A medição `design-diff` de 2026-11-21 (prod × protótipo, tema escuro) acusou a
+// forma e o preenchimento; pela UI-0029 o protótipo manda na forma, e a troca entrou na onda 1 da
+// paridade da lista de clientes.
 
 import { useMemo } from 'react';
 
-// Hash determinístico djb2-like. Resultado positivo, sem overflow JS int.
-// Z-2.1: alinhado ao protótipo Cowork `clientes-icons.jsx::avatarFor`:
-//   `(h * 31 + name.charCodeAt(i)) >>> 0`  (unsigned shift)
-function hashStr(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = ((h * 31 + s.charCodeAt(i)) >>> 0);
-  }
-  return h;
-}
-
-// Z-2.1 alinhado ao protótipo: 12 gradients oklch distinctos + texto branco.
-// Estilo Stripe/Linear/Notion (vivos, legíveis). NÃO pastel chapado HSL.
-// Ref: prototipo-ui/cowork/Wagner/legado/clientes/clientes-icons.jsx (MORTO 2026-08-13 — sem fonte no repo):128-146 AV_GRADS.
-const AVATAR_GRADIENTS: ReadonlyArray<string> = [
-  'linear-gradient(135deg, oklch(0.65 0.18 25),   oklch(0.55 0.20 350))', // rosa-vermelho
-  'linear-gradient(135deg, oklch(0.65 0.18 60),   oklch(0.55 0.20 30))',  // âmbar-vermelho
-  'linear-gradient(135deg, oklch(0.65 0.18 110),  oklch(0.55 0.20 80))',  // lima-âmbar
-  'linear-gradient(135deg, oklch(0.65 0.18 150),  oklch(0.55 0.20 130))', // verde-lima
-  'linear-gradient(135deg, oklch(0.65 0.18 180),  oklch(0.55 0.20 170))', // teal-verde
-  'linear-gradient(135deg, oklch(0.65 0.18 210),  oklch(0.55 0.20 200))', // azul-teal
-  'linear-gradient(135deg, oklch(0.65 0.18 240),  oklch(0.55 0.20 270))', // azul-violeta
-  'linear-gradient(135deg, oklch(0.65 0.18 290),  oklch(0.55 0.20 320))', // violeta-magenta
-  'linear-gradient(135deg, oklch(0.55 0.15 47),   oklch(0.65 0.15 107))', // marrom-amarelo (Cowork)
-  'linear-gradient(135deg, oklch(0.55 0.15 280),  oklch(0.65 0.15 340))', // roxo-rosa (Cowork)
-  'linear-gradient(135deg, oklch(0.55 0.15 200),  oklch(0.65 0.15 160))', // azul-verde
-  'linear-gradient(135deg, oklch(0.55 0.15 0),    oklch(0.65 0.15 60))',  // vermelho-âmbar
+// Paleta do protótipo (`CLI_AVATAR_PALETTE`): 8 tons, todos com texto branco.
+const AVATAR_PALETTE: ReadonlyArray<string> = [
+  'oklch(0.62 0.13 255)',
+  'oklch(0.65 0.14 145)',
+  'oklch(0.68 0.13 60)',
+  'oklch(0.62 0.14 25)',
+  'oklch(0.60 0.10 280)',
+  'oklch(0.55 0.08 200)',
+  'oklch(0.58 0.12 165)',
+  'oklch(0.62 0.13 320)',
 ];
 
-function gradientForName(name: string): string {
-  return AVATAR_GRADIENTS[hashStr(name) % AVATAR_GRADIENTS.length];
+// Hash do protótipo (`cliHash`): inteiro de 32 bits com sinal e valor absoluto no fim.
+function hashStr(s: string): number {
+  let h = 0;
+  const str = String(s);
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
 }
 
-// 1 letra se uma palavra, 2 letras (primeira + última) se mais.
-// Idêntico ao window.initialsFor do protótipo Cowork.
+export function avatarColor(name: string): string {
+  return AVATAR_PALETTE[hashStr(name) % AVATAR_PALETTE.length];
+}
+
+// Iniciais do protótipo (`initialsOf`): primeira letra das duas primeiras palavras, ignorando o
+// que não é letra. Uma palavra só dá uma letra.
 export function avatarInitial(name: string): string {
-  if (!name || !name.trim()) return '?';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  const letras = String(name ?? '')
+    .split(/\s+/)
+    .map((p) => p.replace(/[^\p{L}]/gu, ''))
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase();
+  return letras || '?';
 }
 
 export interface AvatarProps {
   name: string;
-  /** Tamanho em px. Default 28 (linha tabela Cowork); drawer header usa 40. */
+  /** Tamanho em px. Default 32 (linha da tabela); a gaveta usa 44 (`.cli-avatar.lg`). */
   size?: number;
   className?: string;
-  /** Seed alternativa (ex: id numérico do contact em string). Default = name. */
+  /** Seed alternativa para a cor. Default = name. */
   seed?: string;
-  /** Z-2.1: forma. `'rounded'` = rounded-md (legacy); `'circle'` = full round (drawer Cowork). */
-  shape?: 'rounded' | 'circle';
 }
 
 /**
- * Avatar colorido com gradient oklch determinístico, texto branco.
- * Z-2.1 alinhado ao protótipo Cowork `clientes-listagem.jsx::Avatar`:
- *   - Background: `linear-gradient(135deg, oklch...)` (12 gradients)
- *   - Color: `#fff`
- *   - Default size: 28px (tabela) — drawer header passa size={40}
- *
- * Exemplo de uso:
- *   <Avatar name="João da Silva" />                      → linha tabela 28px (rounded-md)
- *   <Avatar name="Acme" size={40} shape="circle" />       → drawer header 40px circle (Cowork)
- *   <Avatar name="Acme" seed={id.toString()} />           → cor estável mesmo se name mudar
+ * Exemplo:
+ *   <Avatar name="João da Silva" />            → linha da tabela, 32px
+ *   <Avatar name="Acme" size={44} />           → cabeçalho da gaveta, 44px
  */
-export function Avatar({
-  name,
-  size = 28,
-  className = '',
-  seed,
-  shape = 'rounded',
-}: AvatarProps) {
-  const background = useMemo(() => gradientForName(seed ?? name), [name, seed]);
+export function Avatar({ name, size = 32, className = '', seed }: AvatarProps) {
+  const background = useMemo(() => avatarColor(seed ?? name), [name, seed]);
   const initials = useMemo(() => avatarInitial(name), [name]);
-  const fontSize = Math.round(size * 0.4);
-  const radiusClass = shape === 'circle' ? 'rounded-full' : 'rounded-md';
+  // `.cli-avatar` 11px · `.cli-avatar.lg` (≥44px) 14px.
+  const fontSize = size >= 44 ? 14 : 11;
 
   return (
     <div
-      className={radiusClass + ' flex items-center justify-center font-semibold flex-shrink-0 text-white ' + className}
-      style={{
-        background,
-        width: size,
-        height: size,
-        fontSize,
-      }}
+      className={
+        'rounded-full flex items-center justify-center font-semibold tracking-[0.02em] flex-shrink-0 text-white ' +
+        className
+      }
+      style={{ backgroundColor: background, width: size, height: size, flexBasis: size, fontSize }}
       aria-hidden="true"
     >
       {initials}
