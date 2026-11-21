@@ -146,6 +146,19 @@ function enviar(container: HTMLElement) {
 }
 
 describe('UC-PCAD-32 · Novo produto — a grade na tela', () => {
+  it('a opção "SKU + valor da variação" diz o que grava: o SKU junto do valor, como CAMAzul', () => {
+    // Decisão do [W] em 2026-11-21 (#11263): o texto antigo, "SKU + número da variação", não batia com o
+    // que o servidor grava (ProductUtil::generateSubSku junta o SKU com o valor, sem número).
+    render(<ProdutoCreate {...props} />)
+
+    escolher('variacao_modelo', 'Cor')
+    fireEvent.change(screen.getByLabelText('Valor 1'), { target: { value: 'Azul' } })
+    expect(screen.queryByText('SKU + número da variação')).toBeNull()
+
+    fireEvent.click(screen.getByLabelText('SKU + valor da variação (ex.: CAMAzul)'))
+    expect((screen.getByLabelText('Sub-SKU 1') as HTMLInputElement).placeholder).toBe('CAMAzul')
+  })
+
   it('escolhe o modelo, preenche os valores com Enter e envia a grade com os preços', () => {
     const { container } = render(<ProdutoCreate {...props} />)
 
