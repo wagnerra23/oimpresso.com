@@ -62,6 +62,12 @@ concurrency:
   group: guards-meta-gate-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Token só de leitura: estes jobs rodam nas vagas self-hosted ct100-leve (repo público)
+# e não escrevem nada pela API. pull-requests:read cobre o dorny/paths-filter.
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   meta-test:
     name: meta-teste dos guards (casos + domínio + fundação · vitest)
