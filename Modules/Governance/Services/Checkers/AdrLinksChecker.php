@@ -64,7 +64,7 @@ final class AdrLinksChecker implements DriftChecker
         $decisionsDir = "{$base}/memory/decisions";
 
         if (! is_dir($decisionsDir)) {
-            return DriftCheckResult::clean($this->name(), 0, ['skipped' => 'memory/decisions/ não existe']);
+            return DriftCheckResult::notMeasured($this->name(), 'memory/decisions/ não existe');
         }
 
         $adrFiles = glob("{$decisionsDir}/*.md") ?: [];

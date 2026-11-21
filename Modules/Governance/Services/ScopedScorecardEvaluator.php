@@ -7,6 +7,7 @@ namespace Modules\Governance\Services;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Yaml\Yaml;
 
@@ -293,8 +294,8 @@ class ScopedScorecardEvaluator
      * Dispatcher unificado pra detectar uma rule (Wave 25 Agent 0 — expansão de 4 → 10 tipos).
      *
      * Retorna bool: true = rule satisfeita, false = não satisfeita.
-     * Fail-safe: ambiente sem dependência (GH_TOKEN ausente, tabela OTel ausente)
-     * deve retornar true (pass-through) pra não bloquear pipeline de avaliação.
+     * Fail-safe: ambiente sem dependência (tabela OTel ausente) retorna true (pass-through).
+     * Exceção: ci_health sem GH_TOKEN/dados retorna false — não medido não pontua (2026-11-19).
      *
      * @param  string  $module  Nome do módulo (Vestuario, Jana, etc)
      * @param  array  $detect  Bloco YAML rules[N].detect com keys tipo, path, expect, etc
@@ -656,20 +657,50 @@ class ScopedScorecardEvaluator
     }
 
     /**
-     * ci_health — GitHub Actions workflow success rate (pass-through se GH_TOKEN ausente).
+     * ci_health — taxa de sucesso dos runs concluídos do GitHub Actions nos últimos 7 dias.
      *
-     * Em ambiente sem GH_TOKEN (dev/local/Pest), retorna true pra não bloquear.
-     * Em CT 100 / prod com GH_TOKEN, faria fetch real do success rate (TODO Wave 26+).
+     * Antes devolvia true nos dois ramos (com e sem token) sem consultar nada: pontuava sem
+     * ter medido (§5 proibicoes 2026-07-29, LC-33). Agora:
+     *   - sem GH_TOKEN/GITHUB_TOKEN, HTTP falhou ou nenhum run concluído → false (não
+     *     medido não pontua — mesmo fail-safe do business_signal);
+     *   - com dados → success / (success + failure) >= coverage_target (default 0.95).
+     * Runs cancelados/pulados não entram no denominador.
      */
     public function detectCiHealth(string $module, array $detect): bool
     {
         $token = env('GH_TOKEN') ?: env('GITHUB_TOKEN');
         if (! $token) {
-            return true; // pass-through fail-safe
+            return false;
         }
-        // TODO Wave 26+: fetch /repos/<owner>/<repo>/actions/runs e calcular success rate
-        // Por enquanto pass-through mesmo com token (impl. real exige scoping de workflow)
-        return true;
+
+        $repo   = (string) ($detect['repo'] ?? config('governance.github_repo', 'wagnerra23/oimpresso.com'));
+        $target = (float) ($detect['coverage_target'] ?? 0.95);
+
+        try {
+            $resp = Http::withToken($token)->timeout(15)->acceptJson()
+                ->get("https://api.github.com/repos/{$repo}/actions/runs", [
+                    'status'   => 'completed',
+                    'branch'   => (string) ($detect['branch'] ?? 'main'),
+                    'created'  => '>='.now()->subDays(7)->toDateString(),
+                    'per_page' => 100,
+                ]);
+            if (! $resp->successful()) {
+                return false;
+            }
+            $conclusoes = array_column((array) $resp->json('workflow_runs', []), 'conclusion');
+        } catch (\Throwable $e) {
+            \Log::warning('ScopedScorecardEvaluator: ci_health não mediu', ['error' => $e->getMessage()]);
+
+            return false;
+        }
+
+        $ok    = count(array_filter($conclusoes, static fn ($c) => $c === 'success'));
+        $falha = count(array_filter($conclusoes, static fn ($c) => $c === 'failure'));
+        if ($ok + $falha === 0) {
+            return false;
+        }
+
+        return ($ok / ($ok + $falha)) >= $target;
     }
 
     /**

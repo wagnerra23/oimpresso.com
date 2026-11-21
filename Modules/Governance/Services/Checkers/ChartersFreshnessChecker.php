@@ -82,14 +82,14 @@ final class ChartersFreshnessChecker implements DriftChecker
                     'output_preview' => mb_substr($output, 0, 200),
                 ]);
 
-                return DriftCheckResult::clean($this->name(), 0, ['error' => 'invalid_json']);
+                return DriftCheckResult::notMeasured($this->name(), 'charter:audit devolveu JSON inválido', 0, ['error' => 'invalid_json']);
             }
         } catch (\Throwable $e) {
             Log::channel('single')->error('charters_freshness — charter:audit threw', [
                 'exception' => $e->getMessage(),
             ]);
 
-            return DriftCheckResult::clean($this->name(), 0, ['error' => $e->getMessage()]);
+            return DriftCheckResult::notMeasured($this->name(), 'charter:audit lançou: '.$e->getMessage(), 0, ['error' => $e->getMessage()]);
         }
 
         $findings = array_merge(

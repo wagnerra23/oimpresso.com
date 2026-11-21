@@ -74,10 +74,9 @@ final class NpmAuditChecker implements DriftChecker
         $start = microtime(true);
 
         if (! file_exists(base_path('package.json')) || ! file_exists(base_path('package-lock.json'))) {
-            return DriftCheckResult::clean(
+            return DriftCheckResult::notMeasured(
                 name: $this->name(),
-                duration_ms: 0,
-                metadata: ['skipped' => 'package.json or package-lock.json not found'],
+                motivo: 'package.json ou package-lock.json ausente',
             );
         }
 
@@ -101,8 +100,9 @@ final class NpmAuditChecker implements DriftChecker
                 'stderr' => mb_substr($stderr, 0, 500),
             ]);
 
-            return DriftCheckResult::clean(
+            return DriftCheckResult::notMeasured(
                 name: $this->name(),
+                motivo: "npm ausente ou falhou (exit {$exitCode})",
                 duration_ms: $durationMs,
                 metadata: ['error' => 'npm binary unavailable or crashed', 'exit_code' => $exitCode],
             );
@@ -114,7 +114,7 @@ final class NpmAuditChecker implements DriftChecker
                 'stdout_preview' => mb_substr($stdout, 0, 200),
             ]);
 
-            return DriftCheckResult::clean($this->name(), $durationMs);
+            return DriftCheckResult::notMeasured($this->name(), 'npm audit devolveu JSON inválido', $durationMs);
         }
 
         $findings = $this->extractFindings($decoded);

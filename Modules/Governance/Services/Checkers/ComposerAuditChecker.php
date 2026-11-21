@@ -71,25 +71,15 @@ final class ComposerAuditChecker implements DriftChecker
 
         $durationMs = (int) ((microtime(true) - $start) * 1000);
 
-        // composer audit exit code: 0 = clean, 1 = vulnerabilities found, >1 = error
         $exitCode = $process->exitCode();
         $stdout = $process->output();
         $stderr = $process->errorOutput();
 
-        if ($exitCode > 1) {
-            Log::channel('single')->error('composer_audit checker — composer binary failed', [
-                'exit_code' => $exitCode,
-                'stderr' => mb_substr($stderr, 0, 500),
-            ]);
-
-            return DriftCheckResult::clean(
-                name: $this->name(),
-                duration_ms: $durationMs,
-                metadata: ['error' => 'composer binary unavailable or crashed', 'exit_code' => $exitCode],
-            );
-        }
-
-        if ($exitCode === 0 || trim($stdout) === '') {
+        // exit 0 = sem vulnerabilidade. Fora isso, o que decide é haver JSON legível no
+        // stdout: com JSON, os achados vêm dele (seja qual for o exit); sem JSON (binário
+        // ausente → 127, crash) é não medido. Antes, exit > 1 e JSON inválido viravam
+        // clean — verde sem ter medido (§5 proibicoes 2026-07-29).
+        if ($exitCode === 0) {
             return DriftCheckResult::clean($this->name(), $durationMs, [
                 'audited_at' => now()->toIso8601String(),
             ]);
@@ -97,11 +87,18 @@ final class ComposerAuditChecker implements DriftChecker
 
         $decoded = json_decode($stdout, true);
         if (! is_array($decoded)) {
-            Log::channel('single')->warning('composer_audit checker — não foi possível parsear JSON', [
+            Log::channel('single')->error('composer_audit checker — sem JSON legível', [
+                'exit_code' => $exitCode,
+                'stderr' => mb_substr($stderr, 0, 500),
                 'stdout_preview' => mb_substr($stdout, 0, 200),
             ]);
 
-            return DriftCheckResult::clean($this->name(), $durationMs);
+            return DriftCheckResult::notMeasured(
+                name: $this->name(),
+                motivo: "composer audit sem JSON legível (exit {$exitCode})",
+                duration_ms: $durationMs,
+                metadata: ['exit_code' => $exitCode],
+            );
         }
 
         $findings = $this->extractFindings($decoded);

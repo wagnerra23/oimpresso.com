@@ -66,7 +66,7 @@ final class MeilisearchSettingsDriftChecker implements DriftChecker
         /** @var array<string, array<string, mixed>> $indexes */
         $indexes = (array) config('copiloto.meilisearch_indexes', []);
         if ($indexes === []) {
-            return DriftCheckResult::clean($this->name(), 0, ['skipped' => 'config copiloto.meilisearch_indexes vazia']);
+            return DriftCheckResult::notMeasured($this->name(), 'config copiloto.meilisearch_indexes vazia');
         }
 
         $host = rtrim((string) config('scout.meilisearch.host', 'http://localhost:7700'), '/');

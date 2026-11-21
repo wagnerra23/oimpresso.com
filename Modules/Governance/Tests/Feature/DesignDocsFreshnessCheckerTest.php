@@ -181,6 +181,6 @@ it('check() roda contra o repo real e devolve DriftCheckResult determinístico',
 
     expect($r1)->toBeInstanceOf(DriftCheckResult::class)
         ->and($r1->name)->toBe('design_docs_freshness')
-        ->and($r1->ok)->toBe($r1->drift_count === 0)
+        ->and($r1->ok)->toBe($r1->measured && $r1->drift_count === 0)
         ->and($r1->toArray())->toBe($r2->toArray()); // idempotente sobre o repo
 });

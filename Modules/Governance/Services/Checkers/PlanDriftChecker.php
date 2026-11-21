@@ -108,19 +108,20 @@ final class PlanDriftChecker implements DriftChecker
                     'output_preview' => mb_substr($output, 0, 200),
                 ]);
 
-                return DriftCheckResult::clean($this->name(), $this->ms($start), ['error' => 'invalid_json']);
+                return DriftCheckResult::notMeasured($this->name(), 'jana:plan-drift devolveu JSON inválido', $this->ms($start), ['error' => 'invalid_json']);
             }
         } catch (\Throwable $e) {
             Log::channel('single')->error('plan_drift — jana:plan-drift threw', [
                 'exception' => $e->getMessage(),
             ]);
 
-            return DriftCheckResult::clean($this->name(), $this->ms($start), ['error' => $e->getMessage()]);
+            return DriftCheckResult::notMeasured($this->name(), 'jana:plan-drift lançou: '.$e->getMessage(), $this->ms($start), ['error' => $e->getMessage()]);
         }
 
         // ⊘ honesto: MCP offline / índice ausente / nenhuma task com parent_plan ainda.
+        // O próprio comando declarou que não mediu → não medido, nunca clean.
         if (($report['skipped'] ?? false) === true) {
-            return DriftCheckResult::clean($this->name(), $this->ms($start), [
+            return DriftCheckResult::notMeasured($this->name(), 'jana:plan-drift pulou: '.(string) ($report['reason'] ?? 'sem razão declarada'), $this->ms($start), [
                 'skipped' => true,
                 'reason' => (string) ($report['reason'] ?? 'sem razão declarada'),
             ]);

@@ -11,6 +11,10 @@ namespace Modules\Governance\Services;
  * - drift_count = sizeof(findings)
  * - duration_ms = wall-clock do scan (input pra OtelHelper::span + dashboard)
  * - centrifugo_payload = override opcional do checker (default = sintetizado pelo orchestrator)
+ * - measured = false quando o checker NÃO CONSEGUIU medir (binário ausente, JSON inválido,
+ *   tabela/config inexistente). Nesse caso ok = false e drift_count = 0: não é verde nem drift.
+ *   Antes deste estado, 9 dos 13 checkers devolviam clean() no erro — verde sem ter medido
+ *   (§5 proibicoes 2026-07-29, LC-33). Use notMeasured() com o motivo.
  *
  * ADR 0216 §DriftCheckResult
  */
@@ -29,7 +33,38 @@ final readonly class DriftCheckResult
         public array $metadata = [],
         public int $duration_ms = 0,
         public ?array $centrifugo_payload = null,
+        public bool $measured = true,
+        public ?string $motivo_nao_medido = null,
     ) {
+    }
+
+    /**
+     * Não consegui medir. Nunca verde (ok=false), nunca drift (sem findings).
+     *
+     * @param array<string, mixed> $metadata
+     */
+    public static function notMeasured(string $name, string $motivo, int $duration_ms = 0, array $metadata = []): self
+    {
+        return new self(
+            name: $name,
+            ok: false,
+            drift_count: 0,
+            findings: [],
+            metadata: $metadata,
+            duration_ms: $duration_ms,
+            measured: false,
+            motivo_nao_medido: $motivo,
+        );
+    }
+
+    /** 'clean' | 'drifted' | 'nao_medido' */
+    public function status(): string
+    {
+        if (! $this->measured) {
+            return 'nao_medido';
+        }
+
+        return $this->ok ? 'clean' : 'drifted';
     }
 
     public static function clean(string $name, int $duration_ms = 0, array $metadata = []): self
@@ -74,6 +109,8 @@ final readonly class DriftCheckResult
         return [
             'name' => $this->name,
             'ok' => $this->ok,
+            'status' => $this->status(),
+            'motivo_nao_medido' => $this->motivo_nao_medido,
             'drift_count' => $this->drift_count,
             'duration_ms' => $this->duration_ms,
             'findings' => array_map(static fn (DriftFinding $f) => $f->toArray(), $this->findings),
