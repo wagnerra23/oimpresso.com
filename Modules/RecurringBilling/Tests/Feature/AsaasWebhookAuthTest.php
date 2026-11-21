@@ -85,7 +85,7 @@ function seedAsaasCred(int $businessId, string $secret = 'asaas-tok-ok', bool $a
         'banco'       => 'asaas',
         'ambiente'    => 'production',
         'ativo'       => $ativo,
-        'config_json' => json_encode(['webhook_secret' => $secret]),
+        'config_json' => json_encode(['webhook_secret' => \Illuminate\Support\Facades\Crypt::encryptString($secret)]),
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);
@@ -179,4 +179,21 @@ it('UC-RBCFG-06 · multi-tenant Tier 0: token do business 1 NÃO credita no busi
     $response->assertStatus(401)->assertJsonPath('reason', 'secret_mismatch');
     Queue::assertNothingPushed();
     expect(DB::table('pg_webhook_events')->where('business_id', 2)->count())->toBe(0);
+});
+
+it('d4 · segredo gravado em claro (linha que escapou da migration) não autentica: 401', function () {
+    // Auditoria RB d4 (2026-11-19): o webhook compara contra o segredo DECIFRADO. Valor em claro
+    // no config_json não decifra e vira null — fail-secure, mesmo com o header igual ao texto.
+    Queue::fake();
+    DB::table('rb_boleto_credentials')->insert([
+        'business_id' => 1, 'banco' => 'asaas', 'ambiente' => 'production', 'ativo' => true,
+        'config_json' => json_encode(['webhook_secret' => 'segredo-em-claro']),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $response = $this->withHeaders(['asaas-access-token' => 'segredo-em-claro'])
+        ->postJson('/api/webhooks/asaas/1', paymentReceivedPayload('evt_claro'));
+
+    $response->assertStatus(401)->assertJsonPath('reason', 'secret_mismatch');
+    Queue::assertNothingPushed();
 });

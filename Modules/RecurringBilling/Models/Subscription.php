@@ -35,7 +35,7 @@ class Subscription extends Model
 
     /**
      * Auditoria LGPD (D7) — registra mudanças de status/plano/cancelamento.
-     * NÃO loga `metadata` (pode conter payload gateway com PII).
+     * De `metadata` só loga valor/ciclo/forma_pagamento; o resto (payload gateway, PII) fica fora.
      * Caller deve redact via PiiRedactor antes de logar campos livres.
      *
      * @see Modules\RecurringBilling\Config\retention.php
@@ -46,6 +46,10 @@ class Subscription extends Model
             ->logOnly([
                 'status', 'plan_id', 'contact_id', 'next_due_date',
                 'canceled_at', 'paused_at', 'payment_method', 'churn_reason',
+                // Valor/ciclo/forma negociados vivem em metadata (store + AssinaturaCobrancaService).
+                // Só as chaves de cobrança: o resto da metadata (mandato Pix, refs de gateway) fica
+                // fora da trilha. Auditoria RB d4, 2026-11-19.
+                'metadata->valor', 'metadata->ciclo', 'metadata->forma_pagamento',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Business;
-use App\Role;
+use Spatie\Permission\Models\Role;
 use App\Transaction;
 use App\User;
 use Modules\PaymentGateway\Models\Cobranca;
@@ -25,12 +25,12 @@ uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::
  */
 
 beforeEach(function () {
-    setPermissionsTeamId(1);
-
-    $this->business = Business::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'Test HQ', 'currency_id' => 1],
-    );
+    // Tenant fictício 98 (ADR 0358), semeado pela pest-mysql-setup. Sem ele, skip.
+    $this->business = Business::find(98);
+    if (! $this->business) {
+        $this->markTestSkipped('Lane sem tenant 98 semeado (ADR 0358).');
+    }
+    setPermissionsTeamId($this->business->id);
 
     // direct_sell.view é a permission UPOS pra sheetData
     Permission::firstOrCreate(['name' => 'direct_sell.view', 'guard_name' => 'web']);
@@ -104,7 +104,8 @@ it('shape cobranca retorna kind=paid quando cobrança paga existe', function () 
         ->assertJsonPath('cobranca.kind', 'paid')
         ->assertJsonPath('cobranca.cob.tipo', 'boleto')
         ->assertJsonPath('cobranca.cob.gateway', 'inter')
-        ->assertJsonPath('cobranca.cob.valor', 500.0);
+        // json_encode(500.0) sai "500": compara o número, não o tipo PHP.
+        ->assertJsonPath('cobranca.cob.valor', fn ($v) => (float) $v === 500.0);
 });
 
 it('shape cobranca retorna kind=overdue quando emitida e vencimento passou', function () {
@@ -142,7 +143,7 @@ it('shape cobranca retorna kind=overdue quando emitida e vencimento passou', fun
 // ─── Onda 4d.5 — Wire-up emissão GUARDs ──────────────────────────────────
 
 it('POST /sells/{id}/emitir-cobranca retorna 404 quando venda de outro business', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    $otherBiz = $this->seededSupportClientTenant();
 
     $otherSale = Transaction::create([
         'business_id' => $otherBiz->id,
@@ -189,7 +190,7 @@ it('POST /sells/{id}/emitir-cobranca exige tipo válido', function () {
 });
 
 it('Tier 0 IRREVOGÁVEL: cobrança de outro business NÃO aparece na venda', function () {
-    $otherBiz = Business::query()->firstOrCreate(['id' => 99], ['name' => 'Other Biz', 'currency_id' => 1]);
+    $otherBiz = $this->seededSupportClientTenant();
 
     $credOther = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,
@@ -200,7 +201,7 @@ it('Tier 0 IRREVOGÁVEL: cobrança de outro business NÃO aparece na venda', fun
         'config_json' => [],
     ]);
 
-    // Cobrança apontando pra venda do biz=1 MAS com business_id=99 (impossível em
+    // Cobrança apontando pra venda da 98 MAS com business_id=99 (impossível em
     // produção, mas defensivo — global scope deve excluir).
     Cobranca::withoutGlobalScopes()->create([
         'business_id' => $otherBiz->id,

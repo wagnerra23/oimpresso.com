@@ -16,8 +16,8 @@ use Modules\RecurringBilling\Models\Subscription;
  *   recurringbilling.subscriptions.manage  — create/update/pause/resume
  *   recurringbilling.subscriptions.cancel  — cancelar
  *
- * Por enquanto (v9,75 Ondas 3+): SUPERADMIN-only enquanto canary G1 Martinho
- * não rodou. Pós-canary, troca pra permission granular.
+ * Até 2026-11-19 create/update/pause/resume/cancel aceitavam `recurringbilling.access`
+ * sozinha; a granularidade era decorativa (auditoria RB d1). Agora cada ato pede a sua.
  *
  * Multi-tenant Tier 0 (ADR 0093): toda verificação cross-tenant via
  * $sub->business_id === $user->business_id.
@@ -51,13 +51,12 @@ class SubscriptionPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('recurringbilling.subscriptions.manage')
-            || $user->can('recurringbilling.access');
+        return $user->can('recurringbilling.subscriptions.manage');
     }
 
     public function update(User $user, Subscription $sub): bool
     {
-        return ($user->can('recurringbilling.subscriptions.manage') || $user->can('recurringbilling.access'))
+        return $user->can('recurringbilling.subscriptions.manage')
             && $this->sameTenant($user, $sub);
     }
 
@@ -74,7 +73,7 @@ class SubscriptionPolicy
 
     public function cancel(User $user, Subscription $sub): bool
     {
-        return ($user->can('recurringbilling.subscriptions.cancel') || $user->can('recurringbilling.access'))
+        return $user->can('recurringbilling.subscriptions.cancel')
             && $this->sameTenant($user, $sub)
             && $sub->status !== 'canceled';
     }

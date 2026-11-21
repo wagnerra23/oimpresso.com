@@ -108,11 +108,12 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-spreadsheet-junit.xml \
-            Modules/Spreadsheet/Tests/Feature/SpreadsheetIndexContratoTest.php \
+            Modules/Spreadsheet/Tests/Feature/MultiTenantIsolationTest.php \
             Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php \
-            Modules/Spreadsheet/Tests/Feature/MultiTenantIsolationTest.php
+            Modules/Spreadsheet/Tests/Feature/SpreadsheetIndexContratoTest.php \
+            --colors=always
 
       - name: Sumário JUnit por arquivo (assertions — corpus p/ LC-13)
         if: always()

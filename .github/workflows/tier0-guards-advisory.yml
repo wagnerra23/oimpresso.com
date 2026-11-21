@@ -90,8 +90,8 @@ jobs:
       - name: Pest — Tier-0 guards
         run: |
           vendor/bin/pest \
-            tests/Unit/Guards/WithoutGlobalScopesCommentGuardTest.php \
+            --no-coverage \
             tests/Unit/BusinessIdGuardTest.php \
             tests/Unit/Guards/PhpunitTestAnnotationGuardTest.php \
-            --no-coverage \
+            tests/Unit/Guards/WithoutGlobalScopesCommentGuardTest.php \
             --colors=always
