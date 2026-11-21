@@ -121,6 +121,33 @@ run_eval() {
 
 log "=== ct100-jana-evals (US-COPI-140) · container=$CONTAINER · sample=$SAMPLE ==="
 
+# ── PRÉ-VOO: corpus do eval ─────────────────────────────────────────────────────
+# Os 2 evals buscam em `mcp_memory_documents` do banco do staging, e ninguém repõe
+# essa tabela lá: o `mcp:sync-memory` agendado no Kernel é ->environments(['live']).
+# Medido na órfã governance/ragas-real-trend: semanas 2026-09-13 e 09-20 com
+# corpus_docs=2555 (pass); de 2026-09-27 a 2026-11-15, OITO semanas seguidas com
+# corpus_docs=0 e gate_status=skipped (no_context=51). O eval não mediu nada por 2
+# meses e o baseline honesto envelheceu sem ninguém poder regravá-lo. Quem esvaziou a
+# tabela não ficou registrado (reseed do staging ou teste no mesmo banco); por isso o
+# conserto não depende da causa: repõe o corpus a cada run, antes de medir.
+#
+# Idempotente: o sync só reindexa arquivo cujo sha mudou. Sem Meilisearch no staging
+# (SCOUT_DRIVER=null no .env.staging.example), escreve só no banco do staging.
+# Falha do sync NÃO aborta os evals — eles gravam corpus_docs no report e fazem SKIP
+# honesto se faltar contexto —, mas sai exit 1: corpus que não pôde ser reposto não
+# é silêncio.
+log "--- preflight corpus (mcp:sync-memory): início"
+set +e
+docker exec -e DB_CONNECTION=mysql "$CONTAINER" php artisan mcp:sync-memory --reason=eval-preflight
+rc_sync=$?
+set -e
+if [ "$rc_sync" -eq 0 ]; then
+  log "--- preflight corpus: OK (exit 0)"
+else
+  log "--- preflight corpus: FALHOU (exit $rc_sync) — evals seguem e reportam corpus_docs. NÃO mascarado."
+  rc_total=1
+fi
+
 # Ordem = a mesma intenção do Kernel (06:30 → 07:00), agora serializada.
 # jana:drift-sentinel NÃO entra aqui de propósito: é ->environments(['live']) e já roda
 # em prod pelo scheduler do hPanel (log copiloto-ai 05/07 e 12/07 06:01). Invocá-lo

@@ -18,6 +18,8 @@
 #   5. um eval falha                  → exit 1 (NÃO mascara) e o irmão AINDA roda
 #   6. JANA_EVALS_SAMPLE=N            → repassa --sample-size=N pro ragas
 #   7. sample default (0)             → NÃO passa --sample-size (gold-set completo)
+#  11-13. pré-voo do corpus          → mcp:sync-memory antes dos evals; falha dele sai 1
+#                                       sem abortar os evals
 set -uo pipefail
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/ct100-jana-evals.sh"
@@ -163,6 +165,59 @@ if [ "$RC" = "1" ] && ! grep -q "governance:ragas-eval-alert" "$TMP/docker-calls
 else
   fail "fail-open quebrado: rc=$RC (esperado 1) ou escalou sem JSON"
 fi
+
+# ── 11-13. PRÉ-VOO DO CORPUS: mcp:sync-memory antes dos evals ────────────────
+# O buraco medido em 2026-11-21: 8 semanas (09-27 → 11-15) com corpus_docs=0 e
+# gate_status=skipped. Nada repunha mcp_memory_documents no staging.
+
+# 11. MORDE: o sync é invocado, com o artisan certo, ANTES do primeiro eval
+mk_docker 0 0
+RC="$(run_script)"
+if grep -q "artisan mcp:sync-memory --reason=eval-preflight" "$TMP/docker-calls.log"; then
+  ok "pré-voo: invoca mcp:sync-memory --reason=eval-preflight"
+else
+  fail "pré-voo: NÃO invocou o sync (o corpus vazio volta a fazer o eval pular)"
+fi
+L_SYNC="$(grep -n 'mcp:sync-memory' "$TMP/docker-calls.log" | head -1 | cut -d: -f1)"
+L_EVAL="$(grep -n 'artisan jana:' "$TMP/docker-calls.log" | head -1 | cut -d: -f1)"
+if [ -n "$L_SYNC" ] && [ -n "$L_EVAL" ] && [ "$L_SYNC" -lt "$L_EVAL" ]; then
+  ok "pré-voo: o sync roda ANTES do primeiro eval (linha $L_SYNC < $L_EVAL)"
+else
+  fail "pré-voo: ordem errada ou chamada ausente (sync=${L_SYNC:-nenhuma} eval=${L_EVAL:-nenhuma})"
+fi
+
+# Mock em que SÓ o sync falha — os evals saem 0.
+mk_docker_syncfail() {
+  mkdir -p "$TMP/bin"
+  cat > "$TMP/bin/docker" <<EOF
+#!/usr/bin/env bash
+echo "\$@" >> "$TMP/docker-calls.log"
+case "\$1" in
+  inspect) exit 0 ;;
+  exec)
+    if [[ "\$*" == *"mcp:sync-memory"* ]]; then exit 1; fi
+    exit 0 ;;
+  *) exit 0 ;;
+esac
+EOF
+  chmod +x "$TMP/bin/docker"
+  : > "$TMP/docker-calls.log"
+}
+
+# 12. sync falha → exit 1 (não vira silêncio) e os 2 evals AINDA rodam
+mk_docker_syncfail
+RC="$(run_script)"
+if [ "$RC" = "1" ]; then ok "pré-voo falhou: exit 1 (corpus não reposto não é silêncio)"; else fail "pré-voo falhou: esperava exit 1, veio $RC"; fi
+if [ "$(grep -c 'artisan jana:' "$TMP/docker-calls.log")" = "2" ]; then
+  ok "pré-voo falhou: os 2 evals ainda rodam (eles reportam corpus_docs e pulam com honestidade)"
+else
+  fail "pré-voo falhou: abortou os evals"
+fi
+
+# 13. CONTROLE: sync ok + evals ok → exit 0 (o pré-voo não fabrica vermelho)
+mk_docker 0 0
+RC="$(run_script)"
+if [ "$RC" = "0" ]; then ok "controle: pré-voo ok e evals ok → exit 0"; else fail "controle: esperava exit 0, veio $RC"; fi
 
 echo ""
 if [ "$FAILS" -eq 0 ]; then
