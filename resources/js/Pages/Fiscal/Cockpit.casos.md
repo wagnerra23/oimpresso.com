@@ -60,6 +60,10 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-12 | as séries de 14 dias do ribbon são desenhadas | `[must]` | CU-FISC-01 | `fiscal-cockpit-sparklines.test.tsx` | 🧪 |
 | UC-FCKP-15 | cancelar ou inutilizar uma nota derruba o cache da empresa, e só dela | `[must]` `[T0]` | CU-FISC-12 | `CockpitCacheTest` | 🧪 |
 | UC-FCKP-16 | sem empresa na sessão o cockpit recusa; os totais da empresa batem com o SQL cru | `[must]` `[T0]` | CU-FISC-12 | `CockpitMultiTenantTest` | 🧪 |
+| UC-FCKP-18 | o faturamento aparece em moeda brasileira | `[should]` | CU-FISC-01 | `fiscal-cockpit-filtros.test.tsx` | 🧪 |
+| UC-FCKP-19 | visões salvas e busca filtram a lista | `[must]` | CU-FISC-01 | `fiscal-cockpit-filtros.test.tsx` | 🧪 |
+| UC-FCKP-20 | seleção em lote conta e limpa ao filtrar | `[should]` | CU-FISC-01 | `fiscal-cockpit-filtros.test.tsx` | 🧪 |
+| UC-FCKP-21 | a série de 14 dias sai de uma consulta só, por empresa | `[must]` `[T0]` | CU-FISC-12 | `CockpitControllerTest` | 🧪 |
 
 ---
 
@@ -306,12 +310,53 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 ---
 
+## UC-FCKP-18 — O faturamento aparece em moeda brasileira `[should]`
+
+**Dado** um faturamento fiscal com milhar e centavos
+**Quando** o Painel abre
+**Então** o ribbon mostra o valor com o símbolo do real, ponto no milhar e vírgula nos centavos; o formato americano não aparece.
+
+- **Teste:** `tests/js/fiscal-cockpit-filtros.test.tsx` — `UC-FCKP-18 · …`. Mordida provada em 2026-11-19: trocando `pt-BR` por `en-US` no `brl()`, o caso cai.
+- **Status:** 🧪 veredito da lane `Fiscal · paginação da lista do cockpit (vitest/jsdom)`.
+
+## UC-FCKP-19 — Visões salvas e busca filtram a lista `[must]`
+
+**Dado** notas de NF-e autorizada, NF-e rejeitada, NFC-e e NFS-e
+**Quando** o operador escolhe uma visão salva ou busca por cliente
+**Então** a lista mostra só as notas daquela visão ("Só serviço", "Só balcão", "Pra resolver hoje", "Todas"); aplicar uma visão limpa a busca.
+
+- **Densidade:** já tem contrato em `fiscal-densidade.test.tsx` (UC-FNFE-14, que inclui o Painel); não se repete aqui.
+- **Teste:** `tests/js/fiscal-cockpit-filtros.test.tsx` — os dois casos `UC-FCKP-19 · …`.
+- **Status:** 🧪 veredito da lane `Fiscal · paginação da lista do cockpit (vitest/jsdom)`.
+
+## UC-FCKP-20 — Seleção em lote conta e limpa ao filtrar `[should]`
+
+**Dado** a lista do Painel
+**Quando** o operador marca notas, usa "Selecionar todas" ou troca o filtro
+**Então** a barra de lote aparece com a contagem certa, "Selecionar todas" pega a página e desmarca no segundo clique, e trocar o filtro limpa a seleção.
+
+- **Fora deste caso:** os botões da barra (XMLs, DANFEs, reenvio) não têm ação; estão no backlog abaixo.
+- **Teste:** `tests/js/fiscal-cockpit-filtros.test.tsx` — os dois casos `UC-FCKP-20 · …`.
+- **Status:** 🧪 veredito da lane `Fiscal · paginação da lista do cockpit (vitest/jsdom)`.
+
+## UC-FCKP-21 — A série de 14 dias sai de uma consulta só, por empresa `[must]` `[T0]`
+
+**Dado** notas da empresa hoje, há 3 dias e há 20 dias, e uma nota de outra empresa hoje
+**Quando** o Painel monta as séries
+**Então** são 14 pontos; hoje conta as emitidas, autorizadas e rejeitadas da empresa; há 3 dias conta a autorizada; a de 20 dias e a da outra empresa não entram; e `nfe_emissoes` é consultada uma vez só.
+
+- **Teste:** `Modules/Fiscal/Tests/Feature/CockpitControllerTest.php` — `UC-FCKP-21 · …`. Mede pela diferença antes/depois de semear, porque a lane compartilha o banco.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[ATENDIDO em 2026-09-04 → `UC-FCKP-13`] As 4 superfícies de demonstração que SOBRARAM** — o item nasceu sem id porque faltava contrato dizendo qual das três saídas era a certa (fonte real × esconder atrás de flag × declarar Non-Goal). [W] decidiu pela primeira — marcar a procedência na tela — e o caso virou `UC-FCKP-13` acima, com teste que o cita. _As quatro seguem servindo dado inventado: o que mudou é que a tela passou a dizer isso._
-- **[BACKLOG · ⬜ sem teste] A série de 14 dias sai de uma consulta agrupada, sem repetição por dia** — Dado emissões nas últimas duas semanas · Quando a série é montada · Então há um ponto por dia por status, calculado de uma vez só. _Anti-hook do charter; sem teste dedicado._
-- **[BACKLOG · ⬜ sem teste] O faturamento aparece formatado em moeda brasileira** — comportamento só de frontend, sem cobertura de Feature.
-- **[BACKLOG · ⬜ sem teste] Filtros, visões salvas, densidade e seleção em lote da tabela unificada** — a fonte real chegou em 2026-09-02 (`UC-FCKP-07`); vira contrato quando alguém escrever o teste de filtro/visão/densidade sobre ela.
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCKP-21] ~~A série de 14 dias sai de uma consulta agrupada, sem repetição por dia~~ — Dado emissões nas últimas duas semanas · Quando a série é montada · Então há um ponto por dia por status, calculado de uma vez só. _Anti-hook do charter; sem teste dedicado._
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCKP-18] ~~O faturamento aparece formatado em moeda brasileira~~ — comportamento só de frontend, sem cobertura de Feature.
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCKP-19 e UC-FCKP-20] ~~Filtros, visões salvas, densidade e seleção em lote da tabela unificada~~
+- **[BACKLOG · ⬜ sem ação] Os botões da barra de lote não fazem nada** — "Baixar XMLs (ZIP)", "Baixar DANFEs (PDF)" e "Reenviar por e-mail" aparecem ao marcar notas, mas não têm ação: clicar não faz nada. Achado em 2026-11-19 ao escrever o UC-FCKP-20. Ou ganham ação, ou saem da barra.
 
 ## Como rodar a suíte
 

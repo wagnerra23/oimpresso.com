@@ -88,8 +88,12 @@ class SicoobApiDriver implements PaymentDriverContract
 
         $payload = $this->buildEmitirBoletoPayload($input, $config);
 
-        $response = HttpClientFactory::send(fn () => $this->client($cred)
-            ->post('/boletos', [$payload]));
+        try {
+            $response = HttpClientFactory::send(fn () => $this->client($cred)
+                ->post('/boletos', [$payload]));
+        } finally {
+            $this->limparCertificadosTemporarios();
+        }
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -156,8 +160,12 @@ class SicoobApiDriver implements PaymentDriverContract
             'codigoBaixa'      => $this->mapMotivoCancelar($motivo),
         ];
 
-        $response = HttpClientFactory::send(fn () => $this->client($cred)
-            ->patch('/boletos/baixa', $payload));
+        try {
+            $response = HttpClientFactory::send(fn () => $this->client($cred)
+                ->patch('/boletos/baixa', $payload));
+        } finally {
+            $this->limparCertificadosTemporarios();
+        }
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -190,7 +198,11 @@ class SicoobApiDriver implements PaymentDriverContract
             'nossoNumero'      => (int) $nossoNumero,
         ];
 
-        $response = HttpClientFactory::send(fn () => $this->client($cred)->get('/boletos', $query));
+        try {
+            $response = HttpClientFactory::send(fn () => $this->client($cred)->get('/boletos', $query));
+        } finally {
+            $this->limparCertificadosTemporarios();
+        }
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -240,6 +252,8 @@ class SicoobApiDriver implements PaymentDriverContract
                 checkedAt: new \DateTimeImmutable(),
                 errorMessage: substr($e->getMessage(), 0, 200),
             );
+        } finally {
+            $this->limparCertificadosTemporarios();
         }
     }
 
@@ -330,7 +344,11 @@ class SicoobApiDriver implements PaymentDriverContract
      * Implementação:
      *   1. Carrega .pfx binary + senha via CertificadoService (decrypt em memória)
      *   2. Escreve .pfx temp em sys_get_temp_dir() pra Guzzle/curl (mTLS exige file)
-     *   3. register_shutdown_function pra unlink ao final do request
+     *   3. Apaga o arquivo no `finally` de cada chamada pública (emitirBoleto,
+     *      cancelar, consultar, healthCheck). Antes só havia o shutdown do
+     *      processo: num worker de fila o .pfx ficava no disco enquanto o worker
+     *      vivesse, um por chamada (auditoria PaymentGateway 2026-11-19, 3.4).
+     *      O register_shutdown_function segue como rede de segurança.
      *   4. Retorna ['cert' => [$tempPath, $senha]] — Guzzle 7 propaga pra curl
      *
      * Segurança:
@@ -365,6 +383,7 @@ class SicoobApiDriver implements PaymentDriverContract
 
         file_put_contents($tempPath, $cert['pfx_binary']);
         @chmod($tempPath, 0600);
+        $this->arquivosTemporarios[] = $tempPath;
 
         // Cleanup garantido — unlink quando request termina (sucesso OU exception).
         register_shutdown_function(static function () use ($tempPath): void {
@@ -376,6 +395,20 @@ class SicoobApiDriver implements PaymentDriverContract
         return [
             'cert' => [$tempPath, $cert['senha']],
         ];
+    }
+
+    /** @var list<string> .pfx temporários criados na chamada em curso. */
+    private array $arquivosTemporarios = [];
+
+    /** Apaga os .pfx temporários da chamada (fim de emitirBoleto/cancelar/consultar/healthCheck). */
+    private function limparCertificadosTemporarios(): void
+    {
+        foreach ($this->arquivosTemporarios as $arquivo) {
+            if (is_file($arquivo)) {
+                @unlink($arquivo);
+            }
+        }
+        $this->arquivosTemporarios = [];
     }
 
     /**

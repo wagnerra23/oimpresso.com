@@ -134,8 +134,19 @@ jobs:
         # (contacts.tax_number). ActivityLogBusinessIdTenantTest trava o cross-tenant 98x99.
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-auditoria-junit.xml \
+            Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php \
+            Modules/Auditoria/Tests/Feature/AuditNoteLogsActivityTest.php \
+            Modules/Auditoria/Tests/Feature/AuditoriaModuleTest.php \
+            Modules/Auditoria/Tests/Feature/MultiTenantIsolationTest.php \
+            Modules/Auditoria/Tests/Feature/PiiLeakActivityLogEnforceTest.php \
+            Modules/Auditoria/Tests/Feature/RevertRedacaoContratoTest.php \
+            Modules/Auditoria/Tests/Feature/RevertServiceOtelSpanTest.php \
+            Modules/Auditoria/Tests/Feature/RevertServicePiiRedactionTest.php \
+            Modules/Auditoria/Tests/Feature/SmokeRoutesTest.php \
+            Modules/Auditoria/Tests/Feature/Wave18SaturationTest.php \
+            Modules/Auditoria/Tests/Feature/Wave27SaturationTest.php \
             tests/Feature/Auditoria/ActivityLogBusinessIdTenantTest.php \
             tests/Feature/Auditoria/AuditoriaAcessoGateTest.php \
             tests/Feature/Auditoria/AuditoriaDetailDeferidoContratoTest.php \
@@ -148,17 +159,7 @@ jobs:
             tests/Feature/Auditoria/RevertServiceTest.php \
             tests/Feature/Auditoria/SellLinePaymentLogsActivityTest.php \
             tests/Feature/Auditoria/TransactionLogsActivityTest.php \
-            Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php \
-            Modules/Auditoria/Tests/Feature/AuditNoteLogsActivityTest.php \
-            Modules/Auditoria/Tests/Feature/AuditoriaModuleTest.php \
-            Modules/Auditoria/Tests/Feature/MultiTenantIsolationTest.php \
-            Modules/Auditoria/Tests/Feature/PiiLeakActivityLogEnforceTest.php \
-            Modules/Auditoria/Tests/Feature/RevertRedacaoContratoTest.php \
-            Modules/Auditoria/Tests/Feature/RevertServiceOtelSpanTest.php \
-            Modules/Auditoria/Tests/Feature/RevertServicePiiRedactionTest.php \
-            Modules/Auditoria/Tests/Feature/SmokeRoutesTest.php \
-            Modules/Auditoria/Tests/Feature/Wave18SaturationTest.php \
-            Modules/Auditoria/Tests/Feature/Wave27SaturationTest.php
+            --colors=always
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)

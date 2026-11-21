@@ -3,14 +3,14 @@
   "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por scripts/design/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via scripts/design/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
   "tela": "governance/Dashboard (/governance/dashboard)",
   "gap_fonte": "memory/requisitos/Governance/governance-dashboard-gap.md",
-  "prototipo_sha": "sha256:53938d9e2417",
-  "gerado_em": "2026-09-29",
+  "prototipo_sha": "sha256:fa6a6868346a",
+  "gerado_em": "2026-11-19",
   "partes": [
     {
       "id": "header-pageheader",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "404-415"
+        "linhas": "470-484"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -41,7 +41,7 @@
       "id": "seletor-de-cenario",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "384-388"
+        "linhas": "443-451"
       },
       "vivo": {
         "arquivo": "n/a",
@@ -57,7 +57,7 @@
       "id": "kpis-constituicao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "273-276"
+        "linhas": "315-318"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -72,7 +72,7 @@
       "id": "regua-conformidade-com-a-constituicao-por-artigo-selo-auto-declarado",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "81-109"
+        "linhas": "109-137"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -87,7 +87,7 @@
       "id": "card-scorecard-sdd",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "111-129"
+        "linhas": "139-159"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -102,7 +102,7 @@
       "id": "kpis-saude-do-ecossistema",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "135-144"
+        "linhas": "165-174"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -117,7 +117,7 @@
       "id": "lista-narrativas-brain-a-24h",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "146-153"
+        "linhas": "176-183"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -132,7 +132,7 @@
       "id": "lista-adrs-aguardando-decisao",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "164-174"
+        "linhas": "198-211"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -147,7 +147,7 @@
       "id": "lista-ocorrencias-em-24-h-audit-highlights",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "175-187"
+        "linhas": "212-227"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -162,7 +162,7 @@
       "id": "secao-mcp-cabecalho-filtro-de-periodo",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "203-207"
+        "linhas": "243-247"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -177,7 +177,7 @@
       "id": "secao-mcp-kpis",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "213-218"
+        "linhas": "253-258"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -192,7 +192,7 @@
       "id": "secao-mcp-abas-in-page",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "219-221"
+        "linhas": "259-261"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -207,7 +207,7 @@
       "id": "secao-mcp-conteudo-das-abas",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "222-259"
+        "linhas": "262-299"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -222,7 +222,7 @@
       "id": "secao-mcp-fonte-ausente",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "208-210"
+        "linhas": "248-250"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",
@@ -237,7 +237,7 @@
       "id": "secao-mcp-sem-permissao-jana-mcp-usage-all",
       "prototipo": {
         "arquivo": "prototipo-ui/cowork/Wagner/governance-page.jsx",
-        "linhas": "285-290"
+        "linhas": "327-332"
       },
       "vivo": {
         "arquivo": "resources/js/Pages/governance/Dashboard.tsx",

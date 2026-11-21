@@ -7,6 +7,7 @@ namespace Modules\PaymentGateway\Models;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\PaymentGateway\Models\Concerns\TrilhaDeAuditoriaBuilder;
 
 /**
  * Histórico de uploads de arquivo de RETORNO CNAB por credencial.
@@ -18,7 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Multi-tenant Tier 0 — global scope via HasBusinessScope (ADR 0093).
  *
  * Sem LogsActivity — tabela já é audit log (cobertura idêntica). Append-only
- * por convenção: só `processado_em`/`qtd_*`/`erros_json` mudam após criação.
+ * garantido pelo TrilhaDeAuditoriaBuilder: delete recusado; só
+ * `processado_em`/`qtd_*`/`erros_json` mudam após criação.
  *
  * Refs: ADR 0170-bancos-nativos-top5-drivers-separados — Onda 4f.0
  */
@@ -27,6 +29,16 @@ class CnabRetornoUpload extends Model
     use HasBusinessScope;
 
     protected $table = 'cnab_retorno_uploads';
+
+    /** Colunas que o processamento preenche depois do INSERT. O resto não muda. */
+    public const COLUNAS_DO_PROCESSAMENTO = [
+        'processado_em',
+        'qtd_paga',
+        'qtd_cancelada',
+        'qtd_vencida',
+        'qtd_registrada',
+        'erros_json',
+    ];
 
     protected $fillable = [
         'business_id',
@@ -70,5 +82,17 @@ class CnabRetornoUpload extends Model
         $decoded = json_decode((string) $this->erros_json, true);
 
         return is_array($decoded) ? array_values(array_map('strval', $decoded)) : [];
+    }
+
+    /**
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return TrilhaDeAuditoriaBuilder<static>
+     */
+    public function newEloquentBuilder($query): TrilhaDeAuditoriaBuilder
+    {
+        /** @var TrilhaDeAuditoriaBuilder<static> $builder */
+        $builder = new TrilhaDeAuditoriaBuilder($query);
+
+        return $builder;
     }
 }

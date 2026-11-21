@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\NfeBrasil\Models\NfeDfeEvento;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 
 /**
@@ -42,11 +43,10 @@ class DfeController extends Controller
             'filters' => $filters,
             'counts'  => $this->computeCounts(),
             'rows'    => Inertia::defer(fn () => $this->buildRowsPayload($filters)),
-            // Onda 2 G — tab Histórico de manifestações já processadas.
-            // TODO[CL]: substituir por query real de NfeDfeRecebido WHERE
-            // status_manifestacao IN ('confirmada','desconhecida','nao_realizada')
-            // ordenado por manifestado_em DESC.
-            'historicoMock' => $this->mockHistorico(),
+            // Aba Histórico — manifestações REAIS (decisão [W] 2026-11-19, lote 2 dos
+            // débitos do Fiscal): nota recebida que já teve evento na SEFAZ, mais recente
+            // primeiro. Deferida porque é consulta.
+            'historico' => Inertia::defer(fn () => $this->buildHistoricoPayload()),
             // Relatório do último lote (US-FISCAL-008). Vem por prop, não por `flash`: o
             // `HandleInertiaRequests` só compartilha as chaves fixas success/error/info/slash,
             // e este payload é estruturado (nota a nota) porque falha parcial em manifestação
@@ -58,41 +58,45 @@ class DfeController extends Controller
     }
 
     /**
-     * Mock pra tab Histórico do DF-e (Onda 2). PII-safe.
+     * Manifestações já feitas: notas recebidas com `manifestado_em` gravado pelo
+     * ManifestacaoService (ciência, confirmação, desconhecimento, não realizada).
+     * A observação é a justificativa do último evento autorizado daquela nota.
+     * O evento não guarda quem manifestou, então a tela não mostra "quem".
      *
      * @return array<int, array<string, mixed>>
      */
-    protected function mockHistorico(): array
+    protected function buildHistoricoPayload(): array
     {
-        $now = now();
+        $notas = NfeDfeRecebido::query()
+            ->whereNotNull('manifestado_em')
+            ->whereIn('status_manifestacao', [
+                NfeDfeRecebido::STATUS_CIENCIA,
+                NfeDfeRecebido::STATUS_CONFIRMADA,
+                NfeDfeRecebido::STATUS_DESCONHECIDA,
+                NfeDfeRecebido::STATUS_NAO_REALIZADA,
+            ])
+            ->orderByDesc('manifestado_em')
+            ->limit(100)
+            ->get();
 
-        return [
-            ['id' => 901, 'chave' => '[REDACTED-CHAVE-NFE-44]',
-             'nomeEmitente' => 'TechSupply Ltda', 'cnpjEmitente' => '[REDACTED-CNPJ]',
-             'when' => $now->copy()->subDays(2)->format('d/m H:i'),
-             'ack' => 'confirmada', 'actor' => 'Wagner',
-             'obs' => 'Material recebido OK · NFe 12345', 'valor' => 8420.00],
-            ['id' => 902, 'chave' => '[REDACTED-CHAVE-NFE-44]',
-             'nomeEmitente' => 'Gráfica Parceira ME', 'cnpjEmitente' => '[REDACTED-CNPJ]',
-             'when' => $now->copy()->subDays(4)->format('d/m H:i'),
-             'ack' => 'confirmada', 'actor' => 'Eliana',
-             'obs' => 'Insumos pra produção', 'valor' => 3240.00],
-            ['id' => 903, 'chave' => '[REDACTED-CHAVE-NFE-44]',
-             'nomeEmitente' => 'Logística Express', 'cnpjEmitente' => '[REDACTED-CNPJ]',
-             'when' => $now->copy()->subDays(7)->format('d/m H:i'),
-             'ack' => 'ciencia', 'actor' => 'Auto (job diário)',
-             'obs' => null, 'valor' => 142.00],
-            ['id' => 904, 'chave' => '[REDACTED-CHAVE-NFE-44]',
-             'nomeEmitente' => 'Empresa Desconhecida XYZ', 'cnpjEmitente' => '[REDACTED-CNPJ]',
-             'when' => $now->copy()->subDays(10)->format('d/m H:i'),
-             'ack' => 'desconhecida', 'actor' => 'Wagner',
-             'obs' => 'Operação não foi solicitada por nós — fornecedor errou destinatário', 'valor' => 18900.00],
-            ['id' => 905, 'chave' => '[REDACTED-CHAVE-NFE-44]',
-             'nomeEmitente' => 'Material Especial', 'cnpjEmitente' => '[REDACTED-CNPJ]',
-             'when' => $now->copy()->subDays(14)->format('d/m H:i'),
-             'ack' => 'nao_realizada', 'actor' => 'Eliana',
-             'obs' => 'Pedido cancelado em comum acordo · mercadoria nunca chegou', 'valor' => 5200.00],
-        ];
+        $justificativas = $notas->isEmpty() ? collect() : NfeDfeEvento::query()
+            ->whereIn('dfe_recebido_id', $notas->pluck('id'))
+            ->where('status', 'autorizado')
+            ->orderByDesc('id')
+            ->get(['dfe_recebido_id', 'justificativa'])
+            ->unique('dfe_recebido_id')
+            ->pluck('justificativa', 'dfe_recebido_id');
+
+        return $notas->map(fn (NfeDfeRecebido $d) => [
+            'id'           => $d->id,
+            'chave'        => $d->chave_44,
+            'nomeEmitente' => $d->nome_emitente,
+            'cnpjEmitente' => $d->cnpj_emitente,
+            'when'         => $d->manifestado_em?->format('d/m/Y H:i'),
+            'ack'          => $d->status_manifestacao,
+            'obs'          => $justificativas[$d->id] ?? null,
+            'valor'        => (float) $d->valor_total,
+        ])->values()->all();
     }
 
     protected function computeCounts(): array
