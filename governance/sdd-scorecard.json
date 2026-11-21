@@ -23,10 +23,10 @@
       "detail": {
         "coverage_pct": 92.9,
         "specs_total": 59,
-        "us_total": 1260,
+        "us_total": 1261,
         "anchor_coverage_pct": 92.9,
         "by_state": {
-          "sem_campo": 79,
+          "sem_campo": 80,
           "placeholder": 6,
           "pendente": 540,
           "parcial": 158,
