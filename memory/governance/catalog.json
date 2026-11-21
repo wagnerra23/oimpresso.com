@@ -2637,18 +2637,18 @@
       "desc": "US-COMVIS-005)"
     },
     {
+      "id": "component:ComunicacaoVisual/ProtocoloInstalacaoPublicoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "ProtocoloInstalacaoPublicoController",
+      "desc": "link público SEM login do protocolo da instalação concluída, que vai ao cliente (/instalacao-cv/{biz}/{id}/protocolo, URL assinada com validade de 7 dias, throttle 30/1, US-COMVIS-007 · UC-CVINST-15..16)"
+    },
+    {
       "id": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
       "type": "component",
       "module": "ComunicacaoVisual",
       "name": "Public/OrcamentoAceitePublicoController",
       "desc": "página pública SEM login onde o cliente aceita ou pede ajuste do orçamento (/orcamento-cv/{token}, token sha256 de uso único, throttle 30/1, US-COMVIS-023 · UC-CVACEP-01..04)"
-    },
-    {
-      "id": "component:ComunicacaoVisual/Public/ProtocoloInstalacaoPublicoController",
-      "type": "component",
-      "module": "ComunicacaoVisual",
-      "name": "Public/ProtocoloInstalacaoPublicoController",
-      "desc": "link público SEM login do protocolo da instalação concluída, que vai ao cliente (/instalacao-cv/{biz}/{id}/protocolo, URL assinada com validade de 7 dias, throttle 30/1, US-COMVIS-007 · UC-CVINST-15..16)"
     },
     {
       "id": "component:ComunicacaoVisual/RoteiroPadraoController",
@@ -10362,13 +10362,13 @@
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
+      "to": "component:ComunicacaoVisual/ProtocoloInstalacaoPublicoController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:ComunicacaoVisual",
-      "to": "component:ComunicacaoVisual/Public/ProtocoloInstalacaoPublicoController",
+      "to": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-02"
+last_run: "2026-11-19"
 ---
 
 > ℹ️ **`last_run` 2026-09-11 → 2026-10-02 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -48,56 +48,56 @@ last_run: "2026-10-02"
 >
 > **Teste:** `tests/Feature/PaymentGateway/PaymentGatewaysSettingsContratoTest.php` — tenant fictício **98**, adversário **99** ([ADR 0358]), nunca biz=4; nenhuma chamada a API de gateway; cada caso negativo tem controle positivo ao lado.
 >
-> ⚖️ **Onde roda, e com que força** (medido 2026-09-23): **nenhuma lane de PR** executa este arquivo — `test-lane-coverage` e `.github/ci-sqlite-pest.list` não o listam (o módulo inteiro está fora das lanes: 45 de 48 arquivos órfãos). Ele entra no **nightly CT 100** via `phpunit.xml` (`./tests/Feature` recursivo) + `scripts/tests/shards-plan.mjs`. Sem lane de PR não há veredito por PR — por isso todo status abaixo é 🧪 **sem veredito**.
+> ⚖️ **Onde roda, e com que força.** O contrato roda na lane de PR `paymentgateway-pest.yml` desde 2026-10-28 (o run-set inclui `tests/Feature/PaymentGateway/`). Medido no run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (push em main, 2026-11-16): os 7 `UC-PGSET` com `✓`, suíte `232 passed (740 assertions)`. A lane é **advisory** e roda em PR só no `opened`/`reopened` (sem `synchronize`). O E2E de navegador (`tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php`, com axe CRITICAL) roda no step advisory `E2E de comportamento + axe · PaymentGateway/Index` do `visual-regression.yml`. _Até 2026-11-19 este parágrafo dizia que nenhuma lane de PR executava o arquivo; era verdade em 2026-09-23._
 
 ## UC-PGSET-01 · Abrir a tela e ver as credenciais do próprio business
 - **Persona:** Wagner (superadmin) — abre `/settings/payment-gateways` para conferir o que está configurado.
 - **Aceite:** Dado uma credencial do business da sessão · Quando abro a tela e a lista (prop deferida `gateways`) carrega · Então o componente é `Settings/PaymentGateways/Index` e a credencial aparece com o apelido, o driver e o estado `ativo` dela.
-- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-01 abre a tela e a credencial do PROPRIO business aparece…`
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-01 abre a tela e a credencial do PROPRIO business aparece…` · navegador: `tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php` (`UC-PGSET-01`, com axe)
 - **Regressão que defende:** lista vazia/quebrada na tela de config (ninguém consegue gerir gateway).
-- **Status: 🧪** sem veredito — pendente do nightly CT 100.
+- **Status: ✅** passa — run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (lane `paymentgateway-pest.yml`, push em main, 2026-11-16).
 
 ## UC-PGSET-02 · `[T0]` Credencial de outro business nunca aparece na lista
 - **Persona:** Wagner — vê só as credenciais do próprio business ([ADR 0093]).
 - **Aceite:** Dado uma credencial no business 98 e outra no 99 · Quando o 98 carrega a lista · Então a própria aparece (controle positivo) e a alheia não.
-- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-02 [T0] …`
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-02 [T0] …` · navegador: `tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php` (`UC-PGSET-02`, com axe)
 - **Regressão que defende:** vazamento cross-tenant de credencial de cobrança.
-- **Status: 🧪** sem veredito.
+- **Status: ✅** passa — run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (lane `paymentgateway-pest.yml`, push em main, 2026-11-16).
 
 ## UC-PGSET-03 · Toggle inverte `ativo` e persiste
 - **Persona:** Wagner — confirma o toggle no modal Trust L3 para ligar/desligar um gateway.
 - **Aceite:** Dado uma credencial ativa · Quando `POST …/{id}/toggle` · Então a resposta traz `ativo=false` e o banco grava `false`; um segundo toggle volta a `true`.
-- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-03 …`
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-03 …` · navegador: `tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php` (`UC-PGSET-03`, com axe)
 - **Regressão que defende:** toggle que responde mas não persiste (gateway "desligado" que continua emitindo).
-- **Status: 🧪** sem veredito.
+- **Status: ✅** passa — run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (lane `paymentgateway-pest.yml`, push em main, 2026-11-16).
 
 ## UC-PGSET-04 · `[T0]` Toggle cross-tenant devolve 404 e não altera o registro
 - **Persona:** Wagner — não consegue ligar/desligar credencial de outro business, nem por id direto.
 - **Aceite:** Dado uma credencial ativa do business 99 · Quando o 98 faz `POST …/{id}/toggle` · Então 404 e a credencial alheia continua `ativo=true`.
-- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-04 [T0] …`
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-04 [T0] …` · navegador: `tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php` (`UC-PGSET-04`, com axe)
 - **Regressão que defende:** IDOR de escrita em credencial de cobrança de outro tenant.
-- **Status: 🧪** sem veredito.
+- **Status: ✅** passa — run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (lane `paymentgateway-pest.yml`, push em main, 2026-11-16).
 
 ## UC-PGSET-05 · O payload da lista nunca carrega `config_json`
 - **Persona:** Wagner — a tela mostra apelido/driver/estado, nunca o segredo do gateway (charter §Anti-hooks).
 - **Aceite:** Dado uma credencial com `config_json` contendo um marcador inerte · Quando a lista carrega · Então o apelido está no payload (controle positivo) e o marcador não.
-- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-05 …`
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-05 …` · navegador: `tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php` (`UC-PGSET-05`, com axe)
 - **Regressão que defende:** segredo de gateway (api_key/client_secret) exposto no Inertia payload.
-- **Status: 🧪** sem veredito.
+- **Status: ✅** passa — run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (lane `paymentgateway-pest.yml`, push em main, 2026-11-16).
 
 ## UC-PGSET-06 · KPIs contam só o business da sessão
 - **Persona:** Wagner — os cards "ativos / health / total" refletem só o business dele.
 - **Aceite:** Dado +1 ativa ok, +1 ativa não-ok, +1 inativa não-ok no 98 (e ruído no 99) · Quando recarrego `kpis` · Então `ativos` sobe 2, `total` sobe 3, `fail` sobe 1 (fail = ativa **e** health ≠ ok).
-- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-06 …`
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-06 …` · navegador: `tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php` (`UC-PGSET-06`, com axe)
 - **Regressão que defende:** KPI contando outro tenant ou contando inativa como falha.
-- **Status: 🧪** sem veredito. `cobs_hoje` não é asserido por valor (fica no backlog).
+- **Status: ✅** passa — run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (lane `paymentgateway-pest.yml`, push em main, 2026-11-16). `cobs_hoje` não é asserido por valor (fica no backlog).
 
 ## UC-PGSET-07 · Abrir a tela é read-only
 - **Persona:** Wagner — abrir a tela não cria credencial nem dispara cobrança (charter §Anti-hooks).
 - **Aceite:** Dado as contagens de `payment_gateway_credentials` e `cobrancas` · Quando renderizo a tela e recarrego `gateways` e `kpis` · Então as duas contagens não mudam.
-- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-07 …`
+- **Teste:** `PaymentGatewaysSettingsContratoTest` — `UC-PGSET-07 …` · navegador: `tests/Browser/PaymentGateway/GatewaysIndexBrowserTest.php` (`UC-PGSET-07`, com axe)
 - **Regressão que defende:** efeito colateral de escrita no GET.
-- **Status: 🧪** sem veredito.
+- **Status: ✅** passa — run [43956364526](https://github.com/wagnerra23/oimpresso.com/actions/runs/43956364526) (lane `paymentgateway-pest.yml`, push em main, 2026-11-16).
 
 ## UC-PGSET-08 · `[T0]` Configurar gateway exige `business_settings.access`
 - **Persona:** usuário da empresa sem a permissão das Configurações (ex.: só vê o Financeiro) — não pode ver nem mexer em credencial de gateway.
@@ -123,6 +123,7 @@ last_run: "2026-10-02"
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-11-19 · [CC] Auditoria PaymentGateway lote 4.1: status dos 7 UC de 🧪 para ✅ pelo veredito do run 43956364526 (a lane de PR roda o contrato desde 2026-10-28); E2E de navegador + axe criado para os 7.
 - 2026-11-19 · [CC] Auditoria PaymentGateway L0: grupo de rotas `settings.` passa a exigir `can:business_settings.access`; novo `UC-PGSET-08` com teste de 403 + controle positivo por verbo.
 - 2026-09-23 · [CL] Prontidão thread 05: 5 bullets do backlog + 2 anti-hooks do charter promovidos a `UC-PGSET-01..07`, citados por `tests/Feature/PaymentGateway/PaymentGatewaysSettingsContratoTest.php` (tenant 98). Health check, ações de linha, wizard e warn PesaPal seguem no backlog.
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela), complementando a CAPTERRA-FICHA. Débito exposto = **UC-traceability** (0 UC-id apesar de baseline Feature forte); a nota de UX (80 Advanced) coexiste com comportamento tested-mas-não-traçado.

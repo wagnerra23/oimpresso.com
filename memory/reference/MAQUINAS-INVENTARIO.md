@@ -629,7 +629,7 @@ lifecycle: ativo
 | `document-relocation-classifier.mjs` | ci, npm | 🟢 só lê | — | `memory/proibicoes.md` +2 | Classificador conservador de documentos. Produz plano v2 pinado ao HEAD; |
 | `document-relocation-executor.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-referencia-id-estavel-doc-links.md` +3 | Executor transacional de planos documentais aprovados. Dry-run por padrao. |
 | `documentation-loop.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0431-pcp-sai-do-desejo-modules-producao.md` +13 | recibo determinístico do ciclo documental. |
-| `doneness-lint.mjs` | ci, script | 🟢 só lê | selftest + test | `memory/decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md` +23 | catraca de fonte-única do "done-ness" de US (ADR 0302). |
+| `doneness-lint.mjs` | ci, script | 🟢 só lê | selftest + test | `memory/decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md` +24 | catraca de fonte-única do "done-ness" de US (ADR 0302). |
 | `ds-lint-selftest.mjs` | ci, script | 🟢 só lê | — | `memory/reference/prototipo-ui/REGRAS_DS_LINT.md` | LINT SELFTEST — controle-negativo das regras ds/* (as `no-restricted-syntax` |
 | `ds-mirror-drift.mjs` | agente, ci, script | 🟢 só lê | bite-log + test | `memory/decisions/0328-ds-transicao-congelado-para-vivo-git-ssot.md` +24 | SENTINELA de drift git ↔ espelho vivo (P3). |
 | `dtcg-equivalence.mjs` | ci, npm | 🟢 só lê | test | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +13 | onda DTCG (ancora: ADR 0239 DS git SSOT + ADR 0249 DS v6 + |
@@ -662,7 +662,7 @@ lifecycle: ativo
 | `maquinas-inventario.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +21 | DERIVA um índice único e legível de TODAS as "máquinas" |
 | `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +7 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
-| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +122 | GERADOR determinístico da "Superfície de código" de um módulo. |
+| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +123 | GERADOR determinístico da "Superfície de código" de um módulo. |
 | `negocio-vs-governanca-ratio.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md` +11 | o alarme anti-atrofia da inteligência de negócio. |
 | `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +13 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | 🔴 disco | — | `memory/decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md` +1 | normaliza status/lifecycle de ADR pro enum canônico. |
@@ -808,7 +808,7 @@ lifecycle: ativo
 | `governance/dependency-direction-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | (baseline/estado) |
 | `governance/doc-id-index.json` | ci, script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +48 | (baseline/estado) |
 | `governance/doneness-baseline.json` | ci, script | `memory/audits/2026-09-21-baselines-de-tolerancia.md` | doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário) |
-| `governance/ds-ledger.json` | ci, script | `memory/requisitos/Governance/RUNBOOK-ds-rollout.md` +7 | (baseline/estado) |
+| `governance/ds-ledger.json` | ci, script | `memory/requisitos/Governance/RUNBOOK-ds-rollout.md` +9 | (baseline/estado) |
 | `governance/dup-hot-paths.json` | ci, script | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +1 | (baseline/estado) |
 | `governance/ghost-rename-map.json` | agente, script | `memory/decisions/0431-pcp-sai-do-desejo-modules-producao.md` +19 | (baseline/estado) |
 | `governance/hue-canon.json` | agente, ci, script | `.claude/skills/pageheader-canon/SKILL.md` +1 | Fonte única do hue primário universal (US-GOV-052 P32). O hue vivia em 3 mapas divergentes — pageheader-canon chegou a ter check aprovando o 145 morto… |

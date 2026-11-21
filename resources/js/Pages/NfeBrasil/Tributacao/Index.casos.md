@@ -806,13 +806,19 @@ last_run: "2026-11-15"
 - **Teste:** [`nfe-naturezas-lista.test.tsx`](../../../../../tests/js/nfe-naturezas-lista.test.tsx) — `UC-NFTR-69 …` (mutação: sem a contagem nas abas, reprova).
 - **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
 
+## UC-NFTR-70 · "Como fica no lançamento" mostra o que a natureza põe na nota, por destino · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza criada pela tela **Quando** escolho o destino do cliente **Então** a prévia mostra o
+  CFOP do destino com o nome, o CST/CSOSN e de onde vem cada alíquota (interna da UF, interestadual, DAS no Simples,
+  PIS/COFINS do regime pelas alíquotas do motor, IBS/CBS do ano da configuração), sem nenhum valor; sem CFOP para o
+  destino, avisa em vez de inventar. A Venda padrão e as do CSV ficam de fora da prévia. Fonte de forma:
+  `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`, `lancamento(N, d)`.
+- **Teste:** [`nfe-naturezas-lancamento.test.tsx`](../../../../../tests/js/nfe-naturezas-lancamento.test.tsx) — `UC-NFTR-70 …` (mutação: PIS do Presumido 0,7% reprova).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
-
-- `[BACKLOG]` **"Como fica no lançamento" (prévia por destino: CFOP, CST e origem das alíquotas)**, do protótipo de
-  naturezas. Fica para a onda 4, quando o motor passar a ler a origem — antes disso a prévia mostraria uma regra que a
-  nota não segue.
 
 - `[BACKLOG]` **Venda com mercadoria e serviço sai em duas notas: NF-e com as mercadorias, NFS-e com os
   serviços, e a soma das duas fecha o total da venda** (US-NFE-069 · UC-FLX-31). Hoje a NF-e recusa a
