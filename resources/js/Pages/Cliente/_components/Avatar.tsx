@@ -35,7 +35,7 @@ function hashStr(s: string): number {
   return Math.abs(h);
 }
 
-export function avatarColor(name: string): string {
+function avatarColor(name: string): string {
   return AVATAR_PALETTE[hashStr(name) % AVATAR_PALETTE.length];
 }
 
