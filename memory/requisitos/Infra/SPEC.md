@@ -1301,3 +1301,24 @@ rotação e revogação) · US-INFRA-051 (o passo seguinte) · PR #7388 (token n
 de validade) · o comando `copiloto:mcp:gerar-token` citado no `MEMORY_TEAM_ONBOARDING.md` **nunca
 existiu** — nasceu de um checklist não-feito da [ADR 0055](../../decisions/0055-self-host-team-plan-equivalente-anthropic.md);
 corrigido no mesmo PR desta US.
+
+### US-INFRA-054 · Religar o CT 100 e voltar a medir a qualidade das respostas da Jana (RAGAS)
+
+> owner: wagner · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Sintoma.** O vigia de crons de governança (`cron-watchdog.mjs`, job "crons de governança vivos?") fica vermelho em todo PR: `governance/jana-ragas-real-baseline.json` parado há 76 dias (última data interna 2026-09-06).
+
+**Causa medida.** A medição semanal da Jana (`jana:ragas-real-eval`, roda no CT 100) sai `skipped` desde 2026-09-27: o corpus `mcp_memory_documents` do staging está vazio (`corpus_docs=0`, `n_no_context=51`). Última medição válida: 2026-09-20. Diagnóstico completo no bloco `_alerta_2026_11_10_oraculo_mudo` do próprio baseline.
+
+**Bloqueio.** Em 2026-11-21 o CT 100 (`ct100-mcp`) estava **offline há 24 dias** no Tailscale. Sem ele não há como repovoar o corpus nem medir.
+
+**Passos**
+- [ ] Religar o CT 100 / renovar a chave do nó no Tailscale (Proxmox — acesso do Wagner)
+- [ ] Repovoar `mcp_memory_documents` no `oimpresso-staging`
+- [ ] Obter 1 run válida de `jana:ragas-real-eval` publicada na órfã `governance/ragas-real-trend`
+- [ ] Só então declarar `_frescor` por-evento no baseline (ou decidir os pisos, decisão [W] pendente desde 2026-09-04)
+
+**Proibido:** mexer em `gerado_em`/`atualizado_em` ou nos pisos para o vigia ficar verde.
+
+**Fora desta tarefa:** o outro vermelho do vigia (`baseline-folga.yml`, falha em 2026-11-16) já foi consertado no main pelo #11184 e some na execução de 2026-11-23.

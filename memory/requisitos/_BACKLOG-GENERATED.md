@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1097 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1098 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -12,7 +12,7 @@
 | [`Whatsapp`](#whatsapp) | 78 | 0 | 0 | 0 | 78 |
 | [`Sells`](#sells) | 73 | 6 | 0 | 0 | 67 |
 | [`Financeiro`](#financeiro) | 57 | 6 | 1 | 0 | 50 |
-| [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
+| [`Infra`](#infra) | 52 | 0 | 0 | 0 | 52 |
 | [`Governance`](#governance) | 45 | 0 | 0 | 2 | 42 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 35 | 0 | 0 | 6 | 29 |
@@ -404,6 +404,7 @@
 
 ### todo
 
+- **US-INFRA-054** — Religar o CT 100 e voltar a medir a qualidade das respostas da Jana (RAGAS) _(`p1` · @wagner)_
 - **US-INFRA-001** — GrowthBook self-hosted (feature flag system)
 - **US-INFRA-002** — Client Signal — entidade + canal estruturado
 - **US-INFRA-003** — APM full-stack — captura "lento aqui" automaticamente
