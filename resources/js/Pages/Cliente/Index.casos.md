@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-11-16"
+last_run: "2026-11-21"
 ---
 
 > ℹ️ **`last_run` 2026-10-29 → 2026-11-16 (G-6): a tela ganhou o filtro "Excluídos" e o Restaurar (UC-CIDX-16).**
@@ -20,6 +20,11 @@ last_run: "2026-11-16"
 > Zero JSX estrutural, zero handler, zero prop, zero copy alterada (verificado: `git diff origin/main...HEAD -- resources/js/Pages/Cliente/Index.tsx`
 > só tem linhas iniciadas por `//`, `*` ou `{/*`). **Nenhum UC desta tela foi reexecutado nem revalidado**; o bump é o que o campo
 > significa na prática (*trio reconciliado com a tela nesta data*), não afirmação de re-run — mesmo tratamento do #6913.
+
+> ℹ️ **`last_run` 2026-11-16 → 2026-11-21 (G-6): a gaveta de 760px passou a montar dentro do `.cockpit`.**
+> O que mudou em `Index.tsx`: a prop `container` do `SheetContent` da gaveta (o portal deixa de montar no `<body>`),
+> para a gaveta receber a fonte e os tokens do Design System. Nenhum handler, aba, campo ou endpoint mudou.
+> **Nenhum UC foi reexecutado**; o bump marca o trio reconciliado com a tela nesta data.
 
 # Casos de Uso & Aceite — Lista de clientes
 
