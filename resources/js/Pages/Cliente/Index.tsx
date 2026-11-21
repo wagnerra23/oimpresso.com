@@ -32,6 +32,7 @@ import {
   Layers,
   List,
   Loader2,
+  MapPin,
   MoreVertical,
   Paperclip,
   Phone,
@@ -910,10 +911,10 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
         <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
           {/* ZONA L · identidade */}
           <div className="flex-1 min-w-0">
-            {/* H1 canon v3.2 (LEARNINGS Decisao #3 · 2026-05-25): 22px font-weight 700 —
-                peso espelhando /sells canon Cowork. v3.1 anterior era 16px/600 (compact
-                demais pra entidade principal da pagina). */}
-            <h1 className="text-[22px] font-bold tracking-tight text-foreground leading-snug">
+            {/* H1 22px peso 600 — o do protótipo (`clientes-page.jsx`, cabeçalho `.os-page-h`),
+                medido nos dois lados em 2026-11-21. Até essa data era 700 (canon v3.2 de 2026-05-25,
+                que espelhava /sells). */}
+            <h1 className="text-[22px] font-semibold tracking-tight text-foreground leading-snug">
               {ROLE_TITLE[activeType].title}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
@@ -1202,8 +1203,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     <SortableTh sortKey="total_os" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-14">OS</SortableTh>
                     <Th>Tags</Th>
                     <Th className="w-24">Última OS</Th>
-                    <Th className="w-10">&nbsp;</Th>
-                    <Th className="w-10 text-right pr-4">&nbsp;</Th>
+                    <Th className="w-10 text-center">&nbsp;</Th>
+                    <Th className="w-10 text-center">&nbsp;</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1295,21 +1296,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                             <TipoPill tipo={row.tipo ?? null} />
                           </td>
                           <td className="px-4 py-2.5">
-                            <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                            <span className="font-mono text-[11.5px] tracking-[-0.01em] text-muted-foreground tabular-nums whitespace-nowrap">
                               {row.tax_number_masked ?? '—'}
                             </span>
                           </td>
                           <td className="px-4 py-2.5">
-                            {(row.cidade ?? row.city) ? (
-                              <span className="text-xs text-foreground">
-                                {row.cidade ?? row.city}
-                                {(row.uf ?? row.state) && (
-                                  <span className="text-muted-foreground">/{row.uf ?? row.state}</span>
-                                )}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground/50">—</span>
-                            )}
+                            <CidadeUf cidade={row.cidade ?? row.city} uf={row.uf ?? row.state} />
                           </td>
                           <td className="px-4 py-2.5">
                             <FrescorPill lastPurchaseAt={row.last_purchase_at ?? row.last_os_at ?? null} />
@@ -1354,7 +1346,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           </td>
                           {/* Star pessoal localStorage — toggle não abre drawer. */}
                           <td
-                            className="px-2 py-2.5"
+                            className="px-2 py-2.5 text-center"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <button
@@ -1377,7 +1369,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                               />
                             </button>
                           </td>
-                          <td className="px-2 py-2.5 text-right pr-4" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-2 py-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                             <ActionsMenu
                               row={row}
                               canDelete={props.permissions.delete}
@@ -1739,6 +1731,29 @@ function Avatar({ initial }: { initial: string }) {
   );
 }
 
+// Cidade/UF da linha, no desenho do protótipo (`.cli-city-line` + `.cli-city-uf`): cidade com o
+// alfinete em cima, UF em mono embaixo. Sem cidade, a UF aparece sozinha; sem as duas, "—".
+function CidadeUf({ cidade, uf }: { cidade?: string | null; uf?: string | null }) {
+  const c = cidade?.trim();
+  const u = uf?.trim();
+  if (!c && !u) return <span className="text-xs text-muted-foreground/50">—</span>;
+  return (
+    <div className="min-w-0">
+      {c && (
+        <div className="inline-flex items-center gap-1 text-xs leading-[1.3] text-foreground">
+          <MapPin size={10} className="shrink-0 opacity-50" aria-hidden="true" />
+          <span className="truncate">{c}</span>
+        </div>
+      )}
+      {u && (
+        <div className={'font-mono text-[10.5px] font-semibold tracking-[0.04em] text-muted-foreground' + (c ? ' mt-px' : '')}>
+          {u}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Th({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <th
@@ -1773,6 +1788,7 @@ function SortableTh({
   const Icon = !active ? ArrowUpDown : dir === 'asc' ? ArrowUp : ArrowDown;
   return (
     <th
+      aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
       className={
         (align === 'right' ? 'text-right ' : 'text-left ') +
         'px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ' +
@@ -1786,7 +1802,6 @@ function SortableTh({
           'inline-flex items-center gap-1 transition-colors hover:text-foreground ' +
           (active ? 'text-foreground' : '')
         }
-        aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
       >
         {children}
         <Icon size={12} className={active ? '' : 'opacity-40'} />
@@ -2065,7 +2080,6 @@ function ClienteSheet({
               name={contact?.name ?? '?'}
               seed={contact?.avatar_hash_seed ?? String(contact?.id ?? 0)}
               size={40}
-              shape="circle"
             />
 
             <div className="flex-1 min-w-0">
