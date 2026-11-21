@@ -1617,34 +1617,32 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             2026-05-21 (cleanup pós-Onda Unificação — Wagner aprovou delete).
             Onda 3+4 (ADR 0192): coluna Origem entra no preset Operacional/Produção
             + onPickOs navega pra Repair quando user clica ↗ #OS-NNNN. */}
-        <div className="os-table-wrap">
-          <SellsTabelaUnificada
-            rows={filtered as UnifiedSaleRow[]}
-            loading={loading}
-            visibleColumns={visibleColumns}
-            selectedIds={selectedIds}
-            favSet={favSet}
-            focusIdx={focusIdx}
-            filteredCount={filtered.length}
-            rowsRef={rowsRef}
-            onToggleSel={toggleSel}
-            onToggleAll={toggleAll}
-            onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
-            onPaySuccess={() => setRefetchToken((t) => t + 1)}
-            onPickOs={(osRef) => {
-              // Cross-módulo Onda 3 + extensão ServiceOrderObserver 2026-05-25:
-              // Roteia por prefix do os_ref pra evitar levar SO-NNNN pra Repair
-              // (que só conhece JobSheet · resultaria em kanban vazio).
-              //   OS-{id}  → Modules/Repair/JobSheet         → /repair/producao-oficina
-              //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/ordens-servico/board (ADR 0265)
-              const isOficinaAuto = osRef.startsWith('SO-');
-              const targetPath = isOficinaAuto
-                ? '/oficina-auto/ordens-servico/board'
-                : '/repair/producao-oficina';
-              window.location.href = `${targetPath}?os=${encodeURIComponent(osRef)}`;
-            }}
-          />
-        </div>
+        <SellsTabelaUnificada
+          rows={filtered as UnifiedSaleRow[]}
+          loading={loading}
+          visibleColumns={visibleColumns}
+          selectedIds={selectedIds}
+          favSet={favSet}
+          focusIdx={focusIdx}
+          filteredCount={filtered.length}
+          rowsRef={rowsRef}
+          onToggleSel={toggleSel}
+          onToggleAll={toggleAll}
+          onRowClick={(id, ri) => { setFocusIdx(ri); setOpenSaleId(id); }}
+          onPaySuccess={() => setRefetchToken((t) => t + 1)}
+          onPickOs={(osRef) => {
+            // Cross-módulo Onda 3 + extensão ServiceOrderObserver 2026-05-25:
+            // Roteia por prefix do os_ref pra evitar levar SO-NNNN pra Repair
+            // (que só conhece JobSheet · resultaria em kanban vazio).
+            //   OS-{id}  → Modules/Repair/JobSheet         → /repair/producao-oficina
+            //   SO-{id}  → Modules/OficinaAuto/ServiceOrder → /oficina-auto/ordens-servico/board (ADR 0265)
+            const isOficinaAuto = osRef.startsWith('SO-');
+            const targetPath = isOficinaAuto
+              ? '/oficina-auto/ordens-servico/board'
+              : '/repair/producao-oficina';
+            window.location.href = `${targetPath}?os=${encodeURIComponent(osRef)}`;
+          }}
+        />
 
         {/* Totais do filtro (US-SELL-017 · UC-SIDX-06) — números do servidor, nada somado aqui. */}
         <SellsTotalBar
