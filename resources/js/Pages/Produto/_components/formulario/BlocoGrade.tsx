@@ -2,7 +2,7 @@
 // protótipo do [W] (produto-blade-forms.jsx: formato do sub-SKU, tabela de valores, Enter abre a
 // próxima linha); o nome da variação vem do modelo da empresa, como no Blade (decisão do [F] em
 // 2026-11-17). A conta e o envio moram em grade.ts e precos.ts.
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Grid, Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
@@ -12,9 +12,10 @@ import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
-import { Plus, X } from 'lucide-react';
-import { previaSubSku, valorNovo } from './grade';
+import { CopyCheck, ImagePlus, Plus, X } from 'lucide-react';
+import { aoEscolherModelo, aplicarATodos, previaSubSku, valorNovo } from './grade';
 import type { FormatoSubSku, Grade, ModeloVariacao, ValorDaGrade } from './grade';
+import { LIMITE_BYTES } from './envioMidia';
 import { CASAS_PRECO, arredondar, mudarCompra, mudarMargem, mudarVenda, somarPercentual } from './precos';
 
 interface Props {
@@ -83,7 +84,7 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
         <div>
           <Label htmlFor="variacao_modelo">Variação *</Label>
           {/* "" e não undefined: o Select nasce controlado e mostra o placeholder até a escolha. */}
-          <Select value={grade.modeloId ? String(grade.modeloId) : ''} onValueChange={(v) => mudar({ ...grade, modeloId: Number(v) })}>
+          <Select value={grade.modeloId ? String(grade.modeloId) : ''} onValueChange={(v) => mudar(aoEscolherModelo(grade, modelos.find((m) => m.id === Number(v)), margemPadrao))}>
             <SelectTrigger id="variacao_modelo">
               <SelectValue placeholder="Escolha o modelo (ex.: Cor)" />
             </SelectTrigger>
@@ -130,10 +131,13 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
               <th className="py-1 pr-2 font-medium">Valor</th>
               <th className="py-1 pr-2 font-medium">Sub-SKU</th>
               <th className="py-1 pr-2 font-medium text-right">Compra sem imposto</th>
+              <th className="py-1 pr-2" aria-label="Aplicar a compra a todas" />
               <th className="py-1 pr-2 font-medium text-right">Compra com imposto</th>
               <th className="py-1 pr-2 font-medium text-right">% de lucro</th>
+              <th className="py-1 pr-2" aria-label="Aplicar o lucro a todas" />
               <th className="py-1 pr-2 font-medium text-right">Venda sem imposto</th>
               <th className="py-1 pr-2 font-medium text-right">Venda com imposto</th>
+              <th className="py-1 pr-2 font-medium">Fotos</th>
               <th className="py-1" />
             </tr>
           </thead>
@@ -153,8 +157,17 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
                       placeholder="Ex.: Azul"
                     />
                   </td>
-                  <td className="py-1 pr-2 font-mono text-[12px] text-muted-foreground">
-                    {previaSubSku(sku, tipoCodigo, grade.formato, v.nome, posicao) || '—'}
+                  <td className="py-1 pr-2">
+                    {/* Em branco, o servidor gera pelo formato; a prévia aparece como dica. Digitado,
+                        vale o código digitado (ex.: o código de barras do fornecedor), como no Blade. */}
+                    <Input
+                      aria-label={`Sub-SKU ${n}`}
+                      className="font-mono text-[12px]"
+                      value={v.subSku ?? ''}
+                      onChange={(e) => trocarValor(i, { ...v, subSku: e.target.value })}
+                      onKeyDown={enter(i)}
+                      placeholder={previaSubSku(sku, tipoCodigo, grade.formato, v.nome, posicao) || 'gerado ao salvar'}
+                    />
                   </td>
                   <td className="py-1 pr-2">
                     <NumericInputPtBR
@@ -165,6 +178,9 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
                       precision={CASAS_PRECO}
                       className="text-right"
                     />
+                  </td>
+                  <td className="py-1 pr-2">
+                    <AplicarATodos rotulo={`Aplicar a compra da linha ${n} a todas`} onClick={() => mudar(aplicarATodos(grade, i, 'compra'))} />
                   </td>
                   <td className="py-1 pr-2 text-right tabular-nums">{exibir(somarPercentual(v.preco.compra, aliquota))}</td>
                   <td className="py-1 pr-2">
@@ -178,6 +194,9 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
                     />
                   </td>
                   <td className="py-1 pr-2">
+                    <AplicarATodos rotulo={`Aplicar o lucro da linha ${n} a todas`} onClick={() => mudar(aplicarATodos(grade, i, 'margem'))} />
+                  </td>
+                  <td className="py-1 pr-2">
                     <NumericInputPtBR
                       aria-label={`Venda sem imposto ${n}`}
                       value={v.preco.venda}
@@ -188,6 +207,13 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
                     />
                   </td>
                   <td className="py-1 pr-2 text-right tabular-nums">{exibir(somarPercentual(v.preco.venda, aliquota))}</td>
+                  <td className="py-1 pr-2">
+                    <FotosDoValor
+                      n={n}
+                      fotos={v.imagens ?? []}
+                      mudar={(imagens) => trocarValor(i, { ...v, imagens })}
+                    />
+                  </td>
                   <td className="py-1">
                     <Button
                       type="button"
@@ -207,10 +233,54 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
         </table>
       </div>
       <p className="mt-2 text-[12px] text-muted-foreground">
-        Enter leva à linha seguinte e, na última, abre uma nova. Valor novo entra no modelo ao salvar.
+        Escolher o modelo traz os valores dele; tire os que este produto não tem. Enter leva à linha
+        seguinte e, na última, abre uma nova. Valor novo entra no modelo ao salvar.
       </p>
       {erro && (
         <p role="alert" className="mt-1 text-[12px] text-destructive">
+          {erro}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// O "aplicar a todos" do Blade (product.js `.apply-all`): o valor desta linha vai para todas.
+function AplicarATodos({ rotulo, onClick }: { rotulo: string; onClick: () => void }) {
+  return (
+    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label={rotulo} title={rotulo} onClick={onClick}>
+      <CopyCheck className="h-4 w-4" />
+    </Button>
+  );
+}
+
+// Fotos do valor (`variation_images` do Blade): só imagem, várias por valor, até 5 MB cada.
+function FotosDoValor({ n, fotos, mudar }: { n: number; fotos: File[]; mudar: (f: File[]) => void }) {
+  const [erro, setErro] = useState<string | null>(null);
+  const id = `fotos_valor_${n}`;
+  return (
+    <div className="min-w-0">
+      <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground">
+        <ImagePlus className="h-4 w-4" />
+        {fotos.length > 0 ? `${fotos.length} foto${fotos.length > 1 ? 's' : ''}` : 'Escolher'}
+      </label>
+      <input
+        id={id}
+        type="file"
+        accept="image/*"
+        multiple
+        className="sr-only"
+        aria-label={`Fotos do valor ${n}`}
+        onChange={(e) => {
+          const escolhidas = Array.from(e.target.files ?? []);
+          const grandes = escolhidas.filter((f) => f.size > LIMITE_BYTES);
+          setErro(grandes.length > 0 ? 'Cada foto pode ter até 5 MB.' : null);
+          mudar(escolhidas.filter((f) => f.size <= LIMITE_BYTES && f.type.startsWith('image/')));
+          e.target.value = '';
+        }}
+      />
+      {erro && (
+        <p role="alert" className="text-[11px] text-destructive">
           {erro}
         </p>
       )}

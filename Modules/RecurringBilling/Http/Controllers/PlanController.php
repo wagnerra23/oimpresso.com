@@ -64,7 +64,7 @@ class PlanController extends Controller
      */
     public function create(): InertiaResponse
     {
-        $this->ensurePermission();
+        $this->ensurePermission('recurringbilling.plans.manage');
 
         return Inertia::render('RecurringBilling/Planos/Create', [
             'defaults' => [
@@ -81,7 +81,7 @@ class PlanController extends Controller
      */
     public function store(StorePlanRequest $request): RedirectResponse
     {
-        $this->ensurePermission();
+        $this->ensurePermission('recurringbilling.plans.manage');
         $businessId = $this->businessId();
 
         $data = $request->validated();
@@ -112,7 +112,7 @@ class PlanController extends Controller
      */
     public function edit(int $id): InertiaResponse
     {
-        $this->ensurePermission();
+        $this->ensurePermission('recurringbilling.plans.manage');
         $businessId = $this->businessId();
 
         // HasBusinessScope automático em Plan — esta query JÁ scopa por session('user.business_id'),
@@ -145,7 +145,7 @@ class PlanController extends Controller
      */
     public function update(UpdatePlanRequest $request, int $id): RedirectResponse
     {
-        $this->ensurePermission();
+        $this->ensurePermission('recurringbilling.plans.manage');
         $businessId = $this->businessId();
 
         $plan = Plan::query()
@@ -180,7 +180,7 @@ class PlanController extends Controller
      */
     public function destroy(int $id): RedirectResponse|Response
     {
-        $this->ensurePermission();
+        $this->ensurePermission('recurringbilling.plans.manage');
         $businessId = $this->businessId();
 
         $plan = Plan::query()
@@ -219,11 +219,13 @@ class PlanController extends Controller
     }
 
     /**
-     * Gate de permissão — superadmin OU recurringbilling.access.
+     * Gate de permissão — superadmin OU a permissão pedida. A lista de planos pede
+     * `recurringbilling.access`; criar/editar/apagar (preço) pede `recurringbilling.plans.manage`
+     * (auditoria RB d1, 2026-11-19 — antes `access` bastava para tudo).
      *
      * Aborta 403 se nenhum dos dois — skill multi-tenant-patterns.
      */
-    protected function ensurePermission(): void
+    protected function ensurePermission(string $permissao = 'recurringbilling.access'): void
     {
         $user = auth()->user();
         if (! $user) {
@@ -232,7 +234,7 @@ class PlanController extends Controller
 
         $can = false;
         if (method_exists($user, 'can')) {
-            $can = $user->can('superadmin') || $user->can('recurringbilling.access');
+            $can = $user->can('superadmin') || $user->can($permissao);
         }
 
         if (! $can) {

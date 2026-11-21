@@ -26,7 +26,7 @@ Permitir a Wagner editar policies de governança (rules do `ActionGate`) pelo pa
 
 ## Goals — Features (faz)
 
-- AppShellV2 + topnav + `<PageHeader>` shared
+- AppShellV2 + topnav + `<PageHeader>` canônico (`@/Components/PageHeader`, desde 2026-11-19)
 - KpiGrid cols=4 com `<KpiCard>` shared (total rules, enabled, triggered total, categorias)
 - Rules agrupadas por `category` (ordenação: enabled DESC, category ASC, rule_key ASC)
 - Toggle switch (button custom — emerald-500 quando enabled, zinc quando off) via `router.post('/governance/policies/{id}/toggle')` com `preserveScroll` + `preserveState`

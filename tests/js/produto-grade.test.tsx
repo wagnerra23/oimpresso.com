@@ -5,9 +5,9 @@
 // generateSubSku. A conta de cada valor é a do preço simples (precos.ts, medida contra o Blade).
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
-import { camposDaGrade, erroDaGrade, gradeInicial, previaSubSku, valorDoModelo } from '@/Pages/Produto/_components/formulario/grade'
+import { aoEscolherModelo, aplicarATodos, arquivosDaGrade, camposDaGrade, erroDaGrade, gradeInicial, gradeSemArquivos, previaSubSku, valorDoModelo } from '@/Pages/Produto/_components/formulario/grade'
 import type { ModeloVariacao } from '@/Pages/Produto/_components/formulario/grade'
-import { camposDePreco, mudarCompra, precoInicial } from '@/Pages/Produto/_components/formulario/precos'
+import { camposDePreco, mudarCompra, mudarMargem, precoInicial } from '@/Pages/Produto/_components/formulario/precos'
 
 const enviado: { payload: Record<string, unknown> | null } = { payload: null }
 
@@ -158,7 +158,8 @@ describe('UC-PCAD-32 · Novo produto — a grade na tela', () => {
 
     // Venda pelo lucro padrão (25%) e os "com imposto" pela alíquota do imposto escolhido (18%).
     expect((screen.getByLabelText('Venda sem imposto 2') as HTMLInputElement).value).toBe('25,00')
-    expect(screen.getByRole('group', { name: 'Grade da variação' }).textContent).toContain('CAM-2')
+    // A prévia do gerado fica como dica no Sub-SKU, que pode ser digitado (UC-PCAD-33).
+    expect((screen.getByLabelText('Sub-SKU 2') as HTMLInputElement).placeholder).toBe('CAM-2')
 
     const envio = enviar(container) as Record<string, unknown>
     expect(envio).toMatchObject({ type: 'variable', sku_type: 'with_out_variation' })
@@ -218,5 +219,136 @@ describe('UC-PCAD-32 · Novo produto — a grade na tela', () => {
     render(<ProdutoCreate {...props} modelosVariacao={[]} />)
 
     expect(screen.getByText('Cadastrar em Cadastros → Variações').getAttribute('href')).toBe('/variation-templates')
+  })
+})
+
+// UC-PCAD-33 (Create.casos.md): paridade da grade com o Blade, pedida pelo [F] em 2026-11-19 antes de
+// ligar a chave useV2ProdutoCadastro para todas as empresas. Âncora: product.js (`.variation_template`
+// chama `getVariationTemplate`, que monta uma linha por valor; `.apply-all`), product_variation_row
+// (`sub_sku` digitável, `variation_images_<i>_<k>[]`) e ProductUtil::createVariableProductVariations
+// (`sub_sku` vazio → generateSubSku; fotos lidas por `variation_images_<i>_<k>`).
+const TAMANHO: ModeloVariacao = { id: 5, nome: 'Tamanho', valores: [{ id: 11, nome: 'P' }, { id: 12, nome: 'M' }, { id: 13, nome: 'G' }] }
+
+describe('UC-PCAD-33 · grade.ts — paridade com o Blade', () => {
+  it('escolher o modelo traz os valores dele, com o preço da primeira linha', () => {
+    const grade = { ...gradeInicial(25), valores: [{ nome: '', preco: mudarCompra(precoInicial(25), 10) }] }
+    const g = aoEscolherModelo(grade, TAMANHO, 25)
+    expect(g.modeloId).toBe(5)
+    expect(g.valores.map((v) => v.nome)).toEqual(['P', 'M', 'G'])
+    expect(g.valores.map((v) => v.preco)).toEqual([0, 1, 2].map(() => mudarCompra(precoInicial(25), 10)))
+  })
+
+  it('linhas já preenchidas ficam e o valor do modelo não entra duas vezes', () => {
+    const grade = { ...gradeInicial(25), valores: [{ nome: ' m ', preco: precoInicial(25) }, { nome: 'GG', preco: precoInicial(25) }] }
+    expect(aoEscolherModelo(grade, TAMANHO, 25).valores.map((v) => v.nome)).toEqual([' m ', 'GG', 'P', 'G'])
+  })
+
+  it('modelo sem valores mantém a grade como está', () => {
+    const grade = gradeInicial(25)
+    expect(aoEscolherModelo(grade, { id: 9, nome: 'Vazio', valores: [] }, 25)).toEqual({ ...grade, modeloId: 9 })
+  })
+
+  // Dupla prova (REGRA MESTRE de valor): aplicar a todos dá o mesmo preço que digitar o valor em cada
+  // linha (mudarCompra/mudarMargem, a conta medida contra o Blade), e os números batem com a conta à mão.
+  it('aplicar a compra da linha 2 a todas refaz a venda de cada linha pelo lucro dela', () => {
+    const grade = {
+      ...gradeInicial(25),
+      valores: [
+        { nome: 'P', preco: mudarCompra(precoInicial(25), 10) },
+        { nome: 'M', preco: mudarCompra(precoInicial(40), 84.75) },
+        { nome: 'G', preco: mudarCompra(precoInicial(0), 5) },
+      ],
+    }
+    const g = aplicarATodos(grade, 1, 'compra')
+    expect(g.valores.map((v) => v.preco)).toEqual([
+      mudarCompra(grade.valores[0].preco, 84.75),
+      mudarCompra(grade.valores[1].preco, 84.75),
+      mudarCompra(grade.valores[2].preco, 84.75),
+    ])
+    // À mão: 84,75 + 25% = 105,9375 → 105,94; + 40% = 118,65; + 0% = 84,75.
+    // O estado guarda a conta exata; a tela e o envio arredondam como o Blade.
+    expect(camposDaGrade(g, TAMANHO, 0).product_variation[0].variations.map((v) => v.default_sell_price)).toEqual(['105,94', '118,65', '84,75'])
+  })
+
+  it('aplicar o lucro da linha 1 a todas refaz a venda de cada compra', () => {
+    const grade = {
+      ...gradeInicial(25),
+      valores: [
+        { nome: 'P', preco: mudarMargem(mudarCompra(precoInicial(25), 10), 50) },
+        { nome: 'M', preco: mudarCompra(precoInicial(25), 20) },
+      ],
+    }
+    const g = aplicarATodos(grade, 0, 'margem')
+    expect(g.valores.map((v) => [v.preco.margem, v.preco.venda])).toEqual([[50, 15], [50, 30]])
+  })
+
+  it('o sub-SKU digitado vai no envio; em branco, vai vazio e o servidor gera', () => {
+    const grade = {
+      modeloId: 5,
+      formato: 'with_out_variation' as const,
+      valores: [
+        { nome: 'P', preco: precoInicial(25), subSku: ' 7891234567895 ' },
+        { nome: 'M', preco: precoInicial(25) },
+      ],
+    }
+    expect(camposDaGrade(grade, TAMANHO, 0).product_variation[0].variations.map((v) => v.sub_sku)).toEqual(['7891234567895', ''])
+  })
+
+  it('a foto vai no nome que o servidor lê, pela posição do valor no envio', () => {
+    const foto = new File(['x'], 'p.png', { type: 'image/png' })
+    const grade = {
+      modeloId: 5,
+      formato: 'with_out_variation' as const,
+      valores: [
+        { nome: '', preco: precoInicial(25), imagens: [new File(['y'], 'perdida.png', { type: 'image/png' })] },
+        { nome: 'P', preco: precoInicial(25) },
+        { nome: 'M', preco: precoInicial(25), imagens: [foto] },
+      ],
+    }
+    // A linha sem nome não vai, então "M" é o valor 1 do envio, não o 2.
+    expect(arquivosDaGrade(grade)).toEqual({ variation_images_0_1: [foto] })
+    expect(camposDaGrade(grade, TAMANHO, 0)).toHaveProperty('variation_images_0_1', [foto])
+    expect(gradeSemArquivos(grade).valores.every((v) => !('imagens' in v))).toBe(true)
+  })
+})
+
+describe('UC-PCAD-33 · Novo produto — a grade na tela', () => {
+  it('escolher o modelo monta as linhas; tirar uma linha tira o valor do envio', () => {
+    const { container } = render(<ProdutoCreate {...props} modelosVariacao={[COR, TAMANHO]} />)
+
+    escolher('variacao_modelo', 'Tamanho')
+    expect([1, 2, 3].map((n) => (screen.getByLabelText(`Valor ${n}`) as HTMLInputElement).value)).toEqual(['P', 'M', 'G'])
+
+    fireEvent.click(screen.getByLabelText('Remover valor 2'))
+    fireEvent.change(screen.getByLabelText('Sub-SKU 1'), { target: { value: '7891234567895' } })
+    const envio = enviar(container) as Record<string, unknown>
+    const variacoes = (envio.product_variation as { variations: { value: string; variation_value_id: number; sub_sku: string }[] }[])[0].variations
+    expect(variacoes.map((v) => [v.value, v.variation_value_id, v.sub_sku])).toEqual([['P', 11, '7891234567895'], ['G', 13, '']])
+  })
+
+  it('o botão de aplicar a compra copia o valor para todas as linhas', () => {
+    render(<ProdutoCreate {...props} modelosVariacao={[TAMANHO]} />)
+    escolher('variacao_modelo', 'Tamanho')
+
+    digitar('Compra sem imposto 2', '40')
+    fireEvent.click(screen.getByLabelText('Aplicar a compra da linha 2 a todas'))
+
+    expect([1, 2, 3].map((n) => (screen.getByLabelText(`Compra sem imposto ${n}`) as HTMLInputElement).value)).toEqual(['40,00', '40,00', '40,00'])
+    expect((screen.getByLabelText('Venda sem imposto 3') as HTMLInputElement).value).toBe('50,00')
+  })
+
+  it('foto acima de 5 MB é recusada com aviso; a de tamanho certo fica no valor', () => {
+    const { container } = render(<ProdutoCreate {...props} modelosVariacao={[TAMANHO]} />)
+    escolher('variacao_modelo', 'Tamanho')
+
+    const grande = new File(['x'], 'grande.png', { type: 'image/png' })
+    Object.defineProperty(grande, 'size', { value: 6_000_000 })
+    const boa = new File(['x'], 'boa.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('Fotos do valor 1'), { target: { files: [grande, boa] } })
+
+    expect(screen.getByText('Cada foto pode ter até 5 MB.')).toBeTruthy()
+    expect(screen.getByText('1 foto')).toBeTruthy()
+    const envio = enviar(container) as Record<string, unknown>
+    expect(envio.variation_images_0_0).toEqual([boa])
   })
 })

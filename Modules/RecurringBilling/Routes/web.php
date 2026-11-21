@@ -10,6 +10,7 @@ use Modules\RecurringBilling\Http\Controllers\RecurringBillingController;
 use Modules\RecurringBilling\Http\Controllers\SubscriptionEventController;
 use Modules\RecurringBilling\Http\Controllers\SubscriptionFavoriteController;
 use Modules\RecurringBilling\Http\Controllers\SubscriptionNoteController;
+use Modules\RecurringBilling\Http\Middleware\RecurringBillingLiberado;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +31,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 // Rota canônica nova (v9,75 Ondas 3+4+5 — Inertia Page Cobrança Recorrente).
 // Onda 7 v9,75 — Page Inertia Faturas (reusa InvoiceController existente).
 // Skill `sidebar-menu-arch`: DataController.modifyAdminMenu aponta pra esta rota nomeada.
-Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+// RecurringBillingLiberado: pacote `recurringbilling_module` em TODA rota do grupo. Até
+// 2026-11-19 só o menu conferia, e a URL abria para empresa sem o pacote.
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', RecurringBillingLiberado::class])
     ->prefix('recurring-billing')
     ->group(function () {
         Route::get('/', [RecurringBillingController::class, 'index'])
@@ -127,7 +130,7 @@ Route::middleware(['web'])->group(function () {
 });
 
 // US-RB-042 — cancelamento de invoice via gateway + audit log + permissão
-Route::middleware(['web', 'auth', 'SetSessionData'])
+Route::middleware(['web', 'auth', 'SetSessionData', RecurringBillingLiberado::class])
     ->prefix('financeiro')
     ->group(function () {
         Route::post('rb-invoices/{invoice}/cancelar', [InvoiceController::class, 'cancel'])

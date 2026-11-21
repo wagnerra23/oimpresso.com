@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @covers-us US-GOV-042
 // Teste do filtro de SPEC encerrado — contrato morto sai do corpus dos gates.
 //
 // ÂNCORA EXTERNA (não derivada do código — proibicoes §5 anti-tautológico):

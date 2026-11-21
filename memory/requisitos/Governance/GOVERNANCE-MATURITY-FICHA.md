@@ -62,7 +62,7 @@ Posicionamento competitivo: **único enforcer formal de Constituição IA-pair n
 | **Cortex** (Wrapped 2025: +64% deploy freq usuários) | IDP SaaS | $$$ (enterprise) | Onboarding rápido + Scorecards padronizados + Eng Intelligence métricas DORA | Rubrica única (sem scoped), positioning OpsLevel quebra "one-size-fits-all" |
 | **Backstage Tech Insights** (Spotify CNCF, 89% market share OSS IDP) | OSS plugin | grátis self-host (mas custo dev pesado) | Facts + Checks model, ecossistema plugin gigante, comunidade ativa | Setup difícil (precisa platform team), Tech Insights ainda community-maintained não-Spotify-core, sem runtime gate |
 
-> **Insight crítico**: nenhum dos 4 players faz **runtime middleware gate** equivalente ao nosso `ActionGate`. Eles são todos CI-gate ou scorecard pós-fato. ActionGate é **diferencial defensável** — bloqueia DDL ad-hoc, mass-update bypass FSM, etc no momento do request. Ver [ADR 0147](../../decisions/0147-governance-actiongate-warn-strict-modes.md).
+> **Insight crítico**: nenhum dos 4 players faz **runtime middleware gate** equivalente ao nosso `ActionGate`. Eles são todos CI-gate ou scorecard pós-fato. ActionGate é **diferencial defensável** — bloqueia DDL ad-hoc, mass-update bypass FSM, etc no momento do request. Ver [ADR 0086](../../decisions/0086-fase-5-mvp-governance-actiongate-warn.md) (o link original apontava para uma "0147-governance-actiongate" que nunca existiu; a 0147 do repo é a cascade-review — corrigido em 2026-11-19).
 
 ## 3. Matriz 8 capacidades P0 × 4 concorrentes × nós
 
@@ -180,10 +180,10 @@ Total: **~18h IA-pair** → score externo **74 → ~84/100** (alcança paridade 
 
 - [ADR 0086](../../decisions/0086-fase-5-mvp-governance-actiongate-warn.md) — Fase 5 MVP scaffold + ActionGate (mãe do módulo)
 - [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) — **Constituição v2** (mãe das 7 camadas + 8 princípios)
-- [ADR 0147](../../decisions/0147-governance-actiongate-warn-strict-modes.md) — ActionGate 3-mode (warn/strict/block)
+- [ADR 0086](../../decisions/0086-fase-5-mvp-governance-actiongate-warn.md) — ActionGate warn/strict (link corrigido em 2026-11-19; apontava para uma 0147 inexistente)
 - [ADR 0153](../../decisions/0153-module-grade-rubrica-v1.md) — Rubrica `module-grade-v1` interna (US-GOV-006..008)
 - [ADR 0089](../../decisions/0089-capterra-driven-module-evolution.md) — CAPTERRA-driven module evolution (template mãe desta variante)
-- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — Tests biz=1 nunca cliente
+- [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) — doutrina de teste, tenant 98 (substitui a 0101-tests, cujo arquivo saiu do repo)
 
 ## 10. Próxima revisão
 

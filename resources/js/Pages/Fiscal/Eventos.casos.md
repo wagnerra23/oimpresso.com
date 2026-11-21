@@ -58,6 +58,9 @@ related_us: [US-FISCAL-007]
 | UC-FEVT-06 | o CSV leva o recorte filtrado | `[must]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
 | UC-FEVT-07 | a janela do CSV é clampada | `[should]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
 | UC-FEVT-08 | a tela declara os débitos que ela mesma registra | `[should]` | **—** (ver nota) | `fiscal-debitos-conhecidos.test.tsx` | 🧪 |
+| UC-FEVT-09 | a justificativa exibida é cortada em 200 caracteres | `[must]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
+| UC-FEVT-10 | filtro por categoria e por janela, 30 dias de padrão | `[must]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
+| UC-FEVT-11 | a nota de origem vem numa consulta só | `[should]` | CU-FISC-05 | `EventosCockpitMultiTenantTest` | 🧪 |
 
 > **Por que o `UC-FEVT-08` tem `—` na coluna CU:** os CU do SDD §6 descrevem o que a tela **faz
 > pelo usuário fiscal** (ler a timeline, exportar, manifestar). Este caso é de **transparência
@@ -164,7 +167,38 @@ O protótipo Cowork ([`fiscal-subpages.jsx:33`](../../../../prototipo-ui/cowork/
 
 ## UC-FEVT-08 — A tela declara os débitos que os casos.md dela já registram `[should]`
 
-**Dado** que esta tela tem itens em `## Backlog de casos` abaixo
+**Dado** que esta tela tem itens em `## UC-FEVT-09 — A justificativa exibida é cortada em 200 caracteres `[must]`
+
+**Dado** um evento com justificativa longa
+**Quando** a linha aparece na timeline
+**Então** só os primeiros 200 caracteres vêm na tela; o resto não sai do servidor.
+
+- **Por que existe:** anti-hook do charter. O motivo devolvido pela SEFAZ pode trazer dado pessoal do XML. O CSV já corta igual (`mapLinhaCsv`).
+- **Teste:** `EventosCockpitMultiTenantTest` — `it('UC-FEVT-09 · a justificativa exibida é cortada em 200 caracteres')`.
+- **Status:** 🧪 veredito da lane.
+
+## UC-FEVT-10 — Filtro por categoria e por janela, com 30 dias de padrão `[must]`
+
+**Dado** um cancelamento de hoje, um de 40 dias atrás e uma carta de correção de hoje
+**Quando** filtro por janela e por categoria
+**Então** 30 dias traz os dois de hoje e não o antigo; 90 dias traz o antigo; "cancelamento" não traz a carta de correção e vice-versa; sem filtro, a tela abre em 30 dias.
+
+- **Teste:** `EventosCockpitMultiTenantTest` — `it('UC-FEVT-10 · filtro por categoria e por janela …')`.
+- **Status:** 🧪 veredito da lane.
+
+## UC-FEVT-11 — A nota de origem vem numa consulta só `[should]`
+
+**Dado** três eventos de notas diferentes
+**Quando** a timeline carrega
+**Então** cada linha traz a sua nota, e as notas vêm numa única consulta a `nfe_emissoes`, não uma por evento.
+
+- **Por que existe:** o charter limita a um relacionamento carregado. Tirar o `with(['emissao…'])` faria a página de 50 linhas disparar 50 consultas.
+- **Teste:** `EventosCockpitMultiTenantTest` — `it('UC-FEVT-11 · a nota de origem vem junto numa consulta só …')`.
+- **Status:** 🧪 veredito da lane.
+
+---
+
+## Backlog de casos` abaixo
 **Quando** a contadora abre `/fiscal/eventos`
 **Então** ela lê, no rodapé, "Débitos conhecidos desta tela" com um item por bullet `[BACKLOG]` —
 e cada item carrega a âncora (`Arquivo.casos.md:linha`) de onde saiu.
@@ -192,9 +226,9 @@ e cada item carrega a âncora (`Arquivo.casos.md:linha`) de onde saiu.
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
-- **[BACKLOG · ⬜ sem teste] A justificativa exibida é truncada, para não vazar PII do XML** — Dado um evento com justificativa longa · Quando a linha renderiza · Então só um trecho inicial aparece. _Anti-hook do charter (o texto do motivo da SEFAZ pode conter dado pessoal); o corte existe no Controller, sem teste._
-- **[BACKLOG · ⬜ sem teste] Filtro por categoria e por janela de tempo** — 7, 30 ou 90 dias, com 30 como padrão. _Existe no Controller; sem teste do resultado._
-- **[BACKLOG · ⬜ sem teste] A nota de origem vem junto sem multiplicar consultas** — o charter limita a **um** relacionamento carregado; nenhum teste guarda esse limite.
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-09] ~~A justificativa exibida é truncada, para não vazar PII do XML~~ — Dado um evento com justificativa longa · Quando a linha renderiza · Então só um trecho inicial aparece. _Anti-hook do charter (o texto do motivo da SEFAZ pode conter dado pessoal); o corte existe no Controller, sem teste._
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-10] ~~Filtro por categoria e por janela de tempo~~ — 7, 30 ou 90 dias, com 30 como padrão. _Existe no Controller; sem teste do resultado._
+- [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-11] ~~A nota de origem vem junto sem multiplicar consultas~~ — o charter limita a **um** relacionamento carregado; nenhum teste guarda esse limite.
 - **[BACKLOG · 🧪 coberto em outra tela] As ações que GERAM evento** (cancelamento, carta de correção, inutilização, retransmissão, manifestação) têm contrato em [`Nfe.casos.md`](Nfe.casos.md) (`UC-FNFE-04..07`) e [`Dfe.casos.md`](Dfe.casos.md) (`UC-FDFE-03/04`) — o dispatch vive lá, esta tela só **lê** o resultado. Não se duplica UC entre telas irmãs.
 
 ## Como rodar a suíte

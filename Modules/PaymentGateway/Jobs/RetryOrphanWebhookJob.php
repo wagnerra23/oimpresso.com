@@ -9,11 +9,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\ReconciliarCobrancaService;
 use Modules\PaymentGateway\Services\Webhook\CobrancaWebhookResolver;
 
 /**
@@ -42,8 +43,11 @@ use Modules\PaymentGateway\Services\Webhook\CobrancaWebhookResolver;
  * Multi-tenant Tier 0 (ADR 0093): Job roda em background SEM sessão →
  * `withoutGlobalScopes()` consciente + log explícito do business_id por evento.
  *
- * Mapping conservador event_type → CobrancaPaga (MVP):
- *   /paid/i, /received/i, /confirmed/i, /payment_received/i, /cob\.paid/i
+ * Mapping conservador event_type → CobrancaPaga (auditoria PG 2.5):
+ *   palavras inteiras paid | received | confirmed | pix_recebido, e nenhuma
+ *   palavra de estorno/negativa (unpaid, undone, refund, chargeback…).
+ *   O replay MARCA a cobrança paga via ReconciliarCobrancaService (lock +
+ *   não redispara se já paga) e confere o status antes.
  *
  * NÃO dispatcha CobrancaErro automaticamente — risk de side-effects em
  * listeners ainda não-idempotentes. Wagner manualmente reconcilia errors via
@@ -71,13 +75,25 @@ class RetryOrphanWebhookJob implements ShouldQueue
      * a "dispatcha falso-positivo que cria Titulo errado".
      */
     private const PAID_EVENT_PATTERNS = [
-        '/paid/i',
-        '/received/i',
-        '/confirmed/i',
-        '/payment_received/i',
-        '/cob\.paid/i',
-        '/pix_recebido/i',
+        // Auditoria PG 2.5: ancorados em fronteira de palavra (início, fim,
+        // `.`, `_`, `-`, espaço). Sem âncora, `/paid/` casava UNPAID e
+        // `/received/` casava PAYMENT_RECEIVED_IN_CASH_UNDONE (estorno).
+        '/(^|[._\-\s])(paid|received|confirmed)($|[._\-\s])/i',
+        '/(^|[._\-\s])pix_recebido($|[._\-\s])/i',
     ];
+
+    /**
+     * Palavras que, presentes no nome do evento, indicam estorno/negativa —
+     * nunca viram CobrancaPaga, mesmo que outra palavra case acima.
+     */
+    private const NOT_PAID_TOKENS = [
+        'unpaid', 'undone', 'refund', 'refunded', 'reversed', 'reversal',
+        'chargeback', 'estorno', 'estornado', 'estornada', 'devolucao', 'devolvido',
+        'cancelled', 'canceled', 'cancelado', 'cancelada', 'deleted', 'failed', 'not', 'nao',
+    ];
+
+    /** Status em que a cobrança ainda pode virar paga por um replay. */
+    private const STATUS_PAGAVEL = ['pending', 'emitida', 'vencida'];
 
     public int $tries = 1; // cron re-roda em 5min — sem ponto fazer retry exponential interno
 
@@ -171,7 +187,7 @@ class RetryOrphanWebhookJob implements ShouldQueue
         }
 
         // Caso 2: evento NÃO matches mapping conservador → marca processed_at sem dispatch
-        if (! $this->isPaidEvent($evento)) {
+        if (! self::isPaidEvent($evento)) {
             $orphan->update([
                 'processed_at' => now(),
                 'error_message' => 'orphan_event_not_mapped_to_dispatch: ' . substr($evento, 0, 100),
@@ -194,33 +210,68 @@ class RetryOrphanWebhookJob implements ShouldQueue
         $replayed++;
     }
 
+    /**
+     * Auditoria PG 2.5: o replay passa pelo ReconciliarCobrancaService — a
+     * cobrança é MARCADA paga (e os títulos vinculados quitados) junto com o
+     * evento, em vez de disparar CobrancaPaga com a cobrança ainda `emitida`.
+     *
+     *  - status `paga`: só marca o órfão como processado, sem redisparar.
+     *  - status fora de pending/emitida/vencida (cancelada, erro, estornada…):
+     *    não marca nem dispara; órfão processado com o motivo, para conferência.
+     */
     private function replay(
         GatewayWebhookEvent $orphan,
         Cobranca $cobranca,
         int $businessId,
     ): void {
+        $status = (string) $cobranca->getAttribute('status');
+
+        if ($status === 'paga') {
+            $orphan->update(['processed_at' => now(), 'error_message' => 'orphan_cobranca_ja_paga']);
+            Log::info('paymentgateway.webhook.orphan_ja_paga', [
+                'webhook_row_id' => $orphan->id,
+                'business_id'    => $businessId,
+                'cobranca_id'    => $cobranca->id,
+            ]);
+
+            return;
+        }
+
+        if (! in_array($status, self::STATUS_PAGAVEL, true)) {
+            $orphan->update([
+                'processed_at'  => now(),
+                'error_message' => 'orphan_cobranca_status_incompativel: ' . substr($status, 0, 40),
+            ]);
+            Log::warning('paymentgateway.webhook.orphan_status_incompativel', [
+                'webhook_row_id' => $orphan->id,
+                'business_id'    => $businessId,
+                'cobranca_id'    => $cobranca->id,
+                'status'         => $status,
+            ]);
+
+            return;
+        }
+
         $pagaEm = $cobranca->paga_em
             ? \DateTimeImmutable::createFromMutable($cobranca->paga_em->toDateTime())
             : new \DateTimeImmutable();
 
         $valorPagoCentavos = $cobranca->valor_pago_centavos ?? $cobranca->valor_centavos ?? 0;
 
-        event(new CobrancaPaga(
-            cobrancaId: (int) $cobranca->id,
-            businessId: (int) $cobranca->business_id,
-            valorPagoCentavos: (int) $valorPagoCentavos,
-            pagaEm: $pagaEm,
-            formaPagamento: (string) ($cobranca->forma_pagamento ?? 'pix'),
-            occurredAt: new \DateTimeImmutable(),
-            payerCpfCnpj: $cobranca->payer_cpf_cnpj,
-            origemType: $cobranca->origem_type,
-            origemId: $cobranca->origem_id,
-        ));
+        DB::transaction(function () use ($orphan, $cobranca, $businessId, $valorPagoCentavos, $pagaEm): void {
+            app(ReconciliarCobrancaService::class)->marcarPaga(
+                cobranca: $cobranca,
+                businessId: $businessId,
+                valorPagoCentavos: (int) $valorPagoCentavos,
+                pagaEm: $pagaEm,
+                formaPagamento: (string) ($cobranca->forma_pagamento ?? 'pix'),
+            );
 
-        $orphan->update([
-            'processed_at' => now(),
-            'error_message' => null,
-        ]);
+            $orphan->update([
+                'processed_at'  => now(),
+                'error_message' => null,
+            ]);
+        });
 
         Log::info('paymentgateway.webhook.orphan_replayed', [
             'webhook_row_id' => $orphan->id,
@@ -301,8 +352,14 @@ class RetryOrphanWebhookJob implements ShouldQueue
         ]);
     }
 
-    private function isPaidEvent(string $evento): bool
+    /** @internal Público pra teste direto da tabela de padrões. */
+    public static function isPaidEvent(string $evento): bool
     {
+        $tokens = preg_split('/[^a-z0-9]+/', strtolower($evento), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if (array_intersect($tokens, self::NOT_PAID_TOKENS) !== []) {
+            return false;
+        }
+
         foreach (self::PAID_EVENT_PATTERNS as $pattern) {
             if (preg_match($pattern, $evento) === 1) {
                 return true;

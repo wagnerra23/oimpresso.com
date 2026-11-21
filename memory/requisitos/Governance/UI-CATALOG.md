@@ -1,5 +1,7 @@
 # Governance — UI Catalog (auto-gerado bulk W31-10)
 
+> ⚠️ **Desatualizado — conferido em 2026-11-19, não regenerado.** A tabela abaixo é de 2026-05-17: lista `ModuleGrades/Index` e `ModuleGrades/Show`, deletadas pela [ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md), e não lista `DsRollout`, `Custos` e `QualidadeIa`, que estão no ar. O arquivo é gerado: não corrija a tabela à mão, rode `php artisan governance:ui-catalog-generate governance`. Na auditoria de 2026-11-19 a regeneração não foi possível (CT 100 sem resposta, e o `vendor` local defasado do código). Para a lista viva de telas, use `node scripts/governance/module-surface.mjs Governance` ou o [SUPERFICIE.md](SUPERFICIE.md).
+
 > **Ultima atualizacao:** 2026-05-17 (W31-10)
 > **Auto-regeneravel.** Manter versao; reescrever via gerador (nao editar manual em campos de auto-status).
 > Pages dir: `resources/js/Pages/governance/`
@@ -40,7 +42,7 @@ sem Blade legacy direto neste modulo
 - **Status pipeline:**
   - `legacy` — sem charter, sem review (precisa charter + MWART F1 design)
   - `charter-WIP` — charter aberto sem status valido
-  - `awaiting-smoke-browser` — charter `draft` aceito, falta smoke biz=1 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
+  - `awaiting-smoke-browser` — charter `draft` aceito, falta smoke biz=1 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md))
   - `review-pending` — tela em revisao por Wagner
   - `reviewed-no-charter` — review.md existe mas charter ausente (regularizar)
   - `live` — charter status `live` + smoke validado biz=1
