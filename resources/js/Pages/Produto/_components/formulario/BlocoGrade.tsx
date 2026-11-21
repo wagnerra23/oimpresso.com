@@ -112,7 +112,7 @@ export function BlocoGrade({ grade, mudar, modelos, aliquota, margemPadrao, sku,
               </Inline>
               <Inline gap={2}>
                 <RadioGroupItem id="sku_type_variacao" value="with_variation" />
-                <Label htmlFor="sku_type_variacao" className="text-[13px] font-normal">SKU + número da variação</Label>
+                <Label htmlFor="sku_type_variacao" className="text-[13px] font-normal">SKU + valor da variação (ex.: CAMAzul)</Label>
               </Inline>
             </Inline>
           </RadioGroup>

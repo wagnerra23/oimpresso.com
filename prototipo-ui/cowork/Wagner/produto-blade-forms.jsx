@@ -119,11 +119,13 @@ function FormProduto({ produto, onSair, onIr, avisar }) {
   const totalArmaz = f.armaz.reduce((t, x) => t + (edit ? num(x.saldo) : num(x.qtd)), 0);
   const marcarTudo = () => setTocado({ name: 1, sku: 1, alert: 1, dpp: 1, profit: 1, varNome: 1, varValor: 1, combo: 1, ncm: 1 });
 
-  // Sub-SKU gerado ao vivo (sku_type do variable_product_form_part).
+  // Sub-SKU gerado ao vivo (sku_type do variable_product_form_part). "SKU + valor" junta o SKU com o
+  // valor inteiro, sem espaço nem acento, como o servidor grava (ProductUtil::generateSubSku):
+  // CAM + Azul = CAMAzul. Decisão do [W] em 2026-11-21 (#11263).
   const subSku = (i) => {
     const base = (f.sku || "NOVO").trim().toUpperCase();
     return f.skuType === "with_variation"
-      ? base + "-" + ((f.variacoes[0].valores[i] || {}).v || "VAR").slice(0, 3).toUpperCase()
+      ? base + ((f.variacoes[0].valores[i] || {}).v || "VAR").replace(/[^a-zA-Z0-9]/g, "")
       : base + "-" + (i + 1);
   };
 
@@ -372,7 +374,7 @@ function FormProduto({ produto, onSair, onIr, avisar }) {
             <span className="pb-help" style={{ display: "block", marginBottom: 6 }}>Formato do SKU da variação</span>
             <div className="pb-radios">
               <label><input type="radio" checked={f.skuType === "with_out_variation"} onChange={() => set("skuType")("with_out_variation")} /> Número do SKU</label>
-              <label><input type="radio" checked={f.skuType === "with_variation"} onChange={() => set("skuType")("with_variation")} /> SKU + número da variação</label>
+              <label><input type="radio" checked={f.skuType === "with_variation"} onChange={() => set("skuType")("with_variation")} /> SKU + valor da variação (ex.: CAMAzul)</label>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "14px 0 8px" }}>
