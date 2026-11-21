@@ -352,6 +352,7 @@ last_run: "2026-11-21"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-11-21 · [F+C] Barra de filtros no desenho do protótipo: busca primeiro com a dica de atalho, filtro Grupo (filtra a página, como os demais) e contador pelo total do servidor (antes "50 registros", o tamanho da página). Só a barra mudou; nenhum UC reexecutado. `last_run` já em 2026-11-21 (onda 1).
 - 2026-11-16 · [F+C] **UC-CIDX-17**: anexos (listar/enviar/apagar) e extrato por e-mail passam a exigir permissão de ver clientes; ativar/desativar recebe o estado confirmado por POST (o GET do Blade segue invertendo) e id de outra empresa dá 404 em vez de 500. Não mexe em `Index.tsx`.
 - 2026-11-16 · [F+C] **UC-CIDX-16**: filtro Status › Excluídos (servidor, `onlyTrashed`) e Restaurar (`POST /contacts/{id}/restore`, mesma permissão de excluir). Charter v11. `last_run` 2026-10-29 → 2026-11-16 (G-6).
 - 2026-11-16 · [F+C] **UC-CIDX-15**: excluir exige "Remover cliente" no servidor, recusa cadastro com qualquer registro de negócio (não só lançamentos) e o cliente padrão com mensagem; a ficha completa mostra a recusa. Charter v10. Não mexe em `Index.tsx`.

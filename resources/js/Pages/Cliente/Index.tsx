@@ -233,6 +233,16 @@ const SLOT2_TABS: Array<{
   { key: 'other',          label: 'Outros',         shortLabel: 'Outros',   href: '/cliente?type=other',          Icon: Layers,    iconName: 'layers' },
 ];
 
+// Rótulo do contador da barra de filtros, por papel (singular, plural), como o Toolbar do protótipo.
+const CONTADOR_ROTULO: Record<ContactRoleType, [string, string]> = {
+  customer: ['cliente', 'clientes'],
+  supplier: ['fornecedor', 'fornecedores'],
+  employee: ['funcionário', 'funcionários'],
+  representative: ['representante', 'representantes'],
+  other: ['cadastro', 'cadastros'],
+  all: ['contato', 'contatos'],
+};
+
 const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; collective: string }> = {
   customer:       { title: 'Clientes',       singular: 'cliente',       collective: 'cadastrados' },
   supplier:       { title: 'Fornecedores',   singular: 'fornecedor',    collective: 'cadastrados' },
@@ -524,6 +534,9 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [staleFilter, setStaleFilter] = useState<string>('');
   const [saldoFilter, setSaldoFilter] = useState<string>('');
+  // Grupo de clientes (FK `customer_group_id`), como o filtro "Grupo" do protótipo. Filtra a
+  // página carregada, igual aos outros filtros desta barra (os grupos vêm em `priceGroups`).
+  const [grupoFilter, setGrupoFilter] = useState<string>('');
 
   // PTDP Onda 2 — KPI strip clicável (5 cards-filtro).
   // Filtros adicionais (não cobertos pelos 6 FilterDropdown): novos do mês.
@@ -607,7 +620,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
 
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
+  }, [statusFilter, search, sortKey, sortDir, perPage, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, grupoFilter, recentMonthFilter]);
 
   const rows = props.customers?.data ?? [];
   const meta = props.customers?.meta ?? null;
@@ -708,6 +721,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     // Wave G — filtros novos. Cada um é AND independente (espelha protótipo Cowork).
     if (tipoFilter) r = r.filter((x) => x.tipo === tipoFilter);
     if (ufFilter) r = r.filter((x) => (x.uf ?? x.state ?? '') === ufFilter);
+    if (grupoFilter) r = r.filter((x) => String(x.customer_group_id ?? '') === grupoFilter);
     if (tagsFilter.length > 0) {
       // Multi-select: cliente deve ter TODAS as tags marcadas (AND, não OR).
       // Espelha protótipo Cowork (clientes-table.jsx: `fTags.every(t => c.tags.includes(t))`).
@@ -751,7 +765,28 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       });
     }
     return r;
-  }, [rows, statusFilter, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, recentMonthFilter]);
+  }, [rows, statusFilter, tipoFilter, ufFilter, tagsFilter, staleFilter, saldoFilter, grupoFilter, recentMonthFilter]);
+
+  // Opções do filtro Grupo: os grupos de cliente da empresa (customer_groups, escopo business_id no
+  // ContactController::index — a mesma lista da tabela de preço da aba Comercial).
+  const gruposOptions = useMemo(
+    () => (props.priceGroups ?? []).map((g) => ({ value: String(g.id), label: g.name })),
+    [props.priceGroups],
+  );
+
+  // Contador da barra de filtros. Filtro da página ("Excluídos" é do servidor e não conta aqui).
+  const filtrosDaPaginaAtivos = !!(
+    (statusFilter && statusFilter !== 'excluidos') || tipoFilter || ufFilter || tagsFilter.length > 0 ||
+    staleFilter || saldoFilter || grupoFilter || recentMonthFilter
+  );
+  const contadorTexto = (() => {
+    if (filtrosDaPaginaAtivos) {
+      return `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')} nesta página`;
+    }
+    const total = meta?.total ?? rows.length;
+    const [um, varios] = CONTADOR_ROTULO[activeType];
+    return total === 1 ? `1 ${um} encontrado` : `${total.toLocaleString('pt-BR')} ${varios} encontrados`;
+  })();
 
   // Onda 3 (2026-06-12) — os 5 counts dos KPI cards agora vêm TODOS reais do backend
   // (`kpis.*`, scoped business_id). Removido o estimado client-side sobre as 50 rows da
@@ -1047,11 +1082,49 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           className="px-4 py-3 border-b"
           style={{ borderBottomColor: 'var(--border)' }}
         >
-          <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca de contato" data-contract="filtros-busca">
-            {/* Filtros combobox a esquerda — 6 FilterDropdown.
-                Cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
+          {/* Barra no desenho do protótipo (`clientes-page.jsx` Toolbar · `.cli-toolbar-v2`): a busca vem
+              primeiro, em faixa própria, com a dica de atalho à direita; os filtros vêm embaixo, com o
+              contador encostado na direita. Até 2026-11-21 a busca ficava por último, à direita. */}
+          <div className="flex flex-col gap-2.5" aria-label="Filtros e busca de contato" data-contract="filtros-busca">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              {/* Espaço dos ícones via `.cw-input-icon-*` (o `pl-9/pr-9` do Tailwind perde para o `.cw-input`
+                  sem layer — ver cowork-fields.css). O recuo da dica vai em style, que vence a classe. */}
+              <Input
+                ref={searchInputRef}
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Buscar nome, CNPJ/CPF, contato, telefone, cidade..."
+                className="cw-input-icon-left cw-input-icon-right"
+                style={{ borderColor: 'var(--border)', ...(searchInput ? {} : { paddingRight: 190 }) }}
+                aria-label="Buscar contato"
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchInput('')}
+                  aria-label="Limpar busca"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : (
+                <span
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 whitespace-nowrap text-[11px] text-muted-foreground pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <kbd className="rounded-[3px] border border-border bg-muted px-[5px] py-px font-mono text-[10px] text-muted-foreground">/</kbd>
+                  pra focar ·
+                  <kbd className="rounded-[3px] border border-border bg-muted px-[5px] py-px font-mono text-[10px] text-muted-foreground">⌘K</kbd>
+                  global
+                </span>
+              )}
+            </div>
+
+            {/* Filtros combobox — cada FilterDropdown reseta page=1 via useEffect [filtros, perPage]. */}
             <nav
-              className="flex items-center gap-2 flex-wrap"
+              className="flex items-center gap-1.5 flex-wrap"
               aria-label="Filtros de contato"
             >
               <FilterDropdown
@@ -1091,51 +1164,28 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                 options={STALE_OPTIONS}
               />
               <FilterDropdown
+                label="Grupo"
+                value={grupoFilter}
+                onChange={(v) => setGrupoFilter(v as string)}
+                options={gruposOptions}
+              />
+              <FilterDropdown
                 label="Saldo"
                 value={saldoFilter}
                 onChange={setSaldoFilter}
                 options={SALDO_OPTIONS}
               />
-              {/* Contagem inline "X de Y" — Wave G UX paridade Cowork. */}
-              <span className="text-xs text-muted-foreground tabular-nums ml-1">
-                {filteredRows.length === rows.length
-                  ? `${rows.length.toLocaleString('pt-BR')} ${rows.length !== 1 ? 'registros' : 'registro'}`
-                  : `${filteredRows.length.toLocaleString('pt-BR')} de ${rows.length.toLocaleString('pt-BR')}`}
+              {/* Contador do protótipo ("N clientes encontrados"). Sem filtro da página, é o total do
+                  servidor (`meta.total`) — antes mostrava o tamanho da página ("50 registros"). Com filtro
+                  da página, diz que conta só a página carregada, porque é o que esses filtros alcançam. */}
+              <span className="ml-auto self-end text-[11.5px] text-muted-foreground tabular-nums">
+                {contadorTexto}
               </span>
             </nav>
-
-            {/* Busca a direita (Wagner v3.5): `ml-auto` empurra pra direita extrema.
-                border warm `oklch(0.9 0.004 90)` (afinidade familia cream). Placeholder
-                simplificado: tira meta-info "(/ pra focar · ⌘K global)" — atalhos no cheat-sheet.
-                Espaço pros ícones (lupa + X) via `.cw-input-search` — NÃO `pl-9/pr-9` tailwind,
-                que são ignorados pelo `.cw-input` unlayered no Tailwind v4 (ver cowork-fields.css). */}
-            <div className="relative ml-auto min-w-[200px] max-w-md w-full sm:w-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                ref={searchInputRef}
-                type="search"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Buscar nome, CNPJ/CPF, contato, telefone, cidade..."
-                className="cw-input-icon-left cw-input-icon-right"
-                style={{ borderColor: 'oklch(0.9 0.004 90)' }}
-                aria-label="Buscar contato"
-              />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={() => setSearchInput('')}
-                  aria-label="Limpar busca"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
           </div>
 
           {/* Z-2.1 — ActiveChips removíveis (alinhado ao protótipo Cowork). */}
-          {(tipoFilter || statusFilter || ufFilter || tagsFilter.length > 0 || staleFilter || saldoFilter) && (
+          {(tipoFilter || statusFilter || ufFilter || tagsFilter.length > 0 || staleFilter || grupoFilter || saldoFilter) && (
             <div className="flex flex-wrap items-center gap-1.5 mt-3" aria-label="Filtros ativos">
               {tipoFilter && (
                 <ActiveChip label="Tipo" value={tipoFilter} onRemove={() => setTipoFilter('')} />
@@ -1151,6 +1201,13 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               )}
               {staleFilter && (
                 <ActiveChip label="Sem compra há" value={staleFilter} onRemove={() => setStaleFilter('')} />
+              )}
+              {grupoFilter && (
+                <ActiveChip
+                  label="Grupo"
+                  value={gruposOptions.find((g) => g.value === grupoFilter)?.label ?? grupoFilter}
+                  onRemove={() => setGrupoFilter('')}
+                />
               )}
               {saldoFilter && (
                 <ActiveChip
@@ -1168,6 +1225,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                   setUfFilter('');
                   setTagsFilter([]);
                   setStaleFilter('');
+                  setGrupoFilter('');
                   setSaldoFilter('');
                 }}
                 className="text-[10px] text-muted-foreground underline-offset-2 hover:underline hover:text-foreground ml-1"

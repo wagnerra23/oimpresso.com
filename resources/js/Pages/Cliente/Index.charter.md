@@ -70,10 +70,10 @@ Listagem densa de clientes com drawer lateral 760px abrindo ao clicar em qualque
 ## Goals (Index — listagem)
 
 - Header rico: "Clientes" + count "X cadastrados · Y ativos" + busca + botões Importar/Exportar/Novo
-- 6 dropdowns filtro: Tipo (PF/PJ) · Status (ativo/inativo/bloqueado) · UF (27) · Tags (multi) · Sem compra há (15d/30d/90d/180d/365d) · Com saldo (sim/não/devedor)
+- Busca primeiro, em faixa própria, com a dica "/ pra focar · ⌘K global"; embaixo, 7 dropdowns filtro: Status · Tipo (PF/PJ) · UF (27) · Tags (multi) · Sem compra há (15d/30d/90d/180d/365d) · Grupo (grupos de cliente da empresa) · Saldo (devedor/zerado)
 - Tabela densa: avatar redondo de cor sólida (paleta de 8 tons do protótipo, cor por hash do nome), Nome + sub-nome (fantasia/contato), Tipo pill, Documento mascarado em mono, Cidade em cima e UF em mono embaixo (só a UF quando falta a cidade), FrescorPill com bolinha (fresc/recente/distante/frio com cor), ★ e ⋮ centralizadas, Saldo destacado vermelho se devedor, Tags chips coloridas (9 valores semânticos), Star pessoal localStorage
 - KB-9.75 Slice A atalhos (`⌘K` · `?` · `J/K` · Enter · `/`) — preservar PR #1309
-- "32 clientes encontrados" count inline
+- "32 clientes encontrados" count inline — o total do servidor (`meta.total`); com filtro da página ativo, "X de Y nesta página"
 - Inertia::defer em customers + kpis (skill `inertia-defer-default`)
 - ~~**PTDP Onda 1 (v4 · 2026-05-24):**~~ ❌ **REVOGADA (v6 · 2026-05-24)** · Wagner reprovou BrunaGreeting + SavedViews em validação visual produção · removidos `Components/clientes/BrunaGreeting.tsx` e `SavedViews.tsx` · charter mantém histórico (append-only)
 - **PTDP Onda 2 (v5 · 2026-05-24):** `<KpiStripClickable>` 5 cards-filtro (Clientes ativos · VIPs · Com saldo · Sem compra 90d · Novos este mês) substitui 4 KpiCard estáticos Wave G · clique aplica filtro substitutivo · toggle 2x desativa · counts client-side pros estimados (vips/sem90/novos · Onda 3 plug backend dedicado). **v6 nota:** mutex com SavedViews removido (não há mais SavedViews)
