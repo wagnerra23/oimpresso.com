@@ -541,6 +541,11 @@ class ContactController extends Controller
                 // + bloqueia se houver transação + escopo business_id (Tier 0).
                 // OR supplier.delete cobre a aba Fornecedores. Wagner 2026-06-08.
                 'delete' => auth()->user()->can('customer.delete') || auth()->user()->can('supplier.delete'),
+                // Ativar/Desativar cadastro no ⋮ da linha — updateStatus() valida o mesmo can().
+                'update' => auth()->user()->can('customer.update') || auth()->user()->can('supplier.update'),
+                // Grupos de clientes (/customer-group) e Mapa de clientes (/contacts/map) exigem
+                // customer.view; quem só tem customer.view_own recebia 403 ao clicar.
+                'view_all' => auth()->user()->can('customer.view'),
             ],
             // Tabela de preço REAL pro drawer Comercial (ADR 0093 scope).
             // [{id,name}] das customer_groups do business — substitui o

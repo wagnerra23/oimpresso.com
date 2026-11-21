@@ -220,10 +220,12 @@ export function KpiStripClickable({
               <Icon className="h-4 w-4" style={{ color: tone.iconFg }} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground truncate leading-none">
+              {/* Rótulo e valor no desenho do protótipo: `.cli-kpihero-l` (mono 10px 600, 0.07em)
+                  e `.cli-kpihero-v` (mono 21px 600, -0.02em, tabular). */}
+              <p className="font-mono text-[10px] font-semibold tracking-[0.07em] uppercase text-muted-foreground truncate leading-[1.2]">
                 {card.label}
               </p>
-              <p className="text-lg font-semibold text-foreground tabular-nums leading-tight mt-1">
+              <p className="font-mono text-[21px] font-semibold tracking-[-0.02em] text-foreground tabular-nums leading-[1.1] mt-0.5">
                 {card.value.toLocaleString('pt-BR')}
               </p>
               {card.sub && (
