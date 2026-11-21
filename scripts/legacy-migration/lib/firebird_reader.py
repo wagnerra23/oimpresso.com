@@ -104,8 +104,14 @@ def firebird_connect(
     user: str = "SYSDBA",
     charset: str = "WIN1252",
     app_title: str = "Office Comercial",
+    path_override: str | None = None,
 ):
     """Context manager pra conexão Firebird via alias do registry.
+
+    path_override: caminho completo do banco (ex.: 'servidor-crm:D:\\...\\BANCO.FDB').
+                   Quando vem, o registry não é lido — serve para a máquina que não tem
+                   o alias do Delphi cadastrado (o alias só existe onde o Delphi está
+                   instalado). A senha vem de password_override ou FIREBIRD_PASSWORD.
 
     password_override: se None, usa registry; recomenda-se passar 'masterkey'
                       pra builds com {$DEFINE WR2} (placeholder de 1 char no
@@ -117,7 +123,10 @@ def firebird_connect(
             cur.execute("SELECT VALOR FROM CONFIGURACOES WHERE CONFIG='VERSAO_BANCO'")
             print(cur.fetchone())
     """
-    path, registry_password = read_registry_alias(alias, app_title)
+    if path_override:
+        path, registry_password = path_override, ""
+    else:
+        path, registry_password = read_registry_alias(alias, app_title)
     password = password_override or registry_password or os.environ.get(
         "FIREBIRD_PASSWORD", ""
     )
@@ -133,7 +142,11 @@ def firebird_connect(
     # via `driver_config.server_defaults` (campo ausente nas versões 1.10+).
     # Fica como TODO futuro investigar se versões mais novas expõem isso.
     if _DRIVER == "fdb":
-        con = fb.connect(dsn=path, user=user, password=password, charset=charset)
+        # Sem fb_library_name o fdb só acha a fbclient.dll pelo registry/PATH, e a
+        # máquina que tem só o client 3.0 instalado em Program Files falha com
+        # "The location of Firebird Client Library could not be determined".
+        extra = {"fb_library_name": _FB_CLIENT_DLL} if os.path.exists(_FB_CLIENT_DLL) else {}
+        con = fb.connect(dsn=path, user=user, password=password, charset=charset, **extra)
     else:
         # firebird-driver: aponta pra fbclient.dll FB 3.0 oficial via
         # driver_config.fb_client_library (API canônica — substitui mexer no
