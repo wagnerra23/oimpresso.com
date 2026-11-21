@@ -4,7 +4,7 @@ casos: Policies · Regras do ActionGate · /governance/policies
 irmaos: Policies.charter.md (lei) · governance-policies-gap.md (GAP-SPEC canon)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-13"
+last_run: "2026-11-19"
 ---
 
 # Casos de uso — /governance/policies
@@ -52,7 +52,7 @@ protótipo (`governance-page.jsx:325-329`). O bloco sai da tela no dia em que a 
 **Pronto quando:** havendo ≥1 regra, o texto "Alternar não deixa rastro" está visível acima da lista.
 
 ## UC-GPOL-05 — Não existe alternar em lote
-Status: ⬜ (sem teste — BACKLOG. O id está **citado em comentário** no `e2e/governance-policies.spec.ts` para registrar a lacuna, não para provar nada: é ausência declarada, e o G-2 conta a citação. Não se escreve teste novo nesta frente — viraria 2 assuntos no mesmo PR)
+Status: 🧪 (Pest `Modules/Governance/Tests/Feature/PoliciesRotasContratoTest.php` — "UC-GPOL-05 · …": a única rota de escrita é o toggle, com um `{id}` só. O lado da tela, sem seleção múltipla, segue sem teste)
 Non-Goal do charter: "❌ Bulk toggle — 1 rule por vez (força reflexão; bulk ops vão pra cron/script
 artisan)". Cada alternância é um POST para um `{id}`, e a rota de toggle não aceita coleção. É invariante
 de enforcement, não conveniência de UI: desligar N regras de uma vez é exatamente a operação que o charter
@@ -61,7 +61,7 @@ quer cara.
 segue sendo a única porta de escrita (um id por requisição).
 
 ## UC-GPOL-06 — Ler exige a permissão da sidebar; alternar exige a de edição
-Status: 🧪 (Pest `GovernanceRotasCanGateTest` — "cada tela sem gate próprio passa a exigir a permission da sidebar" + "as 3 permissions usadas são as que o DataController DECLARA". ⚠️ O id **não** está no título daquele Pest: `Modules/Governance/` é `nao_toca` desta frente, então quem satisfaz a rastreabilidade é a citação no `e2e/governance-policies.spec.ts`. Consequência honesta: o UC fica ⛓ — provado de fato, inalcançável pelo G-7 até alguém ancorar o id no Pest)
+Status: 🧪 (Pest `Modules/Governance/Tests/Feature/PoliciesRotasContratoTest.php` — "UC-GPOL-06 · …", lido do registry. Antes o id só estava em comentário do e2e e o UC ficava na fila ⛓)
 Medido no `routes.php`: `GET /policies` → `can:governance.dashboard.view`; `POST /policies/{id}/toggle` →
 `can:governance.policies.edit`.
 ⚠️ **Divergência com o SPEC, registrada e não consertada aqui:** a tabela §Permissões do `SPEC.md` atribui a
@@ -76,7 +76,7 @@ caminho é o passo 1 da ADR 0392, decisão [W] em aberto.
 índice e `can:governance.policies.edit` na de toggle — e o caso negativo real só depois do D-GATE.
 
 ## UC-GPOL-07 — O toggle é limitado a 10 por minuto
-Status: ⬜ (sem teste — BACKLOG. O `GovernanceRotasCanGateTest` **não** asserta throttle: `grep -c throttle` naquele arquivo = 0, apesar de o docblock do e2e afirmar que sim. O e2e deixou o caso `test.fixme` por escolha de oráculo — provar no navegador exigiria 11 POSTs reais numa tabela de enforcement)
+Status: 🧪 (Pest `Modules/Governance/Tests/Feature/PoliciesRotasContratoTest.php` — "UC-GPOL-07 · …": `throttle:10,1` no toggle e `60,1` na leitura, do registry)
 `throttle:10,1` contra os `60,1` da leitura, porque alternar uma policy afeta o enforcement em runtime — o
 próprio `routes.php` declara o motivo ("operação sensível"). É propriedade do registry de rotas; o lugar
 barato de prová-la é o mesmo Pest que já lê `gatherMiddleware()`, não o browser.

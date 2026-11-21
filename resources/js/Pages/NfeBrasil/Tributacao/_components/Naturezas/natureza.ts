@@ -105,7 +105,21 @@ function cabecalhos(): HeadersInit {
   };
 }
 
-export async function listar(): Promise<{ regime: Regime; naturezas: LinhaNatureza[] }> {
+/** Faixa de resumo do topo (protótipo `.dados`): quem emite, de onde saem as notas e o IBS/CBS do ano. */
+export interface EmpresaResumo {
+  nome: string | null;
+  cnpj: string | null;
+  municipio: string | null;
+  uf: string;
+  ano: number;
+  /** Fração (0.001 = 0,1%). null = o ano ainda não tem alíquota cadastrada. */
+  ibs: number | null;
+  cbs: number | null;
+}
+
+export const REGIME_NOME: Record<Regime, string> = { LP: 'Lucro Presumido', LR: 'Lucro Real', SN: 'Simples Nacional' };
+
+export async function listar(): Promise<{ regime: Regime; empresa?: EmpresaResumo; naturezas: LinhaNatureza[] }> {
   const res = await fetch(URL, { headers: cabecalhos(), credentials: 'same-origin' });
   if (!res.ok) throw new Error(String(res.status));
   return res.json();

@@ -22,8 +22,8 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  *   - GET: histórico de uploads + form de upload
  *   - POST: recebe arquivo, valida, salva em Storage, dispatch Job
  *
- * Permission canon: `system_settings.access` (UPOS canon — Wagner/superadmin).
- * Permission granular `paymentgateway.cnab_retorno.upload` fica em backlog.
+ * Permissão: `business_settings.access`, exigida no grupo de rotas (`can:` em
+ * Routes/web.php). Granular `paymentgateway.cnab_retorno.upload` é decisão B1 do [W].
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL: lookup PaymentGatewayCredential SEMPRE
  * filtra business_id da sessão (HasBusinessScope automático + validação extra).

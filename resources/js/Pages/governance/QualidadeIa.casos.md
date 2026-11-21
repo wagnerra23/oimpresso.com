@@ -4,7 +4,7 @@ casos: QualidadeIa · Qualidade da memória/recuperação da IA · /governance/q
 irmaos: QualidadeIa.charter.md (lei, draft) · memory/requisitos/Governance/RUNBOOK-qualidade-ia.md
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-19"
 last_run_ci: "0 UC executado — trio nasce neste PR; Pest na jana-pest, vitest na governance-filtros-gate"
 ---
 

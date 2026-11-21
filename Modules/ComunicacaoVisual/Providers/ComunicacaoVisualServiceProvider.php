@@ -31,6 +31,8 @@ class ComunicacaoVisualServiceProvider extends ServiceProvider
     {
         $this->registerConfig();
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'comunicacao-visual');
+        // Views só de documento (o protocolo da instalação em PDF); as telas são Inertia.
+        $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'comunicacao-visual');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
 
         if ($this->app->runningInConsole()) {

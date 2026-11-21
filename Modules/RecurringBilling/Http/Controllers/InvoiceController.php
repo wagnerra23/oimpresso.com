@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,8 @@ use Spatie\Activitylog\Facades\Activity;
  */
 class InvoiceController extends Controller
 {
+    use ExigePermissaoRb;
+
     public function __construct(
         private readonly AssinaturaCobrancaService $cobrancas,
         private readonly InvoiceRepository $invoices,
@@ -45,6 +48,7 @@ class InvoiceController extends Controller
      */
     public function index(Request $request): InertiaResponse
     {
+        $this->exigirPermissao('recurringbilling.invoices.view');
         $businessId = (int) session('user.business_id');
 
         $filters = [

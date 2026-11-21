@@ -57,6 +57,7 @@ Cadastrar produto novo (single/variable/combo) com validação cliente-side Type
 - ❌ Variation builder dinâmico inline (variable type — Wave 3)
 - ❌ Combo composition picker inline (combo type — Wave 3)
 - ❌ Multi-image gallery upload (apenas 1 image — paridade legacy)
+  - _Esclarecimento datado (2026-11-19, UC-PCAD-33): vale para a imagem do PRODUTO. As fotos de cada valor da grade do variável (`variation_images_0_<n>[]`, várias por valor) são paridade com o `product_variation_row.blade.php`, pedidas pelo [F]._
 - ❌ NÃO gera SKU client-side (server-side em `store()`)
 - ❌ NÃO modifica método `store()` PHP (out of scope)
   - _Exceção datada (2026-10-15, UC-PCAD-07): o `store()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem. Nada mais do método mudou._
@@ -64,6 +65,7 @@ Cadastrar produto novo (single/variable/combo) com validação cliente-side Type
   - _Exceção datada (2026-10-21, UC-PCAD-15): o `store()` passou a aceitar `cest` (7 dígitos, só números), gravado só quando o campo vem cheio. Sem CEST a coluna fica nula. Nada mais do método mudou._
   - _Exceção datada (2026-11-16, UC-PCAD-31): o `store()` passou a recusar nome vazio e unidade vazia, com as mesmas mensagens do cadastro rápido. Nada mais do método mudou._
   - _Exceção datada (2026-11-17, UC-PCAD-32): o `store()` passou a recusar, em produto variável, modelo de variação de outra empresa, valor de outro modelo, grade sem modelo e grade sem valor. Nada mais do método mudou._
+  - _Exceção datada (2026-11-19, UC-PCAD-33): o `store()` passou a recusar, em produto variável, sub-SKU digitado que se repete na grade ou que já é SKU ou sub-SKU de outro produto da mesma empresa (o Blade conferia na tela, por `validateVaritionSkus`). Nada mais do método mudou._
   - _Exceção datada (2026-10-21, UC-PCAD-16): o `store()` passou a aceitar `peso_liquido`, `largura_cm`, `altura_cm` e `comprimento_cm` (números de 0 a 99999, colunas novas em `products`), gravados só quando vêm cheios. Nada mais do método mudou._
   - _Exceção datada (2026-11-06, UC-PCAD-21 · **pede a aprovação do [W]: o merge do PR é a aprovação**): no `submit_type=submit_n_add_opening_stock`, quando o envio vem da tela React (cabeçalho `X-Inertia`), o `store()` devolve `Inertia::location` para a tela de estoque inicial (Blade), em vez do redirect 302 que traria o HTML dela para dentro da página. O envio pelo Blade segue com o mesmo redirect. Nada mais do método mudou._
 - ❌ NÃO valida SKU duplicate cliente-side (server confirma)

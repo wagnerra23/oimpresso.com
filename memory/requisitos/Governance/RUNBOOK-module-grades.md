@@ -93,7 +93,7 @@ Wagner (e Felipe/Maiara/Eliana/Luiz quando entrarem) abrem `/governance/module-g
 
 - [ADR 0153](../../decisions/0153-module-grade-rubrica-v1.md) — rubrica oficial
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — D1 base
-- [ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) — D1.b validação
+- [ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md) — D1.b validação (substitui a 0101-tests; link corrigido em 2026-11-19)
 - [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — D5 nível
 - ADRs Governance: 0086 Fase 5 MVP, 0094 Constituição v2
 

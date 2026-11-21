@@ -337,22 +337,38 @@ Modules\PaymentGateway\Exceptions\PaymentGatewayException        (raiz)
 
 ## 5. Comandos artisan
 
+Fonte única: `Modules/PaymentGateway/Console/Commands/` (registrados em `Providers/PaymentGatewayServiceProvider.php`). Para conferir o que existe hoje: `php artisan list paymentgateway`.
+
 ```bash
-# Health check (cron-friendly)
-php artisan paymentgateway:health [--business=N] [--detail] [--json] [--alert]
+# Reconciliação PIX Inter por polling (fallback do webhook) — agendado a cada 10 min
+php artisan paymentgateway:inter-reconcile-pix [--business=N] [--days=7] [--limit=200] [--dry-run]
 
-# Listar drivers suportados + status
-php artisan paymentgateway:drivers
+# Importa boletos pagos no Inter como título recebido + baixa no Financeiro (US-PG-008) — agendado diário
+php artisan paymentgateway:inter-importar-recebimentos [--business=1] [--days=60] [--conta=ID] [--dry-run] [--pendencias]
 
-# Forçar consulta de status (reconciliação manual)
-php artisan paymentgateway:consultar {cobranca_id}
+# Reprocessa gateway_webhook_events órfãos (processed_at NULL após 1h, dentro de 24h)
+# O agendamento só executa com PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED=true
+php artisan paymentgateway:retry-orphan-webhooks [--dry-run]
 
-# Reprocessar webhook (debug)
-php artisan paymentgateway:replay-webhook {gateway_webhook_event_id}
+# Registra a URL do webhook PIX no Inter (US-PG-005)
+php artisan paymentgateway:inter:register-webhook --credential=ID [--url=URL] [--dry-run]
 
-# Migrar credencial de boleto_credentials → payment_gateway_credentials (Onda 2)
-php artisan paymentgateway:migrate-credentials [--dry-run]
+# Re-cifra credenciais com a APP_KEY atual (rotação) — dry-run por padrão
+php artisan paymentgateway:rewrap-credentials [--business=N] [--apply]
+
+# Migra credencial legada de boleto para payment_gateway_credentials — dry-run por padrão
+php artisan paymentgateway:migrate-credentials [--business=N] [--apply]
+
+# Cadastra as permissions Spatie do módulo
+php artisan paymentgateway:register-permissions [--business=all|N] [--dry-run]
+
+# Emite cobrança PIX Automático para assinatura com trial expirado (Onda 5.B)
+php artisan paymentgateway:emit-trial-expired [--dry-run]
 ```
+
+Os agendamentos ficam em `app/Console/Kernel.php` (procure `paymentgateway:`); `php artisan schedule:list` mostra o que está registrado no ambiente.
+
+> Errata 2026-11-19: até esta data esta seção listava `paymentgateway:health`, `:drivers`, `:consultar` e `:replay-webhook`, planejados na Onda 0 e nunca criados. Para reprocessar webhook órfão o comando é `paymentgateway:retry-orphan-webhooks`.
 
 ---
 
