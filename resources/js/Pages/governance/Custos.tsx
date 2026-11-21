@@ -21,6 +21,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav';
+import { PageHeader } from '@/Components/PageHeader';
 import { Coins } from 'lucide-react';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -220,24 +221,23 @@ function GovernancaCustos(props: Props) {
     <>
       <GovernancaSubNav active="custos" />
 
-      {/* Title local da tela */}
-      <div className="px-6 pt-6 flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Coins className="size-6 text-primary" />
-          <div>
-            <h1 className="text-xl font-semibold">Custos de IA</h1>
-            <p className="text-sm text-muted-foreground">
-              Visão de consumo da IA — {periodo.label}
-            </p>
+      <PageHeader
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <Coins className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </span>
+        }
+        title="Custos de IA"
+        subtitle={`Visão de consumo da IA — ${periodo.label}`}
+        actions={
+          <div className="text-xs text-muted-foreground text-right shrink-0">
+            <div>
+              Modelo base: <span className="font-mono">{pricing.modelo_default}</span>
+            </div>
+            <div>Câmbio: R$ {pricing.cambio_brl_usd.toFixed(2)} / US$</div>
           </div>
-        </div>
-        <div className="text-xs text-muted-foreground text-right shrink-0">
-          <div>
-            Modelo base: <span className="font-mono">{pricing.modelo_default}</span>
-          </div>
-          <div>Câmbio: R$ {pricing.cambio_brl_usd.toFixed(2)} / US$</div>
-        </div>
-      </div>
+        }
+      />
 
       <KpiGrid cols={4} className="mt-6">
         <KpiCard

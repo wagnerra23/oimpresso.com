@@ -7,6 +7,7 @@ namespace Modules\PaymentGateway\Models;
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\PaymentGateway\Models\Concerns\TrilhaDeAuditoriaBuilder;
 
 /**
  * Log/idempotência de webhooks PIX recebidos do Banco Inter.
@@ -22,7 +23,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * Multi-tenant Tier 0 (ADR 0093) — global scope via HasBusinessScope.
  *
- * SEM LogsActivity — esta tabela JÁ É audit log (append-only por convenção;
+ * SEM LogsActivity — esta tabela JÁ É audit log (append-only garantido pelo
+ * TrilhaDeAuditoriaBuilder: delete recusado, UPDATE só nas colunas abaixo;
  * só `status`, `processed_at`, `error_message`, `cobranca_id`, `titulo_id`,
  * `gateway_webhook_event_id` podem ser UPDATE via worker).
  */
@@ -31,6 +33,16 @@ class InterWebhookLog extends Model
     use HasBusinessScope;
 
     protected $table = 'inter_webhook_log';
+
+    /** Colunas que o processamento preenche depois do INSERT. O resto não muda. */
+    public const COLUNAS_DO_PROCESSAMENTO = [
+        'status',
+        'processed_at',
+        'error_message',
+        'cobranca_id',
+        'titulo_id',
+        'gateway_webhook_event_id',
+    ];
 
     protected $fillable = [
         'business_id',
@@ -71,5 +83,17 @@ class InterWebhookLog extends Model
     public function gatewayWebhookEvent(): BelongsTo
     {
         return $this->belongsTo(GatewayWebhookEvent::class, 'gateway_webhook_event_id');
+    }
+
+    /**
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return TrilhaDeAuditoriaBuilder<static>
+     */
+    public function newEloquentBuilder($query): TrilhaDeAuditoriaBuilder
+    {
+        /** @var TrilhaDeAuditoriaBuilder<static> $builder */
+        $builder = new TrilhaDeAuditoriaBuilder($query);
+
+        return $builder;
     }
 }

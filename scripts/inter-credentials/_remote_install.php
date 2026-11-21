@@ -94,7 +94,7 @@ try {
             'conta_corrente'      => $creds['conta_corrente'],
             'certificado_crt_b64' => $creds['certificado_crt_b64'],
             'certificado_key_b64' => Crypt::encryptString($creds['certificado_key_b64']),
-            'webhook_secret'      => $creds['webhook_secret'],
+            'webhook_secret'      => Crypt::encryptString($creds['webhook_secret']),
         ],
     ]);
     fwrite(STDOUT, "OK:id={$cred->id} biz={$businessId} banco=inter ambiente={$ambiente}\n");

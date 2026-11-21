@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\RecurringBilling\Http\Controllers;
 
+use Modules\RecurringBilling\Http\Controllers\Concerns\ExigePermissaoRb;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,11 +19,14 @@ use Modules\RecurringBilling\Models\SubscriptionEvent;
  */
 class SubscriptionEventController extends Controller
 {
+    use ExigePermissaoRb;
+
     /**
      * GET /recurring-billing/{subscriptionId}/events — timeline DESC.
      */
     public function index(int $subscriptionId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.access');
         $businessId = (int) session('user.business_id');
         $sub = Subscription::query()
             ->where('business_id', $businessId)
@@ -50,9 +54,14 @@ class SubscriptionEventController extends Controller
 
     /**
      * POST /recurring-billing/{subscriptionId}/events — cria nota manual.
+     *
+     * Só nota humana (`kind=note`). Os kinds de sistema (cobrança, NF, status...) nascem no
+     * código que faz o ato; aceitar aqui deixava qualquer usuário forjar "cobrança disparada"
+     * ou "NF emitida" na timeline (auditoria RB d2, 2026-11-19).
      */
     public function store(Request $request, int $subscriptionId): JsonResponse
     {
+        $this->exigirPermissao('recurringbilling.notes.write');
         $businessId = (int) session('user.business_id');
         $sub = Subscription::query()
             ->where('business_id', $businessId)
@@ -61,7 +70,7 @@ class SubscriptionEventController extends Controller
 
         $data = $request->validate([
             'body' => ['required', 'string', 'max:5000'],
-            'kind' => ['nullable', 'string', 'in:note,event-create,event-status,event-plan,event-charge,event-retry,event-nf'],
+            'kind' => ['nullable', 'string', 'in:'.SubscriptionEvent::KIND_NOTE],
         ]);
 
         $user = auth()->user();
@@ -70,7 +79,7 @@ class SubscriptionEventController extends Controller
         $event = SubscriptionEvent::create([
             'business_id'     => $businessId,
             'subscription_id' => $sub->id,
-            'kind'            => $data['kind'] ?? 'note',
+            'kind'            => SubscriptionEvent::KIND_NOTE,
             'by_actor'        => $actor,
             'body'            => $data['body'],
             'occurred_at'     => now(),

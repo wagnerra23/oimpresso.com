@@ -10,6 +10,7 @@ use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\RecurringBilling\Events\InvoicePaid;
 use Modules\RecurringBilling\Models\Invoice;
+use Modules\RecurringBilling\Services\Centavos;
 
 /**
  * Cobrança paga pelo PaymentGateway → fatura da assinatura paga (US-RB-057).
@@ -68,8 +69,7 @@ final class MarcarFaturaPagaDaCobranca
                 return ['ja_paga', null];
             }
             // `valor` é decimal(…,2) e chega como texto "123.45": centavos sem passar por float.
-            [$inteiro, $fracao] = array_pad(explode('.', (string) $fatura->valor, 2), 2, '0');
-            $faturaCentavos = (int) $inteiro * 100 + (int) str_pad(substr($fracao, 0, 2), 2, '0');
+            $faturaCentavos = Centavos::de((string) $fatura->valor);
             if ($pagoCentavos < $faturaCentavos) {
                 return ['valor_insuficiente', null];
             }

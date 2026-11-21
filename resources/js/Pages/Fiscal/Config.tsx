@@ -30,8 +30,8 @@ export interface SerieFiscal {
   serie: string;
   proximo: number;
   filial: string;
-  ativo: boolean;
-  obs?: string | null;
+  /** Notas já emitidas nesta série (inclui excluídas). */
+  emitidas: number;
 }
 
 interface Certificado {
@@ -97,8 +97,8 @@ interface ConfigProps {
   certificado: Certificado | null;
   config: Config | null;
   painel: Painel;
-  // Onda 2 I — séries fiscais (modelo 55 NF-e + 65 NFC-e)
-  seriesMock?: SerieFiscal[];
+  // Séries fiscais reais (modelo 55 NF-e + 65 NFC-e) — ConfigController::seriesFiscais.
+  series?: SerieFiscal[];
   /** Card "Envio de documentos" — leitura real das flags de deploy (ver ConfigController). */
   envioDocumentos?: EnvioDocumentos;
   /**
@@ -140,9 +140,21 @@ interface Contador {
  * `Modules/NfeBrasil/Config/config.php` — logo valem por DEPLOY, não por empresa.
  */
 interface EnvioDocumentos {
+  /** O que de fato acontece ao autorizar (escolha da empresa ou, sem ela, o servidor). */
   nfeAtivo: boolean;
   nfceAtivo: boolean;
+  /** Escolha da empresa; null = segue o servidor. */
+  nfeEscolha?: boolean | null;
+  nfceEscolha?: boolean | null;
+  nfePadrao?: boolean;
+  nfcePadrao?: boolean;
+  /** Sem configuração fiscal (regime) não há onde guardar a escolha. */
+  temConfig?: boolean;
 }
+
+type EscolhaEnvio = 'padrao' | 'ligado' | 'desligado';
+const escolhaDe = (v: boolean | null | undefined): EscolhaEnvio =>
+  v === null || v === undefined ? 'padrao' : v ? 'ligado' : 'desligado';
 
 interface FlashProps extends PageProps {
   flash?: { success?: string };
@@ -174,7 +186,7 @@ function formatCnpj(raw: string | null): string {
 }
 
 export default function Config({
-  activeTab, certificado, config, painel, seriesMock = [], envioDocumentos, podeTrocarAmbiente = false,
+  activeTab, certificado, config, painel, series = [], envioDocumentos, podeTrocarAmbiente = false,
   contador = null, nfse = null,
 }: ConfigProps) {
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
@@ -301,6 +313,19 @@ export default function Config({
     email: contador?.email ?? '',
     crc: contador?.crc ?? '',
   });
+  const envioForm = useForm<{ nfe: EscolhaEnvio; nfce: EscolhaEnvio }>({
+    nfe: escolhaDe(envioDocumentos?.nfeEscolha),
+    nfce: escolhaDe(envioDocumentos?.nfceEscolha),
+  });
+  const salvarEnvio = (e: FormEvent) => {
+    e.preventDefault();
+    envioForm.post('/fiscal/config/envio', {
+      preserveScroll: true,
+      onSuccess: () => toast.success('Envio de documentos salvo.'),
+      onError: (err) => toast.error(err.nfe || err.nfce || 'Não foi possível salvar o envio.'),
+    });
+  };
+
   const salvarContador = (e: FormEvent) => {
     e.preventDefault();
     contadorForm.post('/fiscal/config/contador', {
@@ -452,7 +477,7 @@ export default function Config({
               // As CHAVES não mudam — `?tab=cert|series|ambiente|sped` são URL pública com
               // whitelist no ConfigController, e renomeá-las quebraria link salvo.
               { key: 'cert',     label: 'Certificado e regime',    href: '/fiscal/config?tab=cert',     icon: 'shield' },
-              { key: 'series',   label: 'Séries',                  href: '/fiscal/config?tab=series',   icon: 'file-text', badge: seriesMock.filter((s) => s.ativo).length || undefined },
+              { key: 'series',   label: 'Séries',                  href: '/fiscal/config?tab=series',   icon: 'file-text', badge: series.length || undefined },
               { key: 'ambiente', label: 'Ambiente e certificado',  href: '/fiscal/config?tab=ambiente', icon: 'settings' },
               { key: 'sped',     label: 'SPED',                    href: '/fiscal/config?tab=sped',     icon: 'archive' },
             ]}
@@ -697,17 +722,50 @@ export default function Config({
             <dt>Envio automático ao autorizar</dt>
             <dd>
               {envioDocumentos ? (
-                <>
-                  NF-e (55):{' '}
-                  <b style={{ color: envioDocumentos.nfeAtivo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
-                    {envioDocumentos.nfeAtivo ? 'Ativo' : 'Desligado'}
-                  </b>
-                  {' · '}
-                  NFC-e (65):{' '}
-                  <b style={{ color: envioDocumentos.nfceAtivo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
-                    {envioDocumentos.nfceAtivo ? 'Ativo' : 'Desligado'}
-                  </b>
-                </>
+                <form onSubmit={salvarEnvio} style={{ display: 'grid', gap: 10, maxWidth: 520 }} data-contract="fiscal-config-envio">
+                  {([
+                    { key: 'nfe', rotulo: 'NF-e (55)', ativo: envioDocumentos.nfeAtivo, padrao: envioDocumentos.nfePadrao },
+                    { key: 'nfce', rotulo: 'NFC-e (65)', ativo: envioDocumentos.nfceAtivo, padrao: envioDocumentos.nfcePadrao },
+                  ] as const).map((m) => (
+                    <div key={m.key}>
+                      <div style={{ fontSize: 13, marginBottom: 4 }}>
+                        {m.rotulo}:{' '}
+                        <b style={{ color: m.ativo ? 'var(--ok)' : 'var(--fx-text-mute)' }}>
+                          {m.ativo ? 'Ativo' : 'Desligado'}
+                        </b>
+                      </div>
+                      <RadioGroup
+                        value={envioForm.data[m.key]}
+                        onValueChange={(v) => envioForm.setData(m.key, v as EscolhaEnvio)}
+                        disabled={!envioDocumentos.temConfig}
+                        aria-label={`Envio automático da ${m.rotulo}`}
+                        style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}
+                      >
+                        {([
+                          ['padrao', `Padrão do servidor (${m.padrao ? 'ligado' : 'desligado'})`],
+                          ['ligado', 'Ligado'],
+                          ['desligado', 'Desligado'],
+                        ] as const).map(([v, label]) => (
+                          <label key={v} htmlFor={`envio-${m.key}-${v}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                            <RadioGroupItem id={`envio-${m.key}-${v}`} value={v} />
+                            {label}
+                          </label>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  ))}
+                  {envioDocumentos.temConfig ? (
+                    <div>
+                      <Button type="submit" size="sm" disabled={envioForm.processing || !envioForm.isDirty}>
+                        Salvar envio
+                      </Button>
+                    </div>
+                  ) : (
+                    <small style={{ color: 'var(--fx-text-mute)' }}>
+                      Configure o regime fiscal da empresa para escolher o envio. Até lá vale o padrão do servidor.
+                    </small>
+                  )}
+                </form>
               ) : '—'}
             </dd>
             <dt>Cópia pro cliente</dt>
@@ -718,9 +776,8 @@ export default function Config({
             </dd>
           </dl>
           <small style={{ display: 'block', marginTop: 12, color: 'var(--fx-text-mute)' }}>
-            Estas duas chaves valem pra <b>toda a instalação</b>, não por empresa — moram em{' '}
-            <code className="fx-mono">Modules/NfeBrasil/Config/config.php</code> e mudam por
-            variável de ambiente. Ligar/desligar por empresa exigiria coluna própria, que ainda não existe.
+            Cada empresa escolhe o seu envio. "Padrão do servidor" segue a chave da instalação,
+            em <code className="fx-mono">Modules/NfeBrasil/Config/config.php</code>.
           </small>
         </section>
         </div>
@@ -1081,21 +1138,17 @@ export default function Config({
         )}
 
         {tab === 'series' && (
-          seriesMock.length === 0 ? (
+          series.length === 0 ? (
             <div className="fx-empty">
               <FileText size={20} />
-              <b>Nenhuma série fiscal cadastrada</b>
-              <small>Séries NFe (modelo 55) e NFCe (modelo 65) são configuradas em NfeBrasil/business.numero_serie_nfe.</small>
-              <Button asChild variant="cowork-ghost" className="mt-3">
-                <a href="/nfe-brasil/configuracao/series">Configurar em NfeBrasil</a>
-              </Button>
+              <b>Nenhuma série fiscal</b>
+              <small>A série padrão vem do cadastro da empresa; cada local que emite como estabelecimento próprio tem a sua.</small>
             </div>
           ) : (
             <section className="fx-cert-card">
               <h3>Séries fiscais</h3>
               <p className="lead">
-                Numeração ativa por modelo + filial. Read-only no Fiscal Cockpit —
-                edição em <a href="/nfe-brasil/configuracao/series" className="fx-link">NfeBrasil/Series</a>.
+                As séries que o emissor usa e o próximo número que ele vai dar em cada uma.
               </p>
               <div className="fx-table" style={{ marginTop: 12 }}>
                 <table>
@@ -1104,23 +1157,18 @@ export default function Config({
                       <th style={{ width: 140 }}>Modelo</th>
                       <th style={{ width: 100 }}>Série</th>
                       <th style={{ width: 130, textAlign: 'right' }}>Próximo nº</th>
-                      <th>Filial</th>
-                      <th style={{ width: 140 }}>Estado</th>
+                      <th style={{ width: 130, textAlign: 'right' }}>Emitidas</th>
+                      <th>Onde</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {seriesMock.map((s, i) => (
-                      <tr key={`${s.modelo}-${s.serie}-${i}`}>
+                    {series.map((s) => (
+                      <tr key={`${s.modelo}-${s.serie}`}>
                         <td><b>{s.modelo}</b> <small className="fx-mut">({s.modelo === 65 ? 'NFC-e' : 'NF-e'})</small></td>
                         <td className="fx-mono">série {s.serie}</td>
                         <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{s.proximo.toLocaleString('pt-BR')}</td>
+                        <td className="fx-mono" style={{ textAlign: 'right' }}>{s.emitidas.toLocaleString('pt-BR')}</td>
                         <td><small>{s.filial}</small></td>
-                        <td>
-                          <span className={`fx-sefaz ${s.ativo ? 'ok' : 'warn'}`}>
-                            <span className="lbl">{s.ativo ? 'ativa' : 'inativa'}</span>
-                          </span>
-                          {s.obs && <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginTop: 3 }}>{s.obs}</small>}
-                        </td>
                       </tr>
                     ))}
                   </tbody>

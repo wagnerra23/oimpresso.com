@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Http;
  *  1. **Retry com 3 tentativas + sleep base 200ms** — implementado via
  *     `Http::retry()` Laravel 13 com callback custom que sabe distinguir
  *     ConnectionException + RequestException retryável (status 502/503/504/429).
+ *     Desde a auditoria PG 2.4, timeout/502/503/504 só repetem método
+ *     idempotente ou requisição com chave de idempotência — ver shouldRetry().
  *
  *  2. **`throw: false`** no `retry()` — drivers continuam fazendo
  *     `$response->failed()` check próprio + joguem GatewayUnavailableException
@@ -99,12 +101,22 @@ final class HttpClientFactory
     public const RETRY_TIMES = 3;
 
     /**
+     * Métodos idempotentes (RFC 9110 §9.2.2): repetir não cria nada novo.
+     * Só eles têm retry em timeout/conexão e 502/503/504.
+     */
+    public const IDEMPOTENT_METHODS = ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE'];
+
+    /** Cabeçalhos que, presentes, tornam seguro repetir POST/PATCH. */
+    public const IDEMPOTENCY_HEADERS = ['idempotency-key', 'x-idempotency-key'];
+
+    /**
      * Cria PendingRequest pré-configurado com baseURL + headers + timeout
      * + (opcional) retry + handler 429.
      *
      * Quando `$withRetry=true`, o cliente:
      *   - faz até 3 tentativas
-     *   - re-tenta em ConnectionException (rede caiu) e status 502/503/504/429
+     *   - re-tenta 429 em qualquer método; ConnectionException e 502/503/504
+     *     só em GET/HEAD/OPTIONS/PUT/DELETE ou com chave de idempotência
      *   - em 429, respeita header Retry-After (cap 30s)
      *   - em 4xx (400/401/403/422) e 500 puro, devolve Response imediato sem retry
      *   - APÓS esgotar retries em status retryável, devolve Response failed
@@ -155,8 +167,8 @@ final class HttpClientFactory
             ->retry(
                 self::RETRY_TIMES,
                 self::SLEEP_MS_BASE,
-                function (\Throwable $exception, PendingRequest $request): bool {
-                    return self::shouldRetry($exception);
+                function (\Throwable $exception, PendingRequest $request, ?string $method = null): bool {
+                    return self::shouldRetry($exception, $method, self::temChaveIdempotencia($request));
                 },
                 throw: false,
             )
@@ -166,37 +178,58 @@ final class HttpClientFactory
     /**
      * Decide se deve retry baseado na exception capturada pelo Http::retry.
      *
-     * Recebe:
-     *  - ConnectionException (timeout, DNS, conn refused) → retry sempre
-     *  - RequestException de 5xx/429 (capturado pelo ->throwIf() acima) → retry
-     *  - Outras Throwables → não retry
+     * Auditoria PG 2.4: timeout/conexão e 502/503/504 podem acontecer DEPOIS
+     * de o banco ter processado o pedido. Repetir um POST que cria cobrança
+     * então cria a cobrança em dobro. Por isso:
+     *
+     *  - 429 → retry em qualquer método: o banco recusou sem processar.
+     *  - ConnectionException e 502/503/504 → retry só em método idempotente
+     *    (GET/HEAD/OPTIONS/PUT/DELETE) ou quando a requisição leva cabeçalho
+     *    de chave de idempotência (`Idempotency-Key`/`X-Idempotency-Key`).
+     *    POST/PATCH sem chave: devolve a falha na 1ª tentativa.
+     *  - Método desconhecido (null) → tratado como não idempotente.
+     *  - Outras Throwables → não retry.
+     *
+     * @internal Público pra teste direto.
      */
-    private static function shouldRetry(\Throwable $exception): bool
+    public static function shouldRetry(\Throwable $exception, ?string $method = null, bool $temChaveIdempotencia = false): bool
     {
-        // Network/timeout errors → retry sempre
+        // 429: recusado antes de processar — seguro repetir qualquer método.
+        if ($exception instanceof RequestException && $exception->response->status() === 429) {
+            self::sleepRespectingRetryAfter($exception->response);
+
+            return true;
+        }
+
+        $podeRepetir = $temChaveIdempotencia
+            || in_array(strtoupper((string) $method), self::IDEMPOTENT_METHODS, true);
+        if (! $podeRepetir) {
+            return false;
+        }
+
+        // Network/timeout errors
         if ($exception instanceof ConnectionException) {
             return true;
         }
 
-        // RequestException de 5xx/429 capturado pelo ->throwIf() callback
-        if ($exception instanceof RequestException) {
-            $response = $exception->response;
-            $status = $response->status();
+        // 5xx transitório capturado pelo ->throwIf()
+        if ($exception instanceof RequestException
+            && in_array($exception->response->status(), self::RETRYABLE_5XX, true)) {
+            return true;
+        }
 
-            // 5xx transitório
-            if (in_array($status, self::RETRYABLE_5XX, true)) {
-                return true;
-            }
+        return false;
+    }
 
-            // 429 Too Many Requests — respeita Retry-After
-            if ($status === 429) {
-                self::sleepRespectingRetryAfter($response);
-
+    private static function temChaveIdempotencia(PendingRequest $request): bool
+    {
+        $headers = array_change_key_case((array) ($request->getOptions()['headers'] ?? []), CASE_LOWER);
+        foreach (self::IDEMPOTENCY_HEADERS as $h) {
+            if (isset($headers[$h]) && (string) (is_array($headers[$h]) ? reset($headers[$h]) : $headers[$h]) !== '') {
                 return true;
             }
         }
 
-        // Outras Throwables não-mapeadas → safe default false
         return false;
     }
 
