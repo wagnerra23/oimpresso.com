@@ -229,7 +229,7 @@ export default function SellsTabelaUnificada({
   onPaySuccess,
   onPickOs,
 }: SellsTabelaUnificadaProps): ReactNode {
-  const colSpan = visibleColumns.length;
+  const colSpan = visibleColumns.length + 1; // + coluna Ações
 
   // Default handler: navega pra /repair/producao-oficina com ?os=OS-NNNN.
   // Onda 5 (Worker B) intercepta no Repair pra abrir drawer da OS direto.
@@ -271,6 +271,9 @@ export default function SellsTabelaUnificada({
                 </th>
               );
             })}
+            {/* Coluna própria do menu ⋮, como no protótipo (vendas-page.jsx). Até 2026-11-21 o menu
+                ficava dentro da célula de Status. */}
+            <th style={{ width: 40 }}><span className="sr-only">Ações</span></th>
           </tr>
         </thead>
         <tbody>
@@ -308,6 +311,9 @@ export default function SellsTabelaUnificada({
                   onClick={() => onRowClick(v.id, ri)}
                 >
                   {visibleColumns.map((id) => renderCell(id, v, { sel, isFav, ps, due, onToggleSel, onPaySuccess, onPickOs: handlePickOs, onView: () => onRowClick(v.id, ri) }))}
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <AcoesDaVenda row={v} onView={() => onRowClick(v.id, ri)} onChange={onPaySuccess} />
+                  </td>
                 </tr>
               );
             })}
@@ -468,7 +474,6 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
               <button className="vd-row-act" title="Baixar XML" type="button"><FileText size={11} /></button>
             )}
             <button className="vd-row-act" title="Imprimir recibo (R)" type="button"><Printer size={11} /></button>
-            <AcoesDaVenda row={v} onView={ctx.onView} onChange={ctx.onPaySuccess} />
           </div>
         </td>
       );

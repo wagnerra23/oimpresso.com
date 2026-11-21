@@ -914,6 +914,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const deltaRevenue = props.coworkAggregates?.deltaRevenueVsYesterday ?? null;
   const deltaTicket = props.coworkAggregates?.deltaTicketVsLastWeek ?? null;
   const topSeller = props.coworkAggregates?.topSeller ?? null;
+  // Fatia PIX no faturamento do dia (KPI "PIX hoje"): mesma conta que o sub-título já fazia.
+  const pixHoje = props.coworkAggregates?.pixHojeTotal ?? 0;
+  const faturadoHoje = props.coworkAggregates?.faturadoHojeTotal ?? 0;
+  const pixPct = faturadoHoje > 0 ? Math.round((pixHoje / faturadoHoje) * 100) : 0;
 
   // Selection helpers.
   const toggleSel = useCallback(
@@ -1380,18 +1384,20 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
           <div className="os-kpi" title="PIX hoje · share % do faturamento do dia">
             <span className="os-kpi-label">PIX hoje</span>
             <span className="os-kpi-value">
-              {fmtShort(props.coworkAggregates?.pixHojeTotal ?? 0)}
+              {fmtShort(pixHoje)}
+              <small> / {fmtShort(faturadoHoje)}</small>
             </span>
             <span className="os-kpi-sub">
-              {(() => {
-                const pix = props.coworkAggregates?.pixHojeTotal ?? 0;
-                const fat = props.coworkAggregates?.faturadoHojeTotal ?? 0;
-                if (!props.coworkAggregates) return 'carregando…';
-                if (fat <= 0) return 'sem faturamento hoje';
-                const pct = Math.round((pix / fat) * 100);
-                return `${pct}% do faturamento — imediato`;
-              })()}
+              {!props.coworkAggregates
+                ? 'carregando…'
+                : faturadoHoje <= 0
+                  ? 'sem faturamento hoje'
+                  : `${pixPct}% do faturamento — imediato`}
             </span>
+            {/* Barra da fatia PIX no faturamento do dia, como no protótipo (vendas-page.jsx). */}
+            <div className="vd-pix-prog">
+              <div style={{ width: `${Math.min(100, Math.max(0, pixPct))}%` }} />
+            </div>
           </div>
         </div>
 
