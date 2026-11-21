@@ -247,7 +247,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 - [x] Avisa o cliente por WhatsApp ao agendar (OS, dia, hora), só com opt-in LGPD e pelo número de saída da empresa — UC-CVINST-08..10
 - [x] Agenda calendário (semanal) em semana × equipe, com a recusa sem janela visível — UC-CVAG-01..04 (`/comunicacao-visual/agenda`)
 - [ ] Drag-drop da instalação na grade
-- [ ] Checklist ferramentas + EPI (NR-35 trabalho em altura — relevante)
+- [ ] Checklist ferramentas + EPI (NR-35 trabalho em altura — relevante) — a lista vem do tipo de instalação: o cadastro dos tipos com os itens de verificação e o NR-35 já existe na API (UC-CVTIPO-01..05, `TipoInstalacaoController`); falta a tela do cadastro, escolher o tipo ao agendar, o instalador marcar os itens e os itens no protocolo
 - [ ] Endereço integrado Google Maps + foto da fachada (cliente sobe pré-vistoria)
 - [ ] Comprovante instalação: foto + assinatura digital + GPS coords (LGPD: consent) — foto antes/depois e assinatura com aceite já gravam e travam o concluir (UC-CVINST-11..14, só API); falta GPS, a tela e o protocolo
 - [ ] Comissão instalador % por m² instalado

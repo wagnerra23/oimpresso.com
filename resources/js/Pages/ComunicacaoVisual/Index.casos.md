@@ -95,6 +95,11 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVINST-17 | Concluir manda ao cliente a OS, a hora da conclusão e o link assinado do protocolo | must | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloAvisoContratoTest` | 🧪 |
 | UC-CVINST-18 | Cliente que recusou WhatsApp, sem celular ou OS sem cliente: conclui e não manda nada | must `[LGPD]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloAvisoContratoTest` | 🧪 |
 | UC-CVINST-19 | Contato de outra empresa no orçamento não recebe o protocolo | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `InstalacaoProtocoloAvisoContratoTest` | 🧪 |
+| UC-CVTIPO-01 | Cria o tipo de instalação com nome, NR-35 e itens; a lista só traz os da empresa | must | US-COMVIS-007 · UC-PCV-25 | `TipoInstalacaoContratoTest` | 🧪 |
+| UC-CVTIPO-02 | Nome vazio ou repetido, item em branco ou repetido e mais de 20 itens são recusados | must | US-COMVIS-007 · UC-PCV-25 | `TipoInstalacaoContratoTest` | 🧪 |
+| UC-CVTIPO-03 | Edita os itens e desativa; o desativado continua na lista | must | US-COMVIS-007 · UC-PCV-25 | `TipoInstalacaoContratoTest` | 🧪 |
+| UC-CVTIPO-04 | Tipo de outra empresa é não encontrado e não muda | must `[T0]` | US-COMVIS-007 · UC-PCV-25 | `TipoInstalacaoContratoTest` | 🧪 |
+| UC-CVTIPO-05 | Grava só quem cuida do catálogo; quem vê OS lê a lista; sem permissão 403 | must | US-COMVIS-007 · UC-PCV-25 | `TipoInstalacaoContratoTest` | 🧪 |
 | UC-CVOS-01 | Aprovar cria a OS com os itens e as medidas do orçamento | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-02 | A OS vale o total do orçamento e nenhum valor do orçamento muda | must `[V0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-03 | Aprovar de novo não duplica OS, itens nem arquivos | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
@@ -679,6 +684,53 @@ Status: 🧪
 
 **Dado** um orçamento da 98 que aponta para um contato da 99 **Quando** a instalação é concluída **Então** ela fica
 concluída e ninguém recebe nada.
+
+Status: 🧪
+
+## Tipos de instalação e itens de verificação (US-COMVIS-007 · UC-PCV-25)
+
+> **Âncora:** o DoD da [US-COMVIS-007](../../../../memory/requisitos/ComunicacaoVisual/SPEC.md) ("Checklist
+> ferramentas + EPI (NR-35 trabalho em altura)") e o checklist por instalação do protótipo da Produção
+> (`prototipo-ui/cowork/Wagner/producao-cv-data.jsx`: "Andaime e EPI", "Nível e prumo", "Teste de vedação"…).
+> A lista vem do tipo de instalação (`cv_instalacoes_catalogo`, coluna `itens_verificacao_json`). Nesta
+> entrega é só a API `/comunicacao-visual/api/tipos-instalacao`: ainda não há tela de cadastro, o agendamento
+> ainda não escolhe o tipo e o instalador ainda não marca os itens.
+
+## UC-CVTIPO-01 · Cria o tipo de instalação com nome, NR-35 e itens; a lista só traz os da empresa · `must`
+
+**Quando** quem cuida do catálogo cria "Fachada em altura", com NR-35 e os itens "Andaime e EPI", "Nível e
+prumo" e "Teste de vedação" **Então** responde 201 com o tipo ativo, nome e itens sem espaços nas pontas, gravado
+na empresa da sessão. **E** a lista da 98 traz esse tipo e não traz o tipo da 99.
+
+Status: 🧪
+
+## UC-CVTIPO-02 · Nome vazio ou repetido, item em branco ou repetido e mais de 20 itens são recusados · `must`
+
+**Quando** o nome vem vazio, ou repete o de outro tipo da empresa sem diferença de maiúsculas ("Já existe um
+tipo de instalação com esse nome."), ou um item vem em branco, ou o mesmo item aparece duas vezes, ou vêm mais de
+20 itens **Então** 422 e nenhum tipo é gravado.
+
+Status: 🧪
+
+## UC-CVTIPO-03 · Edita os itens e desativa; o desativado continua na lista · `must`
+
+**Quando** o tipo ganha um item e é desativado **Então** responde com os itens novos e `ativo: false`, e a
+lista continua trazendo o tipo, desativado. Não há exclusão: as instalações que já usam o tipo ficam como estão.
+Salvar com o próprio nome não conta como repetido.
+
+Status: 🧪
+
+## UC-CVTIPO-04 · Tipo de outra empresa é não encontrado e não muda · `must` `[T0]`
+
+**Quando** a 98 tenta renomear ou desativar um tipo da 99 **Então** 404, e o tipo da 99 continua com o nome e
+ativo.
+
+Status: 🧪
+
+## UC-CVTIPO-05 · Grava só quem cuida do catálogo; quem vê OS lê a lista; sem permissão 403 · `must`
+
+**Dado** um usuário só com `comvis.os.view` **Então** lê a lista (o agendamento vai escolher o tipo) e criar dá
+403. **Dado** um usuário sem nenhuma das permissões **Então** ler e criar dão 403. Nada é gravado.
 
 Status: 🧪
 

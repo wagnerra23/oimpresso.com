@@ -14,6 +14,7 @@ contains:
   - "Public/OrcamentoAceitePublicoController — página pública SEM login onde o cliente aceita ou pede ajuste do orçamento (/orcamento-cv/{token}, token sha256 de uso único, throttle 30/1, US-COMVIS-023 · UC-CVACEP-01..04)"
   - "ProtocoloInstalacaoPublicoController (Http/Controllers/Public) — link público SEM login do protocolo da instalação concluída, que vai ao cliente (/instalacao-cv/{biz}/{id}/protocolo, URL assinada com validade de 7 dias, throttle 30/1, US-COMVIS-007 · UC-CVINST-15..16)"
   - "RoteiroPadraoController (roteiro padrão da OS da gráfica — GET/PUT /comunicacao-visual/api/roteiro-padrao, US-COMVIS-003 · UC-CVOS-09..11)"
+  - "TipoInstalacaoController (tipos de instalação e os itens de verificação que o instalador marca — GET/POST /comunicacao-visual/api/tipos-instalacao, PUT /{id}, US-COMVIS-007 · UC-CVTIPO-01..05)"
   - "Services/MargemDoOrcamento (custo e margem por peça do orçamento — UC-FLX-03)"
   - "Entities/Substrato (cv_substratos)"
   - "Entities/Acabamento (cv_acabamentos)"

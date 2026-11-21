@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1069,
-    "edges": 1452,
+    "nodes": 1070,
+    "edges": 1453,
     "by_node_type": {
       "module": 45,
       "table": 147,
       "adr": 158,
-      "component": 619,
+      "component": 620,
       "api": 100
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 104,
       "charteredByAdr": 30,
       "governedByAdr": 90,
-      "hasComponent": 619,
+      "hasComponent": 620,
       "dependsOn": 165,
       "delegatesTo": 144,
       "migratesTo": 1,
@@ -2684,6 +2684,13 @@
       "module": "ComunicacaoVisual",
       "name": "Services/OrcamentoViraOs",
       "desc": "US-COMVIS-020 · UC-FLX-01)"
+    },
+    {
+      "id": "component:ComunicacaoVisual/TipoInstalacaoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "TipoInstalacaoController",
+      "desc": "GET/POST /comunicacao-visual/api/tipos-instalacao, PUT /{id}, US-COMVIS-007 · UC-CVTIPO-01..05)"
     },
     {
       "id": "component:Connector/Api/ApiController",
@@ -10540,6 +10547,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/TipoInstalacaoController",
       "type": "hasComponent",
       "source": "contains"
     },
