@@ -126,15 +126,16 @@ jobs:
           mkdir -p test-results
           # Alvos DEPOIS do vendor/bin/pest, na própria linha de comando: é o que o
           # test-lane-coverage.mjs lê (ele não segue array de shell declarado antes).
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-recurringbilling-junit.xml \
-            Modules/RecurringBilling/Tests/Feature/WebhookPixAutomaticoContratoTest.php \
-            Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php \
-            Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/WebhookPixAutomaticoContratoTest.php \
             tests/Feature/Calculo/CalculoRecurringBillingTest.php \
-            tests/Feature/Modules/RecurringBilling/BoletoServiceTest.php
+            tests/Feature/Modules/RecurringBilling/BoletoServiceTest.php \
+            --colors=always
 
       # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)

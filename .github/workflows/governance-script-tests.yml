@@ -133,6 +133,16 @@ jobs:
       # A lista de lanes que alimentam o manifesto por-UC (G-7) e DERIVADA desde 2026-08-04
       # (a lista a mao apodreceu: 4 lanes emitiam JUnit e ninguem lia). Sem este bite-test,
       # quebrar a derivacao volta a congelar a colheita EM SILENCIO -- que foi o defeito.
+      # Lista de testes das lanes Pest em ordem alfabetica (medido 2026-11-19: 60-80% dos
+      # commits dos PRs eram merge de main por CONFLITO na linha final da lista, e cada um
+      # custava outro ciclo de CI de ~18 min). Em ordem, cada teste novo cai num ponto
+      # diferente e o git junta sozinho. Vermelho aqui = rode --write no workflow.
+      - name: 'Lanes Pest · lista em ordem (bite: fora de ordem, sufixo shell, bloco com comentario intocado)'
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/lane-lista-ordenada.mjs --selftest
+      - name: Lanes Pest · lista em ordem nos workflows (rode --write se vermelho)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/lane-lista-ordenada.mjs --check
       - name: Junit-lanes bite-test (morde junit+artifact e bloco literal, solta comentario e junit sem artifact)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/junit-lanes.mjs --selftest

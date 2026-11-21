@@ -582,7 +582,7 @@ lifecycle: ativo
 | `ancora-adversario.eval.mjs` | ci | 🟢 só lê | — | — | o ADVERSÁRIO PERMANENTE do guarda de âncora. |
 | `design-source-of-truth.eval.mjs` | ci | 🟢 só lê | — | `memory/decisions/0299-figma-nao-e-fonte-de-design.md` | baseline ARMADO do enforcement "Figma não é fonte" (camada L5). |
 
-### 5.13 `scripts/governance/` — 120
+### 5.13 `scripts/governance/` — 121
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -655,6 +655,7 @@ lifecycle: ativo
 | `hue-canon-check.mjs` | agente, ci | 🟢 só lê | test | `.claude/skills/pageheader-canon/SKILL.md` +1 | verificador da fonte única do hue primário (US-GOV-052 P32). |
 | `junit-lanes.mjs` | ci, script | 🔴 disco | — | `memory/LICOES_CODE.md` +2 | fonte ÚNICA e DERIVADA das lanes de CI que alimentam o manifesto por-UC |
 | `knowledge-drift.mjs` | agente, ci, script | 🔴 disco | selftest | `memory/decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md` +50 | primeira batida do "batimento" (ADR 0270 / sessão 2026-06-11). |
+| `lane-lista-ordenada.mjs` | ci | 🔴 disco | — | — | lista de testes das lanes Pest em ORDEM ALFABÉTICA. |
 | `lapide-recheck.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0376-sec5-derivado-limite-no-contexto-arqueologia-na-fonte.md` +13 | re-verificação de FRESCOR das lápides §5 (memory/proibicoes.md, |
 | `ledger-check.mjs` | agente, ci, script | 🟢 só lê | selftest | `memory/decisions/0291-distiller-modulo-verdade-contrato-emenda-0270-f3.md` +29 | enforcement do PROTOCOLO-REFUTADOR-BACKFILL (frente GT-G5, |
 | `ledger-hash-chain.mjs` | ci | 🔴 disco | test | (só sessão/handoff · 2) | transparency-log (Rekor/Sigstore-style) sobre o |
