@@ -41,7 +41,7 @@ beforeEach(function () {
     if (! $this->outro) {
         $this->markTestSkipped('Lane sem 2º business — contrato cross-tenant não exercitável.');
     }
-    foreach (['financeiro.access', 'recurringbilling.access', 'expense.edit'] as $p) {
+    foreach (['financeiro.access', 'recurringbilling.access', 'recurringbilling.subscriptions.cancel', 'expense.edit'] as $p) {
         Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
     }
     $mu = Mockery::mock(ModuleUtil::class)->makePartial();
@@ -183,7 +183,8 @@ it('contas fixas: despesa recorrente com próxima geração pela regra do gerado
 
 it('interromper contrato: cancela a assinatura, não toca nas faturas já criadas, repete sem erro; sem permissão 403; alheio 404', function () {
     $biz = (int) $this->tenant->id;
-    $eu = appRecUsuario($biz, ['financeiro.access', 'recurringbilling.access']);
+    // Cancelar contrato exige 'recurringbilling.subscriptions.cancel' (SubscriptionPolicy::cancel, desde o #11247).
+    $eu = appRecUsuario($biz, ['financeiro.access', 'recurringbilling.access', 'recurringbilling.subscriptions.cancel']);
     $cli = appRecContato($biz, $eu->id, 'Cliente APP Interromper');
     $sub = appRecContrato($biz, $cli, 'Contrato APP Interromper', 450.0, 'monthly', 'active', '2026-06-20', '2026-11-20', 3);
     $faturas = fn () => DB::table('rb_invoices')->where('subscription_id', $sub)->orderBy('id')
@@ -192,6 +193,11 @@ it('interromper contrato: cancela a assinatura, não toca nas faturas já criada
 
     // Só financeiro.access: vê, mas não interrompe.
     Passport::actingAs(appRecUsuario($biz, ['financeiro.access']), [], 'api');
+    $this->postJson("/api/app/financeiro/recorrencias/{$sub}/interromper")->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+    expect(DB::table('rb_subscriptions')->where('id', $sub)->value('status'))->toBe('active');
+
+    // Acessa a Cobrança recorrente, mas sem a permissão de cancelar: o gate da policy recusa.
+    Passport::actingAs(appRecUsuario($biz, ['financeiro.access', 'recurringbilling.access']), [], 'api');
     $this->postJson("/api/app/financeiro/recorrencias/{$sub}/interromper")->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
     expect(DB::table('rb_subscriptions')->where('id', $sub)->value('status'))->toBe('active');
 

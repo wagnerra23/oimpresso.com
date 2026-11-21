@@ -43,8 +43,20 @@ use Modules\Governance\Services\DriftFinding;
  * DETECÇÃO fica onde o corpus está e a PERSISTÊNCIA vem pra cá, chamada via
  * `docker exec oimpresso-mcp php artisan governance:ragas-eval-alert ...`.
  *
- * Só persiste quando `--gate-status=fail`. `pass` e `skipped` = no-op (convenção dos
- * demais checkers: não emitir quando limpo; o ack/resolve é MANUAL na UI Governance).
+ * `--gate-status=fail` persiste `drift_ragas_eval_quality` (qualidade abaixo do piso).
+ * `--gate-status=skipped` persiste `drift_ragas_eval_skipped` (o eval NÃO mediu). `pass`
+ * é no-op (convenção dos demais checkers: não emitir quando limpo; o ack/resolve é
+ * MANUAL na UI Governance).
+ *
+ * ── POR QUE `skipped` ESCALA (medido 2026-11-21) ─────────────────────────────
+ * Até aqui `skipped` era no-op com a razão "sem infra não é regressão". A razão segue
+ * certa, e por isso ele NÃO vira alerta de qualidade: vira um tipo próprio. Mas
+ * no-op era silêncio: na órfã governance/ragas-real-trend, de 2026-09-27 a 2026-11-15
+ * as OITO semanas fecharam `skipped` (corpus_docs=0, no_context=51) e ninguém soube.
+ * O eval passou dois meses sem medir, e o baseline honesto envelheceu sem poder ser
+ * re-curado. Semana sem medição é dívida de instrumento, não estado neutro.
+ * Severidade `medium`: o PersistsDriftAlert escala sozinho se o alerta seguir aberto
+ * por mais de 3 dias — na cadência semanal, a 2ª semana seguida já sai `high`.
  *
  * @see scripts/tests/ct100-jana-evals.sh (o invocador — cron dom 06:00 no host CT 100)
  * @see Modules/Jana/Console/Commands/JanaRagasRealEvalCommand.php (quem mede)
@@ -60,7 +72,10 @@ class RecordRagasEvalAlertCommand extends Command
                             {--faithfulness= : faithfulness_avg medido}
                             {--relevancy= : relevancy_avg medido}
                             {--context-recall= : context_recall_avg medido}
-                            {--n-evaluated= : Quantas perguntas do gold-set foram avaliadas}';
+                            {--n-evaluated= : Quantas perguntas do gold-set foram avaliadas}
+                            {--n-no-context= : (skipped) Quantas perguntas não acharam contexto}
+                            {--corpus-docs= : (skipped) Tamanho do corpus no run (config_vigente.corpus_docs)}
+                            {--reason= : (skipped) Razão do SKIP, como o eval a emitiu}';
 
     protected $description = 'Persiste em mcp_alertas_eventos o gate_status do jana:ragas-real-eval medido no CT 100';
 
@@ -68,9 +83,13 @@ class RecordRagasEvalAlertCommand extends Command
     {
         $status = strtolower(trim((string) $this->option('gate-status')));
 
-        // Só FAIL escala. pass/skipped = no-op (idem convenção dos checkers).
+        if ($status === 'skipped') {
+            return $this->persistirSkip();
+        }
+
+        // pass (ou qualquer outro valor) = no-op (idem convenção dos checkers).
         if ($status !== 'fail') {
-            $this->info("gate_status '{$status}' — nada a persistir (só 'fail' escala pra mcp_alertas).");
+            $this->info("gate_status '{$status}' — nada a persistir (só 'fail' e 'skipped' escalam pra mcp_alertas).");
 
             return self::SUCCESS;
         }
@@ -125,6 +144,55 @@ class RecordRagasEvalAlertCommand extends Command
         }
 
         $this->info("Alerta ragas_eval_quality persistido/idempotente (mcp_alertas_eventos id={$id}).");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * O eval não mediu. Tipo próprio (`drift_ragas_eval_skipped`), separado do de qualidade:
+     * quem lê o alerta precisa saber que o problema é o INSTRUMENTO (corpus, chave, juiz),
+     * não a Jana respondendo mal.
+     */
+    private function persistirSkip(): int
+    {
+        $week = trim((string) $this->option('week'));
+        $noContext = $this->numeroOuNull($this->option('n-no-context'));
+        $corpus = $this->numeroOuNull($this->option('corpus-docs'));
+        $reason = mb_substr(trim((string) $this->option('reason')), 0, 300);
+
+        // Nomeia a causa provável quando o dado a mostra — corpus vazio foi a dos 2 meses.
+        $pista = $corpus === 0.0
+            ? 'corpus VAZIO (mcp_memory_documents do staging com 0 docs) — o ct100-jana-evals.sh repõe com mcp:sync-memory antes de medir; se veio 0 mesmo assim, o sync falhou'
+            : 'ver a razão do SKIP abaixo';
+
+        $finding = new DriftFinding(
+            target: 'jana:ragas-real-eval',
+            target_type: 'eval',
+            severity: 'medium',
+            message: "O eval REAL da Jana NÃO mediu na semana {$week} (gate_status=skipped): {$pista}. "
+                .($reason !== '' ? "Razão: {$reason} " : '')
+                .'Semana skipped não é regressão de qualidade, mas é semana sem medição: o baseline '
+                .'governance/jana-ragas-real-baseline.json não pode ser re-curado sem run válido. '
+                .'Report: /opt/oimpresso-ragas/evals.log no CT 100; histórico: branch órfã governance/ragas-real-trend.',
+            evidence: [
+                'week' => $week,
+                'gate_status' => 'skipped',
+                'n_no_context' => $noContext,
+                'corpus_docs' => $corpus,
+                'reason' => $reason !== '' ? $reason : null,
+                'source' => 'ct100-jana-evals.sh (cron dom 06:00 host CT100)',
+            ],
+        );
+
+        $id = $this->persistirDriftAlert('ragas_eval_skipped', $finding);
+
+        if ($id === null) {
+            $this->error('Falha ao persistir alerta ragas_eval_skipped (ver log channel single).');
+
+            return self::FAILURE;
+        }
+
+        $this->info("Alerta ragas_eval_skipped persistido/idempotente (mcp_alertas_eventos id={$id}).");
 
         return self::SUCCESS;
     }
