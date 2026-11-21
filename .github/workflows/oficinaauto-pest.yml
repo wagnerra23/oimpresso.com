@@ -206,9 +206,6 @@ jobs:
 
           mapfile -t TARGETS < /tmp/run.txt
           [ "${#TARGETS[@]}" -gt 0 ] || { echo "::error::run-set vazio"; exit 1; }
-          echo "=== TEMP sonda: seed 1795109593 (a do run 44577603323) ==="
-          vendor/bin/pest --no-coverage --colors=always --random-order-seed=1795109593 "${TARGETS[@]}"
-          echo "=== ordem normal (aleatoria do phpunit.xml) ==="
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-oficinaauto-junit.xml \
             "${TARGETS[@]}"
