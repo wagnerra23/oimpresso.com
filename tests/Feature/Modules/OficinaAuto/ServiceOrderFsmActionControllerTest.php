@@ -83,8 +83,8 @@ beforeEach(function () {
  */
 function setupSofacBusiness(int $businessId): User
 {
-    // Seed processos FSM (cacamba_locacao + cacamba_manutencao)
-    (new OficinaAutoFsmSeeder())->runForBusiness($businessId);
+    // Seed processos FSM (cacamba_locacao + cacamba_manutencao + oficina_mecanica_os)
+    seedSofacFsm($businessId);
 
     // Cria/garante permissions Spatie pra OficinaAuto (idempotente)
     Permission::firstOrCreate(['name' => 'oficinaauto.service_order.view',   'guard_name' => 'web']);
@@ -114,6 +114,70 @@ function setupSofacBusiness(int $businessId): User
     $user->givePermissionTo(['oficinaauto.service_order.view', 'oficinaauto.service_order.update']);
 
     return $user;
+}
+
+/**
+ * Processos FSM que ESTE arquivo criou, por empresa: o `cleanupSofac()` apaga só eles.
+ *
+ * @return array<int, list<int>> business_id => ids de sale_processes
+ */
+function &sofacProcessosCriados(): array
+{
+    static $criados = [];
+
+    return $criados;
+}
+
+/**
+ * Roda o OficinaAutoFsmSeeder e guarda os processos que nasceram nesta chamada.
+ *
+ * O seeder usa firstOrCreate: processo que já existia antes do teste não é registrado e
+ * não é apagado depois. Sem isto os processos da empresa 99 sobravam e o
+ * CacambaFsmSeederTest (cross-tenant) achava 2 onde esperava 0, conforme a ordem
+ * aleatória (seed 1795109593, PR #11173).
+ */
+function seedSofacFsm(int $businessId): void
+{
+    $antes = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', $businessId)
+        ->pluck('id')->all();
+
+    (new OficinaAutoFsmSeeder())->runForBusiness($businessId);
+
+    $novos = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', $businessId)
+        ->whereNotIn('id', $antes)
+        ->pluck('id')->all();
+
+    $criados = &sofacProcessosCriados();
+    $criados[$businessId] = array_values(array_unique(array_merge($criados[$businessId] ?? [], $novos)));
+}
+
+/**
+ * Apaga os processos que seedSofacFsm() registrou pra empresa, com a cascata manual do
+ * CacambaFsmSeederTest: action roles → actions → stages → processo.
+ */
+function limparProcessosSofac(int $businessId): void
+{
+    $criados = &sofacProcessosCriados();
+    $ids = $criados[$businessId] ?? [];
+    unset($criados[$businessId]);
+
+    if ($ids === []) {
+        return;
+    }
+
+    SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
+        ->where('business_id', $businessId)
+        ->whereIn('id', $ids)
+        ->each(function (SaleProcess $p) {
+            $stageIds = SaleProcessStage::where('process_id', $p->id)->pluck('id');
+            $actionIds = SaleStageAction::whereIn('stage_id', $stageIds)->pluck('id');
+            SaleStageActionRole::whereIn('action_id', $actionIds)->delete();
+            SaleStageAction::whereIn('id', $actionIds)->delete();
+            SaleProcessStage::whereIn('id', $stageIds)->delete();
+            $p->delete();
+        });
 }
 
 function makeVehicleSofac(string $plate, int $businessId): Vehicle
@@ -179,6 +243,9 @@ function cleanupSofac(int $businessId, string $platePrefix): void
     User::where('business_id', $businessId)
         ->where('username', 'like', 'test_sofac_'.$businessId.'%')
         ->delete();
+
+    // Por último: as OS e o histórico que apontam pras etapas já foram apagados acima.
+    limparProcessosSofac($businessId);
 }
 
 it('actions() retorna actions disponíveis pra OS locação stage disponivel', function () {
@@ -300,7 +367,7 @@ it('execute() permission denied retorna 403', function () {
         'language'    => 'pt_BR',
     ]);
 
-    (new OficinaAutoFsmSeeder())->runForBusiness(BIZ_WAGNER_SOFAC);
+    seedSofacFsm(BIZ_WAGNER_SOFAC);
 
     $this->actingAs($user);
     session(['user.business_id' => BIZ_WAGNER_SOFAC]);
