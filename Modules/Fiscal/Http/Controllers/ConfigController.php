@@ -125,9 +125,16 @@ class ConfigController extends Controller
             // Ambas vivem em Modules/NfeBrasil/Config/config.php — são de DEPLOY, não
             // por business; a tela DIZ isso em texto, porque um selo por-empresa aqui
             // mentiria sobre o escopo.
+            // Desde 2026-11-19 cada empresa pode escolher (`email_danfe_nfe/nfce`); sem
+            // escolha vale a chave do servidor. `*Ativo` é o que de fato acontece.
             'envioDocumentos' => [
-                'nfeAtivo'  => (bool) config('nfebrasil.email_danfe_on_autorizada', true),
-                'nfceAtivo' => (bool) config('nfebrasil.email_danfe_nfce_on_autorizada', false),
+                'nfeAtivo'     => NfeBusinessConfig::envioDanfeAtivo($businessId, '55'),
+                'nfceAtivo'    => NfeBusinessConfig::envioDanfeAtivo($businessId, '65'),
+                'nfeEscolha'   => $config?->email_danfe_nfe,
+                'nfceEscolha'  => $config?->email_danfe_nfce,
+                'nfePadrao'    => (bool) config('nfebrasil.email_danfe_on_autorizada', true),
+                'nfcePadrao'   => (bool) config('nfebrasil.email_danfe_nfce_on_autorizada', false),
+                'temConfig'    => (bool) $config,
             ],
             // Contador da empresa (playbook Fiscal thread 15c). Null = não cadastrado.
             'contador' => $this->contadorPayload($businessId),
@@ -158,6 +165,37 @@ class ConfigController extends Controller
         $service->salvar((int) $request->session()->get('business.id'), $dados, (int) auth()->id());
 
         return back()->with('status', ['success' => 1, 'msg' => 'Contador salvo.']);
+    }
+
+    /**
+     * POST /fiscal/config/envio — liga, desliga ou devolve ao padrão do servidor o envio
+     * automático do DANFE desta empresa. Mesmo gate da tela. Sem configuração fiscal
+     * (regime) a empresa não tem onde guardar a escolha: recusa em vez de criar uma
+     * configuração com regime padrão, que mudaria a emissão.
+     */
+    public function salvarEnvio(Request $request): RedirectResponse
+    {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.config.edit')) {
+            abort(403, 'Sem permissão fiscal.config.edit');
+        }
+        $dados = $request->validate([
+            'nfe'  => ['required', 'in:padrao,ligado,desligado'],
+            'nfce' => ['required', 'in:padrao,ligado,desligado'],
+        ]);
+
+        $businessId = (int) $request->session()->get('business.id');
+        // SUPERADMIN: business_id explícito da sessão; nunca do request.
+        $config = NfeBusinessConfig::withoutGlobalScopes()->where('business_id', $businessId)->first();
+        if (! $config) {
+            return back()->withErrors(['nfe' => 'Configure o regime fiscal da empresa antes de escolher o envio.']);
+        }
+
+        $valor = fn (string $v) => $v === 'padrao' ? null : $v === 'ligado';
+        $config->email_danfe_nfe = $valor($dados['nfe']);
+        $config->email_danfe_nfce = $valor($dados['nfce']);
+        $config->save();
+
+        return back()->with('status', ['success' => 1, 'msg' => 'Envio de documentos salvo.']);
     }
 
     /**

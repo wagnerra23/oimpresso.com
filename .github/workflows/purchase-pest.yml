@@ -225,38 +225,39 @@ jobs:
         # A 5a: o assert do barcode media o COMENTARIO que documenta o proprio fix.
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-purchase-junit.xml \
-            tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
-            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php \
-            tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
-            tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
-            tests/Feature/Purchase/Wave2EditBaselineTest.php \
-            tests/Feature/Purchase/Wave2EditInertiaTest.php \
-            tests/Feature/Purchase/Wave2CreateBaselineTest.php \
-            tests/Feature/Purchase/Wave2CreateInertiaTest.php \
+            tests/Feature/Calculo/CalculoValorComprasTest.php \
+            tests/Feature/Contract/ComprasCreateAutosaveContractTest.php \
+            tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php \
+            tests/Feature/Purchase/ComprasStatusPermissaoUnidadeTest.php \
+            tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php \
+            tests/Feature/Purchase/DevolucoesCompraBaselineTest.php \
+            tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
             tests/Feature/Purchase/IndexPageTest.php \
-            tests/Feature/Purchase/ShowPageTest.php \
-            tests/Feature/Purchase/PurchaseDataIsoTest.php \
+            tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \
+            tests/Feature/Purchase/PedidoCompraLinhaRefTenantTest.php \
+            tests/Feature/Purchase/PedidoCompraStoreTenantTest.php \
+            tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php \
             tests/Feature/Purchase/PedidosCompraBaselineTest.php \
             tests/Feature/Purchase/PedidosCompraContratoTest.php \
+            tests/Feature/Purchase/PurchaseDataIsoTest.php \
+            tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
+            tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
+            tests/Feature/Purchase/PurchaseShowTenantContratoTest.php \
+            tests/Feature/Purchase/RequisicaoStoreTenantTest.php \
             tests/Feature/Purchase/RequisicoesCompraBaselineTest.php \
             tests/Feature/Purchase/RequisicoesCompraContratoTest.php \
             tests/Feature/Purchase/RequisicoesNecessidadeContratoTest.php \
-            tests/Feature/Purchase/DevolucoesCompraBaselineTest.php \
-            tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
-            tests/Feature/Purchase/DevolucaoCompraStoreBaselineTest.php \
-            tests/Feature/Purchase/PedidoCompraStoreTenantTest.php \
-            tests/Feature/Purchase/RequisicaoStoreTenantTest.php \
-            tests/Feature/Purchase/PedidoCompraUpdateTenantTest.php \
-            tests/Feature/Purchase/PedidoCompraLinhaRefTenantTest.php \
-            tests/Feature/Purchase/LinhaDeCompraPorTransacaoTenantTest.php \
+            tests/Feature/Purchase/ShowPageTest.php \
             tests/Feature/Purchase/StoreLinhaEEntryRowTenantTest.php \
-            tests/Feature/Purchase/ComprasStatusPermissaoUnidadeTest.php \
             tests/Feature/Purchase/SugerirPelaCurvaContratoTest.php \
-            tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php \
-            tests/Feature/Calculo/CalculoValorComprasTest.php \
-            tests/Feature/Contract/ComprasCreateAutosaveContractTest.php
+            tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
+            tests/Feature/Purchase/Wave2CreateBaselineTest.php \
+            tests/Feature/Purchase/Wave2CreateInertiaTest.php \
+            tests/Feature/Purchase/Wave2EditBaselineTest.php \
+            tests/Feature/Purchase/Wave2EditInertiaTest.php \
+            --colors=always
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).

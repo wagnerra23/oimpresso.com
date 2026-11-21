@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Cobre UC-PCAD-32 (resources/js/Pages/Produto/Create.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PCAD-32 e UC-PCAD-33 (resources/js/Pages/Produto/Create.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -174,3 +174,62 @@ it('UC-PCAD-32 · grade recusada não cria produto', function (string $caso) {
 
     expect(DB::table('products')->where('business_id', $biz)->where('name', $nome)->exists())->toBeFalse();
 })->with(['modelo de outra empresa', 'valor de outro modelo', 'sem modelo', 'sem valor']);
+
+// UC-PCAD-33: o sub-SKU de cada valor pode ser digitado, como no Blade (o código do fornecedor, por
+// exemplo). Âncora: product_variation_row.blade.php (`sub_sku` editável) + createVariableProductVariations
+// (`sub_sku` vazio → generateSubSku) + product.js, que chama `validateVaritionSkus` antes de enviar.
+// O `store()` não conferia; agora confere, só nos SKUs desta empresa [T0].
+it('UC-PCAD-33 · o sub-SKU digitado é gravado; o em branco o servidor gera', function () {
+    $biz = (int) $this->business->id;
+    $nome = 'Produto UC-PCAD-33 ' . uniqid();
+    $digitado = 'PCVAR' . strtoupper(substr(uniqid(), -8));
+    $linha = ['variation_template_id' => $this->modelo, 'variations' => [
+        array_merge(['value' => 'Azul', 'variation_value_id' => $this->valores[0], 'sub_sku' => " {$digitado} "], pcvarPreco()),
+        array_merge(['value' => 'Verde', 'variation_value_id' => $this->valores[1], 'sub_sku' => ''], pcvarPreco()),
+    ]];
+
+    $this->post('/products', pcvarPedido($biz, $nome, $linha))->assertSessionHasNoErrors();
+
+    $produto = DB::table('products')->where('business_id', $biz)->where('name', $nome)->first();
+    $subs = DB::table('variations')->where('product_id', $produto->id)->orderBy('id')->pluck('sub_sku')->all();
+    expect($subs[0])->toBe($digitado);
+    expect((string) $subs[1])->not->toBe('')->not->toBe($digitado);
+});
+
+it('UC-PCAD-33 · sub-SKU repetido é recusado e nada nasce', function (string $caso) {
+    $biz = (int) $this->business->id;
+    $nome = 'Produto UC-PCAD-33 recusado ' . uniqid();
+    $sku = $caso === 'já é SKU de outro produto da empresa'
+        ? (string) DB::table('products')->where('id', EstoqueFixture::singleProduct($biz, false)->productId)->value('sku')
+        : 'PCVAR' . strtoupper(substr(uniqid(), -8));
+    $segundo = $caso === 'repetido na grade' ? $sku : '';
+    $linha = ['variation_template_id' => $this->modelo, 'variations' => [
+        array_merge(['value' => 'Azul', 'variation_value_id' => $this->valores[0], 'sub_sku' => $sku], pcvarPreco()),
+        array_merge(['value' => 'Verde', 'variation_value_id' => $this->valores[1], 'sub_sku' => $segundo], pcvarPreco()),
+    ]];
+    $mensagem = $caso === 'repetido na grade'
+        ? "O SKU {$sku} aparece em mais de um valor da variação."
+        : "O SKU {$sku} já existe em outro produto.";
+
+    $this->post('/products', pcvarPedido($biz, $nome, $linha))->assertSessionHasErrors(['product_variation' => $mensagem]);
+
+    expect(DB::table('products')->where('business_id', $biz)->where('name', $nome)->exists())->toBeFalse();
+})->with(['repetido na grade', 'já é SKU de outro produto da empresa']);
+
+it('UC-PCAD-33 · o mesmo SKU em produto de outra empresa não impede [T0]', function () {
+    $biz = (int) $this->business->id;
+    $outra = EstoqueFixture::secondBusinessId();
+    if ($outra === null || $outra === $biz) {
+        $this->markTestSkipped('Segundo tenant não semeado.');
+    }
+    // O produto da outra empresa tem o mesmo texto como SKU e como sub-SKU da variação.
+    $sku = (string) DB::table('products')->where('id', EstoqueFixture::singleProduct($outra, false)->productId)->value('sku');
+    $nome = 'Produto UC-PCAD-33 isolado ' . uniqid();
+    $linha = ['variation_template_id' => $this->modelo, 'variations' => [
+        array_merge(['value' => 'Azul', 'variation_value_id' => $this->valores[0], 'sub_sku' => $sku], pcvarPreco()),
+    ]];
+
+    $this->post('/products', pcvarPedido($biz, $nome, $linha))->assertSessionHasNoErrors();
+
+    expect(DB::table('products')->where('business_id', $biz)->where('name', $nome)->exists())->toBeTrue();
+});
