@@ -47,7 +47,7 @@
 | [Onda 2 — Clientes & contatos · plano de layout (Code × Design)](../Mwart/ONDA-2-CLIENTES-PLANO.md) | Mwart |
 | [Plano de paralelização — OficinaAuto Fase 1 (pós-Martinho)](../OficinaAuto/demo-martinho-2026-05-13/plano-paralelizacao.md) | OficinaAuto |
 | [PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via gateway adici](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway |
-| [GAP-SPEC — RecurringBilling/Planos/Index](../RecurringBilling/cobranca-recorrente-planos-gap.md) | RecurringBilling |
+| [Gap — Cobrança Recorrente · Planos (protótipo × tela viva)](../RecurringBilling/cobranca-recorrente-planos-gap.md) | RecurringBilling |
 | [Plan — Ativar gateway nas assinaturas dormentes](../RecurringBilling/features/gateway-ativacao/plan.md) | RecurringBilling |
 | [DEPRECATION-PLAN — SRS](../SRS/DEPRECATION-PLAN.md) | SRS |
 | [ADR ARQ-0001 (TaskRegistry) · Sistema de tasks MCP-native, não Plane s](../TaskRegistry/adr/arq/0001-mcp-native-vs-plane.md) | TaskRegistry |
