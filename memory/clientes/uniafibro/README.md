@@ -17,23 +17,33 @@ related:
 
 ## A rede em 1 linha
 
-**Uniafibro-SC** = União das Associações de Fibromiálgicos de Santa Catarina. Em formação (sem CNPJ próprio). Agrega **6 associações formalizadas** + grupos/núcleos locais.
+**Uniafibro-SC** = União das Associações de Fibromiálgicos de Santa Catarina. Em formação (sem CNPJ próprio). Agrega **7 associações** + grupos/núcleos locais, em 4 das 6 mesorregiões de SC.
 
-## Associações formalizadas (6)
+> **Atualização 23/11/2026 ([W]):** o time são as 7 associações que revisaram o estatuto juntas em 20/11
+> (AGFESC, AREFI, AFICOR, AFIBROMAR, ASCAF, AFAGAS e AFASJ). A ACPFA (Joinville) **não** faz parte da rede.
+> Eventos, números e Instagrams: [eventos-e-acoes-consolidado.md](eventos-e-acoes-consolidado.md).
 
-| # | Sigla | Nome | Cidade/UF | CNPJ | Status | Presidente |
-|---|---|---|---|---|---|---|
-| 1 | **AGFESC** (Girassóis) | Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense | Criciúma/SC | *pendente registro* | Formalizada (grupo iniciado ago/2020) | Giselli Cunha |
-| 2 | **AFIBROMAR** | Associação dos Fibromiálgicos de Maravilha | Maravilha/SC | *pendente registro* | Formalizada | — |
-| 3 | **AREFI** | Associação dos Fibromiálgicos de Indaial e Região | Indaial/SC | [REDACTED-CNPJ] | Formalizada 22/09/2023 (RCPJ Indaial 11/10/2023, livro A-034) | Clair Maria Santos Nascimento |
-| 4 | **AFICOR** | Associação dos Fibromiálgicos de Concórdia | Concórdia/SC | *pendente registro* | Formalizada | — |
-| 5 | **ACPFA** | Associação dos Fibromiálgicos de Joinville | Joinville/SC | *pendente registro* | Formalizada | — |
-| 6 | **ASCAF** | Associação dos Fibromiálgicos de Cocal do Sul | Cocal do Sul/SC | *pendente registro* | Formalizada | — |
+## Associações da rede (7)
+
+| # | Sigla | Nome | Cidade/UF | CNPJ | Status | Presidente | Instagram |
+|---|---|---|---|---|---|---|---|
+| 1 | **AGFESC** (Girassóis) | Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense | Criciúma/SC | *pendente registro* | Formalizada (grupo iniciado ago/2020) | Giselli Cunha | @assgirassoisfibromialgicossc |
+| 2 | **AFIBROMAR** | Associação de Fibromialgia de Maravilha e Região | Maravilha/SC | *pendente registro* | Formalizada 07/2025 | — | @afibromar2025 |
+| 3 | **AREFI** | Associação Renascer Fibro de Indaial e Região | Indaial/SC | [REDACTED-CNPJ] | Formalizada 22/09/2023 (RCPJ Indaial 11/10/2023, livro A-034) | Clair Maria Santos Nascimento | @arefi_regional_fibromialgia · @arefivale (antigo) |
+| 4 | **AFICOR** | Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense | Concórdia/SC | *pendente registro* | Fundada 14/10/2021 | — | @aficor2021 |
+| 5 | **ASCAF** | Associação Sul Cocalense de Apoio aos Fibromiálgicos | Cocal do Sul/SC | *pendente registro* | Formalizada 2026 | — | @ascaf10 |
+| 6 | **AFAGAS** | Associação de Fibromialgia de Gaspar | Gaspar/SC | *pendente registro* | Fundada 04/2026 | — | @afagas2026 |
+| 7 | **AFASJ** | Associação de Fibromialgia e Amigos de São José | São José/SC | *pendente registro* | Fundada 10/2025 | — | @associacaofibromialgiaamigossj |
+
+Fora da rede: **ACPFA** (Joinville, @acpfa.sc) — decisão [W] 23/11/2026.
 
 ## Núcleos/grupos em formação (sem CNPJ)
 
 - **Capivari de Baixo/SC** — grupo liderado por Cirlei (projetos: Ateliê Mãos que Florescem, Cuidar em Rede, Proposta Univinte, Projeto Saúde Capivari)
 - **Tubarão/SC** — núcleos fisioterapia + massoterapia (propostas: Unisul Ambulatório Amurel, Fundos municipais idosos+PcD)
+- **Gravatal/SC** — núcleo da AGFESC (@agfescgravatal)
+- **Cunha Porã e Flor do Sertão/SC** — núcleos da AFIBROMAR (Cunha Porã: @afibromarnucleocunhapora)
+- **Homens de Fibro SC** — grupo de apoio da própria Uniafibro (@homensdefibro.sc)
 
 ## Projetos / parcerias ativos (destaque)
 
