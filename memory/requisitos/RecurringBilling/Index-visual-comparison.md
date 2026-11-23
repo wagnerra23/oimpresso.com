@@ -9,8 +9,8 @@ id: requisitos-recurring-billing-index-visual-comparison
 > Papel: **fonte de design** (decisão [W] 2026-11-19, b4 da auditoria). Os arquivos `prototipo-ui/prototipos/recurring/*`
 > e `prototipo-ui/cowork-snapshot/` citados abaixo saíram do repo; o texto abaixo é o registro de 2026-05-16 e não
 > descreve a fonte de hoje. Gap por parte: `cobranca-recorrente-gap.md`. Veredito de medição: seção
-> "Medição 2026-11" (L6 PR 2) — até lá, **não medido** (a medição de 18/09 é inválida: os 4 `design.json`
-> eram a mesma aba e a captura de produção pegou o banner de cookies e o tour).
+> "Medição 2026-11-23" no fim deste arquivo (L6 PR 2). A medição de 18/09 é inválida e foi substituída:
+> os 4 `design.json` eram a mesma aba e a captura de produção pegou o banner de cookies e o tour.
 
 > **Status:** Cowork output renderizado e validado em 2026-05-16. Match exato com 2 screenshots Wagner.
 > **Destino visual:** `9,75/10` (Método KB-9.75 alvo final, **NÃO** R#1 intermediário `3,8/10`).
@@ -186,3 +186,79 @@ tokenização futura do texto quebraria o contraste.
 Os dois são a mesma lápide (§5 2026-07-16, *medir a propriedade errada e chamar de verificado*),
 cometida duas vezes na mesma tela. O que separou o achado real dos falsos foi **medir o fundo
 efetivo**, subindo a árvore até um `background-color` opaco **ou** um `background-image`.
+
+---
+
+## Medição 2026-11-23 (L6 PR 2) — substitui a de 2026-09-18 [CC]
+
+Mede as **6 telas** do módulo contra `prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx`
+(sha256 `49104ea2d640…`, último commit `99f169a688`, 2026-11-19 — a versão do L7 #11241). Esta seção
+traz o **método e o canário**, que valem para as seis; o veredito de cada tela está no dono dela:
+
+| Tela | Dono do veredito | Veredito |
+|---|---|---|
+| `RecurringBilling/Index` | esta seção, abaixo | DIVERGE — 3 reais, 2 não conclusivos |
+| `RecurringBilling/Faturas/Index` | [`Faturas-Index-visual-comparison.md`](Faturas-Index-visual-comparison.md) | DIVERGE — 5 reais |
+| `RecurringBilling/Planos/Index` | [`Planos-Index-visual-comparison.md`](Planos-Index-visual-comparison.md) | DIVERGE — 3 reais, 1 não conclusivo |
+| `RecurringBilling/Configuracoes/Index` | [`Configuracoes-Index-visual-comparison.md`](Configuracoes-Index-visual-comparison.md) | DIVERGE — 2 reais |
+| `RecurringBilling/Planos/Create` | [`Planos-Create-visual-comparison.md`](Planos-Create-visual-comparison.md) | DIVERGE — página × drawer + 7 grupos de forma |
+| `RecurringBilling/Planos/Edit` | [`Planos-Edit-visual-comparison.md`](Planos-Edit-visual-comparison.md) | DIVERGE — igual ao Create |
+
+Snapshots e `resultado.json`: `governance/design/targets/medidas/RecurringBilling--*/`.
+
+### Método
+
+- **Fonte provada pelo git.** O `cowork-mirror-freshness --compare --check` que o pedido citava não existe
+  mais: os modos de frescor contra o Cowork saíram em 2026-10-23 (ADR 0438), e o script responde
+  `uso: … (os modos de frescor contra o Cowork saíram em 2026-10-23, ADR 0438)`. Desde então a fonte é o
+  arquivo no git; a prova é o sha acima. `node scripts/design/protocolo.config.mjs --selftest` → OK.
+- **Âncora:** `node scripts/design/ancora.mjs RecurringBilling/<Tela>` — Index declara `related_prototype`;
+  Faturas, Planos e Configurações resolvem pelo `bundle_source`; Create e Edit declaram `n/a` no charter e
+  foram medidas contra os drawers `novo`/`editar` que o próprio protótipo mapeia para elas (`ROTAS.rb-planos.drawers`).
+- **Mesma sonda:** `node scripts/design/design-diff.mjs --probe`, injetada nos dois lados com papéis por lado.
+  Os papéis ficaram em `governance/design/targets/roles/RecurringBilling--*.json` (override do lote).
+- **Mesmo tema:** claro nos dois (é o tema do usuário em produção). No protótipo, `__setTweak('theme','light')`
+  com `prefers-color-scheme: light`; o `_ds/` servido pela regra do `ds-runtime-path.mjs` — sem ele os
+  tokens não resolvem e a medida sai errada (aconteceu na primeira tentativa e foi descartada).
+- **Mesma viewport:** 1280×900 nos dois. Produção via iframe da mesma origem a 1280px.
+- **Produção:** `oimpresso.com`, `business_id=1` (lido dos props da página em cada medida). Sem banner de
+  cookies, tour ou diálogo aberto: a medida grava `sobrepostosFixos` e `dialogsAbertos`, vazios nas seis.
+- **Vista certa:** D0 pelos contratos `recorrente-*.contract.json` — OK nas 4 Index (Index 19×15 cópias,
+  Faturas 23×26, Planos 16×15, Configurações 11×10). Create/Edit não têm contrato; identidade pelo título
+  do drawer (`Novo plano`, `Editar plano`) gravado em `__meta.dialogsAbertos`.
+- **Drawer depois da animação:** a primeira medida do drawer pegou a animação `cr-slide` no meio
+  (`opacity: 0.4`) e foi refeita esperando `getAnimations()` vazio.
+- **Texto de produção redigido:** o `assinatura` do `prod.json` versionado guarda só as cópias de UI do
+  contrato; nomes de cliente e valores ficaram fora (sha do original em `__meta.assinaturaRedigida`).
+
+### Canário (antes de concluir)
+
+Em produção, Faturas, forcei `h1` a 22px/700 (o valor do protótipo) e removi o último KPI do DOM.
+Resultado esperado e obtido: as linhas de título **somem** e aparece `kpi.count prod=3 · design=4`.
+A sonda discrimina. Achado lateral: com o KPI só **escondido** (`display:none`), a contagem continua 4 —
+a sonda conta elementos, não elementos visíveis.
+
+### Fora do veredito, e por quê
+
+- **Shell (sidebar):** o protótipo renderiza a sidebar recolhida (55px) e a produção expandida; o mapa
+  `--shell-roles` não casa no protótipo. Não medido.
+- **D6 cor:** sai `IGUAL`, mas a linha de saúde diz que os tokens de cor de produção não resolvem na raiz
+  do documento (vivem no `.cockpit`). Leia o `IGUAL` de cor como fraco.
+- **D9 texto:** as regiões `data-contract` só existem em produção, então a comparação de formato sai SEM-DADO.
+  A exceção é Configurações, onde a sonda achou identificador técnico na copy de produção.
+- **Achado de 2026-09-08 (`bg-white` em tema escuro):** não re-medido — esta medição é em tema claro.
+  `git grep bg-white resources/js/Pages/RecurringBilling/Index.tsx` não acha nada.
+
+### Veredito — `RecurringBilling/Index`
+
+Reproduz: `node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/RecurringBilling--Index/prod.json governance/design/targets/medidas/RecurringBilling--Index/design.json --check --contrato governance/design/contracts/recorrente-assinaturas.contract.json`
+
+| Dim | Campo | Produção | Protótipo | Leitura |
+|---|---|---|---|---|
+| D4 | título | 24px / 600 | 22px / 700 | **real** — produção usa o PageHeader compartilhado; mexer muda o título de todos os módulos |
+| D4 | valor do KPI | 24px | 22px | **real** |
+| — | abas no cabeçalho | Assinaturas · Planos · Faturas · Configurações, com contador | não tem; navega pela sub-nav do shell | **real** (lido no DOM; é a parte "Decidir" do gap) |
+| D2 | linhas do filtro | 8 | 5 | não conclusivo — o papel conta blocos da coluna lateral, e as duas colunas têm blocos diferentes |
+| D2 | colunas da linha | 4 | 2 | não conclusivo — a linha de produção é favorito + avatar + texto + valor; a do protótipo agrupa em 2 |
+| D6 | cor | ok | ok | IGUAL (fraco, ver acima) |
+| D8 | alinhamento do KPI | ok | ok | IGUAL |

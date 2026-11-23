@@ -143,7 +143,7 @@ class CobradorPixAutomatico
             }
 
             try {
-                (new PaymentGatewayService())->comCredencial($credencial)->emitirCobrancaRecorrente(
+                $emitida = (new PaymentGatewayService())->comCredencial($credencial)->emitirCobrancaRecorrente(
                     new EmitirCobrancaInput(
                         businessId: $businessId,
                         contactId: (int) $f->contact_id,
@@ -156,6 +156,20 @@ class CobradorPixAutomatico
                     ),
                     (string) $mandato['id_rec'],
                 );
+
+                // a4 (auditoria 2026-11-19): o txid da cobrança do ciclo vai para a fatura. É por
+                // ele que o webhook Pix do Inter (`ProcessInterWebhookJob`) acha a fatura paga —
+                // antes nenhum código de produção gravava `gateway_ref`. Só o `gateway_ref`:
+                // `gateway` fica nulo de propósito, porque o cancelamento da fatura
+                // (`AssinaturaCobrancaService::cancelar`) manda `gateway`+`gateway_ref` para o
+                // driver de BOLETO do RB, que não conhece txid de Pix Automático.
+                $txid = trim((string) $emitida->gatewayExternalId);
+                if ($txid !== '') {
+                    DB::table('rb_invoices')
+                        ->where('business_id', $businessId)
+                        ->where('id', (int) $f->id)
+                        ->update(['gateway_ref' => $txid, 'updated_at' => now()]);
+                }
             } catch (\Throwable $e) {
                 // SUPERADMIN: mesmo contexto sem sessão; filtra pelo business_id explícito.
                 Cobranca::withoutGlobalScopes()->where('business_id', $businessId)->where('idempotency_key', $chave)

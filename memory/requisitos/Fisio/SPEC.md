@@ -202,33 +202,48 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ### US-FISIO-013 · Schema da agenda: tipos, atendimentos, bloqueios, lista de espera e regras da clínica — **P0**
 
-**Implementado em:** _pendente_ — schema e models no PR do lote 3; a âncora fecha com as regras da US-FISIO-014.
+**Implementado em:** `Modules/Fisio/Database/Migrations/2026_11_04_000301_create_fisio_agenda_tables.php` · `Modules/Fisio/Database/Migrations/2026_11_04_000302_create_fisio_agenda_regras_tables.php` · `Modules/Fisio/Entities/AppointmentType.php` · `Modules/Fisio/Entities/Appointment.php` · `Modules/Fisio/Entities/ScheduleBlock.php` · `Modules/Fisio/Entities/WaitlistEntry.php` · `Modules/Fisio/Entities/BookingSettings.php` · verificado@ed8598c (2026-11-23)
 
-> owner: — · priority: p0 · estimate: 4h · status: doing · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > Tabelas `fisio_appointment_types`, `fisio_appointments`, `fisio_schedule_blocks`, `fisio_waitlist`, `fisio_booking_settings`, todas com `business_id` indexado + FK. Atendimento não é apagado (sai por status); o recado e a nota do paciente ficam só na clínica.
 
 **DoD:** as 5 tabelas com `business_id`; sob a sessão da 98 cada model enxerga só a 98 e a 99 só a 99; atendimento não é apagado pelo Eloquent; uma linha de regras por empresa — `FisioAgendaEsquemaTest`.
 
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioAgendaEsquemaTest.php` (4 testes, PASS na lane `Pest (Verticais · MySQL)`, run 44962970620 de 2026-11-21)
+
 ### US-FISIO-014 · Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Services/Agenda/AgendaService.php` · `Modules/Fisio/Services/Agenda/CompatibilidadeEspera.php` · verificado@ed8598c (2026-11-23)
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: US-FISIO-013. A1 (conflito de profissional), A4 (encaixe com confirmação), A5 (bloqueio), A7 (vaga liberada aponta os compatíveis da lista de espera), A8 (prazo de cancelamento; falta e cancelamento tardio só **sugeridos**, o profissional confirma), A10 (status; "realizado" exige evolução assinada), A21 (bloqueio do app depois de N faltas sem aviso, reversível pelo profissional).
+
+**DoD:** paciente, tipo ou profissional de outra empresa não marcam; mesmo horário do profissional só como encaixe; horário bloqueado recusa até o encaixe; "realizado" exige evolução assinada do mesmo paciente; cancelar a menos de 24 h marca tardio; 2 faltas bloqueiam o app e desbloquear zera a conta; vaga cancelada aponta só quem da lista de espera serve.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioAgendaRegrasTest.php` (7 testes: outra empresa não marca, "realizado" exige evolução assinada, cancelamento tardio em 24 h, 2 faltas bloqueiam o app, bloqueio de horário e encaixe, fim pela duração do tipo, vaga para a lista de espera; PASS no run 44962970620)
 
 ### US-FISIO-015 · Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Http/Controllers/AgendaController.php` · `Modules/Fisio/Http/Controllers/ConfigAgendamentoController.php` · `Modules/Fisio/Services/Agenda/AgendaDaSemana.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Agenda/Index.tsx` · `Modules/Fisio/Resources/js/Pages/Fisio/Configuracoes/Agendamento.tsx` · verificado@ed8598c (2026-11-23)
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-014. `/fisio/agenda` (semana por profissional, legenda de status, resumo do dia, vaga liberada e lista de espera, nova sessão em 3 campos, bloquear horário) e `/fisio/agenda/configuracoes` (ligar o app, quem pode marcar, tipos liberados, horários abertos, regras). Item "Agenda" no menu do Fisio.
+> Nota de 2026-11-23: a configuração ficou em `/fisio/configuracoes/agendamento` (rota `fisio.configuracoes.agendamento`), não em `/fisio/agenda/configuracoes`.
+
+**DoD:** a sessão marcada aparece na semana do profissional sem o recado do paciente; outra clínica não vê, não marca, não muda nem desmarca; sem `fisio.editar` a agenda só lê; status muda só nas transições do serviço; desmarcar aponta a lista de espera; liberar o app travado por faltas; o agendamento pelo app nasce desligado, salvar libera só os tipos marcados, mudar prazo ou faltas sobe a versão da política e uma clínica não muda a outra — UC-FAG-01..08 e UC-FCA-01..04.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioAgendaTelaTest.php` (UC-FAG-01..08) · `Modules/Fisio/Tests/Feature/FisioConfigAgendamentoTest.php` (UC-FCA-01..04) — PASS no run 44962970620
 
 ### US-FISIO-016 · Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Http/Controllers/PortalAgendaController.php` · `Modules/Fisio/Services/Agenda/AgendaDoPaciente.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Agendar.tsx` · `Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Consultas.tsx` · verificado@ed8598c (2026-11-23)
 
-> owner: — · priority: p0 · estimate: 10h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 10h · status: done · type: story
 > blocked_by: US-FISIO-015. A9 (horários livres dentro das regras), A7 ("me avise se abrir vaga"), A6 (confirmar / remarcar / não vou poder ir pelo link da mensagem), A19 ("Cheguei" a partir de 1 h antes), A20 (recado ao marcar; nota 1–5 privada), remarcar e cancelar até o prazo da política, bloqueio por faltas. Dependentes (A16) e sinal por Pix (A17) entram depois, com o consentimento do responsável legal e com o Financeiro.
+
+**DoD:** horários livres só dos abertos para o app; marcar grava com o recado e recusa o horário já tomado; app desligado, só pela clínica ou bloqueado por faltas não marca; cancelar e remarcar só antes de 24 h; confirmar e "Cheguei" a partir de 1 h antes; "me avise se abrir vaga" põe na lista de espera; atendimento de outro paciente ou de outra clínica não aparece — UC-FPA-01..07.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php` (UC-FPA-01..07, casos da agenda do paciente em `_telas/`; PASS no run 44962970620). Sem caso próprio em 2026-11-23: a nota 1–5 do paciente (a rota `agenda/{id}/{acao}` do portal aceita `nota`) e o confirmar pelo link da mensagem do WhatsApp (A6).
 
 ## F3 · Dinheiro — mapa de donos (F3-T01, lote 4 do protótipo Prescreve Pro)
 
@@ -263,39 +278,45 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ### US-FISIO-020 · Pacote de sessões com saldo derivado de ledger append-only — **P0**
 
-**Implementado em:** _pendente_ — lote 4, PR de schema.
+**Implementado em:** `Modules/Fisio/Database/Migrations/2026_11_04_000400_create_fisio_packages.php` · `Modules/Fisio/Entities/Pacote.php` · `Modules/Fisio/Entities/PacoteLancamento.php` · `Modules/Fisio/Services/Pacotes/SaldoDoPacote.php` · verificado@ed8598c (2026-11-23)
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: nenhum. Etapa F3 §3.4.2 e F3-T08 (parte sem dinheiro). `fisio_packages` (business_id, patient_id, sessões contratadas, validade, `transaction_id` nulo até a venda existir) e `fisio_package_ledger` (crédito na abertura, débito por sessão, estorno por lançamento inverso). Nenhuma coluna de valor em dinheiro.
 
 **DoD:** saldo = soma do ledger, nunca coluna editável; ledger sem UPDATE nem DELETE (trigger, como `fisio_game_ledger`); débito além do saldo recusado; validade vencida bloqueia débito e a extensão fica registrada; pacote de outra empresa não aparece nem aceita débito (98×99).
 
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacoteSessoesTest.php` (6 testes, PASS no run 44962970620)
+
 ### US-FISIO-021 · Tela "Pacote e cobrança" da ficha do paciente — **P0**
 
-**Implementado em:** _pendente_ — lote 4, PR de tela.
+**Implementado em:** `Modules/Fisio/Http/Controllers/PacotesController.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Pacote.tsx` · `Modules/Fisio/Http/Controllers/PacoteComprovanteController.php` · `Modules/Fisio/Services/Pacotes/ComprovantePacote.php` · verificado@ed8598c (2026-11-23)
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: US-FISIO-020. Fonte de design `prototipo-ui/cowork/Wagner/prototipos/fisio/Financeiro.dc.html`. Página própria em `/fisio/pacientes/{id}/pacote` (a barra de abas da ficha é do lote 1). Só leitura de dinheiro: títulos e nota vêm do Financeiro e do NFSe pela venda do pacote.
 
 **DoD:** mostra saldo, sessões do ledger, títulos da venda do pacote e status da NFS-e; empresa sem venda ligada mostra estado vazio sem erro; Pix Automático só aparece para `atendimento.tipo = pj`; paciente de outra empresa 404; nenhum valor gravado pela tela. Comprovante (voucher) do pacote em PDF para entregar ao paciente, só com sessões e sem valor (UC-FPK-10, `Modules/Fisio/Http/Controllers/PacoteComprovanteController.php`, `Modules/Fisio/Services/Pacotes/ComprovantePacote.php`).
 
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacoteTelaTest.php` (UC-FPK-01..06 e UC-FPK-10; PASS no run 44962970620)
+
 ### US-FISIO-022 · Vender e renovar pacote pela venda do núcleo — **P0**
 
-**Implementado em:** _pendente_ — depende de aprovação de [W] (regra mestre de valor).
+**Implementado em:** _pendente_ — parcial em 2026-11-23. Feito: ligar uma venda finalizada do paciente ao pacote, sem gravar valor nem título (`PacotesController::ligarVenda`, rota `fisio.pacotes.venda`), e o estorno das sessões que sobraram quando a venda é cancelada (`Modules/Fisio/Observers/VendaDoPacoteObserver.php`), provados por `FisioPacoteVendaTest` (UC-FPK-07..09, PASS no run 44962970620). Falta: "Renovar pacote" abrir a venda do núcleo já com o paciente e o serviço do pacote (hoje o botão leva a `/sells/create` vazio; a tela de venda não aceita contato e produto pré-preenchidos, lacuna 4 do núcleo abaixo) e o crédito de sessões entrar sozinho ao finalizar a venda.
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: doing · type: story
 > blocked_by: US-FISIO-020, contato e produto pré-preenchidos na tela de venda (núcleo Sells), aprovação de [W] com dupla confirmação do cálculo e tabela antes→depois (`memory/proibicoes.md`, regra mestre). "Renovar pacote" abre a venda do núcleo com o paciente e o serviço do pacote; ao finalizar, a venda é ligada ao pacote (`transaction_id`) e o crédito de sessões entra no ledger. Parcelado = parcelas da venda; mensalidade = RecurringBilling; Pix e cartão = `LinkDePagamentoDoTitulo` do Financeiro.
 
 **DoD:** nenhum `Titulo::create` no Fisio; o título nasce do `TituloAutoService`; o valor do pacote só existe na venda; venda cancelada estorna o crédito de sessões por lançamento inverso.
 
 ### US-FISIO-023 · Fila fiscal do dia: NFS-e (CNPJ) e Receita Saúde (CPF) — **P0**
 
-**Implementado em:** _pendente_ — lote 4, PR da fila fiscal.
+**Implementado em:** `Modules/Fisio/Http/Controllers/FiscalController.php` · `Modules/Fisio/Services/Fiscal/FilaFiscalDoDia.php` · `Modules/Fisio/Entities/ReciboSaude.php` · `Modules/Fisio/Database/Migrations/2026_11_04_000410_create_fisio_health_receipts.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Fiscal/Index.tsx` · verificado@ed8598c (2026-11-23)
 
-> owner: — · priority: p0 · estimate: 5h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 5h · status: done · type: story
 > blocked_by: nenhum. Fonte de design `FiscalFila.dc.html`. Vale para qualquer venda do núcleo cujo cliente é paciente do Fisio (pacote ou sessão avulsa), então funciona antes da US-FISIO-022. NFS-e: leitura de `nfse_emissoes` do dia. Receita Saúde: um item por `transaction_payments` do dia de venda a paciente; `fisio_health_receipts` guarda só `payment_id`, status (`pendente`, `enviado`, `retificar`), número do recibo, quem marcou e quando. Valor e data vêm do pagamento.
 
 **DoD:** pagamento sem CPF do pagador aparece "falta CPF do pagador"; marcar enviado é idempotente; pagamento de outra empresa não aparece nem aceita marca (98×99); nenhuma cópia de valor em tabela do Fisio.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioFiscalFilaTest.php` (UC-FFI-01..05; PASS no run 44962970620). A emissão real de NFS-e para clínica com CNPJ segue bloqueada pela lacuna 1 do núcleo abaixo (IBS/CBS).
 
 ### US-FISIO-024 · Lote do Receita Saúde no layout oficial — **P1**
 

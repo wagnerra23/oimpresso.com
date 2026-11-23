@@ -39,36 +39,14 @@ memory/requisitos/NfeBrasil/        @wagnerra23
 memory/requisitos/RecurringBilling/ @wagnerra23
 memory/requisitos/Boleto.md         @wagnerra23
 
-# ──────────────────────────────────────────────
-# 🛒 VENDA — Wagner
-# ──────────────────────────────────────────────
-# [W] 2026-09-21, textual: *"quem é o dono da venda então, é o Felipe"*. Registro do
-# ato em TEAM.md §3.3.1; aqui é o enforcement.
-#
-# A venda NÃO é um módulo — `Modules/Sells` não existe. São 6 paths do núcleo
-# UltimatePOS, 197 arquivos medidos em 2026-09-22 (re-rode, não cite este número):
-#   git ls-tree -r origin/main --name-only -- resources/js/Pages/Sells \
-#     app/Http/Controllers/SellController.php app/Http/Controllers/SellPosController.php \
-#     resources/views/sell resources/views/sale_pos memory/requisitos/Sells | wc -l
-#
-# Por que ela é dono-obrigatório embora `resources/js/` seja zona livre: a venda é o
-# chokepoint da regra Tier 0 "CÁLCULO DE VALOR ou ESTOQUE" (memory/proibicoes.md) — em
-# 2026-06-05 o `Util::num_uf` inflou 16 vendas do biz=4 (cliente real) antes de alguém ver.
-#
-# OS DOIS handles, de propósito: qualquer um dos dois aprova. Só @felipewr2-cell
-# travaria o [W], porque o GitHub não deixa ninguém aprovar PR próprio.
-# ⚠️ 2026-10-03: o [W] tirou o @felipewr2-cell da venda ("como removo as permissões que
-# o Felipe tem que fazer na venda para aprovar no github, eu quero fazer, sou o dono").
-# Mesmo mecanismo da Jana (2026-09-28, seção LGPD abaixo): com 2 donos, PR de autoria
-# do [W] nesses paths esperava a aprovação do Felipe. Com o [W] como dono único, o
-# #8018 da Jana mergeou com zero reviews. Os dois parágrafos acima são o fato de
-# 2026-09-21/22 e ficam como registro.
-resources/js/Pages/Sells/                   @wagnerra23
-app/Http/Controllers/SellController.php     @wagnerra23
-app/Http/Controllers/SellPosController.php  @wagnerra23
-resources/views/sell/                       @wagnerra23   # Blade legada (MWART pendente)
-resources/views/sale_pos/                   @wagnerra23   # Blade legada (MWART pendente)
-memory/requisitos/Sells/                    @wagnerra23   # SPEC · charter · casos
+# ⚰️ A seção "🛒 VENDA" foi REMOVIDA em 2026-11-23, por ato do [W] ("remova a
+# proteção do git para venda, qualquer pessoa pode fazer agora"). Ela exigia
+# @wagnerra23 em 6 paths: resources/js/Pages/Sells/ · SellController.php ·
+# SellPosController.php · resources/views/sell/ · resources/views/sale_pos/ ·
+# memory/requisitos/Sells/. A venda volta à zona livre (seção LIVRE abaixo).
+# A regra Tier 0 "CÁLCULO DE VALOR ou ESTOQUE" (memory/proibicoes.md) segue
+# valendo — ela é de processo, não de reviewer obrigatório.
+# Histórico: entrou em 2026-09-22 (dono Felipe+[W]); Felipe saiu em 2026-10-03.
 
 # ──────────────────────────────────────────────
 # 🔒 LGPD / DADOS PESSOAIS — Wagner
@@ -116,6 +94,11 @@ memory/requisitos/PontoWr2/         @wagnerra23   # docs ponto legacy (ainda com
 # 🏗️ INFRA / CI / DEPLOY / GOVERNANÇA — Wagner (ninguém mergeia sem ele)
 # ──────────────────────────────────────────────
 .github/                            @wagnerra23   # workflows + este próprio CODEOWNERS
+# Exceção da venda (2026-11-23, [W] "remova também a proteção do .github para o
+# 11326"): o gate de domínio da venda V3 fica sem dono, como o resto da venda.
+# Linha SEM owner = sem reviewer obrigatório; vale porque vem DEPOIS de `.github/`
+# (no CODEOWNERS a última regra que casa ganha).
+.github/workflows/sells-v3-dominio-gate.yml
 INFRA.md                            @wagnerra23
 docker-compose*.yml                 @wagnerra23
 memory/decisions/                   @wagnerra23   # ADR canon
@@ -124,12 +107,11 @@ TEAM.md                             @wagnerra23
 
 # ──────────────────────────────────────────────
 # LIVRE (sem owner obrigatório) — PR verde mergeável sem Wagner:
-#   resources/js/ (frontend) — EXCETO `resources/js/Pages/Sells/` ·
+#   resources/js/ (frontend, incluindo `Pages/Sells/`) ·
+#   a venda inteira (Sells/SellPos controllers, views sell/ e sale_pos/,
+#   memory/requisitos/Sells/) ·
 #   Modules/Cms (landing) · demais Modules/ ·
 #   memory/sessions/ · memory/handoffs/ · memory/requisitos não-críticos · etc.
 #
-# ⚠️ A venda SAIU da zona livre em 2026-09-22 (seção 🛒 acima): além de
-# `Pages/Sells/`, saíram `resources/views/sell/`, `resources/views/sale_pos/` e
-# `memory/requisitos/Sells/`. Este parágrafo é o único lugar do arquivo que
-# enumerava a zona livre — recortá-la aqui é parte do ato, não zelo.
+# Fato datado: a venda esteve FORA da zona livre de 2026-09-22 a 2026-11-23.
 # ──────────────────────────────────────────────

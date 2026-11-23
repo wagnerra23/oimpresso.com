@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Biblioteca.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 8 Agenda Pacientes Prescrever Biblioteca Protocolos ⋯ mais 3 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fisio Biblioteca de exercícios Padrão único de gravação (frente e perfil), narração em português, legenda e áudio mais lento. Cada exercício passa por 2 fisioterapeutas. Importar vídeo Gravar exercício Todas Coluna Joelho Ombro Assoalho pélvico Pilates Material de casa Câmera liberada 0:42 Da clínica Câmera Perdigueiro 3×8 · 5s Coluna Estabilidade sem material 0:35 Da clínica Câmera Ponte de glúteo 3×12 · 3s Core Força sem material 0:28 Câmera Extensão em prono 2×10 Coluna Mobilidade tapete 0:40 Câmera Mini agachamento na parede 3×10 · 5s Joelho Força parede 0:31 Da clínica Câmera Ostra com elástico 3×15 Quadril Força elástico 1:05 Da clínica Contração do assoalho pélvico 3×10 · 5s Assoalho pélvico Força sem material 0:26 Câmera Extensão de joelho sentado 3×12 · 2s Joelho Força cadeira 0:30 Câmera Apoio unipodal 3× 30s Equilíbrio Equilíbrio cadeira para apoio",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Biblioteca/Index",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Biblioteca.dc.html",
+    "componente": "Biblioteca.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:03.903Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}
