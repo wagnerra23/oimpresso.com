@@ -129,6 +129,15 @@ Os exemplos do protótipo **não viram seed** sem revisão do contador.
 | 6 | Resoluções sem devolver a peça (refação e abatimento com Nota de Crédito) e crédito com validade | 5, 6 | sim |
 | 7 | Estados da devolução e a lista unificada | 14 | não |
 
+**Onda 1 — estado em 2026-11-23.** Rota em [#11374](https://github.com/wagnerra23/oimpresso.com/pull/11374)
+e botão em [#11378](https://github.com/wagnerra23/oimpresso.com/pull/11378), atrás de
+`NFEBRASIL_DEVOLUCAO_PELA_VENDA` + `NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ` (por empresa). Smoke no staging
+do CT 100 **sem SEFAZ**, tenant 98, em transação desfeita: 13 de 13 verificações, do XML de origem ao XML
+da devolução ([comentário no #11374](https://github.com/wagnerra23/oimpresso.com/pull/11374#issuecomment-7114929421)).
+**Não testado, por decisão [W] de 2026-11-23** ("basta o smoke"): a transmissão à SEFAZ de homologação,
+porque o staging não tem certificado A1. Em 2026-11-23 a biz=1 emitia na SEFAZ de **produção** e não tinha
+NF-e 55 autorizada; o primeiro uso real com a flag ligada é, portanto, também a primeira transmissão.
+
 Ficam para decisão do [W] antes de começar a onda correspondente:
 - **Onda 6:** se a Nota de Crédito vira documento novo do ERP e se a validade de 6 meses do
   crédito sai do Vestuario para o núcleo.
