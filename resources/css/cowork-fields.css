@@ -36,8 +36,7 @@
   --cw-accent:       oklch(0.55 0.15 295);
   --cw-accent-2:     oklch(0.62 0.15 295);  /* accent hover (mais claro) */
   --cw-accent-soft:  oklch(0.95 0.04 295);
-  /* Tinta sobre o accent (texto do .cw-btn-primary e do chip ativo). Branco no claro. */
-  --cw-accent-fg:    oklch(1 0 0);
+  --cw-accent-fg:    oklch(1 0 0);  /* tinta sobre o accent (.cw-btn-primary, chip ativo) */
   --cw-error:        oklch(0.65 0.18 25);
   --cw-error-soft:   oklch(0.94 0.04 25);
   /* DS v4.1 Onda F — verde de sucesso (lookup CNPJ ok, field-success). */
@@ -63,12 +62,9 @@
   --cw-text:         oklch(0.92 0.005 90);
   --cw-text-dim:     oklch(0.72 0.005 90);
   --cw-text-mute:    oklch(0.55 0.005 90);
-  /* Protótipo no escuro (styles.css [data-theme="dark"]; ds-tokens-git.css): accent 0.70 0.15,
-     hover 0.76 0.15 e tinta ESCURA por cima. Medido em 2026-11-23: a produção usava 0.68 0.16
-     com texto branco; [W] decidiu levar o tom do protótipo ao app todo. */
-  --cw-accent:       oklch(0.70 0.15 295);
+  --cw-accent:       oklch(0.70 0.15 295);  /* tom do protótipo no escuro ([W] 2026-11-23; era 0.68 0.16) */
   --cw-accent-2:     oklch(0.76 0.15 295);
-  --cw-accent-fg:    oklch(0.14 0.02 295);
+  --cw-accent-fg:    oklch(0.14 0.02 295);  /* tinta escura por cima, como no styles.css do protótipo */
   --cw-accent-soft:  oklch(0.32 0.06 295);
   --cw-error:        oklch(0.70 0.18 25);
   --cw-error-soft:   oklch(0.30 0.08 25);

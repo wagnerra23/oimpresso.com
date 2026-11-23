@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-11-19T11:10:26.893Z",
-    "total_lines": 25446,
+    "generated_at": "2026-11-23T20:56:00.179Z",
+    "total_lines": 25428,
     "file_count": 45,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -17,7 +17,7 @@
     "resources/css/cowork-configuracoes-bundle.css": 665,
     "resources/css/cowork-crm-portal-bundle.css": 118,
     "resources/css/cowork-documentacao-bundle.css": 180,
-    "resources/css/cowork-fields.css": 456,
+    "resources/css/cowork-fields.css": 458,
     "resources/css/cowork-fluxos-bundle.css": 173,
     "resources/css/cowork-forja-bundle.css": 1317,
     "resources/css/cowork-manufacturing-bundle.css": 348,
@@ -43,7 +43,7 @@
     "resources/css/sells-cowork-quotations.css": 92,
     "resources/css/sells-cowork-show.css": 132,
     "resources/css/sells-cowork-subscriptions.css": 143,
-    "resources/css/sells-cowork.css": 4053,
+    "resources/css/sells-cowork.css": 4033,
     "resources/css/sells-kb975-cheatsheet.css": 242,
     "resources/css/sells-kb975-emit-modals.css": 505,
     "resources/css/sells-kb975-next-action.css": 280,
