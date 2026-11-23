@@ -1471,6 +1471,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         /* Gravando, piso e estoque seguem a empresa (UC-V390/V391); na cena, 85% e só aviso. */
         piso={gravacao ? (gravacao.config.precoMinimo ? 1 : null) : undefined}
         estoqueBloqueia={!!gravacao && !gravacao.config.venderSemEstoque}
+        gravando={!!gravacao}
         onFechar={() => setLancando(null)}
         onConfirmar={adicionarLancado}
       />
@@ -1488,7 +1489,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       <ComissaoDrawer
         aberto={comissaoAberta}
         onFechar={() => setComissaoAberta(false)}
-        totais={{ bruto: subtotal, liquido: baseTrib, margem: submitSafe(baseTrib * 0.3) }}
+        /* A margem da cena é 30% fixos da base. Gravando não há custo dos produtos na tela,
+           então a margem fica desconhecida e a gaveta não a usa (UC-V408). */
+        totais={{ bruto: subtotal, liquido: baseTrib, margem: gravacao ? 0 : submitSafe(baseTrib * 0.3) }}
+        margemConhecida={!gravacao}
         beneficiarios={beneficiarios}
         onBeneficiariosChange={setBeneficiarios}
         gatilho={gatilhoComissao}
@@ -1516,7 +1520,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         total={total}
         parcelas={parcelas}
         onParcelasChange={setParcelas}
-        documentoBase="VD-2026"
+        documentoBase={gravacao ? '' : 'VD-2026'}
       />
 
       {/* Onda extra — consulta de clientes. `cena.clientes ?? [cli]` mantém a tela

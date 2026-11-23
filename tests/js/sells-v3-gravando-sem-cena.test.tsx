@@ -1,7 +1,7 @@
 /**
  * Venda V3 gravando — nada da cena de demonstração aparece como dado real.
  *
- * @covers-us UC-V404 UC-V405 UC-V406 UC-V407
+ * @covers-us UC-V404 UC-V405 UC-V406 UC-V407 UC-V408
  *
  * A cena abaixo é a que o `SellsV3Controller` manda com a gravação ligada (a forma é provada no
  * Pest do UC-V404, `SellsCreateV3GravarContratoTest.php`): o cliente padrão lido do cadastro e as
@@ -206,5 +206,70 @@ describe('Venda V3 gravando · sem dados de cena', () => {
     expect(screen.getByDisplayValue('39199090')).toBeTruthy();
     expect(screen.getByText('Confirmar item')).toBeTruthy();
     expect(screen.queryByText('O detalhe do item ainda não está disponível na nova venda')).toBeNull();
+  });
+  /* UC-V408 — comissão: o seletor "Base" abre pelo teclado (o Radix monta as opções só aberto). */
+  function abrirBaseDaComissao() {
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+    const trigger = screen.getByText('Líquido de desconto').closest('button') as HTMLElement;
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+  }
+
+  it('UC-V408 · gravando, a comissão não oferece base por margem nem alerta de margem e diz por quê', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
+    abrirBaseDaComissao();
+
+    expect(screen.getByRole('option', { name: 'Bruto (antes do desconto)' })).toBeTruthy();
+    expect(screen.queryByRole('option', { name: 'Margem (venda − custo)' })).toBeNull();
+    expect(screen.getByText('A margem depende do custo dos produtos, que a nova venda ainda não lê.')).toBeTruthy();
+    expect(screen.queryByText('A comissão come mais da metade da margem desta venda.')).toBeNull();
+  });
+
+  it('UC-V408 · controle: sem a gravação, a comissão segue com a base por margem da cena', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
+    abrirBaseDaComissao();
+
+    expect(screen.getByRole('option', { name: 'Margem (venda − custo)' })).toBeTruthy();
+    expect(screen.queryByText('A margem depende do custo dos produtos, que a nova venda ainda não lê.')).toBeNull();
+  });
+
+  it('UC-V408 · gravando, as parcelas saem numeradas só pela posição, sem "VD-2026"', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Parcelar…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gerar parcelas' }));
+
+    expect(screen.getAllByText('1/2').length).toBeGreaterThan(0);
+    expect(document.body.textContent).not.toContain('VD-2026');
+  });
+
+  it('UC-V408 · controle: sem a gravação, as parcelas seguem com o documento da cena', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Parcelar…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gerar parcelas' }));
+
+    expect(screen.getAllByText('VD-2026 1/2').length).toBeGreaterThan(0);
+  });
+
+  it('UC-V408 · gravando, o lançamento diz que as informações adicionais não gravam, sem as listas da cena', () => {
+    // A tela passa `gravando={!!gravacao}` ao LancarItem; aqui o componente direto, como no UC-V405,
+    // porque gravando o lançamento sai da busca do cadastro, que este render não tem.
+    const produto = {
+      sku: 'SKU-1', nome: 'Produto de teste', un: 'un', preco: 10, estoque: 5,
+      tipo: 'produto' as const, ean: null, fabrica: null, categoria: null,
+    };
+    const { rerender } = render(
+      <LancarItem produto={produto} executantes={[]} podeEditarPreco gravando onFechar={() => {}} onConfirmar={() => {}} />,
+    );
+    expect(
+      screen.getByText(/As informações adicionais do item \(observações, local da aplicação e tipo de impressão\) ainda não são/),
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Informações adicionais do item/ })).toBeNull();
+
+    // Controle: sem a gravação, a dobra volta.
+    rerender(
+      <LancarItem produto={produto} executantes={[]} podeEditarPreco onFechar={() => {}} onConfirmar={() => {}} />,
+    );
+    expect(screen.getByRole('button', { name: /Informações adicionais do item/ })).toBeTruthy();
+    expect(screen.queryByText(/ainda não são/)).toBeNull();
   });
 });

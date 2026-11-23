@@ -170,7 +170,9 @@ export default function ParcelasDrawer({
         lanc: LANCAMENTOS[0]!,
         plano: PLANOS[0]!,
         conta,
-        doc: `${documentoBase} ${i + 1}/${qtd}`,
+        /* Gravando (UC-V408) não há número de documento antes de a venda existir: a parcela
+           fica só "1/3". O "VD-2026" da cena não era o número de venda nenhuma. */
+        doc: documentoBase ? `${documentoBase} ${i + 1}/${qtd}` : `${i + 1}/${qtd}`,
         resp: '',
         hist: '',
       })),
