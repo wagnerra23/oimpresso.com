@@ -114,6 +114,44 @@ Wagner aprovou Wave consolidada (Cockpit + NFS-e + Eventos) — 2026-05-20.
 - **2026-05-20** — Wave consolidada PR #2 (Cockpit + NFS-e + Eventos). Implementação fiel ao protótipo Cowork.
 - **2026-09-04** — Item A2 ([W]): as sparklines passam a ser DESENHADAS (`_components/RibbonSpark.tsx`, 3 KPIs, UC-FCKP-12 + lane própria). Corrigido o veredito de 05-20 nas duas linhas do `MiniSparkline` — ver **Nota A**. O Goal #2 do charter também cedeu de *4 KPIs* para *3*, pela cadeia de FORMA (ADR UI-0029).
 
+## Medição de runtime — 2026-11-23 · produção (oimpresso.com) × espelho · tema escuro nos dois
+
+> Prod medida no Chrome logado em `https://oimpresso.com/fiscal`; espelho por
+> `design-diff-lote.mjs --lado design --tela Fiscal/Cockpit --tema dark`. A MESMA sonda
+> (`design-diff.mjs --probe`) nos dois lados, provada idêntica por SHA-256 dentro da página da prod
+> (`358fd0f0…ebe20`, 26.291 bytes). Papéis lidos no DOM dos dois lados e gravados em
+> `governance/design/targets/roles/Fiscal--Cockpit.json` (antes não havia papéis e a sonda media
+> `kpi = 0` no protótipo). O `--compare` do dono NÃO rodou: a extensão do Chrome redige parte da
+> saída (dados de cliente), então o `prod.json` completo não saiu da página. Os números abaixo são
+> os campos que saíram inteiros; a assinatura de texto da prod não foi gravada (tem dado de cliente).
+>
+> ⚠️ **Tema misturado na prod:** só o `<html>` foi posto em escuro. Peso, tamanho, borda, fonte mono e
+> forma das pílulas não dependem do tema e valem; COR da prod vale só onde o token vem do `<html>`
+> (`.dark`), que é o caso do botão primário e dos tokens `--fx-*` do Fiscal.
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D2 | KPIs: quantidade, alinhamento, valor | 6 · start · 18px | 6 · start · 18px | IGUAL |
+| D4 | título | 22px · 700 | 22px · 600 | **DÍVIDA A FECHAR** (já registrada em 11-05, segue aberta) |
+| D6 | botão primário (Emitir) no escuro | fundo `oklch(0.68 0.16 295)`, texto branco | fundo `oklch(0.70 0.15 295)`, texto `oklch(0.14 0.02 295)` | **DÍVIDA A FECHAR** — a diferença grande é o texto (branco × escuro). ⚠️ Errata: a 1ª redação desta linha dizia `≈0.55`, lido numa medição com tema misturado (só o `<html>` em escuro; o `.cockpit` segue o `data-theme` do usuário e ficou claro). Remedido com o tema aplicado como o app faz: 0.68 0.16 |
+| D7 | chips de visão | 1 linha | 1 linha | IGUAL |
+| D8 | tabela | `auto` · 8 linhas · 0 com estado | `auto` · 8 linhas · 0 com estado | IGUAL |
+| D8 | col 1 (Tipo) | pílula 99px sem borda, 12px 600 | texto mono 11px 400, sem pílula | **DÍVIDA A FECHAR** |
+| D8 | col 2 (Número) | mono 14px 700, 2 blocos | mono 14px 700, 2 blocos | IGUAL |
+| D8 | col 3 (Cliente/chave) | link, 13px 700, sem mono | botão, 14px 700, com mono (chave) | **DÍVIDA A FECHAR** — tamanho e chave em mono |
+| D8 | col 4 (Status) | pílula 99px **sem borda**, 12px 500 | pílula 999px **com borda**, 12px 600 | **DÍVIDA A FECHAR** — borda e peso |
+| D8 | col 5 | 13px 400 | 13px 400 | IGUAL |
+| D8 | col 6 (ações/valor) | 11px 600, sem mono | 11px 400, mono | **DÍVIDA A FECHAR** |
+| D1 | trocar a visão salva | 0 requisição de rede (filtro local) | — | IGUAL (sem recarga) |
+| — | bloco "Débitos conhecidos" | Alert do DS: padding 12/16, raio 12px, título 14px 500, texto 14px, com selo | `.fx-debito`: padding 10/14, raio 8px, fundo `--bg-2`, título `--fs-3` (12,5px), texto `--fs-2` (11,5px), sem selo | **DÍVIDA A FECHAR** — o `DebitosConhecidos.tsx` declara o Alert como "delta consciente", o que a UI-0029 não aceita no eixo forma |
+
+- `saude` da prod: 7 de 7 tokens do DS ausentes no `:root` (`--accent`, `--pos`…). A prod declara os
+  tokens dentro do `.cockpit`, não no `:root`; não é tela quebrada, mas é por isso que a sonda não
+  acha os tokens na raiz.
+- No espelho, o Cockpit não desenha o bloco de débitos (só as sub-telas desenham); a linha acima
+  compara o item com a regra CSS `.fx-debito` do `fiscal-page.css`.
+- Larguras de coluna diferem, mas dependem do dado (`table-layout: auto` nos dois): ficam como dado, sem veredito.
+
 ## Medição de runtime — 2026-11-05 · veredito DIVERGE (bug) · 1
 
 > Substitui, como estado atual, a rodada de 2026-09-08 logo abaixo. Aquela não chegou a comparar
