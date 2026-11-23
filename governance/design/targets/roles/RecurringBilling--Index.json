@@ -1,0 +1,22 @@
+{
+  "_medido_em": "2026-11-23",
+  "_por_que": "A tabela ROTAS do cobranca-recorrente-page.jsx tem vista antes de page ({ vista, page }); o rotasDaAncora do lote só casa page como 1a chave, então as 4 telas caíam na rota do grupo (route=recurring) e o design.json saía igual nas 4 (a medida de 2026-09-18). Token por tela aqui. Papéis medidos no DOM dos dois lados em 2026-11-23.",
+  "token": "rb-assinaturas",
+  "contrato": "governance/design/contracts/recorrente-assinaturas.contract.json",
+  "roles": {
+    "prod": {
+      "kpi": "main [data-contract=\"kpis\"] > *",
+      "title": "main h1",
+      "primary": "main [data-contract=\"cabecalho\"] .bg-primary",
+      "filterControls": "main [data-contract=\"filtros\"] > *",
+      "tableRow": "main [data-contract=\"lista\"] > div:nth-child(2) > div"
+    },
+    "design": {
+      "kpi": ".cr-root .cr-stats > .cr-stat",
+      "title": ".cr-root h1",
+      "primary": ".cr-root .cr-hero-actions .cr-primary",
+      "filterControls": ".cr-root .cr-body aside.cr-card > *",
+      "tableRow": ".cr-root .cr-row"
+    }
+  }
+}

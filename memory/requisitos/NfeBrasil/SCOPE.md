@@ -13,6 +13,7 @@ contains:
   - "NfeStatusController — endpoint JSON polling + Page Inertia (US-NFE-002 fase 2C)"
   - "DanfePublicaController — DANFE em PDF por link assinado (7 dias) para o cliente, GET /nfe-brasil/danfe/{business}/{emissao}; sem assinatura válida = 403 (US-WA-321, aviso por WhatsApp)"
   - "NfeEmissaoController — emissão fiscal manual + reenvio DANFE email + download PDF (US-NFE-MANUAL, PR #262)"
+  - "NfeLoteController — barra de lote do Painel Fiscal: ZIP de XMLs, PDF único de DANFEs e reenvio por e-mail (UC-FCKP-22..24)"
   - "ManifestacaoController — Manifestação do Destinatário (US-NFE-052, PR #317)"
   - "NfeInutilizacaoController — UI admin pra inutilizar faixa NFe via SEFAZ (US-SELL-030)"
   - "ContingenciaController — liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"

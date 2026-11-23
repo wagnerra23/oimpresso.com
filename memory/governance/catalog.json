@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1070,
-    "edges": 1453,
+    "nodes": 1073,
+    "edges": 1456,
     "by_node_type": {
       "module": 45,
       "table": 147,
       "adr": 158,
-      "component": 620,
-      "api": 100
+      "component": 622,
+      "api": 101
     },
     "by_edge_type": {
       "ownsTable": 122,
       "ownsLegacyView": 13,
       "consumesTable": 26,
-      "providesApi": 104,
+      "providesApi": 105,
       "charteredByAdr": 30,
       "governedByAdr": 90,
-      "hasComponent": 620,
+      "hasComponent": 622,
       "dependsOn": 165,
       "delegatesTo": 144,
       "migratesTo": 1,
@@ -1510,6 +1510,14 @@
       "id": "api:/fisio",
       "type": "api",
       "prefix": "/fisio",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/consulta/{consulta}/*",
+      "type": "api",
+      "prefix": "/fisio/consulta/{consulta}/*",
       "providers": [
         "Fisio"
       ]
@@ -3750,6 +3758,13 @@
       "desc": "Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
     },
     {
+      "id": "component:Fisio/ConfirmacaoConsultaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ConfirmacaoConsultaController",
+      "desc": "página pública de um toque da mensagem de confirmação (link assinado, sem PIN): Confirmo e Não vou poder ir dentro do prazo (US-FISIO-017)"
+    },
+    {
       "id": "component:Fisio/DadosSociaisController",
       "type": "component",
       "module": "Fisio",
@@ -4812,6 +4827,13 @@
       "module": "NfeBrasil",
       "name": "NfeInutilizacaoController",
       "desc": "UI admin pra inutilizar faixa NFe via SEFAZ (US-SELL-030)"
+    },
+    {
+      "id": "component:NfeBrasil/NfeLoteController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "NfeLoteController",
+      "desc": "barra de lote do Painel Fiscal: ZIP de XMLs, PDF único de DANFEs e reenvio por e-mail (UC-FCKP-22..24)"
     },
     {
       "id": "component:NfeBrasil/NfeStatusController",
@@ -12062,6 +12084,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/ConfirmacaoConsultaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/DadosSociaisController",
       "type": "hasComponent",
       "source": "contains"
@@ -12305,6 +12333,12 @@
       "to": "component:Fisio/VendaDoPacoteObserver",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/consulta/{consulta}/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Fisio",
@@ -14694,6 +14728,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/NfeInutilizacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/NfeLoteController",
       "type": "hasComponent",
       "source": "contains"
     },

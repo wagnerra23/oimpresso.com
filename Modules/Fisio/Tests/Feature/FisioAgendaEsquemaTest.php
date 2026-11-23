@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-013
 // Cobre US-FISIO-013 (memory/requisitos/Fisio/SPEC.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
