@@ -23,17 +23,20 @@ related:
 
 ## 1. A rede hoje
 
-| Associação | Cidade · mesorregião | Desde | Instagram | Contato institucional |
+| Associação | Cidade · mesorregião | Desde | Instagram (seguidores em 23/11/2026) | Contato institucional |
 |---|---|---|---|---|
-| AGFESC Girassóis (sede) | Criciúma e 14 núcleos · Sul | grupo 2020, fundação 09/2023 | @fibromialgicoscriciuma · @rincao_fibro | falta |
-| AREFI | Indaial e Médio Vale · Vale do Itajaí | 09/2023 | @arefivale | arefi.vale@gmail.com · (47) 98815-0242 |
-| AFASJ | São José · Grande Florianópolis | 10/2025 | a confirmar | falta |
-| AFICOR | Concórdia e Alto Uruguai · Oeste | 2021 | não encontrado | falta |
-| AFIBROMAR | Maravilha e Extremo Oeste · Oeste | 07/2025 | não encontrado | afibromarmaravilha@gmail.com · (49) 9949-6130 |
-| AFAGAS (Fibromialgia Entre Elas) | Gaspar · Vale do Itajaí | 2026 | não encontrado | falta |
-| ASCAF | Cocal do Sul · Sul | 2026 | @ascaf10 | falta |
+| AGFESC Girassóis (sede) | Criciúma e 14 núcleos · Sul | grupo 2020, fundação 09/2023 | @assgirassoisfibromialgicossc (13,5 mil) · núcleos @agfescgravatal (428), @fibromialgicoscriciuma (172), @rincao_fibro (24) | falta |
+| AFIBROMAR | Maravilha e Extremo Oeste · Oeste | 07/2025 | @afibromar2025 (2.998) · núcleo @afibromarnucleocunhapora (148) | afibromarmaravilha@gmail.com · (49) 9949-6130 |
+| AFICOR | Concórdia e Alto Uruguai · Oeste | 14/10/2021 | @aficor2021 (2.491) | falta |
+| AFASJ | São José · Grande Florianópolis | 10/2025 | @associacaofibromialgiaamigossj (1.560) | grupo de WhatsApp na bio |
+| AREFI | Indaial e Médio Vale · Vale do Itajaí | 09/2023 | @arefivale (858, parado desde 05/2024) | arefi.vale@gmail.com · (47) 98815-0242 |
+| AFAGAS | Gaspar · Vale do Itajaí | 04/2026 | @afagas2026 (673) | falta |
+| ASCAF | Cocal do Sul · Sul | 2026 | @ascaf10 (100) | falta |
 | Homens de Fibro SC (grupo da Uniafibro) | estadual | 11/2026 | @homensdefibro.sc | WhatsApp (48) 99987-2822 |
-| **Uniafibro-SC** | estadual · em formação | 11/2026 | @uniafibro2026 · uniafibro.com.br | e-mail e telefone ainda não existem |
+| **Uniafibro-SC** | estadual · em formação | 11/2026 | @uniafibro2026 (317) · uniafibro.com.br | e-mail e telefone ainda não existem |
+
+**Alcance nas redes:** somando os perfis acima, **mais de 23 mil seguidores** (a mesma pessoa pode seguir mais de um perfil).
+Em 23/11/2026 o @homensdefibro.sc passou a seguir todos esses perfis.
 
 Presença: **4 das 6 mesorregiões** (Sul, Vale do Itajaí, Oeste e Grande Florianópolis). Faltam Norte e Serra.
 A ACPFA (Joinville) não faz parte da rede (decisão [W] 23/11/2026).
@@ -50,6 +53,9 @@ A ACPFA (Joinville) não faz parte da rede (decisão [W] 23/11/2026).
 | 540+ | associadas só no núcleo de Tubarão (2026) | relato da associação |
 | 14 | núcleos da AGFESC no Sul | planilha da rede |
 | 50 vagas/mês | Equipe de Reabilitação da FURB, para 14 municípios | planilha da rede |
+| 23 mil+ | seguidores somados dos Instagrams da rede | perfis, 23/11/2026 |
+| 5 | congressos regionais feitos pela AFICOR (I ao V) | @aficor2021 |
+| 2 × 15 | pessoas por grupo piloto em Tubarão, com equipe multiprofissional | @assgirassoisfibromialgicossc, out. 2026 |
 
 ## 3. Linha do tempo
 
@@ -88,10 +94,51 @@ A ACPFA (Joinville) não faz parte da rede (decisão [W] 23/11/2026).
 | nov. 2026 | Revisão conjunta dos estatutos de 7 associações | rede | estadual | documentos de 20/11 |
 | nov. 2026 | Grupo Homens de Fibro SC criado | Uniafibro | estadual | @homensdefibro.sc |
 
+### 3.1 Tirado dos Instagrams (23/11/2026)
+
+| Quando | O que | Quem | Onde | Fonte |
+|---|---|---|---|---|
+| 22/09/2023 | Noite de fundação da associação | AREFI | Indaial | @arefivale |
+| 13/12/2023 | Encerramento anual dos grupos de fibromialgia | AREFI | Indaial | @arefivale |
+| até 2026 | Cinco congressos regionais (I ao V) | AFICOR | Concórdia | destaques @aficor2021 |
+| 22/10/2025 | Reunião com o secretário de Estado da Saúde, com deputado estadual | AGFESC | — | @assgirassoisfibromialgicossc |
+| 05/11/2025 | Audiência pública "Cannabis em defesa da vida", na Unisul | AGFESC | Tubarão | @assgirassoisfibromialgicossc |
+| 12/11/2025 | **Audiência pública em Brasília** sobre direitos dos fibromiálgicos | AGFESC | Brasília | @assgirassoisfibromialgicossc |
+| 14/11/2025 | Seminário de Fibromialgia em Itajaí | AGFESC | Itajaí | @assgirassoisfibromialgicossc |
+| 18/11/2025 | Fala na tribuna da Câmara de Vereadores sobre a audiência de Brasília | AGFESC | Sul | @assgirassoisfibromialgicossc |
+| 12/2025 | Encerramentos do ano: Tubarão (Unisul, dois turnos), Capivari de Baixo | AGFESC | Tubarão · Capivari | @assgirassoisfibromialgicossc |
+| 12/2025 | Apoio do Fundo Social do Sicredi | AFICOR | Concórdia | @aficor2021 |
+| 2026 (todo o ano) | Fisioterapia de solo e hidroterapia semanais na Unisul | AGFESC (Tubarão) | Tubarão | @assgirassoisfibromialgicossc |
+| 18/02/2026 | Assembleia geral e retomada do ambulatório multiprofissional | AFICOR | Concórdia | @aficor2021 |
+| 26/02/2026 | **1ª Caminhada da Fibromialgia** | AGFESC | Sul | @assgirassoisfibromialgicossc |
+| 04/2026 | Conversa sobre direitos da pessoa com deficiência/fibromialgia | AFICOR | Concórdia | @aficor2021 |
+| 04/2026 | Fundação da AFAGAS | AFAGAS | Gaspar | @afagas2026 |
+| 05/2026 | **2ª Caminhada "Unindo forças para fazer a diferença"** | AFICOR | Concórdia | @aficor2021 |
+| 05/2026 | Venda de pizzas para custear as ações | AFICOR | Concórdia | @aficor2021 |
+| 22/06/2026 | Palestra com o SEST SENAT | AFICOR | Concórdia | @aficor2021 |
+| 2026 | 2º Arraiá, Brechó Afibromar e programa "Empresa Amiga" | AFIBROMAR | Maravilha | destaques @afibromar2025 |
+| 2026 | 2º Café da AFAGAS e reunião com o secretário de Saúde | AFAGAS | Gaspar | destaques @afagas2026 |
+| 08/2026 | Palestra "Fibromialgia e o cuidado integral", com médico geriatra | AFICOR | Concórdia | @aficor2021 |
+| 13/08/2026 | Reunião com o secretário de Estado da Saúde | AFICOR | — | @aficor2021 |
+| 19/09/2026 | 1ª Macarronada beneficente | AFICOR | Concórdia | @aficor2021 |
+| 26/09/2026 | Encontro em Cunha Porã: nasce o núcleo | AFIBROMAR | Cunha Porã | @afibromar2025 |
+| 29/09/2026 | Associadas debatem políticas públicas e direitos | AFIBROMAR | Maravilha | @afibromar2025 |
+| 10/2026 | Dois grupos piloto de 15 pessoas com equipe multiprofissional da Prefeitura | AGFESC (Tubarão) | Tubarão | @assgirassoisfibromialgicossc |
+| 10/2026 | Projeto de artesanato com as associadas; parceria para alívio das dores | AFIBROMAR | Maravilha | @afibromar2025 |
+| 16/10/2026 | Encontro das lideranças da Uniafibro | rede | estadual | @afibromar2025 |
+| 16/10/2026 | Anúncio de fomento municipal | AFICOR | Concórdia | @aficor2021 |
+| 21/10/2026 | FCEE credencia a associação na avaliação da carteirinha | AGFESC | estadual | @assgirassoisfibromialgicossc |
+| 04/11/2026 | Flor do Sertão avança na criação de núcleo | AFIBROMAR | Flor do Sertão | @afibromar2025 |
+| 06/11/2026 | **V Congresso Regional em Atenção à Pessoa com Fibromialgia**, com presença da AFIBROMAR | AFICOR | Concórdia | @aficor2021 · @afibromar2025 |
+| 11/11/2026 | Palestra sobre avaliação biopsicossocial no município | AFIBROMAR | Maravilha | @afibromar2025 |
+| 10–20/11/2026 | Visitas às UBS Ceniro Martins e Zanellato; reunião de associadas | AFASJ | São José | @associacaofibromialgiaamigossj |
+| 11–12/11/2026 | Ações com a Prefeitura de Cocal do Sul | ASCAF | Cocal do Sul | @ascaf10 |
+| 27/11/2026 | 11ª Conferência Municipal de Saúde (participação prevista) | AFAGAS | Gaspar | @afagas2026 |
+
 ## 4. O que ainda falta levantar
 
-- Eventos de 2025–2026 da AFICOR, AFIBROMAR, AFASJ, AFAGAS e ASCAF: nada público na internet. Pedir a cada
-  presidente: data, local, número de pessoas e uma foto autorizada.
+- Número de participantes de cada evento: os posts quase nunca dizem. Pedir a cada presidente.
+- AREFI: o Instagram parou em 05/2024; as ações de 2025–2026 ficam no WhatsApp ou no Facebook.
 - Total de associadas da rede (hoje só há o número dos Girassóis e de Tubarão).
 - Relatório de 12 meses da AREFI (modelo pronto, ainda sem preencher).
 - Datas exatas: seminário de Gravatal, 2º Seminário de Indaial.
