@@ -16,6 +16,7 @@
 
 import { Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
@@ -25,6 +26,8 @@ import { useEffect, useMemo, useState } from 'react';
 import DensidadeToggle from './_components/DensidadeToggle';
 import FxShell from './_components/FxShell';
 import InutilizacaoModal from './_components/InutilizacaoModal';
+import LoteSaidaModal, { type TipoSaidaLote } from './_components/LoteSaidaModal';
+import { enviarLote } from './_lib/lote-saida';
 import NotaDrawer, { type NotaRow } from './_components/NotaDrawer';
 import { chipCount, chipProps } from './_lib/chip-filtro';
 import {
@@ -75,6 +78,29 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
   const [opened, setOpened] = useState<NotaRow | null>(null);
   const [cursor, setCursor] = useState(0);
   const [inutOpen, setInutOpen] = useState(false);
+  // Seleção e lote (backend dos UC-FCKP-22..24): o mesmo backend e a mesma confirmação do Painel.
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [saida, setSaida] = useState<TipoSaidaLote | null>(null);
+  const [loteBusy, setLoteBusy] = useState(false);
+  const [loteMsg, setLoteMsg] = useState<string | null>(null);
+  const toggleSel = (id: number) => setSelected((s) => {
+    const n = new Set(s);
+    if (n.has(id)) n.delete(id);
+    else n.add(id);
+    return n;
+  });
+  const toggleTodas = (ids: number[]) => setSelected((s) => (ids.every((id) => s.has(id)) ? new Set() : new Set(ids)));
+  const abrirSaida = (tipo: TipoSaidaLote) => { setLoteMsg(null); setSaida(tipo); };
+  const confirmarSaida = async () => {
+    if (!saida || selected.size === 0) return;
+    setLoteBusy(true);
+    try {
+      setLoteMsg(await enviarLote(saida, [...selected]));
+    } finally {
+      setLoteBusy(false);
+      setSaida(null);
+    }
+  };
   const [density, setDensity] = useDensidadeFiscal();
 
   const dataRows: NotaRow[] = rows?.data ?? [];
@@ -289,15 +315,35 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                     reescreveria 66 linhas so de whitespace e colidiria com o PR 6726, que
                     edita a linha do `sefazPill` aqui dentro (medido: `git merge-tree`
                     conflitava; sem a reindentacao, mergeia limpo). */}
-                <div className="fx-table" data-keyboard="true">
+                {selected.size > 0 && (
+                  <div className="fx-bulk-bar" role="region" aria-label="Ações em lote">
+                    <span><b>{selected.size}</b> nota{selected.size > 1 ? 's' : ''} selecionada{selected.size > 1 ? 's' : ''}</span>
+                    <Button type="button" variant="cowork-ghost" onClick={() => abrirSaida('zip')}>Baixar XMLs (ZIP)</Button>
+                    <Button type="button" variant="cowork-ghost" onClick={() => abrirSaida('pdf')}>Baixar DANFEs (PDF)</Button>
+                    <Button type="button" variant="cowork-ghost" onClick={() => abrirSaida('email')}>Reenviar por e-mail</Button>
+                    <Button type="button" variant="cowork-ghost" onClick={() => setSelected(new Set())}>Limpar seleção</Button>
+                    {loteMsg && <span role="status" data-contract="lote-resultado">{loteMsg}</span>}
+                  </div>
+                )}
+                {/* Forma do protótipo (fiscal-page.jsx FxNotasTable, medida em 2026-11-23): seleção,
+                    Tipo, Número, Cliente / chave, Status, Prazo e Valor com as ações da linha. */}
+                <div className="fx-table fx-cockpit-notas" data-keyboard="true">
                   <table>
                     <thead>
                       <tr>
+                        <th style={{ width: 34 }}>
+                          <Checkbox
+                            checked={dataRows.length > 0 && dataRows.every((r) => selected.has(r.id))}
+                            onCheckedChange={() => toggleTodas(dataRows.map((r) => r.id))}
+                            aria-label="Selecionar todas"
+                          />
+                        </th>
+                        <th style={{ width: 88 }}>Tipo</th>
                         <th style={{ width: 88 }}>Número</th>
-                        <th>Chave / destinatário</th>
-                        <th style={{ width: 200 }}>Status SEFAZ</th>
-                        <th style={{ width: 110, textAlign: 'right' }}>Valor</th>
-                        <th style={{ width: 96 }}>Emissão</th>
+                        <th>Cliente / chave</th>
+                        <th style={{ width: 168 }}>Status</th>
+                        <th style={{ width: 132 }}>Prazo</th>
+                        <th style={{ width: 190, textAlign: 'right' }}>Valor</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -323,31 +369,66 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
                               setOpened(n);
                             }}
                           >
-                            <td className="fx-mono">
-                              <b>{n.num}</b>
-                              <small>{n.modelo === 65 ? 'NFC-e' : 'NF-e'} · s{n.serie}</small>
+                            <td onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                              <Checkbox
+                                checked={selected.has(n.id)}
+                                onCheckedChange={() => toggleSel(n.id)}
+                                aria-label={`Selecionar nota ${n.num}`}
+                              />
                             </td>
                             <td>
-                              <div className="fx-cell-key">{truncKey(n.key)}</div>
-                              <small>{juntarInfo(n.dest, formatDoc(n.cnpj, n.cpf))}</small>
+                              <span className={`fx-tipo ${n.modelo === 65 ? 't-nfce' : 't-nfe'}`}>{n.modelo === 65 ? 'NFC-e' : 'NF-e'}</span>
+                            </td>
+                            <td className="num">
+                              <b>{n.num}</b>
+                              <small>série {n.serie}</small>
+                            </td>
+                            <td className="cli">
+                              <b>{n.dest || '—'}</b>
+                              <div>{juntarInfo(formatDoc(n.cnpj, n.cpf), n.uf ?? null)}</div>
+                              <code className="fx-key" title={n.key ?? ''}>{truncKey(n.key)}</code>
                             </td>
                             <td>
                               <span className={`fx-sefaz ${sefaz.tone}`} title={sefaz.hint}>
-                                <span className="code">{n.cstat || '—'}</span>
                                 <span className="lbl">{sefaz.label}</span>
                               </span>
-                              {cancel && (
-                                <span className={`fx-timepill u-${cancel.urgency} compact`}>
-                                  <RefreshCw size={9} aria-hidden="true"/>
-                                  <span className="lbl"><b>{cancel.h}h</b></span>
-                                </span>
-                              )}
-                            </td>
-                            <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>
-                              {brl(n.value)}
+                              {sefaz.tone === 'bad' && n.motivo && <div className="fx-rej">↳ {n.motivo}</div>}
                             </td>
                             <td>
-                              <small>{n.when ?? '—'}</small>
+                              {cancel ? (
+                                <span className={`fx-timepill u-${cancel.urgency}`}>
+                                  cancelar em <b>{cancel.h}h</b>
+                                </span>
+                              ) : sefaz.tone === 'bad' ? (
+                                <span className="fx-timepill u-crit"><b>ação</b></span>
+                              ) : (
+                                <span style={{ color: 'var(--fx-text-mute)' }}>—</span>
+                              )}
+                            </td>
+                            <td className="val">
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
+                                {n.status === 'autorizada' && (
+                                  <span className="fx-row-actions">
+                                    <button
+                                      type="button"
+                                      className="fx-row-act"
+                                      aria-label={`Baixar XML da ${n.modelo === 65 ? 'NFC-e' : 'NF-e'} ${n.num}`}
+                                      onClick={(e) => { e.stopPropagation(); void enviarLote('zip', [n.id]).then(setLoteMsg); }}
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                    >XML</button>
+                                    <a
+                                      className="fx-row-act"
+                                      href={`/nfe-brasil/emissoes/${n.id}/danfe-pdf`}
+                                      target="_blank"
+                                      rel="noopener"
+                                      aria-label={`Abrir DANFE da ${n.modelo === 65 ? 'NFC-e' : 'NF-e'} ${n.num}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onKeyDown={(e) => e.stopPropagation()}
+                                    >PDF</a>
+                                  </span>
+                                )}
+                                <span>{brl(n.value)}</span>
+                              </span>
                             </td>
                           </tr>
                         );
@@ -363,6 +444,14 @@ export default function Nfe({ filters: initialFilters, counts, sefazCodes, rows 
       </FxShell>
 
       <NotaDrawer nota={opened} sefazCodes={sefazCodes} onClose={() => setOpened(null)} />
+      <LoteSaidaModal
+        tipo={saida}
+        qtd={selected.size}
+        foraNfse={0}
+        busy={loteBusy}
+        onConfirm={confirmarSaida}
+        onClose={() => setSaida(null)}
+      />
       <InutilizacaoModal
         open={inutOpen}
         onClose={() => setInutOpen(false)}

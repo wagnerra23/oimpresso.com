@@ -5,7 +5,7 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-23"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
