@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/ConfigAgendamentoOnline.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 8 Agenda Pacientes Prescrever Biblioteca Configurações ⋯ mais 3 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fisio · Configurações Agendamento pelo app O que o paciente pode marcar, remarcar e cancelar sozinho pelo app da clínica. Ligado WhatsApp Agendamento pelo app Quem pode agendar sozinho Pacientes com pacote ou plano ativo Recomendado para começar. Todos os pacientes em tratamento Inclui avulsos com retorno marcado. Ninguém — só ver as consultas O app mostra e remarca pela clínica. Paciente novo marca a 1ª avaliação pelo link público da clínica, com sinal por Pix se ligado (F3 · A9). Os consentimentos vêm antes do atendimento. O que aparece no app Sessão do pacote 50 min Teleconsulta 30 min Reavaliação 60 min Horários abertos para o app O resto da agenda continua só pela recepção. seg ter qua qui sex 08:00 app app app app 08:30 app app app app app 10:00 app app 14:00 app app app 16:00 app app app app 18:00 app app Regras Antecedência mínima para marcar 2 h Remarcar ou cancelar até 24 h antes Agendar até quantos dias à frente 30 dias Faltas sem aviso antes de bloquear o app 2 Sinal por Pix (avulso e reavaliação) 30% · pacote isento Devolve o sinal se cancelar até 24 h antes Lista de espera ligada · até 30 dias Check-in \"Cheguei\" no app ligado Marcar para dependente ligado Nota depois da sessão privada Lembrete, confirmação e aviso de vaga saem pelo canal escolhido em Configurações · WhatsApp. Não existe opção de promoção, venda extra no checkout ou nota pública: o app é da clínica, não vitrine.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Configuracoes/Agendamento",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/ConfigAgendamentoOnline.dc.html",
+    "componente": "ConfigAgendamentoOnline.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:11.256Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}
