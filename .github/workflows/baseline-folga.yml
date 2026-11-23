@@ -118,6 +118,27 @@ jobs:
           git fetch --no-tags origin main
           git rebase --onto origin/main HEAD~1
 
+          # Idempotente por DIA: a branch é datada e só desta rotina. Uma 2ª run no mesmo dia
+          # (dispatch + agendado, como em 2026-11-23) rebaseia sobre um main mais novo, e o push
+          # seria recusado por não ser fast-forward. Se a branch do dia já existe, o PR dela já
+          # carrega a medição de hoje (aberto), já entrou (mergeado) ou foi recusado pelo [W]
+          # (fechado) — em nenhum dos três casos faz sentido empurrar de novo. Sem force-push.
+          # Branch por run NÃO: duplicaria PR (§5 2026-09-16, sdd-scorecard-publish, 34/348).
+          # rc do `ls-remote --exit-code`: 0 = existe · 2 = ausente · outro = não consegui medir
+          # (rede/auth) e o step FALHA — "não medi" nunca vira "ausente" (§5 2026-07-29).
+          set +e
+          git ls-remote --exit-code --heads origin "$BR" > /dev/null
+          RC=$?
+          set -e
+          case "$RC" in
+            0)
+              PR=$(gh pr list --head "$BR" --state all --json number,state --jq '.[0] | "#\(.number) (\(.state))"')
+              echo "Branch $BR já existe no remoto — PR do dia: ${PR:-nenhum}. Nada a empurrar."
+              exit 0 ;;
+            2) ;;
+            *) echo "::error::git ls-remote falhou (rc=$RC) — não sei se $BR existe; não empurro."; exit 1 ;;
+          esac
+
           git push -u origin "$BR"
           gh pr create \
             --title "chore(governance): trava o ganho — aperta baseline que ficou frouxo [bot]" \
