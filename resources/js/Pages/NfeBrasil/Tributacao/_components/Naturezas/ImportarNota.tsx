@@ -28,9 +28,11 @@ function Opcao({ ativo, onClick, icone: Ico, titulo, texto }: {
     <button type="button" aria-pressed={ativo} onClick={onClick}
       className={`flex min-w-0 flex-col gap-1.5 rounded-lg border bg-[var(--surface)] p-3.5 text-left hover:border-[color-mix(in_oklch,var(--accent)_40%,var(--border))] ${
         ativo ? 'border-[var(--accent)] shadow-[0_0_0_3px_var(--accent-soft)]' : 'border-[var(--border)]'}`}>
-      <b className="flex items-center gap-2 text-[13.5px] font-semibold text-[var(--text)]">
-        <Ico aria-hidden className="h-4 w-4" style={{ color: 'color-mix(in oklch, var(--accent) 62%, var(--text))' }} />{titulo}
-      </b>
+      <Inline asChild gap={2}>
+        <b className="text-[13.5px] font-semibold text-[var(--text)]">
+          <Ico aria-hidden className="h-4 w-4" style={{ color: 'color-mix(in oklch, var(--accent) 62%, var(--text))' }} />{titulo}
+        </b>
+      </Inline>
       <span className="text-[12px] leading-snug text-[var(--text-dim)]">{texto}</span>
     </button>
   );
