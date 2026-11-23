@@ -33,6 +33,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 // Onda 21 v9,75 — componentes DS pro drawer Nova assinatura (conformidade ui:lint R1 + eslint ds/*).
+import RecurringBillingSubNav from './_components/RecurringBillingSubNav';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/Components/ui/sheet';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
@@ -363,7 +364,8 @@ function KpiCard({ label, value, delta, deltaTone = 'neutral', hero = false, spa
 
 export default function RecurringBillingIndex(props: PageProps) {
   const { filters, kpis, subscriptions, plans } = props;
-  const [tab, setTab] = useState<Tab>(props.tab || 'assinaturas');
+  // A página é sempre a vista Assinaturas; as outras 3 têm rota própria (RecurringBillingSubNav).
+  const [tab] = useState<Tab>(props.tab || 'assinaturas');
   const [activeId, setActiveId] = useState<number | null>(null);
   // Onda 21 v9,75 — drawer "Nova assinatura" (auto-abre via ?new=1 / atalho N).
   const [showCreate, setShowCreate] = useState<boolean>(props.openCreate ?? false);
@@ -480,14 +482,6 @@ export default function RecurringBillingIndex(props: PageProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [filtered, active, showCreate]);
 
-  // ── Tabs sub-rota
-  const TABS: Array<{ key: Tab; label: string; count?: number }> = [
-    { key: 'assinaturas', label: 'Assinaturas', count: subscriptions?.meta?.total },
-    { key: 'planos', label: 'Planos', count: plans?.length },
-    { key: 'faturas', label: 'Faturas' },
-    { key: 'configuracoes', label: 'Configurações' },
-  ];
-
   // ── Filtros temporais
   const WHEN_FILTERS: Array<{ key: string; label: string }> = [
     { key: 'any', label: 'Qualquer data' },
@@ -529,38 +523,6 @@ export default function RecurringBillingIndex(props: PageProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <nav className="flex gap-1 rounded-lg bg-card p-1 shadow-sm ring-1 ring-border">
-                {TABS.map((t) => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    onClick={() => {
-                      // Onda 9 v9,75 — tabs navegam pras Pages reais (rotas dedicadas).
-                      if (t.key === 'planos') {
-                        router.visit('/recurring-billing/planos');
-                      } else if (t.key === 'faturas') {
-                        router.visit('/recurring-billing/faturas');
-                      } else if (t.key === 'configuracoes') {
-                        router.visit('/recurring-billing/configuracoes');
-                      } else {
-                        setTab(t.key);
-                      }
-                    }}
-                    className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition ${
-                      tab === t.key
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    {t.label}
-                    {t.count !== undefined && (
-                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground">
-                        {t.count}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </nav>
               <button
                 type="button"
                 onClick={() => setShowCreate(true)}
@@ -574,6 +536,10 @@ export default function RecurringBillingIndex(props: PageProps) {
             </div>
           </div>
         </header>
+
+        {/* Navegação das 4 vistas abaixo do título, como no protótipo (ph-nav) — era um grupo de
+            abas com contador à direita do título até 2026-11-23 (medição #11360, divergência 3). */}
+        <RecurringBillingSubNav ativa="recurring-billing" />
 
         {/* ── 4 KPI CARDS ── */}
         <Deferred data="kpis" fallback={<KpiSkeleton />}>

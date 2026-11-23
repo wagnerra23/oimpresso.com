@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 207 arquivos em 20 papéis.
+**Total mapeado:** 210 arquivos em 20 papéis.
 
 ## Controllers — 12
 
@@ -154,7 +154,7 @@ module: RecurringBilling
 - [Edit.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Index.tsx)
 
-## Componentes / apoio de tela — 9
+## Componentes / apoio de tela — 10
 
 - [CartaoRecorrenteBloco.tsx](../../../resources/js/Pages/RecurringBilling/_components/CartaoRecorrenteBloco.tsx)
 - [CheatSheet.tsx](../../../resources/js/Pages/RecurringBilling/_components/CheatSheet.tsx)
@@ -162,6 +162,7 @@ module: RecurringBilling
 - [JanaPanel.tsx](../../../resources/js/Pages/RecurringBilling/_components/JanaPanel.tsx)
 - [PixAutomaticoBloco.tsx](../../../resources/js/Pages/RecurringBilling/_components/PixAutomaticoBloco.tsx)
 - [PresentationMode.tsx](../../../resources/js/Pages/RecurringBilling/_components/PresentationMode.tsx)
+- [RecurringBillingSubNav.tsx](../../../resources/js/Pages/RecurringBilling/_components/RecurringBillingSubNav.tsx)
 - [Sparkline.tsx](../../../resources/js/Pages/RecurringBilling/_components/Sparkline.tsx)
 - [TourOnboarding.tsx](../../../resources/js/Pages/RecurringBilling/_components/TourOnboarding.tsx)
 - [TroubleshooterOverlay.tsx](../../../resources/js/Pages/RecurringBilling/_components/TroubleshooterOverlay.tsx)
@@ -184,9 +185,9 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 58
+## Testes (Pest) — 59
 
-- 58 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 59 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 36
