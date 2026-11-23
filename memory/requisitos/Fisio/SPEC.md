@@ -230,6 +230,17 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 > owner: — · priority: p0 · estimate: 10h · status: todo · type: story
 > blocked_by: US-FISIO-015. A9 (horários livres dentro das regras), A7 ("me avise se abrir vaga"), A6 (confirmar / remarcar / não vou poder ir pelo link da mensagem), A19 ("Cheguei" a partir de 1 h antes), A20 (recado ao marcar; nota 1–5 privada), remarcar e cancelar até o prazo da política, bloqueio por faltas. Dependentes (A16) e sinal por Pix (A17) entram depois, com o consentimento do responsável legal e com o Financeiro.
 
+### US-FISIO-017 · Confirmação da consulta pelo WhatsApp, com resposta de um toque — **P0**
+
+**Implementado em:** `Modules/Fisio/Services/Agenda/ConfirmacaoDaConsulta.php` · `Modules/Fisio/Jobs/EnviarConfirmacaoConsultaJob.php` · `Modules/Fisio/Console/ConfirmacoesCommand.php` · `Modules/Fisio/Http/Controllers/ConfirmacaoConsultaController.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Public/Confirmacao.tsx`
+
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
+> blocked_by: US-FISIO-016. Etapa 04 A6. Pedido de [W] em 2026-11-23 ("Confirmar pelo WhatsApp"), depois do comparativo com Vedius e Ninsaúde. De hora em hora, cada atendimento `agendado` que começa entre 2 h e 24 h à frente recebe uma mensagem pelo número da clínica, com um link assinado de um toque: Confirmo · Não vou poder ir · Preciso remarcar. O link funciona em qualquer canal (oficial, QR, envio manual), não pede PIN, vale só para aquele atendimento e vence no horário da sessão. Fica para depois: escolher o horário novo na própria página, segundo lembrete sem resposta, antecedência por clínica e botões dentro da conversa (exigem modelo de mensagem aprovado pela Meta).
+
+**DoD:** uma mensagem por atendimento (rodar de novo não repete; duas sessões no dia, duas mensagens); não sai fora da janela, para já confirmado nem sem consentimento de WhatsApp; 98 contra 99 no job; abrir o link não muda nada; link sem assinatura ou com o id de outro atendimento dá 403; empresa sem o pacote dá 404; "Confirmo" grava `confirmado` com canal `whatsapp`; "Não vou poder ir" desmarca só dentro do prazo da política — UC-FCF-01..06.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioConfirmacaoConsultaTest.php`
+
 ## F3 · Dinheiro — mapa de donos (F3-T01, lote 4 do protótipo Prescreve Pro)
 
 > Origem: [W] 2026-11-04 pediu levar o protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/` para produção em lotes. Este é o lote 4: `Financeiro.dc.html` (aba "Pacote e cobrança" da ficha), `FiscalFila.dc.html` (documentos fiscais do dia) e `Planos.dc.html`. Regra de [W] para o lote: **nenhum financeiro paralelo**. O Fisio mostra e dispara; título, nota e assinatura ficam nos módulos donos. A F3 ainda não passou pelo funil da ADR 0368 (F3-T00); estas US registram o levantamento F3-T01 e o que o lote 4 constrói sem escrever valor.

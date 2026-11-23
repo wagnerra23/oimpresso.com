@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 28 |
+| US no SPEC | 29 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 14 |
-| Telas com `casos.md` | 18 |
-| UC declarados | 245 |
-| UC com teste que os cita | 245 |
+| Telas (.tsx) | 15 |
+| Telas com `casos.md` | 19 |
+| UC declarados | 251 |
+| UC com teste que os cita | 251 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -96,6 +96,12 @@ authority: generated
 | UC-FCA-02 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
 | UC-FCA-03 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
 | UC-FCA-04 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
+| UC-FCF-01 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-02 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-03 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-04 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-05 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-06 | Public/Confirmacao | 🧪 aguarda veredito da lane |
 | UC-FCW-01 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-02 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-03 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
