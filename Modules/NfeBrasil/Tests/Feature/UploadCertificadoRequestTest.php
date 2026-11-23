@@ -39,31 +39,31 @@ function validarUpload(UploadedFile $arquivo): \Illuminate\Validation\Validator
     );
 }
 
-it('aceita um .pfx real (o conteúdo é lido como octet-stream)', function () {
+it('UC-FCFG-19 · aceita um .pfx real (o conteúdo é lido como octet-stream)', function () {
     $v = validarUpload(UploadedFile::fake()->createWithContent('WR2 - wscrct.01.pfx', pfxReal()));
 
     expect($v->errors()->get('certificado'))->toBe([]);
 });
 
-it('aceita o mesmo PKCS#12 com extensão .p12 e em maiúsculas', function () {
+it('UC-FCFG-19 · aceita o mesmo PKCS#12 com extensão .p12 e em maiúsculas', function () {
     $v = validarUpload(UploadedFile::fake()->createWithContent('CERT.P12', pfxReal()));
 
     expect($v->errors()->get('certificado'))->toBe([]);
 });
 
-it('recusa arquivo que não é .pfx/.p12 com a mensagem em PT-BR', function () {
+it('UC-FCFG-19 · recusa arquivo que não é .pfx/.p12 com a mensagem em PT-BR', function () {
     $v = validarUpload(UploadedFile::fake()->createWithContent('certificado.txt', 'nao sou um certificado'));
 
     expect($v->errors()->first('certificado'))->toBe('O certificado deve ser .pfx ou .p12.');
 });
 
-it('recusa .pfx acima de 100 KB (A3 ou arquivo errado)', function () {
+it('UC-FCFG-19 · recusa .pfx acima de 100 KB (A3 ou arquivo errado)', function () {
     $v = validarUpload(UploadedFile::fake()->create('grande.pfx', 101));
 
     expect($v->errors()->first('certificado'))->toStartWith('Certificado muito grande');
 });
 
-it('não corta espaços da senha do certificado (TrimStrings)', function () {
+it('UC-FCFG-19 · não corta espaços da senha do certificado (TrimStrings)', function () {
     $request = \Illuminate\Http\Request::create('/nfe-brasil/configuracao/certificado', 'POST', [
         'senha' => ' senha com espaço ',
         'outro' => ' campo comum ',

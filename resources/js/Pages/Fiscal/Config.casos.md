@@ -5,8 +5,8 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-11-19"
-last_run_ci: "2026-11-19: UC-FCFG-17/18 (validade do certificado e painel) entraram pelo #11249 e não citam o card de envio. o card Envio de documentos passa a ter escolha por empresa (UC-FCFG-16, ConfigControllerTest, veredito da lane NfeBrasil MySQL pendente do CI); UC-FCFG-05 segue valendo para a empresa sem escolha. A aba Séries (UC-FCFG-15, #11187) veio do main. UC-FCFG-01..04 e 06..14 relidos: nenhum cita o card de envio nem a aba Séries. 2026-11-18: a tela ganhou o bloco NFS-e (ambiente + prestador) da aba Ambiente; UC-FCFG-13/14 nascem com NfseConfiguracaoContratoTest, veredito da lane NFSe PENDENTE. UC-FCFG-01..12 não foram re-executados (backend deles não mudou). 2026-10-21: UC-FCFG-10 nasceu com ContingenciaModoTest, 12 passed no CT 100"
+last_run: "2026-11-23"
+last_run_ci: "2026-11-23: a tela ganhou a conferência do arquivo ao escolher (extensão + 100 KB), o aviso com o motivo real do erro e o status/selo 'expirado'; UC-FCFG-19 nasce com UploadCertificadoRequestTest, veredito da lane NfeBrasil pendente do CI. UC-FCFG-01..18 relidos: UC-FCFG-17 trata o tom da validade, não o texto do status; nenhum cita o campo de arquivo nem o aviso. 2026-11-19: UC-FCFG-17/18 (validade do certificado e painel) entraram pelo #11249 e não citam o card de envio. o card Envio de documentos passa a ter escolha por empresa (UC-FCFG-16, ConfigControllerTest, veredito da lane NfeBrasil MySQL pendente do CI); UC-FCFG-05 segue valendo para a empresa sem escolha. A aba Séries (UC-FCFG-15, #11187) veio do main. UC-FCFG-01..04 e 06..14 relidos: nenhum cita o card de envio nem a aba Séries. 2026-11-18: a tela ganhou o bloco NFS-e (ambiente + prestador) da aba Ambiente; UC-FCFG-13/14 nascem com NfseConfiguracaoContratoTest, veredito da lane NFSe PENDENTE. UC-FCFG-01..12 não foram re-executados (backend deles não mudou). 2026-10-21: UC-FCFG-10 nasceu com ContingenciaModoTest, 12 passed no CT 100"
 related_us: [US-FISCAL-009]
 ---
 
@@ -318,6 +318,16 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Isolamento:** a leitura é por consulta direta, com a empresa da sessão aplicada à mão (SDD §5.2); o isolamento já é o UC-FCFG-12.
 - **Teste:** `ConfigControllerTest` — `it('UC-FCFG-18 · o painel mostra a série e o próximo número da empresa, e a tributação padrão')`.
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FCFG-19 — O certificado A1 é aceito pelo nome .pfx/.p12, e a senha chega exata `[must]`
+
+**Dado** um certificado A1 válido em `.pfx` (ou `.P12`) e a senha dele
+**Quando** o operador escolhe o arquivo e envia
+**Então** o arquivo não é recusado por tipo (o PKCS#12 é lido como `application/octet-stream`, e a regra antiga `mimes` recusava todo .pfx); arquivo de outra extensão ou acima de 100 KB volta com o motivo em português; e a senha chega ao servidor sem corte de espaços — se a exata não abrir o arquivo, o servidor tenta a mesma sem os espaços das pontas (senha colada).
+
+- **Fonte:** `UploadCertificadoRequest` (`extensions:pfx,p12`), `TrimStrings::$except` (`senha`), `CertificadoController::upload`.
+- **Teste:** `Modules/NfeBrasil/Tests/Feature/UploadCertificadoRequestTest.php` — `it('UC-FCFG-19 · aceita um .pfx real (o conteúdo é lido como octet-stream)')` e irmãos.
+- **Status:** 🧪 veredito da lane `nfebrasil-pest`.
 
 ## UC-FCFG-13 — Ambiente e prestador da NFS-e gravam na empresa da sessão `[must]` `[T0]`
 
