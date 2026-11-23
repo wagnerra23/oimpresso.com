@@ -5,7 +5,7 @@ owner: wagner
 status: draft
 last_validated: "2026-10-05"
 parent_module: Sells
-related_prototype: n/a (o desenho de venda-menu cobre só a lista; o registro herda PT-02 e segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/Wagner/devolucao-v3.html
 runbook: memory/requisitos/Sells/RUNBOOK-sell-return-add.md
 alcance:
   rota: /sell-return/add/{id}
