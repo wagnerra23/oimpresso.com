@@ -41,6 +41,21 @@ Em 23/11/2026 o @homensdefibro.sc passou a seguir todos esses perfis.
 Presença: **4 das 6 mesorregiões** (Sul, Vale do Itajaí, Oeste e Grande Florianópolis). Faltam Norte e Serra.
 A ACPFA (Joinville) não faz parte da rede (decisão [W] 23/11/2026).
 
+### 1.1 Outros grupos de fibromialgia em SC no Instagram (fora da rede, 23/11/2026)
+
+Candidatos para chegar às regiões que faltam. A conta de São José a confirmar com o [W]: a AFASJ usa
+@associacaofibromialgiaamigossj, mas existe também @fibromialgicossjsc.
+
+| Perfil | Onde | Seguidores |
+|---|---|---|
+| @fibromialgicossjsc | São José · Grande Florianópolis | 6.502 |
+| @fibromialgiasc_itajai | Itajaí · Vale do Itajaí | 4.646 |
+| @asf.lages__ (ASF) | Lages · Serra | 1.048 |
+| @fibrofloripa | Florianópolis | 589 |
+| @ajafi_fibromialgicos_jaragua (AJAFI) | Jaraguá do Sul · Norte | 383 |
+| @fibromialgicosdeblumenau | Blumenau | 187 |
+| @acpfa.sc (ACPFA) | Joinville · Norte | 6.555 |
+
 ## 2. Números
 
 | Número | O que é | Fonte |
