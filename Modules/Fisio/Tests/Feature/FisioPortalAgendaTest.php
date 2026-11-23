@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-016
 // Cobre US-FISIO-016 e UC-FPA-01..07 (memory/requisitos/Fisio/_telas/agenda-paciente.casos.md).
 
 use Carbon\Carbon;

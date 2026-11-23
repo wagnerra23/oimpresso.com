@@ -620,13 +620,14 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
      estágio (ADR 0143 · trait GuardsFsmTransitions). Aqui é memória, mas a
      FORMA é a do backend de propósito: transição só por ação nomeada. */
   const executarAcao = () => {
-    if (!podeExecutar || !prox) return;
-    /* Gravando, a primeira ação ("Salvar como orçamento") grava de verdade e a venda nasce no
-       estágio do InitialStageResolver (quote_sent) — o estado em memória é só da cena. */
+    /* Gravando, a ação é "Salvar como orçamento", que grava de verdade, e a venda nasce no
+       estágio do InitialStageResolver (quote_sent). O pipeline de 7 etapas é da cena e não vem
+       gravando (UC-V406): a alçada é a da própria tela, que já exige sell.create no controller. */
     if (gravacao) {
-      if (atual.key === 'rascunho') gravar(true);
+      gravar(true);
       return;
     }
+    if (!podeExecutar || !prox) return;
     setHistorico((h) => [...h, { acao: atual.acao ?? '—', de: atual.key, para: prox.key }]);
     setEstagio(prox.key);
   };
@@ -730,7 +731,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
 
         <p className="mt-3 text-[11.5px] leading-[1.45] text-muted-foreground">
           {cli.padrao
-            ? 'Venda nova começa em Consumidor final — é o padrão do balcão.'
+            ? `Venda nova começa em ${cli.nome} — é o padrão do balcão.`
             : `Grupo de preço, prazo e endereço de entrega vêm do cadastro de ${cli.nome}.`}
         </p>
       </Sec>
@@ -976,7 +977,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         dobra
         aberta={entregaAberta}
         onToggle={() => setEntregaAberta(!entregaAberta)}
-        resumo="retirada no balcão · endereço do cadastro"
+        resumo={gravacao ? 'valor do frete' : 'retirada no balcão · endereço do cadastro'}
       >
         <EntregaFrete
           itens={itens}
@@ -985,6 +986,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           frete={frete}
           onFreteChange={setFrete}
           transportadoras={cena.transportadoras ?? []}
+          gravando={!!gravacao}
         />
       </Sec>
 
@@ -1270,15 +1272,24 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           >
             <Lbl className="mb-0">Situação</Lbl>
             <span className="ml-auto inline-flex items-center gap-2">
-              <Pill tom={cancelada ? 'destructive' : 'info'}>{atual.label}</Pill>
-              {!cancelada && (
+              <Pill tom={cancelada ? 'destructive' : 'info'}>{gravacao ? 'Não gravada' : atual.label}</Pill>
+              {!cancelada && !gravacao && (
                 <span className="font-mono text-[11.5px] text-muted-foreground">
                   {idxAtual + 1}/{fsm.length - 1}
                 </span>
               )}
             </span>
           </button>
-          {situacaoAberta && (
+          {/* Gravando, o pipeline da cena não vem (UC-V406): a venda ainda não existe, e a etapa
+              em que ela nasce é a do pipeline real da empresa, escolhida pelo que foi gravado. */}
+          {situacaoAberta && gravacao && (
+            <p className="p-4 text-[12.5px] leading-[1.45] text-muted-foreground">
+              Ainda não gravada. Ao gravar, a venda entra no fluxo de vendas da empresa (se ele estiver
+              ativo), na etapa que o sistema escolhe pelo que foi gravado: orçamento, venda paga ou venda a
+              prazo.
+            </p>
+          )}
+          {situacaoAberta && !gravacao && (
             <Stack gap={0} className="p-4">
               {fsm
                 .filter((f) => f.key !== 'cancelada')
@@ -1345,10 +1356,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             <Button
               size="lg"
               className="w-full"
-              disabled={!itens.length || !podeExecutar || temInvalida || gravando || reprecificando}
+              disabled={!itens.length || (!gravacao && !podeExecutar) || temInvalida || gravando || reprecificando}
               onClick={executarAcao}
             >
-              {atual.acao ?? 'Sem ação disponível'}
+              {gravacao ? 'Salvar como orçamento' : (atual.acao ?? 'Sem ação disponível')}
             </Button>
 
             {gravacao && temSelectDeComissionado(gravacao.config) && (
@@ -1396,7 +1407,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               </Inline>
             )}
 
-            {!podeExecutar && !cancelada && (
+            {!gravacao && !podeExecutar && !cancelada && (
               <span className="block text-center text-[11.5px] leading-[1.35] text-muted-foreground">
                 {prox ? `Exige o papel ${atual.role}` : 'Venda no fim do fluxo'}
               </span>
@@ -1496,6 +1507,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           setItemAberto((i) => (i === null ? null : Math.max(0, Math.min(itens.length - 1, i + delta))))
         }
         abaInicial={abaDoItem}
+        gravando={!!gravacao}
       />
 
       <ParcelasDrawer
