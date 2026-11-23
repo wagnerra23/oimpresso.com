@@ -1,56 +1,409 @@
 {
-  "url": "https://staging.oimpresso.com/recurring-billing",
-  "theme": "auto",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Cobrança recorrente 0 ATIVAS · MRR R$ 0,00 · CHURN 0 % Assinaturas 0 Planos 0 Faturas Configurações Nova assinatura MRR · receita recorrente R$ 0,00 baseline Churn este mês 0 cancelamentos taxa 0% Próxima cobrança sem cobrança próxima R$ 0,00 · 0 cobranças Retentado falhos 0 requer ação Mostrar só favoritos 0 Próxima cobrança Qualquer data Hoje Amanhã Esta semana Próx. 30 dias Personalizado Status Todas Em dia Retentando Falharam Pausadas Canceladas MRR filtrado R$ 0,00 0 ativ. de 0 0 / 0 Nada por aqui. Nenhuma assinatura com este filtro + busca. Selecione uma assinatura 1 / 4 Tour rápido 3 colunas canônicas Filtros · Lista · Drawer detalhe — tudo cabe na tela sem scroll horizontal. Não mostrar mais Anterior Próximo Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "url": "https://oimpresso.com/recurring-billing",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "light",
+  "assinatura": "Cobrança recorrente · Nova assinatura · MRR · receita recorrente · Churn este mês · Próxima cobrança · Retentado falhos · requer ação · Mostrar só favoritos · Status · Esta semana · Próx. 30 dias · Personalizado · Todas · Em dia · Retentando · Falharam · Pausadas · Canceladas · MRR filtrado",
   "roles": {
     "kpi": {
-      "count": 0,
-      "tag": null,
-      "overflowX": null,
-      "items": []
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "MRR · receita ",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "rgb(255, 255, 255)",
+          "smallAlign": null,
+          "valueFontPx": 24
+        },
+        {
+          "label": "Churn este mês",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 24
+        },
+        {
+          "label": "Próxima cobran",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 24
+        },
+        {
+          "label": "Retentado falh",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 24
+        }
+      ]
     },
     "title": {
       "fontPx": 24,
       "weight": "600",
       "color": "oklch(0.137 0.036 258.5)"
     },
-    "primary": null,
-    "filterRows": null,
-    "contratos": [],
-    "celulas": null,
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.92 0.006 90)"
+    },
+    "filterRows": 8,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "filtros",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "lista",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 49.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 20.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "500",
+        "blocos": 2,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": false,
+          "bg": "oklch(0.979 0.021 166.113)",
+          "dot": false
+        }
+      }
+    ],
     "tabela": null,
     "shell": {
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-shortcuts .sb-shortcut",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "auto",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "217px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 217,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 1,
+          "texto": "IA",
+          "textoProprio": false
         },
         "itemGrupo": {
           "seletor": ".sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 42,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "auto",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "225px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 225,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 1,
+          "texto": "Clientes",
+          "textoProprio": false
         },
         "grupoHeader": {
           "seletor": ".sb-group-h",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 9,
+          "ocultos": 0,
+          "css": {
+            "height": "27.75px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "10.5px",
+            "fontWeight": "600",
+            "lineHeight": "15.75px",
+            "letterSpacing": "0.63px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "233px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 233,
+            "h": 27.8
+          },
+          "icone": {
+            "w": 12,
+            "h": 12,
+            "strokeWidth": "2px"
+          },
+          "blocos": 2,
+          "texto": "CADASTRO3",
+          "textoProprio": false
         },
         "containerMenu": {
           "seletor": ".sb-menu-grouped",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "1911.75px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "0px",
+            "display": "flex",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "249px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 249,
+            "h": 1911.8
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 92,
+          "texto": "IAVisão geralAtendimento15406CADASTRO3ClientesProdutos13Fabricação5G PCOMERCIAL5",
+          "textoProprio": false
         }
       },
-      "atalhos": []
-    }
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geral",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento15406",
+          "atual": null
+        }
+      ]
+    },
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "lado": "prod",
+    "host": "oimpresso.com",
+    "rota": "/recurring-billing",
+    "componenteInertia": "RecurringBilling/Index",
+    "business_id": 1,
+    "viewport": "1280x900",
+    "tema": "light",
+    "sobrepostosFixos": [],
+    "dialogsAbertos": [],
+    "medidoEm": "2026-11-23T19:25:22.670Z",
+    "assinaturaRedigida": "texto de produção (biz=1) substituído pelas 19 cópias de UI do contrato que nele aparecem; o original tinha nomes de cliente e valores (sha256 9f4a1ff1f026, 14978 chars, não versionado)"
   }
 }
