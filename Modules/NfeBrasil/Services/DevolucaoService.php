@@ -256,7 +256,7 @@ class DevolucaoService
         }
 
         $itens = [];
-        foreach (array_values($linhas) as $i => $linha) {
+        foreach ($linhas as $i => $linha) {
             $nItem = $i + 1;
             $cprod = substr((string) ($linha['cprod'] ?? ''), 0, 60);
             if ($dets[$nItem]['cprod'] !== $cprod || $dets[$nItem]['qcom'] !== self::q4((float) ($linha['quantidade'] ?? 0))) {
