@@ -102,6 +102,30 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 
 ---
 
+## NF-e de devolução a partir da devolução salva (onda 1 do protótipo Devolução V3)
+
+> **Âncora:** [RUNBOOK-sell-return-add §6.2](../../../../memory/requisitos/Sells/RUNBOOK-sell-return-add.md) onda 1 ·
+> protótipo `prototipo-ui/cowork/Wagner/devolucao-v3.html` (seção "Identificação da NF-e") · UC-FNFE-73..80 em
+> `Fiscal/Nfe.casos.md`, que provam a rota `POST /fiscal/acoes/venda-devolucao/{id}/nfe` e o valor da nota.
+> A seção fica fora do formulário: vale para a devolução já salva, nunca para o que está sendo editado.
+
+## UC-SRADD-10 · Sem a flag, sem permissão fiscal ou sem devolução salva, a seção não aparece `[must]`
+- **Aceite:** Dado `nfebrasil.devolucao_pela_venda` desligada, ou o usuário sem `fiscal.nfe.acoes`, ou a venda sem devolução salva · Quando o registro abre · Então `venda.nfe_devolucao` é `null` e não há seção de NF-e. Com as três condições, a seção aparece (controle positivo).
+- **Teste:** `tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php` — `UC-SRADD-10`.
+- **Status: 🧪**
+
+## UC-SRADD-11 · Quando a rota recusaria, a seção mostra o motivo e não oferece o botão `[must]`
+- **Aceite:** Dado uma devolução que a rota recusaria (por exemplo, tudo já declarado em NF-e) · Quando o registro abre · Então a seção mostra a mesma mensagem da recusa e não há botão de emitir.
+- **Teste:** `tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php` — `UC-SRADD-11`.
+- **Status: 🧪**
+
+## UC-SRADD-12 · Quando dá para emitir, a seção diz quantos itens a nota declara `[must]`
+- **Aceite:** Dado um plano com dois itens a declarar · Quando o registro abre · Então a seção diz "Declara 2 itens" e oferece "Emitir NF-e de devolução", que chama a rota do Fiscal.
+- **Teste:** `tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php` — `UC-SRADD-12`.
+- **Status: 🧪**
+
+---
+
 ## Pagamento ao cliente com vale-troca (US-VEST-021 · R7)
 
 > **Âncora:** US-VEST-021 e decisão [W] de 2026-10-26: o vale-troca entra **no registro da devolução**, ao salvar, e

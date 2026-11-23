@@ -465,6 +465,45 @@ class SellReturnController extends Controller
             'desconto_tipo' => (string) (! empty($devolucao->discount_type) ? $devolucao->discount_type : $sell->discount_type),
             'desconto_valor_txt' => $num(! empty($devolucao->discount_amount) ? $devolucao->discount_amount : $sell->discount_amount),
             'linhas' => $linhas,
+            'nfe_devolucao' => $this->inertiaNfeDevolucao($business_id, $devolucao),
+        ];
+    }
+
+    /**
+     * Onda 1 do protótipo Devolução V3 (RUNBOOK-sell-return-add §6.2): se a devolução salva pode
+     * virar NF-e de devolução. Null esconde a seção na tela: flag desligada, sem permissão fiscal
+     * ou devolução ainda não salva. A resposta usa a MESMA checagem da rota de emissão
+     * (DevolucaoService::planoDaDevolucaoDeVenda), então a tela nunca promete o que a rota recusa.
+     *
+     * @return array{disponivel:bool, motivo:?string, itens:int, nota_origem:?string, devolucao_id:int}|null
+     */
+    private function inertiaNfeDevolucao(int $business_id, $devolucao): ?array
+    {
+        if (! config('nfebrasil.devolucao_pela_venda') || empty($devolucao)) {
+            return null;
+        }
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            return null;
+        }
+
+        $base = ['devolucao_id' => (int) $devolucao->id, 'itens' => 0, 'nota_origem' => null];
+        try {
+            $plano = app(\Modules\NfeBrasil\Services\DevolucaoService::class)
+                ->planoDaDevolucaoDeVenda($business_id, (int) $devolucao->id);
+        } catch (\RuntimeException $e) {
+            return $base + ['disponivel' => false, 'motivo' => $e->getMessage()];
+        }
+
+        $origem = \Modules\NfeBrasil\Models\NfeEmissao::where('business_id', $business_id)
+            ->where('id', $plano['origem_id'])
+            ->first(['numero', 'serie']);
+
+        return [
+            'devolucao_id' => (int) $devolucao->id,
+            'itens' => count($plano['itens']),
+            'nota_origem' => $origem === null ? null : "{$origem->numero} série {$origem->serie}",
+            'disponivel' => true,
+            'motivo' => null,
         ];
     }
 
