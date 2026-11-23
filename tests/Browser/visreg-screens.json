@@ -383,6 +383,7 @@
   {
     "screen": "RecurringBilling",
     "source": "RecurringBilling",
+    "a11y": true,
     "component": "RecurringBilling/Index",
     "route": "/recurring-billing",
     "anchor": "Cobrança recorrente",

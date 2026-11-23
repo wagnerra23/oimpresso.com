@@ -965,6 +965,17 @@ jobs:
         id: e2e-paymentgateway-cnab
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/PaymentGateway/CnabRetornoBrowserTest.php
+      # ── E2E DE COMPORTAMENTO + AXE — RecurringBilling, 6 telas (NASCE ADVISORY) ─────
+      # Assinaturas, Faturas, Configurações, Planos (lista, novo, editar) no Chromium real: cada
+      # tela cita um UC do casos.md, o dado do 99 não chega ao DOM do 98, axe CRITICAL.
+      # Auditoria RecurringBilling 2026-11-19, d13: `screen-coverage-map` dava e2e ✗ e axe 0.
+      # Tenant 98 / adversário 99 (ADR 0358); sem pixel (ADR 0445). Promover = remover o
+      # `continue-on-error` depois de 2 verdes que EXECUTARAM, lidos no log; é flip [W].
+      - name: E2E de comportamento + axe · RecurringBilling (6 telas) (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-recurringbilling
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/RecurringBilling/TelasRecurringBillingBrowserTest.php
 
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
@@ -1020,6 +1031,7 @@ jobs:
           A_NFSE: ${{ steps.e2e-nfse.outcome }}
           A_PG_INDEX: ${{ steps.e2e-paymentgateway-index.outcome }}
           A_PG_CNAB: ${{ steps.e2e-paymentgateway-cnab.outcome }}
+          A_RB: ${{ steps.e2e-recurringbilling.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1071,6 +1083,7 @@ jobs:
           registrar "E2E de render + axe · NFSe" "$A_NFSE"
           registrar "E2E de comportamento + axe · PaymentGateway/Index" "$A_PG_INDEX"
           registrar "E2E de comportamento + axe · PaymentGateway/CnabRetorno" "$A_PG_CNAB"
+          registrar "E2E de comportamento + axe · RecurringBilling (6 telas)" "$A_RB"
 
           {
             echo ""
