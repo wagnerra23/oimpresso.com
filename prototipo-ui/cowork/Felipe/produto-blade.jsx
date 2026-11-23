@@ -79,6 +79,37 @@ const PRODUCTS = [
     variations: [v("Padrão", "PRD-0012", 90, 66, 149.4)], stock: null },
 ];
 
+// O que a produção já mostra e o protótipo não tinha (comparativo de 2026-11-23): garantia no painel,
+// natureza fiscal (UC-PIDX-31), lotes com saldo (UC-PIDX-49), receita da Fabricação (UC-PIDX-48) e
+// roteiro (UC-PIDX-29). Os lotes somam o saldo do produto; o custo da receita sai dos insumos.
+const EXTRAS_PB = {
+  1: { lotes: [
+    { lote: "RL-2611-01", variacao: "Acabamento - Bastão + ilhós", validade: null, saldo: 480 },
+    { lote: "RL-2611-02", variacao: "Acabamento - Solda simples", validade: null, saldo: 410 },
+    { lote: "RL-2610-07", variacao: "Acabamento - Sem acabamento", validade: null, saldo: 350 }] },
+  3: { warranty: "12 meses" },
+  5: { warranty: "6 meses", natureza: { natureza: "pendente", codigo: null } },
+  6: { lotes: [
+    { lote: "TS-0925", variacao: "Cor - Ciano", validade: "30/04/2027", saldo: 3 },
+    { lote: "TS-0925", variacao: "Cor - Magenta", validade: "30/04/2027", saldo: 3 },
+    { lote: "TS-0926", variacao: "Cor - Amarelo", validade: "31/05/2027", saldo: 3 },
+    { lote: "TS-0611", variacao: "Cor - Preto", validade: "30/10/2026", vencido: true, saldo: 2 }] },
+  10: {
+    receitas: [{ nome: "Banner 440g com bastão", rendimento: 1, unidade: "m²", insumos: [
+      { nome: "Lona 380g brilho impressa", sku: "PRD-0001-3", qtd: 1.05, unit: "m²" },
+      { nome: "Ilhós metálico nº 12 (mil)", sku: "PRD-0007", qtd: 0.004, unit: "cx" },
+      { nome: "Perfil de alumínio 30x30", sku: "PRD-0008", qtd: 0.6, unit: "m" }] }],
+    roteiro: { nome: "Banner com acabamento", ativo: true, etapas: [
+      { nome: "Arte e aprovação", posto: "Estação de arte", setor: "Criação", horas: 0.5 },
+      { nome: "Impressão", posto: "Plotter solvente 3,2 m", setor: "Impressão", horas: 0.25 },
+      { nome: "Acabamento (bastão e ilhós)", posto: "Bancada de acabamento", setor: "Acabamento", horas: 0.3 },
+      { nome: "Instalação", posto: null, setor: "Instalação", horas: null, opcional: true }] },
+  },
+  11: { natureza: { natureza: "servico", codigo: null } },
+  12: { natureza: { natureza: "servico", codigo: "23.01" } },
+};
+PRODUCTS.forEach((p) => Object.assign(p, EXTRAS_PB[p.id] || {}));
+
 // ─────────── Helpers ───────────
 const fmtBRL = (n) => n == null ? "—" : "R$ " + Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtQty = (n) => n == null ? "—" : Number(n).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
@@ -99,8 +130,31 @@ const EMPRESA_PADRAO = { emiteNota: true, temAliquota: true };
 // no sistema, Material vem da receita da Fabricação e Serviço da natureza fiscal.
 const USOS_PB = [{ id: "vender", name: "Para vender" }, { id: "material", name: "Material" }, { id: "servico", name: "Serviço" }];
 function usoDoProduto(p) {
-  if (p.servico) return "servico";
+  if (p.servico || naturezaDe(p) === "servico") return "servico";
   return p.cat === "Insumos" || p.cat === "Acabamento" ? "material" : "vender";
+}
+// UC-PIDX-31: a natureza fiscal que o contador decidiu. Sem decisão gravada, mercadoria (o padrão).
+const NATUREZAS_PB = [{ id: "mercadoria", name: "Mercadoria (NF-e)" }, { id: "servico", name: "Serviço (NFS-e)" }, { id: "pendente", name: "A decidir pelo contador" }];
+function naturezaDe(p) { return (p.natureza && p.natureza.natureza) || "mercadoria"; }
+function rotuloNatureza(p) {
+  const n = naturezaDe(p);
+  if (n === "servico") return "Serviço (NFS-e)" + (p.natureza.codigo ? " · item " + p.natureza.codigo + " da LC 116" : "");
+  return n === "pendente" ? "A decidir pelo contador" : "Mercadoria (NF-e)";
+}
+// UC-PIDX-46: o selo do painel diz o que o produto é (o uso); a forma do cadastro só entra quando muda
+// algo — "Para vender · com 4 variações", "Material · kit com 3 itens". O tipo segue no título do selo.
+function oQueE(p) {
+  const partes = [(USOS_PB.find((u) => u.id === usoDoProduto(p)) || USOS_PB[0]).name];
+  if (p.type === "variable") partes.push("com " + p.variations.length + (p.variations.length === 1 ? " variação" : " variações"));
+  if (p.type === "combo") partes.push("kit com " + p.combo.length + (p.combo.length === 1 ? " item" : " itens"));
+  return partes.join(" · ");
+}
+// UC-PIDX-48: custo da receita = soma dos insumos pelo preço de compra de cada um (derivado, nunca digitado).
+function custoDaReceita(r) {
+  return r.insumos.reduce((s, i) => {
+    const va = PRODUCTS.flatMap((x) => x.variations).find((x) => x.sku === i.sku);
+    return s + i.qtd * (va ? va.dpp : 0);
+  }, 0);
 }
 
 function ncmValido(ncm) {
@@ -357,6 +411,8 @@ function Filtros({ f, setF, empresa }) {
           <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }, { id: "excluido", name: "Excluídos" }]} vazio="Todos" /></Fld>
           {/* UC-PIDX-44 (CV1): Material = entra em receita da Fabricação; Serviço = natureza fiscal. */}
           <Fld label="Uso"><Sel value={f.uso} onChange={set("uso")} options={USOS_PB} vazio="Todos" /></Fld>
+          {/* UC-PIDX-31: natureza fiscal decidida pelo contador — só para quem emite nota. */}
+          {empresa.emiteNota && <Fld label="Natureza fiscal"><Sel value={f.natureza} onChange={set("natureza")} options={NATUREZAS_PB} vazio="Todas" /></Fld>}
           <div className="pb-fld" style={{ justifyContent: "flex-end" }}>
             <label className="pb-chk"><input type="checkbox" checked={f.nfs} onChange={(e) => setF({ ...f, nfs: e.target.checked })} /><b>Não para venda</b></label>
           </div>
@@ -417,7 +473,7 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, empresa
     "-",
     // Sem "Comprar este produto": a consulta não é a tela de compras ([F] 2026-10-26).
     { l: "Transferir entre locais", ic: "layers", on: () => onAcao("transferir", p) },
-    { l: "Usar em uma OS", ic: "orders", on: () => onAcao("os", p) },
+    // Sem "Usar em uma OS": saiu da produção por decisão [F] em 2026-10-11 (a OS começa na Produção).
     // Só em empresa que emite nota, como a aba Fiscal do painel ([F] 2026-10-26).
     ...(empresa.emiteNota ? [{ l: "Dados fiscais (NCM/CFOP)", ic: "quote", on: () => onAcao("fiscal", p) }] : []),
     "-",
@@ -453,7 +509,11 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, empresa
       acao: <span onClick={(e) => e.stopPropagation()}><Kebab acoes={acoesDe(p)} /></span>,
       imagem: <div className="pb-thumb">IMG</div>,
       prod: {
-        primary: p.name,
+        // UC-PIDX-31: selo da natureza fiscal ao lado do nome. Mercadoria não ganha selo (é o padrão).
+        primary: !empresa.emiteNota || naturezaDe(p) === "mercadoria" ? p.name
+          : <>{p.name}{naturezaDe(p) === "servico"
+              ? <span style={{ marginLeft: 6, fontSize: 11, color: "var(--text-mute)" }}>Serviço</span>
+              : <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 500, color: "var(--warn)" }} title="O contador ainda não decidiu se é mercadoria ou serviço. A NF-e comum sai como mercadoria; a emissão separada (NF-e + NFS-e) fica bloqueada.">Fiscal a decidir</span>}</>,
         sub: [p.stockOn ? "Estoque gerenciado" : "Sem controle de estoque",
           p.notForSelling ? "não para venda" : null,
           !p.active ? "inativo" : null,
@@ -578,7 +638,12 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
   // - a aba Fiscal (NCM, CEST, CFOP, origem) só existe em empresa que emite nota.
   const comImposto = temImposto(p, empresa);
   const imposto = impostoDe(p, empresa);
-  const abas = [{ id: "dados", l: "Dados" }, { id: p.type === "combo" ? "composicao" : "variacoes", l: p.type === "combo" ? "Composição" : "Variações", n: p.type === "combo" ? p.combo.length : p.variations.length }, { id: "estoque", l: "Estoque" }, ...(empresa.emiteNota ? [{ id: "fiscal", l: "Fiscal" }] : []), { id: "prateleira", l: "Prateleira" }];
+  // Lotes, Receita e Roteiro só existem quando o produto tem (UC-PIDX-49, 48 e 29), na ordem da produção.
+  const abas = [{ id: "dados", l: "Dados" }, { id: p.type === "combo" ? "composicao" : "variacoes", l: p.type === "combo" ? "Composição" : "Variações", n: p.type === "combo" ? p.combo.length : p.variations.length }, { id: "estoque", l: "Estoque" },
+    ...(p.lotes && p.lotes.length ? [{ id: "lotes", l: "Lotes", n: p.lotes.length }] : []),
+    ...(p.receitas && p.receitas.length ? [{ id: "receita", l: "Receita", n: p.receitas.reduce((s, r) => s + r.insumos.length, 0) }] : []),
+    ...(p.roteiro ? [{ id: "roteiro", l: "Roteiro", n: p.roteiro.etapas.length }] : []),
+    ...(empresa.emiteNota ? [{ id: "fiscal", l: "Fiscal" }] : []), { id: "prateleira", l: "Prateleira" }];
   const fs = p.fiscal || {};
   const { Drawer } = DS();
   const dt = (label, val) => <div className="pb-dt"><span>{label}</span><b>{val || "—"}</b></div>;
@@ -588,7 +653,7 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
           subtitle={p.cat + " · " + p.sub + " · " + p.brand + " · unidade " + p.unit}
           badge={<span style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span className="os-drawer-id">{p.sku}</span>
-            <span className={"pb-pill " + p.type}>{TYPE_LABEL[p.type]}</span>
+            <span className={"pb-pill " + p.type} title={TYPE_LABEL[p.type]}>{oQueE(p)}</span>
             {!p.active && <span className="pb-pill off">Inativo</span>}
           </span>}
           footer={<>
@@ -622,7 +687,9 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
                   {dt("Gerenciar estoque", p.stockOn ? "Sim" : "Não")}{dt("Quantidade de alerta", p.alert != null ? fmtQty(p.alert) : "—")}{dt("Expira em", p.expiry ? p.expiry + (p.expiryType === "days" ? " dias" : " meses") : "Não aplicável")}
                   {dt("Disponível nos locais", p.locs.map((id) => LOCATIONS.find((l) => l.id === id).name).join(", "))}
                   {dt("Não para venda", p.notForSelling ? "Sim" : "Não")}
-                  {dt("Tempo de preparo", p.prep ? p.prep + " min" : "—")}
+                  {dt("Garantia", p.warranty)}
+                  {/* Como na produção: o tempo de preparo só aparece quando está cadastrado. */}
+                  {p.prep ? dt("Tempo de preparo", p.prep + " min") : null}
                 </div>
                 <div className="pb-img">Imagem do produto<br />(1:1, até 5 MB)</div>
               </div>
@@ -719,6 +786,59 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
               </> : <p className="pb-help">Este produto não gerencia estoque (<b>enable_stock = 0</b>) — serviços e composições entram assim.</p>}
             </div>}
 
+          {/* UC-PIDX-49 (CV3): os lotes com saldo; o relatório de Lotes mostra os zerados e o rastreio. */}
+          {aba === "lotes" && p.lotes &&
+            <div className="os-drawer-section">
+              <h3>Lotes com saldo</h3>
+              <table className="pb-tbl">
+                <thead><tr><th>Lote</th><th>Variação</th><th>Validade</th><th className="r">Saldo</th></tr></thead>
+                <tbody>{p.lotes.map((l) => (
+                  <tr key={l.variacao + l.lote}><td className="m">{l.lote}</td><td>{l.variacao || "—"}</td>
+                    <td>{l.validade || "—"} {l.vencido && <span className="pb-pill off">Vencido</span>}</td>
+                    <td className="r">{fmtQty(l.saldo)} {p.unit}</td></tr>))}
+                </tbody>
+              </table>
+              <button className="os-btn sm" style={{ marginTop: 10 }} onClick={() => onIr("lotes-relatorio", p)}>Abrir no relatório de Lotes</button>
+            </div>}
+
+          {/* UC-PIDX-48 (D-29): a receita da Fabricação, só leitura — ela se edita na Fabricação. */}
+          {aba === "receita" && p.receitas && p.receitas.map((r) => {
+            const custo = custoDaReceita(r), unit = custo / r.rendimento, preco = p.variations[0].dsp;
+            return (
+              <div className="os-drawer-section" key={r.nome}>
+                <h3>Receita: {r.nome}</h3>
+                <p className="pb-help">Rende {fmtQty(r.rendimento)} {r.unidade}. A receita se edita na Fabricação.</p>
+                <div className="pb-kpis" style={{ gridTemplateColumns: "repeat(3,1fr)", marginTop: 10 }}>
+                  <div className="pb-kpi"><small>Custo da receita</small><b>{fmtBRL(custo)}</b><div className="ln">insumos e custo de produção</div></div>
+                  <div className="pb-kpi"><small>Custo por unidade</small><b>{fmtBRL(unit)}</b><div className="ln">custo da receita ÷ rendimento</div></div>
+                  <div className="pb-kpi"><small>Margem</small><b>{(((preco - unit) / preco) * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</b><div className="ln">a mesma da tela de Receitas</div></div>
+                </div>
+                <table className="pb-tbl" style={{ marginTop: 12 }}>
+                  <thead><tr><th>Insumo</th><th>SKU</th><th className="r">Qtd</th></tr></thead>
+                  <tbody>{r.insumos.map((i) => (
+                    <tr key={i.sku}><td><b>{i.nome}</b></td><td className="m">{i.sku}</td><td className="r">{i.qtd.toLocaleString("pt-BR", { maximumFractionDigits: 3 })} {i.unit}</td></tr>))}
+                  </tbody>
+                </table>
+                <button className="os-btn sm" style={{ marginTop: 10 }} onClick={() => onIr("receita", p)}>Abrir receita</button>
+              </div>);
+          })}
+
+          {/* UC-PIDX-29: as etapas do roteiro, na ordem, com o posto e o setor. */}
+          {aba === "roteiro" && p.roteiro &&
+            <div className="os-drawer-section">
+              <h3>Roteiro: {p.roteiro.nome}</h3>
+              {!p.roteiro.ativo && <p className="pb-help">Roteiro inativo.</p>}
+              <table className="pb-tbl">
+                <thead><tr><th className="r">#</th><th>Etapa</th><th>Posto</th><th>Setor</th><th className="r">Horas</th></tr></thead>
+                <tbody>{p.roteiro.etapas.map((e, i) => (
+                  <tr key={e.nome}><td className="r">{i + 1}</td>
+                    <td>{e.nome}{e.opcional && <span style={{ color: "var(--text-mute)" }}> · opcional</span>}</td>
+                    <td>{e.posto || "—"}</td><td>{e.setor || "—"}</td><td className="r">{e.horas == null ? "—" : fmtQty(e.horas)}</td></tr>))}
+                </tbody>
+              </table>
+              <p className="pb-help" style={{ marginTop: 10 }}>A OS de cada venda copia estas etapas. O responsável é escolhido na OS, entre os operadores do posto.</p>
+            </div>}
+
           {aba === "fiscal" && empresa.emiteNota &&
             <div className="os-drawer-section">
               <h3>Dados fiscais</h3>
@@ -733,7 +853,11 @@ function DetalheDrawer({ p, onClose, onIr, empresa }) {
                 {dt("CEST", fs.cest || "—")}
                 {dt("CFOP padrão de venda", (CFOPS.find((c) => c.id === fs.cfop) || {}).name || "—")}
                 {dt("Origem da mercadoria", (ORIGENS.find((o) => o.id === fs.origem) || {}).name || "—")}
+                {dt("Natureza fiscal", rotuloNatureza(p))}
               </div>
+              {/* UC-PIDX-31: o aviso do pendente, com o mesmo texto da produção. */}
+              {naturezaDe(p) === "pendente" &&
+                <p className="pb-help" style={{ marginTop: 10, color: "var(--warn)" }}>O contador ainda não decidiu se este produto é mercadoria ou serviço. A NF-e comum sai como mercadoria; a emissão separada (NF-e + NFS-e) fica bloqueada até a decisão.</p>}
               {/* Texto da produção (UC-PIDX-25): a emissão usa o NCM padrão sem NCM no cadastro e não
                   troca o CFOP pelo CEST — o texto antigo daqui afirmava as duas coisas. */}
               {fs.ncm &&
@@ -940,7 +1064,7 @@ function exportarCsv(lista, empresa) {
 
 // ─────────── Tela lista (index.blade.php) ───────────
 function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
-  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" };
+  const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "", natureza: "" };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
   const [busca, setBusca] = useState("");
@@ -992,6 +1116,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     if (f.nfs && !p.notForSelling) return false;
     if (f.alerta && !(p.stockOn && p.alert != null && p.stock <= p.alert)) return false;
     if (f.uso && usoDoProduto(p) !== f.uso) return false;
+    if (f.natureza && naturezaDe(p) !== f.natureza) return false;
     if (empresa.emiteNota && f.semNcm && ncmValido(p.fiscal && p.fiscal.ncm)) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
@@ -1013,6 +1138,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   if (f.nfs) chips.push({ k: "nfs", l: "", v: "Não para venda" });
   if (f.alerta) chips.push({ k: "alerta", l: "", v: "Abaixo do alerta" });
   if (f.uso) chips.push({ k: "uso", l: "Uso", v: (USOS_PB.find((u) => u.id === f.uso) || {}).name });
+  if (f.natureza) chips.push({ k: "natureza", l: "Natureza fiscal", v: (NATUREZAS_PB.find((n) => n.id === f.natureza) || {}).name });
   if (empresa.emiteNota && f.semNcm) chips.push({ k: "semNcm", l: "", v: "Falta NCM" });
   if (busca) chips.push({ k: "__busca", l: "Busca", v: busca });
   const tirarChip = (k) => k === "__busca" ? setBusca("") : setF({ ...f, [k]: k === "nfs" || k === "alerta" || k === "semNcm" ? false : "" });
@@ -1031,7 +1157,6 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
     if (a === "duplicar") return onIr("editar", { ...p, name: p.name + " (cópia)", sku: "" });
     if (a === "barras") { window.__PBEtiquetas = [p]; return onIr("etiquetas", p); }
     if (a === "transferir") { irPara("compras", { produto: p.sku, nome: p.name, acao: "transferencia" }); return avisar("Transferência entre locais: " + p.name + ".", "ok"); }
-    if (a === "os") { irPara("os", { produto: p.sku, nome: p.name, acao: "novo-item" }); return avisar("Abrindo Ordens de Serviço com o produto no orçamento.", "ok"); }
     if (a === "fiscal") return setVer(p);
     if (a === "toggle") return setConfirmar({
       titulo: p.active ? "Desativar produto" : "Ativar produto",
@@ -1117,7 +1242,7 @@ function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
             {chips.map((c) => (FilterChip
               ? <FilterChip key={c.k} label={c.l || c.v} value={c.l ? c.v : undefined} onRemove={() => tirarChip(c.k)} />
               : <button key={c.k} className="pb-chip" onClick={() => tirarChip(c.k)}>{c.v} ✕</button>))}
-            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "" }); setBusca(""); }}>Limpar tudo</button>
+            <button className="pb-chip limpar" onClick={() => { setF({ type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false, alerta: false, semNcm: false, uso: "", natureza: "" }); setBusca(""); }}>Limpar tudo</button>
           </div>}
 
         {aba === "lista"
@@ -1207,7 +1332,8 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
 
   const CROSS = {
     transferir:     { rota: "compras", acao: "transferencia", msg: (p) => "Transferência de “" + p.name + "” entre locais." },
-    os:             { rota: "os",      acao: "novo-item",     msg: (p) => "OS aberta com “" + p.name + "” no orçamento." },
+    "lotes-relatorio": { rota: "rel-estoque", acao: "lotes", msg: (p) => "Relatório de Lotes filtrado em “" + p.name + "”." },
+    receita:        { rota: "manufacturing", acao: "receita", msg: (p) => "Receita de “" + p.name + "” na Fabricação." },
     "fiscal-modulo":{ rota: "fiscal",  acao: "produto",       msg: (p) => "Dados fiscais de “" + p.name + "” no módulo Fiscal." },
     compra:         { rota: "compras", acao: "ver",           msg: (p) => "Compra de “" + p.name + "” no módulo Compras." },
   };
