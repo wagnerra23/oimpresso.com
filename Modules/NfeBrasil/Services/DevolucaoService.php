@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Services;
 
 use DOMDocument;
 use DOMElement;
+use Illuminate\Support\Facades\DB;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Support\ArquivoFiscal;
 use RuntimeException;
@@ -132,6 +133,139 @@ class DevolucaoService
         }
 
         return $ja;
+    }
+
+    /**
+     * Onda 1 do protótipo Devolução V3 · emite a NF-e de devolução a partir de uma devolução de
+     * venda já registrada (`transactions.type = sell_return`), declarando só o SALDO: o que a venda
+     * tem em `quantity_returned` menos o que outras NF-e de devolução da mesma origem já declararam.
+     *
+     * Não emite ao salvar a devolução: no núcleo a segunda devolução SUBSTITUI a primeira
+     * (CU-DEV-03), e uma NF-e autorizada não volta atrás. Por isso a nota é uma ação própria, e
+     * devolução reduzida depois da nota é recusada aqui, nunca "compensada".
+     */
+    public function emitirDaDevolucaoDeVenda(int $businessId, int $sellReturnId): NfeEmissao
+    {
+        $plano = $this->planoDaDevolucaoDeVenda($businessId, $sellReturnId);
+
+        return $this->emitirDevolucao($businessId, $plano['origem_id'], $plano['itens']);
+    }
+
+    /**
+     * Acha a NF-e de origem da venda devolvida e traduz `quantity_returned` por linha em
+     * `nItem => quantidade`. Recusa (RuntimeException) sempre que o vínculo linha → item não for
+     * provado pelo XML autorizado: a nota não guarda `sell_line_id`, então a ordem é refeita como o
+     * emissor faz (`NfeService::linhasDaVenda`) e conferida item a item contra cProd e qCom.
+     *
+     * @return array{origem_id:int, itens:array<int,float>}
+     */
+    public function planoDaDevolucaoDeVenda(int $businessId, int $sellReturnId): array
+    {
+        // Tier 0: a devolução e a venda só são achadas dentro da empresa.
+        $retorno = DB::table('transactions')
+            ->where('business_id', $businessId)
+            ->where('id', $sellReturnId)
+            ->where('type', 'sell_return')
+            ->first(['id', 'return_parent_id']);
+        if ($retorno === null || empty($retorno->return_parent_id)) {
+            throw new RuntimeException("Devolução {$sellReturnId} não encontrada nesta empresa.");
+        }
+        $vendaId = (int) $retorno->return_parent_id;
+
+        $origens = NfeEmissao::where('business_id', $businessId)
+            ->where('transaction_id', $vendaId)
+            ->where('modelo', '55')
+            ->where('status', 'autorizada')
+            ->get()
+            ->filter(fn (NfeEmissao $e) => ! isset(((array) ($e->metadata ?? []))['devolucao']))
+            ->values();
+        if ($origens->isEmpty()) {
+            throw new RuntimeException('A venda não tem NF-e (modelo 55) autorizada — não há nota a devolver.');
+        }
+        if ($origens->count() > 1) {
+            throw new RuntimeException('A venda tem mais de uma NF-e autorizada — emita a devolução pela tela do Fiscal, nota a nota.');
+        }
+        /** @var NfeEmissao $origem */
+        $origem = $origens->first();
+        if (isset(((array) ($origem->metadata ?? []))['separacao'])) {
+            throw new RuntimeException('A NF-e desta venda saiu separada (mercadoria e serviço) — emita a devolução pela tela do Fiscal.');
+        }
+
+        $xml = ArquivoFiscal::ler((string) $origem->xml_path);
+        if ($xml === null || $xml === '') {
+            throw new RuntimeException("XML da nota {$origem->numero} não foi encontrado em {$origem->xml_path}.");
+        }
+
+        $retornado = DB::table('transaction_sell_lines')
+            ->where('transaction_id', $vendaId)
+            ->pluck('quantity_returned', 'id')
+            ->map(fn ($q) => (float) $q)
+            ->all();
+
+        return [
+            'origem_id' => (int) $origem->id,
+            'itens'     => $this->quantidadesPorItem(
+                xmlOrigem: $xml,
+                linhas: $this->nfeService->linhasDaVenda($businessId, $vendaId),
+                retornado: $retornado,
+                jaDevolvido: $this->saldoDevolvido($businessId, (int) $origem->id),
+            ),
+        ];
+    }
+
+    /**
+     * Sem banco. `linhas` na ordem do emissor (`linhasDaVenda`); `retornado` = sell_line_id =>
+     * quantity_returned; `jaDevolvido` = nItem => quantidade já declarada em NF-e de devolução.
+     *
+     * @param  list<array<string,mixed>> $linhas
+     * @param  array<int,float> $retornado
+     * @param  array<int,float> $jaDevolvido
+     * @return array<int,float> nItem => quantidade a declarar agora
+     */
+    public function quantidadesPorItem(string $xmlOrigem, array $linhas, array $retornado, array $jaDevolvido): array
+    {
+        $dom = new DOMDocument();
+        if (! @$dom->loadXML($xmlOrigem)) {
+            throw new RuntimeException('XML da nota de origem ilegível.');
+        }
+
+        $dets = [];
+        foreach ($dom->getElementsByTagName('det') as $det) {
+            /** @var DOMElement $det */
+            $prod = $this->filho($det, 'prod');
+            $dets[(int) $det->getAttribute('nItem')] = [
+                'cprod' => $this->texto($prod, 'cProd'),
+                'qcom'  => self::q4((float) $this->texto($prod, 'qCom')),
+            ];
+        }
+        ksort($dets);
+
+        if (count($dets) !== count($linhas) || array_keys($dets) !== range(1, count($linhas))) {
+            throw new RuntimeException('Os itens da NF-e não batem com as linhas da venda — emita a devolução pela tela do Fiscal.');
+        }
+
+        $itens = [];
+        foreach (array_values($linhas) as $i => $linha) {
+            $nItem = $i + 1;
+            $cprod = substr((string) ($linha['cprod'] ?? ''), 0, 60);
+            if ($dets[$nItem]['cprod'] !== $cprod || $dets[$nItem]['qcom'] !== self::q4((float) ($linha['quantidade'] ?? 0))) {
+                throw new RuntimeException("O item {$nItem} da NF-e não é a linha {$nItem} da venda (produto ou quantidade mudou depois da nota) — emita a devolução pela tela do Fiscal.");
+            }
+            $id = (int) ($linha['sell_line_id'] ?? 0);
+            $saldo = self::q4((float) ($retornado[$id] ?? 0)) - self::q4((float) ($jaDevolvido[$nItem] ?? 0));
+            if ($saldo < 0) {
+                throw new RuntimeException("Item {$nItem}: a devolução registrada é menor do que a NF-e de devolução já declarada — corrija pela tela do Fiscal.");
+            }
+            if ($saldo > 0) {
+                $itens[$nItem] = $saldo / 10000.0;
+            }
+        }
+
+        if ($itens === []) {
+            throw new RuntimeException('Nada a declarar: tudo o que foi devolvido já está em NF-e de devolução.');
+        }
+
+        return $itens;
     }
 
     /**

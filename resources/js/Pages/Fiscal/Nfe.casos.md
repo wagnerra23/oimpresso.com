@@ -735,6 +735,74 @@ Status: 🧪
 
 ---
 
+## A NF-e de devolução sai da devolução de venda registrada (onda 1 do protótipo Devolução V3)
+
+> **Âncora:** [RUNBOOK-sell-return-add §6.2](../../../../memory/requisitos/Sells/RUNBOOK-sell-return-add.md)
+> onda 1 (protótipo `prototipo-ui/cowork/Wagner/devolucao-v3.html`) · R-NFE-026/027 do SPEC do NfeBrasil
+> (a base e as alíquotas vêm da nota de origem) · CU-DEV-03 de `memory/requisitos/Sells/CASOS-USO-DEVOLUCAO.md`
+> (a segunda devolução substitui a primeira — por isso a NF-e é ação própria e declara só o saldo).
+> Rota `POST /fiscal/acoes/venda-devolucao/{sellReturn}/nfe`, atrás de `nfebrasil.devolucao_pela_venda`
+> (nasce `false`). Teste: `AcoesDevolucaoDaVendaTest`, sem banco.
+
+## UC-FNFE-65 · A quantidade devolvida de cada linha vira a quantidade do item da NF-e · `must` `[V0]`
+
+**Dado** uma venda com duas linhas e NF-e autorizada **Quando** a devolução registra 4 da primeira e 0 da
+segunda **Então** a NF-e de devolução declara o item 1 com 4 e não leva o item 2.
+
+Status: 🧪
+
+## UC-FNFE-66 · Declara só o saldo ainda não declarado · `must` `[V0]`
+
+**Dado** uma devolução registrada de 6 e uma NF-e de devolução anterior com 4 do mesmo item **Quando**
+a NF-e é pedida de novo **Então** declara 2.
+
+Status: 🧪
+
+## UC-FNFE-67 · Devolução reduzida depois da NF-e é recusada · `must` `[V0]`
+
+**Dado** uma NF-e de devolução com 4 **Quando** a devolução registrada passa a 3 **Então** a emissão é
+recusada com a mensagem para corrigir pela tela do Fiscal; nada é compensado.
+
+Status: 🧪
+
+## UC-FNFE-68 · Item da nota diferente da linha da venda recusa · `must` `[V0]`
+
+**Dado** que a nota não guarda `sell_line_id` **Quando** o código do produto, a quantidade ou o número
+de itens da nota não batem com as linhas da venda **Então** a emissão é recusada e manda para a tela do
+Fiscal; com as linhas certas, passa (controle positivo).
+
+Status: 🧪
+
+## UC-FNFE-69 · Sem nada a declarar a NF-e não sai · `must`
+
+**Dado** que tudo o que foi devolvido já está em NF-e de devolução **Quando** a NF-e é pedida **Então**
+nada é emitido.
+
+Status: 🧪
+
+## UC-FNFE-70 · 4 de 10 unidades devolvem 4/10 do produto e do ICMS · `must` `[V0]`
+
+**Dado** uma venda de 10 un a 10,00 com ICMS 18% (produto 100,00, ICMS 18,00) **Quando** voltam 4
+**Então** o item sai com quantidade 4, produto 40,00, base 40,00, ICMS 7,20, CFOP 1202 e total 40,00
+(conta à mão no teste).
+
+Status: 🧪
+
+## UC-FNFE-71 · Com a flag desligada a rota responde 404 · `must`
+
+**Dado** `nfebrasil.devolucao_pela_venda = false` **Quando** a rota é chamada **Então** 404, antes da
+permissão e do banco.
+
+Status: 🧪
+
+## UC-FNFE-72 · Sem `fiscal.nfe.acoes` a emissão é recusada · `must` `[T0]`
+
+**Dado** a flag ligada e um usuário sem a permissão **Quando** pede a NF-e **Então** 403.
+
+Status: 🧪
+
+---
+
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)
 
 > **Âncora:** [US-RB-044](../../../../memory/requisitos/RecurringBilling/SPEC.md) (*"Listener InvoicePaid

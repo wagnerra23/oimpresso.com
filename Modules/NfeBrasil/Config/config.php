@@ -50,6 +50,13 @@ return [
     'entrada_xml_enabled' => env('NFEBRASIL_ENTRADA_XML', false),
 
     /**
+     * Onda 1 do protótipo Devolução V3 (RUNBOOK-sell-return-add §6): emitir a NF-e de devolução
+     * a partir de uma devolução de venda registrada (POST /fiscal/acoes/venda-devolucao/{id}/nfe).
+     * Desligada: mexe em imposto declarado (REGRA MESTRE); o [W] liga depois do smoke em biz=1.
+     */
+    'devolucao_pela_venda' => env('NFEBRASIL_DEVOLUCAO_PELA_VENDA', false),
+
+    /**
      * US-NFE-044 fase 2 — listener EnviarDanfePorEmail.
      *
      * Quando true, ao receber NFeAutorizada event o listener envia DANFE PDF
