@@ -8,12 +8,12 @@ use App\Domain\Fsm\Models\TransactionDocument;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use App\Scopes\ScopeByBusiness;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 use RuntimeException;
 use Throwable;
 
@@ -29,6 +29,10 @@ use Throwable;
  * Body:      { "description": "Cancelamento via FSM — motivo: {motivo}" }
  *            (sem "value" = refund total; com "value" < total = parcial)
  * Response:  { "id": "pay_xxx", "status": "REFUNDED", "value": ... }
+ *
+ * Driver: `AsaasDriver` do PaymentGateway, via `CobrancaNoGateway` (credencial em
+ * `payment_gateway_credentials`). Até 2026-11-23 saía pela cópia do RB (`BoletoService` +
+ * `rb_boleto_credentials`) — decisão b1, ADR 0170. Mesmo endpoint, mesmo corpo, refund total.
  *
  * 🛡️ FLAG DE SEGURANÇA: ASAAS_REFUND_ENABLED (config: services.asaas.refund_enabled)
  *   - Default FALSE — em prod o estorno mexe com dinheiro real do pagador
@@ -73,7 +77,7 @@ class RefundCobrancaAsaasJob implements ShouldQueue
         public readonly string $motivo,
     ) {}
 
-    public function handle(BoletoService $service): void
+    public function handle(CobrancaNoGateway $gateway): void
     {
         // 1) Carrega documento ignorando global scope (Job sem session auth)
         $document = TransactionDocument::withoutGlobalScope(ScopeByBusiness::class)
@@ -127,8 +131,9 @@ class RefundCobrancaAsaasJob implements ShouldQueue
         // 6) Idempotência remota — checa Asaas: se já REFUNDED, no-op
         //    Critical: charge paga = real money; rerun por retry deve ser seguro.
         try {
-            $current = $service->fetchPaymentAsaas($this->businessId, $chargeId);
-            $remoteStatus = strtoupper((string) ($current['status'] ?? ''));
+            // O status cru do Asaas (REFUNDED, PARTIALLY_REFUNDED…) vem em payloadGateway.
+            $current = $gateway->consultar($this->businessId, 'asaas', $chargeId);
+            $remoteStatus = strtoupper((string) ($current->payloadGateway['status'] ?? ''));
 
             if (in_array($remoteStatus, ['REFUNDED', 'PARTIALLY_REFUNDED'], true)) {
                 Log::info('RefundCobrancaAsaasJob: charge Asaas já REFUNDED, no-op idempotente', [
@@ -171,31 +176,26 @@ class RefundCobrancaAsaasJob implements ShouldQueue
         // 8) Chama POST /payments/{id}/refund
         try {
             $descricao = "Cancelamento via FSM — motivo: {$this->motivo}";
-            $response = $service->refundAsaas($this->businessId, $chargeId, $descricao);
-
-            $remoteStatus = strtoupper((string) ($response['status'] ?? ''));
+            // null = refund total (sem "value" no corpo), igual ao driver antigo.
+            $gateway->estornar($this->businessId, 'asaas', $chargeId, $descricao, null);
 
             Log::info('RefundCobrancaAsaasJob: refund Asaas executado com sucesso', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
-                'remote_status' => $remoteStatus,
-                'value' => $response['value'] ?? null,
                 'motivo' => $this->motivo,
             ]);
-        } catch (RequestException $e) {
+        } catch (GatewayUnavailableException $e) {
             Log::error('RefundCobrancaAsaasJob: falha HTTP no POST /payments/{id}/refund', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
-                'status_code' => $e->response?->status(),
-                'response_body' => $e->response?->body(),
+                'erro' => $e->getMessage(),
                 'motivo' => $this->motivo,
             ]);
 
             throw new RuntimeException(
-                "Asaas API retornou erro ao fazer refund charge_id={$chargeId}: "
-                . ($e->response?->status() ?? '?')
+                "Asaas API retornou erro ao fazer refund charge_id={$chargeId}: " . $e->getMessage()
             );
         } catch (Throwable $e) {
             Log::error('RefundCobrancaAsaasJob: erro inesperado', [
