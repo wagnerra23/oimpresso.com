@@ -371,7 +371,7 @@ status `canceled_at_period_end`, `credit_note` do saldo restante, e o evento `Co
 Análogo para o Inter: `POST /webhooks/inter/pix/{businessId}` (rota em `Routes/web.php:144`, sem
 prefixo `api`) → `InterWebhookController` → `ProcessInterWebhookJob`. A consulta e a marcação do evento
 já são por empresa (#11242). O crédito único do Inter **ainda não** segue o do Asaas: o job usa
-`insertOrIgnore` e dispara `InvoicePaid`; depende do `gateway_ref` e ficou para o lote L2 da auditoria.
+`insertOrIgnore` e dispara `InvoicePaid`; depende do `gateway_ref`. **Em andamento:** [#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352) (achar a fatura pelo `txid` e creditar só na quitação).
 
 ---
 
@@ -463,7 +463,7 @@ Hoje existem **dois caminhos** que levam uma fatura a `paid`, e os dois terminam
 | Caminho | Entrada | Idempotência | Efeito contábil hoje |
 |---|---|---|---|
 | Webhook do próprio RB (Asaas, F6) | `/api/webhooks/asaas/{id}` → fila `rb_webhooks` | `pg_webhook_events` por empresa + `UPDATE` condicional na fatura | 1 crédito em `account_transactions` + `saldo_cached` (conta banco 274) |
-| Webhook do próprio RB (Inter, F6) | `/webhooks/inter/pix/{id}` → fila `rb_webhooks` | `pg_webhook_events` por empresa + `insertOrIgnore` | crédito em `account_transactions` |
+| Webhook do próprio RB (Inter, F6) | `/webhooks/inter/pix/{id}` → fila `rb_webhooks` | `pg_webhook_events` por empresa + `insertOrIgnore` (crédito único em andamento: [#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352)) | crédito em `account_transactions` |
 | PaymentGateway (F12, flag) | `CobrancaPaga` | fatura já `paid` não muda | nenhum |
 
 Depois de `paid`, o `InvoicePaid` segue para o NfeBrasil (F8): `EmitirNFeAoReceberPagamento`, atrás de
@@ -875,6 +875,8 @@ merge de quem for atendê-lo — G-2).
 | Trilha | Item | Estado |
 |---|---|---|
 | **Correção `[V0]`** | decidir o remédio do §9.1 (assinatura sem plano) | ✅ remédio "a" escolhido por [W] e entregue em 2026-10-19 (#9606) |
+| Dados | apagar contato não apaga fatura (b6) | em andamento: [#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346) |
+| Tela | régua de cobrança sem e-mail nem WhatsApp na tela (b7) | em andamento: [#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350) |
 | **Correção `[V0]`** | US-RB-056 — unificar as 3 regras de próximo vencimento | aberta |
 | Paridade DoD | US-RB-001 `setup_fee`/`indice_reajuste` · US-RB-002 `trialing` · US-RB-005 `tipo_cancelamento`+`credit_note` | parciais declaradas |
 | Cobrança | US-RB-004 endpoint de charge + smart retry soft/hard decline | D6 |

@@ -22,7 +22,7 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 - Cartão salvo (US-RB-011, #9951): o token do cartão pago na página do Asaas fica ligado à assinatura; número de cartão nunca é gravado. Atrás de `RB_SALVAR_CARTAO` (padrão `false`). Cobrar com o token e mostrar na tela (b5): em andamento (`rb-b5-cartao`).
 - Cobrança paga no PaymentGateway → fatura paga (US-RB-057, #9844). Atrás de `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` (padrão `false`).
 - Cancelamento: `POST /financeiro/rb-invoices/{invoice}/cancelar` (UI `Faturas/Index.tsx`) — Inter e Asaas por API; C6 exige cancelamento manual no portal (driver lança `BadMethodCallException`, US-RB-042 `_parcial_`).
-- Webhook Asaas em `POST /api/webhooks/asaas/{businessId}`: autenticado por segredo cifrado (#11227), idempotente por `(business_id, provider, event_id)` em `pg_webhook_events` (#11242), processado pela fila `rb_webhooks` (worker no `Kernel` desde #11230). Credita uma vez e só na quitação, e dispara `InvoicePaid` só na transição (#11223). O Inter (`/webhooks/inter/pix/{id}`) ainda usa `insertOrIgnore`.
+- Webhook Asaas em `POST /api/webhooks/asaas/{businessId}`: autenticado por segredo cifrado (#11227), idempotente por `(business_id, provider, event_id)` em `pg_webhook_events` (#11242), processado pela fila `rb_webhooks` (worker no `Kernel` desde #11230). Credita uma vez e só na quitação, e dispara `InvoicePaid` só na transição (#11223). O Inter (`/webhooks/inter/pix/{id}`) ainda usa `insertOrIgnore`; crédito único em andamento em [#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352).
 - Fatura paga **não** vira título no Financeiro: a ponte (consumidor de `InvoicePaid`) é do Financeiro (decisão b2). Hoje o efeito é crédito em `account_transactions`. Fluxo completo: SDD F13.
 - Acesso: pacote `recurringbilling_module` em todas as rotas web (#11205) e permissão própria por rota (#11247).
 - NFe automática após pagamento: listener `EmitirNFeAoReceberPagamento` (NfeBrasil) wired ao evento de fatura paga, atrás da flag `nfebrasil.auto_emission_on_invoice_paid` (default `false`) — ligar em prod é US-RB-044, SDD §10.
@@ -33,8 +33,9 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 - ~~🔴 Assinatura com valor negociado sem plano descartada pelo gerador~~ — resolvido em 2026-10-19 (#9606, remédio "a" de [W]; SDD §9.1 Desfecho).
 - Duas pilhas de driver para o mesmo banco (boleto no RB, Pix/cartão no PaymentGateway) até a migração terminar (SDD D9).
 - Fatura paga não gera título/baixa no Financeiro; a ponte é do Financeiro (SDD D10).
-- Inter ainda sem crédito único na quitação (depende do `gateway_ref`).
-- Dunning/retry é régua hardcoded, não motor; proração ausente. A régua por e-mail e WhatsApp sai da tela (decisão b7).
+- Inter ainda sem crédito único na quitação — em andamento em [#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352).
+- Apagar contato ou plano leva assinaturas e faturas junto (`cascadeOnDelete`); a decisão b6 é que não leve — em andamento em [#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346).
+- Dunning/retry é régua hardcoded, não motor; proração ausente. A régua por e-mail e WhatsApp sai da tela (decisão b7) — em andamento em [#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350).
 - Flags desligadas em produção: `RB_COBRAR_PIX_AUTOMATICO`, `RB_SALVAR_CARTAO`, `RB_MARCAR_FATURA_PAGA_POR_COBRANCA`, `nfebrasil.auto_emission_on_invoice_paid`. Ligar é do [W] (US-RB-044 e US-RB-057 ficam "parcial (flag desligada)", decisão b8).
 
 ## Última mudança
