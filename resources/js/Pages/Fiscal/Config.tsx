@@ -213,6 +213,21 @@ export default function Config({
     certificado: null,
     senha: '',
   });
+  // Confere no navegador o que o servidor também confere (extensão + 100 KB), pra a
+  // pessoa saber na hora, ao escolher o arquivo, e não só depois do envio. O conteúdo
+  // (senha, X.509, CNPJ) só o servidor prova.
+  const escolherCertificado = (arquivo: File | null) => {
+    uploadForm.clearErrors('certificado');
+    uploadForm.setData('certificado', arquivo);
+    if (!arquivo) return;
+    if (!/\.(pfx|p12)$/i.test(arquivo.name)) {
+      uploadForm.setError('certificado', 'O certificado deve ser .pfx ou .p12.');
+    } else if (arquivo.size > 100 * 1024) {
+      uploadForm.setError('certificado', 'Certificado muito grande (máx 100 KB — verifique se é um cert A1 e não A3).');
+    }
+  };
+  const certExpirado = certificado != null && !(certificado.diasRestantes != null && certificado.diasRestantes > 0);
+
   const submitUpload = (e: FormEvent) => {
     e.preventDefault();
     uploadForm.post('/nfe-brasil/configuracao/certificado', {
@@ -222,7 +237,9 @@ export default function Config({
         if (fileRef.current) fileRef.current.value = '';
         toast.success('Certificado A1 cadastrado.');
       },
-      onError: () => toast.error('Verifique o arquivo e a senha.'),
+      // Mostra o motivo REAL (arquivo, senha, CNPJ, validade) — o genérico
+      // "Verifique o arquivo e a senha" fazia erro de arquivo parecer erro de senha.
+      onError: (errs) => toast.error(errs.certificado ?? errs.senha ?? 'Não foi possível enviar o certificado.'),
       onFinish: () => uploadForm.reset('certificado', 'senha'),
     });
   };
@@ -413,7 +430,7 @@ export default function Config({
         route="fiscal_config"
         title="Certificado & configuração"
         crumb={crumb}
-        env={certificado ? `A1 ativo · ${painel.ambiente === 1 ? 'prod' : 'homolog'}` : 'sem cert ativo'}
+        env={certificado ? `A1 ${certExpirado ? 'expirado' : 'ativo'} · ${painel.ambiente === 1 ? 'prod' : 'homolog'}` : 'sem cert ativo'}
         envTone={certTone === 'bad' ? 'bad' : certTone === 'warn' ? 'warn' : 'ok'}
         actions={
           certificado ? (
@@ -526,7 +543,9 @@ export default function Config({
                   </div>
                   <div>
                     <dt>Status</dt>
-                    <dd>{certificado.ativo ? 'Ativo' : 'Inativo'}</dd>
+                    <dd style={certExpirado ? { color: 'var(--bad)' } : undefined}>
+                      {!certificado.ativo ? 'Inativo' : certExpirado ? 'Expirado — substitua abaixo' : 'Ativo'}
+                    </dd>
                   </div>
                 </dl>
 
@@ -586,7 +605,7 @@ export default function Config({
                   accept=".pfx,.p12"
                   disabled={!podeTrocarAmbiente}
                   title={podeTrocarAmbiente ? undefined : motivoGate}
-                  onChange={(e) => uploadForm.setData('certificado', e.target.files?.[0] ?? null)}
+                  onChange={(e) => escolherCertificado(e.target.files?.[0] ?? null)}
                 />
                 <small style={{ color: 'var(--fx-text-mute)', fontSize: 11 }}>Máximo 100 KB. A3 (token) não é suportado.</small>
                 {uploadForm.errors.certificado && (
@@ -619,7 +638,7 @@ export default function Config({
                 type="submit"
                 variant="cowork-primary"
                 title={podeTrocarAmbiente ? undefined : motivoGate}
-                disabled={!podeTrocarAmbiente || uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha}
+                disabled={!podeTrocarAmbiente || uploadForm.processing || !uploadForm.data.certificado || !uploadForm.data.senha || !!uploadForm.errors.certificado}
               >
                 {uploadForm.processing
                   ? 'Enviando…'

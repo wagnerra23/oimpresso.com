@@ -67,13 +67,20 @@ class CertificadoController extends Controller
         $pfxBase64 = base64_encode(file_get_contents($request->file('certificado')->getRealPath()));
         $senha = (string) $request->input('senha');
 
+        $contexto = array_filter(['cnpj_titular' => $cnpjBusiness ?: null]);
         try {
-            $cert = $this->service->salvar(
-                $businessId,
-                $pfxBase64,
-                $senha,
-                array_filter(['cnpj_titular' => $cnpjBusiness ?: null]),
-            );
+            try {
+                $cert = $this->service->salvar($businessId, $pfxBase64, $senha, $contexto);
+            } catch (InvalidArgumentException $e) {
+                // A senha chega sem corte (TrimStrings::$except). Se a exata não abrir
+                // o .pfx e ela tinha espaço/quebra nas pontas — o caso comum de senha
+                // COLADA do e-mail da certificadora —, tenta a versão sem as pontas.
+                $semPontas = trim($senha);
+                if ($e->getMessage() !== CertificadoService::MSG_SENHA_ERRADA || $semPontas === $senha || $semPontas === '') {
+                    throw $e;
+                }
+                $cert = $this->service->salvar($businessId, $pfxBase64, $semPontas, $contexto);
+            }
         } catch (InvalidArgumentException $e) {
             return back()
                 ->withErrors(['certificado' => $e->getMessage()])

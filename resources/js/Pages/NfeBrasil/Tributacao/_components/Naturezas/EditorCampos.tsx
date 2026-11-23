@@ -9,7 +9,7 @@ import { Grid, Inline, Stack } from '@/Components/layout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import {
   CSOSN, CST_COM_ST, CST_IBS, CST_ICMS_NATUREZA, CST_IPI_E, CST_IPI_S, CST_PC_E, CST_PC_S, FINS, MODBC, MODBCST,
-  ORIG_IBS, ORIG_ICMS, ORIG_IPI, ORIG_MVA, ORIG_PC, REGIME_NOME, TIPOS_NOTA,
+  ORIG_IBS, ORIG_ICMS, ORIG_IPI, ORIG_MVA, ORIG_PC, PC_PADRAO, REGIME_NOME, TIPOS_NOTA,
   type Natureza, type Opcao, type Regime,
 } from './natureza';
 
@@ -25,9 +25,6 @@ const AJUDA = 'mt-1 block text-[11.5px] leading-snug text-[var(--text-dim)]';
 // Grades do protótipo: `.fgrid` (campos, mín. 190px) e `.chks` (marcações, mín. 220px).
 const FGRID = { gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))' };
 const CHKS = { gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))' };
-
-/** PIS/COFINS "padrão do regime" em % — os mesmos números do motor (PIS_COFINS_DO_REGIME). */
-const PC_PADRAO: Record<'LP' | 'LR', { pis: number; cofins: number }> = { LP: { pis: 0.65, cofins: 3 }, LR: { pis: 1.65, cofins: 7.6 } };
 
 function pct(v: number): string {
   return `${v.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}%`;

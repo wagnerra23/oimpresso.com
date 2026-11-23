@@ -42,7 +42,7 @@ Configurar **tributação default + regras NCM específicas** do business — ú
 - Multi-tenant Tier 0: query usa `business_id` em todas operações + HasBusinessScope no `NfeFiscalRule` e `NfeBusinessConfig`
 - AuditLog em mutações sensíveis: `activity('nfe.tributacao')->log(...)` em `toggleAutoEmission` (`auto_emission.toggled`), `store` (`regra.created`), `update` (`regra.updated`) e `destroy` (`regra.deleted`) — ⚠️ v1 citava `linha 105-112 do Controller`; referência de linha apodrece no primeiro refactor (hoje já são 123-130), então a âncora passa a ser o **símbolo** + o log-name
 - Cascade defaults NCM→produto (ADR satélite arq/0006)
-- Seção **Naturezas de operação** atrás da flag `useV2NfeNaturezas` (por empresa, desligada): lista com filtros e editor em 4 passos; a conferência é do servidor; natureza que o cálculo usa abre só para leitura (RUNBOOK-tributacao §Naturezas · UC-NFTR-44..52)
+- Seção **Naturezas de operação** atrás da flag `useV2NfeNaturezas` (por empresa, desligada por padrão): lista com filtros e editor em 7 passos (natureza, CFOP, ICMS, IPI, PIS e COFINS, IBS e CBS, revisão); a conferência é do servidor; natureza que o cálculo usa abre só para leitura; a natureza nova pode ser preenchida pelo XML de uma nota já emitida, lido no navegador (RUNBOOK-tributacao §Naturezas · UC-NFTR-44..52 · UC-NFTR-73..77) — ⚠️ até 2026-11-23 esta linha dizia "editor em 4 passos", que era o editor da onda 3 (#10896)
 
 ---
 

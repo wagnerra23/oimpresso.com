@@ -2,7 +2,7 @@
 title: "RUNBOOK — Acesso ao CT 100 (oimpresso-mcp + Docker stack)"
 owner: W
 status: ativo
-last_validated: "2026-07-17"
+last_validated: "2026-11-23"
 ---
 
 # RUNBOOK — Acesso ao CT 100 (oimpresso-mcp + Docker stack)
@@ -11,6 +11,10 @@ last_validated: "2026-07-17"
 > É a **1ª hipótese**, não a última. Máquina viva + rede morta se parecem **exatamente** com máquina
 > desligada (sem ping, sem ARP, `rx 0`). Prove em 1 comando — `journalctl --list-boots` — antes de
 > caçar energia/OOM/software. Receita completa: §"CT 100 sumiu da rede?" abaixo.
+>
+> 🔑 **Exceção que vem antes do cabo:** se `tailscale ping` responde `peer's node key has expired`,
+> **não é cabo** — é a chave do Tailscale vencida (incidente 2026-11-23, 26 dias fora).
+> Receita: §"Chave do Tailscale EXPIRADA" abaixo.
 
 > **Tipo:** receita operacional "como executar comando hoje"
 > **Validado:** 2026-05-06 (Claude Code @ wagner-pc) · **incidente de rede catalogado:** 2026-07-16
@@ -155,6 +159,49 @@ Se o boot anterior **terminou só quando você reiniciou** (e não 23h atrás), 
 ```bash
 tailscale ssh root@ct100-mcp 'df -h /'
 ```
+
+---
+
+## 🔑 `offline` mas a máquina responde na LAN? Chave do Tailscale EXPIRADA
+
+O cabo não é a única causa de "offline". Em 2026-11-23 o CT 100 ficou **26 dias** fora do
+Tailscale com rede e serviços perfeitos: a chave do nó venceu em 2026-10-26. O `pve-empresa`
+e o `oimpresso-sistema` caíram pelo mesmo motivo.
+
+**Como distinguir do cabo (1 minuto):**
+
+| Sonda | Cabo ruim | Chave expirada |
+|---|---|---|
+| `tailscale ping ct100-mcp` | timeout | **`peer's node key has expired`** |
+| `ssh root@192.168.0.50` (LAN) | sem resposta | **entra** |
+| `curl -sI https://mcp.oimpresso.com/api/mcp` | não responde | **`405`** (servidor vivo) |
+| dentro do nó: `tailscale status` | — | **`Logged out.` + link `Log in at:`** |
+| painel Machines | — | selo **`Expired <data>`** |
+
+**Receita que funcionou (2026-11-23):**
+
+1. Entrar pela LAN — o Tailscale está morto, a LAN não:
+   `ssh -i ~/.ssh/id_ed25519_oimpresso root@192.168.0.50`
+2. No painel (`console.tailscale.com/admin/machines`, logado como `wagnerra@`), no `⋯` do nó:
+   **Disable key expiry**. ⚠️ **Isso sozinho NÃO reconecta**: o cliente já apagou a sessão
+   local e fica em `NeedsLogin`.
+3. Gerar um link novo e aprová-lo **na mesma conta**, logo em seguida:
+   `systemctl restart tailscaled; tailscale status` → abre o link do `Log in at:`.
+   ⚠️ **Link antigo não serve** — o que estava no `status` desde a expiração não funcionou;
+   só o gerado na hora funcionou.
+4. O nó volta como máquina do **usuário**, sem a tag. Repor a tag (precisa ser tag que o
+   `tagOwners` da ACL permite):
+   `tailscale up --ssh --hostname=ct100-mcp --advertise-tags=tag:ct100`
+5. Re-tagear **gera chave nova** e a expiração volta a valer → repetir o passo 2.
+6. Conferir: `tailscale ping ct100-mcp` (pong) · `tailscale ssh root@ct100-mcp hostname`
+   · no nó, `tailscale status --json` com `Self.Tags = ["tag:ct100"]` e **sem** `KeyExpiry`.
+
+**Prevenção:** todo nó de servidor (`ct100-mcp`, `pve-empresa`, `oimpresso-sistema`,
+`recorder`) precisa do selo **Expiry disabled** no painel. Conferir depois de qualquer
+re-login ou troca de tag — as duas coisas geram chave nova.
+
+> Disable key expiry e aprovar o login são ações na conta do [W]. O agente prepara tudo pela
+> LAN e gera o link; o clique no painel é do dono da conta.
 
 ---
 

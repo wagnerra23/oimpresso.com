@@ -14,6 +14,10 @@ class TrimStrings extends BaseTrimmer
     protected $except = [
         'password',
         'password_confirmation',
+        // Senha do certificado A1 (NfeBrasil): o PKCS#12 compara byte a byte, e o
+        // corte de espaço fazia uma senha certa voltar "Senha do certificado incorreta".
+        // O CertificadoController tenta a exata e, se falhar, a sem espaços (colagem).
+        'senha',
         'prefix', //Invoice scheme prefix
         'ref_no_prefixes.purchase', //Business settings prefixes
         'ref_no_prefixes.purchase_return',
