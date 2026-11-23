@@ -92,6 +92,19 @@ class SubscriptionIndexPresenter
             'pix_copia_cola' => ($mandato['status'] ?? null) === 'CRIADA' ? ($mandato['pix_copia_cola'] ?? null) : null,
         ] : null;
 
+        // US-RB-011: cartão recorrente. null = recurso desligado (a seção some). Só bandeira e
+        // últimos 4, nunca o token. Tier 0: cartão de outro business ou removido não aparece,
+        // mesmo que `cartao_salvo_id` aponte para ele.
+        $ligado = (bool) config('recurringbilling.salvar_cartao', false);
+        $cartao = $ligado ? $sub->cartaoSalvo : null;
+        $cartaoValido = $cartao !== null
+            && (int) $cartao->business_id === (int) $sub->business_id
+            && $cartao->status === 'ativo';
+        $row['cartao_recorrente'] = $ligado ? [
+            'ultimos_4' => $cartaoValido ? $cartao->ultimos_4 : null,
+            'bandeira'  => $cartaoValido ? $cartao->bandeira : null,
+        ] : null;
+
         $row['churn_reason'] = $sub->churn_reason;
         $row['paused_until'] = optional($sub->paused_until)->toDateString();
         $row['canceled_at']  = optional($sub->canceled_at)->toIso8601String();

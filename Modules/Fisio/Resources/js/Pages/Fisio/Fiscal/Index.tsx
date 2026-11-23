@@ -1,8 +1,8 @@
 // @memcofre
 //   tela: /fisio/fiscal
 //   module: Fisio
-//   stories: US-FISIO-023 (UC-FFI-01..05)
-//   permissao: fisio.access · marcar recibo enviado exige fisio.editar
+//   stories: US-FISIO-023 (UC-FFI-01..06)
+//   permissao: fisio.access · marcar recibo enviado ou para retificar exige fisio.editar
 //
 // Documentos fiscais do dia (fonte: prototipo-ui/cowork/Wagner/prototipos/fisio/FiscalFila.dc.html).
 // Aba CNPJ: NFS-e lidas do módulo NFSe. Aba CPF: fila do Receita Saúde sobre os pagamentos do
@@ -24,11 +24,21 @@ interface Props { dia: string; pode_editar: boolean; notas?: Nota[]; recibos?: R
 const moeda = (v: string) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const ROTULO_NOTA: Record<string, string> = { emitida: 'autorizada', erro: 'rejeitada', processando: 'enviando', rascunho: 'rascunho', cancelada: 'cancelada' };
 
+const rotuloRecibo = (r: Recibo) => {
+  const numero = r.numero ? ` · ${r.numero}` : '';
+  if (r.status === 'enviado') return `enviado${numero}`;
+  if (r.status === 'retificar') return `retificar${numero}`;
+  return `pendente · CPF …${r.cpf_fim}`;
+};
+
 function Recibos({ recibos, podeEditar }: { recibos: Recibo[]; podeEditar: boolean }) {
   const marcar = (r: Recibo) => {
     const numero = window.prompt('Número do recibo no Receita Saúde (opcional)') ?? undefined;
     router.post(`/fisio/fiscal/recibos/${r.payment_id}/enviado`, { receipt_number: numero || null }, { preserveScroll: true });
   };
+  // Recibo enviado com erro: marca para retificar no Receita Saúde (UC-FFI-06). Não reenvia nada.
+  const retificar = (r: Recibo) =>
+    router.post(`/fisio/fiscal/recibos/${r.payment_id}/enviado`, { marca: 'retificar' }, { preserveScroll: true });
   if (recibos.length === 0) return <p className="text-sm text-muted-foreground">Nenhum pagamento de paciente hoje.</p>;
   return (
     <ul className="divide-y rounded-md border">
@@ -37,8 +47,9 @@ function Recibos({ recibos, podeEditar }: { recibos: Recibo[]; podeEditar: boole
           <span className="min-w-0 flex-1 truncate">{r.pagador}</span>
           <span className="font-mono tabular-nums">{moeda(r.valor)}</span>
           {!r.cpf_ok ? <Badge variant="outline">falta CPF do pagador</Badge>
-            : <Badge variant={r.status === 'enviado' ? 'secondary' : 'outline'}>{r.status === 'enviado' ? `enviado${r.numero ? ` · ${r.numero}` : ''}` : `pendente · CPF …${r.cpf_fim}`}</Badge>}
+            : <Badge variant={r.status === 'enviado' ? 'secondary' : r.status === 'retificar' ? 'destructive' : 'outline'}>{rotuloRecibo(r)}</Badge>}
           {podeEditar && r.cpf_ok && r.status !== 'enviado' && <Button size="sm" variant="outline" onClick={() => marcar(r)}>Marquei como enviado</Button>}
+          {podeEditar && r.status === 'enviado' && <Button size="sm" variant="ghost" onClick={() => retificar(r)}>Precisa retificar</Button>}
         </li>
       ))}
     </ul>

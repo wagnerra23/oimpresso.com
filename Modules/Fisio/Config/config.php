@@ -244,4 +244,14 @@ return [
         'pin_delay_segundos' => 60,
         'lembrete_horario' => '08:30',
     ],
+
+    /*
+     * Confirmação da consulta pelo WhatsApp (etapa 04 A6). A mensagem sai quando faltam até
+     * `horas_antes` para a sessão e não sai se faltarem menos de `minimo_horas` (perto demais
+     * para servir). Ainda é um valor para todas as clínicas; por clínica (D-2 a 2 h) é o próximo passo.
+     */
+    'confirmacao' => [
+        'horas_antes' => 24,
+        'minimo_horas' => 2,
+    ],
 ];

@@ -108,6 +108,17 @@ class Subscription extends Model
         return $this->hasOne(Invoice::class, 'subscription_id')->latestOfMany();
     }
 
+    /**
+     * Cartão salvo em que a assinatura é cobrada (US-RB-011). O token nunca sai em array/JSON
+     * (`CartaoSalvo::$hidden`); o drawer lê só bandeira e últimos 4.
+     *
+     * @return BelongsTo<CartaoSalvo, $this>
+     */
+    public function cartaoSalvo(): BelongsTo
+    {
+        return $this->belongsTo(CartaoSalvo::class, 'cartao_salvo_id');
+    }
+
     public function notes(): HasMany
     {
         return $this->hasMany(SubscriptionNote::class, 'subscription_id');

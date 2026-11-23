@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1098 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1099 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -19,7 +19,7 @@
 | [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
 | [`Arquivos`](#arquivos) | 33 | 0 | 0 | 0 | 33 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
-| [`Fisio`](#fisio) | 28 | 0 | 0 | 0 | 28 |
+| [`Fisio`](#fisio) | 29 | 0 | 0 | 0 | 29 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
 | [`Marketplaces`](#marketplaces) | 27 | 0 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
@@ -742,6 +742,7 @@
 - **US-FISIO-014** — Regras da agenda: conflito, status, falta, cancelamento e lista de espera — **P0**
 - **US-FISIO-015** — Tela Agenda da clínica e configuração do agendamento pelo app — **P0**
 - **US-FISIO-016** — Agenda no portal do paciente: marcar, minhas consultas, confirmar, cheguei — **P0**
+- **US-FISIO-017** — Confirmação da consulta pelo WhatsApp, com resposta de um toque — **P0**
 - **US-FISIO-020** — Pacote de sessões com saldo derivado de ledger append-only — **P0**
 - **US-FISIO-021** — Tela "Pacote e cobrança" da ficha do paciente — **P0**
 - **US-FISIO-022** — Vender e renovar pacote pela venda do núcleo — **P0**
