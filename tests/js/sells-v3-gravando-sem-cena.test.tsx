@@ -233,23 +233,32 @@ describe('Venda V3 gravando · sem dados de cena', () => {
     expect(screen.queryByText('A margem depende do custo dos produtos, que a nova venda ainda não lê.')).toBeNull();
   });
 
-  /* UC-V408 — parcelas: gera o plano padrão (2 parcelas) e abre "Editar parcela…" da primeira,
-     pelo teclado, como em `produto-excluir-restaurar.test.tsx`. */
-  function gerarEEditarPrimeiraParcela() {
+  /* UC-V408 — parcelas: gera o plano padrão (2 parcelas). A tabela se confere ANTES de abrir a
+     edição: o diálogo de edição é modal e o Radix marca o resto da página com aria-hidden, então
+     uma busca por papel ("columnheader") depois dele não acha a tabela em nenhum dos dois modos. */
+  function gerarParcelas() {
     fireEvent.click(screen.getByRole('button', { name: 'Parcelar…' }));
     fireEvent.click(screen.getByRole('button', { name: 'Gerar parcelas' }));
+    // Pré-condição dos dois modos: a tabela existe e está visível para a busca por papel.
+    expect(screen.getByRole('columnheader', { name: 'Vencimento' })).toBeTruthy();
+  }
+  /* Abre "Editar parcela…" da primeira, pelo teclado, como em `produto-excluir-restaurar.test.tsx`. */
+  function editarPrimeiraParcela() {
     fireEvent.keyDown(screen.getAllByTitle('Ações da parcela')[0]!, { key: 'Enter' });
     fireEvent.click(screen.getByRole('menuitem', { name: 'Editar parcela…' }));
   }
 
   it('UC-V408 · gravando, as parcelas saem só com a posição, sem documento, conta nem plano de contas da cena', () => {
     render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
-    gerarEEditarPrimeiraParcela();
+    gerarParcelas();
 
     expect(screen.getAllByText('1/2').length).toBeGreaterThan(0);
     expect(screen.getByText('Conta de destino e plano de contas ainda não são gravados pela nova venda.')).toBeTruthy();
     expect(screen.queryByText('Caixa / conta de destino')).toBeNull();
     expect(screen.queryByRole('columnheader', { name: 'Conta' })).toBeNull();
+
+    editarPrimeiraParcela();
+    expect(screen.getByRole('heading', { name: 'Parcela 1/2' })).toBeTruthy();
     expect(screen.queryByText('Plano de contas')).toBeNull();
     const texto = document.body.textContent ?? '';
     for (const cena of ['VD-2026', 'Caixa financeiro', 'Banco Itaú', 'Banco Sicredi', 'Recebido em depósito']) {
@@ -259,11 +268,14 @@ describe('Venda V3 gravando · sem dados de cena', () => {
 
   it('UC-V408 · controle: sem a gravação, as parcelas seguem com documento, conta e plano de contas da cena', () => {
     render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
-    gerarEEditarPrimeiraParcela();
+    gerarParcelas();
 
     expect(screen.getAllByText('VD-2026 1/2').length).toBeGreaterThan(0);
     expect(screen.getByText('Caixa / conta de destino')).toBeTruthy();
     expect(screen.getByRole('columnheader', { name: 'Conta' })).toBeTruthy();
+
+    editarPrimeiraParcela();
+    expect(screen.getByRole('heading', { name: 'Parcela 1/2' })).toBeTruthy();
     expect(screen.getByText('Plano de contas')).toBeTruthy();
     expect(screen.queryByText('Conta de destino e plano de contas ainda não são gravados pela nova venda.')).toBeNull();
   });
