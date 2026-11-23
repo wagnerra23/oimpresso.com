@@ -49,16 +49,17 @@ const blocoDecisao = () => document.querySelector('[data-contract="decisao-pende
 
 describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já registram', () => {
   it('UC-FEVT-08 · a tela com débitos desenha um item por bullet [BACKLOG] dela', () => {
-    renderTela('fiscal_eventos');
+    renderTela('sped');
 
     const secao = bloco();
     expect(secao).not.toBeNull();
     expect(screen.getByText('Débitos conhecidos desta tela')).toBeTruthy();
 
-    // `!d.decisao` porque item de decisão tem bloco próprio (UC-FDFE-06). O Eventos hoje tem
+    // `!d.decisao` porque item de decisão tem bloco próprio (UC-FDFE-06). O SPED hoje tem
     // zero decisões, então o filtro não muda o número — está aqui para o caso continuar
-    // verdadeiro no dia em que um bullet desta tela ganhar `decisão [W]`.
-    const esperados = DEBITOS_CONHECIDOS.filter(d => d.tela === 'fiscal_eventos' && !d.decisao);
+    // verdadeiro no dia em que um bullet desta tela ganhar `decisão [W]`. (Até 2026-11-23 o
+    // exemplo era o Eventos; o único bullet dele era apontador e saiu da lista.)
+    const esperados = DEBITOS_CONHECIDOS.filter(d => d.tela === 'sped' && !d.decisao);
     expect(esperados.length).toBeGreaterThan(0);
     expect(secao!.querySelectorAll('[data-ancora]')).toHaveLength(esperados.length);
     for (const d of esperados) expect(screen.getByText(d.titulo)).toBeTruthy();
@@ -169,10 +170,10 @@ describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
   });
 
   it('UC-FDFE-06 · tela sem decisão em aberto não desenha NÓ NENHUM', () => {
-    // O Eventos tem débitos e ZERO decisões — logo desenha o bloco de dívida e NÃO o de
+    // O SPED tem débitos e ZERO decisões — logo desenha o bloco de dívida e NÃO o de
     // decisão. É o par que prova que os dois blocos são independentes, e não um só com
     // título trocado.
-    renderTela('fiscal_eventos');
+    renderTela('sped');
     expect(bloco()).not.toBeNull();
     expect(blocoDecisao()).toBeNull();
   });
