@@ -94,6 +94,11 @@ memory/requisitos/PontoWr2/         @wagnerra23   # docs ponto legacy (ainda com
 # 🏗️ INFRA / CI / DEPLOY / GOVERNANÇA — Wagner (ninguém mergeia sem ele)
 # ──────────────────────────────────────────────
 .github/                            @wagnerra23   # workflows + este próprio CODEOWNERS
+# Exceção da venda (2026-11-23, [W] "remova também a proteção do .github para o
+# 11326"): o gate de domínio da venda V3 fica sem dono, como o resto da venda.
+# Linha SEM owner = sem reviewer obrigatório; vale porque vem DEPOIS de `.github/`
+# (no CODEOWNERS a última regra que casa ganha).
+.github/workflows/sells-v3-dominio-gate.yml
 INFRA.md                            @wagnerra23
 docker-compose*.yml                 @wagnerra23
 memory/decisions/                   @wagnerra23   # ADR canon
