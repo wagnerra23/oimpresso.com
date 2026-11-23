@@ -34,6 +34,7 @@ on:
       - 'Modules/NFSe/Http/**'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
       - 'tests/Unit/NfeCertStatusSharedPropTest.php'
+      - 'app/Http/Middleware/TrimStrings.php'
       - 'app/Support/BR/Cnpj.php'
       - 'app/Rules/BR/CpfCnpj.php'
       - 'database/schema/mysql-schema.sql'
@@ -86,6 +87,7 @@ jobs:
               - 'Modules/NFSe/Http/**'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
               - 'tests/Unit/NfeCertStatusSharedPropTest.php'
+              - 'app/Http/Middleware/TrimStrings.php'
               - 'app/Support/BR/Cnpj.php'
               - 'app/Rules/BR/CpfCnpj.php'
               - 'database/schema/mysql-schema.sql'
@@ -440,6 +442,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateAplicarTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/UploadCertificadoRequestTest.php \
             Modules/NfeBrasil/Tests/Feature/Wave23SaturationTest.php \
             Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php \
             Modules/NfeBrasil/Tests/Feature/Wave27NfeSaturationTest.php \
