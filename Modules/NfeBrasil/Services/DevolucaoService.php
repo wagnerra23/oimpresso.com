@@ -144,6 +144,17 @@ class DevolucaoService
      * (CU-DEV-03), e uma NF-e autorizada não volta atrás. Por isso a nota é uma ação própria, e
      * devolução reduzida depois da nota é recusada aqui, nunca "compensada".
      */
+    /** A emissão pela devolução de venda está ligada para esta empresa? Lista vazia = todas. */
+    public static function ligadaPara(int $businessId): bool
+    {
+        if (! config('nfebrasil.devolucao_pela_venda')) {
+            return false;
+        }
+        $empresas = (array) config('nfebrasil.devolucao_pela_venda_business_ids', []);
+
+        return $empresas === [] || in_array($businessId, $empresas, true);
+    }
+
     public function emitirDaDevolucaoDeVenda(int $businessId, int $sellReturnId): NfeEmissao
     {
         $plano = $this->planoDaDevolucaoDeVenda($businessId, $sellReturnId);

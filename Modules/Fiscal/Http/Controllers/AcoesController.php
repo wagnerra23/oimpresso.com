@@ -706,14 +706,14 @@ class AcoesController extends Controller
      */
     public function devolucaoDaVenda(DevolucaoService $devolucao, int $sellReturn): RedirectResponse
     {
-        if (! config('nfebrasil.devolucao_pela_venda')) {
+        $businessId = (int) session('user.business_id');
+
+        if (! DevolucaoService::ligadaPara($businessId)) {
             abort(404);
         }
         if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
             abort(403, 'Sem permissão fiscal.nfe.acoes');
         }
-
-        $businessId = (int) session('user.business_id');
 
         try {
             $plano = $devolucao->planoDaDevolucaoDeVenda($businessId, $sellReturn);

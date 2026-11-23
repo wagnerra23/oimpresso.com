@@ -53,8 +53,15 @@ return [
      * Onda 1 do protótipo Devolução V3 (RUNBOOK-sell-return-add §6): emitir a NF-e de devolução
      * a partir de uma devolução de venda registrada (POST /fiscal/acoes/venda-devolucao/{id}/nfe).
      * Desligada: mexe em imposto declarado (REGRA MESTRE); o [W] liga depois do smoke em biz=1.
+     * Por empresa, como as flags MWART: `NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ=1` liga só a empresa 1
+     * (lista vazia = todas). Nenhum business_id fica no código (ADR 0093). Regra única em
+     * DevolucaoService::ligadaPara.
      */
     'devolucao_pela_venda' => env('NFEBRASIL_DEVOLUCAO_PELA_VENDA', false),
+    'devolucao_pela_venda_business_ids' => array_values(array_filter(array_map(
+        'intval',
+        explode(',', (string) env('NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ', ''))
+    ))),
 
     /**
      * US-NFE-044 fase 2 — listener EnviarDanfePorEmail.
