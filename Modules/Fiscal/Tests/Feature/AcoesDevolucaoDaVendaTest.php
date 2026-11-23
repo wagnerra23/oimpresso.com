@@ -142,7 +142,7 @@ it('UC-FNFE-79 · com a flag desligada a rota responde 404, antes de qualquer ou
 });
 
 it('UC-FNFE-80 · com a flag ligada, sem a permissão fiscal.nfe.acoes é recusada (403)', function () {
-    config(['nfebrasil.devolucao_pela_venda' => true]);
+    config(['nfebrasil.devolucao_pela_venda' => true, 'nfebrasil.devolucao_pela_venda_business_ids' => []]);
     Auth::setUser(new class extends \App\User
     {
         public function can($abilities, $arguments = []): bool
@@ -155,4 +155,28 @@ it('UC-FNFE-80 · com a flag ligada, sem a permissão fiscal.nfe.acoes é recusa
 
     expect($e)->toBeInstanceOf(HttpException::class);
     expect($e->getStatusCode())->toBe(403);
+});
+
+it('UC-FNFE-81 · com lista de empresas, a rota só existe para a empresa listada', function () {
+    // Smoke em uma empresa só: NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ=1 não liga a rota para as outras.
+    config(['nfebrasil.devolucao_pela_venda' => true, 'nfebrasil.devolucao_pela_venda_business_ids' => [97]]);
+    Auth::setUser(new class extends \App\User
+    {
+        public function can($abilities, $arguments = []): bool
+        {
+            return false;
+        }
+    });
+
+    session(['user.business_id' => 98]);
+    $fora = dvvErro(fn () => (new AcoesController())->devolucaoDaVenda(dvvServico(), 1));
+    expect($fora?->getStatusCode())->toBe(404);
+
+    // Controle positivo: a empresa listada passa da flag e para na permissão (403).
+    session(['user.business_id' => 97]);
+    $dentro = dvvErro(fn () => (new AcoesController())->devolucaoDaVenda(dvvServico(), 1));
+    expect($dentro?->getStatusCode())->toBe(403);
+
+    expect(DevolucaoService::ligadaPara(97))->toBeTrue();
+    expect(DevolucaoService::ligadaPara(98))->toBeFalse();
 });

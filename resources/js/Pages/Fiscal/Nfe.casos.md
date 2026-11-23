@@ -801,6 +801,14 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-FNFE-81 · Com lista de empresas, a rota só existe para a empresa listada · `must` `[T0]`
+
+**Dado** a flag ligada com `NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ` listando uma empresa **Quando** outra
+empresa chama a rota **Então** 404; a empresa listada passa da flag (controle positivo). É o que deixa
+fazer o smoke em uma empresa só, sem ligar para todas. Lista vazia = todas.
+
+Status: 🧪
+
 ---
 
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)
