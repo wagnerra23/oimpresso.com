@@ -96,6 +96,11 @@ Criar outra tabela de naturezas faria dois lugares decidirem CFOP e CST.
 6. **Ligar a flag** por empresa, depois do aceite do contador (UC-NFTR-19 — aceite por versão, permissão própria).
    _Corrigido em 2026-11-16: esta linha citava o UC-NFTR-12, que é o 404 da sugestão de outra empresa._
 
+**Depois das ondas (2026-11-23):** "Importar nota de referência" no passo 1 da natureza nova (`ImportarNota.tsx` +
+`importarXml.ts`, UC-NFTR-73 a 77). O XML é lido no navegador, como no protótipo, e não vai ao servidor; a natureza
+preenchida passa pela mesma conferência antes de salvar. Fica de fora o "Usar XML de exemplo" do protótipo, que
+cadastraria tributos de uma nota de demonstração.
+
 #### Onda 6 — checklist para ligar (por empresa, nunca para todas de uma vez)
 
 1. **#10934 e #10938 no `main`** — sem eles a empresa cadastra a natureza, mas não consegue escolhê-la ao emitir.

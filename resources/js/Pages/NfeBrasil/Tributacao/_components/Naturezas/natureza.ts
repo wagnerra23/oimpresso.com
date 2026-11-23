@@ -90,6 +90,15 @@ export const ORIG_IBS: readonly Opcao[] = [['padrao', 'Padrão do ano (teste em 
 
 export const CST_COM_ST = ['10', '30', '70', '201', '202', '203'];
 
+/**
+ * PIS/COFINS "padrão do regime" em % — os mesmos números do motor (MotorTributarioService::PIS_COFINS_DO_REGIME,
+ * fração × 100). Um lugar só: o editor, a prévia do lançamento e a importação do XML leem daqui.
+ */
+export const PC_PADRAO: Record<'LP' | 'LR', { pis: number; cofins: number; tipo: string }> = {
+  LP: { pis: 0.65, cofins: 3, tipo: 'cumulativo' },
+  LR: { pis: 1.65, cofins: 7.6, tipo: 'não cumulativo' },
+};
+
 export function rotulo(opcoes: readonly Opcao[], valor: string): string {
   return opcoes.find((o) => o[0] === valor)?.[1] ?? valor;
 }

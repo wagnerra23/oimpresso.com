@@ -4,8 +4,8 @@
 // "No lançamento" com as ações. A conferência continua sendo do servidor (POST /naturezas/conferir), chamada a
 // cada alteração; o salvar trava enquanto houver erro. RUNBOOK-tributacao §Naturezas.
 //
-// Fora daqui (ainda não existe no produto): "Importar nota de referência", que lê o XML de uma nota e preenche
-// os passos. Precisa de leitura do XML no servidor e vem em PR próprio.
+// Natureza nova: o passo 1 pergunta como preencher — em branco ou importando a nota de referência (`ImportarNota`,
+// UC-NFTR-73..77). O XML é lido no navegador, como no protótipo, e não vai ao servidor.
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
   ArrowLeft, ArrowRight, Check, CheckCircle2, CircleAlert, Copy, Info, Layers, MousePointerClick, Route, Tag,
@@ -16,6 +16,8 @@ import { Button } from '@/Components/ui/button';
 import { Segmented } from '@/Components/ui/segmented';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { CamposDoPasso, type Passo } from './EditorCampos';
+import ImportarNota, { type ModoPreenchimento } from './ImportarNota';
+import { lerNotaReferencia, type Importacao } from './importarXml';
 import { DESTINOS, lancamento, type Destino } from './lancamento';
 import { REGIME_NOME, conferir, salvar, type Alerta, type EmpresaResumo, type Natureza, type Regime } from './natureza';
 
@@ -75,6 +77,11 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
   const [destino, setDestino] = useState<Destino>('in');
   const [alertas, setAlertas] = useState<Alerta[] | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [modo, setModo] = useState<ModoPreenchimento>(null);
+  const [importacao, setImportacao] = useState<(Importacao & { arquivo: string }) | null>(null);
+  const [erroXml, setErroXml] = useState<string | null>(null);
+  // Cada importação parte da natureza de antes da primeira: um 2º XML não herda campos do 1º.
+  const [semImportacao, setSemImportacao] = useState<Natureza | null>(null);
   const pedido = useRef(0);
   const sn = regime === 'SN';
   const ro = !editavel;
@@ -112,10 +119,31 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
     toast.error(r.mensagem ?? 'A conferência encontrou erro. Corrija antes de salvar.');
   };
 
+  const lerArquivo = async (arquivo: File) => {
+    const texto = await new Promise<string>((ok, falha) => {
+      const leitor = new FileReader();
+      leitor.onload = () => ok(String(leitor.result));
+      leitor.onerror = () => falha(leitor.error);
+      leitor.readAsText(arquivo);
+    }).catch(() => null);
+    if (texto === null) { setErroXml('Não foi possível abrir o arquivo.'); return; }
+    const partida = semImportacao ?? n;
+    const r = lerNotaReferencia(texto, partida, regime, empresa);
+    if ('erro' in r) { setErroXml(r.erro); return; }
+    setErroXml(null);
+    setSemImportacao(partida);
+    setN(r.natureza);
+    setImportacao({ ...r, arquivo: arquivo.name });
+    toast.success(`XML lido: ${r.linhas.filter((l) => l.situacao !== 'nao').length} campos preenchidos. Revise os passos.`);
+  };
+
   // Duplicar: abre uma cópia ainda não salva, com outro nome — o salvar cria uma natureza nova.
   const duplicar = () => {
     const copia: Natureza = { ...structuredClone(n), id: undefined, nome: `${n.nome} (cópia)` };
     setN(copia);
+    setModo('branco');
+    setImportacao(null);
+    setSemImportacao(null);
     setBase('');
     setVisto(new Set(PASSOS.map((p) => p.k)));
     ir(0);
@@ -177,6 +205,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
                 const nErr = visto.has(p.k) ? errosDo(p.k) : 0;
                 const ok = !atual && visto.has(p.k) && !nErr && alertas !== null;
                 const sub = atual ? 'agora' : nErr ? `${nErr} ${nErr === 1 ? 'pendência' : 'pendências'}`
+                  : !visto.has(p.k) && p.k !== 'rev' && importacao?.passos.includes(p.k) ? 'do XML, revisar'
                   : visto.has(p.k) ? (p.k === 'rev' ? 'pronta' : 'conferido') : 'a fazer';
                 const corN = atual ? 'var(--accent)' : nErr ? 'var(--neg)' : ok ? 'var(--pos)' : null;
                 const estilo: CSSProperties = corN
@@ -255,6 +284,11 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
               ) : (
                 <>
                   <CamposDoPasso passo={st.k} n={n} muda={muda} regime={regime} ro={ro} uf={empresa?.uf ?? 'da empresa'} />
+                  {st.k === 'nat' && novo && !ro && (
+                    <ImportarNota modo={modo} resultado={importacao} erro={erroXml}
+                      onBranco={() => { setModo('branco'); ir(1); }} onImportar={() => setModo('importar')}
+                      onArquivo={(f) => { void lerArquivo(f); }} onOutro={() => { setImportacao(null); setErroXml(null); }} />
+                  )}
                   <Alertas lista={doPasso} />
                 </>
               )}

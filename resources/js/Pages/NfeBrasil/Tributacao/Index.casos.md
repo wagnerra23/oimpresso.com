@@ -5,8 +5,13 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-11-15"
+last_run: "2026-11-23"
 ---
+
+> ℹ️ **`last_run` 2026-11-15 → 2026-11-23 (G-6).** O editor da natureza ganhou "Importar nota de referência"
+> (UC-NFTR-73 a 77). Re-executado nesta data, local: o Vitest das naturezas (`nfe-naturezas-*` e
+> `nfe-natureza-lancamento`, 15 de 15, incluindo os 6 testes novos); os Status dos UCs novos ficam ⬜ até o passo
+> Vitest do `ci.yml` dar o veredito.
 
 > ℹ️ **`last_run` 2026-11-13 → 2026-11-15 (G-6).** A tela ganhou a seção Naturezas de operação (PR #10896,
 > atrás da flag `useV2NfeNaturezas`) e a onda 4 (PR #10919) só troca dois rótulos de opção do editor ("Da regra do
@@ -834,13 +839,59 @@ last_run: "2026-11-15"
 - **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-72 …`.
 - **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
 
+## Importar nota de referência (protótipo `lerXml()` · `passoNat()` · `painelImport()`)
+
+> Fonte: `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`, aprovado por [W] em 2026-11-13 (RUNBOOK-tributacao
+> §Naturezas). O XML é lido **no navegador**, como no protótipo: o arquivo traz nome e documento do destinatário, e não há
+> motivo para mandá-lo ao servidor — a natureza preenchida segue pela mesma conferência do servidor antes de salvar.
+
+## UC-NFTR-73 · A nota de referência preenche os passos pelo 1º item e diz o que fez em cada campo · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza nova e o XML de uma NF-e de venda (`tpNF` 1, `finNFe` 1, CFOP 5102, `ICMS00` a 17%,
+  PIS e COFINS iguais ao padrão do Lucro Presumido, sem IPI) **Quando** importo o arquivo **Então** o nome vem do `natOp`,
+  o tipo fica Saída e a finalidade Normal; o CFOP dentro do estado fica 5102 e o de outro estado 6102, deduzido e marcado
+  para conferir; o ICMS fica "pela UF"; PIS e COFINS ficam no padrão do regime; o passo IPI fica desligado; e cada campo
+  aparece como Copiado, Ajustado ou Não encontrado. Item com CFOP ou CST diferente do 1º vira aviso.
+- **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-73 …`.
+- **Status: ⬜** — nasce neste PR; o veredito é do passo Vitest do `ci.yml`.
+
+## UC-NFTR-74 · Arquivo que não é o XML de uma NF-e é recusado e a natureza fica como estava · `must`
+
+- **Aceite:** **Dado** um arquivo que não é XML (o PDF do DANFE, por exemplo) ou um XML sem `ide` e `det` **Quando** importo
+  **Então** a tela diz o motivo e nenhum campo da natureza muda.
+- **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-74 …`.
+- **Status: ⬜** — nasce neste PR.
+
+## UC-NFTR-75 · Devolução escolhida antes mantém a finalidade e converte o CFOP da nota original · `must` `[fiscal]`
+
+- **Aceite:** **Dado** uma natureza nova de saída com finalidade 4 · Devolução e o XML da compra original (`tpNF` 0, CFOP
+  1102) **Quando** importo **Então** a finalidade e o tipo continuam os escolhidos, o CFOP vira 5202 e as alíquotas de ICMS
+  e PIS/COFINS ficam "da nota de origem"; **Dado** uma devolução de entrada e a venda original (CFOP 5102) **Então** 1202.
+  _O protótipo só convertia a entrada; a saída (devolução de compra) ficava com o CFOP de entrada da nota lida, que a
+  conferência recusa. A conversão vale para os dois sentidos._
+- **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-75 …`.
+- **Status: ⬜** — nasce neste PR.
+
+## UC-NFTR-76 · O XML importado não sai do navegador · `must` `[T0]`
+
+- **Aceite:** **Dado** o XML de uma nota com o nome do destinatário **Quando** importo e a tela confere a natureza **Então**
+  nenhuma requisição leva o XML nem o nome do destinatário — o servidor recebe só a natureza; e nenhum valor da nota
+  (`vProd`, `vBC`, `vICMS`, totais) é guardado nela. Contrato: LGPD art. 6º III (minimização).
+- **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-76 …`.
+- **Status: ⬜** — nasce neste PR.
+
+## UC-NFTR-77 · "Iniciar em branco ou importar" só aparece em natureza nova · `must`
+
+- **Aceite:** **Dado** uma natureza nova **Então** o passo 1 pergunta "Como você quer preencher os tributos?" com
+  "Iniciar em branco" (vai ao passo CFOP) e "Importar nota de referência"; depois de importar, os passos preenchidos e ainda
+  não abertos mostram "do XML, revisar". **Dado** uma natureza já salva **Então** a pergunta não aparece.
+- **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-77 …`.
+- **Status: ⬜** — nasce neste PR.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
 
-- `[BACKLOG]` **"Importar nota de referência" no editor da natureza**, do protótipo de naturezas (`passoNat()` e
-  `painelImport()`): ler o XML de uma nota já emitida e preencher os passos com as tags encontradas, mostrando o que foi
-  copiado, ajustado ou não encontrado. Precisa de leitura do XML no servidor; não entrou junto da forma do editor.
 - `[BACKLOG]` **Venda com mercadoria e serviço sai em duas notas: NF-e com as mercadorias, NFS-e com os
   serviços, e a soma das duas fecha o total da venda** (US-NFE-069 · UC-FLX-31). Hoje a NF-e recusa a
   venda inteira (UC-NFTR-31); a divisão não existe.
