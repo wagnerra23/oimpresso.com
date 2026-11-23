@@ -84,6 +84,21 @@ Wagner aprovou Wave consolidada 2026-05-20.
 | brl/formatDoc helpers | _lib | ✅ idem | ✅ |
 | `.fx-sefaz` SEFAZ pill | reaproveitado pra status NFS-e | ✅ idem | ✅ |
 
+## Medição de runtime — 2026-11-23 · produção (oimpresso.com) × espelho · tema claro nos dois
+
+> A MESMA sonda (`design-diff.mjs --probe`, SHA-256 `358fd0f0…` conferido dentro da página da prod)
+> nos dois lados, tema claro nos dois (o tema em que a prod abre; nada forçado). Espelho por
+> `design-diff-lote.mjs --lado design --tema light`; papéis em
+> `governance/design/targets/roles/Fiscal--Nfse.json`. O `--compare` do dono não rodou: a
+> extensão do Chrome redige parte da saída da prod; os números abaixo são os campos que saíram inteiros.
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D4 | título | 22px · 700 | 22px · 600 | **DÍVIDA A FECHAR** (o mesmo `.fx-hero-l h1` das 7 telas; corrigido no Cockpit pelo #11363, que vale para todas) |
+| D6 | botão primário | **ausente** | "Emitir" | **DÍVIDA A FECHAR** |
+| D7 | filtros | 8 botões em **2 linhas** | 5 chips em 1 linha: Todas · Pra resolver hoje · Janela 24h aberta · Aguardando SEFAZ · Só serviço (NFS-e) | **DÍVIDA A FECHAR** |
+| D8 | tabela | sem linha nesta empresa (estado vazio) | 2 linhas, 7 colunas | NÃO MEDI — falta dado na prod para comparar célula |
+
 ## Histórico
 
 - **2026-05-20** — Wave consolidada PR #2.

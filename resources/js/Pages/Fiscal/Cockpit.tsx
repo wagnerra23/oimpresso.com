@@ -632,7 +632,7 @@ export default function Cockpit({
           </div>
         ) : (
           <div className={`fx-density-${density}`}>
-            <div className="fx-table">
+            <div className="fx-table fx-cockpit-notas">
               <table>
                 <thead>
                   <tr>
@@ -687,30 +687,32 @@ export default function Cockpit({
                             aria-label={`Selecionar nota ${n.num}`}
                           />
                         </td>
-                        <td><span className={`fx-tipo-dot ${tipoCls}`}>{n.tipo}</span></td>
-                        <td className="fx-mono">
+                        <td><span className={`fx-tipo ${tipoCls}`}>{n.tipo}</span></td>
+                        <td className="fx-mono num">
                           <b>{n.num}</b>
                           {n.serie && <small>série {n.serie}</small>}
                           {!n.serie && <small>{n.when.split(' ')[0]}</small>}
                         </td>
-                        <td>
-                          <a
+                        <td className="cli">
+                          <button
+                            type="button"
                             className="fx-link"
                             onClick={(e) => {
-                              e.preventDefault();
+                              e.stopPropagation();
                               setClienteFilter(n.cliente);
                             }}
-                            title="Filtrar por este cliente"
+                            onKeyDown={(e) => e.stopPropagation()}
+                            aria-label={`Filtrar por ${n.cliente}`}
                           >
                             <b>{n.cliente}</b>
-                          </a>
-                          <div style={{ fontSize: 11, color: 'var(--fx-text-mute)' }}>
+                          </button>
+                          <div>
                             {n.doc} · {n.uf}
                             {n.venda && <> · <span className="fx-link">{n.venda}</span></>}
                             {n.ref && !n.venda && <> · <span className="fx-link">{n.ref}</span></>}
                           </div>
                           {n.keyOrCode && (
-                            <code className="fx-cell-key" title={n.keyOrCode}>
+                            <code className="fx-key" title={n.keyOrCode}>
                               {n.kind === 'nfe' ? truncKey(n.keyOrCode) : `cód. ${n.keyOrCode}`}
                               {n.kind === 'nfse' && n.iss && ` · ${n.iss}% ISS`}
                             </code>
@@ -724,7 +726,7 @@ export default function Cockpit({
                                   {STATUS_LABEL[n.status as number] || `Status ${n.status}`}
                                 </span>
                               </span>
-                              {n.rejMsg && <div style={{ fontSize: 11, color: 'var(--bad)', marginTop: 3 }}>↳ {n.rejMsg}</div>}
+                              {n.rejMsg && <div className="fx-rej">↳ {n.rejMsg}</div>}
                             </>
                           ) : (
                             <>
@@ -733,7 +735,7 @@ export default function Cockpit({
                                   {String(n.status).charAt(0).toUpperCase() + String(n.status).slice(1)}
                                 </span>
                               </span>
-                              {n.rejMsg && <div style={{ fontSize: 11, color: 'var(--bad)', marginTop: 3 }}>↳ {n.rejMsg}</div>}
+                              {n.rejMsg && <div className="fx-rej">↳ {n.rejMsg}</div>}
                             </>
                           )}
                         </td>
@@ -752,14 +754,14 @@ export default function Cockpit({
                             <span style={{ color: 'var(--fx-text-mute)' }}>—</span>
                           )}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td className="val">
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
                             <span className="fx-row-actions" onClick={(e) => e.stopPropagation()}>
                               <button type="button" className="fx-row-act" title="Baixar XML">XML</button>
                               <button type="button" className="fx-row-act" title="Baixar DANFE">PDF</button>
                               {rejected && <button type="button" className="fx-row-act danger" title="Retransmitir">↻</button>}
                             </span>
-                            <span className="fx-strong">{brl(n.value)}</span>
+                            <span>{brl(n.value)}</span>
                           </span>
                         </td>
                       </tr>
