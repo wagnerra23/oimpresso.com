@@ -121,10 +121,28 @@ body{margin:0}
           <label class="fld" for="np-busca">Buscar nos contatos
             <input id="np-busca" class="inp" type="search" value="Carlos P"></label>
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 2px solid var(--accent); background: var(--accent-soft)">
-            <span style="display: flex; flex-direction: column"><b style="font-weight: 600">Carlos P.</b><span class="dim" style="font-size: 12px">cliente desde 2024 · (48) 9 [TELEFONE] · CPF [•••]</span></span>
+            <span style="display: flex; flex-direction: column"><b style="font-weight: 600">{{pickedName}}</b><span class="dim" style="font-size: 12px">{{pickedSub}}</span></span>
             <span class="pill" style="background: var(--surface); color: var(--accent-b)">selecionado</span>
           </div>
-          <a href="#" style="font-weight: 500">Não achou? Criar contato novo</a>
+          <sc-if value="{{novoClosed}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="btn" onClick="{{openNovo}}" style="align-self: flex-start">Não achou? Criar contato novo</button>
+          </sc-if>
+          <sc-if value="{{novoOpen}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 8px; background: var(--bg-2)">
+              <span style="font-weight: 600">Contato novo</span>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+                <label class="fld" for="nc-nome">Nome completo<input id="nc-nome" class="inp" value="[NOME DO PACIENTE]"></label>
+                <label class="fld" for="nc-zap">WhatsApp<input id="nc-zap" class="inp" type="tel" value="(48) 9 [TELEFONE]"></label>
+                <label class="fld" for="nc-nasc">Data de nascimento<input id="nc-nasc" class="inp" value="[DD/MM/AAAA]"></label>
+                <label class="fld" for="nc-cpf">CPF (opcional)<input id="nc-cpf" class="inp" value=""></label>
+              </div>
+              <span class="dim" style="font-size: 12px">Entra no cadastro de contatos do oimpresso, que vendas e financeiro também usam. Dado clínico fica só no prontuário.</span>
+              <div style="display: flex; gap: 8px">
+                <button type="button" class="btn btn-p" onClick="{{criarNovo}}">Criar e usar este contato</button>
+                <button type="button" class="btn" onClick="{{fecharNovo}}">Cancelar</button>
+              </div>
+            </div>
+          </sc-if>
           <label style="display: flex; gap: 8px; align-items: center"><input type="checkbox" onChange="{{toggleMenor}}" style="width: 18px; height: 18px; accent-color: var(--accent)"> Paciente menor de 18 anos</label>
           <sc-if value="{{menor}}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 8px; background: var(--bg-2)">
@@ -221,7 +239,7 @@ function SB(active) {
   };
 }
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { anchor: 'Depois do café', ch: 'oficial', menor: false }; }
+  constructor(props) { super(props); this.state = { anchor: 'Depois do café', ch: 'oficial', menor: false, novo: false, criado: false }; }
   renderVals() {
     const I = {
       home: 'M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z', cart: 'M3 4h2l2.4 11h11.2L21 8H6.2M9 20h.01M18 20h.01',
@@ -235,6 +253,7 @@ class Component extends DCLogic {
     const A = 'pacientes', s = this.state;
     const chip = (t) => { const on = s.anchor === t; return { t, on: on ? 'true' : 'false', pick: () => this.setState({ anchor: t }), bd: on ? '1px solid var(--accent-b)' : '1px solid var(--border)', bg: on ? 'var(--accent-soft)' : 'var(--surface)', fg: on ? 'var(--accent-b)' : 'var(--text)' }; };
     const ch = (k, t, d) => { const on = s.ch === k; return { t, d, on: on ? 'true' : 'false', pick: () => this.setState({ ch: k }), bd: on ? '2px solid var(--accent)' : '1px solid var(--border)', bg: on ? 'var(--accent-soft)' : 'var(--surface)' }; };
+    const nome = s.criado ? '[NOME DO PACIENTE]' : 'Carlos';
     return {
       theme: this.props.tema ?? 'claro',
       erp: [{ label: 'Início', icon: I.home }, { label: 'Vendas', icon: I.cart }, { label: 'Produção', icon: I.layers }, { label: 'Financeiro', icon: I.coin }, { label: 'Fiscal', icon: I.doc }],
@@ -245,7 +264,12 @@ class Component extends DCLogic {
         ch('qr', 'Número da clínica por QR', 'Conexão não oficial: pode ser bloqueado pela Meta. Lembrete só depois da autorização.'),
         ch('proprio', 'Pelo meu WhatsApp', 'Abre o seu WhatsApp com a mensagem pronta. Sem lembrete automático.')
       ],
-      msg: s.menor ? 'Olá, [NOME DO RESPONSÁVEL]! Aqui é a Dra. Dejeane (CREFITO [Nº]). Os exercícios de Carlos estão neste link: [LINK DO PORTAL]. Antes da consulta de terça, responda umas perguntas rápidas por lá.' : 'Olá, Carlos! Aqui é a Dra. Dejeane (CREFITO [Nº]). Seus exercícios estão neste link: [LINK DO PORTAL]. Antes da consulta de terça, responda umas perguntas rápidas por lá.',
+      msg: s.menor ? 'Olá, [NOME DO RESPONSÁVEL]! Aqui é a Dra. Dejeane (CREFITO [Nº]). Os exercícios de ' + nome + ' estão neste link: [LINK DO PORTAL]. Antes da consulta de terça, responda umas perguntas rápidas por lá.' : 'Olá, ' + nome + '! Aqui é a Dra. Dejeane (CREFITO [Nº]). Seus exercícios estão neste link: [LINK DO PORTAL]. Antes da consulta de terça, responda umas perguntas rápidas por lá.',
+      novoOpen: s.novo, novoClosed: !s.novo,
+      openNovo: () => this.setState({ novo: true }), fecharNovo: () => this.setState({ novo: false }),
+      criarNovo: () => this.setState({ novo: false, criado: true }),
+      pickedName: s.criado ? '[NOME DO PACIENTE]' : 'Carlos P.',
+      pickedSub: s.criado ? 'contato criado agora · (48) 9 [TELEFONE]' : 'cliente desde 2024 · (48) 9 [TELEFONE] · CPF [•••]',
       menor: s.menor, toggleMenor: () => this.setState({ menor: !s.menor }),
       sendLabel: s.ch === 'proprio' ? 'Salvar e abrir meu WhatsApp' : 'Salvar e enviar o link'
     };
