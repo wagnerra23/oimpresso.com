@@ -3,7 +3,7 @@
 // Só códigos e de onde vem cada alíquota — nenhum valor: base, imposto e totais são do lançamento.
 // As alíquotas citadas são as que o motor usa (MotorTributarioService::PIS_COFINS_DO_REGIME e
 // `nfebrasil.ibs_cbs_por_ano`, que chega pela faixa de resumo); se o motor mudar, isto muda junto.
-import { CST_COM_ST, FINS, MODBC, MODBCST, REGIME_NOME, rotulo, type EmpresaResumo, type Natureza, type Regime } from './natureza';
+import { CST_COM_ST, FINS, MODBC, MODBCST, PC_PADRAO, REGIME_NOME, rotulo, type EmpresaResumo, type Natureza, type Regime } from './natureza';
 
 export type Destino = 'in' | 'out' | 'ext';
 
@@ -39,12 +39,6 @@ const CFOP_NOME: Record<string, string> = {
   '5916': 'Retorno de mercadoria recebida para conserto', '6916': 'Retorno de mercadoria recebida para conserto',
   '5949': 'Outra saída não especificada', '6949': 'Outra saída não especificada',
   '1949': 'Outra entrada não especificada', '2949': 'Outra entrada não especificada',
-};
-
-/** PIS/COFINS "padrão do regime", em % — mesmos números do motor (fração × 100). */
-const PC_PADRAO: Record<'LP' | 'LR', { pis: number; cofins: number; tipo: string }> = {
-  LP: { pis: 0.65, cofins: 3, tipo: 'cumulativo' },
-  LR: { pis: 1.65, cofins: 7.6, tipo: 'não cumulativo' },
 };
 
 const SEM_ICMS_PROPRIO = ['30', '40', '41', '50', '60', '102', '103', '202', '203', '300', '400', '500'];
