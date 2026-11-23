@@ -254,6 +254,7 @@ export default function ItemDetalhe({
   onFechar,
   onNavegar,
   abaInicial = 'geral',
+  gravando = false,
 }: {
   linha: LinhaDoItem | null;
   indice: number;
@@ -261,9 +262,15 @@ export default function ItemDetalhe({
   onFechar: () => void;
   onNavegar?: (delta: number) => void;
   abaInicial?: Aba;
+  /** Gravação ligada (UC-V407): nenhuma aba abre, e o drawer diz por quê. */
+  gravando?: boolean;
 }) {
   const cockpit = useCockpit();
   const [aba, setAba] = useState<Aba>(abaInicial);
+  /* Gravando, nenhuma aba é desenhada: os valores fiscais delas (NCM 39199090, CFOP 5102,
+     alíquota 18) eram fixos da cena para qualquer produto, e fluxo e anexos traziam pessoas
+     e arquivos de demonstração. Nada do drawer volta para a linha nem vai na gravação. */
+  const abaVisivel: Aba | null = gravando ? null : aba;
 
   /* fiscal */
   const [ncm, setNcm] = useState('39199090');
@@ -406,23 +413,36 @@ export default function ItemDetalhe({
         {/* `<SubNav>` do DS, não tablist hand-rolado: é switch in-page controlado
             (value/onChange, sem URL) — o `ds/no-inline-tablist` aponta exatamente
             este caso, e usar o canon resolve junto o flex solto do `layout:check`. */}
-        <SubNav
-          items={ABAS.map((a) => ({
-            value: a,
-            label: ROTULO_DA_ABA[a],
-            ...(a === 'tributacao' && erros.length > 0 ? { badge: erros.length } : {}),
-            /* A âncora conta etapas e anexos no rótulo da aba — o operador vê que há
-               conteúdo lá sem precisar abrir. */
-            ...(a === 'fluxo' && etapas.length > 0 ? { badge: etapas.length } : {}),
-            ...(a === 'anexos' ? { badge: ANEXOS.length } : {}),
-          }))}
-          value={aba}
-          onChange={(v) => setAba(v as Aba)}
-          ariaLabel="Detalhe do item"
-        />
+        {!gravando && (
+          <SubNav
+            items={ABAS.map((a) => ({
+              value: a,
+              label: ROTULO_DA_ABA[a],
+              ...(a === 'tributacao' && erros.length > 0 ? { badge: erros.length } : {}),
+              /* A âncora conta etapas e anexos no rótulo da aba — o operador vê que há
+                 conteúdo lá sem precisar abrir. */
+              ...(a === 'fluxo' && etapas.length > 0 ? { badge: etapas.length } : {}),
+              ...(a === 'anexos' ? { badge: ANEXOS.length } : {}),
+            }))}
+            value={aba}
+            onChange={(v) => setAba(v as Aba)}
+            ariaLabel="Detalhe do item"
+          />
+        )}
 
         <Stack gap={4} className="min-h-0 flex-1 overflow-auto px-5 py-4">
-          {aba === 'geral' && (
+          {gravando && (
+            <div className="rounded-lg border border-info/30 bg-info-soft px-3 py-2">
+              <b className="block text-[12.5px] leading-tight text-info-fg">
+                O detalhe do item ainda não está disponível na nova venda
+              </b>
+              <span className="block text-[11.5px] leading-snug text-muted-foreground">
+                A tributação vem do cadastro do produto e não se troca na venda. Produção, fluxo, anexos e
+                observações do item ainda não são gravados.
+              </span>
+            </div>
+          )}
+          {abaVisivel === 'geral' && (
             <Stack gap={4}>
               {/* As 3 seções da âncora (`sells-item-detail.jsx` — DrawerSections
                   "Identificação e medidas" · "Valores da linha" · "Comissão deste
@@ -525,7 +545,7 @@ export default function ItemDetalhe({
             </Stack>
           )}
 
-          {aba === 'producao' && (
+          {abaVisivel === 'producao' && (
             <Stack gap={4}>
               {/* As 2 seções da âncora (`sells-item-detail.jsx` — DrawerSections
                   "Instruções de produção" · "Arquivo de arte"). A onda 4 portou 3
@@ -588,7 +608,7 @@ export default function ItemDetalhe({
             </Stack>
           )}
 
-          {aba === 'fluxo' && (
+          {abaVisivel === 'fluxo' && (
             <Sec title="Fluxo de produção deste item">
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-[12.5px]">
@@ -651,7 +671,7 @@ export default function ItemDetalhe({
             </Sec>
           )}
 
-          {aba === 'tributacao' && (
+          {abaVisivel === 'tributacao' && (
             <Stack gap={4}>
               <Stack gap={3}>
                 <Lbl className="mb-0">Classificação fiscal</Lbl>
@@ -1008,7 +1028,7 @@ export default function ItemDetalhe({
             </Stack>
           )}
 
-          {aba === 'preco' && (
+          {abaVisivel === 'preco' && (
             <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
               <Texto label="Valor unitário" value={linha.preco} />
               <Texto label="Desconto (%)" value={linha.desc} />
@@ -1017,7 +1037,7 @@ export default function ItemDetalhe({
             </Grid>
           )}
 
-          {aba === 'anexos' && (
+          {abaVisivel === 'anexos' && (
             <Sec title="Anexos do item">
               <div className="rounded-lg border border-dashed border-border p-6 text-center">
                 <span className="block text-[12.5px] text-muted-foreground">
@@ -1059,7 +1079,7 @@ export default function ItemDetalhe({
             </Sec>
           )}
 
-          {aba === 'observacao' && (
+          {abaVisivel === 'observacao' && (
             <Sec title="Observações do produto">
               {/* DUAS observações, separadas de propósito — a âncora registra que
                   unificá-las foi o que gerou a reclamação de nota interna vazando no
@@ -1111,7 +1131,7 @@ export default function ItemDetalhe({
                 fiscal. Ficam ao lado da navegação porque é ali que o operador olha
                 antes de trocar de item. */}
             {sujo && <Pill tom="warning">alteração não confirmada</Pill>}
-            {erros.length > 0 && (
+            {!gravando && erros.length > 0 && (
               <Pill tom="destructive">
                 {erros.length === 1 ? '1 pendência fiscal' : `${erros.length} pendências fiscais`}
               </Pill>
@@ -1120,18 +1140,20 @@ export default function ItemDetalhe({
 
           <Inline gap={2} align="center">
             <Button type="button" variant="outline" onClick={onFechar}>
-              Cancelar
+              {gravando ? 'Fechar' : 'Cancelar'}
             </Button>
             {/* salvar item com incoerência fiscal empurraria pra SEFAZ uma rejeição
-                que o sistema já sabia prever */}
-            <Button
-              type="button"
-              onClick={onFechar}
-              disabled={erros.length > 0}
-              title={erros.length > 0 ? `${erros.length} pendência(s) fiscal(is) nesta aba` : undefined}
-            >
-              Confirmar item
-            </Button>
+                que o sistema já sabia prever. Gravando, não há o que confirmar. */}
+            {!gravando && (
+              <Button
+                type="button"
+                onClick={onFechar}
+                disabled={erros.length > 0}
+                title={erros.length > 0 ? `${erros.length} pendência(s) fiscal(is) nesta aba` : undefined}
+              >
+                Confirmar item
+              </Button>
+            )}
           </Inline>
         </SheetFooter>
         </Stack>

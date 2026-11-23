@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: o recibo do Receita Saúde é obrigatório para o profissional pessoa física desde 2025 (IN RFB 2.240/2024) e é emitido no dia do pagamento; pagamento sem recibo é risco fiscal do profissional.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-23"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL do Fisio rodar FisioFiscalFilaTest."
 related_us: [US-FISIO-023]
 ---
@@ -25,6 +25,7 @@ related_us: [US-FISIO-023]
 | UC-FFI-03 | marcar enviado é idempotente e não copia valor | must | `FisioFiscalFilaTest` |
 | UC-FFI-04 | sem `fisio.editar` vê, não marca (403) | must | `FisioFiscalFilaTest` |
 | UC-FFI-05 | pagamento de outra empresa não entra nem aceita marca | must | `FisioFiscalFilaTest` |
+| UC-FFI-06 | marcar "retificar" em recibo enviado: idempotente, sem copiar valor, só na empresa, só com `fisio.editar` | must | `FisioFiscalFilaTest` |
 
 ---
 
@@ -51,5 +52,13 @@ related_us: [US-FISIO-023]
 
 ## UC-FFI-05 · Outra empresa não entra `[T0]` · `must`
 - **Aceite:** Dado pagamento de paciente da 99 · Quando a 98 abre a fila ou tenta marcar · Então o pagamento não aparece e a marca dá 404; para a 99 ele aparece.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioFiscalFilaTest.php`
+- **Status: 🧪**
+
+## UC-FFI-06 · Marcar para retificar `[T0]` · `must`
+- **Persona:** fisioterapeuta autônomo que percebeu erro num recibo já enviado ao Receita Saúde (pagador ou valor errado).
+- **Fonte:** SPEC do Fisio, US-FISIO-023 (`fisio_health_receipts` com status `pendente`, `enviado`, `retificar`). O protótipo `FiscalFila.dc.html` só desenha "Marquei como enviado"; a ação "Precisa retificar" segue o mesmo padrão de botão da linha.
+- **Aceite:** Dado um recibo marcado como enviado · Quando clica em "Precisa retificar" (mesma rota da marca, `marca=retificar`) duas vezes · Então fica uma marca só, `retificar`, com o número do recibo mantido e nenhum valor copiado; marcar enviado de novo volta a `enviado`. Recibo pendente não vira `retificar` (erro de validação, nada gravado), e marca fora de `enviado`/`retificar` é recusada. Sem `fisio.editar`, 403 e a marca não muda. Recibo de pagamento da 99 tentado pela 98: 404 e a marca da 99 não muda.
+- **Regressão que defende:** status `retificar` no banco sem nenhum caminho que o grave (auditoria 2026-11-05, d19).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioFiscalFilaTest.php`
 - **Status: 🧪**

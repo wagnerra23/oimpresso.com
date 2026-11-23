@@ -86,6 +86,22 @@ final class FilaFiscalDoDia
         );
     }
 
+    /**
+     * Marca um recibo JÁ enviado como "retificar" (o recibo saiu com erro e precisa ser retificado no
+     * Receita Saúde). Idempotente; mantém o número do recibo, que é o que se retifica. Recibo sem marca
+     * (pendente) não vira "retificar": devolve null e nada é gravado.
+     */
+    public function marcarRetificar(int $businessId, int $paymentId, int $userId): ?ReciboSaude
+    {
+        $recibo = ReciboSaude::query()->where('business_id', $businessId)->where('payment_id', $paymentId)->first();
+        if ($recibo === null) {
+            return null;
+        }
+        $recibo->update(['marca' => ReciboSaude::RETIFICAR, 'marked_by' => $userId, 'marked_at' => now()]);
+
+        return $recibo;
+    }
+
     /** O pagamento existe na empresa e é de uma venda a paciente do Fisio? */
     public function pagamentoDePaciente(int $businessId, int $paymentId): bool
     {

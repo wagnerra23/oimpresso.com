@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-015
 // Cobre US-FISIO-015 e UC-FCA-01..04 (Fisio/Configuracoes/Agendamento.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;

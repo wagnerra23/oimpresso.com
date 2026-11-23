@@ -133,6 +133,7 @@ jobs:
             Modules/RecurringBilling/Tests/Feature/ContatoNaoApagaFaturaContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/RecurringBillingTenantIsolationTest.php \
             Modules/RecurringBilling/Tests/Feature/WebhookPixAutomaticoContratoTest.php \
             tests/Feature/Calculo/CalculoRecurringBillingTest.php \
             tests/Feature/Modules/RecurringBilling/BoletoServiceTest.php \
