@@ -74,13 +74,18 @@ last_run_ci: "2026-11-19 (PR #11223, lote L0 do RecurringBilling) — REVALIDACA
 ## UC-RBCFG-02 · A régua de dunning aparece estruturada · `should`
 - **Aceite:** Dado a tela carregada · Quando leio a seção de cobrança escalada · Então vejo as **3
   retentativas** (+3d / +7d / +15d → `past_due` → falha) como dado estruturado com severidade — não
-  como parágrafo solto.
+  como parágrafo solto. E vejo **E-mail** e **WhatsApp** marcados como **não disponível**: nenhum
+  texto da régua diz que a cobrança manda e-mail ou WhatsApp.
 - **Teste:** [`Wave8ConfiguracoesIndexTest`](../../../../../Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php)
-  — `expõe régua de dunning canônica com 3 retentativas estruturadas`.
+  — `expõe régua de dunning canônica com 3 retentativas estruturadas` e `a régua marca e-mail e
+  WhatsApp como não disponíveis e não promete envio`.
 - **Contrato:** `CU-RB-12` item 2.
 - **Regressão que defende:** a régua exibida divergir da régua real. ⚠️ **Limite honesto:** hoje a
   régua é **hardcoded na tela** — não existe motor que a execute (SDD D4). Este UC prova que a tela
-  **mostra** o que promete, não que o sistema **faz**.
+  **mostra** o que promete, não que o sistema **faz**. Até 2026-11-23 a tela dizia que cada
+  retentativa mandava "novo email, novo WhatsApp" e que a 2ª era "dunning escalado (email +
+  WhatsApp)" — o módulo não envia nenhum dos dois (auditoria RecurringBilling b7). Esses canais
+  agora aparecem como não disponíveis.
 - **Status: 🧪**
 
 ---
@@ -232,6 +237,8 @@ last_run_ci: "2026-11-19 (PR #11223, lote L0 do RecurringBilling) — REVALIDACA
   `nfebrasil.auto_emission_on_invoice_paid` — hoje o toggle é **visual e disabled** (`CU-RB-09`).
 - **[BACKLOG]** Régua de dunning **executável** per-business (`rb_dunning_rules`) — não existe motor
   (SDD D4); sem código, não há UC.
+- **[BACKLOG]** Aviso de cobrança ao cliente por e-mail e por WhatsApp — o módulo não envia nenhum
+  dos dois (auditoria b7, 2026-11-23); a tela os mostra como não disponíveis até existir o envio.
 
 ---
 
