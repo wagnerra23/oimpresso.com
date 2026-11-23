@@ -243,7 +243,18 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 **DoD:** horários livres só dos abertos para o app; marcar grava com o recado e recusa o horário já tomado; app desligado, só pela clínica ou bloqueado por faltas não marca; cancelar e remarcar só antes de 24 h; confirmar e "Cheguei" a partir de 1 h antes; "me avise se abrir vaga" põe na lista de espera; atendimento de outro paciente ou de outra clínica não aparece — UC-FPA-01..07.
 
-**Testado em:** `Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php` (UC-FPA-01..07, casos da agenda do paciente em `_telas/`; PASS no run 44962970620). Sem caso próprio em 2026-11-23: a nota 1–5 do paciente (a rota `agenda/{id}/{acao}` do portal aceita `nota`) e o confirmar pelo link da mensagem do WhatsApp (A6).
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php` (UC-FPA-01..07, casos da agenda do paciente em `_telas/`; PASS no run 44962970620). Sem caso próprio em 2026-11-23: a nota 1–5 do paciente (a rota `agenda/{id}/{acao}` do portal aceita `nota`). O confirmar pela mensagem do WhatsApp (A6) virou a US-FISIO-017.
+
+### US-FISIO-017 · Confirmação da consulta pelo WhatsApp, com resposta de um toque — **P0**
+
+**Implementado em:** `Modules/Fisio/Services/Agenda/ConfirmacaoDaConsulta.php` · `Modules/Fisio/Jobs/EnviarConfirmacaoConsultaJob.php` · `Modules/Fisio/Console/ConfirmacoesCommand.php` · `Modules/Fisio/Http/Controllers/ConfirmacaoConsultaController.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Public/Confirmacao.tsx`
+
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
+> blocked_by: US-FISIO-016. Etapa 04 A6. Pedido de [W] em 2026-11-23 ("Confirmar pelo WhatsApp"), depois do comparativo com Vedius e Ninsaúde. De hora em hora, cada atendimento `agendado` que começa entre 2 h e 24 h à frente recebe uma mensagem pelo número da clínica, com um link assinado de um toque: Confirmo · Não vou poder ir · Preciso remarcar. O link funciona em qualquer canal (oficial, QR, envio manual), não pede PIN, vale só para aquele atendimento e vence no horário da sessão. Fica para depois: escolher o horário novo na própria página, segundo lembrete sem resposta, antecedência por clínica e botões dentro da conversa (exigem modelo de mensagem aprovado pela Meta).
+
+**DoD:** uma mensagem por atendimento (rodar de novo não repete; duas sessões no dia, duas mensagens); não sai fora da janela, para já confirmado nem sem consentimento de WhatsApp; 98 contra 99 no job; abrir o link não muda nada; link sem assinatura ou com o id de outro atendimento dá 403; empresa sem o pacote dá 404; "Confirmo" grava `confirmado` com canal `whatsapp`; "Não vou poder ir" desmarca só dentro do prazo da política — UC-FCF-01..06.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioConfirmacaoConsultaTest.php`
 
 ## F3 · Dinheiro — mapa de donos (F3-T01, lote 4 do protótipo Prescreve Pro)
 
