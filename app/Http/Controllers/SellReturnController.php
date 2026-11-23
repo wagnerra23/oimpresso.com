@@ -479,7 +479,9 @@ class SellReturnController extends Controller
      */
     private function inertiaNfeDevolucao(int $business_id, $devolucao): ?array
     {
-        if (! config('nfebrasil.devolucao_pela_venda') || empty($devolucao)) {
+        if (empty($devolucao)
+            || ! class_exists(\Modules\NfeBrasil\Services\DevolucaoService::class)
+            || ! \Modules\NfeBrasil\Services\DevolucaoService::ligadaPara($business_id)) {
             return null;
         }
         if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {

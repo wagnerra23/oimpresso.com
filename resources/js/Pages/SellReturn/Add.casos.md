@@ -110,7 +110,7 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 > A seção fica fora do formulário: vale para a devolução já salva, nunca para o que está sendo editado.
 
 ## UC-SRADD-10 · Sem a flag, sem permissão fiscal ou sem devolução salva, a seção não aparece `[must]`
-- **Aceite:** Dado `nfebrasil.devolucao_pela_venda` desligada, ou o usuário sem `fiscal.nfe.acoes`, ou a venda sem devolução salva · Quando o registro abre · Então `venda.nfe_devolucao` é `null` e não há seção de NF-e. Com as três condições, a seção aparece (controle positivo).
+- **Aceite:** Dado `nfebrasil.devolucao_pela_venda` desligada (ou ligada só para outras empresas em `NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ`), ou o usuário sem `fiscal.nfe.acoes`, ou a venda sem devolução salva · Quando o registro abre · Então `venda.nfe_devolucao` é `null` e não há seção de NF-e. Com as três condições, a seção aparece (controle positivo).
 - **Teste:** `tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php` — `UC-SRADD-10`.
 - **Status: 🧪**
 

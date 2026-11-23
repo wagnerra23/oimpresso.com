@@ -68,7 +68,7 @@ it('UC-SRADD-10 · sem a flag, sem permissão fiscal ou sem devolução salva, a
     sraddNfeUsuario(true);
     expect(sraddNfeProp())->toBeNull();
 
-    config(['nfebrasil.devolucao_pela_venda' => true]);
+    config(['nfebrasil.devolucao_pela_venda' => true, 'nfebrasil.devolucao_pela_venda_business_ids' => []]);
     sraddNfeUsuario(false);
     expect(sraddNfeProp())->toBeNull();
 
@@ -77,12 +77,17 @@ it('UC-SRADD-10 · sem a flag, sem permissão fiscal ou sem devolução salva, a
     $m->setAccessible(true);
     expect($m->invoke(app(SellReturnController::class), 98, null))->toBeNull();
 
+    // Lista de empresas sem a 98 (NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ): a seção não aparece.
+    config(['nfebrasil.devolucao_pela_venda_business_ids' => [97]]);
+    expect(sraddNfeProp())->toBeNull();
+    config(['nfebrasil.devolucao_pela_venda_business_ids' => []]);
+
     // Controle positivo: flag ligada, permissão e devolução salva → a seção aparece.
     expect(sraddNfeProp())->not->toBeNull();
 });
 
 it('UC-SRADD-11 · quando a rota recusaria, a seção mostra o motivo e não oferece o botão', function () {
-    config(['nfebrasil.devolucao_pela_venda' => true]);
+    config(['nfebrasil.devolucao_pela_venda' => true, 'nfebrasil.devolucao_pela_venda_business_ids' => []]);
     sraddNfeUsuario(true);
     sraddNfeServico(null, 'Nada a declarar: tudo o que foi devolvido já está em NF-e de devolução.');
 
@@ -94,7 +99,7 @@ it('UC-SRADD-11 · quando a rota recusaria, a seção mostra o motivo e não ofe
 });
 
 it('UC-SRADD-12 · quando dá para emitir, a seção diz quantos itens a nota vai declarar', function () {
-    config(['nfebrasil.devolucao_pela_venda' => true]);
+    config(['nfebrasil.devolucao_pela_venda' => true, 'nfebrasil.devolucao_pela_venda_business_ids' => []]);
     sraddNfeUsuario(true);
     // origem_id 0 não existe: a nota de origem sai sem número, o resto vem do plano.
     sraddNfeServico(['origem_id' => 0, 'itens' => [1 => 4.0, 3 => 1.0]]);
