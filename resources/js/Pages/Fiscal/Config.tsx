@@ -237,7 +237,9 @@ export default function Config({
         if (fileRef.current) fileRef.current.value = '';
         toast.success('Certificado A1 cadastrado.');
       },
-      onError: () => toast.error('Verifique o arquivo e a senha.'),
+      // Mostra o motivo REAL (arquivo, senha, CNPJ, validade) — o genérico
+      // "Verifique o arquivo e a senha" fazia erro de arquivo parecer erro de senha.
+      onError: (errs) => toast.error(errs.certificado ?? errs.senha ?? 'Não foi possível enviar o certificado.'),
       onFinish: () => uploadForm.reset('certificado', 'senha'),
     });
   };
