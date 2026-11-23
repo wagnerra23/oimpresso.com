@@ -126,6 +126,9 @@ it('prevalência vem de estudo de prevalência e não repete o número sem fonte
     $html = uniafibroHtml();
 
     expect($html)->toContain('scielo.br/j/brjp/a/P4BYQRctt5MDZPRSQ8t7mCD');
+    // O número de SC é a mesma estimativa aplicada à população do IBGE, com as duas fontes.
+    expect($html)->toContain('cerca de 166 mil pessoas');
+    expect($html)->toContain('ibge.gov.br/cidades-e-estados/sc');
     expect($html)->not->toContain('2,5%');
     expect($html)->not->toContain('perto de 3%');
 });
