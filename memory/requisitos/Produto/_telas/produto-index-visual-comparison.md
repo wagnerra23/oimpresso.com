@@ -299,6 +299,23 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > `container` cada peça cai no `<body>`) e mutação conferida (tirar o `container` do
 > `PopoverAncorado` derruba o caso do saldo). **As cores só se confirmam depois do deploy.**
 >
+> **Confirmado em produção no mesmo dia, depois do deploy do merge `3f139e5658` (#11329):** o CSS
+> servido já trazia as classes novas (`.shadow-[0_12px_32px_oklch(0_0_0/.16)]`, exclusiva deste
+> conserto). Mesma empresa, mesmo produto, 1440px, escuro:
+>
+> | Peça | Medido em produção depois | Protótipo | Veredito |
+> |---|---|---|---|
+> | Saldo por variação — painel | IBM Plex 13,5px, texto `oklch(0.94 0.005 90)`, fundo `0.3`, 8px × 12px, cantos 8px, sombra `0 12px 32px oklch(0 0 0 / .16)`, linha 19,575px | o mesmo | IGUAL |
+> | Saldo por variação — título, células, SKU | 10px/600, 0,8px entre letras, `--text-mute`, linha 14,5px · 12px, linha 17,4px, `2px 6px 2px 0` · IBM Plex Mono 11px `--text-mute` | o mesmo | IGUAL |
+> | Menu Ações | moldura com cantos 8px, 4px, fundo `0.3`, a mesma sombra; item 12px, 29,4px de altura, `6px 8px`, cantos 5px, `--text`; separador `--border-2` com 4px acima e abaixo | o mesmo | IGUAL |
+> | Cadastro rápido | dentro do `.cockpit`, IBM Plex, texto `--text`, tokens resolvendo; fundo `0.26` e título 18px seguem (moldura do `ui/dialog`, fora deste conserto) | IBM Plex, `--text` | IGUAL no que o conserto cobre |
+> | "Abrir histórico de estoque" e "Abrir no módulo Fiscal" | fundo `oklch(0.3 0.008 240)`, borda `0.34`, 26px, 11,5px | o mesmo | IGUAL |
+>
+> O smoke automático pós-merge (`Screen Smoke After Merge`) não mediu esta tela: um job falhou no
+> login da conta de smoke em produção (pendência conhecida, nenhuma rota exercida) e o outro se
+> declarou "NÃO MEDIDO" porque não liga arquivos de `_components` a uma rota. A medição acima é a
+> que vale para estas peças.
+>
 > **Fica diferente, fora deste conserto:** a moldura das janelas (fundo `oklch(0.26)` × `--surface`
 > `0.30`, 24px × 20px de respiro, cantos 8px × 12px, título 18px × 17px) vem do `ui/dialog` e é igual
 > nas cinco janelas da lista; igualar só a do cadastro rápido a deixaria diferente das irmãs. Os
