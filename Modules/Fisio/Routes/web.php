@@ -251,6 +251,21 @@ Route::middleware(['web', 'throttle:60,1'])
     });
 
 /*
+ * 3b) Confirmação da consulta pela mensagem do WhatsApp (etapa 04 A6). Pública, sem PIN: o link é
+ *     assinado, vale só para aquele atendimento e vence no horário da sessão. Abrir só mostra;
+ *     responder é POST (o WhatsApp abre o link sozinho para gerar a prévia).
+ */
+Route::middleware(['web', 'throttle:60,1', 'signed'])
+    ->prefix('fisio/consulta/{consulta}')
+    ->where(['consulta' => '[0-9]+'])
+    ->name('fisio.confirmacao.')
+    ->group(function () {
+        Route::get('/', [\Modules\Fisio\Http\Controllers\ConfirmacaoConsultaController::class, 'show'])->name('show');
+        Route::post('{resposta}', [\Modules\Fisio\Http\Controllers\ConfirmacaoConsultaController::class, 'responder'])
+            ->whereIn('resposta', ['confirmar', 'nao_vou'])->name('responder');
+    });
+
+/*
  * 4) Entrada do app do paciente na Google Play (etapa 02 §3.6 · ADR 0437 §13.7). O app instalado
  *    pela loja abre aqui quando o paciente toca no ícone: sem token, a tela só pede para abrir o
  *    link que a clínica mandou. Não lê banco e não mostra dado nenhum (UC-FPP-29).

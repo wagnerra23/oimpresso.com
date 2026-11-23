@@ -326,6 +326,22 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > filtro Natureza fiscal; o texto da busca. E o protótipo ainda tem "Usar em uma OS" no menu Ações,
 > que saiu da produção por decisão [F] em 2026-10-11.
 >
+> **Errata, no mesmo dia:** "o texto da busca" não era diferença. O placeholder é o mesmo nos dois lados
+> ("Buscar nome ou SKU…"); a sonda leu o `aria-label` da produção ("Buscar produtos por nome, SKU ou
+> código"), que o protótipo não tem e que não aparece na tela.
+>
+> **Protótipo atualizado em 2026-11-23** ([F] pediu "atualizar o protótipo"), em `produto-blade.jsx`:
+> Garantia na aba Dados (e Tempo de preparo só quando cadastrado, como na produção); o selo do painel
+> com o "O que é" (UC-PIDX-46), mantendo o tipo do cadastro no `title`; as abas Lotes (UC-PIDX-49),
+> Receita (UC-PIDX-48) e Roteiro (UC-PIDX-29), na ordem e com os textos da produção; a natureza fiscal
+> (UC-PIDX-31) no filtro, no selo ao lado do nome ("Serviço" e "Fiscal a decidir"), na aba Fiscal e no
+> aviso do pendente; e "Usar em uma OS" saiu do menu. O "Uso" do protótipo passou a ler a natureza
+> fiscal, como manda o UC-PIDX-44 — antes, o filtro "Uso: Serviço" não achava nenhum produto. Nos
+> dados de exemplo, os lotes somam o saldo do produto e o custo da receita sai dos insumos.
+> Conferido no protótipo renderizado (pelo DOM, 1440px, escuro): cada item acima aparece, os filtros
+> "Natureza fiscal" e "Uso" filtram, "Abrir receita" leva à Fabricação, e nenhum erro de console vem do
+> `produto-blade.jsx` (os 404 de `patrimonio-*` já existiam).
+>
 > **Observado, sem veredito:** no protótipo as abas da gaveta rolam junto com o corpo (a `nav` está
 > dentro da área rolável); na produção ficam paradas acima dele.
 >

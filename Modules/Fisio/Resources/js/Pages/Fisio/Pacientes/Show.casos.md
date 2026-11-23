@@ -35,6 +35,7 @@ related_us: [US-FISIO-009, US-FISIO-061]
 | UC-FPS-11 | enviar o programa pelo WhatsApp (fila, idempotente) | must | `FisioWhatsappJobTest` |
 | UC-FPS-12 | sem envio sem módulo, sem consentimento, bloqueado | must | `FisioWhatsappJobTest` |
 | UC-FPS-36 | sem canal ativo no módulo Whatsapp: envio manual pelo `wa.me` | must | `FisioWhatsappJobTest` |
+| UC-FPS-42 | botão "Enviar ao paciente" na aba Programa chama o envio e mostra a resposta (fila, já enviado hoje, `wa.me`) | must | `tests/js/fisio-enviar-programa.test.tsx` |
 | UC-FPS-13 | questionário grava com a pontuação calculada no servidor | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
 | UC-FPS-14 | bloqueado por licença, desconhecido ou incompleto é recusado | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
 | UC-FPS-15 | questionário exige `fisio.editar`; outra clínica 404; bloqueado não recebe | must | `FisioQuestionarioTest` |
@@ -150,6 +151,14 @@ related_us: [US-FISIO-009, US-FISIO-061]
 - **Aceite:** Dado que a empresa não tem número de saída ativo no módulo `Whatsapp` · Quando o profissional clica em "Enviar pelo WhatsApp" · Então nada é enfileirado e a resposta traz dois links `wa.me` para o celular do paciente — o do portal e, separado, o do código de acesso — para ele enviar do aparelho dele (ADR 0437 §13.1 (f)). As mesmas guardas do envio automático valem: sem consentimento de WhatsApp, 422 e nenhum link emitido; programa de outra clínica, 404.
 - **Regressão que defende:** mensagem automática saindo sem canal; link do portal emitido (revogando o anterior) para quem não consentiu.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
+- **Status: 🧪**
+
+## UC-FPS-42 · Botão "Enviar ao paciente" na aba Programa · `must`
+- **Persona:** fisioterapeuta que acabou de montar o programa e quer que o paciente receba no celular.
+- **Fonte:** protótipo `prototipo-ui/cowork/Wagner/prototipos/fisio/Prescricao.dc.html` (cabeçalho da aba Programa, "Enviar ao paciente"); contrato da rota em UC-FPS-11, UC-FPS-12 e UC-FPS-36.
+- **Aceite:** Dado um programa ativo e quem tem `fisio.editar` · Quando clica em "Enviar ao paciente" · Então a tela chama `POST /fisio/programas/{id}/enviar` e mostra a resposta: 202 "enviado para a fila"; 409 "já foi enviado hoje" (não diz que enviou); 200 manual, os dois links `wa.me`, o do link antes do do código, que o profissional abre do próprio aparelho; 422, o motivo e nenhum link. Sem `fisio.editar` o botão não aparece (a rota responde 403, UC-FPS-11).
+- **Regressão que defende:** rota de envio sem botão em tela nenhuma (auditoria 2026-11-05, d6); 2º clique do dia lido como sucesso.
+- **Teste:** `tests/js/fisio-enviar-programa.test.tsx` (tela) · `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php` (rota)
 - **Status: 🧪**
 
 ## UC-FPS-13 · Questionário pontuado pelo servidor · `must`
@@ -330,6 +339,7 @@ related_us: [US-FISIO-009, US-FISIO-061]
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-11-23 · auditoria d6 — a rota `fisio.programas.enviar` não tinha botão em tela nenhuma. Botão "Enviar ao paciente" (`_components/EnviarPrograma.tsx`, no `EditorPrograma.tsx`) vira UC-FPS-42, com teste escrito junto; o Non-Goal do charter que excluía o envio caiu (era anterior à US-FISIO-009).
 - 2026-11-11 · US-FISIO-061 — seção "Dados sociais" na ficha (`_components/DadosSociais.tsx`, `DadosSociaisController`, tabela `fisio_patient_social`) vira UC-FSO-01..05, com teste escrito junto. Prefixo próprio (FSO) para não colidir com os UC-FPS de outras sessões na mesma ficha.
 - 2026-11-04 · Lote 2 — avaliação em seções do protótipo (`_components/AvaliacaoEstruturada.tsx`) vira UC-FAV-01..02; mesmo POST e mesmos 6 campos da Res. 414, sem migration.
 - 2026-11-11 · Base visual comum dos impressos (`pdf/_base`, `IdentidadeClinica`, `ImpressoPdf`): prontuário, laudo de evolução e folha do programa passam a ter o mesmo cabeçalho da clínica e o mesmo rodapé com "Página X de Y". UC-FPS-19 ganha o cabeçalho no aceite e um caso 98 contra 99; o conteúdo dos três não muda.

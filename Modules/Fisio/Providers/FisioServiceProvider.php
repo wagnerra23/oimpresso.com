@@ -31,10 +31,12 @@ class FisioServiceProvider extends ServiceProvider
         // US-FISIO-009: lembrete diário por WhatsApp (pelo módulo Whatsapp). Um job por empresa com o pacote;
         // o job é idempotente (1 lembrete por paciente por dia) e respeita o horário de silêncio.
         // Auditoria d4: aviso de sinal de alerta que falhou no check-in é tentado de novo.
-        $this->commands([LembretesCommand::class, \Modules\Fisio\Console\ReenviarAlertasCommand::class]);
+        // Etapa 04 A6: confirmação da consulta por WhatsApp, de hora em hora (uma mensagem por atendimento).
+        $this->commands([LembretesCommand::class, \Modules\Fisio\Console\ReenviarAlertasCommand::class, \Modules\Fisio\Console\ConfirmacoesCommand::class]);
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('fisio:lembretes')->dailyAt((string) config('fisio.whatsapp.lembrete_horario', '08:30'))->environments(['live'])->withoutOverlapping();
             $schedule->command('fisio:reenviar-alertas')->everyFifteenMinutes()->environments(['live'])->withoutOverlapping();
+            $schedule->command('fisio:confirmacoes')->hourly()->environments(['live'])->withoutOverlapping();
         });
     }
 

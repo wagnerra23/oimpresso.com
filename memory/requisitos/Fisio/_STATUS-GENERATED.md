@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 28 |
+| US no SPEC | 29 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 14 |
-| Telas com `casos.md` | 18 |
-| UC declarados | 245 |
-| UC com teste que os cita | 245 |
+| Telas (.tsx) | 15 |
+| Telas com `casos.md` | 19 |
+| UC declarados | 253 |
+| UC com teste que os cita | 253 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -96,6 +96,12 @@ authority: generated
 | UC-FCA-02 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
 | UC-FCA-03 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
 | UC-FCA-04 | Configuracoes/Agendamento | 🧪 aguarda veredito da lane |
+| UC-FCF-01 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-02 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-03 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-04 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-05 | Public/Confirmacao | 🧪 aguarda veredito da lane |
+| UC-FCF-06 | Public/Confirmacao | 🧪 aguarda veredito da lane |
 | UC-FCW-01 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-02 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
 | UC-FCW-03 | Configuracoes/Whatsapp | 🧪 aguarda veredito da lane |
@@ -150,6 +156,7 @@ authority: generated
 | UC-FFI-03 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FFI-04 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FFI-05 | Fiscal/Index | 🧪 aguarda veredito da lane |
+| UC-FFI-06 | Fiscal/Index | 🧪 aguarda veredito da lane |
 | UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
@@ -288,6 +295,7 @@ authority: generated
 | UC-FPS-39 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-40 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-41 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-42 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FRA-01 | Relatorio/Associacao | 🧪 aguarda veredito da lane |
 | UC-FRA-02 | Relatorio/Associacao | 🧪 aguarda veredito da lane |
 | UC-FRA-03 | Relatorio/Associacao | 🧪 aguarda veredito da lane |

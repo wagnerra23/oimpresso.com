@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Model;
  *
  * O `token` é cifrado no banco e não sai em array/JSON (`$hidden`): a tela mostra bandeira e
  * últimos 4 dígitos. Quem cobra lê `$cartao->token` explicitamente.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string|null $ultimos_4
+ * @property string|null $bandeira
+ * @property string $status
  */
 class CartaoSalvo extends Model
 {
