@@ -379,9 +379,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   // ── Colunas: as do protótipo, definidas em _components/lista/colunas.tsx ──
   const colunasDoPrototipo = useMemo(
     // Sem alíquota a coluna não existe, nem que o navegador a tenha guardado ligada.
-    () => colunasDaLista({ visiveis: temAliquota ? visiveis : { ...visiveis, imposto: false }, densa, permissions, contexto, aoEscolher }),
+    () => colunasDaLista({ visiveis: temAliquota ? visiveis : { ...visiveis, imposto: false }, densa, permissions, contexto, aoEscolher, container: cockpit }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [visiveis, densa, permissions, contexto, temAliquota],
+    [visiveis, densa, permissions, contexto, temAliquota, cockpit],
   );
   // Tela estreita: as colunas encolhem até caber (UC-PIDX-26). Do espaço da tabela saem a caixa de
   // seleção (34px) e a barra de rolagem vertical que a grade passa a ter (16px).
@@ -482,7 +482,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
             </Deferred>
           </div>
 
-          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} emiteNota={contexto.emite_nota === true} usos={contexto.usos ?? []} aplicar={ir} />
+          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} naturezaFiscal={contexto.natureza_fiscal === true} emiteNota={contexto.emite_nota === true} usos={contexto.usos ?? []} aplicar={ir} container={cockpit} />
 
           <section
             className="pb-widget"
@@ -545,6 +545,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                 aoMudar={setVisiveis}
                 larguraAjustada={Object.keys(largurasArrastadas).length > 0}
                 aoRestaurarLarguras={() => setLargurasArrastadas({})}
+                container={cockpit}
               />
               {permissions.create === true && (
                 <Button variant="outline" size="sm" onClick={() => setRapido(true)}>
@@ -595,6 +596,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                     dados={estoque}
                     irParaPagina={(p) => ir({ estoque_pagina: p })}
                     aoMudarPorPagina={(n) => ir({ estoque_por_pagina: n })}
+                    container={cockpit}
                   />
                 ) : (
                   <></>
@@ -669,7 +671,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   <SelectTrigger className="h-6 w-[88px]" aria-label="Produtos por página">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent container={cockpit}>
                     {POR_PAGINA.map((n) => (
                       <SelectItem key={n} value={String(n)}>
                         {n === -1 ? 'Todos' : n}
@@ -855,7 +857,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       />
 
       <Dialog open={wooModal} onOpenChange={setWooModal}>
-        <DialogContent>
+        <DialogContent container={cockpit}>
           <DialogHeader>
             <DialogTitle>WooCommerce Sync</DialogTitle>
             <DialogDescription>{selecionados.length} produto(s) selecionado(s).</DialogDescription>
@@ -884,6 +886,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
 
       {permissions.create === true && (
         <CadastroRapidoProduto
+          container={cockpit}
           aberto={rapido}
           aoFechar={() => setRapido(false)}
           unidades={opcoes.unidades}
@@ -898,6 +901,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
 
       {permissions.opening_stock === true && (
         <EstoqueInicialProduto
+          container={cockpit}
           produto={inicial}
           aoFechar={() => setInicial(null)}
           aoSalvar={(msg) => {

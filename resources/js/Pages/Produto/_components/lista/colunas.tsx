@@ -46,9 +46,11 @@ export interface OpcoesDasColunas {
   permissions: PermissoesLista;
   contexto: ContextoLista;
   aoEscolher: (acao: AcaoProduto, l: LinhaProduto) => void;
+  /** Onde o menu Ações e o saldo por variação abrem: o `.cockpit` (lápide §5 2026-10-19). */
+  container?: HTMLElement | null;
 }
 
-export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscolher }: OpcoesDasColunas): ColumnDef<LinhaProduto, unknown>[] {
+export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscolher, container = null }: OpcoesDasColunas): ColumnDef<LinhaProduto, unknown>[] {
   const v = (id: string) => visiveis[id] === true;
   const out: ColumnDef<LinhaProduto, unknown>[] = [
     {
@@ -57,7 +59,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       enableSorting: false,
       meta: { width: 96, resizable: false },
       cell: ({ row }) => (
-        <AcoesProduto linha={row.original} permissoes={permissions} gruposDePreco={contexto.grupos_de_preco} emiteNota={contexto.emite_nota} aoEscolher={aoEscolher} />
+        <AcoesProduto linha={row.original} permissoes={permissions} gruposDePreco={contexto.grupos_de_preco} emiteNota={contexto.emite_nota} aoEscolher={aoEscolher} container={container} />
       ),
     },
   ];
@@ -193,6 +195,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
             <PopoverAncorado
               rotulo={`Saldo por variação de ${row.original.nome}`}
               largura={280}
+              container={container}
               className="block w-full text-right"
               conteudo={<SaldoPorVariacao linha={row.original} variacoes={variacoes} />}
             >

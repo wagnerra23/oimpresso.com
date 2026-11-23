@@ -34,10 +34,18 @@ function DropdownMenuTrigger({
 function DropdownMenuContent({
   className,
   sideOffset = 4,
+  container,
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Content> & {
+  /**
+   * Onde o portal monta. Sem ele, no <body> (padrão do Radix), como sempre foi.
+   * Passe o `.cockpit` para o menu receber a fonte e os tokens do Design System,
+   * como o `ui/sheet` e o `ui/dialog` (ADR UI-0013 · lápide §5 2026-10-19).
+   */
+  container?: HTMLElement | null
+}) {
   return (
-    <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Portal container={container ?? undefined}>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}

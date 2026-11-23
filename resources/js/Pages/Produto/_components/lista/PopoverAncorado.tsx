@@ -48,10 +48,16 @@ export interface PopoverAncoradoProps {
   /** Rótulo acessível — vira `aria-label` do gatilho e do painel. */
   rotulo: string;
   className?: string;
+  /**
+   * Onde o painel monta: o `.cockpit`. No <body> (padrão do Radix) a fonte caía na do sistema e
+   * `--text`, `--text-mute`, `--border` e `--surface` chegavam vazios — medido em produção em
+   * 2026-11-23 no saldo por variação (lápide §5 2026-10-19, o mesmo caso do painel de detalhe).
+   */
+  container?: HTMLElement | null;
 }
 
 export function PopoverAncorado({
-  children, conteudo, largura = 244, alinhar = 'end', rotulo, className = '',
+  children, conteudo, largura = 244, alinhar = 'end', rotulo, className = '', container = null,
 }: PopoverAncoradoProps) {
   const [aberto, setAberto] = useState(false);
   const [fixado, setFixado] = useState(false);
@@ -92,8 +98,12 @@ export function PopoverAncorado({
         sideOffset={4}
         collisionPadding={8}
         style={{ width: largura }}
+        container={container}
         // `w-72 p-4` do default do DS é painel de formulário; aqui é leitura densa de linha.
-        className="w-auto p-0 px-3 py-2.5 text-left"
+        // Moldura, cor e altura de linha do protótipo (`produto-blade.css`: `.pb-menu` +
+        // `.pb-saldo-var-painel` — fundo `--surface`, borda `--border`, cantos 8px, sombra
+        // 0 12px 32px, 8px × 12px de respiro, texto `--text`, linha 1,45).
+        className="w-auto p-0 rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-left leading-[1.45] text-[var(--text)] shadow-[0_12px_32px_oklch(0_0_0/.16)]"
         aria-label={rotulo}
         // Sem foco automático: o gatilho abre no hover, e roubar o foco faria a tela pular
         // debaixo de quem só passou o mouse. Esc e clique-fora seguem funcionando (Radix).

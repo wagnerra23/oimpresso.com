@@ -95,7 +95,11 @@ const BOTAO_PRINCIPAL = 'text-white hover:bg-[var(--accent-2)]';
 const BOTAO_CONTORNO =
   'bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--border-2)] hover:text-[var(--text)] dark:bg-[var(--surface)] dark:hover:bg-[var(--border-2)]';
 /** "Fechar": texto esmaecido (`.os-btn.ghost`). */
-const BOTAO_FECHAR = 'text-[var(--text-dim)] hover:bg-[var(--border-2)] hover:text-[var(--text)] dark:hover:bg-[var(--border-2)]';
+// Botão pequeno do corpo (`os-btn sm` do protótipo): 26px de altura, 11,5px e o mesmo fundo sólido
+// do contorno do rodapé. Medido em produção em 2026-11-23: com o `outline` do DS puro o fundo saía
+// translúcido (`input` a 30%) em "Abrir histórico de estoque" e "Abrir no módulo Fiscal".
+const BOTAO_PEQUENO = `h-[26px] px-[10px] text-[11.5px] ${BOTAO_CONTORNO}`;
+const BOTAO_FECHAR ='text-[var(--text-dim)] hover:bg-[var(--border-2)] hover:text-[var(--text)] dark:hover:bg-[var(--border-2)]';
 
 /** Fechar do protótipo: 28×28, raio 6, esmaecido. */
 function Fechar() {
@@ -316,7 +320,7 @@ function ReceitaDoProdutoSecao({ r, irPara }: { r: ReceitaDoProdutoNoPainel; irP
         </table>
       )}
       {r.link && (
-        <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(r.link as string)}>
+        <Button variant="outline" size="sm" className={BOTAO_PEQUENO} onClick={() => irPara(r.link as string)}>
           Abrir receita
         </Button>
       )}
@@ -358,7 +362,7 @@ function LotesDoProdutoSecao({ l, irPara }: { l: LotesDoProdutoNoPainel; irPara:
         </tbody>
       </table>
       {l.mais && <p className="pb-help">Há mais lotes com saldo. O relatório mostra todos.</p>}
-      <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(l.link)}>
+      <Button variant="outline" size="sm" className={BOTAO_PEQUENO} onClick={() => irPara(l.link)}>
         Abrir no relatório de Lotes
       </Button>
     </div>
@@ -873,13 +877,13 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         Requisição de compra <b>{d.requisicao.numero}</b> aberta em {dataBr(d.requisicao.data)}
                         {d.requisicao.fornecedor ? `, para ${d.requisicao.fornecedor}` : ''}.
                       </p>
-                      <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => d.requisicao && irPara(d.requisicao.url)}>
+                      <Button variant="outline" size="sm" className={BOTAO_PEQUENO} onClick={() => d.requisicao && irPara(d.requisicao.url)}>
                         Abrir a requisição
                       </Button>
                     </div>
                   )}
                   {/* Botão pequeno do protótipo (`os-btn sm`): 26px de altura, 11,5px. */}
-                  <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(`/products/stock-history/${d.id}`)}>
+                  <Button variant="outline" size="sm" className={BOTAO_PEQUENO} onClick={() => irPara(`/products/stock-history/${d.id}`)}>
                     Abrir histórico de estoque
                   </Button>
                 </div>
@@ -931,7 +935,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                     <Button
                       variant="outline"
                       size="sm"
-                      className="mt-2 h-[26px] px-[10px] text-[11.5px]"
+                      className={`mt-2 ${BOTAO_PEQUENO}`}
                       onClick={() => irPara(d.fiscal.link_modulo as string)}
                     >
                       Abrir no módulo Fiscal

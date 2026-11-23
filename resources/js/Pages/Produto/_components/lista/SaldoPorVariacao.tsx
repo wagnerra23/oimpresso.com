@@ -1,4 +1,7 @@
 // Painel do saldo por variação na coluna Estoque da lista (UC-PIDX-37 · D7).
+// Cores e espaçamento do protótipo (`produto-blade.css` `.pb-saldo-var-*`): título em `--text-mute`
+// com 0,08em entre letras, células com 6px à direita. A moldura e a altura de linha vêm do
+// `PopoverAncorado`, que monta no `.cockpit` para os tokens resolverem.
 import { qtdComUnidade } from './formato';
 import { somaDasVariacoes, type LinhaProduto, type SaldoDaVariacao } from './tipos';
 /** Painel do saldo por variação (UC-PIDX-37 · D7). O total é a soma das linhas, que o servidor
@@ -7,16 +10,16 @@ export default function SaldoPorVariacao({ linha, variacoes }: { linha: LinhaPro
   const unidade = linha.unidade_curta ?? linha.unidade ?? '';
   return (
     <div data-contract="produto-lista-saldo-variacoes-painel">
-      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Saldo por variação</p>
+      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-mute)]">Saldo por variação</p>
       <table className="w-full text-[12px]">
         <caption className="sr-only">Saldo por variação de {linha.nome}</caption>
         <tbody>
           {variacoes.map((v) => (
             <tr key={v.sku}>
-              <td className="max-w-0 truncate py-0.5 pr-2" title={v.nome}>
+              <td className="max-w-0 truncate py-0.5 pr-1.5" title={v.nome}>
                 {v.nome}
               </td>
-              <td className="py-0.5 pr-2 font-mono text-[11px] text-muted-foreground">{v.sku}</td>
+              <td className="py-0.5 pr-1.5 font-mono text-[11px] text-[var(--text-mute)]">{v.sku}</td>
               <td className={'py-0.5 text-right font-mono tabular-nums ' + (v.saldo <= 0 ? 'font-semibold text-destructive-fg' : '')}>
                 {qtdComUnidade(v.saldo, unidade)}
               </td>

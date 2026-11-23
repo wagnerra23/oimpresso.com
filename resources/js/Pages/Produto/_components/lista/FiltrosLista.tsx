@@ -29,6 +29,8 @@ interface Props {
   /** UC-PIDX-44: opções do filtro "Uso" que a empresa tem; com menos de duas, o filtro não aparece. */
   usos?: Uso[];
   aplicar: (patch: Partial<FiltrosLista>) => void;
+  /** Onde os seletores abrem: o `.cockpit`, que entrega a fonte e os tokens (lápide §5 2026-10-19). */
+  container?: HTMLElement | null;
 }
 
 function Campo({
@@ -37,7 +39,9 @@ function Campo({
   opcoes,
   vazio,
   aoMudar,
+  container,
 }: {
+  container: HTMLElement | null;
   rotulo: string;
   valor: string | null;
   opcoes: Opcao[];
@@ -55,7 +59,7 @@ function Campo({
         <SelectTrigger aria-label={rotulo}>
           <SelectValue placeholder={vazio} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent container={container}>
           <SelectItem value={TODOS}>{vazio}</SelectItem>
           {validas.map((o) => (
             <SelectItem key={o.id} value={o.id}>
@@ -68,7 +72,7 @@ function Campo({
   );
 }
 
-export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, naturezaFiscal = false, emiteNota = false, usos = [], aplicar }: Props) {
+export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, naturezaFiscal = false, emiteNota = false, usos = [], aplicar, container = null }: Props) {
   const [aberto, setAberto] = useState(true);
   const campo = (k: ChaveSelect) => (v: string | null) => aplicar({ [k]: v } as Partial<FiltrosLista>);
 
@@ -88,26 +92,27 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, nat
         </div>
         {aberto && (
           <div className="pb-grid c4">
-            <Campo rotulo="Tipo de produto" valor={filtros.type} opcoes={TIPOS_PRODUTO} vazio="Todos" aoMudar={campo('type')} />
-            <Campo rotulo="Categoria" valor={filtros.category_id} opcoes={opcoes.categorias} vazio="Todas" aoMudar={campo('category_id')} />
-            <Campo rotulo="Unidade" valor={filtros.unit_id} opcoes={opcoes.unidades} vazio="Todas" aoMudar={campo('unit_id')} />
+            <Campo container={container} rotulo="Tipo de produto" valor={filtros.type} opcoes={TIPOS_PRODUTO} vazio="Todos" aoMudar={campo('type')} />
+            <Campo container={container} rotulo="Categoria" valor={filtros.category_id} opcoes={opcoes.categorias} vazio="Todas" aoMudar={campo('category_id')} />
+            <Campo container={container} rotulo="Unidade" valor={filtros.unit_id} opcoes={opcoes.unidades} vazio="Todas" aoMudar={campo('unit_id')} />
             {/* Só com alíquota cadastrada: sem ela não há imposto para filtrar (decisão [F] 2026-10-26). */}
             {opcoes.impostos.length > 0 && (
-              <Campo rotulo="Imposto" valor={filtros.tax_id} opcoes={opcoes.impostos} vazio="Todos" aoMudar={campo('tax_id')} />
+              <Campo container={container} rotulo="Imposto" valor={filtros.tax_id} opcoes={opcoes.impostos} vazio="Todos" aoMudar={campo('tax_id')} />
             )}
-            <Campo rotulo="Marca" valor={filtros.brand_id} opcoes={opcoes.marcas} vazio="Todas" aoMudar={campo('brand_id')} />
-            <Campo rotulo="Local do negócio" valor={filtros.location_id} opcoes={opcoes.locais} vazio="Todos" aoMudar={campo('location_id')} />
-            <Campo rotulo="Situação" valor={filtros.active_state} opcoes={SITUACOES} vazio="Todos" aoMudar={campo('active_state')} />
+            <Campo container={container} rotulo="Marca" valor={filtros.brand_id} opcoes={opcoes.marcas} vazio="Todas" aoMudar={campo('brand_id')} />
+            <Campo container={container} rotulo="Local do negócio" valor={filtros.location_id} opcoes={opcoes.locais} vazio="Todos" aoMudar={campo('location_id')} />
+            <Campo container={container} rotulo="Situação" valor={filtros.active_state} opcoes={SITUACOES} vazio="Todos" aoMudar={campo('active_state')} />
             {/* UC-PIDX-44 (CV1): Material vem da Fabricação e Serviço da natureza fiscal; só com as duas pontas. */}
             {usos.length > 1 && (
-              <Campo rotulo="Uso" valor={filtros.uso ?? null} opcoes={USOS.filter((u) => usos.includes(u.id))} vazio="Todos" aoMudar={campo('uso')} />
+              <Campo container={container} rotulo="Uso" valor={filtros.uso ?? null} opcoes={USOS.filter((u) => usos.includes(u.id))} vazio="Todos" aoMudar={campo('uso')} />
             )}
             {/* UC-PIDX-31: só com o módulo Fiscal. */}
             {naturezaFiscal && (
-              <Campo rotulo="Natureza fiscal" valor={filtros.natureza_fiscal} opcoes={NATUREZAS_FISCAIS} vazio="Todas" aoMudar={campo('natureza_fiscal')} />
+              <Campo container={container} rotulo="Natureza fiscal" valor={filtros.natureza_fiscal} opcoes={NATUREZAS_FISCAIS} vazio="Todas" aoMudar={campo('natureza_fiscal')} />
             )}
             {opcoes.modelos_dispositivo && (
               <Campo
+                container={container}
                 rotulo="Modelo do dispositivo"
                 valor={filtros.repair_model_id}
                 opcoes={opcoes.modelos_dispositivo}

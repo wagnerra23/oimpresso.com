@@ -270,6 +270,52 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 >   sem a coluna, preços iguais ao sem imposto.
 > - Serviço sem NCM ("Instalação em fachada"): "Sem NCM — a nota sai com o NCM padrão da empresa".
 > - 0 erro no console nos quatro cenários.
+>
+> ### 2026-11-23 — 3ª medição da gaveta e das peças flutuantes da lista ([F] pediu "verifica se todas as gavetas e design estão de acordo")
+>
+> Mesma sonda nos dois lados (`design-diff.mjs --probe`), tema escuro, 1440px. Produção
+> `https://oimpresso.com/products` (empresa 1, papel Operacional), produto variável com 4 variações e
+> sem imposto × protótipo `cowork/Felipe/oimpresso.com.html` rota `prod-lista`, produto variável com 4
+> variações e com imposto. Mesma tela nos dois lados: título, as 10 colunas e os 4 indicadores
+> iguais (sem contrato de tela para o D0 mecânico; a identidade foi conferida por esses três).
+>
+> | Onde | Resultado | Veredito |
+> |---|---|---|
+> | Gaveta, aba Dados (`--compare --check-drawer`) | 355 de 410 propriedades iguais; o resto é o já registrado acima (abas em Arial no protótipo, sombra, botões do DS) ou conteúdo | IGUAL |
+> | Gaveta, abas Variações, Estoque, Fiscal e Prateleira | título de seção, cabeçalho e células das tabelas, cartões do estoque, giro, "Pronto para nota" e ajuda fiscal com o mesmo estilo calculado | IGUAL |
+> | Botões pequenos do corpo da gaveta ("Abrir histórico de estoque", "Abrir no módulo Fiscal", e pelo mesmo código "Abrir a requisição" e os de receita e lote) | fundo translúcido (`input` a 30%) × sólido `--surface` no protótipo | DÍVIDA A FECHAR — **corrigido** com o contorno do rodapé (`BOTAO_PEQUENO`) |
+> | Saldo por variação (UC-PIDX-37) | portal no `<body>`, fora do `.cockpit`: fonte `ui-sans-serif`, `--text`/`--text-mute`/`--border`/`--surface` vazios, texto `oklch(0.965 0.004 240)`, título `0.74 0.008 240` com 1px entre letras, cantos 6px, sombra do DS | DÍVIDA A FECHAR — **corrigido**: monta no `.cockpit` e usa a moldura e as cores do `.pb-menu`/`.pb-saldo-var-*` |
+> | Menu Ações da linha | mesmo portal fora do `.cockpit`; itens 14px × 12px, cantos 6/4 × 8/5 | DÍVIDA A FECHAR — **corrigido** (moldura e item do `.pb-menu`) |
+> | Janela Cadastro rápido (UC-PIDX-14) | mesmo portal fora do `.cockpit`, fonte do sistema | DÍVIDA A FECHAR — **corrigido** (monta no `.cockpit`) |
+> | Seletores dos filtros, menu de colunas, seletores do relatório e da paginação, estoque inicial e WooCommerce | mesmo `<body>` pelo mesmo código — não medidos um a um | **corrigidos pelo mesmo caminho** (`container`) |
+>
+> Medido antes do conserto: mover o painel de saldo para dentro do `.cockpit` (só no navegador da
+> medição) corrigiu a fonte, mas não as cores — o componente pintava com `text-popover-foreground` e
+> `text-muted-foreground`, que são globais. Por isso o conserto tem as duas partes: montar no
+> `.cockpit` (o `ui/popover`, o `ui/dropdown-menu` e o `ui/select` ganharam o `container` que o
+> `ui/sheet` e o `ui/dialog` já tinham) e trocar as cores pelos tokens do protótipo. O `.cockpit` não
+> tem `transform`, `contain` nem `filter` (medido), então o posicionamento fixo do Radix segue igual
+> dentro dele. Prova da montagem: `tests/js/portais-dentro-do-cockpit.test.tsx`, com controle (sem
+> `container` cada peça cai no `<body>`) e mutação conferida (tirar o `container` do
+> `PopoverAncorado` derruba o caso do saldo). **As cores só se confirmam depois do deploy.**
+>
+> **Fica diferente, fora deste conserto:** a moldura das janelas (fundo `oklch(0.26)` × `--surface`
+> `0.30`, 24px × 20px de respiro, cantos 8px × 12px, título 18px × 17px) vem do `ui/dialog` e é igual
+> nas cinco janelas da lista; igualar só a do cadastro rápido a deixaria diferente das irmãs. Os
+> campos da janela seguem o `ui/input` do DS.
+>
+> **PROTÓTIPO ATRASADO** (a produção tem, o protótipo não): "Garantia" na aba Dados; o selo "Para
+> vender · com 4 variações" (UC-PIDX-46) no lugar de "Variável"; as abas Lotes, Receita e Roteiro; o
+> filtro Natureza fiscal; o texto da busca. E o protótipo ainda tem "Usar em uma OS" no menu Ações,
+> que saiu da produção por decisão [F] em 2026-10-11.
+>
+> **Observado, sem veredito:** no protótipo as abas da gaveta rolam junto com o corpo (a `nav` está
+> dentro da área rolável); na produção ficam paradas acima dele.
+>
+> **Não medido:** tema claro; as janelas Estoque inicial, Informar NCM, Etiquetas e Confirmar; as abas
+> Composição, Lotes, Receita e Roteiro (a empresa 1 não tem produto assim); "Últimas compras" (o papel
+> Operacional não tem `purchase.view`, e o painel esconde por isso, como manda o UC-PIDX-41); se o
+> pedido de abrir a gaveta traz só os dados dela (medido só que não recarrega a página).
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px

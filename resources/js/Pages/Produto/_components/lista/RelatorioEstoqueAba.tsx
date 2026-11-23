@@ -41,11 +41,14 @@ export default function RelatorioEstoqueAba({
   dados,
   irParaPagina,
   aoMudarPorPagina,
+  container = null,
 }: {
   dados: RelatorioEstoqueLista;
   irParaPagina: (pagina: number) => void;
   /** Troca o tamanho da página (-1 = todas as linhas). Quem recebe volta para a página 1. */
   aoMudarPorPagina: (porPagina: number) => void;
+  /** Onde o seletor abre: o `.cockpit`, que entrega a fonte e os tokens (lápide §5 2026-10-19). */
+  container?: HTMLElement | null;
 }) {
   const { linhas, totais, mostra_preco: preco, mostra_valor: valor, paginacao } = dados;
   // SKU · Produto · Variação · Categoria · Local · [Preço] · Estoque · [3 valores] · 3 movimentos
@@ -178,7 +181,7 @@ export default function RelatorioEstoqueAba({
             <SelectTrigger className="h-6 w-[88px]" aria-label="Linhas do relatório por página">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent container={container}>
               {POR_PAGINA.map((n) => (
                 <SelectItem key={n} value={String(n)}>
                   {n === -1 ? 'Todos' : n}
