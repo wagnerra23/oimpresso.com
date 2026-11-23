@@ -34,6 +34,7 @@ on:
       - 'Modules/NFSe/Http/**'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
       - 'tests/Unit/NfeCertStatusSharedPropTest.php'
+      - 'app/Http/Middleware/TrimStrings.php'
       - 'app/Support/BR/Cnpj.php'
       - 'app/Rules/BR/CpfCnpj.php'
       - 'database/schema/mysql-schema.sql'
@@ -86,6 +87,7 @@ jobs:
               - 'Modules/NFSe/Http/**'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
               - 'tests/Unit/NfeCertStatusSharedPropTest.php'
+              - 'app/Http/Middleware/TrimStrings.php'
               - 'app/Support/BR/Cnpj.php'
               - 'app/Rules/BR/CpfCnpj.php'
               - 'database/schema/mysql-schema.sql'
@@ -351,6 +353,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/CertificadoLegadoSemFallbackContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/CertificadoPfxLegadoTest.php \
             Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/UploadCertificadoRequestTest.php \
             Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php \
             Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php \
             Modules/NfeBrasil/Tests/Feature/ConferenciaNaturezaServiceTest.php \
