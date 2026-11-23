@@ -49,7 +49,7 @@ Listar **faturas individuais** (`rb_invoices`) com filtros por status (open/paid
   - Ações: botão "Cancelar" (só se `is_cancelavel` true · abre dialog confirm)
 - Inertia::defer em `kpis` + `invoices` (props caras — agregação + paginate eager)
 - Multi-tenant Tier 0: `HasBusinessScope` automático em Invoice + Repository scopa explícito + Pest cross-tenant biz=1 vs biz=99
-- Permission gate Spatie pra cancel: `recurringbilling.invoice.cancel`
+- Permission gate Spatie pra cancel: `recurringbilling.invoices.cancel` (InvoiceController.php:122; o nome antigo `recurringbilling.invoice.cancel` não era declarado em lugar nenhum)
 - Tailwind 4 puro (sem `.rec-*` CSS escopado)
 
 ---

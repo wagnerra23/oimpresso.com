@@ -5,7 +5,7 @@ slug: recurring-billing-spec
 title: Especificação funcional — RecurringBilling
 type: spec
 version: "1.0"
-last_updated: "2026-07-03"
+last_updated: "2026-11-23"
 owner: wagner
 status: ativo
 ---
@@ -474,7 +474,9 @@ Então NÃO cria revenue_event (sem take rate)
 
 ### US-RB-ESC0 · Escopo 0 — PaymentGateway + adapter Asaas (pré-requisito cobrança)
 
-> owner: wagner · priority: p0 · estimate: 16h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 16h · status: duplicate · type: story · duplicate_of: US-RECURRINGBILLING-001
+
+> **Reconciliação 2026-11-23:** esta US e a US-RECURRINGBILLING-001 (§7-bis, abaixo) são a mesma entrega (o texto é idêntico). O estado e a âncora ficam lá; aqui fica o texto original de 2026-05-06, que dizia `status: todo`. O PaymentGateway hoje é módulo próprio, dono dos drivers (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão).
 
 - Módulo PaymentGateway scaffold (tabelas `pg_credentials`, `pg_charge_attempts`, `pg_webhook_events`)
 - Adapter Asaas: credencial por tenant (api_key encrypted), cobrança avulsa, webhook `payment.confirmed` / `payment.overdue`
@@ -486,8 +488,10 @@ Então NÃO cria revenue_event (sem take rate)
 
 ### US-RB-ESC1 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
 
-> owner: wagner · priority: p0 · estimate: 32h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 32h · status: duplicate · type: story · duplicate_of: US-RECURRINGBILLING-002
 > blocked_by: US-RB-ESC0
+
+> **Reconciliação 2026-11-23:** mesma entrega da US-RECURRINGBILLING-002, onde ficam o estado (`_parcial_`) e a âncora. Aqui fica o texto original de 2026-05-06, que dizia `status: todo`.
 
 - Migrations: `rb_plans`, `rb_contracts`, `rb_invoices`
 - PlanController CRUD + ContractController (criar/cancelar) + InvoiceController (listar/charge manual)
@@ -499,8 +503,10 @@ Então NÃO cria revenue_event (sem take rate)
 
 ### US-RB-ESC2 · Escopo 2 — Boleto impresso via eduardokum/laravel-boleto
 
-> owner: wagner · priority: p0 · estimate: 10h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 10h · status: duplicate · type: story · duplicate_of: US-RECURRINGBILLING-003
 > blocked_by: US-RB-ESC1
+
+> **Reconciliação 2026-11-23:** o boleto seguiu pelo gateway (Asaas), não pelo `eduardokum/laravel-boleto`; a entrega é a US-RECURRINGBILLING-003, onde ficam o estado (`_parcial_`) e a âncora. Aqui fica o texto original de 2026-05-06, que dizia `status: todo`.
 
 - `composer require eduardokum/laravel-boleto` — geração direta (sem gateway externo)
 - Suporta múltiplos bancos (Bradesco, Itaú, BB, Santander, Sicoob, etc.) — configurável por tenant
@@ -515,6 +521,8 @@ Então NÃO cria revenue_event (sem take rate)
 
 > owner: wagner · priority: p1 · estimate: 24h · status: todo · type: story
 > blocked_by: US-RB-ESC1
+
+> **Nota 2026-11-23:** a emissão de NF-e ao pagar foi construída como US-RB-044 ([ARQ-0006](adr/arq/0006-escopo3-nfe-via-modulo-nfebrasil-nao-nfse.md)). Esta US não foi reconciliada aqui: o escopo dela (tela de status da NF, reemitir, fila `rb_nfe`) é maior que o da 044.
 
 - Usa o módulo `Modules/NfeBrasil` já existente no projeto (não criar sub-módulo novo)
 - Integração via evento: listener em `InvoicePaid` → dispara `NFeEmissionRequested` (fila `rb_nfe`, não trava billing)
@@ -567,7 +575,7 @@ Então NÃO cria revenue_event (sem take rate)
 > owner: — · priority: p0 · estimate: 6h · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #4
 > blocked_by: US-RB-040
 
-**Implementado em:** _parcial_ · `Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php` · `Modules/RecurringBilling/Services/Boleto/Drivers/AsaasDriver.php` · `Modules/RecurringBilling/Http/Controllers/InvoiceController.php` · `Modules/RecurringBilling/Services/AssinaturaCobrancaService.php` · `resources/js/Pages/RecurringBilling/Faturas/Index.tsx` · verificado@176f9bc (2026-07-01) — falta: `C6Driver::cancelar()` é STUB que lança `BadMethodCallException` (C6Driver:80-91) — CNAB ocorrência 02 não implementado; UI real de cancelamento fica em Faturas/Index.tsx:423 (o botão Cancelar foi removido de propósito do drawer da Cobrança — "B6 botões honestos", DrawerCobranca.tsx:118-123); entregue `cancelar()` no Inter/Asaas + endpoint financeiro/rb-invoices/{invoice}/cancelar com permissão recurringbilling.invoice.cancel + AuditLog
+**Implementado em:** _parcial_ · `Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php` · `Modules/RecurringBilling/Services/Boleto/Drivers/AsaasDriver.php` · `Modules/RecurringBilling/Http/Controllers/InvoiceController.php` · `Modules/RecurringBilling/Services/AssinaturaCobrancaService.php` · `resources/js/Pages/RecurringBilling/Faturas/Index.tsx` · verificado@176f9bc (2026-07-01) — falta: `C6Driver::cancelar()` é STUB que lança `BadMethodCallException` (C6Driver:80-91) — CNAB ocorrência 02 não implementado; UI real de cancelamento fica em Faturas/Index.tsx:423 (o botão Cancelar foi removido de propósito do drawer da Cobrança — "B6 botões honestos", DrawerCobranca.tsx:118-123); entregue `cancelar()` no Inter/Asaas + endpoint financeiro/rb-invoices/{invoice}/cancelar com permissão `recurringbilling.invoices.cancel` (InvoiceController.php:122; nome antigo `recurringbilling.invoice.cancel`) + AuditLog
 
 **Contexto.** CAPTERRA-INVENTARIO #4 🟡 — `BoletoDriverContract::cancelar()` definido e implementado em InterDriver, mas C6/Asaas precisam ser auditados/completados. UI inexistente. Cancelamento é exigência de lei (Procon/LGPD) — não pode depender de SQL.
 
@@ -603,9 +611,11 @@ Então NÃO cria revenue_event (sem take rate)
 
 ### US-RB-044 · Listener InvoicePaid em NfeBrasil — emissão automática NFe55 + DANFE + e-mail
 
-> owner: wagner · priority: p1 · estimate: 12h · status: done · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #6 (diferencial vertical)
+> owner: wagner · priority: p1 · estimate: 12h · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #6 (diferencial vertical)
 
-**Implementado em:** [`Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php`](../../../Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php) · [`Modules/NfeBrasil/Services/NfeService::emitirParaInvoice`](../../../Modules/NfeBrasil/Services/NfeService.php) · [`Modules/NfeBrasil/Events/NFeAutorizada`](../../../Modules/NfeBrasil/Events/NFeAutorizada.php)
+> **Estado 2026-11-23 — parcial (flag desligada)** (decisão b8): o código está no `main`, mas `nfebrasil.auto_emission_on_invoice_paid` nasce `false` (`Modules/NfeBrasil/Config/config.php:33`). Ligar em produção é do [W]. Até 2026-11-23 o cabeçalho dizia `status: done`.
+
+**Implementado em:** _parcial_ · [`Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php`](../../../Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php) · [`Modules/NfeBrasil/Services/NfeService::emitirParaInvoice`](../../../Modules/NfeBrasil/Services/NfeService.php) · [`Modules/NfeBrasil/Events/NFeAutorizada`](../../../Modules/NfeBrasil/Events/NFeAutorizada.php) — falta: ligar a flag `nfebrasil.auto_emission_on_invoice_paid` em produção (do [W])
 
 **Contexto.** CAPTERRA-INVENTARIO #6 ❌ AUSENTE — **diferencial cross-vertical** (vai pro núcleo, não Modules/<Vertical>). Gateway de boleto é commodity (Iugu/Asaas/Vindi/Pagar.me têm). "Boleto pago → NFe modelo 55 emitida automaticamente sem clique humano" é diferencial do oimpresso. Larissa (ROTA LIVRE — Modules/Vestuario) pediu há tempos; também útil pra Modules/ComunicacaoVisual quando ativar. Event `InvoicePaid` JÁ existe em `Modules/RecurringBilling/Events/InvoicePaid.php`.
 
@@ -939,7 +949,7 @@ Disparada por: `/module-completeness-audit` (skill `module-completeness-audit` v
 | Dim | Nome | Status | Evidência |
 |---|---|---|---|
 | 1 | Multi-instance scope | ✅ APROVADO | `Models/Subscription.php:59-61` (contaBancaria BelongsTo) + `BoletoCredential.php:15-16` (conta_bancaria_id NULLABLE) |
-| 2 | Permissions middleware + UI | 🟡 PARCIAL | só `recurringbilling.invoice.cancel` em `InvoiceController.php:33-38`; faltam `plans.manage`, `contracts.manage`, `webhooks.view` |
+| 2 | Permissions middleware + UI | 🟡 PARCIAL | só `recurringbilling.invoice.cancel` em `InvoiceController.php:33-38` (em 2026-05-10; hoje `recurringbilling.invoices.cancel`, e desde 2026-11-19 cada rota tem a sua permissão, #11247); faltam `plans.manage`, `contracts.manage`, `webhooks.view` |
 | 3 | Charter | ❌ AUSENTE (exceção) | UI Pages/RecurringBilling/ ainda não existe — módulo SPEC-only |
 | 4 | RUNBOOK | 🟡 PARCIAL | sem `RUNBOOK*.md`; SPEC + 9 ADRs cobrem orquestração mas faltam playbook operacional |
 | 5 | Pest golden + cross-tenant biz=99 | ✅ APROVADO | `BoletoServiceTest.php:50-103` (biz=99,100,101 com 3 drivers Inter/C6/Asaas) + `InterWebhookControllerTest.php:86-93` (404 cross-tenant guard) |
@@ -1005,7 +1015,7 @@ Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 4 RUNBOOK
 
 Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 2 Permissions middleware + UI — 🟡 PARCIAL).
 
-**Evidência:** `Modules/RecurringBilling/Http/Controllers/InvoiceController.php:33-38` tem `can:recurringbilling.invoice.cancel`. Mas `Routes/web.php:26` é placeholder Resource VAZIO. Faltam permissions canônicas pra plans, contracts, webhooks.
+**Evidência:** `Modules/RecurringBilling/Http/Controllers/InvoiceController.php:33-38` tem `can:recurringbilling.invoice.cancel` (nome de 2026-05-10; hoje `recurringbilling.invoices.cancel`, InvoiceController.php:122). Mas `Routes/web.php:26` é placeholder Resource VAZIO. Faltam permissions canônicas pra plans, contracts, webhooks.
 
 **Fix sugerido:**
 1. Criar permissions Spatie via seeder: `recurringbilling.plans.manage`, `recurringbilling.contracts.manage`, `recurringbilling.webhooks.view`
@@ -1141,6 +1151,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p1 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — as 3 implementações seguem no código em 2026-11-23: `Modules/RecurringBilling/Services/InvoiceGeneratorService.php` (`avancarCiclo`) · `Modules/RecurringBilling/Services/AssinaturaService.php` (`calcularProximoVencimento`) · `Modules/RecurringBilling/Services/AssinaturaCobrancaService.php` (`recalcularProximaCobranca`); a divergência está travada por `tests/Feature/Calculo/CalculoRecurringBillingTest.php`
+
 **Origem:** dente de cálculo do RecurringBilling (Onda 1.4, PR #3737, TEST-ONLY). O teste `tests/Feature/Calculo/CalculoRecurringBillingTest.php` **caracteriza** (não corrige) uma divergência entre TRÊS cópias da conta de "próximo vencimento" — análogo do `getTotalPaid ≠ getTotalAmountPaid` da Onda 1.4.
 
 **As 3 implementações divergentes:**
@@ -1167,10 +1179,12 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-RB-057 · Cobrança paga pelo PaymentGateway marca a fatura da assinatura como paga e dispara InvoicePaid
 
-> owner: — · priority: p0 · estimate: 4h · status: done · type: story
+> owner: — · priority: p0 · estimate: 4h · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/RecurringBilling/Listeners/MarcarFaturaPagaDaCobranca.php` (registrado no `RecurringBillingServiceProvider`), `Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php`
+> **Estado 2026-11-23 — parcial (flag desligada)** (decisão b8): o código está no `main`, mas `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` nasce `false` (`Modules/RecurringBilling/Config/config.php:9`). Ligar em produção é do [W]. Até 2026-11-23 o cabeçalho dizia `status: done`.
+
+**Implementado em:** _parcial_ · `Modules/RecurringBilling/Listeners/MarcarFaturaPagaDaCobranca.php` (registrado no `RecurringBillingServiceProvider`) · `Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php` — falta: ligar `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` em produção (do [W])
 
 **Testado em:** `Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php`
 

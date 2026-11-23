@@ -313,7 +313,7 @@ status `canceled_at_period_end`, `credit_note` do saldo restante, e o evento `Co
 `Faturas/Index.tsx` → `POST /financeiro/rb-invoices/{invoice}/cancelar` → `InvoiceController@cancel`
 → `AssinaturaCobrancaService::cancelInvoice` → `BoletoService::cancelar` → driver.
 
-1. **Permissão `recurringbilling.invoice.cancel`** — sem ela, **403** antes de qualquer coisa.
+1. **Permissão `recurringbilling.invoices.cancel`** (`InvoiceController.php:122`; até 2026-11 este SDD usava o nome antigo `recurringbilling.invoice.cancel`) — sem ela, **403** antes de qualquer coisa.
 2. `Invoice::where('business_id', …)->whereKey(…)->firstOrFail()` → **404 cross-tenant**.
 3. Máquina de estados do cancelamento — **este é o contrato**:
    - já `canceled` → `ok:true, skipped:'already_canceled'`, **sem chamar o gateway** (idempotente);
@@ -457,7 +457,7 @@ uma** fatura da competência, com o valor certo e o próximo vencimento avançad
    `credit_note`, sem evento `ContractCanceled`.
 
 #### CU-RB-06 — Cancelar uma fatura no gateway `[must]` `[V0]` `[T0]` ✅
-1. `[must]` sem a permissão `recurringbilling.invoice.cancel` → **403** (antes de tocar no gateway).
+1. `[must]` sem a permissão `recurringbilling.invoices.cancel` → **403** (antes de tocar no gateway).
 2. `[V0]` fatura **paga NUNCA é cancelada** → **422** *"use estorno"*. Dinheiro recebido não some por
    clique de tela.
 3. `[must]` fatura já cancelada → `ok` **sem chamar o gateway** (idempotente).

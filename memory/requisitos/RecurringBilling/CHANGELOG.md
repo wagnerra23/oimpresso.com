@@ -8,6 +8,45 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 
 ## [Unreleased]
 
+### Novembro 2026 — auditoria do módulo (lotes L0, L1, L2 e L5)
+
+Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-11-23 a pedido do [W].
+
+**Dinheiro e webhooks**
+- `rb:generate-invoices` não prende a assinatura na competência já faturada (d7) — [#11193](https://github.com/wagnerra23/oimpresso.com/pull/11193).
+- Pix Automático não cobra duas vezes na retentativa: chave e `txid` estáveis (d8) — [#11206](https://github.com/wagnerra23/oimpresso.com/pull/11206).
+- Reais → centavos num helper único (`Centavos::de`), com sinal certo e sem float (d9) — [#11221](https://github.com/wagnerra23/oimpresso.com/pull/11221).
+- Webhook Asaas credita uma vez e só na quitação; `InvoicePaid` só na transição — [#11223](https://github.com/wagnerra23/oimpresso.com/pull/11223).
+- Worker da fila `rb_webhooks` agendado no `Kernel` (antes nenhum worker lia a fila) — [#11230](https://github.com/wagnerra23/oimpresso.com/pull/11230).
+- Idempotência de webhook por empresa: `pg_webhook_events` com `unique(business_id, provider, event_id)`; FK de `business_id` nas tabelas do módulo — [#11242](https://github.com/wagnerra23/oimpresso.com/pull/11242).
+- Segredo do webhook cifrado (`Crypt`) e valor/ciclo na trilha da assinatura — [#11227](https://github.com/wagnerra23/oimpresso.com/pull/11227).
+
+**Acesso e isolamento**
+- Rotas web exigem o pacote `recurringbilling_module` — [#11205](https://github.com/wagnerra23/oimpresso.com/pull/11205).
+- Cada rota exige a sua permissão (`ExigePermissaoRb` + `SubscriptionPolicy`) — [#11247](https://github.com/wagnerra23/oimpresso.com/pull/11247).
+- Assinatura só aceita contato da empresa da sessão — [#11196](https://github.com/wagnerra23/oimpresso.com/pull/11196).
+- Timeline só aceita nota humana; evento é imutável; nota só o autor apaga — [#11233](https://github.com/wagnerra23/oimpresso.com/pull/11233).
+- Reenviar NF-e só pela nota vinculada e com a permissão do NfeBrasil — [#11209](https://github.com/wagnerra23/oimpresso.com/pull/11209).
+- Configurações mostra a URL e o header reais dos webhooks — [#11203](https://github.com/wagnerra23/oimpresso.com/pull/11203).
+
+**Testes e documentação**
+- Testes da lane voltam a medir o comando e o usuário reais — [#11287](https://github.com/wagnerra23/oimpresso.com/pull/11287).
+- README e ARCHITECTURE marcados como desenho de abril; SCOPE e RUNBOOK com ponteiros vivos — [#11214](https://github.com/wagnerra23/oimpresso.com/pull/11214).
+- Charters e casos alinhados ao 301 e ao desfecho do UC-RBSUB-05 — [#11238](https://github.com/wagnerra23/oimpresso.com/pull/11238).
+- Gap e map do protótipo refeitos sobre a fonte de design — [#11219](https://github.com/wagnerra23/oimpresso.com/pull/11219).
+- ADRs 0455 (Pix Automático na Jornada 2) e 0456 (PaymentGateway dono dos drivers) — [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão. BRIEFING e SDD 1.1.0 — [#11354](https://github.com/wagnerra23/oimpresso.com/pull/11354), em revisão. SPEC: US-RB-ESC0/1/2 marcadas `duplicate` das US-RECURRINGBILLING-001/002/003; US-RB-044 e US-RB-057 voltam a parcial (flag desligada, b8); nome da permissão `recurringbilling.invoices.cancel` no SPEC, SDD, charter e casos de Faturas — PR deste lote.
+
+**Em andamento (PR aberto em 2026-11-23):** webhook Inter pelo `txid` com crédito único ([#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352)), apagar contato ou plano não leva assinaturas e faturas ([#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346), b6), régua sem e-mail nem WhatsApp na tela ([#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), b7), isolamento pela rota 98 × 99 ([#11345](https://github.com/wagnerra23/oimpresso.com/pull/11345)), navegador + axe nas 6 telas ([#11353](https://github.com/wagnerra23/oimpresso.com/pull/11353)). Sem PR ainda: cartão na tela (b5) e migração do boleto para o PaymentGateway (b1).
+
+### Outubro 2026
+
+- Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).
+- Assinatura sem plano fatura pelo valor negociado (`metadata.valor`/`metadata.ciclo`) — [#9606](https://github.com/wagnerra23/oimpresso.com/pull/9606) (2026-10-19, remédio "a" de [W]).
+- `plan_id` nulável em `rb_subscriptions` — [#9858](https://github.com/wagnerra23/oimpresso.com/pull/9858) (2026-10-26).
+- Pix Automático BCB (US-RB-020/021): driver, motor, webhooks, mandato e tela, atrás de `RB_COBRAR_PIX_AUTOMATICO` — [#9870](https://github.com/wagnerra23/oimpresso.com/pull/9870) (2026-10-26).
+- Cobrança paga no PaymentGateway marca a fatura paga e dispara `InvoicePaid` (US-RB-057), atrás de `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` — [#9844](https://github.com/wagnerra23/oimpresso.com/pull/9844) (2026-10-27).
+- Cartão pago guarda o token na assinatura (US-RB-011), atrás de `RB_SALVAR_CARTAO` — [#9951](https://github.com/wagnerra23/oimpresso.com/pull/9951) (2026-10-27).
+
 ### Wave 18 saturação 69→95 (2026-05-16)
 
 - **D4 SoC brutal +14** — Criados `Modules\RecurringBilling\Repositories\SubscriptionRepository` (5 métodos: `listarPaginado`, `contarAtivas`, `mrrBaselineCached`, `vencendoNoIntervalo`, `acharPorId`) e `InvoiceRepository` (5 métodos: `listarPaginado`, `totaisPorStatus`, `atrasadasAntigas`, `acharPorGatewayRef`, `acharPorId`). Singleton via RecurringBillingServiceProvider (`registerRepositories()`). Substitui `Subscription::where()`/`Invoice::where()` inline. MRR cached calcula divisão por ciclo (mensal/trimestral/semestral/anual).
