@@ -11,20 +11,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
  * US-CASCADE-BOLETO-004 — CancelarCobrancaInterJob (chamada Inter PJ real).
  *
  * Cobre 5 cenários canônicos:
- *   1. Happy-path: cancela via BoletoService mock, atualiza charge local
+ *   1. Happy-path: cancela via CobrancaNoGateway (mock), atualiza charge local
  *   2. Idempotência: charge já cancelled → no-op (service NÃO chamado)
  *   3. Cross-tenant: businessId != document.business_id → RuntimeException
  *   4. doc_type != boleto_inter → RuntimeException
  *   5. Erro Inter (service throw) → re-lança pra retry policy do Queue
  *
- * Default biz=1; cross-tenant adversário biz=99 (convenção ADR 0101).
+ * Tenant 98; cross-tenant adversário biz=99 (ADR 0358). Desde a decisão b1 (2026-11-23) o
+ * cancelamento sai pelo InterDriver do PaymentGateway, via CobrancaNoGateway.
  */
 
 /**
@@ -187,21 +188,21 @@ function ccijCriarDocumento(
 }
 
 it('1. cancela cobrança Inter via service (mock) e atualiza charge local', function () {
-    $charge = ccijCriarCharge(1, '00099887766554433221100');
-    $doc = ccijCriarDocumento(1, 2001, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
+    $charge = ccijCriarCharge(98, '00099887766554433221100');
+    $doc = ccijCriarDocumento(98, 2001, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
 
-    $this->actingAs(ccijCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccijCriarUser(98));
+    session(['user.business_id' => 98]);
 
-    // Mock BoletoService — espera 1 chamada cancelar com motivo Inter
-    $service = \Mockery::mock(BoletoService::class);
+    // Mock CobrancaNoGateway — 1 chamada cancelar no gateway inter, motivo 'pedido_cliente'
+    // (apelido que o InterDriver do PG traduz para APEDIDODOCLIENTE — ver caso 6)
+    $service = \Mockery::mock(CobrancaNoGateway::class);
     $service->shouldReceive('cancelar')
         ->once()
-        ->with(1, '00099887766554433221100', 'APEDIDODOCLIENTE')
-        ->andReturn(true);
+        ->with(98, 'inter', '00099887766554433221100', 'pedido_cliente');
 
     $job = new CancelarCobrancaInterJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'venda cancelada — teste',
     );
@@ -215,20 +216,20 @@ it('1. cancela cobrança Inter via service (mock) e atualiza charge local', func
 });
 
 it('2. idempotência: charge já cancelled NÃO chama Inter (no-op)', function () {
-    $charge = ccijCriarCharge(1, '00011112222333344445555', 'cancelled');
-    $doc = ccijCriarDocumento(1, 2002, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
+    $charge = ccijCriarCharge(98, '00011112222333344445555', 'cancelled');
+    $doc = ccijCriarDocumento(98, 2002, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
 
-    $this->actingAs(ccijCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccijCriarUser(98));
+    session(['user.business_id' => 98]);
 
     // Service NÃO deve ser chamado
-    $service = \Mockery::mock(BoletoService::class);
+    $service = \Mockery::mock(CobrancaNoGateway::class);
     $service->shouldNotReceive('cancelar');
 
     Log::spy();
 
     $job = new CancelarCobrancaInterJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'rerun idempotente',
     );
@@ -240,18 +241,18 @@ it('2. idempotência: charge já cancelled NÃO chama Inter (no-op)', function (
         ->once();
 });
 
-it('3. cross-tenant guard: biz=1 Job tentando documento biz=99 lança exception', function () {
+it('3. cross-tenant guard: biz=98 Job tentando documento biz=99 lança exception', function () {
     $charge = ccijCriarCharge(99, '00077777777777777777777');
     $doc = ccijCriarDocumento(99, 2003, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
 
-    $this->actingAs(ccijCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccijCriarUser(98));
+    session(['user.business_id' => 98]);
 
-    $service = \Mockery::mock(BoletoService::class);
+    $service = \Mockery::mock(CobrancaNoGateway::class);
     $service->shouldNotReceive('cancelar');
 
     $job = new CancelarCobrancaInterJob(
-        businessId: 1, // Job claim biz=1 mas doc é de biz=99
+        businessId: 98, // Job claim biz=98 mas doc é de biz=99
         transactionDocumentId: $doc->id,
         motivo: 'cross-tenant ataque',
     );
@@ -265,18 +266,18 @@ it('3. cross-tenant guard: biz=1 Job tentando documento biz=99 lança exception'
 });
 
 it('4. doc_type != boleto_inter lança RuntimeException', function () {
-    $charge = ccijCriarCharge(1, '00055555555555555555555');
+    $charge = ccijCriarCharge(98, '00055555555555555555555');
     // Tipo errado pra esse Job — usa boleto_asaas
-    $doc = ccijCriarDocumento(1, 2004, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
+    $doc = ccijCriarDocumento(98, 2004, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
 
-    $this->actingAs(ccijCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccijCriarUser(98));
+    session(['user.business_id' => 98]);
 
-    $service = \Mockery::mock(BoletoService::class);
+    $service = \Mockery::mock(CobrancaNoGateway::class);
     $service->shouldNotReceive('cancelar');
 
     $job = new CancelarCobrancaInterJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'teste tipo errado',
     );
@@ -286,14 +287,14 @@ it('4. doc_type != boleto_inter lança RuntimeException', function () {
 });
 
 it('5. erro Inter no service dispara retry (re-lança exception)', function () {
-    $charge = ccijCriarCharge(1, '00033333333333333333333');
-    $doc = ccijCriarDocumento(1, 2005, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
+    $charge = ccijCriarCharge(98, '00033333333333333333333');
+    $doc = ccijCriarDocumento(98, 2005, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
 
-    $this->actingAs(ccijCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccijCriarUser(98));
+    session(['user.business_id' => 98]);
 
     // Service simula erro HTTP do Inter (rede / 5xx / mTLS)
-    $service = \Mockery::mock(BoletoService::class);
+    $service = \Mockery::mock(CobrancaNoGateway::class);
     $service->shouldReceive('cancelar')
         ->once()
         ->andThrow(new RuntimeException('Inter PJ HTTP 503 — gateway temporariamente indisponível'));
@@ -301,7 +302,7 @@ it('5. erro Inter no service dispara retry (re-lança exception)', function () {
     Log::spy();
 
     $job = new CancelarCobrancaInterJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'teste retry',
     );
@@ -319,4 +320,12 @@ it('5. erro Inter no service dispara retry (re-lança exception)', function () {
     $reload = FakeInterCharge::find($charge->id);
     expect($reload->status)->toBe('pending')
         ->and($reload->cancelled_at)->toBeNull();
+});
+
+it('6. b1: o apelido do motivo vira APEDIDODOCLIENTE no InterDriver do PG; o código cru viraria ACERTOS', function () {
+    $mapa = new ReflectionMethod(\Modules\PaymentGateway\Services\Drivers\InterDriver::class, 'mapMotivoCancelar');
+    $driver = app(\Modules\PaymentGateway\Services\Drivers\InterDriver::class);
+
+    expect($mapa->invoke($driver, 'pedido_cliente'))->toBe('APEDIDODOCLIENTE')   // o que o job manda
+        ->and($mapa->invoke($driver, 'APEDIDODOCLIENTE'))->toBe('ACERTOS');        // por que não o código cru
 });
