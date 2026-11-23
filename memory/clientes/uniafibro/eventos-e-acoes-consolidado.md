@@ -29,13 +29,13 @@ related:
 | AFIBROMAR | Maravilha e Extremo Oeste · Oeste | 07/2025 | @afibromar2025 (2.998) · núcleo @afibromarnucleocunhapora (148) | afibromarmaravilha@gmail.com · (49) 9949-6130 |
 | AFICOR | Concórdia e Alto Uruguai · Oeste | 14/10/2021 | @aficor2021 (2.491) | falta |
 | AFASJ | São José · Grande Florianópolis | 10/2025 | @associacaofibromialgiaamigossj (1.560) | grupo de WhatsApp na bio |
-| AREFI | Indaial e Médio Vale · Vale do Itajaí | 09/2023 | @arefivale (858, parado desde 05/2024) | arefi.vale@gmail.com · (47) 98815-0242 |
+| AREFI | Indaial e Médio Vale · Vale do Itajaí | 09/2023 | @arefi_regional_fibromialgia (3.641) · @arefivale (858, antigo, parado desde 05/2024) | arefi.vale@gmail.com · (47) 98815-0242 |
 | AFAGAS | Gaspar · Vale do Itajaí | 04/2026 | @afagas2026 (673) | falta |
 | ASCAF | Cocal do Sul · Sul | 2026 | @ascaf10 (100) | falta |
 | Homens de Fibro SC (grupo da Uniafibro) | estadual | 11/2026 | @homensdefibro.sc | WhatsApp (48) 99987-2822 |
 | **Uniafibro-SC** | estadual · em formação | 11/2026 | @uniafibro2026 (317) · uniafibro.com.br | e-mail e telefone ainda não existem |
 
-**Alcance nas redes:** somando os perfis acima, **mais de 23 mil seguidores** (a mesma pessoa pode seguir mais de um perfil).
+**Alcance nas redes:** somando os perfis acima, **mais de 26 mil seguidores** (a mesma pessoa pode seguir mais de um perfil).
 Em 23/11/2026 o @homensdefibro.sc passou a seguir todos esses perfis.
 
 Presença: **4 das 6 mesorregiões** (Sul, Vale do Itajaí, Oeste e Grande Florianópolis). Faltam Norte e Serra.
@@ -53,7 +53,7 @@ A ACPFA (Joinville) não faz parte da rede (decisão [W] 23/11/2026).
 | 540+ | associadas só no núcleo de Tubarão (2026) | relato da associação |
 | 14 | núcleos da AGFESC no Sul | planilha da rede |
 | 50 vagas/mês | Equipe de Reabilitação da FURB, para 14 municípios | planilha da rede |
-| 23 mil+ | seguidores somados dos Instagrams da rede | perfis, 23/11/2026 |
+| 26 mil+ | seguidores somados dos Instagrams da rede | perfis, 23/11/2026 |
 | 5 | congressos regionais feitos pela AFICOR (I ao V) | @aficor2021 |
 | 2 × 15 | pessoas por grupo piloto em Tubarão, com equipe multiprofissional | @assgirassoisfibromialgicossc, out. 2026 |
 
@@ -133,12 +133,18 @@ A ACPFA (Joinville) não faz parte da rede (decisão [W] 23/11/2026).
 | 11/11/2026 | Palestra sobre avaliação biopsicossocial no município | AFIBROMAR | Maravilha | @afibromar2025 |
 | 10–20/11/2026 | Visitas às UBS Ceniro Martins e Zanellato; reunião de associadas | AFASJ | São José | @associacaofibromialgiaamigossj |
 | 11–12/11/2026 | Ações com a Prefeitura de Cocal do Sul | ASCAF | Cocal do Sul | @ascaf10 |
+| 06/10/2025 | Seminário Regional de Fibromialgia | AREFI | Blumenau | @arefi_regional_fibromialgia |
+| 10/2025 | Seminário em Lages | AREFI | Lages | @arefi_regional_fibromialgia |
+| 11/2025 | Assinatura da lei que reconhece a fibromialgia como deficiência | AREFI | Blumenau | @arefi_regional_fibromialgia |
+| 03/2026 | Ação com a Prefeitura de Indaial (Secretaria de Saúde) | AREFI | Indaial | @arefi_regional_fibromialgia |
+| 05/2026 | Inauguração da policlínica, com presença da AREFI | AREFI | Indaial | @arefi_regional_fibromialgia |
+| 11/08/2026 | Reunião na Alesc sobre a avaliação biopsicossocial | AREFI | Florianópolis | @arefi_regional_fibromialgia |
+| 08/2026 | Reportagem sobre o trabalho da associação | AREFI | Indaial | @arefi_regional_fibromialgia |
 | 27/11/2026 | 11ª Conferência Municipal de Saúde (participação prevista) | AFAGAS | Gaspar | @afagas2026 |
 
 ## 4. O que ainda falta levantar
 
 - Número de participantes de cada evento: os posts quase nunca dizem. Pedir a cada presidente.
-- AREFI: o Instagram parou em 05/2024; as ações de 2025–2026 ficam no WhatsApp ou no Facebook.
 - Total de associadas da rede (hoje só há o número dos Girassóis e de Tubarão).
 - Relatório de 12 meses da AREFI (modelo pronto, ainda sem preencher).
 - Datas exatas: seminário de Gravatal, 2º Seminário de Indaial.
