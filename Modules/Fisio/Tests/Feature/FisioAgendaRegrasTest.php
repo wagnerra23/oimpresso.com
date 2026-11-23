@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-014
 // Cobre US-FISIO-014 (memory/requisitos/Fisio/SPEC.md · etapa 04 A1, A4, A5, A7, A8, A10, A21).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
