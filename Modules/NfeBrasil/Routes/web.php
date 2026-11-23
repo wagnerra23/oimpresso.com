@@ -234,6 +234,16 @@ Route::middleware(['web', 'auth', 'SetSessionData', FiscalLiberado::class])
             ->whereNumber('id')
             ->middleware(PermissaoNfe::class.':'.PermissaoNfe::CONSULTA)
             ->name('emissoes.danfe-pdf');
+        // Barra de lote do Cockpit Fiscal (UC-FCKP-21..23). Mesmo gate da ação de UMA nota.
+        Route::post('emissoes/lote/xml', [\Modules\NfeBrasil\Http\Controllers\NfeLoteController::class, 'xml'])
+            ->middleware([PermissaoNfe::class.':'.PermissaoNfe::CONSULTA, 'throttle:10,1'])
+            ->name('emissoes.lote.xml');
+        Route::post('emissoes/lote/danfe', [\Modules\NfeBrasil\Http\Controllers\NfeLoteController::class, 'danfe'])
+            ->middleware([PermissaoNfe::class.':'.PermissaoNfe::CONSULTA, 'throttle:10,1'])
+            ->name('emissoes.lote.danfe');
+        Route::post('emissoes/lote/reenviar-email', [\Modules\NfeBrasil\Http\Controllers\NfeLoteController::class, 'reenviarEmail'])
+            ->middleware([PermissaoNfe::class.':'.PermissaoNfe::REENVIAR, 'throttle:10,1'])
+            ->name('emissoes.lote.reenviar-email');
     });
 
 // Page Inertia demo da fase 2C — badge reativo via useNfceStatus.

@@ -35,7 +35,7 @@ authority: generated
 | `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 | `US-FISIO-051` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pré-anamnese no portal antes da primeira consulta — **P1** |
-| `US-FISIO-013` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Schema da agenda: tipos, atendimentos, bloqueios, lista de e |
+| `US-FISIO-013` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema da agenda: tipos, atendimentos, bloqueios, lista de e |
 
 ### Backlog — NÃO é lacuna
 
