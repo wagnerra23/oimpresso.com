@@ -12,7 +12,7 @@
  * Mesmo molde de `colunas-grid.test.tsx`: mock do Inertia e do shell, o resto real.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 
 vi.mock('@inertiajs/react', () => ({
   Head: () => null,
@@ -185,6 +185,9 @@ describe('Venda V3 gravando · sem dados de cena', () => {
     fireEvent.click(screen.getByRole('button', { name: /Impostos/ }));
 
     expect(screen.getByText('O detalhe do item ainda não está disponível na nova venda')).toBeTruthy();
+    // Sem a barra de abas não há caminho até a Tributação. É este assert que separa os dois
+    // modos: o NCM ausente sozinho passaria também numa aba que não fosse a Tributação.
+    expect(screen.queryByRole('tablist', { name: 'Detalhe do item' })).toBeNull();
     expect(screen.queryByDisplayValue('39199090')).toBeNull();
     expect(screen.queryByDisplayValue('5102')).toBeNull();
     expect(screen.queryByText('Confirmar item')).toBeNull();
@@ -194,6 +197,11 @@ describe('Venda V3 gravando · sem dados de cena', () => {
   it('UC-V407 · controle: sem a gravação, o detalhe do item segue com a aba Tributação da cena', () => {
     render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
     fireEvent.click(screen.getByRole('button', { name: /Impostos/ }));
+    // O drawer fica sempre montado e só lê `abaInicial` na montagem da página, então o
+    // "Impostos" abre na aba Geral (defeito anterior a este PR, fora do escopo). O controle
+    // chega à Tributação pela barra de abas, que é o que o operador faz.
+    const abas = screen.getByRole('tablist', { name: 'Detalhe do item' });
+    fireEvent.click(within(abas).getByRole('tab', { name: /Tributação/ }));
 
     expect(screen.getByDisplayValue('39199090')).toBeTruthy();
     expect(screen.getByText('Confirmar item')).toBeTruthy();
