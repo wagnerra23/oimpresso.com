@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-11-03"
+last_run: "2026-11-21"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -142,6 +142,8 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 - **Dado** a gravação ligada,
 - **Quando** a venda tem acréscimo (na linha ou na venda), pagamento em PIX ou boleto, item que não veio do cadastro ou nenhum item,
 - **Então** a tela não posta e diz o motivo (ex.: *"PIX ainda não é gravado — use Dinheiro ou Cartão."*). Venda sem pagamento vai com a linha zerada, como o Create faz (venda a prazo).
+- **Quando** a venda ou o orçamento tem **plano de parcelas** montado no fechamento, ou **beneficiários** na comissão dividida,
+- **Então** a tela também não posta e diz o motivo (*"O plano de parcelas ainda não é gravado — remova as parcelas para salvar."*; *"A comissão por beneficiário ainda não é gravada — remova os beneficiários para salvar."*). O store não grava plano de parcelas e só grava um comissionado (o do campo Comissionado). _Acrescentado em 2026-11-21: com a gravação ligada nas empresas desde 2026-11-19 (#11235), os dois sumiam ao gravar sem aviso._
 
 ## UC-V382 · A flag decide; ligada, o local e o cliente são da empresa do usuário
 
@@ -322,9 +324,20 @@ Origem: em 2026-11-03, com a flag ligada na empresa 1, a venda OS00135 gravou co
 - **Dado** o mesmo pedido postado em `/pos` sem `origem_tela` (é o que o `Sells/Create.tsx`, o PDV e a venda offline mandam),
 - **Então** a venda grava como sempre, com `current_stage_id` nulo e nenhuma linha em `sale_stage_history`. É a fronteira abaixo: `/pos/create` não muda de comportamento.
 
+## UC-V403 · As notas digitadas na V3 ficam na venda
+
+**Status:** 🧪 — `tests/js/gravacao-dominio.test.ts` e `SellsCreateV3GravarContratoTest.php`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador escreve a **Nota da venda (sai no documento)** e a **Nota interna do balcão** na gaveta "Observações e produção" e grava a venda ou o orçamento,
+- **Então** a nota da venda vai em `sale_note` e `additional_notes` e a interna em `staff_note`, como o `transform()` do `Sells/Create.tsx`; o store grava a primeira em `transactions.additional_notes` e a segunda em `transactions.staff_note`. Total e estoque não mudam por causa da nota.
+- Sem nota, os três campos vão vazios, como antes (a fixture do UC-V380 segue a mesma).
+
+Até 2026-11-21 as duas caixas não guardavam o que se digitava: o texto sumia ao gravar, sem aviso (medido no arquivo servido em produção, `CreateV3-D5TgXVkD.js`, com `sale_note:""` e `staff_note:""` fixos).
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
-Edição, venda de reparo, rascunho e proforma, parcelas, comissão, entrega,
+Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,
 imposto do pedido, acréscimo, PIX/boleto/TEF, troca de local e `pos_settings` — a lista completa segue em "Paridade para substituir Create e Edit".
 
 - **[BACKLOG]** `edit_invoice_number`: a V3 não tem campo de número da nota; quando tiver, ele só aparece com a permissão (`sell/create.blade.php:238`).
@@ -1261,6 +1274,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-10-30 (G-6):** desde o `last_run` anterior (2026-08-27), `CreateV3.tsx` mudou só no comentário que aponta a âncora de design (#7224 e #7620). Nenhum comportamento da tela mudou, então os UCs acima seguem valendo como estavam.
 - **Revalidação de 2026-11-03 (G-6):** desde 2026-10-30, `CreateV3.tsx` mudou só em quando os dois avisos "Preview de design — não grava" aparecem: agora somem quando a tela recebe `gravacao` (flag `useV3SellsGravar`, ligada para a empresa 1 em 2026-11-03), porque ali a tela grava pelos stores de produção. Sem `gravacao` os avisos seguem iguais. Nenhum UC acima cita os avisos; UC-V302 (nenhuma rota de escrita no controller do preview) segue valendo, pois a gravação usa os stores de produção, não rota do `SellsV3Controller`.
 - **Revalidação de 2026-11-03, segunda (G-6):** com a gravação ligada, "Salvar como orçamento" passou a gravar e a venda e o orçamento da V3 passaram a nascer no pipeline (UC-V400 a UC-V402, novos). Sem `gravacao` o botão segue avançando o estágio em memória e nenhum UC anterior mudou; o payload da fixture ganhou `origem_tela`, e o vitest e o Pest do UC-V380 seguem comparando o mesmo total e o mesmo estoque.
+- **Revalidação de 2026-11-21 (G-6):** `CreateV3.tsx` passou a guardar as duas notas da gaveta "Observações e produção" e a mandá-las na gravação (UC-V403, novo), e a passar quantas parcelas e quantos beneficiários de comissão a venda tem, para a gravação recusar com motivo (UC-V381, dois casos novos). Sem `gravacao` nada muda. Os demais UCs seguem valendo: o payload sem nota é o mesmo da fixture do UC-V380.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

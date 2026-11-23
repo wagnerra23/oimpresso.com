@@ -547,3 +547,23 @@ it('UC-V398 · com a tabela, a busca devolve 15,00 para A e nada para B, e a ven
     // Estoque não muda com a tabela: as mesmas baixas do UC-V380.
     expect($v['saldos'])->toBe([7.0, 8.0]);
 });
+
+it('UC-V403 · as notas da V3 ficam na venda: a da venda em additional_notes, a interna em staff_note', function () {
+    // As chaves e os valores são os que o vitest do UC-V403 prova que `montarPayloadVenda` monta.
+    $montar = function (object $test, object $a, object $b): array {
+        $p = v3gravarPayloadV3($test, $a, $b);
+        $p['sale_note'] = 'Instalação inclusa';
+        $p['additional_notes'] = 'Instalação inclusa';
+        $p['staff_note'] = 'Retorno por WhatsApp';
+
+        return $p;
+    };
+    $v = v3gravarVender($this, $montar);
+
+    expect($v['venda']->additional_notes)->toBe('Instalação inclusa');
+    expect($v['venda']->staff_note)->toBe('Retorno por WhatsApp');
+    // Controle: a nota não mexe em valor nem em estoque — o mesmo da venda do UC-V380.
+    expect((float) $v['venda']->final_total)->toBe(156.23);
+    expect($v['saldos'])->toBe([7.0, 8.0]);
+    expect((int) $v['venda']->business_id)->toBe($this->bizId);
+});

@@ -11,8 +11,9 @@
 // (incidente `num_uf` de 2026-06-05: float de 5 casas virou milhar e inflou o total).
 //
 // Escopo desta primeira versão: venda NOVA, final, simples. O que a tela permite e o
-// Create não sabe gravar (acréscimo, imposto do pedido, PIX/boleto) RECUSA com motivo
-// em vez de sumir em silêncio — perder um acréscimo seria gravar valor errado.
+// Create não sabe gravar (acréscimo, imposto do pedido, PIX/boleto, plano de parcelas,
+// comissão por beneficiário) RECUSA com motivo em vez de sumir em silêncio — perder um
+// acréscimo seria gravar valor errado. O que o store grava (as notas) vai no payload.
 
 import {
   abaixoDoPrecoMinimo,
@@ -67,6 +68,16 @@ export type VendaParaGravar = {
    * pagamento e sem conferir estoque — o store não baixa estoque nem lança pagamento de orçamento.
    */
   orcamento?: boolean;
+  /**
+   * Notas da gaveta "Observações e produção" (UC-V403), como o Create: a nota da venda vai em
+   * `sale_note` e `additional_notes` (o store grava `sale_note` em `transactions.additional_notes`,
+   * que sai no documento) e a nota interna em `staff_note`. Ausente = vazias, como antes.
+   */
+  notas?: { venda: string; interna: string };
+  /** Parcelas do plano montado no fechamento. O store não grava plano: com alguma, recusa (UC-V381). */
+  parcelas?: number;
+  /** Beneficiários da comissão dividida. O store só grava um comissionado: com algum, recusa (UC-V381). */
+  beneficiarios?: number;
 };
 
 /**
@@ -128,6 +139,12 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
   if (invalida) return { ok: false, motivo: `${invalida.nome} está com quantidade ou preço inválido.` };
   if (v.itens.some((l) => parseBR(l.acr || '0') !== 0) || parseBR(v.acr) !== 0) {
     return { ok: false, motivo: 'Acréscimo ainda não é gravado — zere o acréscimo para salvar.' };
+  }
+  if ((v.parcelas ?? 0) > 0) {
+    return { ok: false, motivo: 'O plano de parcelas ainda não é gravado — remova as parcelas para salvar.' };
+  }
+  if ((v.beneficiarios ?? 0) > 0) {
+    return { ok: false, motivo: 'A comissão por beneficiário ainda não é gravada — remova os beneficiários para salvar.' };
   }
   // Com o desconto da venda desligado ele vale 0, e o teto não tem o que conferir.
   const acimaDoTeto = descontoAcimaDoTeto(v.config ? { ...v, ...descontoDaVendaEfetivo(v.config, v.descTipo, v.descVal) } : v);
@@ -211,9 +228,9 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       discount_amount: discountAmount,
       rp_redeemed: 0,
       rp_redeemed_amount: '0.00',
-      sale_note: '',
-      additional_notes: '',
-      staff_note: '',
+      sale_note: v.notas?.venda ?? '',
+      additional_notes: v.notas?.venda ?? '',
+      staff_note: v.notas?.interna ?? '',
       is_recurring: 0,
       customer_secondary_address: '',
       shipping_details: '',

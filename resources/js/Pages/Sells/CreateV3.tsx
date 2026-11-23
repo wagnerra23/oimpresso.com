@@ -285,6 +285,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
      fechamento a direita precisa mostrar o plano de pagamento junto do total. */
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
   const [parcelasAberto, setParcelasAberto] = useState(false);
+  /* Notas da gaveta "Observações e produção" — controladas porque vão na gravação (UC-V403).
+     Antes eram textarea solta: o texto digitado sumia ao gravar. */
+  const [notaVenda, setNotaVenda] = useState('');
+  const [notaInterna, setNotaInterna] = useState('');
   /* onda 4 — drawer de detalhe do item. Guarda o INDICE (nao a linha) pra
      navegacao Anterior/Proximo continuar valida se a lista mudar. */
   const [itemAberto, setItemAberto] = useState<number | null>(null);
@@ -532,6 +536,9 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       sinal: cliGravacao?.sinal ?? '',
       tabelaId,
       orcamento,
+      notas: { venda: notaVenda, interna: notaInterna },
+      parcelas: parcelas.length,
+      beneficiarios: beneficiarios.length,
     });
     if (!r.ok) {
       setErroGravar(r.motivo);
@@ -1001,6 +1008,9 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             <Lbl>Nota da venda (sai no documento)</Lbl>
             <textarea
               rows={3}
+              aria-label="Nota da venda (sai no documento)"
+              value={notaVenda}
+              onChange={(e) => setNotaVenda(e.target.value)}
               placeholder="Instalação inclusa"
               className="w-full rounded-md border border-input bg-background p-2 text-[13px] outline-none focus:border-primary"
             />
@@ -1009,6 +1019,9 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             <Lbl>Nota interna do balcão</Lbl>
             <textarea
               rows={3}
+              aria-label="Nota interna do balcão"
+              value={notaInterna}
+              onChange={(e) => setNotaInterna(e.target.value)}
               placeholder="Cliente pediu retorno por WhatsApp"
               className="w-full rounded-md border border-input bg-background p-2 text-[13px] outline-none focus:border-primary"
             />

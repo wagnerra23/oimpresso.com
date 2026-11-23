@@ -1,5 +1,5 @@
 /**
- * UC-V380 / UC-V381 — a V3 grava a venda pelo payload do Create (Sells/CreateV3.casos.md).
+ * UC-V380 / UC-V381 / UC-V403 — a V3 grava a venda pelo payload do Create (Sells/CreateV3.casos.md).
  *
  * Três caminhos para o MESMO total, e nenhum lê o outro:
  *   1. conta à mão (no `_leia` da fixture): 156,23;
@@ -99,6 +99,46 @@ describe('UC-V381 · o que o store não sabe gravar é recusado, não descartado
     expect(montarPayloadVenda({ ...fixture.entrada, itens: [] }).ok).toBe(false);
     const r = montarPayloadVenda({ ...fixture.entrada, pagamentos: [] });
     expect(r.ok && r.payload.payment).toEqual([{ amount: 0, method: 'cash', paid_on: '', account_id: null, note: '' }]);
+  });
+
+  it('UC-V381 · plano de parcelas recusa, na venda e no orçamento: o store não grava plano', () => {
+    const motivo = 'O plano de parcelas ainda não é gravado — remova as parcelas para salvar.';
+    expect(montarPayloadVenda({ ...fixture.entrada, parcelas: 3 })).toEqual({ ok: false, motivo });
+    expect(montarPayloadVenda({ ...fixture.entrada, parcelas: 3, orcamento: true })).toEqual({ ok: false, motivo });
+    // Controle: sem parcelas (0 ou ausente) a venda da fixture segue gravando com o mesmo total.
+    const sem = montarPayloadVenda({ ...fixture.entrada, parcelas: 0 });
+    expect(sem.ok && sem.payload.final_total).toBe(156.23);
+  });
+
+  it('UC-V381 · comissão por beneficiário recusa: o store só grava um comissionado', () => {
+    expect(montarPayloadVenda({ ...fixture.entrada, beneficiarios: 2 })).toEqual({
+      ok: false,
+      motivo: 'A comissão por beneficiário ainda não é gravada — remova os beneficiários para salvar.',
+    });
+    expect(montarPayloadVenda({ ...fixture.entrada, beneficiarios: 0 }).ok).toBe(true);
+  });
+});
+
+describe('UC-V403 · as notas digitadas vão na gravação, como no Create', () => {
+  it('UC-V403 · a nota da venda vai em sale_note e additional_notes; a interna em staff_note', () => {
+    const r = montarPayloadVenda({ ...fixture.entrada, notas: { venda: 'Instalação inclusa', interna: 'Retorno por WhatsApp' } });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.payload.sale_note).toBe('Instalação inclusa');
+    expect(r.payload.additional_notes).toBe('Instalação inclusa');
+    expect(r.payload.staff_note).toBe('Retorno por WhatsApp');
+    // A nota não mexe em valor: o total segue o da fixture.
+    expect(r.payload.final_total).toBe(156.23);
+  });
+
+  it('UC-V403 · sem nota, os três campos vão vazios, como antes (a fixture do UC-V380 não muda)', () => {
+    const r = montarPayloadVenda(fixture.entrada);
+    expect(r.ok && [r.payload.sale_note, r.payload.additional_notes, r.payload.staff_note]).toEqual(['', '', '']);
+  });
+
+  it('UC-V403 · o orçamento também leva as notas', () => {
+    const r = montarPayloadVenda({ ...fixture.entrada, orcamento: true, notas: { venda: 'Validade 15 dias', interna: '' } });
+    expect(r.ok && r.payload.sale_note).toBe('Validade 15 dias');
   });
 });
 
