@@ -53,6 +53,7 @@ last_run_ci: "2026-11-19 (PR #11223, lote L0 do RecurringBilling) — REVALIDACA
 | UC-RBCFG-08 | O webhook do Inter tem as mesmas garantias do Asaas | must `[T0]` `[V0]` | `CU-RB-07` 1-5 | `InterWebhookControllerTest` | 🧪 |
 | UC-RBCFG-09 | URL e header exibidos são os que o webhook de fato atende | must `[V0]` | `CU-RB-12` 4 · `CU-RB-07` 1 | `Wave8ConfiguracoesIndexTest` | 🧪 |
 | UC-RBCFG-10 | Pagamento Asaas credita uma vez só, na quitação, e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookCreditoUnicoContratoTest` | 🧪 |
+| UC-RBCFG-11 | Pix do Inter quita a fatura do txid, credita uma vez e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `InterWebhookCreditoUnicoContratoTest` | 🧪 |
 
 ---
 
@@ -197,6 +198,24 @@ last_run_ci: "2026-11-19 (PR #11223, lote L0 do RecurringBilling) — REVALIDACA
 - **Contrato:** `CU-RB-07` itens 5 e 6 + regra mestre de valor (`memory/proibicoes.md`).
 - **Regressão que defende:** o efeito de valor voltar a acontecer por evento recebido em vez de por
   transição da fatura (auditoria 2026-11-19, achado a3).
+- **Status: 🧪**
+
+---
+
+## UC-RBCFG-11 · O Pix do Inter quita a fatura do txid, credita uma vez e só se cobre a fatura · `must` `[T0]` `[V0]`
+- **Persona:** o Inter avisa cada Pix recebido e reentrega quando o job falha. A fatura certa tem de virar paga,
+  a NF-e tem de achá-la, e a empresa não pode ver o dinheiro em dobro no saldo.
+- **Aceite:** Dada uma fatura `open` de 150,00 da empresa 98 com o `txid` em `gateway_ref` · Quando chegam o Pix,
+  o retry e a reentrega com outro `endToEndId` · Então a fatura vira `paid` com `pago_em`, entra **um** crédito de
+  150,00 na conta Inter, o saldo sobe 150,00 e o `InvoicePaid` sai uma vez com o `numero_documento` (não o `txid`).
+  Pix de 149,99 não quita nem credita. Fatura cancelada não volta a paga. `txid` de fatura da 99 não mexe na 99.
+  Pix sem `txid`, ou com `txid` que não é de fatura, não credita. O crédito sai com o dono da empresa.
+- **Teste:** [`InterWebhookCreditoUnicoContratoTest`](../../../../../Modules/RecurringBilling/Tests/Feature/InterWebhookCreditoUnicoContratoTest.php)
+  — os seis casos `UC-RBCFG-11`, cada um conferindo o valor por dois caminhos (soma dos créditos e variação do saldo).
+  Quem grava o `txid` na fatura está no `UC-RBPA-15`.
+- **Contrato:** `CU-RB-07` itens 5 e 6 + regra mestre de valor (`memory/proibicoes.md`).
+- **Regressão que defende:** o webhook Inter voltar a não achar fatura, a avisar a NF-e pelo `txid`, ou a creditar
+  por Pix recebido em vez de por transição da fatura (auditoria 2026-11-19, achado a4).
 - **Status: 🧪**
 
 ---
