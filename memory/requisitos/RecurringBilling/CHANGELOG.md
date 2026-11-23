@@ -20,6 +20,7 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 - Worker da fila `rb_webhooks` agendado no `Kernel` (antes nenhum worker lia a fila) — [#11230](https://github.com/wagnerra23/oimpresso.com/pull/11230).
 - Idempotência de webhook por empresa: `pg_webhook_events` com `unique(business_id, provider, event_id)`; FK de `business_id` nas tabelas do módulo — [#11242](https://github.com/wagnerra23/oimpresso.com/pull/11242).
 - Segredo do webhook cifrado (`Crypt`) e valor/ciclo na trilha da assinatura — [#11227](https://github.com/wagnerra23/oimpresso.com/pull/11227).
+- Webhook Inter acha a fatura pelo `txid` (gravado em `gateway_ref` pelo `CobradorPixAutomatico`) e credita só na quitação; Pix que não é de fatura do RB deixa de lançar crédito (a4) — [#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352).
 
 **Acesso e isolamento**
 - Rotas web exigem o pacote `recurringbilling_module` — [#11205](https://github.com/wagnerra23/oimpresso.com/pull/11205).
@@ -28,6 +29,7 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 - Timeline só aceita nota humana; evento é imutável; nota só o autor apaga — [#11233](https://github.com/wagnerra23/oimpresso.com/pull/11233).
 - Reenviar NF-e só pela nota vinculada e com a permissão do NfeBrasil — [#11209](https://github.com/wagnerra23/oimpresso.com/pull/11209).
 - Configurações mostra a URL e o header reais dos webhooks — [#11203](https://github.com/wagnerra23/oimpresso.com/pull/11203).
+- Testes de isolamento entre empresas pela rota, 98 × 99 — [#11345](https://github.com/wagnerra23/oimpresso.com/pull/11345).
 
 **Testes e documentação**
 - Testes da lane voltam a medir o comando e o usuário reais — [#11287](https://github.com/wagnerra23/oimpresso.com/pull/11287).
@@ -36,7 +38,7 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 - Gap e map do protótipo refeitos sobre a fonte de design — [#11219](https://github.com/wagnerra23/oimpresso.com/pull/11219).
 - ADRs 0455 (Pix Automático na Jornada 2) e 0456 (PaymentGateway dono dos drivers) — [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), mergeado em 2026-11-23 (status `proposto`). BRIEFING e SDD 1.1.0 — [#11354](https://github.com/wagnerra23/oimpresso.com/pull/11354), em revisão. SPEC: US-RB-ESC0/1/2 marcadas `duplicate` das US-RECURRINGBILLING-001/002/003; US-RB-044 e US-RB-057 voltam a parcial (flag desligada, b8); nome da permissão `recurringbilling.invoices.cancel` no SPEC, SDD, charter e casos de Faturas — PR deste lote.
 
-**Em andamento (PR aberto em 2026-11-23):** webhook Inter pelo `txid` com crédito único ([#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352)), apagar contato ou plano não leva assinaturas e faturas ([#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346), b6), régua sem e-mail nem WhatsApp na tela ([#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), b7), isolamento pela rota 98 × 99 ([#11345](https://github.com/wagnerra23/oimpresso.com/pull/11345)), navegador + axe nas 6 telas ([#11353](https://github.com/wagnerra23/oimpresso.com/pull/11353)). Sem PR ainda: cartão na tela (b5) e migração do boleto para o PaymentGateway (b1).
+**Em andamento (PR aberto em 2026-11-23):** cartão recorrente no drawer da assinatura ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355), b5), Faturas na forma do protótipo ([#11366](https://github.com/wagnerra23/oimpresso.com/pull/11366)), apagar contato ou plano não leva assinaturas e faturas ([#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346), b6), régua sem e-mail nem WhatsApp na tela ([#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), b7), navegador + axe nas 6 telas ([#11353](https://github.com/wagnerra23/oimpresso.com/pull/11353)). Sem PR ainda: cobrar com o cartão salvo e migração do boleto para o PaymentGateway (b1).
 
 ### Outubro 2026
 
