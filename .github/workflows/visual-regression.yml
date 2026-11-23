@@ -979,6 +979,17 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Fisio/PortalBrowserTest.php
 
+      # ── E2E DE COMPORTAMENTO + AXE — Fisio: Painel, Pacientes e Agenda (NASCE ADVISORY) ──
+      # Auditoria do Fisio 2026-11-05, d18 / lote 9. Par do step Fisio/Portal: as 3 telas da
+      # clínica montam depois dos <Deferred>, sem o paciente do business 99, e a sessão aparece
+      # na semana sem o recado do paciente; axe CRITICAL nas três. Tenant 98 contra 99 (ADR 0358);
+      # sem pixel (ADR 0445). Promover = 2 verdes que EXECUTARAM, lidos no log; é flip [W].
+      - name: E2E de comportamento + axe · Fisio/Clínica (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-fisio-clinica
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/Fisio/ClinicaTelasBrowserTest.php
+
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
       # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
@@ -1033,6 +1044,7 @@ jobs:
           A_NFSE: ${{ steps.e2e-nfse.outcome }}
           A_PG_INDEX: ${{ steps.e2e-paymentgateway-index.outcome }}
           A_PG_CNAB: ${{ steps.e2e-paymentgateway-cnab.outcome }}
+          A_FISIO_CLINICA: ${{ steps.e2e-fisio-clinica.outcome }}
           A_FISIO_PORTAL: ${{ steps.e2e-fisio-portal.outcome }}
         run: |
           resumo="$(mktemp)"
@@ -1085,6 +1097,7 @@ jobs:
           registrar "E2E de render + axe · NFSe" "$A_NFSE"
           registrar "E2E de comportamento + axe · PaymentGateway/Index" "$A_PG_INDEX"
           registrar "E2E de comportamento + axe · PaymentGateway/CnabRetorno" "$A_PG_CNAB"
+          registrar "E2E de comportamento + axe · Fisio/Clínica" "$A_FISIO_CLINICA"
           registrar "E2E de comportamento + axe · Fisio/Portal" "$A_FISIO_PORTAL"
 
           {

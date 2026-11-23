@@ -1,0 +1,169 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Main.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 8 Agenda Pacientes Prescrever Biblioteca Protocolos ⋯ mais 3 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fisio Painel da fisioterapia Sábado, 17 de outubro · 5 pacientes precisam de você hoje ⌘K Novo paciente Prescrever Adesão média 78% +9 pontos em 30 dias Pacientes ativos 64 12 novos no mês Dor média 3,4 −1,8 desde a avaliação Faltas evitadas 11 pelo lembrete Fila de atenção · 5 J K navegar · E resolver RC Rafael C. Dor em alta Dor subiu de 3 para 7 em 2 dias, depois de aumentar a carga do agachamento. Revisar carga LM Lúcia M. Abandono Sem registrar exercícios há 5 dias. Lembretes entregues e não abertos. Ligar PS Paulo S. Execução Segurou 2 s dos 5 s pedidos na ponte, em 6 de 8 repetições, 3 dias seguidos. Revisar dose AN Ana N. Progredir Atingiu 30 s de equilíbrio unipodal. Pronta para a fase 3. Avançar fase JR João R. Melhora real LEFS melhorou 14 pontos, acima da diferença clínica mínima. Gerar laudo Agenda de hoje Abrir agenda 08:30 Marta L. Retorno · fase 2 10:00 Carlos P. Avaliação inicial 14:00 Rafael C. Retorno · tendinopatia 16:30 Lúcia M. Teleconsulta Câmera · semana 38 séries contadas e confirmadas pelos pacientes. 4 pausaram por enquadramento. Pacientes ativos Todos · 64 Em risco · 5 Alta próxima · 7 Paciente Adesão 7d Dor · 4 sem Questionário Financeiro Próxima Marta L. · lombalgia 100% RMDQ 6 −6 Em dia seg 08:30 João R. · pós-op LCA 86% LEFS 58 +14 Pacote 4/10 ter 17:00 Rafael C. · tendinopatia patelar 71% VISA-P 52 −6 Em dia hoje 14:00 Ana N. · entorse de tornozelo 92% FAAM 88 +21 Convênio qua 09:15 Lúcia M. · pós-op manguito 29% SPADI 54 −3 R$ 240 vencido qui 10:00",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Adesão média 7",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.98 0 0)",
+          "smallAlign": null,
+          "valueFontPx": 30
+        },
+        {
+          "label": "Pacientes ativ",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 30
+        },
+        {
+          "label": "Dor média 3,4 ",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 30
+        },
+        {
+          "label": "Faltas evitada",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 30
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 26.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "500",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.4,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.9,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": false,
+          "bg": "oklch(0.95 0.075 150)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.6,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Painel",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Main.dc.html",
+    "componente": "Main.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:10:45.804Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

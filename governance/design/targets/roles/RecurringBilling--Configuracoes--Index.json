@@ -1,0 +1,16 @@
+{
+  "_medido_em": "2026-11-23",
+  "_por_que": "A tabela ROTAS do cobranca-recorrente-page.jsx tem vista antes de page ({ vista, page }); o rotasDaAncora do lote só casa page como 1a chave, então as 4 telas caíam na rota do grupo (route=recurring) e o design.json saía igual nas 4 (a medida de 2026-09-18). Token por tela aqui. Papéis medidos no DOM dos dois lados em 2026-11-23.",
+  "token": "rb-config",
+  "contrato": "governance/design/contracts/recorrente-configuracoes.contract.json",
+  "roles": {
+    "prod": {
+      "title": "main h1",
+      "primary": "main [data-contract=\"cabecalho\"] .bg-primary"
+    },
+    "design": {
+      "title": ".cr-root h1",
+      "primary": ".cr-root .cr-hero-actions .cr-primary"
+    }
+  }
+}
