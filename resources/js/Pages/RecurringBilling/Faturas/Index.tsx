@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
-  Plus,
   Search,
   TrendingUp,
   Wallet,
@@ -108,47 +107,52 @@ function dueLabel(deltaDias: number | null): string {
   return `há ${Math.abs(deltaDias)}d`;
 }
 
+// Pílula de status com borda de 1px (protótipo `cr-pill`, vista rb-faturas). Cor pelo sentido
+// da fatura: pendente é normal (a vencer) e fica no tom da marca; só atrasada pede atenção.
 const STATUS_STYLES: Record<InvoiceStatus, { label: string; classes: string }> = {
   open: {
-    label: 'pendente',
-    classes: 'bg-amber-50 text-amber-700 ring-amber-200',
+    label: 'Pendente',
+    classes: 'border-primary/25 bg-primary/10 text-primary',
   },
   paid: {
-    label: 'paga',
-    classes: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    label: 'Paga',
+    classes: 'border-success/30 bg-success-soft text-success-fg',
   },
   overdue: {
-    label: 'atrasada',
-    classes: 'bg-rose-50 text-rose-700 ring-rose-200',
+    label: 'Atrasada',
+    classes: 'border-destructive/30 bg-destructive-soft text-destructive-fg',
   },
   canceled: {
-    label: 'cancelada',
-    classes: 'bg-muted text-muted-foreground ring-border line-through',
+    label: 'Cancelada',
+    classes: 'border-border bg-muted text-muted-foreground line-through',
   },
   refunded: {
-    label: 'reembolsada',
-    classes: 'bg-muted text-foreground ring-border',
+    label: 'Reembolsada',
+    classes: 'border-border bg-muted text-muted-foreground',
   },
 };
 
-const GATEWAY_STYLES: Record<Gateway, { label: string; classes: string }> = {
-  inter: { label: 'Inter', classes: 'bg-orange-50 text-orange-700 ring-orange-200' },
-  c6: { label: 'C6', classes: 'bg-stone-900 text-white ring-stone-700' },
-  asaas: { label: 'Asaas', classes: 'bg-sky-50 text-sky-700 ring-sky-200' },
+const GATEWAY_LABEL: Record<Gateway, string> = {
+  inter: 'Banco Inter',
+  c6: 'C6 Bank',
+  asaas: 'Asaas',
 };
 
-const STATUS_PILLS: Array<{ key: StatusFilter; label: string; dot: string }> = [
-  { key: 'all', label: 'Todas', dot: 'bg-stone-300' },
-  { key: 'paid', label: 'Pagas', dot: 'bg-emerald-500' },
-  { key: 'open', label: 'Pendentes', dot: 'bg-amber-500' },
-  { key: 'overdue', label: 'Atrasadas', dot: 'bg-rose-500' },
-  { key: 'canceled', label: 'Canceladas', dot: 'bg-stone-400' },
+// Só os status que `rb_invoices.status` tem. O protótipo mostra também Parciais, Estornadas e
+// Chargeback: o modelo não tem esses estados, então o filtro não os oferece.
+const STATUS_PILLS: Array<{ key: StatusFilter; label: string }> = [
+  { key: 'all', label: 'Todas' },
+  { key: 'paid', label: 'Pagas' },
+  { key: 'open', label: 'Pendentes' },
+  { key: 'overdue', label: 'Atrasadas' },
+  { key: 'refunded', label: 'Reembolsadas' },
+  { key: 'canceled', label: 'Canceladas' },
 ];
 
 const GATEWAY_OPTIONS: Array<{ key: GatewayFilter; label: string }> = [
   { key: 'all', label: 'Todos gateways' },
-  { key: 'inter', label: 'Inter' },
-  { key: 'c6', label: 'C6' },
+  { key: 'inter', label: 'Banco Inter' },
+  { key: 'c6', label: 'C6 Bank' },
   { key: 'asaas', label: 'Asaas' },
 ];
 
@@ -166,24 +170,18 @@ const PERIODO_OPTIONS: Array<{ key: PeriodoFilter; label: string }> = [
 function StatusBadge({ status }: { status: InvoiceStatus }) {
   const s = STATUS_STYLES[status];
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${s.classes}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium ${s.classes}`}>
       {s.label}
     </span>
   );
 }
 
+// Gateway como etiqueta de texto (protótipo `cr-fiscal-badge none`): neutra, sem cor por banco.
 function GatewayBadge({ gateway }: { gateway: Gateway | null }) {
-  if (!gateway) {
-    return (
-      <span className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium text-muted-foreground ring-1 ring-border">
-        —
-      </span>
-    );
-  }
-  const g = GATEWAY_STYLES[gateway];
+  if (!gateway) return <span className="text-muted-foreground">—</span>;
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${g.classes}`}>
-      {g.label}
+    <span className="inline-flex rounded-[5px] bg-muted px-[7px] py-0.5 text-[10px] font-semibold text-muted-foreground">
+      {GATEWAY_LABEL[gateway]}
     </span>
   );
 }
@@ -458,20 +456,6 @@ export default function FaturasIndex(props: PageProps) {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                disabled
-                className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-muted px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm"
-                title="Nova fatura — em breve"
-              >
-                <Plus size={14} />
-                Nova fatura
-                <span className="ml-1 rounded bg-stone-300 px-1.5 py-0.5 text-[9px] uppercase tracking-wider">
-                  em breve
-                </span>
-              </button>
-            </div>
           </div>
         </header>
 
@@ -521,26 +505,29 @@ export default function FaturasIndex(props: PageProps) {
         {/* ── FILTER BAR ── */}
         <div data-contract="filtros" className="mb-4 rounded-lg bg-card p-3 shadow-sm ring-1 ring-border">
           <div className="flex flex-wrap items-center gap-2">
-            {/* Status pills */}
-            <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
-              {STATUS_PILLS.map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => {
-                    setStatusFilter(p.key);
-                    applyFilters({ status: p.key });
-                  }}
-                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                    statusFilter === p.key
-                      ? 'bg-card text-foreground shadow-sm ring-1 ring-border'
-                      : 'text-foreground hover:text-foreground'
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
-                  {p.label}
-                </button>
-              ))}
+            {/* Status — chips com borda (protótipo `CHIP`), na mesma linha do gateway e do período */}
+            <div className="flex flex-wrap gap-1">
+              {STATUS_PILLS.map((p) => {
+                const on = statusFilter === p.key;
+                return (
+                  <button
+                    key={p.key}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      setStatusFilter(p.key);
+                      applyFilters({ status: p.key });
+                    }}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px] text-xs font-medium transition ${
+                      on
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-card text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Gateway dropdown */}
@@ -579,8 +566,14 @@ export default function FaturasIndex(props: PageProps) {
               </SelectContent>
             </Select>
 
-            {/* Search */}
-            <div className="flex flex-1 items-center gap-2 rounded-lg bg-muted px-3 py-1.5">
+          </div>
+        </div>
+
+        {/* ── TABELA ── */}
+        <div data-contract="lista" className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
+          {/* Cabeçalho da lista: busca e contagem (protótipo `cr-list-head`) */}
+          <div className="flex items-center gap-2.5 border-b border-border px-3 py-[9px]">
+            <div className="flex flex-1 items-center gap-2 rounded-[7px] bg-muted px-2.5 py-[7px]">
               <Search size={14} className="text-muted-foreground" />
               <input
                 ref={searchRef}
@@ -591,23 +584,19 @@ export default function FaturasIndex(props: PageProps) {
                   if (e.key === 'Enter') applyFilters({ q: search });
                 }}
                 placeholder="Buscar (/) — cliente, CNPJ, número da fatura"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                aria-label="Buscar faturas"
+                className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
               />
-              <kbd className="rounded bg-card px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground ring-1 ring-border">
+              <kbd className="rounded border border-border bg-card px-[5px] py-px font-mono text-[10px] text-muted-foreground">
                 /
               </kbd>
             </div>
-
             {invoices?.meta && (
-              <span className="text-xs text-muted-foreground tabular-nums">
+              <span className="text-xs tabular-nums text-muted-foreground">
                 {rows.length} / {invoices.meta.total}
               </span>
             )}
           </div>
-        </div>
-
-        {/* ── TABELA ── */}
-        <div data-contract="lista" className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
           <Deferred data="invoices" fallback={<TableSkeleton />}>
             {rows.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
@@ -616,7 +605,7 @@ export default function FaturasIndex(props: PageProps) {
                 </div>
                 <div className="font-medium text-foreground">Nenhuma fatura encontrada.</div>
                 <div className="mt-1 text-sm text-muted-foreground">
-                  Ajuste os filtros ou crie uma nova fatura.
+                  Ajuste os filtros ou a busca.
                 </div>
               </div>
             ) : (

@@ -15,6 +15,7 @@ import CheatSheet from './_components/CheatSheet';
 import CmdPalette from './_components/CmdPalette';
 import JanaPanel from './_components/JanaPanel';
 import PixAutomaticoBloco, { type PixAutoStatus } from './_components/PixAutomaticoBloco';
+import CartaoRecorrenteBloco, { type CartaoRecorrente } from './_components/CartaoRecorrenteBloco';
 import { printSubDetail, installPrintStyles } from './_components/printExtractStyles';
 import {
   Banknote,
@@ -110,6 +111,8 @@ interface SubRow {
   fiscal: { type: FiscalType; channels: string[]; last_nf: string | null };
   // US-RB-020 — null = recurso desligado; status null = sem mandato ainda.
   pix_automatico?: { status: PixAutoStatus | null; pix_copia_cola: string | null } | null;
+  // US-RB-011 — null = recurso desligado; ultimos_4 null = nenhum cartão salvo. Nunca o token.
+  cartao_recorrente?: CartaoRecorrente | null;
   churn_reason: string | null;
   paused_until: string | null;
   canceled_at: string | null;
@@ -1065,6 +1068,11 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
       {/* US-RB-020 — Pix Automático (BCB): pedir autorização + QR. Só com o recurso ligado. */}
       {sub.status !== 'cancelada' && sub.pix_automatico && (
         <PixAutomaticoBloco key={sub.id} subId={sub.id} inicial={sub.pix_automatico} />
+      )}
+
+      {/* US-RB-011 — Cartão recorrente: bandeira e final do cartão salvo. Só no cartão e com o recurso ligado. */}
+      {sub.status !== 'cancelada' && sub.method === 'card' && sub.cartao_recorrente && (
+        <CartaoRecorrenteBloco cartao={sub.cartao_recorrente} />
       )}
 
       {/* Onda 17 v9,75 — Histórico de pagamentos (12 cells últimos meses). */}
