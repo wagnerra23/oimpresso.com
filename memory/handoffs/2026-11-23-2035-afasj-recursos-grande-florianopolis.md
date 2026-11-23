@@ -5,7 +5,7 @@ slug: "afasj-recursos-grande-florianopolis"
 tldr: "Recursos da AFASJ (São José/SC) e da Grande Florianópolis pesquisados e mergeados (#11387), com kit da reunião de 24/11. O caminho mais concreto é o edital de penas pecuniárias da VEP de São José, 1–30/04/2027 (exige mais de 1 ano na Comarca, aceita saúde)."
 decided_by: [W]
 cycle: null
-prs: ["#11387"]
+prs: [11387]
 us: []
 next_steps:
   - "Reunião AFASJ 24/11: levar os 4 planos de afasj-reuniao-2026-11-24-planos.md"
