@@ -71,6 +71,22 @@ Wagner aprovou Wave 3 final 2026-05-20.
 | `.fx-sefaz` SEFAZ pill | reaproveitado pra status DFe | ✅ | ✅ |
 | `.fx-timepill u-{ok,warn,crit}` | reaproveitado pra prazo | ✅ | ✅ |
 
+## Medição de runtime — 2026-11-23 · produção (oimpresso.com) × espelho · tema claro nos dois
+
+> A MESMA sonda (`design-diff.mjs --probe`, SHA-256 `358fd0f0…` conferido dentro da página da prod)
+> nos dois lados, tema claro nos dois (o tema em que a prod abre; nada forçado). Espelho por
+> `design-diff-lote.mjs --lado design --tema light`; papéis em
+> `governance/design/targets/roles/Fiscal--Dfe.json`. O `--compare` do dono não rodou: a
+> extensão do Chrome redige parte da saída da prod; os números abaixo são os campos que saíram inteiros.
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D4 | título | 22px · 700 | 22px · 600 | **DÍVIDA A FECHAR** (o mesmo `.fx-hero-l h1` das 7 telas; corrigido no Cockpit pelo #11363, que vale para todas) |
+| D4 | texto do título | "Manifestação do destinatário" | "Manifesto DF-e" | **DÍVIDA A FECHAR** (rótulo) |
+| D6 | botão primário | ausente | ausente | IGUAL |
+| D7 | filtros | 5 em 1 linha | 5 chips em 1 linha | IGUAL na contagem e no arranjo |
+| D8 | tabela | sem linha nesta empresa (estado vazio) | 3 linhas, 7 colunas | NÃO MEDI — falta dado na prod |
+
 ## Histórico
 
 - **2026-05-20** — Wave 3 final PR.
