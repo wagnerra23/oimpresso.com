@@ -6,8 +6,8 @@ type: sdd
 module: RecurringBilling
 status: ativo
 owner: W
-version: 1.0.1
-last_updated: "2026-08-05"
+version: 1.1.0
+last_updated: "2026-11-23"
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -261,20 +261,30 @@ Jobs assíncronos (fila): `ProcessAsaasWebhookJob` · `ProcessInterWebhookJob` �
 > tem trial (o próprio SPEC já confessa isso em `Implementado em: _parcial_`);
 > **(b)** o **valor digitado vira `metadata.valor`** (JSON), e o valor que **fatura** é
 > `plan.valor` (F2). Ver §9.1 — é o achado `[V0]` deste SDD.
+> *Atualização 2026-11-23:* o desvio (b) foi resolvido em 2026-10-19 (#9606): sem plano, o gerador
+> fatura por `metadata.valor`/`metadata.ciclo` (F2 passo 2). O desvio (a) continua.
+> Desde 2026-11-19 ([#11196](https://github.com/wagnerra23/oimpresso.com/pull/11196)) o `store()` só
+> aceita contato da empresa da sessão.
 
 ---
 
 **F2 — Gerar faturas do ciclo (job)** `[V0]`
 
-`php artisan recurring-billing:generate-invoices` → `GenerateInvoicesCommand@handle` →
+`php artisan rb:generate-invoices` (signature em `GenerateInvoicesCommand.php:45`; até a v1.0.1 este
+SDD dizia `recurring-billing:generate-invoices`, nome que nunca existiu) → `GenerateInvoicesCommand@handle` →
 `InvoiceGeneratorService::run($businessId, $date, $dryRun, $leadDays)`.
 
 1. Candidatas: `Subscription` do business com `status='active'` e `next_due_date <= hoje + leadDays`.
-2. **`processarSubscription`: se `$sub->plan === null` → `errors++` + `Log::error('subscription sem plan')`
-   e RETORNA.** Nenhuma fatura, nenhum evento na timeline, **nenhum alarme** — só uma linha de log.
+2. **`processarSubscription` com `plan === null`** (assinatura com valor negociado): desde 2026-10-19
+   ([#9606](https://github.com/wagnerra23/oimpresso.com/pull/9606), [W] escolheu o remédio "a" do §9.1)
+   a fatura sai pelo que a assinatura guarda, **`metadata.valor`** e **`metadata.ciclo`**
+   (`InvoiceGeneratorService::valorNegociado`). Só se faltar um dos dois é que segue sendo erro:
+   `errors++` + `Log::error('… sem plan e sem valor negociado')`, sem fatura. A migration
+   `2026_10_26_130000_make_plan_id_nullable_on_rb_subscriptions` deixou `plan_id` nulável no schema.
+   *(Até 2026-10-19 este passo descartava toda assinatura sem plano — fato datado no §9.1.)*
 3. Idempotência por **competência (`YYYY-MM` do vencimento)**: já existe `Invoice` não-cancelada
    naquele mês → `skipped++`.
-4. Cria `Invoice` com **`valor = plan.valor`** (⚠️ **não** `subscription.metadata.valor`),
+4. Cria `Invoice` com **`valor = plan.valor`**, ou `metadata.valor` quando não há plano,
    `numero_documento = RB-{sub}-{YYYY-MM}`, herda `conta_bancaria_id` da assinatura.
 5. Avança `next_due_date` via `avancarCiclo()` — **`addMonthsNoOverflow`** (dia 31 → 28/29 em fev,
    não transborda pra março) e vocabulário **EN** (`monthly/quarterly/…`).
@@ -329,21 +339,39 @@ status `canceled_at_period_end`, `credit_note` do saldo restante, e o evento `Co
 
 **F6 — Receber webhook do gateway (baixa de pagamento)** `[T0]` `[V0]`
 
-`POST /webhooks/asaas/{businessId}` (rota **pública**, `throttle:60,1`) → `AsaasWebhookController@handle`.
+`POST /api/webhooks/asaas/{businessId}` (rota **pública**, `throttle:60,1`, `whereNumber('businessId')`
+— valor não numérico dá 404) → `AsaasWebhookController@handle`. A rota está em `Routes/api.php`, que o
+`RouteServiceProvider` carrega sob o prefixo `api`; até a v1.0.1 este SDD omitia o `/api`.
 
 1. **Autenticidade ANTES de qualquer processamento:** carrega a `BoletoCredential` Asaas **ativa**
    daquele business; sem credencial → **404**; compara o header `asaas-access-token` com
-   `config_json.webhook_secret` por **`hash_equals`** → não bate → **401**.
+   `config_json.webhook_secret` (cifrado desde [#11227](https://github.com/wagnerra23/oimpresso.com/pull/11227))
+   por **`hash_equals`** → não bate → **401**.
    *É aqui que mora o isolamento multi-tenant desta rota:* o token do business A nunca casa com o
    secret do B — o global scope não ajuda numa rota sem sessão.
-2. **Idempotência:** `pg_webhook_events` com `UNIQUE(provider, event_id)`; `event_id` repetido → 200
-   **sem dispatch**. Quando o Asaas não manda id, deriva `md5(event + payment.id)` (determinístico).
+2. **Idempotência por empresa:** `pg_webhook_events` com `UNIQUE(business_id, provider, event_id)` desde
+   2026-11-19 ([#11242](https://github.com/wagnerra23/oimpresso.com/pull/11242); antes era
+   `UNIQUE(provider, event_id)`, sem a empresa). `event_id` repetido na mesma empresa → 200 **sem dispatch**.
+   Quando o Asaas não manda id, deriva `md5(event + payment.id)` (determinístico).
 3. Responde **200 imediato** e joga `ProcessAsaasWebhookJob` na fila `rb_webhooks` (at-least-once —
-   [ADR tech/0002](adr/tech/0002-webhook-asaas-at-least-once-resposta-rapida.md)).
-4. O job credita com `insertOrIgnore` em `account_transactions` → reprocessar não duplica dinheiro.
+   [ADR tech/0002](adr/tech/0002-webhook-asaas-at-least-once-resposta-rapida.md)). A fila é lida pelo
+   `queue:work database --queue=rb_webhooks --max-time=55 --tries=3` agendado em `app/Console/Kernel.php`
+   desde 2026-11-19 ([#11230](https://github.com/wagnerra23/oimpresso.com/pull/11230)); antes disso
+   nenhum worker lia a fila.
+4. **O job credita uma vez e só na quitação** ([#11223](https://github.com/wagnerra23/oimpresso.com/pull/11223)):
+   numa transação, lê a fatura com `lockForUpdate`, só aceita `open|overdue`, compara o valor pago com
+   o da fatura em centavos inteiros (pagou menos → não quita), faz `UPDATE` condicional para `paid` e,
+   só com 1 linha afetada, lança o crédito em `account_transactions` e soma no `saldo_cached` da conta
+   Asaas (banco 274). Sem `externalReference` não há crédito, só log. O `processed` do evento é
+   marcado filtrando a empresa.
+5. `InvoicePaid` sai **depois do commit e só na transição** — reprocessar o mesmo pagamento não dispara
+   de novo. *(Até 2026-11-19 cada `PAYMENT_CONFIRMED`/`PAYMENT_RECEIVED` e cada retry creditava e
+   disparava o evento.)*
 
-Análogo para o Inter: `POST /webhooks/inter/pix/{businessId}` → `InterWebhookController` →
-`ProcessInterWebhookJob`.
+Análogo para o Inter: `POST /webhooks/inter/pix/{businessId}` (rota em `Routes/web.php:144`, sem
+prefixo `api`) → `InterWebhookController` → `ProcessInterWebhookJob`. A consulta e a marcação do evento
+já são por empresa (#11242). O crédito único do Inter **ainda não** segue o do Asaas: o job usa
+`insertOrIgnore` e dispara `InvoicePaid`; depende do `gateway_ref` e ficou para o lote L2 da auditoria.
 
 ---
 
@@ -373,26 +401,131 @@ direto, mTLS com certificado **separado** do certificado de NFe — [ADR tech/00
 → `saldo_cached` / extrato → tela `/financeiro/extrato`. Operação documentada no
 [`RUNBOOK-inter-pj.md`](RUNBOOK-inter-pj.md).
 
+---
+
+**F10 — Pix Automático (US-RB-020/021)** `[V0]` `[T0]` — *entrou em 2026-10-26, [#9870](https://github.com/wagnerra23/oimpresso.com/pull/9870); atrás da flag `RB_COBRAR_PIX_AUTOMATICO` (padrão `false`)*
+
+Usa a **Jornada 2** da API Pix do BCB — decisão registrada na ADR 0455
+([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão), que substitui a
+[ARQ-0003](adr/arq/0003-pix-automatico-jornada-3-paymentonapproval.md) (Jornada 3, nunca implementada).
+
+1. **Mandato.** `MandatoPixAutomatico` lê a assinatura, o contato e a `PaymentGatewayCredential` do BCB
+   no business informado e chama o `BcbPixDriver` (do PaymentGateway): `POST /v2/locrec` → `POST /v2/rec`
+   com o `loc` e o `valorRec` → `GET /rec/{idRec}` devolve o `pixCopiaECola`. O `valorRec` é o mesmo que o
+   gerador fatura (plano, ou `metadata.valor`), em centavos inteiros. Recorrência `CRIADA` ou `APROVADA`
+   não é recriada: devolve o QR existente. O mandato mora em `rb_subscriptions.metadata.pix_automatico`.
+2. **Aprovação.** O cliente lê o QR no app do banco. O webhook da recorrência (`ProcessarWebhookBcbPixJob`)
+   chega ao listener `AtualizarMandatoDaAssinatura`, que muda o status do mandato para `APROVADA`.
+3. **Cobrança.** `rb:cobrar-pix-automatico` (agendado no `RecurringBillingServiceProvider`, ~L184) roda o
+   `CobradorPixAutomatico`, que cobra as faturas das assinaturas com mandato `APROVADA`. Com a flag
+   desligada, o comando não cobra nada (`--dry-run` mostra o que seria cobrado). Desde
+   [#11206](https://github.com/wagnerra23/oimpresso.com/pull/11206) a chave e o `txid` são estáveis na
+   retentativa, e um erro renomeia a chave para `…#erro{id}`.
+4. **Pagamento.** A cobrança paga sai como `CobrancaPaga` do PaymentGateway e segue o F12.
+
+Casos: `UC-RBPA-01..14` em `resources/js/Pages/RecurringBilling/Index.casos.md`.
+
+---
+
+**F11 — Cartão salvo (US-RB-011)** `[T0]` — *entrou em 2026-10-27, [#9951](https://github.com/wagnerra23/oimpresso.com/pull/9951); atrás da flag `RB_SALVAR_CARTAO` (padrão `false`)*
+
+1. O cliente digita o cartão na página hospedada do gateway (Asaas). O número **nunca** passa pelo oimpresso.
+2. Quando a fatura é paga assim, a `CobrancaPaga` do PaymentGateway traz `creditCard` com o token, os
+   últimos 4 dígitos e a bandeira. O listener `SalvarCartaoDaCobrancaPaga` chama o `CartaoSalvoService`,
+   que grava o token em `rb_cartoes_salvos` ligado à assinatura.
+3. O serviço recusa (e loga sem o valor) qualquer campo com uma sequência de 13 a 19 dígitos: número de
+   cartão não entra no banco, no log nem no teste.
+
+O que falta: cobrar as faturas seguintes com o token salvo e mostrar o cartão na tela (decisão b5 da
+auditoria de 2026-11-19: o cartão recorrente entra na tela). **Em andamento** na sessão `rb-b5-cartao`,
+sem PR aberto em 2026-11-23. Casos: `UC-RBCC-01..04` em `Index.casos.md`.
+
+---
+
+**F12 — Cobrança paga no PaymentGateway → fatura paga (US-RB-057)** `[V0]` — *entrou em 2026-10-27, [#9844](https://github.com/wagnerra23/oimpresso.com/pull/9844); atrás da flag `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` (padrão `false`)*
+
+`PaymentGateway\Events\CobrancaPaga` → `MarcarFaturaPagaDaCobranca` (registrado no
+`RecurringBillingServiceProvider`).
+
+1. Só age em cobrança com `origem_type = 'invoice'`. Cobrança e fatura são lidas com o `business_id` do evento.
+2. Marca `paid` só se o valor pago (`valor_pago_centavos`, senão `valor_centavos`) cobre a fatura, em
+   centavos inteiros. Pagou menos → não marca, só loga.
+3. Fatura já `paid` não muda e não dispara o evento de novo. Não cria lançamento, título nem saldo: muda o
+   status, grava `pago_em` e dispara `InvoicePaid`.
+4. Falha vai para o log; o webhook do banco não cai por isto.
+
+---
+
+**F13 — Fatura paga, de ponta a ponta**
+
+Hoje existem **dois caminhos** que levam uma fatura a `paid`, e os dois terminam no mesmo evento:
+
+| Caminho | Entrada | Idempotência | Efeito contábil hoje |
+|---|---|---|---|
+| Webhook do próprio RB (Asaas, F6) | `/api/webhooks/asaas/{id}` → fila `rb_webhooks` | `pg_webhook_events` por empresa + `UPDATE` condicional na fatura | 1 crédito em `account_transactions` + `saldo_cached` (conta banco 274) |
+| Webhook do próprio RB (Inter, F6) | `/webhooks/inter/pix/{id}` → fila `rb_webhooks` | `pg_webhook_events` por empresa + `insertOrIgnore` | crédito em `account_transactions` |
+| PaymentGateway (F12, flag) | `CobrancaPaga` | fatura já `paid` não muda | nenhum |
+
+Depois de `paid`, o `InvoicePaid` segue para o NfeBrasil (F8): `EmitirNFeAoReceberPagamento`, atrás de
+`nfebrasil.auto_emission_on_invoice_paid` (padrão `false`).
+
+**Quem não está no fluxo: o Financeiro.** Nenhuma fatura paga vira `fin_titulos`/`fin_titulo_baixas`
+(`git grep -n "InvoicePaid" -- Modules/Financeiro` devolve 0 linhas em 2026-11-23). A decisão b2 da
+auditoria de 2026-11-19 é que **fatura paga vira título e baixa no Financeiro, e a ponte — o consumidor
+de `InvoicePaid` — é do Financeiro**. Este SDD não desenha essa ponte: ela é requisito do Financeiro.
+O crédito direto em `account_transactions` do caminho Asaas é o efeito legado até a ponte existir.
+
+Os dois caminhos de webhook (RB e PaymentGateway) convergem quando a pilha de boleto do RB migrar para o
+PaymentGateway (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão;
+migração **em andamento** na sessão `rb-l2b-gateway`, sem PR aberto em 2026-11-23).
+
+---
+
+**Acesso às rotas (desde 2026-11-19)**
+
+- **Pacote:** o middleware `RecurringBillingLiberado` exige o pacote `recurringbilling_module` no grupo
+  `/recurring-billing` e no `POST /financeiro/rb-invoices/{invoice}/cancelar` → 403 sem o pacote
+  ([#11205](https://github.com/wagnerra23/oimpresso.com/pull/11205)). Webhooks, install e redirects legados
+  ficam de fora.
+- **Permissão por rota** ([#11247](https://github.com/wagnerra23/oimpresso.com/pull/11247), trait
+  `ExigePermissaoRb` + `SubscriptionPolicy`): lista, timeline e reenviar NF-e → `recurringbilling.access` ·
+  `/faturas` → `recurringbilling.invoices.view` · `/configuracoes` → `recurringbilling.configuracoes.manage` ·
+  notas, pin e `POST /events` → `recurringbilling.notes.write` · favorito → `recurringbilling.favorites.write` ·
+  planos: lista com `access`, criar/editar/apagar com `recurringbilling.plans.manage` · assinatura:
+  criar/editar/pausar/reativar com `recurringbilling.subscriptions.manage`, cancelar com
+  `recurringbilling.subscriptions.cancel`. `recurringbilling.invoices.charge` não tem leitor: não há rota
+  que cobre fatura à mão.
+
 ### 5.4 Dívida — onde as camadas ainda não se conversam
 
 | # | Dívida | Evidência |
 |---|---|---|
-| D1 | **`metadata.valor` ≠ `plan.valor`** — o valor que o operador digita não é o que fatura | F1 passo 5 × F2 passo 4 |
+| D1 | **`metadata.valor` ≠ `plan.valor`** — o valor que o operador digita não é o que fatura. **Resolvida em 2026-10-19 (#9606)** para a assinatura sem plano: ela fatura por `metadata.valor`. A assinatura que casou com um plano continua faturando `plan.valor` | F1 passo 5 × F2 passo 4 |
 | D2 | **3 implementações de "próximo vencimento"** (NoOverflow/EN × Overflow/PT ×2) | `SPEC.md` US-RB-056 + `CalculoRecurringBillingTest` |
 | D3 | **Cadastro de credencial de gateway mora fora** (`/financeiro/contas-bancarias`); `Configuracoes` só **lê** | `Configuracoes/Index.charter.md` §Non-Goals |
 | D4 | **Régua de dunning é hardcoded** (3/7/15d) — não há `rb_dunning_rules` per-business | idem |
 | D5 | **`C6Driver::cancelar()` é stub** que lança exceção | `SPEC.md` US-RB-042 |
 | D6 | **Sem endpoint de charge dedicado** (`POST /invoices/{id}/charge` da US-RB-004 não existe); cobrança acontece por geração de boleto/PIX + baixa por webhook | `SPEC.md` US-RB-004 |
 | D7 | **Sem proração** em upgrade/downgrade mid-cycle (US-RB-006) e sem reajuste no aniversário | `SPEC.md` US-RB-003/006 |
+| D9 | **Duas pilhas de driver para o mesmo banco.** O boleto usa `Services/Boleto/Drivers/{Asaas,C6,Inter}` + `rb_boleto_credentials`; Pix Automático e cartão usam o PaymentGateway + `payment_gateway_credentials`. O dono é o PaymentGateway (ADR 0456, em revisão); a migração está em andamento (`rb-l2b-gateway`) | `ls Modules/PaymentGateway/Services/Drivers/ Modules/RecurringBilling/Services/Boleto/Drivers/` |
+| D10 | **Fatura paga não chega ao Financeiro como título.** A ponte é do Financeiro (decisão b2, 2026-11-23) | F13 |
 | D8 | `InvoiceController@cancel` lê `session('business.id')`; **todo o resto do módulo** lê `session('user.business_id')`. Ambas as chaves existem (`SetSessionData` grava as duas) — **não é bug medido**, é inconsistência de vocabulário que confunde quem lê | `InvoiceController@cancel` × `RecurringBillingController`/`PlanController` |
 
-### 5.5 Fronteira com `Modules/PaymentGateway` ([ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md))
+### 5.5 Fronteira com `Modules/PaymentGateway`
 
-O PaymentGateway foi **extraído deste módulo**. O que **já mora lá** — e portanto **não se duplica
-aqui**: o processamento genérico de webhook com linkage `cobranca_id`
-(`PaymentGateway/Tests/Feature/WebhookProcessorLinkageTest.php`), o retry de webhook órfão
-(`RetryOrphanWebhookJobTest.php`) e a tabela `pg_webhook_events`. Ambos **já rodam na lane per-PR**
-(`.github/ci-sqlite-pest.list`). **Flags OFF em prod** — ver `AUDITORIA-PAYMENTGATEWAY-2026-07.md`.
+**Dono:** o PaymentGateway é dono dos drivers bancários, das credenciais de gateway e da recepção dos
+webhooks de cobrança; o RecurringBilling decide o que cobrar e consome. A decisão está na ADR 0456
+([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão), que substitui a
+[ARQ-0005](adr/arq/0005-escopo0-payment-gateway-adapter.md).
+
+*Até a v1.0.1 esta seção citava a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md)
+como a fronteira.* Ela está `deprecated`/`arquivado` desde 2026-07-10 (#4071) e o número 0170 tem três
+arquivos — a ADR 0456 explica o caso. A afirmação de que `pg_webhook_events` "já mora lá" também estava
+errada: a migration dela é do RB (`2026_05_06_000003`), e o PaymentGateway tem tabela própria,
+`gateway_webhook_events`.
+
+O que usa o PaymentGateway hoje: Pix Automático (F10), cartão salvo (F11) e US-RB-057 (F12). O boleto
+ainda usa a pilha própria do RB (D9).
 
 ---
 
@@ -546,6 +679,34 @@ ao fluxo normal de emissão, sem atribuição por palpite.
    assinatura antes do lote completo.
 5. `[must]` a próxima fatura do canário herda `conta_bancaria_id`/gateway e confirma emissão real.
 
+#### CU-RB-16 — Cobrar por Pix Automático (US-RB-020/021) `[must]` `[V0]` `[T0]` 🧪
+*Dado* uma assinatura do business com a flag `RB_COBRAR_PIX_AUTOMATICO` ligada; *quando* o operador
+ativa o Pix Automático e o cliente aprova o QR da recorrência; *então* as faturas seguintes são cobradas
+pelo BCB sem ação do cliente. Fluxo: F10.
+1. `[V0]` o `valorRec` mandado ao banco é o mesmo que o gerador fatura (plano ou `metadata.valor`), em centavos inteiros.
+2. `[must]` recorrência `CRIADA` ou `APROVADA` não é recriada: devolve o QR existente.
+3. `[must]` só fatura de mandato `APROVADA` é cobrada; flag desligada → nada é cobrado.
+4. `[must]` retentativa usa a mesma chave e `txid`; erro renomeia a chave para `…#erro{id}`.
+5. `[T0]` assinatura, contato e credencial lidos no business informado.
+Casos: `UC-RBPA-01..14` (`Index.casos.md`).
+
+#### CU-RB-17 — Salvar o cartão pago na página do gateway (US-RB-011) `[must]` `[T0]` 🧪
+*Dado* a flag `RB_SALVAR_CARTAO` ligada; *quando* a fatura é paga no cartão na página hospedada do
+gateway; *então* o token do cartão fica ligado à assinatura. Fluxo: F11.
+1. `[T0]` número de cartão (13 a 19 dígitos) nunca é gravado nem logado.
+2. `[must]` o mesmo token não é salvo duas vezes (`ja_salvo`).
+3. 🟡 Cobrar as faturas seguintes com o token e mostrar o cartão na tela: **em andamento** (`rb-b5-cartao`).
+Casos: `UC-RBCC-01..04` (`Index.casos.md`).
+
+#### CU-RB-18 — Marcar a fatura paga a partir da cobrança do PaymentGateway (US-RB-057) `[must]` `[V0]` `[T0]` 🧪
+*Dado* a flag `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` ligada; *quando* uma cobrança `origem_type='invoice'`
+é paga; *então* a fatura vira `paid` e o `InvoicePaid` sai uma vez. Fluxo: F12.
+1. `[V0]` pagamento menor que a fatura (centavos inteiros) não quita.
+2. `[must]` fatura já `paid` não muda e não dispara o evento de novo.
+3. `[T0]` cobrança e fatura lidas com o `business_id` do evento.
+4. `[must]` não cria lançamento, título nem saldo.
+Teste: `FaturaPagaPorCobrancaContratoTest` (ainda sem UC que o cite).
+
 ### 6.2 Non-goals explícitos — 🖐 **SÓ [W] PREENCHE**
 
 > ⚠️ **Deixado VAZIO de propósito.** O agente é **proibido de inferir** Non-Goal
@@ -678,6 +839,11 @@ existe e não cobra.
 caminhos + tabela antes→depois das assinaturas afetadas ([proibicoes](../../proibicoes.md) §REGRA
 MESTRE). **Escolher remédio antes do diagnóstico é o erro catalogado em 2026-07-15.**
 
+**Desfecho (2026-10-19, registrado em 2026-11-23).** [W] escolheu o remédio **(a)**: o gerador cai para
+`metadata.valor`/`metadata.ciclo` quando não há plano ([#9606](https://github.com/wagnerra23/oimpresso.com/pull/9606),
+`InvoiceGeneratorService::valorNegociado`). Sem esses dois campos, segue sendo erro de log (F2 passo 2). O
+`UC-RBSUB-05` em `Index.casos.md` registra o desfecho. O texto acima fica como o diagnóstico de 2026-07-28.
+
 ### 9.2 🟡 Três implementações de "próximo vencimento" (D2)
 Já catalogado como **US-RB-056** e já travado por characterization test. A fonte de verdade decidida é
 `InvoiceGeneratorService` (NoOverflow, vocabulário EN). Unificar é `[V0]`.
@@ -708,14 +874,18 @@ merge de quem for atendê-lo — G-2).
 
 | Trilha | Item | Estado |
 |---|---|---|
-| **Correção `[V0]`** | decidir o remédio do §9.1 (assinatura sem plano) | ⛔ **precisa de [W]** — 3 remédios que se anulam |
+| **Correção `[V0]`** | decidir o remédio do §9.1 (assinatura sem plano) | ✅ remédio "a" escolhido por [W] e entregue em 2026-10-19 (#9606) |
 | **Correção `[V0]`** | US-RB-056 — unificar as 3 regras de próximo vencimento | aberta |
 | Paridade DoD | US-RB-001 `setup_fee`/`indice_reajuste` · US-RB-002 `trialing` · US-RB-005 `tipo_cancelamento`+`credit_note` | parciais declaradas |
 | Cobrança | US-RB-004 endpoint de charge + smart retry soft/hard decline | D6 |
 | Cobrança | US-RB-006 proração mid-cycle + reajuste no aniversário | D7 |
 | Dunning | régua per-business (`rb_dunning_rules`) em vez de hardcode | D4 |
 | Gateway | `C6Driver::cancelar()` (CNAB ocorrência 02) | D5 |
-| Diferencial | ligar `nfebrasil.auto_emission_on_invoice_paid` com evidência de prod | US-RB-044 |
+| Diferencial | ligar `nfebrasil.auto_emission_on_invoice_paid` com evidência de prod | US-RB-044 — ligar é do [W] |
+| Cobrança | ligar `RB_COBRAR_PIX_AUTOMATICO`, `RB_SALVAR_CARTAO` e `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` em prod | do [W] |
+| Cobrança | cobrar com o cartão salvo + cartão na tela (b5) | em andamento (`rb-b5-cartao`) |
+| Gateway | migrar a pilha de boleto do RB para o PaymentGateway (D9, b1) | em andamento (`rb-l2b-gateway`) |
+| Financeiro | ponte `InvoicePaid` → título e baixa (D10, b2) | do Financeiro |
 | Governança | a linha do §8.2 na allowlist per-PR | **parent** |
 | **Non-Goals do domínio** | §6.2 vazio — candidatos: *"não somos MoR"* ([ADR arq/0004](adr/arq/0004-take-rate-vs-merchant-of-record.md)), *"não fazemos cartão tokenizado próprio"*, *"não emitimos NFS-e aqui"* ([ADR arq/0002](adr/arq/0002-nfse-submodulo-vs-nfebrasil.md)) | ⛔ **só [W]** |
 
@@ -726,7 +896,8 @@ merge de quem for atendê-lo — G-2).
 - [`SPEC.md`](SPEC.md) — as 29 US · [`BRIEFING.md`](BRIEFING.md) · [`SUPERFICIE.md`](SUPERFICIE.md) · [`RUNBOOK-inter-pj.md`](RUNBOOK-inter-pj.md)
 - Charters: `resources/js/Pages/RecurringBilling/**/*.charter.md` (6)
 - ADRs de módulo: [`adr/arq/`](adr/arq) (9) · [`adr/tech/`](adr/tech) (8) · [`adr/ui/`](adr/ui) (3)
-- [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — fronteira com PaymentGateway
+- ADR 0456 — fronteira com PaymentGateway ([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão; até a v1.0.1 apontava para a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md), arquivada)
+- ADR 0455 — Pix Automático na Jornada 2 (mesmo PR)
 - [ADR 0351](../../decisions/0351-sdd-from-source.md) — o método que produziu este doc · [SDD-TEMPLATE](../_DesignSystem/SDD-TEMPLATE.md)
 - Formato imitado (não reaberto): [`Produto/SDD-tela-cadastro-produto-v1.0.md`](../Produto/SDD-tela-cadastro-produto-v1.0.md)
 
@@ -736,5 +907,6 @@ merge de quem for atendê-lo — G-2).
 
 | Versão | Data | O quê |
 |---|---|---|
+| 1.1.0 | 2026-11-23 | Sincronizado com o `main`: F2 com a assinatura sem plano faturada por `metadata.valor`/`ciclo` (#9606) e o comando `rb:generate-invoices`; F6 com a rota `/api/webhooks/asaas/{id}`, idempotência por empresa (#11242), crédito único na quitação (#11223) e o worker `rb_webhooks` (#11230); F10 Pix Automático, F11 cartão salvo, F12 US-RB-057, F13 fatura paga de ponta a ponta com a ponte do Financeiro declarada como do Financeiro (b2); acesso por pacote (#11205) e permissão (#11247); CU-RB-16..18; §5.5 aponta para a ADR 0456; desfecho do §9.1. |
 | 1.0.1 | 2026-08-05 | `CU-RB-15` tornou explícito o contrato da US-RB-052 já diagnosticado no §9.1 e ligou o trio `gateway-ativacao` ao SDD; sem tela por desenho (comando operacional). |
 | 1.0.0 | 2026-07-28 | Nascimento. §5.3 com F1–F9 · §6 com CU-RB-01..13 · §9.1 achado `[V0]` da assinatura sem plano · fontes 3 (Blade) e 4 (Delphi) declaradas **ausentes**, não inventadas · §6.2 Non-Goals deixado vazio pra [W]. |
