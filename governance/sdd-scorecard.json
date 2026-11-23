@@ -23,18 +23,18 @@
       "detail": {
         "coverage_pct": 92.9,
         "specs_total": 59,
-        "us_total": 1261,
+        "us_total": 1262,
         "anchor_coverage_pct": 92.9,
         "by_state": {
           "sem_campo": 80,
           "placeholder": 6,
           "pendente": 533,
           "parcial": 158,
-          "anchored_ok": 480,
+          "anchored_ok": 481,
           "anchored_dead": 4,
           "anchored_zombie": 0
         },
-        "fields_total": 1188,
+        "fields_total": 1189,
         "fields_placeholder": 6,
         "fields_grammar_ok": 958,
         "orphan_fields": 7,
@@ -141,8 +141,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 286,
-        "effectively_guarded": 286
+        "with_manual_ddl": 287,
+        "effectively_guarded": 287
       },
       "stream": "FV"
     },
