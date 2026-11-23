@@ -18,6 +18,10 @@ vi.mock('@inertiajs/react', () => ({
   Head: () => null,
   Deferred: ({ children }: { children: React.ReactNode }) => children,
   router: { post: vi.fn(), get: vi.fn() },
+  // O `SubNav` das abas do detalhe do item lê `usePage().url` (mesmo mock de
+  // `item-tributacao.test.tsx`). Gravando ele não aparece; no controle sem gravação, sim.
+  usePage: () => ({ url: '/sells/create-v3', props: {} }),
+  Link: ({ children }: { children: React.ReactNode }) => children,
 }));
 vi.mock('@/Layouts/AppShellV2', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
