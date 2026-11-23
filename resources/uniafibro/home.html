@@ -157,6 +157,7 @@
         .membros { list-style: none; margin: 4px 0 12px; padding: 0; display: grid; gap: 10px; }
         .membros li { display: flex; flex-direction: column; padding: 10px 14px; border-radius: 12px; background: var(--lilas-claro); }
         .membros span { color: var(--texto-suave); font-size: 0.95rem; }
+        .membros a { align-self: flex-start; padding: 6px 0; font-size: 0.95rem; }
         /* Camada: cartões ganham profundidade ao passar o mouse (só com movimento liberado). */
         @media (prefers-reduced-motion: no-preference) {
             .cartao, .numeros > div { transition: transform .18s ease, box-shadow .18s ease; }
@@ -206,6 +207,7 @@
         .linha .fonte { display: block; padding: 4px 0; margin-top: 2px; font-size: 0.92rem; }
         .linha .fonte::before { content: "Fonte: "; color: var(--texto-suave); }
         .linha .relato { color: var(--texto-suave); font-style: italic; }
+        .numeros .relato { color: var(--texto-suave); font-style: italic; font-size: 0.9rem; padding: 6px 0; margin-top: auto; }
         .numeros { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0 0 28px; }
         .numeros > div {
             background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px;
@@ -215,7 +217,7 @@
         .numeros span { color: var(--texto); }
         .numeros a { display: inline-block; padding: 6px 0; font-size: 0.9rem; margin-top: auto; }
 
-        .fonte-card { display: inline-block; padding: 6px 0 0; margin-right: 12px; font-size: 0.92rem; }
+        .fonte-card { display: inline-block; padding: 6px 0 0; margin-right: 12px; font-size: 0.92rem; overflow-wrap: anywhere; }
         .linha li.causa::before { background: var(--superficie); box-shadow: inset 0 0 0 3px var(--lilas); }
         .passos { margin: 0 0 22px; padding-left: 22px; display: grid; gap: 8px; max-width: 70ch; }
         .tabela-rolagem { overflow-x: auto; border-radius: 16px; border: 1px solid var(--borda); background: var(--superficie); box-shadow: var(--sombra); }
@@ -339,7 +341,10 @@
                     <span class="rotulo">Quem tem</span>
                     <h3>Cerca de 2% dos brasileiros</h3>
                     <p>Um estudo com dados de uma pesquisa nacional sobre dor crônica estimou que cerca de 2% dos brasileiros vivem com fibromialgia. Ela atinge mais mulheres, mas homens também podem ter. É uma estimativa aproximada, feita a partir de relatos das próprias pessoas.</p>
+                    <!-- 2% × 8.312.759 habitantes (IBGE, estimativa 2026) ≈ 166 mil. Conta feita em 2026-11-23. -->
+                    <p>Em Santa Catarina, com 8,3 milhões de habitantes, isso dá <strong>cerca de 166 mil pessoas</strong>.</p>
                     <a class="fonte-card" href="https://www.scielo.br/j/brjp/a/P4BYQRctt5MDZPRSQ8t7mCD/?lang=pt" rel="noopener">BrJP, 2018 — prevalência no Brasil</a>
+                    <a class="fonte-card" href="https://www.ibge.gov.br/cidades-e-estados/sc.html" rel="noopener">IBGE — população de SC</a>
                 </div>
                 <div class="cartao">
                     <span class="rotulo">Diagnóstico</span>
@@ -439,28 +444,74 @@
                  e "Exposição de motivos – Estatuto da UNIAFIBRO-SC". Decisão [W] 2026-11-13: sem nomes
                  de dirigentes no site por enquanto — só as entidades, com destaque equivalente. -->
             <p class="sub">A Uniafibro-SC é a união das associações de fibromiálgicos de Santa Catarina.
-                Nasceu de um grupo de mulheres que transformou a própria dor em cuidado para os
-                outros — e que hoje leva esse cuidado a outras cidades do estado.
+                São sete associações, cada uma nascida na sua cidade, de pessoas que transformaram a
+                própria dor em cuidado para os outros. Juntas, estão em 4 das 6 mesorregiões do estado.
                 A Uniafibro-SC está em formação: as associações estão se organizando e o registro da
                 entidade está em andamento.</p>
 
-            <div class="cartao">
-                <span class="rotulo">De onde veio a ideia</span>
-                <h3>Girassóis (AGFESC), de Criciúma</h3>
-                <p>Em 2020, em plena pandemia, um grupo de mulheres com fibromialgia se reuniu em Criciúma para
-                    acolhimento. Esse grupo levou a demanda à Prefeitura, à Câmara e à Unesc, e a universidade
-                    criou o AMASF — Ambulatório de Atenção à Pessoa com Fibromialgia, gratuito pelo SUS:
-                    fisioterapia de solo e aquática, psicologia, nutrição, farmácia e reumatologia, num só
-                    lugar. A associação foi fundada formalmente em setembro de 2023.</p>
-                <p>Outras cidades seguiram caminhos próprios: Concórdia, Indaial, Joinville e Maravilha têm
-                    associações, e Tubarão montou seu programa com a Unisul. A Uniafibro nasce para unir
-                    todas elas.</p>
+            <!-- Histórias de cada associação: fontes nos Instagrams oficiais (lidos em 2026-11-23) e
+                 na cronologia abaixo. Decisão [W] 2026-11-23: a página conta a história de todas,
+                 não só da AGFESC. -->
+            <h3 class="titulo-linha">Cada associação, sua história</h3>
+            <div class="grade">
+                <div class="cartao">
+                    <span class="rotulo">Criciúma e o Sul · desde 2020</span>
+                    <h3>AGFESC Girassóis</h3>
+                    <p>Em 2020, em plena pandemia, um grupo de mulheres com fibromialgia se reuniu em Criciúma.
+                        Levou a demanda à Prefeitura, à Câmara e à Unesc, e a universidade criou o AMASF, ambulatório
+                        gratuito pelo SUS. Hoje tem 14 núcleos no Sul, grupos com a Unisul em Tubarão e já levou a causa
+                        a uma audiência pública em Brasília.</p>
+                    <a class="fonte-card" href="https://www.instagram.com/assgirassoisfibromialgicossc/" rel="noopener">@assgirassoisfibromialgicossc</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Concórdia e Alto Uruguai · desde 2021</span>
+                    <h3>AFICOR</h3>
+                    <p>A primeira a nascer no Oeste. Já fez cinco congressos regionais, o último em novembro de 2026,
+                        mantém atendimento com equipe multiprofissional e organiza caminhadas, palestras e ações
+                        beneficentes. É de utilidade pública estadual.</p>
+                    <a class="fonte-card" href="https://www.instagram.com/aficor2021/" rel="noopener">@aficor2021</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Indaial e Médio Vale · desde 2023</span>
+                    <h3>AREFI</h3>
+                    <p>Organizou o 1º Seminário Estadual de Fibromialgia, em 2024, e seminários regionais em Blumenau
+                        e Lages. Tem acordo com a FURB e atende mais de 20 municípios do Vale do Itajaí.</p>
+                    <a class="fonte-card" href="https://www.instagram.com/arefi_regional_fibromialgia/" rel="noopener">@arefi_regional_fibromialgia</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Maravilha e Extremo Oeste · desde 2025</span>
+                    <h3>AFIBROMAR</h3>
+                    <p>Cresce abrindo núcleos em cidades vizinhas, como Cunha Porã e Flor do Sertão. Faz palestras sobre
+                        direitos, projeto de artesanato com as associadas, brechó e arraiá para manter as ações.</p>
+                    <a class="fonte-card" href="https://www.instagram.com/afibromar2025/" rel="noopener">@afibromar2025</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">São José · desde 2025</span>
+                    <h3>AFASJ</h3>
+                    <p>Leva a associação para dentro das unidades de saúde: visita os postos de São José para falar de
+                        fibromialgia e de direitos, e reúne as associadas todo mês.</p>
+                    <a class="fonte-card" href="https://www.instagram.com/associacaofibromialgiaamigossj/" rel="noopener">@associacaofibromialgiaamigossj</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Gaspar · desde 2026</span>
+                    <h3>AFAGAS</h3>
+                    <p>Nasceu em 2026 para lutar por atendimento digno em Gaspar. Já conversou com a Secretaria de
+                        Saúde e participa da Conferência Municipal de Saúde.</p>
+                    <a class="fonte-card" href="https://www.instagram.com/afagas2026/" rel="noopener">@afagas2026</a>
+                </div>
+                <div class="cartao">
+                    <span class="rotulo">Cocal do Sul · desde 2026</span>
+                    <h3>ASCAF</h3>
+                    <p>Formalizada em 2026, trabalha junto com a Prefeitura de Cocal do Sul. A cidade já recebia palestras
+                        da equipe do AMASF desde 2022.</p>
+                    <a class="fonte-card" href="https://www.instagram.com/ascaf10/" rel="noopener">@ascaf10</a>
+                </div>
             </div>
 
             <!-- Cronologia: fontes públicas (Unesc, 4oito 12/05/2022, Engeplus 08/05/2023, Portal
                  Litoral Sul 22/07/2023, Folha NIT 30/04/2024, TN Sul 01/04/2025, Informe Floripa
                  23/03/2026, JPanorama SC, Eu Voluntário/Sesi-Senai) + relato do [W] (2019) + docs AGFESC do [W] (fundação, CNPJ, Indaial, Alesc, FCEE). -->
-            <h3 class="titulo-linha">O que essa mobilização abriu, em números</h3>
+            <h3 class="titulo-linha">O que a rede já conquistou, em números</h3>
             <div class="numeros">
                 <div><strong>Mais de 10 mil</strong><span>atendimentos no AMASF, o ambulatório da Unesc criado a partir
                     da demanda do grupo Girassóis (até 2025)</span><a href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc, fev. 2026</a></div>
@@ -469,6 +520,9 @@
                 <div><strong>800</strong><span>pessoas associadas aos Girassóis, segundo o perfil da associação</span><a href="https://euvoluntario.sesisenai.org.br/detalhes-instituicao/associacao-girassois-fibromialgicos-extremo-sul-catarinense-das-regioes-da-amres-amesc-e-amurel-237" rel="noopener">Eu Voluntário (Sesi/Senai)</a></div>
                 <div><strong>3 regiões</strong><span>Amrec, Amesc e Amurel — de Passo de Torres a
                     Garopaba</span><a href="https://www.jpanoramasc.com/post/presidente-da-associa%C3%A7%C3%A3o-girass%C3%B3is-fala-sobre-fibromialgia-na-c%C3%A2mara" rel="noopener">JPanorama SC</a></div>
+                <div><strong>Mais de 540</strong><span>associadas só no núcleo de Tubarão, em 2026</span><span class="fonte relato">relato da associação</span></div>
+                <div><strong>5</strong><span>congressos regionais sobre fibromialgia feitos pela AFICOR, em Concórdia</span><a href="https://www.instagram.com/aficor2021/" rel="noopener">Instagram da AFICOR</a></div>
+                <div><strong>Mais de 26 mil</strong><span>pessoas acompanham as associações da rede no Instagram (soma dos perfis, nov. 2026)</span><span class="fonte relato">contagem da Uniafibro</span></div>
             </div>
 
             <h3 class="titulo-linha">Nossa história</h3>
@@ -536,15 +590,29 @@
                     <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/documentos/QYZRZ" rel="noopener">Alesc — Lei 19.406/2025</a></li>
                 <li class="rede"><span class="ano">out. 2025</span><p>A Comissão de Saúde da Alesc leva o Seminário Regional sobre Fibromialgia a Capivari de Baixo, na Univinte.</p>
                     <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/comissoes-permanentes/agenda/anexo/c1500552-d290-4dfa-a5b9-8e7e0f49aee6" rel="noopener">Agenda da Alesc</a></li>
+                <li class="rede"><span class="ano">out. 2025</span><p>A AREFI faz seminários regionais sobre fibromialgia em Blumenau e em Lages.</p>
+                    <a class="fonte" href="https://www.instagram.com/arefi_regional_fibromialgia/" rel="noopener">Instagram da AREFI</a></li>
                 <li class="rede"><span class="ano">nov. 2025</span><p>Congresso sobre fibromialgia em Concórdia, feito pela Alesc com a AFICOR.</p>
                     <a class="fonte" href="https://portalelegis.alesc.sc.gov.br/comissoes-permanentes/agenda/anexo/6b19a732-21d8-4dca-aeeb-d5958cf1f362" rel="noopener">Agenda da Alesc</a></li>
+                <li><span class="ano">nov. 2025</span><p>A Associação Girassóis participa, em Brasília, de audiência pública com deputados sobre os direitos das pessoas com fibromialgia.</p>
+                    <a class="fonte" href="https://www.instagram.com/assgirassoisfibromialgicossc/" rel="noopener">Instagram dos Girassóis</a></li>
+                <li><span class="ano">fev. 2026</span><p>1ª Caminhada da Fibromialgia, organizada pela Associação Girassóis.</p>
+                    <a class="fonte" href="https://www.instagram.com/assgirassoisfibromialgicossc/" rel="noopener">Instagram dos Girassóis</a></li>
                 <li><span class="ano">fev. 2026</span><p>A Unesc informa que o AMASF registra mais de 10 mil atendimentos até 2025 e completa
                     seis anos de atuação em 2026.</p>
                     <a class="fonte" href="https://www.unesc.net/noticias/categoria/extensao/fevereiro-roxo-amplia-alerta-e-reforca-importancia-do-diagnostico-clinico-da-fibromialgia" rel="noopener">Unesc, fev. 2026</a></li>
                 <li class="rede"><span class="ano">fev. 2026</span><p>Em Maravilha, no Extremo Oeste, a AFIBROMAR se organiza e entra na rede — a Uniafibro passa a ir do Sul ao Oeste do estado.</p>
                     <span class="fonte relato">relato da associação</span></li>
+                <li class="rede"><span class="ano">abr. 2026</span><p>Nasce em Gaspar a AFAGAS, associação de fibromialgia do município.</p>
+                    <a class="fonte" href="https://www.instagram.com/afagas2026/" rel="noopener">Instagram da AFAGAS</a></li>
+                <li class="rede"><span class="ano">mai. 2026</span><p>A AFICOR faz em Concórdia a 2ª Caminhada da Fibromialgia, "Unindo forças para fazer a diferença".</p>
+                    <a class="fonte" href="https://www.instagram.com/aficor2021/" rel="noopener">Instagram da AFICOR</a></li>
                 <li class="rede"><span class="ano">ago. 2026</span><p>A Secretaria de Saúde de Tubarão anuncia o Programa de Fibromialgia com a Unisul, com início previsto para 17 de agosto, pelo SUS; enquanto a pessoa não tem a carteirinha, será aceito um voucher assinado pela liderança da associação Girassóis.</p>
                     <a class="fonte" href="https://www.cnttubarao.com.br/2026/07/28/programa-fibromialgia-tubarao-unisul/" rel="noopener">CNT Tubarão, 28/07/2026</a></li>
+                <li class="rede"><span class="ano">set. 2026</span><p>A AFIBROMAR abre seu núcleo em Cunha Porã; em novembro, Flor do Sertão começa o seu.</p>
+                    <a class="fonte" href="https://www.instagram.com/afibromar2025/" rel="noopener">Instagram da AFIBROMAR</a></li>
+                <li class="rede"><span class="ano">nov. 2026</span><p>V Congresso Regional em Atenção à Pessoa com Fibromialgia, da AFICOR, em Concórdia. No mesmo mês, a AFASJ visita os postos de saúde de São José.</p>
+                    <a class="fonte" href="https://www.instagram.com/aficor2021/" rel="noopener">Instagram da AFICOR</a></li>
                 <li><span class="ano">nov. 2026</span><p>Lideranças das associações de fibromialgia de Santa Catarina se reúnem para organizar a Uniafibro. A entidade está em formação, com o registro em andamento.</p>
                     <span class="fonte relato">relato da Uniafibro</span></li>
             </ol>
@@ -566,14 +634,20 @@
             </div>
             <div class="cartao">
                 <h3>Associações da rede</h3>
+                <!-- Associações confirmadas por [W] em 2026-11-23: as sete do estatuto revisado de 20/11.
+                     A ACPFA (Joinville) saiu da lista por decisão [W] no mesmo dia: não está na rede.
+                     Instagram só quando o perfil é da própria associação. -->
+                <p>A rede está em 4 das 6 mesorregiões de Santa Catarina: Sul, Vale do Itajaí, Oeste e
+                    Grande Florianópolis. O Norte e a Serra são os próximos.</p>
                 <ul class="membros">
-                    <li><strong>ACPFA</strong><span>Joinville</span></li>
-                    <li><strong>AFIBROMAR</strong><span>Maravilha e Extremo Oeste</span></li>
-                    <li><strong>AFICOR</strong><span>Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense · Concórdia</span></li>
-                    <li><strong>AGFESC</strong><span>Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense · Criciúma e região (Amrec, Amesc e Amurel)</span></li>
-                    <li><strong>AREFI</strong><span>Associação dos Fibromiálgicos de Indaial e Região · Indaial</span></li>
+                    <li><strong>AFAGAS</strong><span>Associação de Fibromialgia de Gaspar · Vale do Itajaí</span><a href="https://www.instagram.com/afagas2026/" rel="noopener">@afagas2026</a></li>
+                    <li><strong>AFASJ</strong><span>Associação de Fibromialgia e Amigos de São José · Grande Florianópolis</span><a href="https://www.instagram.com/associacaofibromialgiaamigossj/" rel="noopener">@associacaofibromialgiaamigossj</a></li>
+                    <li><strong>AFIBROMAR</strong><span>Associação de Fibromialgia de Maravilha e Região · Extremo Oeste · Oeste</span><a href="https://www.instagram.com/afibromar2025/" rel="noopener">@afibromar2025</a></li>
+                    <li><strong>AFICOR</strong><span>Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense · Concórdia · Oeste</span><a href="https://www.instagram.com/aficor2021/" rel="noopener">@aficor2021</a></li>
+                    <li><strong>AGFESC</strong><span>Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense · Criciúma e região (Amrec, Amesc e Amurel) · Sul</span><a href="https://www.instagram.com/assgirassoisfibromialgicossc/" rel="noopener">@assgirassoisfibromialgicossc</a></li>
+                    <li><strong>AREFI</strong><span>Associação dos Fibromiálgicos de Indaial e Região · Indaial · Vale do Itajaí</span><a href="https://www.instagram.com/arefi_regional_fibromialgia/" rel="noopener">@arefi_regional_fibromialgia</a></li>
+                    <li><strong>ASCAF</strong><span>Associação Sul Cocalense de Apoio aos Fibromiálgicos · Cocal do Sul · Sul</span><a href="https://www.instagram.com/ascaf10/" rel="noopener">@ascaf10</a></li>
                 </ul>
-                <!-- PREENCHER [W]: acrescente as demais associações da rede confirmadas (nome + cidade). -->
                 <p class="suave">Outras associações estão chegando à rede.</p>
             </div>
         </section>

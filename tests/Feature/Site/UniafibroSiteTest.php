@@ -86,7 +86,7 @@ it('direitos: cita as leis com número e não promete equiparação automática'
     expect($html)->toContain('não substitui orientação jurídica');
 });
 
-it('quem somos: só entidades, sem nome de dirigente, com as cinco associações em destaque equivalente', function () {
+it('quem somos: só entidades, sem nome de dirigente, com as sete associações em destaque equivalente', function () {
     $html = uniafibroHtml();
 
     expect($html)->not->toContain('Giselli');
@@ -94,9 +94,40 @@ it('quem somos: só entidades, sem nome de dirigente, com as cinco associações
     expect($html)->toContain('AMASF');
     $ini = strpos($html, 'class="membros"');
     $lista = substr($html, $ini, strpos($html, '</ul>', $ini) - $ini);
-    foreach (['AGFESC', 'AFIBROMAR', 'AFICOR', 'AREFI', 'ACPFA'] as $sigla) {
+    foreach (['AGFESC', 'AFIBROMAR', 'AFICOR', 'AREFI', 'AFASJ', 'AFAGAS', 'ASCAF'] as $sigla) {
         expect($lista)->toContain('<strong>'.$sigla.'</strong>');
     }
+    // ACPFA não está na rede (decisão [W] 2026-11-23).
+    expect($lista)->not->toContain('ACPFA');
+    // Cada associação está num <li> próprio e todo link da lista é um Instagram aberto.
+    expect(substr_count($lista, '<li>'))->toBe(7);
+    preg_match_all('/href="([^"]+)"/', $lista, $links);
+    foreach ($links[1] as $link) {
+        expect($link)->toStartWith('https://www.instagram.com/');
+    }
+});
+
+it('quem somos conta a história de cada associação, cada uma com o Instagram oficial', function () {
+    $html = uniafibroHtml();
+
+    $ini = strpos($html, 'Cada associação, sua história');
+    expect($ini)->not->toBeFalse();
+    $bloco = substr($html, $ini, strpos($html, 'O que a rede já conquistou', $ini) - $ini);
+    foreach (['AGFESC Girassóis', 'AFICOR', 'AREFI', 'AFIBROMAR', 'AFASJ', 'AFAGAS', 'ASCAF'] as $nome) {
+        expect($bloco)->toContain('<h3>'.$nome.'</h3>');
+    }
+    preg_match_all('/<div class="cartao">(.*?)<\/div>/s', $bloco, $cartoes);
+    expect(count($cartoes[1]))->toBe(7);
+    foreach ($cartoes[1] as $cartao) {
+        expect($cartao)->toMatch('/href="https:\/\/www\.instagram\.com\/[a-z0-9_.]+\/"/');
+    }
+});
+
+it('a rede diz em quantas mesorregiões está e quais faltam', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('4 das 6 mesorregiões de Santa Catarina');
+    expect($html)->toContain('O Norte e a Serra são os próximos');
 });
 
 it('AFICOR cita a Lei estadual 19.025/2024, não o projeto de lei', function () {
@@ -111,6 +142,9 @@ it('prevalência vem de estudo de prevalência e não repete o número sem fonte
     $html = uniafibroHtml();
 
     expect($html)->toContain('scielo.br/j/brjp/a/P4BYQRctt5MDZPRSQ8t7mCD');
+    // O número de SC é a mesma estimativa aplicada à população do IBGE, com as duas fontes.
+    expect($html)->toContain('cerca de 166 mil pessoas');
+    expect($html)->toContain('ibge.gov.br/cidades-e-estados/sc');
     expect($html)->not->toContain('2,5%');
     expect($html)->not->toContain('perto de 3%');
 });
