@@ -340,7 +340,17 @@ export function LancarItem({
           </div>
 
           {/* ─── execução (só serviço) ────────────────────────────────────── */}
-          {servico && (
+          {/* Sem executantes (a gravação ligada não manda os da cena, UC-V405), o bloco diz o que
+              falta em vez de abrir um select vazio — funcionário e data prevista não vão no payload. */}
+          {servico && executantes.length === 0 && (
+            <div>
+              <Lbl>Execução do serviço</Lbl>
+              <p className="text-[11.5px] leading-[1.5] text-muted-foreground">
+                O funcionário vinculado e a data prevista ainda não são gravados pela nova venda.
+              </p>
+            </div>
+          )}
+          {servico && executantes.length > 0 && (
             <div>
               <Lbl>Execução do serviço</Lbl>
               <Grid gap={3} className="sm:grid-cols-2">

@@ -57,15 +57,26 @@ class SellsV3Controller extends Controller
             ? $this->dadosDeGravacao((int) $businessId)
             : null;
         if ($gravacao !== null) {
+            $cliente = $gravacao['cliente'];
+            unset($gravacao['cliente']);
             $props['gravacao'] = $gravacao;
-            // Gravando, a cena não serve: itens e clientes dela não têm id do cadastro.
-            // A busca passa a ser /products/list (a mesma do Create) e o cliente é o padrão.
-            $props['cena']['itens'] = [];
-            $props['cena']['catalogo'] = [];
-            $props['cena']['cliente']['nome'] = $gravacao['clienteNome'];
-            $props['cena']['clientes'] = [$props['cena']['cliente']];
-            // A permissão de preço da cena (sempre true) dá lugar à do usuário (UC-V384).
-            $props['cena']['permissoes']['editarPrecoItem'] = $gravacao['permissoes']['editarPreco'];
+            // Gravando, nada da cena vai para a tela (UC-V404). O cliente é o padrão DESTA empresa,
+            // lido do cadastro; itens, catálogo, transportadoras, executantes, tabelas e o pipeline
+            // de 7 etapas da demonstração vão vazios. A busca passa a ser /products/list (a mesma do
+            // Create), as tabelas vêm de `gravacao.tabelas` e a venda entra no pipeline real ao gravar.
+            $props['cena'] = [
+                'cliente' => $cliente,
+                'clientes' => [$cliente],
+                'itens' => [],
+                'catalogo' => [],
+                'tabelas' => [],
+                'fsm' => [],
+                'papeisDoUsuario' => [],
+                'executantes' => [],
+                // A permissão de preço da cena (sempre true) dá lugar à do usuário (UC-V384).
+                'permissoes' => ['editarPrecoItem' => $gravacao['permissoes']['editarPreco']],
+                'transportadoras' => [],
+            ];
         }
 
         return Inertia::render('Sells/CreateV3', $props);
@@ -84,7 +95,7 @@ class SellsV3Controller extends Controller
      * mesmo que o Create.tsx lê. A trava é na tela — o store de /pos não as confere,
      * nem para o Create (medido em 2026-10-30).
      *
-     * @return array{locationId:int, contactId:int, clienteNome:string, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null, criarCliente:bool, registrarPagamento:bool}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>, comissionados:list<array{id:int, nome:string}>, tabelas:list<array{id:int, nome:string}>, tabelaPadraoId:int|null}|null
+     * @return array{locationId:int, contactId:int, clienteNome:string, cliente:array<string, mixed>, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null, criarCliente:bool, registrarPagamento:bool}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>, comissionados:list<array{id:int, nome:string}>, tabelas:list<array{id:int, nome:string}>, tabelaPadraoId:int|null}|null
      */
     private function dadosDeGravacao(int $businessId): ?array
     {
@@ -99,6 +110,7 @@ class SellsV3Controller extends Controller
             'locationId' => (int) $locationId,
             'contactId' => (int) $cliente['id'],
             'clienteNome' => (string) ($cliente['name'] ?? 'Consumidor final'),
+            'cliente' => self::clientePadrao($cliente),
             'permissoes' => [
                 'editarPreco' => (bool) $user->can('edit_product_price_from_sale_screen'),
                 'editarDesconto' => (bool) $user->can('edit_product_discount_from_sale_screen'),
@@ -116,6 +128,45 @@ class SellsV3Controller extends Controller
             'config' => self::configDaVenda($business = Business::findOrFail($businessId)),
             'comissionados' => self::comissionados($businessId, $business->sales_cmsn_agnt),
             ...self::tabelasDePreco($businessId, (int) $locationId),
+        ];
+    }
+
+    /**
+     * O cliente padrão no cartão do cliente (UC-V404), com a MESMA regra de `clienteDaBusca`
+     * (`_components/v3/cliente-gravacao-dominio.ts`), que traduz qualquer outro cliente da busca:
+     * o que o cadastro tem vai como está, o que a tela não lê dele vai como `—`, nunca inventado.
+     * Até 2026-11-23 só o nome vinha do cadastro e o resto era da cena: o endereço e a cidade de
+     * demonstração (Termas do Gravatal/SC) apareciam para o consumidor final de qualquer empresa.
+     *
+     * @param  array<string, mixed>  $contato  a linha de `ContactUtil::getWalkInCustomer`, já desta empresa
+     * @return array<string, mixed>
+     */
+    public static function clientePadrao(array $contato): array
+    {
+        $texto = fn ($v): ?string => $v === null || trim((string) $v) === '' ? null : trim((string) $v);
+        $nome = $texto($contato['name'] ?? null) ?? 'Consumidor final';
+        $tipo = in_array($contato['pay_term_type'] ?? null, ['days', 'months'], true) ? $contato['pay_term_type'] : null;
+        $prazo = $texto($contato['pay_term_number'] ?? null);
+        $endereco = implode(' · ', array_filter([$texto($contato['address_line_1'] ?? null), $texto($contato['zip_code'] ?? null)]));
+
+        return [
+            'cod' => $texto($contato['contact_id'] ?? null) ?? (string) ($contato['id'] ?? ''),
+            'nome' => $nome,
+            'padrao' => true,
+            'doc' => '—',
+            'ie' => '—',
+            'contrib' => 'nao',
+            'regime' => '—',
+            'fone' => $texto($contato['mobile'] ?? null) ?? '—',
+            'email' => '—',
+            'emailNfe' => '—',
+            'contato' => $texto($contato['supplier_business_name'] ?? null) ?? $nome,
+            'endereco' => $endereco !== '' ? $endereco : '—',
+            'cidade' => $texto($contato['city'] ?? null) ?? '—',
+            'uf' => $texto($contato['state'] ?? null) ?? '—',
+            'grupo' => '—',
+            'prazo' => $prazo === null || $tipo === null ? 'À vista' : $prazo.' '.($tipo === 'days' ? 'dias' : 'meses'),
+            'tabela' => null,
         ];
     }
 
