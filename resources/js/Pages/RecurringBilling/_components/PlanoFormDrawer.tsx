@@ -9,6 +9,7 @@ import { useEffect, useRef, type FormEvent, type ReactNode } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 
 export type Ciclo = 'monthly' | 'quarterly' | 'semiannual' | 'yearly' | 'custom';
 export type FiscalType = 'nfe' | 'nfse' | 'none';
@@ -167,8 +168,8 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
                     value={form.data.trial_days} onChange={(e) => form.setData('trial_days', parseInt(e.target.value, 10) || 0)} />
                 </Campo>
               </div>
-              <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                <input type="checkbox" checked={form.data.ativo} onChange={(e) => form.setData('ativo', e.target.checked)} />
+              <label htmlFor="plano-ativo" className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                <Checkbox id="plano-ativo" checked={form.data.ativo} onCheckedChange={(c) => form.setData('ativo', c === true)} />
                 Plano ativo (disponível pra novas assinaturas)
               </label>
             </Secao>
