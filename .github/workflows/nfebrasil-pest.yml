@@ -412,6 +412,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeLoteControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeRegimePorLocalTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeServiceCancelarTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeServiceDoubleWriteTest.php \
