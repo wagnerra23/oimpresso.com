@@ -15,7 +15,7 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 ## Capacidades
 - Planos: CRUD de `rb_plans` com ciclo e trial.
 - Contratos: estados de `rb_subscriptions`.
-- Cobrança via `BoletoService` com driver por gateway (Inter, Asaas, C6) — pilha própria do RB (`Services/Boleto/Drivers` + `rb_boleto_credentials`). O dono dos drivers é o `Modules/PaymentGateway` (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão; decisão b1); a migração do boleto está em andamento (sessão `rb-l2b-gateway`).
+- Cobrança via `BoletoService` com driver por gateway (Inter, Asaas, C6) — pilha própria do RB (`Services/Boleto/Drivers` + `rb_boleto_credentials`). O dono dos drivers é o `Modules/PaymentGateway` (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23; decisão b1); a migração do boleto está em andamento (sessão `rb-l2b-gateway`).
 - Assinatura sem plano: fatura pelo valor negociado (`metadata.valor`/`metadata.ciclo`) desde 2026-10-19 (#9606); `plan_id` é nulável (migration `2026_10_26_130000`).
 - Geração de faturas: `rb:generate-invoices`.
 - Pix Automático (US-RB-020/021, #9870): mandato na **Jornada 2** do BCB (ADR 0455, mesmo PR), cobrado por `rb:cobrar-pix-automatico`, driver e credencial no PaymentGateway. Atrás de `RB_COBRAR_PIX_AUTOMATICO` (padrão `false`).

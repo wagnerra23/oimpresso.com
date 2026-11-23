@@ -405,8 +405,8 @@ direto, mTLS com certificado **separado** do certificado de NFe — [ADR tech/00
 
 **F10 — Pix Automático (US-RB-020/021)** `[V0]` `[T0]` — *entrou em 2026-10-26, [#9870](https://github.com/wagnerra23/oimpresso.com/pull/9870); atrás da flag `RB_COBRAR_PIX_AUTOMATICO` (padrão `false`)*
 
-Usa a **Jornada 2** da API Pix do BCB — decisão registrada na ADR 0455
-([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão), que substitui a
+Usa a **Jornada 2** da API Pix do BCB — decisão registrada na [ADR 0455](../../decisions/0455-recurringbilling-pix-automatico-jornada-2.md)
+([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23), que substitui a
 [ARQ-0003](adr/arq/0003-pix-automatico-jornada-3-paymentonapproval.md) (Jornada 3, nunca implementada).
 
 1. **Mandato.** `MandatoPixAutomatico` lê a assinatura, o contato e a `PaymentGatewayCredential` do BCB
@@ -476,7 +476,7 @@ de `InvoicePaid` — é do Financeiro**. Este SDD não desenha essa ponte: ela �
 O crédito direto em `account_transactions` do caminho Asaas é o efeito legado até a ponte existir.
 
 Os dois caminhos de webhook (RB e PaymentGateway) convergem quando a pilha de boleto do RB migrar para o
-PaymentGateway (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão;
+PaymentGateway (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23;
 migração **em andamento** na sessão `rb-l2b-gateway`, sem PR aberto em 2026-11-23).
 
 ---
@@ -507,15 +507,15 @@ migração **em andamento** na sessão `rb-l2b-gateway`, sem PR aberto em 2026-1
 | D5 | **`C6Driver::cancelar()` é stub** que lança exceção | `SPEC.md` US-RB-042 |
 | D6 | **Sem endpoint de charge dedicado** (`POST /invoices/{id}/charge` da US-RB-004 não existe); cobrança acontece por geração de boleto/PIX + baixa por webhook | `SPEC.md` US-RB-004 |
 | D7 | **Sem proração** em upgrade/downgrade mid-cycle (US-RB-006) e sem reajuste no aniversário | `SPEC.md` US-RB-003/006 |
-| D9 | **Duas pilhas de driver para o mesmo banco.** O boleto usa `Services/Boleto/Drivers/{Asaas,C6,Inter}` + `rb_boleto_credentials`; Pix Automático e cartão usam o PaymentGateway + `payment_gateway_credentials`. O dono é o PaymentGateway (ADR 0456, em revisão); a migração está em andamento (`rb-l2b-gateway`) | `ls Modules/PaymentGateway/Services/Drivers/ Modules/RecurringBilling/Services/Boleto/Drivers/` |
+| D9 | **Duas pilhas de driver para o mesmo banco.** O boleto usa `Services/Boleto/Drivers/{Asaas,C6,Inter}` + `rb_boleto_credentials`; Pix Automático e cartão usam o PaymentGateway + `payment_gateway_credentials`. O dono é o PaymentGateway ([ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md)); a migração está em andamento (`rb-l2b-gateway`) | `ls Modules/PaymentGateway/Services/Drivers/ Modules/RecurringBilling/Services/Boleto/Drivers/` |
 | D10 | **Fatura paga não chega ao Financeiro como título.** A ponte é do Financeiro (decisão b2, 2026-11-23) | F13 |
 | D8 | `InvoiceController@cancel` lê `session('business.id')`; **todo o resto do módulo** lê `session('user.business_id')`. Ambas as chaves existem (`SetSessionData` grava as duas) — **não é bug medido**, é inconsistência de vocabulário que confunde quem lê | `InvoiceController@cancel` × `RecurringBillingController`/`PlanController` |
 
 ### 5.5 Fronteira com `Modules/PaymentGateway`
 
 **Dono:** o PaymentGateway é dono dos drivers bancários, das credenciais de gateway e da recepção dos
-webhooks de cobrança; o RecurringBilling decide o que cobrar e consome. A decisão está na ADR 0456
-([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão), que substitui a
+webhooks de cobrança; o RecurringBilling decide o que cobrar e consome. A decisão está na [ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md)
+([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23), que substitui a
 [ARQ-0005](adr/arq/0005-escopo0-payment-gateway-adapter.md).
 
 *Até a v1.0.1 esta seção citava a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md)
@@ -898,8 +898,8 @@ merge de quem for atendê-lo — G-2).
 - [`SPEC.md`](SPEC.md) — as 29 US · [`BRIEFING.md`](BRIEFING.md) · [`SUPERFICIE.md`](SUPERFICIE.md) · [`RUNBOOK-inter-pj.md`](RUNBOOK-inter-pj.md)
 - Charters: `resources/js/Pages/RecurringBilling/**/*.charter.md` (6)
 - ADRs de módulo: [`adr/arq/`](adr/arq) (9) · [`adr/tech/`](adr/tech) (8) · [`adr/ui/`](adr/ui) (3)
-- ADR 0456 — fronteira com PaymentGateway ([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão; até a v1.0.1 apontava para a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md), arquivada)
-- ADR 0455 — Pix Automático na Jornada 2 (mesmo PR)
+- [ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md) — fronteira com PaymentGateway ([#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23; até a v1.0.1 apontava para a [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md), arquivada)
+- [ADR 0455](../../decisions/0455-recurringbilling-pix-automatico-jornada-2.md) — Pix Automático na Jornada 2 (mesmo PR)
 - [ADR 0351](../../decisions/0351-sdd-from-source.md) — o método que produziu este doc · [SDD-TEMPLATE](../_DesignSystem/SDD-TEMPLATE.md)
 - Formato imitado (não reaberto): [`Produto/SDD-tela-cadastro-produto-v1.0.md`](../Produto/SDD-tela-cadastro-produto-v1.0.md)
 
