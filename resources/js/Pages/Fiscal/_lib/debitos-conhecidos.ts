@@ -21,10 +21,6 @@ export interface DebitoConhecido {
 }
 
 export const DEBITOS_CONHECIDOS: readonly DebitoConhecido[] = [
-  { tela: "fiscal", tom: "warning", decisao: false, ancora: "Cockpit.casos.md",
-    rotulo: "sem ação",
-    titulo: "Os botões da barra de lote não fazem nada",
-    texto: "\"Baixar XMLs (ZIP)\", \"Baixar DANFEs (PDF)\" e \"Reenviar por e-mail\" aparecem ao marcar notas, mas não têm ação: clicar não faz nada. Achado em 2026-11-19 ao escrever o UC-FCKP-20. Ou ganham ação, ou saem da barra." },
   { tela: "nfe", tom: "warning", decisao: false, ancora: "Nfe.casos.md",
     rotulo: "sem teste",
     titulo: "Lista deferida filtra por tab/status/busca com paginação 50",
