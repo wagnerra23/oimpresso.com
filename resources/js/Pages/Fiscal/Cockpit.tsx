@@ -24,6 +24,7 @@ import AlertasFiscais, { type AlertaFiscal } from './_components/AlertasFiscais'
 import DensidadeToggle from './_components/DensidadeToggle';
 import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
+import LoteSaidaModal, { type TipoSaidaLote } from './_components/LoteSaidaModal';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
 import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
 import RibbonSpark from './_components/RibbonSpark';
@@ -241,6 +242,56 @@ export default function Cockpit({
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(8);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Barra de lote (UC-FCKP-21..23): a ação só vale para NF-e/NFC-e — o id da linha é `nfe-<id da emissão>`.
+  const [saida, setSaida] = useState<TipoSaidaLote | null>(null);
+  const [loteBusy, setLoteBusy] = useState(false);
+  const [loteMsg, setLoteMsg] = useState<string | null>(null);
+  const idsLote = useMemo(
+    () => [...selected].filter((id) => id.startsWith('nfe-')).map((id) => Number(id.slice(4))).filter((n) => n > 0),
+    [selected],
+  );
+  const abrirSaida = (tipo: TipoSaidaLote) => { setLoteMsg(null); setSaida(tipo); };
+  const confirmarSaida = async () => {
+    if (!saida || idsLote.length === 0) return;
+    const rota = { zip: 'xml', pdf: 'danfe', email: 'reenviar-email' }[saida];
+    setLoteBusy(true);
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+      const res = await fetch(`/nfe-brasil/emissoes/lote/${rota}`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
+        body: JSON.stringify({ ids: idsLote }),
+      });
+      const ctype = res.headers.get('Content-Type') ?? '';
+      if (!res.ok || (saida !== 'email' && ctype.includes('json'))) {
+        const corpo = ctype.includes('json') ? await res.json().catch(() => ({})) : {};
+        setLoteMsg(corpo.message ?? 'Não foi possível concluir a ação em lote.');
+        return;
+      }
+      if (saida === 'email') {
+        const r = await res.json();
+        setLoteMsg(`E-mail reenviado de ${r.enviadas} nota${r.enviadas === 1 ? '' : 's'}`
+          + (r.falhas ? ` · ${r.falhas} falharam` : '')
+          + (r.fora ? ` · ${r.fora} fora (não autorizadas)` : ''));
+        return;
+      }
+      const fora = Number(res.headers.get('X-Lote-Fora') ?? 0);
+      const blob = await res.blob();
+      const nome = /filename="?([^";]+)"?/.exec(res.headers.get('Content-Disposition') ?? '')?.[1]
+        ?? (saida === 'zip' ? 'xmls.zip' : 'danfes.pdf');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nome;
+      a.click();
+      URL.revokeObjectURL(url);
+      setLoteMsg(fora > 0 ? `${fora} nota${fora > 1 ? 's' : ''} fora do arquivo (não autorizada ou sem arquivo)` : null);
+    } finally {
+      setLoteBusy(false);
+      setSaida(null);
+    }
+  };
   const [clienteFilter, setClienteFilter] = useState<string | null>(null);
 
   // Drawer focus (id da nota aberta). Resolve qual drawer abrir pelo tipo.
@@ -557,12 +608,21 @@ export default function Cockpit({
         {selected.size > 0 && (
           <div className="fx-bulk-bar" role="region" aria-label="Ações em lote">
             <span><b>{selected.size}</b> nota{selected.size > 1 ? 's' : ''} selecionada{selected.size > 1 ? 's' : ''}</span>
-            <Button type="button" variant="cowork-ghost">Baixar XMLs (ZIP)</Button>
-            <Button type="button" variant="cowork-ghost">Baixar DANFEs (PDF)</Button>
-            <Button type="button" variant="cowork-ghost">Reenviar por e-mail</Button>
+            <Button type="button" variant="cowork-ghost" onClick={() => abrirSaida('zip')}>Baixar XMLs (ZIP)</Button>
+            <Button type="button" variant="cowork-ghost" onClick={() => abrirSaida('pdf')}>Baixar DANFEs (PDF)</Button>
+            <Button type="button" variant="cowork-ghost" onClick={() => abrirSaida('email')}>Reenviar por e-mail</Button>
             <Button type="button" variant="cowork-ghost" onClick={() => setSelected(new Set())}>Limpar seleção</Button>
+            {loteMsg && <span role="status" data-contract="lote-resultado">{loteMsg}</span>}
           </div>
         )}
+        <LoteSaidaModal
+          tipo={saida}
+          qtd={idsLote.length}
+          foraNfse={selected.size - idsLote.length}
+          busy={loteBusy}
+          onConfirm={confirmarSaida}
+          onClose={() => setSaida(null)}
+        />
 
         {/* Tabela unificada */}
         {rows.length === 0 ? (
@@ -572,7 +632,7 @@ export default function Cockpit({
           </div>
         ) : (
           <div className={`fx-density-${density}`}>
-            <div className="fx-table">
+            <div className="fx-table fx-cockpit-notas">
               <table>
                 <thead>
                   <tr>
@@ -627,30 +687,32 @@ export default function Cockpit({
                             aria-label={`Selecionar nota ${n.num}`}
                           />
                         </td>
-                        <td><span className={`fx-tipo-dot ${tipoCls}`}>{n.tipo}</span></td>
-                        <td className="fx-mono">
+                        <td><span className={`fx-tipo ${tipoCls}`}>{n.tipo}</span></td>
+                        <td className="fx-mono num">
                           <b>{n.num}</b>
                           {n.serie && <small>série {n.serie}</small>}
                           {!n.serie && <small>{n.when.split(' ')[0]}</small>}
                         </td>
-                        <td>
-                          <a
+                        <td className="cli">
+                          <button
+                            type="button"
                             className="fx-link"
                             onClick={(e) => {
-                              e.preventDefault();
+                              e.stopPropagation();
                               setClienteFilter(n.cliente);
                             }}
-                            title="Filtrar por este cliente"
+                            onKeyDown={(e) => e.stopPropagation()}
+                            aria-label={`Filtrar por ${n.cliente}`}
                           >
                             <b>{n.cliente}</b>
-                          </a>
-                          <div style={{ fontSize: 11, color: 'var(--fx-text-mute)' }}>
+                          </button>
+                          <div>
                             {n.doc} · {n.uf}
                             {n.venda && <> · <span className="fx-link">{n.venda}</span></>}
                             {n.ref && !n.venda && <> · <span className="fx-link">{n.ref}</span></>}
                           </div>
                           {n.keyOrCode && (
-                            <code className="fx-cell-key" title={n.keyOrCode}>
+                            <code className="fx-key" title={n.keyOrCode}>
                               {n.kind === 'nfe' ? truncKey(n.keyOrCode) : `cód. ${n.keyOrCode}`}
                               {n.kind === 'nfse' && n.iss && ` · ${n.iss}% ISS`}
                             </code>
@@ -664,7 +726,7 @@ export default function Cockpit({
                                   {STATUS_LABEL[n.status as number] || `Status ${n.status}`}
                                 </span>
                               </span>
-                              {n.rejMsg && <div style={{ fontSize: 11, color: 'var(--bad)', marginTop: 3 }}>↳ {n.rejMsg}</div>}
+                              {n.rejMsg && <div className="fx-rej">↳ {n.rejMsg}</div>}
                             </>
                           ) : (
                             <>
@@ -673,7 +735,7 @@ export default function Cockpit({
                                   {String(n.status).charAt(0).toUpperCase() + String(n.status).slice(1)}
                                 </span>
                               </span>
-                              {n.rejMsg && <div style={{ fontSize: 11, color: 'var(--bad)', marginTop: 3 }}>↳ {n.rejMsg}</div>}
+                              {n.rejMsg && <div className="fx-rej">↳ {n.rejMsg}</div>}
                             </>
                           )}
                         </td>
@@ -692,14 +754,14 @@ export default function Cockpit({
                             <span style={{ color: 'var(--fx-text-mute)' }}>—</span>
                           )}
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td className="val">
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
                             <span className="fx-row-actions" onClick={(e) => e.stopPropagation()}>
                               <button type="button" className="fx-row-act" title="Baixar XML">XML</button>
                               <button type="button" className="fx-row-act" title="Baixar DANFE">PDF</button>
                               {rejected && <button type="button" className="fx-row-act danger" title="Retransmitir">↻</button>}
                             </span>
-                            <span className="fx-strong">{brl(n.value)}</span>
+                            <span>{brl(n.value)}</span>
                           </span>
                         </td>
                       </tr>

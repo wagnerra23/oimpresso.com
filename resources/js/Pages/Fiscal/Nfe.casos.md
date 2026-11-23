@@ -831,10 +831,14 @@ Status: 🧪
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
 - **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
 - **[BACKLOG · 🟡 parcialmente coberto] Drawer: mapa "Jana sugere" por cstat rejeitado, pílula temporal na linha** — comportamento de UI, sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`). **Reduzido em 2026-09-03:** a metade "atalhos J/K + Enter" saiu deste item e virou `UC-FNFE-10`, com teste de render que morde (4 mutações provadas). O que fica aqui é o que segue descoberto: o mapa guiado por `cstat` e a pílula temporal.
-- **[BACKLOG · ⬜ sem teste] NF-e de devolução total ou parcial** (pedido de 2026-10-23) `[V0]` — Dado
+- [~~BACKLOG~~ · feito no backend → `UC-FNFE-40`, `UC-FNFE-41` e `NfeDevolucaoTest` (R-NFE-026/027: `refNFe` = chave da origem, parcial proporcional com saldo, nota alheia recusada)] ~~NF-e de devolução total ou parcial~~ (pedido de 2026-10-23) `[V0]` — Dado
   uma venda com NF-e autorizada e 2 de 3 itens devolvidos, Quando emito a devolução, Então a NF-e de
   devolução referencia a chave da original e leva só os 2 itens; com tudo devolvido, leva a nota
   inteira. Fonte: UC-TRB-13 do protótipo fiscal (proposta) e o processo "Devolução, troca e garantia".
+- **[BACKLOG · ⬜ sem ação] Botão de devolução no drawer da nota** (separado do item acima em 2026-11-23) `[V0]` `[E0]` — a
+  devolução existe no backend (`POST` em `Fiscal/Routes/web.php`) e tem teste, mas nenhuma tela a oferece. Dado uma NF-e
+  autorizada aberta no drawer, Quando o operador escolhe itens e quantidades a devolver, Então a NF-e de devolução é emitida
+  por essa rota. Mexe em valor e estoque: antes→depois e dupla prova antes do merge.
 - **[BACKLOG · ⬜ sem teste] Remessa para conserto e o retorno** (pedido de 2026-10-23) `[E0]` — Dado um
   bem enviado para conserto, Quando emito a remessa, Então a nota fica "aguardando retorno" e o bem não
   sai do estoque como venda; ao registrar a volta, a nota de retorno fica ligada à remessa e o saldo

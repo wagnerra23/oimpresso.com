@@ -1,5 +1,23 @@
 {
   "_medido_em": "2026-11-05",
   "_por_que": "O application-report liga o Cockpit a duas fontes (fiscal-actions.jsx e fiscal-page.jsx), e a derivação do token do shell saiu 'sem rota derivável' (run 42078570982). O app.jsx roteia o cockpit por `route === \"fiscal\"` (view=\"notas\"). Com este override a rodada 42085947187 mediu a tela.",
-  "token": "fiscal"
+  "token": "fiscal",
+  "_roles_medido_em": "2026-11-23",
+  "_roles_por_que": "Sem roles, a sonda mediu kpi=0 no protótipo (os seletores padrão não existem no Fiscal). Papéis lidos no DOM dos dois lados: ribbon de 6 KPIs, h1, botão Emitir, chips de visão e linhas da tabela (8 e 8).",
+  "roles": {
+    "prod": {
+      "kpi": ".fx-ribbon-item",
+      "title": "h1",
+      "primary": "button[data-variant=\"cowork-primary\"]",
+      "filterControls": ".fx-saved-views > .fx-saved-view",
+      "tableRow": ".fx-table tbody tr"
+    },
+    "design": {
+      "kpi": ".fx-ri",
+      "title": "h1",
+      "primary": ".fx-btn.primary",
+      "filterControls": ".fx-chips > .fx-chip",
+      "tableRow": ".fx-table tbody tr"
+    }
+  }
 }

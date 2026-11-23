@@ -1,0 +1,407 @@
+{
+  "url": "http://127.0.0.1:5591/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 85
+  },
+  "theme": "light",
+  "assinatura": "OI WR Planos · cobrança recorrente 5 PLANOS · 4 ATIVOS · MRR dos planos R$ 2.960,00 Novo plano Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ MRR dos planos R$ 2.960,00 ticket médio R$ 493,33 · 6 cobrando Total planos 5 1 inativo Total ativos 4 disponíveis pra novas assinaturas Plano top vendido Sinalização Mensal 2 assin. · R$ 450,00 Distribuição por ciclo Mensal 2 Trimestral 1 Semestral 1 Anual 1 Customizado 0 Buscar Plano Ciclo Valor Assinaturas Fiscal Status Ações Sinalização Mensal sinalizacao-mensal Placas e banners trocados todo mês mensal R$ 450,00 2 NFS-e ativo Editar Excluir Adesivos Frota Mensal adesivos-frota-mensal Reposição de adesivos de frota mensal R$ 680,00 2 NFe ativo Editar Excluir Impressão Trimestral impressao-trimestral Lote de impressos a cada 3 meses trimestral R$ 1.200,00 1 NFe ativo Editar Excluir Manutenção Fachada Anual manutencao-fachada-anual Revisão anual de fachada e letreiro anual R$ 3.600,00 1 NFS-e ativo Editar Excluir Banner Promocional Semestral banner-promocional-semestral Campanha de vitrine a cada 6 meses semestral R$ 900,00 0 Não emite inativo Editar Excluir 5 planos no total Página 1 de 1 Plano Editar plano Sinalização Mensal · #11 Identificação Nome do plano * Slug Gerado do nome se ficar vazio. Descrição curta Descrição completa Cobrança Valor (R$) * Ciclo * Mensal Trimestral Semestral Anual Customizado (dias) Trial (dias) Entre 0 e 90. Plano ativo (disponível pra novas assinaturas) Emissão fiscal Tipo Não emite nota fiscal NFe (produto) NFS-e (serviço) Código de serviço Item da lista de serviços (LC 116/2003). Cancelar Salvar alterações",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": {
+      "raiz": "aside.cr-drawer[role=dialog]",
+      "presente": true,
+      "papeis": {
+        "raiz": {
+          "seletor": "aside.cr-drawer[role=dialog]",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "900px",
+            "minHeight": "0px",
+            "padding": "0px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "flex",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "borderRadius": "0px",
+            "borderWidth": "0px 0px 0px 1px",
+            "borderColor": "oklch(0.22 0.01 80)",
+            "opacity": "1",
+            "width": "560px",
+            "boxShadow": "rgba(40, 30, 20, 0.13) -10px 0px 34px 0px",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 560,
+            "h": 900
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 34,
+          "texto": "PlanoEditar planoSinalização Mensal · #11IdentificaçãoNome do plano *SlugGerado ",
+          "textoProprio": false
+        },
+        "titulo": {
+          "seletor": ".cr-dwr-head h3",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "16.7969px",
+            "minHeight": "0px",
+            "padding": "0px",
+            "margin": "1px 0px 0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "lineHeight": "16.8px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.22 0.01 80)",
+            "opacity": "1",
+            "width": "479px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 479,
+            "h": 16.8
+          },
+          "icone": null,
+          "blocos": 1,
+          "texto": "Editar plano",
+          "textoProprio": true
+        },
+        "rodape": {
+          "seletor": ".cr-dwr-foot",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "60px",
+            "minHeight": "auto",
+            "padding": "0px 18px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "1px 0px 0px",
+            "borderColor": "oklch(0.9 0.004 90)",
+            "opacity": "1",
+            "width": "559px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 559,
+            "h": 60
+          },
+          "icone": null,
+          "blocos": 4,
+          "texto": "Cancelar EscSalvar alterações ⌘↵",
+          "textoProprio": false
+        },
+        "botao": {
+          "seletor": ".cr-dwr-foot .cr-act.primary",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "32px",
+            "minHeight": "auto",
+            "padding": "8px 12px",
+            "margin": "0px",
+            "gap": "6px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "Arial",
+            "fontSize": "12.5px",
+            "fontWeight": "500",
+            "lineHeight": "normal",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "oklch(0.55 0.15 295)",
+            "borderRadius": "7px",
+            "borderWidth": "1px",
+            "borderColor": "rgba(0, 0, 0, 0)",
+            "opacity": "1",
+            "width": "145.203px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 145.2,
+            "h": 32
+          },
+          "icone": null,
+          "blocos": 2,
+          "texto": "Salvar alterações ⌘↵",
+          "textoProprio": true
+        },
+        "campo": {
+          "seletor": ".cr-dwr-body input",
+          "n": 7,
+          "ocultos": 0,
+          "css": {
+            "height": "32px",
+            "minHeight": "0px",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "inline-block",
+            "alignItems": "normal",
+            "fontFamily": "Arial",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "borderRadius": "6px",
+            "borderWidth": "1px",
+            "borderColor": "oklch(0.9 0.004 90)",
+            "opacity": "1",
+            "width": "478px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 478,
+            "h": 32
+          },
+          "icone": null,
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        },
+        "secao": {
+          "seletor": ".cr-dwr-body > .cr-card",
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "364.406px",
+            "minHeight": "auto",
+            "padding": "12px 14px",
+            "margin": "0px",
+            "gap": "12px",
+            "display": "grid",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "9px",
+            "borderWidth": "1px",
+            "borderColor": "oklch(0.9 0.004 90)",
+            "opacity": "1",
+            "width": "508px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 508,
+            "h": 364.4
+          },
+          "icone": null,
+          "blocos": 7,
+          "texto": "IdentificaçãoNome do plano *SlugGerado do nome se ficar vazio.Descrição curtaDes",
+          "textoProprio": false
+        },
+        "rotulo": {
+          "seletor": ".cr-dwr-body .cr-blk-label",
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "15.2188px",
+            "minHeight": "auto",
+            "padding": "0px",
+            "margin": "0px 0px 8px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "10.5px",
+            "fontWeight": "500",
+            "lineHeight": "15.225px",
+            "letterSpacing": "0.84px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.555 0.01 80)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.555 0.01 80)",
+            "opacity": "1",
+            "width": "478px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 478,
+            "h": 15.2
+          },
+          "icone": null,
+          "blocos": 1,
+          "texto": "Identificação",
+          "textoProprio": true
+        }
+      },
+      "tokens": {
+        "referencia": "h1",
+        "naGaveta": {
+          "--border": "oklch(0.90 0.004 90)",
+          "--bg-2": "oklch(0.965 0.004 90)",
+          "--surface": "#ffffff",
+          "--text": "oklch(0.22 0.01 80)",
+          "--text-dim": "oklch(0.50 0.01 80)",
+          "--text-mute": "oklch(0.555 0.01 80)",
+          "--accent": "oklch(0.55 0.15 295)",
+          "--font-sans": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+          "--font-mono": "IBM Plex Mono,ui-monospace,SF Mono,Menlo,monospace"
+        },
+        "naPagina": {
+          "--border": "oklch(0.90 0.004 90)",
+          "--bg-2": "oklch(0.965 0.004 90)",
+          "--surface": "#ffffff",
+          "--text": "oklch(0.22 0.01 80)",
+          "--text-dim": "oklch(0.50 0.01 80)",
+          "--text-mute": "oklch(0.555 0.01 80)",
+          "--accent": "oklch(0.55 0.15 295)",
+          "--font-sans": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+          "--font-mono": "IBM Plex Mono,ui-monospace,SF Mono,Menlo,monospace"
+        },
+        "vazios": [],
+        "difereDaPagina": []
+      }
+    }
+  },
+  "__meta": {
+    "lado": "design",
+    "fonte": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+    "rota": "rb-planos",
+    "viewport": "1280x900",
+    "tema": "light",
+    "surface": "#ffffff",
+    "dialogsAbertos": [
+      "Editar plano"
+    ],
+    "medidoEm": "2026-11-23T19:27:13.244Z"
+  }
+}

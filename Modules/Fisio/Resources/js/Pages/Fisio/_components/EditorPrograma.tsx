@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Textarea } from '@/Components/ui/textarea';
 import { rotuloCondicao } from './condicoes';
+import EnviarPrograma from './EnviarPrograma';
 
 export interface ItemPrograma {
   id: number;
@@ -463,6 +464,7 @@ export default function EditorPrograma({ pacienteId, podeEditar, programa, exerc
       {programa ? (
         <>
           <Cabecalho key={programa.id} programa={programa} podeEditar={podeEditar} />
+          {podeEditar && <EnviarPrograma programaId={programa.id} />}
           {/* B-12 (UC-FPS-37): folha A4 para quem prefere papel. Sem QR: o link do portal não é guardado em claro, e gerar outro derrubaria o do paciente. */}
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" variant="outline" asChild>

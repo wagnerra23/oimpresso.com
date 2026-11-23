@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-015
 // Cobre US-FISIO-015 (rotas da agenda da clínica) e UC-FAG-01..08 (Fisio/Agenda/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;

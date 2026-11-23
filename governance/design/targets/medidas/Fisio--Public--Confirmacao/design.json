@@ -1,0 +1,43 @@
+{
+  "url": "http://localhost:5602/cowork/Wagner/prototipos/fisio/PacienteConfirmarLink.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "Clínica [NOME] Sua sessão terça, 21/10, às 08:30 com Dra. Dejeane Confirmo Preciso remarcar Não vou poder ir Desmarcar com menos de 24 h segue a política da clínica, sempre confirmada pela profissional. Pergunta Confirmado Desmarcado Fora do prazo Voltou depois",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 18,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "rgb(255, 255, 255)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}

@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 126 arquivos em 13 papéis.
+**Total mapeado:** 128 arquivos em 13 papéis.
 
 ## Controllers — 12
 
@@ -74,7 +74,7 @@ module: Fiscal
 - [Nfse.tsx](../../../resources/js/Pages/Fiscal/Nfse.tsx)
 - [Sped.tsx](../../../resources/js/Pages/Fiscal/Sped.tsx)
 
-## Componentes / apoio de tela — 18
+## Componentes / apoio de tela — 19
 
 - [AlertasFiscais.tsx](../../../resources/js/Pages/Fiscal/_components/AlertasFiscais.tsx)
 - [CmdKPalette.tsx](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx)
@@ -84,6 +84,7 @@ module: Fiscal
 - [EventosDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/EventosDrawer.tsx)
 - [FxShell.tsx](../../../resources/js/Pages/Fiscal/_components/FxShell.tsx)
 - [InutilizacaoModal.tsx](../../../resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx)
+- [LoteSaidaModal.tsx](../../../resources/js/Pages/Fiscal/_components/LoteSaidaModal.tsx)
 - [NFSeDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/NFSeDrawer.tsx)
 - [NotaDrawer.tsx](../../../resources/js/Pages/Fiscal/_components/NotaDrawer.tsx)
 - [NotaDrawerV2.tsx](../../../resources/js/Pages/Fiscal/_components/NotaDrawerV2.tsx)
@@ -117,9 +118,9 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 42
+## Testes (Pest) — 43
 
-- 42 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 43 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 16
