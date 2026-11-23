@@ -111,6 +111,8 @@ class Subscription extends Model
     /**
      * Cartão salvo em que a assinatura é cobrada (US-RB-011). O token nunca sai em array/JSON
      * (`CartaoSalvo::$hidden`); o drawer lê só bandeira e últimos 4.
+     *
+     * @return BelongsTo<CartaoSalvo, $this>
      */
     public function cartaoSalvo(): BelongsTo
     {
