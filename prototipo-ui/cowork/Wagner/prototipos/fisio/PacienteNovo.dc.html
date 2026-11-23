@@ -125,6 +125,17 @@ body{margin:0}
             <span class="pill" style="background: var(--surface); color: var(--accent-b)">selecionado</span>
           </div>
           <a href="#" style="font-weight: 500">Não achou? Criar contato novo</a>
+          <label style="display: flex; gap: 8px; align-items: center"><input type="checkbox" onChange="{{toggleMenor}}" style="width: 18px; height: 18px; accent-color: var(--accent)"> Paciente menor de 18 anos</label>
+          <sc-if value="{{menor}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 8px; background: var(--bg-2)">
+              <span style="font-weight: 600">Responsável legal</span>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+                <label class="fld" for="np-resp">Buscar nos contatos<input id="np-resp" class="inp" type="search" value="[NOME DO RESPONSÁVEL]"></label>
+                <label class="fld" for="np-par">Parentesco<select id="np-par" class="inp"><option>Mãe</option><option>Pai</option><option>Tutor ou guardião legal</option></select></label>
+              </div>
+              <span class="dim" style="font-size: 12px">O link, o PIN e as autorizações (lembrete, câmera, imagem) vão para o responsável. Sem responsável cadastrado não dá para enviar o acesso.</span>
+            </div>
+          </sc-if>
         </section>
 
         <section class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
@@ -140,6 +151,7 @@ body{margin:0}
         <section class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 12px">
           <h2 class="sec">3 · Lembrete diário</h2>
           <span class="dim">O lembrete fica preso a um hábito do paciente. Combine com ele na consulta.</span>
+          <span role="note" style="font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--bg-2)"><b style="font-weight: 600">Desligado até o paciente autorizar.</b> Ele autoriza no primeiro acesso ao portal (o responsável, se for menor). Aqui fica só o horário combinado.</span>
           <div style="display: flex; gap: 8px; flex-wrap: wrap" role="group" aria-label="Âncora do lembrete">
             <sc-for list="{{anchors}}" as="a" hint-placeholder-count="4">
               <button type="button" onClick="{{a.pick}}" aria-pressed="{{a.on}}" style="height: 32px; padding: 0 12px; border-radius: 999px; border: {{a.bd}}; background: {{a.bg}}; color: {{a.fg}}; font: inherit; font-weight: 500">{{a.t}}</button>
@@ -158,7 +170,7 @@ body{margin:0}
         </div>
         <div style="display: flex; flex-direction: column; gap: 6px">
           <span style="font-weight: 600">Mensagem</span>
-          <div style="padding: 10px 12px; border-radius: 4px 12px 12px 12px; background: var(--bg-2); font-size: 13px">Olá, Carlos! Aqui é a Dra. Dejeane (CREFITO [Nº]). Seus exercícios estão neste link: [LINK DO PORTAL]. Antes da consulta de terça, responda umas perguntas rápidas por lá.</div>
+          <div style="padding: 10px 12px; border-radius: 4px 12px 12px 12px; background: var(--bg-2); font-size: 13px">{{msg}}</div>
         </div>
         <div role="radiogroup" aria-label="Como enviar" style="display: flex; flex-direction: column; gap: 8px">
           <sc-for list="{{channels}}" as="c" hint-placeholder-count="3">
@@ -209,7 +221,7 @@ function SB(active) {
   };
 }
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { anchor: 'Depois do café', ch: 'oficial' }; }
+  constructor(props) { super(props); this.state = { anchor: 'Depois do café', ch: 'oficial', menor: false }; }
   renderVals() {
     const I = {
       home: 'M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z', cart: 'M3 4h2l2.4 11h11.2L21 8H6.2M9 20h.01M18 20h.01',
@@ -229,10 +241,12 @@ class Component extends DCLogic {
       fisio: [], ...SB('pacientes'),
       anchors: ['Depois do café', 'Ao chegar do trabalho', 'Antes do banho', 'Depois do almoço'].map(chip),
       channels: [
-        ch('oficial', 'WhatsApp oficial da clínica', 'API da Meta. Enviado e lembrado todo dia, automático.'),
-        ch('qr', 'Número da clínica por QR', 'Automático, conexão não oficial: pode ser bloqueado pela Meta.'),
+        ch('oficial', 'WhatsApp oficial da clínica', 'API da Meta. Envia o link agora; lembrete diário só depois da autorização do paciente.'),
+        ch('qr', 'Número da clínica por QR', 'Conexão não oficial: pode ser bloqueado pela Meta. Lembrete só depois da autorização.'),
         ch('proprio', 'Pelo meu WhatsApp', 'Abre o seu WhatsApp com a mensagem pronta. Sem lembrete automático.')
       ],
+      msg: s.menor ? 'Olá, [NOME DO RESPONSÁVEL]! Aqui é a Dra. Dejeane (CREFITO [Nº]). Os exercícios de Carlos estão neste link: [LINK DO PORTAL]. Antes da consulta de terça, responda umas perguntas rápidas por lá.' : 'Olá, Carlos! Aqui é a Dra. Dejeane (CREFITO [Nº]). Seus exercícios estão neste link: [LINK DO PORTAL]. Antes da consulta de terça, responda umas perguntas rápidas por lá.',
+      menor: s.menor, toggleMenor: () => this.setState({ menor: !s.menor }),
       sendLabel: s.ch === 'proprio' ? 'Salvar e abrir meu WhatsApp' : 'Salvar e enviar o link'
     };
   }
