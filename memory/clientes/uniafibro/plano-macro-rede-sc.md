@@ -62,17 +62,17 @@ Cada uma segue o template detalhado em `arefi-indaial-plano-captacao.md`. Varia�
 
 | Associação | CNPJ | SIGEF? | Capacidade atual | Prioridade plano |
 |---|---|---|---|---|
-| **AREFI** Indaial | 52.871.767/0001-90 | Não | 🟢 Verde (Mun+Est+União) | ✅ **Plano completo pronto** |
-| **AFICOR** Concórdia | 44.534.100/0001-73 | **Sim** | 🟢 Verde (Mun+Est+União) | 🚨 **Executar YA** — única no SIGEF, pode receber federal ainda em 2027. Confirmar adesão à rede + liderança |
-| **AGFESC** Criciúma | 56.934.082/0001-04 | Não | 🟡 Amarelo | Reforma estatuto (vira Filial Uniafibro) + ata retificação + SIGEF + certidões atualizadas |
-| **AFIBROMAR** Maravilha | 63.360.633/0001-20 | Não | 🟡 Amarelo (só Município por enquanto) | Reformar estatuto pelo modelo unificado + aguardar 24 meses pra captação estadual (CNPJ só 09/2025) |
-| **ACPFA** Joinville | 50.254.951/0001-65 | Não | ⚫ Fora rede | **Contato + convite** (Cléia Giosole) + proposta de filiação à Uniafibro-SC |
+| **AREFI** Indaial | [REDACTED-CNPJ] | Não | 🟢 Verde (Mun+Est+União) | ✅ **Plano completo pronto** |
+| **AFICOR** Concórdia | [REDACTED-CNPJ] | **Sim** | 🟢 Verde (Mun+Est+União) | 🚨 **Executar YA** — única no SIGEF, pode receber federal ainda em 2027. Confirmar adesão à rede + liderança |
+| **AGFESC** Criciúma | [REDACTED-CNPJ] | Não | 🟡 Amarelo | Reforma estatuto (vira Filial Uniafibro) + ata retificação + SIGEF + certidões atualizadas |
+| **AFIBROMAR** Maravilha | [REDACTED-CNPJ] | Não | 🟡 Amarelo (só Município por enquanto) | Reformar estatuto pelo modelo unificado + aguardar 24 meses pra captação estadual (CNPJ só 09/2025) |
+| **ACPFA** Joinville | [REDACTED-CNPJ] | Não | ⚫ Fora rede | **Contato + convite** (Cléia Giosole) + proposta de filiação à Uniafibro-SC |
 | **ASCAF** Cocal do Sul | FALTA | — | ⚫ Dados incompletos | Confirmar CNPJ + liderança + decidir: entrar na rede ou operar via núcleo AGFESC Cocal do Sul |
 | "Assoc. Portadores Fibro" Cocal do Sul | ? | — | ❓ | Confirmar se ativa; talvez Liliana Mendes. Se ativa, resolver duplicidade com ASCAF |
 
 ## Camada 3 — 13 núcleos AGFESC (cidades sem associação própria)
 
-Usam CNPJ AGFESC (56.934.082/0001-04) até se formalizarem. Próximo passo comum = **formalizar como filial** da Uniafibro-SC após reforma estatutária (Art. 11-A permite "filial própria" com Coordenador + Vice + Conselho Local).
+Usam CNPJ AGFESC ([REDACTED-CNPJ]) até se formalizarem. Próximo passo comum = **formalizar como filial** da Uniafibro-SC após reforma estatutária (Art. 11-A permite "filial própria" com Coordenador + Vice + Conselho Local).
 
 **Prioridade 1 (grupo já funcionando):**
 - **Tubarão** (Vanilde) — 5 associadas + encontro mensal · programa municipal Unisul ago/2026 · lei carteirinha 2021 + deficiência 2025 · **alvo: Fundo da Pessoa Idosa (R$ [redacted Tier 0])** — captação rápida possível
@@ -97,7 +97,7 @@ Usam CNPJ AGFESC (56.934.082/0001-04) até se formalizarem. Próximo passo comum
 ## Camada 4 — Entidades externas (3)
 
 - **Grupo Gaspar** (Zu Schmitt, ~70 pessoas) — já ligado à AREFI informalmente → convite formal como núcleo AREFI (opção) ou filial própria Uniafibro-SC
-- **Affibrobem** (Maravilha, CNPJ 64.104.704/0001-97) — contato diplomático: há duplicidade com AFIBROMAR em Maravilha. Investigar se é concorrente, cooperante ou pode ser absorvida/fundida
+- **Affibrobem** (Maravilha, CNPJ [REDACTED-CNPJ]) — contato diplomático: há duplicidade com AFIBROMAR em Maravilha. Investigar se é concorrente, cooperante ou pode ser absorvida/fundida
 - **Fibrofloripa** (Florianópolis, sem CNPJ confirmado) — Florianópolis é região metropolitana crítica (capital, universidades UFSC/UDESC, SES). Confirmar existência; se ativa, convidar
 
 ## Camada 5 — Gaps de cobertura (regiões SC sem associação)

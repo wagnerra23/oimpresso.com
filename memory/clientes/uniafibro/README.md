@@ -25,7 +25,7 @@ related:
 |---|---|---|---|---|---|---|
 | 1 | **AGFESC** (Girassóis) | Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense | Criciúma/SC | *pendente registro* | Formalizada (grupo iniciado ago/2020) | Giselli Cunha |
 | 2 | **AFIBROMAR** | Associação dos Fibromiálgicos de Maravilha | Maravilha/SC | *pendente registro* | Formalizada | — |
-| 3 | **AREFI** | Associação dos Fibromiálgicos de Indaial e Região | Indaial/SC | 52.871.767/0001-90 | Formalizada 22/09/2023 (RCPJ Indaial 11/10/2023, livro A-034) | Clair Maria Santos Nascimento |
+| 3 | **AREFI** | Associação dos Fibromiálgicos de Indaial e Região | Indaial/SC | [REDACTED-CNPJ] | Formalizada 22/09/2023 (RCPJ Indaial 11/10/2023, livro A-034) | Clair Maria Santos Nascimento |
 | 4 | **AFICOR** | Associação dos Fibromiálgicos de Concórdia | Concórdia/SC | *pendente registro* | Formalizada | — |
 | 5 | **ACPFA** | Associação dos Fibromiálgicos de Joinville | Joinville/SC | *pendente registro* | Formalizada | — |
 | 6 | **ASCAF** | Associação dos Fibromiálgicos de Cocal do Sul | Cocal do Sul/SC | *pendente registro* | Formalizada | — |

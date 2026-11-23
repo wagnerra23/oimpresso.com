@@ -13,7 +13,7 @@ related:
 # AREFI (Indaial) — plano exclusivo de captação
 ### executável pela presidente Clair + diretoria
 
-> **Contexto:** AREFI já formalizada (CNPJ 52.871.767/0001-90, registro RCPJ Indaial 11/10/2023, sede Rua Formosa 225 Tapajós Indaial-SC). Acordo FURB 017/2024 já ativo (Programa Universidade Gratuita). Falta destravar captação estruturada local + regional (Médio Vale do Itajaí).
+> **Contexto:** AREFI já formalizada (CNPJ [REDACTED-CNPJ], registro RCPJ Indaial 11/10/2023, sede Rua Formosa 225 Tapajós Indaial-SC). Acordo FURB 017/2024 já ativo (Programa Universidade Gratuita). Falta destravar captação estruturada local + regional (Médio Vale do Itajaí).
 > **Foco deste plano:** 12 meses, R$ [redacted Tier 0]/ano de meta inicial (município + estado + universidade + privado). Expansível depois.
 
 ---
