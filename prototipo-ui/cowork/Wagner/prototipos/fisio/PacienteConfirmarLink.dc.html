@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Paciente · Confirmar pelo link</title>
+<script src="../../../../design-system/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
+</style>
+</helmet>
+<div data-screen-label="Fisio · Confirmar consulta" style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.95 0.006 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; gap: 20px; padding: 24px 16px 16px; overflow: hidden">
+  <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: oklch(0.50 0.01 80)">
+    <span style="width: 32px; height: 32px; border-radius: 50%; background: oklch(0.55 0.15 295); color: #FFFFFF; display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg></span>
+    <span style="font-weight: 500">Clínica [NOME]</span>
+  </div>
+
+  <section style="display: flex; flex-direction: column; gap: 8px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); border-radius: 12px; padding: 16px">
+    <h1 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px">Sua sessão</h1>
+    <p style="margin: 0"><span style="font-weight: 500">terça, 21/10, às 08:30</span> com Dra. Dejeane</p>
+    <sc-if value="{{linhaSituacao}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0; font-size: 14px; color: oklch(0.50 0.01 80)">Sessão confirmada.</p>
+    </sc-if>
+  </section>
+
+  <sc-if value="{{temResultado}}" hint-placeholder-val="{{ false }}">
+    <p role="status" style="margin: 0; background: oklch(0.965 0.004 90); border: 1px solid oklch(0.90 0.004 90); border-radius: 8px; padding: 16px; font-size: 14px">{{resultado}}</p>
+  </sc-if>
+
+  <sc-if value="{{perguntando}}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <button type="button" onClick="{{confirmar}}" style="min-height: 44px; border-radius: 6px; font-size: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font-family: inherit; font-weight: 500; cursor: pointer">Confirmo</button>
+      <button type="button" onClick="{{remarcar}}" style="min-height: 44px; border-radius: 6px; font-size: 14px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; color: oklch(0.22 0.01 80); font-family: inherit; font-weight: 500; cursor: pointer">Preciso remarcar</button>
+      <button type="button" onClick="{{naoVou}}" style="min-height: 44px; border-radius: 6px; font-size: 14px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; color: oklch(0.22 0.01 80); font-family: inherit; font-weight: 500; cursor: pointer">Não vou poder ir</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{jaConfirmada}}" hint-placeholder-val="{{ false }}">
+    <button type="button" onClick="{{naoVou}}" style="min-height: 44px; border-radius: 6px; font-size: 14px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; color: oklch(0.22 0.01 80); font-family: inherit; font-weight: 500; cursor: pointer">Não vou poder ir</button>
+  </sc-if>
+
+  <sc-if value="{{orientaRemarcar}}" hint-placeholder-val="{{ false }}">
+    <p role="status" style="margin: 0; background: oklch(0.965 0.004 90); border: 1px solid oklch(0.90 0.004 90); border-radius: 8px; padding: 16px; font-size: 14px">Para escolher outro horário, abra o link do seu programa de exercícios e vá em <b style="font-weight: 600">Minhas consultas</b>. Se não tiver o link, responda a mensagem no WhatsApp.</p>
+  </sc-if>
+
+  <p style="margin: 0; font-size: 12px; color: oklch(0.50 0.01 80)">Desmarcar com menos de 24 h segue a política da clínica, sempre confirmada pela profissional.</p>
+
+  <div style="margin-top: auto; display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px">
+    <sc-for list="{{estados}}" as="e" hint-placeholder-count="4">
+      <button type="button" onClick="{{e.ver}}" style="min-height: 32px; border: 1px solid oklch(0.90 0.004 90); border-radius: 999px; background: #FFFFFF; color: oklch(0.50 0.01 80); font: inherit; padding: 0 12px; cursor: pointer">{{e.t}}</button>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+// Página de um toque da mensagem de confirmação (etapa 04 A6, US-FISIO-017). O link chega pelo
+// WhatsApp, é assinado e não pede PIN. Os chips no rodapé só servem para ver os estados aqui.
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { estado: 'pergunta', remarcar: false }; }
+  renderVals() {
+    const s = this.state;
+    const T = {
+      confirmado: 'Confirmado! Até terça, 21/10, às 08:30.',
+      cancelado: 'Tudo bem, avisamos Dra. Dejeane. A sessão de terça, 21/10, às 08:30 foi desmarcada.',
+      fora_do_prazo: 'Faltam menos de 24 h para a sessão. Para desmarcar agora, fale com a clínica.'
+    };
+    const ver = (estado) => () => this.setState({ estado, remarcar: false });
+    return {
+      perguntando: s.estado === 'pergunta' || s.estado === 'fora_do_prazo',
+      // Confirmada: logo após responder (com faixa do resultado) ou ao voltar ao link depois (só a linha).
+      jaConfirmada: s.estado === 'confirmado' || s.estado === 'ja_confirmada',
+      linhaSituacao: s.estado === 'ja_confirmada',
+      temResultado: s.estado in T,
+      resultado: T[s.estado] || '',
+      orientaRemarcar: s.remarcar,
+      confirmar: ver('confirmado'),
+      naoVou: ver('cancelado'),
+      remarcar: () => this.setState({ remarcar: true }),
+      estados: [['pergunta', 'Pergunta'], ['confirmado', 'Confirmado'], ['cancelado', 'Desmarcado'], ['fora_do_prazo', 'Fora do prazo'], ['ja_confirmada', 'Voltou depois']]
+        .map(([k, t]) => ({ t, ver: ver(k) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

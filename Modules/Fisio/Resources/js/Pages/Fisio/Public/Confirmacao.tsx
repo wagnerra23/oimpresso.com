@@ -7,10 +7,17 @@
 // Página de um toque da mensagem de confirmação da consulta (etapa 04 A6; protótipo
 // PacienteAgendaConfirmar.dc.html). Mobile-first, fora do AppShellV2, como o portal do paciente.
 // Mostra só clínica, profissional, dia e hora. Abrir não muda nada; responder é POST.
+//
+// Tema: os tokens do DS (fonte IBM Plex, neutros quentes) só existem sob `.cockpit`, e o
+// cockpit.css só entra pelo AppShellV2. Página pública fica fora do shell, então importa o CSS
+// e se envolve num `.cockpit` com display:contents — mesmo idioma do PortalContatoLayout (CRM)
+// e do TemaDoCockpit (Fluxos). Medido em 2026-11-23: sem isso a página saía em fonte do sistema.
+import '../../../../../../../resources/css/cockpit.css';
 import { Head, router } from '@inertiajs/react';
-import { CalendarCheck, HeartPulse } from 'lucide-react';
+import { HeartPulse } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
+import { useTheme } from '@/Hooks/useTheme';
 
 type Resultado = 'confirmado' | 'cancelado' | 'fora_do_prazo' | 'encerrada';
 
@@ -54,8 +61,10 @@ export default function Confirmacao(props: Props) {
     router.post(url, {}, { preserveScroll: true, onFinish: () => setEnviando(false) });
   };
   const status = textoDoStatus(props);
+  const { effective } = useTheme();
 
   return (
+    <div className="cockpit" data-theme={effective} style={{ display: 'contents' }}>
     <div className="flex min-h-dvh justify-center bg-background text-foreground" data-screen-label="Fisio · Confirmar consulta">
       <Head title="Confirmar consulta" />
       <main className="flex w-full max-w-md flex-col gap-5 px-4 pt-6 pb-4">
@@ -67,15 +76,13 @@ export default function Confirmacao(props: Props) {
         </div>
 
         <section className="flex flex-col gap-2 rounded-lg border bg-card p-4">
-          <h1 className="flex items-center gap-2 text-lg font-semibold">
-            <CalendarCheck className="size-5 text-primary" aria-hidden="true" />
-            Sua sessão
-          </h1>
+          <h1 className="text-lg font-semibold">Sua sessão</h1>
           <p className="text-base">
             <span className="font-medium">{props.quando}</span>
             {props.profissional && <> com {props.profissional}</>}
           </p>
-          {status && <p className="text-sm text-muted-foreground">{status}</p>}
+          {/* Logo depois de responder, a faixa do resultado já diz isso; a linha é para quem volta ao link. */}
+          {status && !props.resultado && <p className="text-sm text-muted-foreground">{status}</p>}
         </section>
 
         {props.resultado && (
@@ -115,6 +122,7 @@ export default function Confirmacao(props: Props) {
           Desmarcar com menos de {props.prazo_horas} h segue a política da clínica, sempre confirmada pela profissional.
         </p>
       </main>
+    </div>
     </div>
   );
 }

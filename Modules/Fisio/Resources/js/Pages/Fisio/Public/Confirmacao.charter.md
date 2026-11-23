@@ -2,7 +2,7 @@
 id: modules-fisio-pages-fisio-public-confirmacao-charter
 page: /fisio/consulta/{consulta}
 component: Modules/Fisio/Resources/js/Pages/Fisio/Public/Confirmacao.tsx
-related_prototype: "prototipo-ui/cowork/Wagner/prototipos/fisio/PacienteAgendaConfirmar.dc.html"
+related_prototype: "prototipo-ui/cowork/Wagner/prototipos/fisio/PacienteConfirmarLink.dc.html"
 related_us: [US-FISIO-017]
 owner: wagner
 status: draft
@@ -21,7 +21,7 @@ charter_version: 2
 # Page Charter — /fisio/consulta/{consulta} (DRAFT · confirmar consulta)
 
 > Nasce na US-FISIO-017 (etapa 04 A6). Casos: [`Confirmacao.casos.md`](Confirmacao.casos.md).
-> Protótipo: `PacienteAgendaConfirmar.dc.html`, que desenha a resposta dentro da conversa do WhatsApp, com botões. Aqui a resposta é por link, porque funciona em todos os canais da clínica (oficial, QR e envio manual); os botões dentro da conversa ficam para quando houver modelo de mensagem aprovado pela Meta.
+> Protótipo: `PacienteConfirmarLink.dc.html` (desenhado em 2026-11-23, depois da tela; comparação medida em `memory/requisitos/Fisio/Public-Confirmacao-visual-comparison.md`). O protótipo irmão `PacienteAgendaConfirmar.dc.html` desenha a resposta dentro da conversa do WhatsApp, com botões; aqui a resposta é por link, porque funciona em todos os canais da clínica (oficial, QR e envio manual). Os botões dentro da conversa ficam para quando houver modelo de mensagem aprovado pela Meta.
 
 ## Mission
 
