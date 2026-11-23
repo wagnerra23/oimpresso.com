@@ -1,0 +1,33 @@
+
+  DESIGN-DIFF — prod(light) × design(light)
+
+  ✓ [D2] layout: prod=ok · design=ok → IGUAL
+  ✗ [D4] kpi valor font-size: prod=22px · design=30px → DIVERGE (bug) (Δ 8px · banda tipografia ±0px)
+  ✓ [D6] cor: prod=ok · design=ok → IGUAL
+  ✓ [D8] kpi align: prod=ok · design=ok → IGUAL
+  ⬜ [D9] fisio-painel-sem-registro: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] fisio-painel-tabela: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-alcas: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-corpo: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-modos: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-rodape: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-topo: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ✗ [D8] col0.alcancavel: prod=A · design=sem elemento clicavel → DIVERGE (fonte)
+  🟡 [D2] col0.blocos de texto: prod=2 · design=3 → DIVERGE (dado?) (pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito)
+  ✗ [D6] col1.cor: prod=cor própria · design=herda a da linha → DIVERGE (fonte)
+  ✗ [D4] col2.mono: prod=mono · design=sem mono → DIVERGE (fonte)
+  🟡 [D2] col2.blocos de texto: prod=1 · design=0 → DIVERGE (dado?) (pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito)
+  ✗ [D6] col3.cor: prod=herda a da linha · design=cor própria → DIVERGE (bug)
+  🟡 [D2] col3.blocos de texto: prod=1 · design=2 → DIVERGE (dado?) (pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito)
+  ✗ [D4] col4.mono: prod=mono · design=sem mono → DIVERGE (fonte)
+  ✗ [D6] col4.cor: prod=herda a da linha · design=cor própria → DIVERGE (bug)
+  ✗ [D6] col4.pílula: prod=ausente · design=presente → DIVERGE (bug)
+  ✗ [D6] col5.cor: prod=herda a da linha · design=cor própria → DIVERGE (bug)
+  ⬜ [SHELL] shell: prod=não medido · design=não medido → SEM-DADO (declare window.__SB_ROLES nos DOIS lados — node scripts/design/design-diff.mjs --shell-roles imprime o mapa)
+  ✗ [SAÚDE] tokens.prod: prod=--accent --pos --neg --warn --text-dim --sunken --border · design=— → NÃO MEDI (token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback)
+  ✗ [SAÚDE] tokens.design: prod=— · design=--accent --pos --neg --warn --text-dim --sunken --border → NÃO MEDI (token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback)
+
+  ✗ DIVERGE(bug): 5
+  ▲ SHELL a classificar: 0
+
+exit=1
