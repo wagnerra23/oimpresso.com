@@ -24,6 +24,7 @@ last_run_ci: "2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITIC
 |----|-------------|------|----|-------|--------|
 | UC-RBPNC-01 | Plano nasce no business da sessão com slug derivado do nome | must `[T0]` | `CU-RB-01` 1 | `Wave6PlanCrudTest` | 🧪 |
 | UC-RBPNC-02 | Slug é único **por business** — nunca global | must `[T0]` | `CU-RB-01` 1 | `Wave6PlanCrudTest` | 🧪 |
+| UC-RBPNC-03 | `/planos/novo` é a lista com o drawer de novo plano aberto | must | `CU-RB-01` 1 | `Wave6PlanCrudTest` | 🧪 |
 
 ---
 
@@ -52,6 +53,23 @@ last_run_ci: "2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITIC
 - **Contrato:** `CU-RB-01` item 1 + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** um índice `UNIQUE(slug)` global — o 2º cliente do SaaS não conseguiria
   cadastrar um plano com nome comum. É o bug de multi-tenancy que só aparece com o segundo cliente.
+- **Status: 🧪**
+
+---
+
+## UC-RBPNC-03 · `/planos/novo` é a lista com o drawer de novo plano aberto · `must`
+- **Persona:** Wagner chega por um link salvo, ou pela tecla `N`, e quer cadastrar sem perder a lista de vista.
+- **Aceite:** Dado o acesso a `GET /recurring-billing/planos/novo` · Então a resposta é a **lista de
+  planos** (props `filters`, `plans` e `kpis`, as duas últimas deferidas) **com o drawer de novo plano
+  aberto** (prop `defaults`: mensal, trial 0, ativo, sem nota fiscal). Fechar o drawer volta o
+  endereço para `/recurring-billing/planos`.
+- **Teste:** [`Wave6PlanCrudTest`](../../../../../Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php)
+  — `UC-RBPNC-03 — /planos/novo rende a lista com o drawer de novo plano aberto (props da lista + defaults)`.
+- **Contrato:** forma do protótipo `rb-planos` (`ROTAS["rb-planos"].drawers.novo`), que no eixo forma
+  vale acima do charter ([ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md)).
+  **Substitui** a forma antiga, em que esta URL era uma página de formulário inteira (até 2026-11-23).
+- **Regressão que defende:** o link `/planos/novo` voltar a abrir uma página sem a lista, ou abrir a
+  lista vazia porque o controller deixou de mandar as props dela.
 - **Status: 🧪**
 
 ---

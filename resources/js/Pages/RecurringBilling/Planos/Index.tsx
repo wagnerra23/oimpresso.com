@@ -267,6 +267,12 @@ export default function PlanosIndex(props: PageProps) {
 
   const rows = plans?.data ?? [];
 
+  // Aberto pela URL (/novo ou /{id}/editar): fechar volta o endereço para a lista.
+  function fecharDrawer() {
+    if (props.drawerInicial) router.visit('/recurring-billing/planos', { preserveScroll: true });
+    else setDrawer(null);
+  }
+
   function abrirEdicao(p: PlanRow) {
     setDrawer({
       modo: 'editar',
@@ -596,7 +602,7 @@ export default function PlanosIndex(props: PageProps) {
       </div>
 
       {/* Onda 21 v9,75 — Overlays: Tour onboarding (1ª vez compartilhado), CheatSheet (?), CmdPalette (⌘K) */}
-      {drawer && <PlanoFormDrawer key={drawer.modo === 'editar' ? drawer.plan.id : 'novo'} alvo={drawer} onClose={() => setDrawer(null)} />}
+      {drawer && <PlanoFormDrawer key={drawer.modo === 'editar' ? drawer.plan.id : 'novo'} alvo={drawer} onClose={fecharDrawer} />}
       {showTour && (
         <TourOnboarding onClose={() => setShowTour(false)} />
       )}

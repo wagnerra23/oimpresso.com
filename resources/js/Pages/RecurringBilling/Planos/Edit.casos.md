@@ -30,6 +30,7 @@ last_run_ci: "2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITIC
 |----|-------------|------|----|-------|--------|
 | UC-RBPNE-01 | Editar valor/ciclo preserva os demais campos | must `[V0]` | `CU-RB-01` 2 | `Wave6PlanCrudTest` | 🧪 |
 | UC-RBPNE-02 | Editar plano de outro business é 404 | must `[T0]` | `CU-RB-01` 5 | `Wave6PlanCrudTest` | 🧪 |
+| UC-RBPNE-03 | `/planos/{id}/editar` é a lista com o drawer de edição aberto | must | `CU-RB-01` 2 | `Wave6PlanCrudTest` | 🧪 |
 
 ---
 
@@ -60,6 +61,23 @@ last_run_ci: "2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITIC
   Teste biz=1 vs biz=99, **nunca biz=4** ([ADR 0101](../../../../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)).
 - **Regressão que defende:** o pior caso deste módulo — alterar o preço do plano de **outra empresa**
   e mudar o faturamento dela no ciclo seguinte, sem que ninguém veja.
+- **Status: 🧪**
+
+---
+
+## UC-RBPNE-03 · `/planos/{id}/editar` é a lista com o drawer de edição aberto · `must`
+- **Persona:** Wagner abre um link de edição salvo; espera o plano preenchido, com a lista atrás.
+- **Aceite:** Dado um plano do business da sessão · Quando acesso `GET /recurring-billing/planos/{id}/editar`
+  · Então a resposta é a **lista de planos** (props `filters`, `plans`, `kpis`) **com o drawer de edição
+  aberto** no plano certo (prop `plan` com ciclo, ativo e campos fiscais vindos do banco). O 404 de
+  outro business (UC-RBPNE-02) continua antes de qualquer prop da lista.
+- **Teste:** [`Wave6PlanCrudTest`](../../../../../Modules/RecurringBilling/Tests/Feature/Wave6PlanCrudTest.php)
+  — `UC-RBPNE-03 — /planos/{id}/editar rende a lista com o drawer de edição aberto no plano da sessão`.
+- **Contrato:** forma do protótipo `rb-planos` (`ROTAS["rb-planos"].drawers.editar`),
+  [ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md).
+  **Substitui** a página de edição inteira que esta URL abria até 2026-11-23.
+- **Regressão que defende:** o drawer abrir com campos vazios ou de outro plano porque a URL deixou de
+  carregar o `plan` junto da lista.
 - **Status: 🧪**
 
 ---
