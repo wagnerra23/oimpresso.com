@@ -107,6 +107,22 @@ it('quem somos: só entidades, sem nome de dirigente, com as sete associações 
     }
 });
 
+it('quem somos conta a história de cada associação, cada uma com o Instagram oficial', function () {
+    $html = uniafibroHtml();
+
+    $ini = strpos($html, 'Cada associação, sua história');
+    expect($ini)->not->toBeFalse();
+    $bloco = substr($html, $ini, strpos($html, 'O que a rede já conquistou', $ini) - $ini);
+    foreach (['AGFESC Girassóis', 'AFICOR', 'AREFI', 'AFIBROMAR', 'AFASJ', 'AFAGAS', 'ASCAF'] as $nome) {
+        expect($bloco)->toContain('<h3>'.$nome.'</h3>');
+    }
+    preg_match_all('/<div class="cartao">(.*?)<\/div>/s', $bloco, $cartoes);
+    expect(count($cartoes[1]))->toBe(7);
+    foreach ($cartoes[1] as $cartao) {
+        expect($cartao)->toMatch('/href="https:\/\/www\.instagram\.com\/[a-z0-9_.]+\/"/');
+    }
+});
+
 it('a rede diz em quantas mesorregiões está e quais faltam', function () {
     $html = uniafibroHtml();
 
