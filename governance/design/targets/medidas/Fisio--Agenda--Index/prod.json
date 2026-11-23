@@ -1,0 +1,98 @@
+{
+  "url": "https://staging.oimpresso.com/fisio/agenda",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CB MF Agenda Semana de 23 de novembro a 28 de novembro · Medida Fisio Agendamento pelo app Bloquear horário Nova sessão confirmado pelo WhatsApp aguardando teleconsulta falta Medida Fisio Hoje Seg 23 Ter 24 Qua 25 Qui 26 Sex 27 Sáb 28 08 h 09 h 10 h 11 h 12 h 13 h 14 h 15 h 16 h 17 h 18 h Ana L. Sessao LOTE7 Bruno L. Sessao LOTE7 Carla L. Sessao LOTE7 Hoje 3 sessões 0/3 confirmadas 0 faltas no mês Lista de espera · 0 Pôr na lista Ninguém esperando vaga. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(0.984 0.003 247.9)",
+      "border": "oklch(0.92 0.006 90)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Agenda/Index",
+    "lado": "prod",
+    "url": "https://staging.oimpresso.com/fisio/agenda",
+    "http": 200,
+    "medido_em": "2026-11-23T19:10:55.947Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

@@ -2,7 +2,7 @@
 // @covers-us US-RB-021
 
 declare(strict_types=1);
-// Cobre UC-RBPA-01..06 (resources/js/Pages/RecurringBilling/Index.casos.md).
+// Cobre UC-RBPA-01..06 e UC-RBPA-15 (resources/js/Pages/RecurringBilling/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
@@ -230,4 +230,31 @@ it('UC-RBPA-06 · Tier 0: cobrar a 98 não toca assinatura nem credencial da 99;
     config(['recurringbilling.cobrar_pix_automatico' => false]);
     expect(Artisan::call('rb:cobrar-pix-automatico', ['--business' => $this->b99, '--data' => PA_HOJE]))->toBe(0);
     expect(paCobrancas($sub99))->toHaveCount(0);
+});
+
+it('UC-RBPA-15 · a4: o txid da cobrança vai para a fatura, e o Pix do Inter com esse txid quita a fatura certa', function () {
+    \Illuminate\Support\Facades\Event::fake([\Modules\RecurringBilling\Events\InvoicePaid::class]);
+    paCredencial($this->b98);
+    $sub = paAssinatura($this->b98, 5);
+    $outra = paAssinatura($this->b98, 6); // vizinha da mesma empresa: não pode ser tocada
+    paBancoOk();
+
+    app(CobradorPixAutomatico::class)->cobrar($this->b98, PA_HOJE);
+
+    $cob = paCobrancas($sub);
+    $txid = BcbPixDriver::txidDe($cob[0]->idempotency_key);
+    $fatura = DB::table('rb_invoices')->where('subscription_id', $sub)->first();
+    expect((string) $fatura->gateway_ref)->toBe($txid)                      // caminho 1: a fatura
+        ->and((string) $cob[0]->gateway_external_id)->toBe($txid)          // caminho 2: a cobrança
+        ->and($fatura->gateway)->toBeNull(); // cancelar segue local: o driver de boleto não conhece txid
+
+    (new \Modules\RecurringBilling\Jobs\ProcessInterWebhookJob($this->b98, 'E2E'.uniqid(), [
+        'txid' => $txid, 'valor' => '106.07', 'horario' => '2031-03-24T10:00:00-03:00',
+    ]))->handle();
+
+    expect(DB::table('rb_invoices')->where('id', $fatura->id)->value('status'))->toBe('paid')
+        ->and(DB::table('rb_invoices')->where('subscription_id', $outra)->value('status'))->toBe('open');
+    \Illuminate\Support\Facades\Event::assertDispatchedTimes(\Modules\RecurringBilling\Events\InvoicePaid::class, 1);
+    \Illuminate\Support\Facades\Event::assertDispatched(\Modules\RecurringBilling\Events\InvoicePaid::class,
+        fn ($e) => $e->businessId === $this->b98 && $e->invoiceRef === (string) $fatura->numero_documento);
 });

@@ -233,7 +233,7 @@ e cada item carrega a âncora (`Arquivo.casos.md:linha`) de onde saiu.
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-09] ~~A justificativa exibida é truncada, para não vazar PII do XML~~ — Dado um evento com justificativa longa · Quando a linha renderiza · Então só um trecho inicial aparece. _Anti-hook do charter (o texto do motivo da SEFAZ pode conter dado pessoal); o corte existe no Controller, sem teste._
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-10] ~~Filtro por categoria e por janela de tempo~~ — 7, 30 ou 90 dias, com 30 como padrão. _Existe no Controller; sem teste do resultado._
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-11] ~~A nota de origem vem junto sem multiplicar consultas~~ — o charter limita a **um** relacionamento carregado; nenhum teste guarda esse limite.
-- **[BACKLOG · 🧪 coberto em outra tela] As ações que GERAM evento** (cancelamento, carta de correção, inutilização, retransmissão, manifestação) têm contrato em [`Nfe.casos.md`](Nfe.casos.md) (`UC-FNFE-04..07`) e [`Dfe.casos.md`](Dfe.casos.md) (`UC-FDFE-03/04`) — o dispatch vive lá, esta tela só **lê** o resultado. Não se duplica UC entre telas irmãs.
+- [~~BACKLOG~~ · tirado da lista em 2026-11-23: é apontador, não dívida] ~~As ações que GERAM evento~~ (cancelamento, carta de correção, inutilização, retransmissão, manifestação) têm contrato em [`Nfe.casos.md`](Nfe.casos.md) (`UC-FNFE-04..07`) e [`Dfe.casos.md`](Dfe.casos.md) (`UC-FDFE-03/04`) — o dispatch vive lá, esta tela só **lê** o resultado. Não se duplica UC entre telas irmãs.
 
 ## Como rodar a suíte
 

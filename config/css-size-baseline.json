@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-11-23T23:42:26.438Z",
+    "generated_at": "2026-11-23T23:45:11.030Z",
     "total_lines": 25437,
     "file_count": 45,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
