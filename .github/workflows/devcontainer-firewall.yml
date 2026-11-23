@@ -30,6 +30,7 @@ on:
     paths:
       - '.devcontainer/**'
       - '.github/workflows/devcontainer-firewall.yml'
+      - 'scripts/tests/devcontainer-firewall-meta.test.sh'
   schedule:
     - cron: '45 7 * * 1' # segunda 07:45 UTC — 20min após o corpus de injection; slot livre
   workflow_dispatch:
@@ -47,6 +48,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # ── 0. O /meta FALHAR NÃO DERRUBA O SCRIPT ──────────────────────────────────
+      # A run agendada de 2026-11-23 morreu no passo do api.github.com/meta, antes de
+      # aplicar as regras: com HTTP de erro o curl sem -f saía 0 e o grep sem nenhuma faixa
+      # derrubava o script pelo pipefail. O teste roda o trecho REAL do script com curl e
+      # ipset simulados (sem rede, sem container), então não depende do GitHub responder.
+      - name: 0. Passo do /meta segue com aviso quando o GitHub não entrega as faixas
+        run: bash scripts/tests/devcontainer-firewall-meta.test.sh
 
       - name: Build da imagem do devcontainer
         run: docker build -t oimpresso-agent-dev -f .devcontainer/Dockerfile .devcontainer/
