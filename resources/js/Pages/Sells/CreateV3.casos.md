@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-11-21"
+last_run: "2026-11-23"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -334,6 +334,50 @@ Origem: em 2026-11-03, com a flag ligada na empresa 1, a venda OS00135 gravou co
 - Sem nota, os três campos vão vazios, como antes (a fixture do UC-V380 segue a mesma).
 
 Até 2026-11-21 as duas caixas não guardavam o que se digitava: o texto sumia ao gravar, sem aviso (medido no arquivo servido em produção, `CreateV3-D5TgXVkD.js`, com `sale_note:""` e `staff_note:""` fixos).
+
+## UC-V404 · Gravando, o cliente padrão vem do cadastro e a tela não recebe dados de demonstração
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php` e `tests/js/sells-v3-gravando-sem-cena.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** a tela abre,
+- **Então** o cartão do cliente mostra o cliente padrão **desta empresa** como está no cadastro (`getWalkInCustomer`, filtrado por `business_id`): código, nome, telefone, endereço, cidade, UF e prazo. O que a tela não lê do cadastro (documento, IE, regime, e-mail, grupo) vai como `—`, a mesma regra do cliente escolhido na consulta (UC-V393).
+- **E** a cena de demonstração não vai: transportadoras, executantes, tabelas de cena e o pipeline de 7 etapas chegam vazios, como itens e catálogo já chegavam.
+- Sem a gravação, a cena segue inteira, como antes.
+
+Até 2026-11-23, gravando, só o nome do cliente vinha do cadastro: o endereço e a cidade eram os da demonstração (o consumidor final de qualquer empresa aparecia em "Termas do Gravatal/SC").
+
+## UC-V405 · Gravando, a entrega mostra só o valor do frete, e o serviço não oferece funcionário de cena
+
+**Status:** 🧪 — `tests/js/sells-v3-gravando-sem-cena.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador abre "Entrega e frete",
+- **Então** aparece só o **Valor do frete**, que entra no total e é gravado (UC-V380), com o aviso *"A venda grava só o valor do frete"*. Transportadora, veículo, volumes, remessa e endereço de entrega não aparecem: a lista de transportadoras era de demonstração e o resto sumiria ao gravar.
+- **Quando** lança um serviço,
+- **Então** o lançamento diz que *"o funcionário vinculado e a data prevista ainda não são gravados"*, em vez de oferecer os funcionários da demonstração.
+- Sem a gravação, a entrega e o lançamento seguem como antes.
+
+## UC-V406 · Gravando, a situação não mostra o pipeline de demonstração
+
+**Status:** 🧪 — `tests/js/sells-v3-gravando-sem-cena.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador abre "Situação",
+- **Então** a venda aparece como **Não gravada**, e a tela diz que, ao gravar, ela entra no fluxo de vendas da empresa na etapa que o sistema escolhe pelo que foi gravado (UC-V400 e UC-V401). As 7 etapas da demonstração e os papéis de demonstração não aparecem.
+- O botão **Salvar como orçamento** grava o orçamento (UC-V401), sem depender do papel de demonstração; a tela já exige `sell.create` para abrir.
+- Sem a gravação, a situação segue com as etapas da cena e o botão avança em memória.
+
+## UC-V407 · Gravando, o detalhe do item não traz tributação fixa
+
+**Status:** 🧪 — `tests/js/sells-v3-gravando-sem-cena.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e um item na venda,
+- **Quando** o operador abre **Impostos** ou o detalhe do item,
+- **Então** o painel diz que o detalhe ainda não está disponível na nova venda: a tributação vem do cadastro do produto e não se troca na venda (decisão [W] de 2026-11-19, #11191), e produção, fluxo, anexos e observações do item ainda não são gravados. NCM `39199090`, CFOP `5102`, CST e alíquota 18 não aparecem, nem o botão "Confirmar item".
+- Sem a gravação, o detalhe segue com as 7 abas da cena.
+
+Até 2026-11-23 o detalhe abria, para qualquer produto, com NCM, CFOP, CST e alíquota fixos da demonstração, e o fluxo e os anexos traziam pessoas e arquivos de demonstração.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
@@ -1275,6 +1319,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-03 (G-6):** desde 2026-10-30, `CreateV3.tsx` mudou só em quando os dois avisos "Preview de design — não grava" aparecem: agora somem quando a tela recebe `gravacao` (flag `useV3SellsGravar`, ligada para a empresa 1 em 2026-11-03), porque ali a tela grava pelos stores de produção. Sem `gravacao` os avisos seguem iguais. Nenhum UC acima cita os avisos; UC-V302 (nenhuma rota de escrita no controller do preview) segue valendo, pois a gravação usa os stores de produção, não rota do `SellsV3Controller`.
 - **Revalidação de 2026-11-03, segunda (G-6):** com a gravação ligada, "Salvar como orçamento" passou a gravar e a venda e o orçamento da V3 passaram a nascer no pipeline (UC-V400 a UC-V402, novos). Sem `gravacao` o botão segue avançando o estágio em memória e nenhum UC anterior mudou; o payload da fixture ganhou `origem_tela`, e o vitest e o Pest do UC-V380 seguem comparando o mesmo total e o mesmo estoque.
 - **Revalidação de 2026-11-21 (G-6):** `CreateV3.tsx` passou a guardar as duas notas da gaveta "Observações e produção" e a mandá-las na gravação (UC-V403, novo), e a passar quantas parcelas e quantos beneficiários de comissão a venda tem, para a gravação recusar com motivo (UC-V381, dois casos novos). Sem `gravacao` nada muda. Os demais UCs seguem valendo: o payload sem nota é o mesmo da fixture do UC-V380.
+- **Revalidação de 2026-11-23 (G-6):** com `gravacao`, a tela deixou de mostrar dados de demonstração (UC-V404 a UC-V407, novos): o cliente padrão vem do cadastro, a entrega mostra só o valor do frete, a situação diz "Não gravada" e o detalhe do item não traz tributação fixa. O botão "Salvar como orçamento" passou a gravar sem conferir o papel de demonstração (UC-V401 segue igual: o payload e o estágio não mudam). Sem `gravacao` nada muda, e os controles de cada caso novo provam isso.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

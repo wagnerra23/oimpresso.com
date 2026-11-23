@@ -567,3 +567,51 @@ it('UC-V403 · as notas da V3 ficam na venda: a da venda em additional_notes, a 
     expect($v['saldos'])->toBe([7.0, 8.0]);
     expect((int) $v['venda']->business_id)->toBe($this->bizId);
 });
+
+it('UC-V404 · gravando, o cliente padrão vem do cadastro desta empresa e as listas de demonstração não vêm', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+
+    // O cliente padrão do tenant 98 ganha endereço fictício, para a tela ter o que mostrar do cadastro.
+    $padraoId = (int) (app(\App\Utils\ContactUtil::class)->getWalkInCustomer($this->bizId)['id'] ?? 0);
+    expect($padraoId)->toBeGreaterThan(0);
+    DB::table('contacts')->where('id', $padraoId)->update([
+        'city' => 'Cidade do Cadastro', 'state' => 'PR', 'mobile' => '(41) 90000-0000',
+        'address_line_1' => 'Rua do Cadastro, 10', 'zip_code' => '80000-000',
+    ]);
+    $codigo = trim((string) DB::table('contacts')->where('id', $padraoId)->value('contact_id'));
+
+    // Controle: sem a gravação, a cena vai inteira (a cidade de demonstração incluída).
+    config(['feature-flags.forced_on' => '']);
+    $preview = $this->get('/sells/create-v3')->viewData('page')['props'];
+    expect($preview)->not->toHaveKey('gravacao');
+    expect($preview['cena']['cliente']['cidade'])->toBe('Termas do Gravatal');
+    expect($preview['cena']['transportadoras'])->not->toBeEmpty();
+    expect($preview['cena']['fsm'])->toHaveCount(7);
+
+    config(['feature-flags.forced_on' => 'useV3SellsGravar']);
+    $props = $this->get('/sells/create-v3')->viewData('page')['props'];
+    $cena = $props['cena'];
+
+    // O cliente padrão é o do cadastro, com a regra do clienteDaBusca: o que a tela não lê vai como travessão.
+    expect($cena['cliente']['cidade'])->toBe('Cidade do Cadastro');
+    expect($cena['cliente']['uf'])->toBe('PR');
+    expect($cena['cliente']['endereco'])->toBe('Rua do Cadastro, 10 · 80000-000');
+    expect($cena['cliente']['fone'])->toBe('(41) 90000-0000');
+    expect($cena['cliente']['cod'])->toBe($codigo !== '' ? $codigo : (string) $padraoId);
+    expect($cena['cliente']['padrao'])->toBeTrue();
+    foreach (['doc', 'ie', 'regime', 'email', 'emailNfe', 'grupo'] as $campo) {
+        expect($cena['cliente'][$campo])->toBe('—');
+    }
+    expect($cena['clientes'])->toBe([$cena['cliente']]);
+
+    // Nenhuma lista de demonstração: transportadoras, executantes, tabelas e o pipeline de 7 etapas.
+    foreach (['itens', 'catalogo', 'tabelas', 'fsm', 'papeisDoUsuario', 'executantes', 'transportadoras'] as $lista) {
+        expect($cena[$lista])->toBe([]);
+    }
+    expect($props['gravacao'])->not->toHaveKey('cliente');
+
+    // Tier 0: o cliente mostrado é o da empresa da sessão.
+    expect((int) $props['gravacao']['contactId'])->toBe($padraoId);
+    expect((int) DB::table('contacts')->where('id', $padraoId)->value('business_id'))->toBe($this->bizId);
+});
