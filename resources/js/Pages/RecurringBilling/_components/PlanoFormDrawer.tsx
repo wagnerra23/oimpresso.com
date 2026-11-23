@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 export type Ciclo = 'monthly' | 'quarterly' | 'semiannual' | 'yearly' | 'custom';
 export type FiscalType = 'nfe' | 'nfse' | 'none';
@@ -111,8 +112,9 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
         className="w-full max-w-[92vw] gap-0 border-l border-border bg-card p-0 sm:max-w-[560px]"
         data-contract="drawer-plano"
       >
-        <form ref={formRef} onSubmit={submit} className="flex h-full flex-col">
-          <div className="flex h-[58px] shrink-0 items-center gap-3 border-b border-border px-[18px]">
+        <Stack asChild gap={0} className="h-full">
+        <form ref={formRef} onSubmit={submit}>
+          <Inline gap={3} className="h-[58px] shrink-0 border-b border-border px-[18px]">
             <div className="min-w-0 flex-1">
               <div className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-muted-foreground">Plano</div>
               <SheetTitle className="mt-px truncate text-sm font-semibold text-foreground">{titulo}</SheetTitle>
@@ -120,9 +122,9 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
                 {plan ? `${plan.name} · #${plan.id}` : 'Cadastrar plano recorrente'}
               </SheetDescription>
             </div>
-          </div>
+          </Inline>
 
-          <div className="flex flex-1 flex-col gap-[18px] overflow-y-auto p-[18px]">
+          <Stack gap={4} className="flex-1 overflow-y-auto p-[18px]">
             <Secao titulo="Identificação">
               <Campo label="Nome do plano" req erro={form.errors.name}>
                 <input className={CAMPO} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)}
@@ -144,7 +146,7 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
             </Secao>
 
             <Secao titulo="Cobrança">
-              <div className="grid grid-cols-2 gap-3">
+              <Grid cols={2} gap={3}>
                 <Campo label="Valor (R$)" req erro={form.errors.valor}>
                   <input className={`${CAMPO} font-mono tabular-nums`} type="number" step="0.01" min="0" required
                     value={form.data.valor} onChange={(e) => form.setData('valor', parseFloat(e.target.value) || 0)} />
@@ -167,11 +169,13 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
                   <input className={`${CAMPO} font-mono tabular-nums`} type="number" min={0} max={90}
                     value={form.data.trial_days} onChange={(e) => form.setData('trial_days', parseInt(e.target.value, 10) || 0)} />
                 </Campo>
-              </div>
-              <label htmlFor="plano-ativo" className="flex items-center gap-2 text-[13px] text-muted-foreground">
+              </Grid>
+              <Inline asChild gap={2}>
+              <label htmlFor="plano-ativo" className="text-[13px] text-muted-foreground">
                 <Checkbox id="plano-ativo" checked={form.data.ativo} onCheckedChange={(c) => form.setData('ativo', c === true)} />
                 Plano ativo (disponível pra novas assinaturas)
               </label>
+              </Inline>
             </Secao>
 
             <Secao titulo="Emissão fiscal">
@@ -196,10 +200,9 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
                 </Campo>
               )}
             </Secao>
-          </div>
+          </Stack>
 
-          <div className="flex h-[60px] shrink-0 items-center gap-2 border-t border-border px-[18px]">
-            <span className="flex-1" />
+          <Inline gap={2} justify="end" className="h-[60px] shrink-0 border-t border-border px-[18px]">
             <Button type="button" variant="outline" onClick={onClose}
               className="h-8 rounded-[7px] px-3 text-[12.5px] font-medium shadow-none">
               Cancelar <kbd className="font-mono text-[10px] text-muted-foreground">Esc</kbd>
@@ -209,8 +212,9 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
               {form.processing ? 'Salvando…' : plan ? 'Salvar alterações' : 'Salvar plano'}
               <kbd className="font-mono text-[10px] opacity-80">⌘↵</kbd>
             </Button>
-          </div>
+          </Inline>
         </form>
+        </Stack>
       </SheetContent>
     </Sheet>
   );
@@ -220,10 +224,12 @@ export default function PlanoFormDrawer({ alvo, onClose }: { alvo: PlanoDrawerMo
 // rótulo `cr-blk-label` 10.5px/500 em caixa alta, tracking 0.08em.
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <section className="grid gap-3 rounded-[9px] border border-border px-3.5 py-3">
+    <Stack asChild gap={3}>
+    <section className="rounded-[9px] border border-border px-3.5 py-3">
       <div className="mb-0 text-[10.5px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{titulo}</div>
       {children}
     </section>
+    </Stack>
   );
 }
 

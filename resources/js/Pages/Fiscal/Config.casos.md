@@ -390,7 +390,7 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCFG-16] ~~Ligar/desligar o envio automático POR EMPRESA~~ — hoje as
   duas chaves são de deploy (`Modules/NfeBrasil/Config/config.php`), e o card diz isso. Tornar
   por-tenant é coluna nova + tela editável, não ajuste de leitura.
-- **[BACKLOG · 🧪 coberto em outra tela] O bloqueio do download de SPED por feature flag** tem contrato em [`Sped.casos.md`](Sped.casos.md) (`UC-FSPED-05`) — a aba "sped" desta tela apenas aponta para lá.
+- [~~BACKLOG~~ · tirado da lista em 2026-11-23: é apontador, não dívida] ~~O bloqueio do download de SPED por feature flag~~ tem contrato em [`Sped.casos.md`](Sped.casos.md) (`UC-FSPED-09` e `UC-FSPED-10`, a trava do Simples; o ponteiro antigo dizia `UC-FSPED-05`, que é o motor tributário) — a aba "sped" desta tela apenas aponta para lá.
 - **[BACKLOG · ⬜ sem teste] O perfil do SPED é escolhido por empresa** (pedido de 2026-10-23) — Dado
   uma empresa enquadrada pela SEFAZ do estado no perfil B, Quando marco "Perfil B" na configuração
   fiscal, Então o SPED dela sai com `IND_PERFIL` B e com os registros que esse perfil exige; empresa sem
