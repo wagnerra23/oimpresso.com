@@ -50,13 +50,14 @@ export default function LoteSaidaModal({ tipo, qtd, foraNfse, busy, onConfirm, o
     : 'O arquivo sai do sistema: guarde e compartilhe só com quem precisa.';
 
   return (
-    <div className="fx-drawer-bg" onClick={() => !busy && onClose()}>
+    // Sem clique no fundo: fecha por Esc, "Cancelar" ou o X — o fundo clicável era um
+    // elemento estático com handler (jsx-a11y), e confirmação de saída de dado pede gesto explícito.
+    <div className="fx-drawer-bg">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={spec.titulo}
         data-contract="lote-saida-modal"
-        onClick={(e) => e.stopPropagation()}
         style={{
           background: 'var(--surface)',
           color: 'var(--text)',
