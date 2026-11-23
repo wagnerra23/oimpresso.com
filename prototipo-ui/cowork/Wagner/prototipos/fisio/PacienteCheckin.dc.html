@@ -17,7 +17,7 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
 <div style="width: 390px; height: 844px; box-sizing: border-box; background: oklch(0.985 0.003 90); color: oklch(0.22 0.01 80); font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; display: flex; flex-direction: column; overflow: hidden">
 
   <sc-if value="{{editing}}" hint-placeholder-val="{{ true }}">
-    <div style="flex: 1; padding: 28px 20px 24px; display: flex; flex-direction: column; gap: 20px">
+    <div style="flex: 1; padding: 20px 20px 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto">
       <header style="display: flex; flex-direction: column; gap: 6px">
         <span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: oklch(0.95 0.075 150); color: oklch(0.40 0.12 150); font-size: 13px; font-weight: 600"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>5 de 5 exercícios feitos</span>
         <h1 style="margin: 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 32px; line-height: 1.1">Como foi hoje?</h1>
@@ -46,6 +46,16 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
         </div>
       </section>
 
+      <section aria-labelledby="alr" style="display: flex; flex-direction: column; gap: 8px">
+        <span id="alr" style="font-weight: 600">Apareceu alguma destas coisas?</span>
+        <sc-for list="{{flags}}" as="f" hint-placeholder-count="5">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
+            <span style="font-size: 15px">{{f.t}}</span>
+            <button type="button" onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="min-width: 64px; height: 36px; border-radius: 999px; border: {{f.bd}}; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-weight: 500">{{f.label}}</button>
+          </div>
+        </sc-for>
+      </section>
+
       <section aria-labelledby="rec" style="display: flex; flex-direction: column; gap: 10px">
         <span id="rec" style="font-weight: 600">Quer contar algo para a fisio?</span>
         <div style="display: flex; gap: 8px">
@@ -58,7 +68,7 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
     </div>
   </sc-if>
 
-  <sc-if value="{{sent}}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{sentOk}}" hint-placeholder-val="{{ false }}">
     <div style="flex: 1; padding: 28px 24px; display: flex; flex-direction: column; gap: 18px; justify-content: center; align-items: center; text-align: center">
       <span style="width: 92px; height: 92px; border-radius: 50%; background: {{accent}}; display: grid; place-items: center"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
       <h1 style="margin: 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 30px; line-height: 1.15">13 dias seguidos</h1>
@@ -71,13 +81,40 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
       <button type="button" onClick="{{reset}}" style="height: 44px; border: 0; background: none; color: oklch(0.50 0.01 80); font: inherit; text-decoration: underline">Corrigir respostas</button>
     </div>
   </sc-if>
+
+  <!-- Dor >= 7 sem sinal de alerta (ADR 0437 §6): o jogo sai da tela; aparece a instrução que a profissional escreveu; a clínica é avisada; a sequência fica protegida. -->
+  <sc-if value="{{sentPain}}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="flex: 1; padding: 28px 24px; display: flex; flex-direction: column; gap: 16px">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600; line-height: 1.15">Dor alta hoje</h1>
+      <span style="color: oklch(0.38 0.01 80)">Você registrou dor {{painText}}. A clínica foi avisada pelo seu registro.</span>
+      <div style="padding: 12px 14px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90); font-size: 15px"><b style="font-weight: 600">Orientação da Dra. Dejeane para dor alta:</b> “Pare os exercícios de hoje e descanse. Amanhã, faça só a versão curta. Se a dor ficar diferente da habitual, procure atendimento.”</div>
+      <div style="display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; background: oklch(0.95 0.075 150); color: oklch(0.40 0.12 150)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex: none"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+        <span style="font-size: 15px">Sua sequência de <b>13 dias</b> fica protegida.</span>
+      </div>
+      <a href="PacienteHoje.dc.html" style="margin-top: auto; display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 14px; background: oklch(0.22 0.01 80); color: #FFFFFF; text-decoration: none; font-weight: 600">Voltar ao início</a>
+      <button type="button" onClick="{{reset}}" style="height: 44px; border: 0; background: none; color: oklch(0.50 0.01 80); font: inherit; text-decoration: underline">Corrigir respostas</button>
+    </div>
+  </sc-if>
+
+  <!-- Sinal de alerta marcado: orientação para procurar atendimento, sem XP, sem diagnóstico, sem promessa de leitura. -->
+  <sc-if value="{{sentAlert}}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="flex: 1; padding: 28px 24px; display: flex; flex-direction: column; gap: 16px">
+      <span style="width: 64px; height: 64px; border-radius: 50%; background: oklch(0.95 0.04 25); display: grid; place-items: center"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="oklch(0.55 0.18 25)" stroke-width="2.2" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/></svg></span>
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600; line-height: 1.15">Procure atendimento hoje</h1>
+      <span style="color: oklch(0.38 0.01 80)">Você marcou: <b>{{flagText}}</b>.</span>
+      <span style="color: oklch(0.38 0.01 80)">Isso precisa ser visto por um médico. Pare os exercícios e procure seu médico ou uma unidade de saúde hoje.</span>
+      <span style="color: oklch(0.50 0.01 80); font-size: 14px">Seu registro foi enviado para a clínica. Sua sequência fica protegida.</span>
+      <button type="button" onClick="{{reset}}" style="margin-top: auto; height: 48px; border-radius: 14px; border: 1px solid oklch(0.90 0.004 90); background: #FFFFFF; color: oklch(0.22 0.01 80); font: inherit; font-weight: 600">Marquei errado, corrigir respostas</button>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    this.state = { pain: 3, effort: 'Adequado', sent: false };
+    this.state = { pain: 3, effort: 'Adequado', sent: false, flags: {} };
   }
   renderVals() {
     const accent = this.props.accent ?? 'oklch(0.55 0.15 295)';
@@ -85,11 +122,17 @@ class Component extends DCLogic {
     const sel = (on) => ({ border: on ? '0' : '1px solid oklch(0.90 0.004 90)', bg: on ? 'oklch(0.22 0.01 80)' : '#FFFFFF', fg: on ? '#FFFFFF' : 'oklch(0.22 0.01 80)', on: on ? 'true' : 'false' });
     const pains = [];
     for (let v = 0; v <= 10; v++) pains.push(Object.assign({ v: String(v), pick: () => this.setState({ pain: v }) }, sel(s.pain === v)));
+    // Sinais de alerta: texto clínico aguarda revisão da Dra. Dejeane (responsável técnica).
+    const flags = ['Febre', 'Dormência na região íntima', 'Dificuldade nova para urinar', 'Fraqueza que piora nas pernas', 'Dor diferente da habitual'].map(t => { const on = !!(s.flags || {})[t]; return { t, label: on ? 'Sim' : 'Não', pick: () => this.setState({ flags: Object.assign({}, s.flags, { [t]: !on }) }), on: on ? 'true' : 'false', bd: on ? '0' : '1px solid oklch(0.90 0.004 90)', bg: on ? 'oklch(0.55 0.18 25)' : 'oklch(0.965 0.004 90)', fg: on ? '#FFFFFF' : 'oklch(0.22 0.01 80)' }; });
+    const marked = Object.keys(s.flags || {}).filter(k => s.flags[k]), alert = marked.length > 0, highPain = s.pain >= 7;
     const efforts = ['Fácil', 'Adequado', 'Difícil'].map(label => Object.assign({ label, pick: () => this.setState({ effort: label }) }, sel(s.effort === label)));
     return {
       accent,
       editing: !s.sent,
-      sent: s.sent,
+      sentOk: s.sent && !alert && !highPain,
+      sentPain: s.sent && !alert && highPain,
+      sentAlert: s.sent && alert,
+      flags, flagText: marked.join(', ').toLowerCase(),
       painText: s.pain + '/10',
       painShort: String(s.pain),
       pains,
