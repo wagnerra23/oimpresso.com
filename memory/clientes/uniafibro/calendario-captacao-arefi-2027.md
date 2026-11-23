@@ -98,7 +98,7 @@ O que **existe** e está confirmado 🟢:
 |---|---|
 | Lei estadual 18.928/2024 (dep. **Maurício Peixer**, PL): equipara fibromialgia a deficiência em SC e cria a carteira de identificação | Agência Alesc, 16/02/2026 |
 | TJSC manteve a lei, com interpretação de que a fibromialgia é condição *potencialmente* geradora de deficiência (análise individual) | TJSC; Conjur 20/06/2026 |
-| Lei federal 14.705/2025 reconhece fibromialgia nacionalmente | ndmais |
+| Lei federal 14.705/2023 (25/10/2023) trata da atenção à pessoa com fibromialgia; a Lei 15.176/2025 incluiu nela o art. 1º-C, que permite equiparar à deficiência após avaliação biopsicossocial (em vigor desde 20/01/2026) | ndmais; [Planalto, Lei 15.176/2025](https://planalto.gov.br/ccivil_03/_ato2023-2026/2025/Lei/L15176.htm) |
 | Outros autores de leis estaduais ligadas ao tema: Kennedy Nunes (Lei 18.162/2021, programa de atenção), Jean Kuhlmann (Lei 16.836/2015, dia estadual). Neodi Saretta (PT) preside a Comissão de Saúde | Agência Alesc, 16/02/2026 |
 | A matéria da Alesc de 16/02/2026 **não cita valor, emenda nem pacote** | Agência Alesc |
 
