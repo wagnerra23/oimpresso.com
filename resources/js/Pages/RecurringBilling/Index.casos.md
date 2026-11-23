@@ -316,6 +316,14 @@ sem mandato → status nulo e o botão "Pedir autorização"; `CRIADA` → o QR 
 Teste: `MandatoPixAutomaticoContratoTest`.
 Status: 🧪
 
+## UC-RBPA-15 · O txid da cobrança do ciclo vai para a fatura, e o Pix do Inter com ele quita a fatura certa · `must` `[V0]`
+Fonte: auditoria RecurringBilling 2026-11-19, achado a4 (nenhum código de produção gravava `rb_invoices.gateway_ref`).
+Teste: `CobrarPixAutomaticoContratoTest`.
+**Dado** uma assinatura com recorrência aprovada vencendo em 5 dias **Quando** o motor emite a cobrança do ciclo **Então** a
+fatura guarda o `txid` da cobrança em `gateway_ref` (o mesmo `gateway_external_id` da cobrança) e o `gateway` fica nulo; e o
+Pix do Inter com esse `txid` deixa só aquela fatura `paid` e dispara 1 `InvoicePaid` com o `numero_documento` dela.
+Status: 🧪
+
 ## Cartão recorrente — cartão salvo como token (US-RB-011 · reaberta por [W] 2026-10-27)
 
 > Motor sem tela nesta fatia: quando a fatura de uma assinatura é paga no cartão pela página hospedada
