@@ -157,6 +157,7 @@
         .membros { list-style: none; margin: 4px 0 12px; padding: 0; display: grid; gap: 10px; }
         .membros li { display: flex; flex-direction: column; padding: 10px 14px; border-radius: 12px; background: var(--lilas-claro); }
         .membros span { color: var(--texto-suave); font-size: 0.95rem; }
+        .membros a { align-self: flex-start; padding: 6px 0; font-size: 0.95rem; }
         /* Camada: cartões ganham profundidade ao passar o mouse (só com movimento liberado). */
         @media (prefers-reduced-motion: no-preference) {
             .cartao, .numeros > div { transition: transform .18s ease, box-shadow .18s ease; }
@@ -206,6 +207,7 @@
         .linha .fonte { display: block; padding: 4px 0; margin-top: 2px; font-size: 0.92rem; }
         .linha .fonte::before { content: "Fonte: "; color: var(--texto-suave); }
         .linha .relato { color: var(--texto-suave); font-style: italic; }
+        .numeros .relato { color: var(--texto-suave); font-style: italic; font-size: 0.9rem; padding: 6px 0; margin-top: auto; }
         .numeros { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 0 0 28px; }
         .numeros > div {
             background: var(--superficie); border: 1px solid var(--borda); border-radius: 16px;
@@ -452,8 +454,8 @@
                     criou o AMASF — Ambulatório de Atenção à Pessoa com Fibromialgia, gratuito pelo SUS:
                     fisioterapia de solo e aquática, psicologia, nutrição, farmácia e reumatologia, num só
                     lugar. A associação foi fundada formalmente em setembro de 2023.</p>
-                <p>Outras cidades seguiram caminhos próprios: Concórdia, Indaial, Joinville e Maravilha têm
-                    associações, e Tubarão montou seu programa com a Unisul. A Uniafibro nasce para unir
+                <p>Outras cidades seguiram caminhos próprios: Concórdia, Indaial, Joinville, Maravilha,
+                    São José, Gaspar e Cocal do Sul têm associações, e Tubarão montou seu programa com a Unisul. A Uniafibro nasce para unir
                     todas elas.</p>
             </div>
 
@@ -469,6 +471,7 @@
                 <div><strong>800</strong><span>pessoas associadas aos Girassóis, segundo o perfil da associação</span><a href="https://euvoluntario.sesisenai.org.br/detalhes-instituicao/associacao-girassois-fibromialgicos-extremo-sul-catarinense-das-regioes-da-amres-amesc-e-amurel-237" rel="noopener">Eu Voluntário (Sesi/Senai)</a></div>
                 <div><strong>3 regiões</strong><span>Amrec, Amesc e Amurel — de Passo de Torres a
                     Garopaba</span><a href="https://www.jpanoramasc.com/post/presidente-da-associa%C3%A7%C3%A3o-girass%C3%B3is-fala-sobre-fibromialgia-na-c%C3%A2mara" rel="noopener">JPanorama SC</a></div>
+                <div><strong>Mais de 540</strong><span>associadas só no núcleo de Tubarão, em 2026</span><span class="fonte relato">relato da associação</span></div>
             </div>
 
             <h3 class="titulo-linha">Nossa história</h3>
@@ -566,14 +569,20 @@
             </div>
             <div class="cartao">
                 <h3>Associações da rede</h3>
+                <!-- Associações confirmadas por [W] em 2026-11-23: as sete do estatuto revisado de 20/11,
+                     mais a ACPFA, que já estava aqui. Instagram só quando o perfil é da própria associação. -->
+                <p>A rede está em 5 das 6 mesorregiões de Santa Catarina: Sul, Vale do Itajaí, Oeste, Norte e
+                    Grande Florianópolis. A Serra é a próxima.</p>
                 <ul class="membros">
-                    <li><strong>ACPFA</strong><span>Joinville</span></li>
-                    <li><strong>AFIBROMAR</strong><span>Maravilha e Extremo Oeste</span></li>
-                    <li><strong>AFICOR</strong><span>Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense · Concórdia</span></li>
-                    <li><strong>AGFESC</strong><span>Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense · Criciúma e região (Amrec, Amesc e Amurel)</span></li>
-                    <li><strong>AREFI</strong><span>Associação dos Fibromiálgicos de Indaial e Região · Indaial</span></li>
+                    <li><strong>ACPFA</strong><span>Joinville · Norte</span><a href="https://www.instagram.com/acpfa.sc/" rel="noopener">@acpfa.sc</a></li>
+                    <li><strong>AFAGAS</strong><span>Fibromialgia Entre Elas · Gaspar · Vale do Itajaí</span></li>
+                    <li><strong>AFASJ</strong><span>Associação de Fibromialgia e Amigos de São José · Grande Florianópolis</span></li>
+                    <li><strong>AFIBROMAR</strong><span>Maravilha e Extremo Oeste · Oeste</span></li>
+                    <li><strong>AFICOR</strong><span>Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense · Concórdia · Oeste</span></li>
+                    <li><strong>AGFESC</strong><span>Associação Girassóis Fibromiálgicos do Extremo Sul Catarinense · Criciúma e região (Amrec, Amesc e Amurel) · Sul</span><a href="https://www.instagram.com/fibromialgicoscriciuma/" rel="noopener">@fibromialgicoscriciuma</a></li>
+                    <li><strong>AREFI</strong><span>Associação dos Fibromiálgicos de Indaial e Região · Indaial · Vale do Itajaí</span><a href="https://www.instagram.com/arefivale/" rel="noopener">@arefivale</a></li>
+                    <li><strong>ASCAF</strong><span>Associação Sul Cocalense de Apoio aos Fibromiálgicos · Cocal do Sul · Sul</span><a href="https://www.instagram.com/ascaf10/" rel="noopener">@ascaf10</a></li>
                 </ul>
-                <!-- PREENCHER [W]: acrescente as demais associações da rede confirmadas (nome + cidade). -->
                 <p class="suave">Outras associações estão chegando à rede.</p>
             </div>
         </section>

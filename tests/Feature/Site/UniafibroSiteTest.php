@@ -86,7 +86,7 @@ it('direitos: cita as leis com número e não promete equiparação automática'
     expect($html)->toContain('não substitui orientação jurídica');
 });
 
-it('quem somos: só entidades, sem nome de dirigente, com as cinco associações em destaque equivalente', function () {
+it('quem somos: só entidades, sem nome de dirigente, com as oito associações em destaque equivalente', function () {
     $html = uniafibroHtml();
 
     expect($html)->not->toContain('Giselli');
@@ -94,9 +94,22 @@ it('quem somos: só entidades, sem nome de dirigente, com as cinco associações
     expect($html)->toContain('AMASF');
     $ini = strpos($html, 'class="membros"');
     $lista = substr($html, $ini, strpos($html, '</ul>', $ini) - $ini);
-    foreach (['AGFESC', 'AFIBROMAR', 'AFICOR', 'AREFI', 'ACPFA'] as $sigla) {
+    foreach (['AGFESC', 'AFIBROMAR', 'AFICOR', 'AREFI', 'ACPFA', 'AFASJ', 'AFAGAS', 'ASCAF'] as $sigla) {
         expect($lista)->toContain('<strong>'.$sigla.'</strong>');
     }
+    // Cada associação está num <li> próprio e todo link da lista é um Instagram aberto.
+    expect(substr_count($lista, '<li>'))->toBe(8);
+    preg_match_all('/href="([^"]+)"/', $lista, $links);
+    foreach ($links[1] as $link) {
+        expect($link)->toStartWith('https://www.instagram.com/');
+    }
+});
+
+it('a rede diz em quantas mesorregiões está e quais faltam', function () {
+    $html = uniafibroHtml();
+
+    expect($html)->toContain('5 das 6 mesorregiões de Santa Catarina');
+    expect($html)->toContain('A Serra é a próxima');
 });
 
 it('AFICOR cita a Lei estadual 19.025/2024, não o projeto de lei', function () {
