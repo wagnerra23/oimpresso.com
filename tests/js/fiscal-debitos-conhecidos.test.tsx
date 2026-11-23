@@ -75,7 +75,7 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
 
     const exibidos = Array.from(bloco()!.querySelectorAll('[data-ancora]')).map(el => ({
       ancora: el.getAttribute('data-ancora')!,
-      titulo: el.querySelector('[data-slot="alert-title"]')?.textContent ?? '',
+      titulo: el.querySelector(':scope > b')?.textContent ?? '',
     }));
     expect(exibidos.length).toBeGreaterThan(0);
 
@@ -112,22 +112,22 @@ describe('UC-FEVT-08 · a tela declara os débitos que os casos.md dela já regi
     expect(titulos.some(t => t.includes('Gate de permissão'))).toBe(false);
   });
 
-  it('UC-FEVT-08 · o tom vira variante de ESTADO do DS, e o rótulo diz o marcador — não o tom', () => {
+  it('UC-FEVT-08 · o tom pinta a borda do item, e o rótulo guarda o marcador — não o tom', () => {
     renderTela('sped');
 
     const itens = Array.from(bloco()!.querySelectorAll('[data-tom]'));
     expect(itens.length).toBeGreaterThan(0);
     for (const el of itens) {
       expect(['danger', 'warning', 'info']).toContain(el.getAttribute('data-tom'));
-      expect(el.querySelector('[data-slot="badge"]')?.getAttribute('data-variant')).toBe(
-        el.getAttribute('data-tom')
-      );
+      // Forma do protótipo (2026-11-23): o item é `.fx-debito`, sem selo; o tom vai na borda.
+      expect(el.classList.contains('fx-debito')).toBe(true);
+      expect(el.querySelector('[data-slot="badge"]')).toBeNull();
     }
 
     // `source-grep` e `sem teste` compartilham o tom `warning`; se o rótulo saísse do tom,
     // um item source-grep seria rotulado "sem teste" — e ali o teste EXISTE, ele é que
     // mede o fonte. O SPED tem os dois marcadores, então a distinção é observável aqui.
-    const rotulos = itens.map(el => el.querySelector('[data-slot="badge"]')?.textContent);
+    const rotulos = itens.map(el => el.getAttribute('data-rotulo'));
     expect(rotulos).toContain('source-grep');
     expect(rotulos).toContain('sem teste');
   });
@@ -184,7 +184,7 @@ describe('UC-FDFE-06 · a tela avisa quando depende de decisão [W]', () => {
     // Os números são DERIVADOS, nunca fixos: o contrato é a PARTIÇÃO.
     renderTela('fiscal_config');
 
-    const naDivida = Array.from(bloco()!.querySelectorAll('[data-slot="alert-title"]')).map(
+    const naDivida = Array.from(bloco()!.querySelectorAll('.fx-debito > b')).map(
       el => el.textContent
     );
     const naDecisao = Array.from(
