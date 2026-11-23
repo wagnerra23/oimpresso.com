@@ -160,6 +160,7 @@ export default function EntregaFrete({
   frete,
   onFreteChange,
   transportadoras,
+  gravando = false,
 }: {
   itens: ItemPesavel[];
   clienteNome: string;
@@ -167,6 +168,8 @@ export default function EntregaFrete({
   frete: string;
   onFreteChange: (v: string) => void;
   transportadoras: Transportadora[];
+  /** Gravação ligada (UC-V405): a venda grava só o valor do frete; o resto da entrega não aparece. */
+  gravando?: boolean;
 }) {
   const cockpit = useCockpit();
   const [porConta, setPorConta] = useState(FRETE_CIF);
@@ -214,11 +217,24 @@ export default function EntregaFrete({
         </Inline>
 
         <Grid gap={3} className="sm:grid-cols-2">
-          <Escolha label="Frete por conta" value={porConta} onChange={setPorConta} options={FRETE_POR_CONTA} />
+          {!gravando && (
+            <Escolha label="Frete por conta" value={porConta} onChange={setPorConta} options={FRETE_POR_CONTA} />
+          )}
           <MoneyInput label="Valor do frete (entra no total)" value={frete} onChange={onFreteChange} />
         </Grid>
 
-        {semTransporte ? (
+        {/* Gravando (UC-V405): o store grava o valor do frete e nada mais da entrega. As
+            transportadoras da lista eram de demonstração, e o resto (veículo, volumes, remessa,
+            endereço de entrega) sumiria ao gravar — então não aparece, e a tela diz por quê. */}
+        {gravando ? (
+          <div className="mt-3 rounded-lg border border-info/30 bg-info-soft px-3 py-2">
+            <b className="block text-[12.5px] leading-tight text-info-fg">A venda grava só o valor do frete</b>
+            <span className="block text-[11.5px] leading-snug text-muted-foreground">
+              Transportadora, veículo, volumes, remessa e endereço de entrega ainda não são gravados pela nova
+              venda — por isso não aparecem aqui.
+            </span>
+          </div>
+        ) : semTransporte ? (
           <div className="mt-3 rounded-lg border border-info/30 bg-info-soft px-3 py-2">
             <b className="block text-[12.5px] leading-tight text-info-fg">Sem ocorrência de transporte</b>
             <span className="block text-[11.5px] leading-snug text-muted-foreground">
@@ -327,45 +343,47 @@ export default function EntregaFrete({
       </div>
 
       {/* ─── Endereço de entrega ────────────────────────────────────────── */}
-      <div className="border-t border-border pt-4">
-        <Inline gap={3} align="center" className="mb-3 flex-wrap">
-          <Lbl className="mb-0">Endereço de entrega</Lbl>
-          <Interruptor
-            id="v3-outro-endereco"
-            label="Entregar em outro endereço"
-            sublabel="Vazio = usa o endereço do cadastro do cliente"
-            checked={outroEndereco}
-            onChange={setOutroEndereco}
-          />
-        </Inline>
-
-        {!outroEndereco ? (
-          <Inline gap={3} align="center" className="rounded-lg border border-primary/25 bg-primary/10 p-3">
-            <div className="min-w-0">
-              <b className="block text-[13.5px] leading-snug">{clienteNome}</b>
-              <span className="block text-[12.5px] leading-snug text-muted-foreground">{enderecoDoCadastro}</span>
-            </div>
-            <span className="ml-auto flex-none">
-              <Pill tom="info">do cadastro</Pill>
-            </span>
+      {!gravando && (
+        <div className="border-t border-border pt-4">
+          <Inline gap={3} align="center" className="mb-3 flex-wrap">
+            <Lbl className="mb-0">Endereço de entrega</Lbl>
+            <Interruptor
+              id="v3-outro-endereco"
+              label="Entregar em outro endereço"
+              sublabel="Vazio = usa o endereço do cadastro do cliente"
+              checked={outroEndereco}
+              onChange={setOutroEndereco}
+            />
           </Inline>
-        ) : (
-          <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
-            <Texto label="Cód. cidade (IBGE)" placeholder="4209102" />
-            <Texto label="Cidade" placeholder="Joinville" />
-            <Escolha label="UF" options={UFS} />
-            <Texto label="CEP" placeholder="89201-601" />
-            <Texto label="Logradouro" placeholder="Rua, avenida, rodovia…" />
-            <Texto label="Número" placeholder="1400" />
-            <Texto label="Bairro" placeholder="Centro" />
-            <Texto label="Complemento" placeholder="Galpão 2, fundos" />
-            <Texto label="Nome do recebedor" placeholder="Quem recebe na obra" />
-            <Texto label="Telefone" placeholder="(47) 9…" />
-            <Texto label="E-mail" placeholder="obra@cliente.com.br" />
-            <Texto label="Inscrição estadual" placeholder="Isento" />
-          </Grid>
-        )}
-      </div>
+
+          {!outroEndereco ? (
+            <Inline gap={3} align="center" className="rounded-lg border border-primary/25 bg-primary/10 p-3">
+              <div className="min-w-0">
+                <b className="block text-[13.5px] leading-snug">{clienteNome}</b>
+                <span className="block text-[12.5px] leading-snug text-muted-foreground">{enderecoDoCadastro}</span>
+              </div>
+              <span className="ml-auto flex-none">
+                <Pill tom="info">do cadastro</Pill>
+              </span>
+            </Inline>
+          ) : (
+            <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
+              <Texto label="Cód. cidade (IBGE)" placeholder="4209102" />
+              <Texto label="Cidade" placeholder="Joinville" />
+              <Escolha label="UF" options={UFS} />
+              <Texto label="CEP" placeholder="89201-601" />
+              <Texto label="Logradouro" placeholder="Rua, avenida, rodovia…" />
+              <Texto label="Número" placeholder="1400" />
+              <Texto label="Bairro" placeholder="Centro" />
+              <Texto label="Complemento" placeholder="Galpão 2, fundos" />
+              <Texto label="Nome do recebedor" placeholder="Quem recebe na obra" />
+              <Texto label="Telefone" placeholder="(47) 9…" />
+              <Texto label="E-mail" placeholder="obra@cliente.com.br" />
+              <Texto label="Inscrição estadual" placeholder="Isento" />
+            </Grid>
+          )}
+        </div>
+      )}
 
       {/* ─── consulta de transportadoras ────────────────────────────────── */}
       <Dialog open={consultaAberta} onOpenChange={setConsultaAberta}>
