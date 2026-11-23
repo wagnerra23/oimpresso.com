@@ -233,21 +233,39 @@ describe('Venda V3 gravando · sem dados de cena', () => {
     expect(screen.queryByText('A margem depende do custo dos produtos, que a nova venda ainda não lê.')).toBeNull();
   });
 
-  it('UC-V408 · gravando, as parcelas saem numeradas só pela posição, sem "VD-2026"', () => {
-    render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
+  /* UC-V408 — parcelas: gera o plano padrão (2 parcelas) e abre "Editar parcela…" da primeira,
+     pelo teclado, como em `produto-excluir-restaurar.test.tsx`. */
+  function gerarEEditarPrimeiraParcela() {
     fireEvent.click(screen.getByRole('button', { name: 'Parcelar…' }));
     fireEvent.click(screen.getByRole('button', { name: 'Gerar parcelas' }));
+    fireEvent.keyDown(screen.getAllByTitle('Ações da parcela')[0]!, { key: 'Enter' });
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Editar parcela…' }));
+  }
+
+  it('UC-V408 · gravando, as parcelas saem só com a posição, sem documento, conta nem plano de contas da cena', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
+    gerarEEditarPrimeiraParcela();
 
     expect(screen.getAllByText('1/2').length).toBeGreaterThan(0);
-    expect(document.body.textContent).not.toContain('VD-2026');
+    expect(screen.getByText('Conta de destino e plano de contas ainda não são gravados pela nova venda.')).toBeTruthy();
+    expect(screen.queryByText('Caixa / conta de destino')).toBeNull();
+    expect(screen.queryByRole('columnheader', { name: 'Conta' })).toBeNull();
+    expect(screen.queryByText('Plano de contas')).toBeNull();
+    const texto = document.body.textContent ?? '';
+    for (const cena of ['VD-2026', 'Caixa financeiro', 'Banco Itaú', 'Banco Sicredi', 'Recebido em depósito']) {
+      expect(texto).not.toContain(cena);
+    }
   });
 
-  it('UC-V408 · controle: sem a gravação, as parcelas seguem com o documento da cena', () => {
+  it('UC-V408 · controle: sem a gravação, as parcelas seguem com documento, conta e plano de contas da cena', () => {
     render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Parcelar…' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Gerar parcelas' }));
+    gerarEEditarPrimeiraParcela();
 
     expect(screen.getAllByText('VD-2026 1/2').length).toBeGreaterThan(0);
+    expect(screen.getByText('Caixa / conta de destino')).toBeTruthy();
+    expect(screen.getByRole('columnheader', { name: 'Conta' })).toBeTruthy();
+    expect(screen.getByText('Plano de contas')).toBeTruthy();
+    expect(screen.queryByText('Conta de destino e plano de contas ainda não são gravados pela nova venda.')).toBeNull();
   });
 
   it('UC-V408 · gravando, o lançamento diz que as informações adicionais não gravam, sem as listas da cena', () => {

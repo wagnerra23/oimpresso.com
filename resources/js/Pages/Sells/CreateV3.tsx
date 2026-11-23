@@ -1521,6 +1521,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         parcelas={parcelas}
         onParcelasChange={setParcelas}
         documentoBase={gravacao ? '' : 'VD-2026'}
+        gravando={!!gravacao}
       />
 
       {/* Onda extra — consulta de clientes. `cena.clientes ?? [cli]` mantém a tela
