@@ -476,7 +476,7 @@ Então NÃO cria revenue_event (sem take rate)
 
 > owner: wagner · priority: p0 · estimate: 16h · status: duplicate · type: story · duplicate_of: US-RECURRINGBILLING-001
 
-> **Reconciliação 2026-11-23:** esta US e a US-RECURRINGBILLING-001 (§7-bis, abaixo) são a mesma entrega (o texto é idêntico). O estado e a âncora ficam lá; aqui fica o texto original de 2026-05-06, que dizia `status: todo`. O PaymentGateway hoje é módulo próprio, dono dos drivers (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), em revisão).
+> **Reconciliação 2026-11-23:** esta US e a US-RECURRINGBILLING-001 (§7-bis, abaixo) são a mesma entrega (o texto é idêntico). O estado e a âncora ficam lá; aqui fica o texto original de 2026-05-06, que dizia `status: todo`. O PaymentGateway hoje é módulo próprio, dono dos drivers ([ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md), [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347)).
 
 - Módulo PaymentGateway scaffold (tabelas `pg_credentials`, `pg_charge_attempts`, `pg_webhook_events`)
 - Adapter Asaas: credencial por tenant (api_key encrypted), cobrança avulsa, webhook `payment.confirmed` / `payment.overdue`
