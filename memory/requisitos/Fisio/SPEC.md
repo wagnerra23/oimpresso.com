@@ -243,7 +243,7 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 **DoD:** horários livres só dos abertos para o app; marcar grava com o recado e recusa o horário já tomado; app desligado, só pela clínica ou bloqueado por faltas não marca; cancelar e remarcar só antes de 24 h; confirmar e "Cheguei" a partir de 1 h antes; "me avise se abrir vaga" põe na lista de espera; atendimento de outro paciente ou de outra clínica não aparece — UC-FPA-01..07.
 
-**Testado em:** `Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php` (UC-FPA-01..07 em `memory/requisitos/Fisio/_telas/agenda-paciente.casos.md`; PASS no run 44962970620). Sem caso próprio em 2026-11-23: a nota 1–5 do paciente (a rota `agenda/{id}/{acao}` do portal aceita `nota`) e o confirmar pelo link da mensagem do WhatsApp (A6).
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPortalAgendaTest.php` (UC-FPA-01..07, casos da agenda do paciente em `_telas/`; PASS no run 44962970620). Sem caso próprio em 2026-11-23: a nota 1–5 do paciente (a rota `agenda/{id}/{acao}` do portal aceita `nota`) e o confirmar pelo link da mensagem do WhatsApp (A6).
 
 ## F3 · Dinheiro — mapa de donos (F3-T01, lote 4 do protótipo Prescreve Pro)
 
