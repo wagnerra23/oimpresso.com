@@ -1,0 +1,56 @@
+{
+  "url": "https://staging.oimpresso.com/forja/roadmap-gantt",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Forja Cockpit do cowork loop — aprovações da equipe, backlog, pipeline de telas F0→F3.5, tarefas de todas as frentes, changelog e atores (humano vs agente). Buscar Trabalho Aprovações Trabalho Esteira Saúde MCP Histórico Changelog Integrador Novo issue Roadmap · Gantt Visão cronológica de cycles e tarefas do time · 0 tarefa s no filtro Cycle Cycle ativo Responsável Todos Prioridade Todas Módulo Todos O que vence esta semana e o que está bloqueando o quê. Barras por módulo, progresso pelo status; arraste a barra pra reagendar o prazo (só o prazo — início é do ciclo de vida). Clique abre o detalhe. Timeline ( 0 linha s ) arraste a barra p/ reagendar o prazo Sem tarefas no filtro atual. 0 tarefa s 0 com prazo vencido progresso prazo vencido hoje arraste a barra = reagendar prazo · clique = detalhe Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

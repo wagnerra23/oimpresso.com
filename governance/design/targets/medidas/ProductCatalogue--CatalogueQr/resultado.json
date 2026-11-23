@@ -1,0 +1,32 @@
+{
+  "id": "ProductCatalogue/CatalogueQr",
+  "module": "ProductCatalogue",
+  "source": "catalogo-qr-page.jsx",
+  "target": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx",
+  "token": "catalogo-qr",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/catalogo-qr.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "b9f142b49b0f5b87340cc043fe0c8fbe1e337fb0ad2813fa1e0a36255c065a3d",
+  "prodSha": "6d9ffb891087aa55a8b5d05626b86ead36c457da9aea6c52a004961464f5f657",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/product-catalogue/catalogue-qr",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-23T07:58:00.005Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

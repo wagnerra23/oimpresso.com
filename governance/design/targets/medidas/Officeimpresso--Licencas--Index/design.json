@@ -1,0 +1,212 @@
+{
+  "url": "http://127.0.0.1:39479/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 86
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Licenças das máquinas 15 registradas · 9 ativas · 5 sem acesso Licenças Por empresa Ver máquinas Empresas Licenças Clientes OAuth Importar do Firebird Máquinas Estado da demonstração Com dados Carregando Erro ao carregar Sem registros Perfil: só officeimpresso.clientes.liberar Perfil: sem officeimpresso.access 1 máquina nova aguardando liberação VITRINE-CX3 (Vitrine Sinalização) fez o primeiro handshake com o limite cheio e ficou como excedente. Libere uma vaga ou aumente o limite da empresa; até lá o Delphi não abre nela. Status Empresa 15 de 15 Máquina Empresa Versão instalada IP · usuário Último acesso Status BALCAO-01 LIC-4412 · 9F31-A7C2-1B04-77DE Vitrine Sinalização biz # 21 6.7.14 203.0.113.10 ana.p recente · há 3min Ativa BALCAO-02 LIC-4413 · 77C0-2DE4-91AA-3F18 Vitrine Sinalização biz # 21 6.7.14 203.0.113.10 jonas recente · há 22min Ativa PRODUCAO-PLOT LIC-4471 · 2A88-CF10-5501-B2C9 Vitrine Sinalização biz # 21 6.7.12 203.0.113.12 bruno recente · há 1h Ativa ZL-CAIXA LIC-4502 · D1E0-4471-88AC-0092 Vitrine — Zona Leste biz # 58 6.7.12 203.0.113.31 marli recente · há 1h Ativa OFICINA-PC LIC-4390 · 7C02-DE41-2210-4F8B Oficina Modelo biz # 173 6.7.09 198.51.100.40 operador1 fresc · há 4h Ativa OFICINA-BOX LIC-4391 · 3PkQ-8bL2-7741-CC02 Oficina Modelo biz # 173 6.5.02 198.51.100.41 ailton fresc · há 9 dias Ativa SINALIZA-CX1 LIC-4288 · B4A2-9910-71DE-0043 Grupo Sinaliza biz # 149 6.7.14 198.51.100.19 eder fresc · ontem Ativa CANOAS-CX1 LIC-4291 · 6610-BB84-2F19-A700 Sinaliza — Canoas biz # 151 6.7.14 198.51.100.55 rita fresc · há 2 dias Ativa Anterior 1 2 Próxima 1 – 8 de 15",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 3.4,
+        "mono": false,
+        "corPropria": null,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 3,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.68 0.13 162 / 0.16)",
+          "dot": true
+        }
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.68 0.13 162)",
+          "dot": false
+        }
+      },
+      {
+        "col": 7,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 8,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

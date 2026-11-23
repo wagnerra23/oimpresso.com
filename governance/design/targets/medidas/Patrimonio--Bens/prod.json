@@ -1,0 +1,234 @@
+{
+  "url": "https://staging.oimpresso.com/asset/assets",
+  "theme": "light",
+  "assinatura": "CI Biz Visão geral Gerenciamento de usuários Contatos Produtos Vendas Relatórios Configurações Suporte Jana Sidebar Menu Collapse Sidebar Calendário Adicionar a fazer Application Tour Calculator Reparar Today's Profit 09/18/2026 Notifications CI Signed in as CI Perfil Desconectar Toggle navigation Gestão de ativos Bens Ativo alocado Recurso revogado Asset maintenance Categorias de recursos Configurações Bens Filtros Localização da empresa: All All Categoria de recurso: All All Tipo de compra: All Possuída Alugada Alugada All É atribuível? Todos os ativos Adicionar Mostrar 25 50 100 200 500 1,000 Todos entradas Exportar para CSV Exportar para Excel Imprimir Visibilidade da coluna Exportar para PDF Ação Código do ativo Nome do recurso Quantidade Garantia É atribuível? Data de compra Quantidade alocada Preço unitário Série/Modelo Imagem Local comercial Categoria de recurso Descrição Ação Código do ativo Nome do recurso Quantidade Garantia É atribuível? Data de compra Quantidade alocada Preço unitário Série/Modelo Imagem Local comercial Categoria de recurso Descrição Ação Ação Send asset for maintenance Editar Excluir AST-TST-9994 Servidor Teste Manutencao 2 1 in maintenance 1.00 Não está na garantia 0.00 Lek 8,500.00 Ação Ação Send asset for maintenance Editar Excluir AST-TST-9994 Servidor Teste Manutencao 2 1 in maintenance 1.00 Não está na garantia 0.00 Lek 8,500.00 Ação Ação Send asset for maintenance Editar Excluir AST-TST-9993 Servidor Teste Manutencao 1.00 Não está na garantia 0.00 Lek 8,000.00 Ação Ação Send asset for maintenance Editar Excluir AST-TST-9993 Servidor Teste Manutencao 1.00 Não está na garantia 0.00 Lek 8,000.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-TST-9992 Impressora Teste WR2 2.00 Não está na garantia 0.00 Lek 1,200.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-TST-9992 Impressora Teste WR2 2.00 Não está na garantia 0.00 Lek 1,200.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-TST-9991 Notebook Teste Isolamento WR2 1.00 Não está na garantia 0.00 Lek 3,500.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-TST-9991 Notebook Teste Isolamento WR2 1.00 Não está na garantia 0.00 Lek 3,500.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-CRS-X1D Dropdown Wagner Legítimo 3.00 Não está na garantia 0.00 Lek 150.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-CRS-X1D Dropdown Wagner Legítimo 3.00 Não está na garantia 0.00 Lek 150.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-CRS-X13 Asset Wagner Inverso 1.00 Não está na garantia 0.00 Lek 2,500.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-CRS-X13 Asset Wagner Inverso 1.00 Não está na garantia 0.00 Lek 2,500.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-CRS-X12 Asset Wagner biz=1 1 in maintenance 1.00 Não está na garantia 0.00 Lek 2,000.00 Ação Ação Alocar recurso Send asset for maintenance Editar Excluir AST-CRS-X12 Asset Wagner biz=1 1 in maintenance 1.00 Não está na garantia 0.00 Lek 2,000.00 Mostrando 1 a 14 de 14 entradas Anterior 1 Próximo - V6.4 | Copyright © 2026 All rights reserved. × Benefício de hoje Fechar × Entrada Saída Endereço de IP: 177.74.67.30 Relógio na nota: Nota do relógio: Enviar Fechar Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Só essenciais Aceitar tudo Tour da Aplicação Vamos passar pelo aplicativo em 7 passos rápidos ... « Anterior Próximo » Tour final",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 32,
+      "weight": "700",
+      "color": "rgb(0, 0, 0)"
+    },
+    "primary": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "border": "rgb(0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 12.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 5,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 5.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.6,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 5.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 5.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 10,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 4.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 11,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 12,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 13,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 5.6,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 14,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

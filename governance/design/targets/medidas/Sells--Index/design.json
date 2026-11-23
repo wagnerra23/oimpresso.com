@@ -1,0 +1,312 @@
+{
+  "url": "http://127.0.0.1:49672/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 85
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Vendas 6 vendas hoje · R$ 9,4k faturado · 3 estouradas Buscar venda, cliente, chave SEFAZ… Imprimir caixa Nova venda CRM Oficina Vendas Caixa do dia Devoluções Comissões Relatórios PDV balcão Faturado hoje R$ 9,4k ↑ +18% vs ontem · 6 vendas Ticket médio R$ 1,6k ↑ 12% vs semana passada A receber R$ 34,8k ✕ 3 estourados ● 6 frescos 0–30d 31–60d +60d → ver estouradas PIX hoje R$ 2,9k / R$ 9,4k 30 % do faturamento — imediato Todas 7 Paga 3 Pendente 2 Faturada 2 Cancelada 0 Rascunhos 2 Foco Caixa Faturamento Comissão Visão Operacional Financeira Produção Hoje Filtros avançados Colunas ( 10 ) Venda Cliente Atendido por Pipeline Produção (OS) Entrega Arte Fiscal Total Status Ações # V-7821 Padaria Estrela do Vale Banner 3×2m fachada — cliente recorrente BR Bruna balcão 1 de 1 OS prontas 18/05 entregue Aprovada ✓ NF-e Autorizada · 001234/1 ✓ NFS-e Autorizada · 00087/— R$ 1.840,00 Paga # V-7822 Mercado União Atacarejo Folder A4 4×4 cores · 2000un CR Carlos orçamento Faturado 0 de 2 OS prontas mais atrasada: Impressão 19/05 faltam 6 dias Aprovada ✓ NF-e Autorizada · 001235/1 R$ 3.420,00 Faturada # V-7823 Auto Posto Águia I-95 Adesivo bombas + placa LED BR Bruna balcão Entregue 3 de 3 OS prontas 20/05 entregue Aprovada ⌛ NF-e Transmitida · aguardando SEFAZ R$ 2.180,00 Faturada # V-7824 ↩ Consumidor Final Cartão visita pronta-entrega LA Larissa balcão 1 de 1 OS prontas 21/05 entregue Aprovada — NF-e Não emitida R$ 380,00 Paga # V-7833 BR·MERCOSUL RBA-2H78 Honda Civic 2019 Marcos Aleixo · km 84.220 JL João vend: la prn — — — ✓ NF-e Autorizada · 001237/1 ✓ NFS-e Autorizada · 00088/— R$ 1.020,00 Paga # V-7834 BR·MERCOSUL FZJ-4F12 VW Saveiro 2021 Frota Boa Esperança · km 62.140 DA Diego vend: cr dig — — — — NF-e Não emitida — NFS-e Não emitida R$ 610,00 Pendente # V-7836 Clínica Sorriso Feliz Fachada ACM 4×1m + instalação em altura CR Carlos balcão Aprovado Aguardando liberação sinal abaixo do mínimo 17/05 faltam 4 dias Aprovada — NF-e Não emitida — NFS-e Não emitida R$ 4.860,00 Pendente 7 vendas soma de todas as páginas do filtro Pago R$ 3.240,00 A receber R$ 11.070,00 Total do filtro R$ 14.310,00 Anterior 1 Próxima 1 – 7 de 7 vendas 0 selecionadas Faturar em lote (NF-e/NFS-e) Receber pagamento em lote Exportar XML/PDF Lembrete interno ✕ Últimas vendas V-7821 · Padaria Estrela do Vale R$ 1.840,00 · PIX V-7822 · Mercado União Atacarejo R$ 3.420,00 · Boleto 30d V-7823 · Auto Posto Águia I-95 R$ 2.180,00 · Cartão Ações Nova venda Página completa de cadastro Emitir NF-e em lote Pra todas vendas selecionadas Buscar Buscar por chave SEFAZ 44 dígitos da NF-e ou NFS-e Filtrar Rejeitadas SEFAZ Saved view Navegar Ir pra Orçamentos Módulo Sells/Orçamentos Ir pra Clientes Módulo Clientes navegar abrir ID · vendedor · valor · ações fechar",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Faturado hojeR",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.3 0.008 240)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "Ticket médioR$",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "A receberR$ 34",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        },
+        {
+          "label": "PIX hojeR$ 2,9",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": 1,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 2.8,
+        "mono": false,
+        "corPropria": null,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "700",
+        "blocos": 3,
+        "pill": {
+          "radius": "50%",
+          "borda": false,
+          "bg": "oklch(0.74 0.19 25)",
+          "dot": false
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.4,
+        "mono": false,
+        "corPropria": null,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.05 145)",
+          "dot": true
+        }
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 2,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.05 145)",
+          "dot": true
+        }
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.05 145)",
+          "dot": true
+        }
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.2,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 9,
+        "weight": "700",
+        "blocos": 6,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 10,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 8.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "10px",
+          "borda": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "dot": false
+        }
+      },
+      {
+        "col": 11,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 7,
+      "linhasComEstado": 3
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

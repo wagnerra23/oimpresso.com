@@ -1,0 +1,18 @@
+{
+  "id": "Manufacturing/Index · gaveta",
+  "module": "Manufacturing",
+  "source": "manufacturing-producao.jsx",
+  "target": "resources/js/Pages/Manufacturing/Index.tsx",
+  "token": "mfg-producao",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/manufacturing-index.contract.json",
+  "compare": null,
+  "veredito": "NÃO MEDI",
+  "motivo": "abrir: nada visível casa \"main table tbody tr\" — não há o que clicar",
+  "medido": false,
+  "gaveta": true,
+  "designSha": "d206006c10cc70d2e734622d3f2cd94bd4a856012b37982839a8da4f70862a3a",
+  "medidoEm": "2026-11-23T07:58:00.004Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

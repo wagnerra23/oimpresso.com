@@ -1,0 +1,90 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR ← Clientes Novo contato O cadastro nasce aqui. Depois de criado, o ajuste do dia a dia acontece no painel lateral da lista. Cancelar Salvar cadastro Identificação Tipo Cliente Fornecedor Cliente e fornecedor Pessoa Física Jurídica Razão social * Tax number Campo legado do UPOS — use CPF/CNPJ na seção fiscal Dados fiscais BR CNPJ Buscar CNPJ A busca preenche razão social e endereço Nome fantasia Inscrição estadual (IE) Inscrição municipal (IM) Indicador IE (NF-e) — Selecione — 1 — Contribuinte ICMS 2 — Contribuinte isento de inscrição 9 — Não contribuinte Regime tributário — Selecione — Simples Nacional Lucro Presumido Lucro Real MEI SUFRAMA Flags Contribuinte ICMS Consumidor final (NF-e) Contato Celular Telefone fixo E-mail Site Endereço CEP Sai do foco e o endereço vem preenchido Logradouro Número Complemento Bairro Cidade UF AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO Financeiro Limite de crédito Em reais · vazio = sem limite Prazo padrão (dias) Grupo de cliente Sem grupo (preço padrão) Padrão Atacado Parceiro Evento Define a tabela de preço aplicada Forma de pagamento preferida PIX Boleto Cartão Dinheiro Transferência Mensagem para a venda Aparece como alerta ao vendedor no PDV Pré-visualização N Nova empresa Pessoa jurídica · Cliente Prontidão fiscal 0 de 5 ○ CNPJ completo ○ Razão social ○ Inscrição estadual (ou ISENTO) ○ Regime tributário ○ Indicador de IE Copiloto Aviso de CNPJ repetido e sugestão de grupo chegam depois — o endpoint ainda não existe.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

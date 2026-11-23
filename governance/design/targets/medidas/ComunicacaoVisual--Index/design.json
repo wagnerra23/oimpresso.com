@@ -1,0 +1,146 @@
+{
+  "url": "http://127.0.0.1:39479/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 85
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Comunicação Visual Orçamento por m² — calcule na hora, sem abrir o Excel. Orçamentos Adicionar peça Calculadora de m² largura × altura × qtd × preço/m² — a mesma conta do servidor Material Descrição Larg. (m) Alt. (m) Qtd R$/m² m² Subtotal Preço avulso Lona 440g brilho Lona blackout 680g Vinil adesivo branco Vinil perfurado (microperfurado) Adesivo transparente Tela mesh ACM 3mm PS 2mm 3,6 m² R$ 96,84 Remover peça Acabamento / instalação / entrega (R$) Desconto (R$) 1 peça · 3,6 m² no orçamento Subtotal R$ 96,84 Total estimado R$ 276,84 Conferir no servidor Salvar orçamento O cálculo na tela é só uma prévia — o valor que vale é o conferido no servidor, com as regras da sua loja. Salvar só libera depois de conferir: orçamento salvo com número errado vira retrabalho no balcão. Na fábrica agora Cada OS no setor em que está agora. Abrir painel de produção Arte e aprovação 2 OS-2614 Clínica Sorriso Placas de sinalização interna (24 un) 24 placas 20/10 OS-2619 Supermercado Bom Preço Banner roll-up 0,8×2 m (4 un) 6,4 m² 18/10 Impressão 2 OS-2611 Rota Livre Transportes Adesivagem de frota — 6 baús 86 m² 17/10 OS-2622 Escola Crescer Painel de fachada em lona 6×2 m 12 m² 21/10 Acabamento 1 OS-2603 Supermercado Bom Preço Lonas de oferta 5×2 m (12 un) 120 m² vence hoje Serralheria 2 OS-2608 Padaria Pão Dourado Fachada ACM 8×1,2 m + letreiro 9,6 m² amanhã OS-2617 Academia Força Total Letra-caixa iluminada \"FORÇA\" 5 letras 24/10 Instalação 0 vazio Expedição 1 OS-2598 Construtora Alicerce Tapume impresso 40 m 88 m² atrasada Em breve nesta tela Materiais em breve Cadastrar lona, vinil e ACM com o preço por m² sem sair daqui (US-COMVIS-002). Apontamentos em breve Registrar início e fim de cada impressão pra saber quanto cada peça custou de verdade (US-COMVIS-004).",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "calculadora",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "total",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "pcp",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "em-breve",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

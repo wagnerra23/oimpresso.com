@@ -1,0 +1,32 @@
+{
+  "id": "Home/Index",
+  "module": "Home",
+  "source": "dash-legacy-page.jsx",
+  "target": "resources/js/Pages/Home/Index.tsx",
+  "token": "dash-legacy",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/dashboard-visao-geral.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: assimetria estrutural: 1 x 14 copies — um lado so casou copy de shell Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência d",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "685453ea25bfd0e2caf8e708a83a57ba108b1dcac325e5fc5673ca7f42dd0b5a",
+  "prodSha": "a83e2293f24dc87652bd47d210eea3228779923e139df6bf0b76b308cc9a9695",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/home",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-11-23T07:58:00.004Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

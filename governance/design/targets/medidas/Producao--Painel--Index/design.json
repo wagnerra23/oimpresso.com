@@ -1,0 +1,68 @@
+{
+  "url": "http://127.0.0.1:5611/",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 86
+  },
+  "theme": "light",
+  "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 5 CRM 16 G R Vendas 22 G V Oficina Auto 1 Vestuário 2 Fisio 11 Finanças 4 Caixa G X Financeiro 15 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 9 Produção 5 Painel de produção 7 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 7 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 5 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 8 em produção · 2 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Terminal Roteiros Postos e cadastros OS em produção 8 1 vencem hoje Atrasadas ou vencendo 2 OS-2598, OS-2603 Arte travando 2 aguardando aprovação ou ajuste Refugo na semana R$ 905,00 5 ocorrência(s) Gargalo previsto: Roland VG3-640 passa da capacidade do dia Carga de 10,4 h para uma capacidade de 10 h no dia. Mover a OS-2608 (adesivo de aplicação, 1,1 h) para a HP Latex 365, que tem 6,9 h livres. Ver na linha do tempo 2 OS esperando arte do cliente OS-2614 (Clínica Sorriso) trava 6,3 h de CNC e UV hoje. OS-2619 pediu ajuste. O link de aprovação foi reenviado às 09:12. Abrir OS-2614 OS-2622 está aguardando material Falta 8,0 m² de Lona 440 g 3,20 m (compra PC-0412 chega 17/10). Nenhuma etapa começa até o PCP conferir. Abrir OS-2622 Manutenção preventiva vence em breve: Mimaki UJF-6042 Limpeza das cabeças e troca do filtro de tinta . Faltam 4 h de uso. Faça a parada antes de programar mais OS nesta máquina; depois registre em Postos e cadastros. Ver o plano Ver a carga na linha do tempo Manutenção preventiva vencida: Router CNC 2x3 Lubrificação dos fusos e troca da fresa . Venceu em 10/10, há 5 dias. Faça a parada antes de programar mais OS nesta máquina; depois registre em Postos e cadastros. Ver o plano Ver a carga na linha do tempo Cronômetro fechado sozinho no fim do turno: OS-2611 Diego deixou Impressão eco-solvente aberto em 14/10 . O sistema fechou às 18:00 , fim do turno. Confira com Diego e corrija o horário na ficha da OS, com justificativa. Abrir OS-2611 OS-2603 vence hoje e está 7,8% acima do orçado Refugo de 9,4 m² na impressão (banding na cabeça 3). Faltam bainha e ilhós. Abrir OS-2603 Fila de aprovação de arte o cliente aprova pelo link de prova, sem login OS-2614 · Clínica Sorriso link enviado ontem 17:30 · visto 2 vezes Aguardando cliente Reenviar link Abrir OS-2619 · Supermercado Bom Preço pediu ajuste às 08:47 — \"aumentar o logo e trocar o telefone\" Ajuste pedido Enviar nova prova Abrir Tarefas atrasadas ou vencendo hoje da pré-produção — cada responsável já foi avisado no app OS-2614 · Fechar o arquivo de corte das placas Ana · prazo 14/10 Atrasada Abrir Acontecendo agora o que a fábrica fez por último — vem do apontamento, do cliente e do PCP Baixou 58 m² de vinil branco brilho 15/10 11:14 · Diego · Roland VG3-640 OS-2611 Iniciou Bainha + ilhós 15/10 10:52 · Felipe OS-2603 Pausou Corte CNC do ACM — troca de fresa 15/10 10:31 · Marcos · Router CNC 2x3 OS-2608 Foi para Aguardando material: falta 8,0 m² de Lona 440 g 3,20 m 15/10 09:41 · Sistema OS-2622 Liberou a OS para a produção 15/10 09:40 · Larissa OS-2622 Reenviou o link de prova ao cliente 15/10 09:12 · Sistema OS-2614 Carga das máquinas hoje horas programadas · capacidade de cada posto no dia HP Latex 365 HP Latex 365 31% 3,1 de 10 h Roland VG3-640 Roland VG3-640 104% 10,4 de 10 h Mimaki UJF-6042 Mimaki UJF-6042 45% 3,6 de 8 h Plotter de recorte GR2 Plotter de recorte GR2 25% 2,5 de 10 h Laminadora a frio Laminadora a frio 7% 0,7 de 10 h Router CNC 2x3 Router CNC 2x3 84% 7,6 de 9 h Bancada de solda Bancada de solda 19% 1,8 de 9 h Aproveitamento de mídia Bobina Lona 440 g 1,60 m Vinil branco brilho 1,37 m 92,8 % aproveitado 7,2 % sobra 208,0 m² de peças em 224,2 m² de mídia informada · OS-2603, OS-2598 Calculado com a mídia que o operador informa no apontamento, só das OS com a impressão concluída. A sugestão de encaixe na bobina fica para a versão 2. Não conformidades abertas cada uma fica aqui até a ação corretiva ser verificada NC-07 · OS-2603 · Impressão látex Banding / falha de cabeça · ação com Diego até 16/10 Em ação Abrir Produtividade por setor (semana) horas apontadas ÷ previstas Ver como quem tem producao.desempenho.ver Setor Previsto Apontado Eficiência Arte e aprovação 8,5 h 9,3 h 91% Impressão 17,3 h 18,6 h 93% Acabamento 4,0 h 3,8 h 105% Serralheria 6,0 h 7,5 h 80% Instalação 0,0 h 0,0 h — Por pessoa só para quem tem a permissão producao.desempenho.ver. Cada acesso fica no log.",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "BUTTON",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "OS em produção",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Atrasadas ou v",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Arte travando2",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Refugo na sema",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(1 0 0)",
+      "border": "rgba(0, 0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  }
+}
