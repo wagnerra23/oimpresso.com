@@ -118,7 +118,7 @@ module: RecurringBilling
 - [api.php](../../../Modules/RecurringBilling/Routes/api.php)
 - [web.php](../../../Modules/RecurringBilling/Routes/web.php)
 
-## Migrations (schema) — 13
+## Migrations (schema) — 14
 
 - [2026_05_06_000001_create_rb_boleto_credentials_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000001_create_rb_boleto_credentials_table.php)
 - [2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php)
@@ -133,6 +133,7 @@ module: RecurringBilling
 - [2026_11_19_100000_cifra_webhook_secret_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_100000_cifra_webhook_secret_rb_boleto_credentials.php)
 - [2026_11_19_110000_add_business_fk_rb_tables.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110000_add_business_fk_rb_tables.php)
 - [2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php)
+- [2026_11_23_100000_rb_contact_plan_fk_restrict.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_23_100000_rb_contact_plan_fk_restrict.php)
 
 ## Seeders — 2
 
