@@ -43,15 +43,24 @@ interface Props {
   /** A empresa emite nota (módulo Fiscal no pacote): sem isso não há aba Fiscal para abrir. */
   emiteNota: boolean;
   aoEscolher: (acao: AcaoProduto, linha: LinhaProduto) => void;
+  /**
+   * Onde o menu abre: o `.cockpit`. No <body> (padrão do Radix) a fonte caía na do sistema e os
+   * tokens chegavam vazios — medido em produção em 2026-11-23 (lápide §5 2026-10-19).
+   */
+  container?: HTMLElement | null;
 }
 
-export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNota, aoEscolher }: Props) {
+// Item do menu no `.pb-menu button` do protótipo (`produto-blade.css`): 12px, 6px × 8px, cantos
+// de 5px, texto `--text` e `--bg-2` ao passar o mouse ou focar.
+const ITEM = 'rounded-[5px] text-[12px] focus:bg-[var(--bg-2)] focus:text-[var(--text)]';
+
+export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNota, aoEscolher, container = null }: Props) {
   const pode = (p: keyof PermissoesLista) => permissoes[p] === true;
   const item = (acao: AcaoProduto, rotulo: string, perigo = false) => (
     <DropdownMenuItem
       key={acao}
       onSelect={() => aoEscolher(acao, linha)}
-      className={perigo ? 'text-destructive focus:text-destructive' : undefined}
+      className={perigo ? `${ITEM} text-destructive focus:text-destructive` : ITEM}
     >
       {rotulo}
     </DropdownMenuItem>
@@ -113,10 +122,18 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
             Ações <ChevronDown className="size-3" aria-hidden />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-[236px]" onClick={parar} onKeyDown={parar}>
+        <DropdownMenuContent
+          align="start"
+          container={container}
+          // Moldura do `.pb-menu` do protótipo: fundo `--surface`, borda `--border`, cantos 8px,
+          // sombra 0 12px 32px, 4px de respiro e linha 1,45.
+          className="min-w-[236px] rounded-[8px] border-[var(--border)] bg-[var(--surface)] p-1 leading-[1.45] text-[var(--text)] shadow-[0_12px_32px_oklch(0_0_0/.16)]"
+          onClick={parar}
+          onKeyDown={parar}
+        >
           {grupos.map((g, i) => (
             <Fragment key={i}>
-              {i > 0 && <DropdownMenuSeparator />}
+              {i > 0 && <DropdownMenuSeparator className="mx-0 bg-[var(--border-2)]" />}
               {g}
             </Fragment>
           ))}

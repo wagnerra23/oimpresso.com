@@ -26,10 +26,19 @@ function PopoverContent({
   className,
   align = "center",
   sideOffset = 4,
+  container,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: React.ComponentProps<typeof PopoverPrimitive.Content> & {
+  /**
+   * Onde o portal monta. Sem ele, no <body> (padrão do Radix), como sempre foi.
+   * Os tokens e a fonte do Design System vivem no `.cockpit`; um painel cujo conteúdo
+   * consome `var(--text)`, `var(--border)` etc. passa o `.cockpit` aqui para recebê-los,
+   * como o `ui/sheet` e o `ui/dialog` (ADR UI-0013 · lápide §5 2026-10-19).
+   */
+  container?: HTMLElement | null
+}) {
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={container ?? undefined}>
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}

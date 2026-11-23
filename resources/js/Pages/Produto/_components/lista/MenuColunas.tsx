@@ -24,9 +24,11 @@ interface Props {
   /** Há coluna com largura arrastada (lembrada no navegador). */
   larguraAjustada?: boolean;
   aoRestaurarLarguras?: () => void;
+  /** Onde o menu abre: o `.cockpit`, que entrega a fonte e os tokens (lápide §5 2026-10-19). */
+  container?: HTMLElement | null;
 }
 
-export default function MenuColunas({ colunas, visiveis, aoMudar, larguraAjustada = false, aoRestaurarLarguras }: Props) {
+export default function MenuColunas({ colunas, visiveis, aoMudar, larguraAjustada = false, aoRestaurarLarguras, container = null }: Props) {
   const n = colunas.filter((c) => visiveis[c.id]).length;
   return (
     <DropdownMenu>
@@ -35,7 +37,7 @@ export default function MenuColunas({ colunas, visiveis, aoMudar, larguraAjustad
           <Columns3 size={12} aria-hidden /> Colunas <span className="font-mono opacity-60">{n}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[236px]">
+      <DropdownMenuContent align="end" className="min-w-[236px]" container={container}>
         {colunas.map((c) => (
           <DropdownMenuCheckboxItem
             key={c.id}

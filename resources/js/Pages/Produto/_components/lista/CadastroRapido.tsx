@@ -44,6 +44,8 @@ interface Props {
   aoCriar: (msg: string) => void;
   /** Só para teste: troca a chamada ao servidor. */
   enviar?: (pedido: PedidoCadastroRapido) => Promise<RespostaCadastroRapido>;
+  /** Onde a janela e os seletores abrem: o `.cockpit`, que entrega a fonte e os tokens (lápide §5 2026-10-19). */
+  container?: HTMLElement | null;
 }
 
 function Erro({ texto }: { texto?: string }) {
@@ -54,7 +56,7 @@ function Erro({ texto }: { texto?: string }) {
   ) : null;
 }
 
-export default function CadastroRapidoProduto({ aberto, aoFechar, unidades, categorias, locais, aoCriar, enviar = enviarCadastroRapido }: Props) {
+export default function CadastroRapidoProduto({ aberto, aoFechar, unidades, categorias, locais, aoCriar, enviar = enviarCadastroRapido, container = null }: Props) {
   const [f, setF] = useState<FormCadastroRapido>(() => formInicial(unidades));
   const [erros, setErros] = useState<ErrosCadastroRapido>({});
   const [geral, setGeral] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export default function CadastroRapidoProduto({ aberto, aoFechar, unidades, cate
 
   return (
     <Dialog open={aberto} onOpenChange={(o) => !o && !salvando && aoFechar()}>
-      <DialogContent className="sm:max-w-[720px]">
+      <DialogContent className="sm:max-w-[720px]" container={container}>
         <DialogHeader>
           <DialogTitle>Cadastro rápido de produto</DialogTitle>
           <DialogDescription>O mínimo para vender agora; o resto do cadastro se completa depois, em Editar.</DialogDescription>
@@ -124,7 +126,7 @@ export default function CadastroRapidoProduto({ aberto, aoFechar, unidades, cate
                 <SelectTrigger id="cr-unidade" aria-label="Unidade" aria-invalid={erros.unit_id ? true : undefined}>
                   <SelectValue placeholder="Selecione…" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent container={container}>
                   {unidadesValidas.map((o) => (
                     <SelectItem key={o.id} value={o.id}>
                       {o.nome}
@@ -140,7 +142,7 @@ export default function CadastroRapidoProduto({ aberto, aoFechar, unidades, cate
                 <SelectTrigger id="cr-categoria" aria-label="Categoria">
                   <SelectValue placeholder="Selecione…" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent container={container}>
                   <SelectItem value={SEM_CATEGORIA}>Sem categoria</SelectItem>
                   {categoriasValidas.map((o) => (
                     <SelectItem key={o.id} value={o.id}>

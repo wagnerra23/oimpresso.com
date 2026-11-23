@@ -39,13 +39,15 @@ interface Props {
   /** Só para teste: trocam as chamadas ao servidor. */
   buscar?: (produtoId: number) => Promise<DadosEstoqueInicial | { erro: string }>;
   enviar?: (pedido: PedidoEstoqueInicial) => Promise<RespostaEstoqueInicial>;
+  /** Onde a janela abre: o `.cockpit`, que entrega a fonte e os tokens (lápide §5 2026-10-19). */
+  container?: HTMLElement | null;
 }
 
 const TH = 'border-b border-border px-2 py-1.5 text-left text-[10.5px] font-bold uppercase tracking-[0.06em] text-muted-foreground whitespace-nowrap';
 const TD = 'border-b border-border px-2 py-1.5 align-middle';
 const CAMPO = 'h-8 text-[12.5px]';
 
-export default function EstoqueInicialProduto({ produto, aoFechar, aoSalvar, buscar = buscarEstoqueInicial, enviar = salvarEstoqueInicial }: Props) {
+export default function EstoqueInicialProduto({ produto, aoFechar, aoSalvar, buscar = buscarEstoqueInicial, enviar = salvarEstoqueInicial, container = null }: Props) {
   const [dados, setDados] = useState<DadosEstoqueInicial | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -90,7 +92,7 @@ export default function EstoqueInicialProduto({ produto, aoFechar, aoSalvar, bus
 
   return (
     <Dialog open={produto !== null} onOpenChange={(o) => !o && !salvando && aoFechar()}>
-      <DialogContent className="sm:max-w-[1180px]">
+      <DialogContent className="sm:max-w-[1180px]" container={container}>
         <DialogHeader>
           <DialogTitle>Estoque inicial · {produto?.nome ?? ''}</DialogTitle>
           <DialogDescription>
