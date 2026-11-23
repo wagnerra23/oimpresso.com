@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Agenda.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 8 Agenda Pacientes Prescrever Biblioteca Protocolos ⋯ mais 3 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fisio Agenda Semana de 19 a 24 de outubro · Dra. Dejeane Bloquear horário Nova sessão confirmado pelo WhatsApp aguardando teleconsulta falta Seg 19 Ter 20 Qua 21 Qui 22 Sex 23 Sáb 24 08h 09h 10h 11h 12h 13h 14h 15h 16h 17h 18h Marta L. retorno · fase 2 Carlos P. avaliação inicial Rafael C. tendinopatia Lúcia M. teleconsulta Ana N. tornozelo João R. LCA · sem 9 Sônia T. fibromialgia Pedro A. cervicalgia Marta L. retorno Carlos P. sessão 2 Rafael C. revisão de carga Ana N. tornozelo Sônia T. teleconsulta João R. LCA Lúcia M. ombro Hoje 6 sessões 5/6 confirmadas 3 faltas no mês Vaga liberada · qui 10:00 Paulo S. cancelou. 2 pacientes da lista de espera servem neste horário. Oferecer pelo WhatsApp Quem responder primeiro fica com a vaga; exclusividade de 15 min por oferta. Lista de espera · 4 Beatriz F. manhãs · lombar Gustavo M. qui ou sex · joelho Helena C. qualquer dia após 15h Igor P. teleconsulta · ombro",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Agenda/Index",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Agenda.dc.html",
+    "componente": "Agenda.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:10:55.635Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}
