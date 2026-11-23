@@ -897,28 +897,6 @@
   box-shadow: 0 1px 2px rgba(0,0,0,.06);
 }
 
-/* Tabela unificada — tipo NF-e/NFC-e/NFS-e visual */
-.fx-tipo-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: var(--fs-2);
-  font-weight: 600;
-}
-.fx-tipo-dot::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-.fx-tipo-dot.t-nfe   { background: oklch(0.96 0.02 240); color: oklch(0.45 0.13 240); }
-.fx-tipo-dot.t-nfe::before   { background: oklch(0.55 0.15 240); }
-.fx-tipo-dot.t-nfce  { background: oklch(0.96 0.03 300); color: oklch(0.45 0.14 300); }
-.fx-tipo-dot.t-nfce::before  { background: oklch(0.55 0.16 300); }
-.fx-tipo-dot.t-nfse  { background: var(--ok-soft); color: var(--ok); }
-.fx-tipo-dot.t-nfse::before  { background: var(--ok); }
 
 .fx-row-actions {
   display: inline-flex;
@@ -1462,24 +1440,13 @@
 
 /* ── TEMA ESCURO · rodapé e pontos de tipo (playbook tema-escuro thread 03 PR-b · 2026-10-07) ──
    Medido em produção no escuro: o rodapé sticky (cheat sheet) era rgba(255,255,255,.92) fixo
-   nas 7 telas do Fiscal, e os pontos NF-e/NFC-e eram pastéis fixos (o NFS-e já usava --ok-soft).
-   Sem cor crua nova: o rodapé herda --fx-surface; os pontos derivam o matiz do --accent. */
+   nas 7 telas do Fiscal. Sem cor crua nova: o rodapé herda --fx-surface. (Os pontos de tipo
+   .fx-tipo-dot saíram em 2026-11-23: o Cockpit passou ao .fx-tipo do protótipo.) */
 .cockpit[data-theme="dark"] .fx-shell-foot,
 .dark .fx-shell-foot { background: color-mix(in oklch, var(--fx-surface) 92%, transparent); }
-.cockpit[data-theme="dark"] .fx-tipo-dot.t-nfe,
-.dark .fx-tipo-dot.t-nfe { background: oklch(from var(--accent) 0.30 0.07 240); color: oklch(from var(--accent) 0.85 0.10 240); }
-.cockpit[data-theme="dark"] .fx-tipo-dot.t-nfce,
-.dark .fx-tipo-dot.t-nfce { background: oklch(from var(--accent) 0.30 0.07 300); color: oklch(from var(--accent) 0.85 0.10 300); }
 
-/* ── TABELA DO PAINEL · forma do protótipo (fiscal-page.css L99-123 e L162-163) ──────────────
-   Medido em 2026-11-23, produção × espelho no escuro com a mesma sonda: a coluna Tipo era pílula
-   (protótipo: etiqueta mono com borda e ponto), o Status era pílula sem borda e com rótulo 500
-   (protótipo: com borda, 600), o Cliente era link 13px com chave sem mono (protótipo: botão 14px,
-   chave mono) e as ações eram 600 sem mono (protótipo: mono, peso herdado). Escopo
-   `.fx-cockpit-notas` porque NF-e, NFS-e, DF-e e as gavetas usam as mesmas classes e não foram
-   medidas. Tokens do protótipo traduzidos para os deste arquivo: --text→--fx-text,
-   --text-dim→--fx-text-dim, --text-mute→--fx-text-mute, --border→--fx-border,
-   --surface→--fx-surface, --accent→--fis, --fx-ok/warn/bad→--ok/--warn/--bad. */
+/* ── TABELA DO PAINEL · forma do protótipo (fiscal-page.css L99-123, L162-163), medida em 2026-11-23.
+   Só no Cockpit: NF-e, NFS-e, DF-e e gavetas usam as mesmas classes e não foram medidas. */
 .fx-cockpit-notas .num b { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-4); color: var(--fx-text); }
 .fx-cockpit-notas .num small { display: block; font-size: var(--fs-1); color: var(--fx-text-mute); }
 .fx-cockpit-notas .cli b { font-size: var(--fs-4); color: var(--fx-text); }
@@ -1501,10 +1468,7 @@
 .fx-cockpit-notas .fx-sefaz.bad  { color: var(--bad);  border-color: color-mix(in oklch, var(--bad) 30%, transparent);  background: color-mix(in oklch, var(--bad) 8%, transparent); }
 .fx-cockpit-notas .fx-row-act { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: inherit; min-width: 24px; min-height: 24px; padding: 1px 5px; }
 
-/* ── DÉBITOS CONHECIDOS · forma do protótipo (fiscal-page.css L7 e L216-223) ─────────────────
-   Antes era o Alert do DS com selo (padding 12/16, raio 12px, 14px/14px); medido em 2026-11-23
-   contra a regra `.fx-debito` do protótipo. Tons: o protótipo usa `warn`, o dado daqui usa
-   `warning` (variante do DS) — os dois casam. */
+/* ── DÉBITOS CONHECIDOS · forma do protótipo (fiscal-page.css L7, L216-223), medida em 2026-11-23. */
 .fx-page > .fx-debitos, .fx-debitos { margin-top: 8px; }
 .fx-debitos { display: flex; flex-direction: column; gap: 6px; }
 .fx-debitos h3 { margin: 0; font-size: var(--fs-1); text-transform: uppercase; letter-spacing: .07em; color: var(--fx-text-mute); font-weight: 600; }
