@@ -50,15 +50,17 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
 
     <section style="display: flex; flex-direction: column; gap: 8px">
       <h2 style="margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: oklch(0.50 0.01 80)">Suas autorizações</h2>
-      <sc-for list="{{consents}}" as="c" hint-placeholder-count="3">
+      <!-- LGPD (ADR 0437 §7): atendimento e prontuário têm base em tutela da saúde, não em consentimento; por isso não há chave para desligar. -->
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 14px; background: oklch(0.965 0.004 90); border: 1px solid oklch(0.90 0.004 90)">
+        <span style="font-weight: 500">Meu tratamento</span>
+        <span style="font-size: 13px; color: oklch(0.50 0.01 80)">Dor, exercícios e recados ficam no seu prontuário para a Dra. Dejeane acompanhar você. Isso faz parte do atendimento e não depende de autorização.</span>
+      </div>
+      <sc-for list="{{consents}}" as="c" hint-placeholder-count="2">
         <div style="display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; background: #FFFFFF; border: 1px solid oklch(0.90 0.004 90)">
           <span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 500">{{c.t}}</span><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{c.d}}</span></span>
           <button type="button" role="switch" aria-checked="{{c.on}}" aria-label="{{c.t}}" onClick="{{c.pick}}" style="flex: none; width: 52px; height: 32px; border-radius: 999px; border: 0; background: {{c.track}}; position: relative; cursor: pointer"><span style="position: absolute; top: 4px; left: {{c.knob}}; width: 24px; height: 24px; border-radius: 50%; background: #FFFFFF"></span></button>
         </div>
       </sc-for>
-      <sc-if value="{{careOff}}" hint-placeholder-val="{{ false }}">
-        <span role="alert" style="font-size: 13px; padding: 10px 12px; border-radius: 12px; background: oklch(0.955 0.072 75); color: oklch(0.40 0.10 70)">Sem esta autorização o portal para de mostrar seu programa, e a Dra. Dejeane é avisada para combinar outro jeito de acompanhar você.</span>
-      </sc-if>
     </section>
 
     <section style="display: flex; flex-direction: column; gap: 8px">
@@ -122,7 +124,7 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { hour: '07:30', slow: true, eco: false, big: false, care: true, remind: false, cam: true, study: true, ia: false, panel: '', eraseSent: false }; }
+  constructor(props) { super(props); this.state = { hour: '07:30', slow: true, eco: false, big: false, remind: false, cam: true, study: true, ia: false, panel: '', eraseSent: false }; }
   renderVals() {
     const s = this.state, P = 'oklch(0.55 0.15 295)', INK = 'oklch(0.22 0.01 80)';
     const sw = (key, t, d) => { const on = !!s[key]; return { t, d, on: on ? 'true' : 'false', track: on ? P : 'oklch(0.80 0.005 90)', knob: on ? '24px' : '4px', pick: () => this.setState({ [key]: !on }) }; };
@@ -135,11 +137,9 @@ class Component extends DCLogic {
         sw('big', 'Letra maior', 'aumenta todos os textos')
       ],
       consents: [
-        sw('care', 'Meu tratamento', 'dados de saúde para a Dra. Dejeane'),
         sw('remind', 'Lembretes no WhatsApp', 'um por dia'),
         sw('cam', 'Câmera', 'o vídeo não sai do celular')
       ],
-      careOff: !s.care,
       // LGPD (ADR 0437 §7): lembrete no WhatsApp é consentimento próprio e nasce desligado.
       remindOn: !!s.remind, remindOff: !s.remind,
       dataActions: [['copy', 'Baixar uma cópia dos meus dados'], ['terms', 'Ver o termo e o histórico das autorizações'], ['erase', 'Pedir a exclusão dos meus dados'], ['logout', 'Sair deste celular']].map(([k, t]) => ({ t, on: s.panel === k ? 'true' : 'false', fg: k === 'erase' ? 'oklch(0.45 0.16 25)' : INK, pick: () => this.setState({ panel: s.panel === k ? '' : k }) })),
