@@ -99,7 +99,7 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
-  constructor(props) { super(props); this.state = { step: 1, pin: '', care: true, remind: true, cam: false }; }
+  constructor(props) { super(props); this.state = { step: 1, pin: '', care: true, remind: false, cam: false }; }
   renderVals() {
     const s = this.state, P = 'oklch(0.55 0.15 295)', OFF = 'oklch(0.90 0.004 90)', MUTE = 'oklch(0.60 0.01 80)';
     const press = (d) => () => { if (s.pin.length < 4) this.setState({ pin: s.pin + d }); };
