@@ -124,12 +124,16 @@ Wagner aprovou Wave consolidada (Cockpit + NFS-e + Eventos) — 2026-05-20.
 > `kpi = 0` no protótipo). O `--compare` do dono NÃO rodou: a extensão do Chrome redige parte da
 > saída (dados de cliente), então o `prod.json` completo não saiu da página. Os números abaixo são
 > os campos que saíram inteiros; a assinatura de texto da prod não foi gravada (tem dado de cliente).
+>
+> ⚠️ **Tema misturado na prod:** só o `<html>` foi posto em escuro. Peso, tamanho, borda, fonte mono e
+> forma das pílulas não dependem do tema e valem; COR da prod vale só onde o token vem do `<html>`
+> (`.dark`), que é o caso do botão primário e dos tokens `--fx-*` do Fiscal.
 
 | dim | campo | produção | protótipo | veredito |
 |---|---|---|---|---|
 | D2 | KPIs: quantidade, alinhamento, valor | 6 · start · 18px | 6 · start · 18px | IGUAL |
 | D4 | título | 22px · 700 | 22px · 600 | **DÍVIDA A FECHAR** (já registrada em 11-05, segue aberta) |
-| D6 | botão primário (Emitir) no escuro | fundo roxo `oklch≈0.55 0.15 295`, texto branco, borda branca | fundo `oklch(0.70 0.15 295)`, texto `oklch(0.14 0.02 295)`, borda do fundo | **DÍVIDA A FECHAR** — no escuro o protótipo clareia o roxo e escurece o texto |
+| D6 | botão primário (Emitir) no escuro | fundo `oklch(0.68 0.16 295)`, texto branco | fundo `oklch(0.70 0.15 295)`, texto `oklch(0.14 0.02 295)` | **DÍVIDA A FECHAR** — a diferença grande é o texto (branco × escuro). ⚠️ Errata: a 1ª redação desta linha dizia `≈0.55`, lido numa medição com tema misturado (só o `<html>` em escuro; o `.cockpit` segue o `data-theme` do usuário e ficou claro). Remedido com o tema aplicado como o app faz: 0.68 0.16 |
 | D7 | chips de visão | 1 linha | 1 linha | IGUAL |
 | D8 | tabela | `auto` · 8 linhas · 0 com estado | `auto` · 8 linhas · 0 com estado | IGUAL |
 | D8 | col 1 (Tipo) | pílula 99px sem borda, 12px 600 | texto mono 11px 400, sem pílula | **DÍVIDA A FECHAR** |
