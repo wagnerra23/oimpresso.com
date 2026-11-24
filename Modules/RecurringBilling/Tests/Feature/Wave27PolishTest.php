@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Modules\RecurringBilling\Events\InvoicePaid;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
 use Modules\RecurringBilling\Services\AssinaturaService;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
 
 uses(Tests\TestCase::class);
 
@@ -16,10 +15,10 @@ uses(Tests\TestCase::class);
  * W27 com NFSe + Officeimpresso simultâneos).
  *
  * Cobre adicional sobre Waves 17-25:
- *   - D2 BoletoService: API completa pública (emitir/cancelar/pdf/refundAsaas/fetchPaymentAsaas)
+ *   - D2 BoletoService: casos removidos em 2026-11-24 (classe apagada — emissão/cancelamento/estorno saem pelo PaymentGateway, ADR 0170 b1)
  *   - D2 AssinaturaService: 5 métodos públicos + helper calcularProximoVencimento
  *   - D2 AssinaturaCobrancaService: cancelInvoice + atualizarCobrancaAssinatura
- *   - D9 spans canônicos completos (5 spans BoletoService + 4 AssinaturaService + 2 Cobranca)
+ *   - D9 spans canônicos completos (4 AssinaturaService + 2 Cobranca; os 5 spans do BoletoService saíram com a classe em 2026-11-24)
  *   - US-RB-044 NFe-de-boleto-pago SENTRY (W25/W26 criou listener) — Event payload preservado
  *
  * Tier 0 IRREVOGÁVEIS preservados:
@@ -32,43 +31,6 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
  */
 describe('Wave 27 RecurringBilling POLISH FINAL', function () {
-
-    // ---- D2 BoletoService API completa ----
-
-    it('D2: BoletoService expõe 5 métodos públicos canônicos (emitir/cancelar/pdf/refundAsaas/fetchPaymentAsaas)', function () {
-        $methods = collect((new ReflectionClass(BoletoService::class))->getMethods(ReflectionMethod::IS_PUBLIC))
-            ->pluck('name')
-            ->toArray();
-
-        foreach (['emitir', 'cancelar', 'pdf', 'refundAsaas', 'fetchPaymentAsaas'] as $m) {
-            expect($methods)->toContain($m);
-        }
-    });
-
-    it('D2: BoletoService::emitir aceita (int $businessId, array $params) e retorna BoletoResult', function () {
-        $ref = (new ReflectionClass(BoletoService::class))->getMethod('emitir');
-        $params = $ref->getParameters();
-
-        expect($params)->toHaveCount(2);
-        expect($params[0]->getName())->toBe('businessId');
-        expect((string) $params[0]->getType())->toBe('int');
-        expect($params[1]->getName())->toBe('params');
-        expect((string) $params[1]->getType())->toBe('array');
-
-        $returnType = (string) $ref->getReturnType();
-        expect($returnType)->toContain('BoletoResult');
-    });
-
-    it('D2: BoletoService::refundAsaas exige driver Asaas (InvalidArgumentException)', function () {
-        $file = (new ReflectionClass(BoletoService::class))->getFileName();
-        $src  = file_get_contents($file);
-
-        expect($src)->toContain('AsaasDriver')
-            ->and($src)->toContain('InvalidArgumentException')
-            ->and($src)->toContain('refundAsaas() exige driver Asaas');
-    });
-
-    // ---- D2 AssinaturaService API completa ----
 
     it('D2: AssinaturaService expõe 5 métodos públicos (criar/pausar/retomar/cancelar/calcularProximoVencimento)', function () {
         $methods = collect((new ReflectionClass(AssinaturaService::class))->getMethods(ReflectionMethod::IS_PUBLIC))
@@ -116,22 +78,6 @@ describe('Wave 27 RecurringBilling POLISH FINAL', function () {
 
     // ---- D9 spans completos ----
 
-    it('D9: BoletoService spans canônicos ≥5 (emitir/cancelar/pdf/refund_asaas/...)', function () {
-        $src = file_get_contents((new ReflectionClass(BoletoService::class))->getFileName());
-
-        foreach ([
-            "OtelHelper::spanBiz('rb.boleto.emitir'",
-            "OtelHelper::spanBiz('rb.boleto.cancelar'",
-            "OtelHelper::spanBiz('rb.boleto.pdf'",
-            "OtelHelper::spanBiz('rb.boleto.refund_asaas'",
-        ] as $span) {
-            expect($src)->toContain($span);
-        }
-
-        $totalSpans = substr_count($src, 'OtelHelper::spanBiz');
-        expect($totalSpans)->toBeGreaterThanOrEqual(4, "BoletoService deve ter ≥4 spans canon — atual {$totalSpans}");
-    });
-
     it('D9: AssinaturaService spans canônicos 4/4 (criar/pausar/retomar/cancelar)', function () {
         $src = file_get_contents((new ReflectionClass(AssinaturaService::class))->getFileName());
 
@@ -154,7 +100,6 @@ describe('Wave 27 RecurringBilling POLISH FINAL', function () {
 
     it('D9: spans atributos canon contêm module=RecurringBilling + business_id', function () {
         $files = [
-            (new ReflectionClass(BoletoService::class))->getFileName(),
             (new ReflectionClass(AssinaturaService::class))->getFileName(),
             (new ReflectionClass(AssinaturaCobrancaService::class))->getFileName(),
         ];
@@ -232,16 +177,6 @@ describe('Wave 27 RecurringBilling POLISH FINAL', function () {
         $src = file_get_contents((new ReflectionClass(AssinaturaCobrancaService::class))->getFileName());
 
         expect($src)->toContain("Log::info('rb.subscription.atualizada'");
-    });
-
-    // ---- Tier 0 lock-in extra ----
-
-    it('Tier 0: BoletoService NÃO loga config_json (LGPD — segredos criptografados)', function () {
-        $src = file_get_contents((new ReflectionClass(BoletoService::class))->getFileName());
-
-        // Padrões proibidos: logar credentials raw
-        expect($src)->not->toContain("Log::info('rb.boleto.config_json'");
-        expect($src)->not->toContain('config_json' . ' =>'); // string concat para evitar match acidental
     });
 
     it('D2: BoletoCredentialResolverInterface preservado (reuse cross-module)', function () {

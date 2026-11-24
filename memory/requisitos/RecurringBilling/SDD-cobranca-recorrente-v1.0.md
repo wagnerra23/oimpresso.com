@@ -166,7 +166,7 @@ Não assina recorrência hoje. É a destinatária do **diferencial** US-RB-044 (
 
 | Regra | Onde morde neste módulo |
 |---|---|
-| **REGRA MESTRE valor/estoque** ([proibicoes](../../proibicoes.md)) | `InvoiceGeneratorService` (gera fatura), `AssinaturaService::atualizarCobranca` (muda valor), `RefundCobrancaAsaasJob` (devolve dinheiro), `BoletoService` (emite título). Todo CU marcado `[V0]` exige **dupla confirmação por 2 caminhos + tabela antes→depois + OK humano** antes de mergear. |
+| **REGRA MESTRE valor/estoque** ([proibicoes](../../proibicoes.md)) | `InvoiceGeneratorService` (gera fatura), `AssinaturaService::atualizarCobranca` (muda valor), `RefundCobrancaAsaasJob` (devolve dinheiro), o driver do PaymentGateway que emite o título (o `BoletoService` do RB foi removido em 2026-11-24). Todo CU marcado `[V0]` exige **dupla confirmação por 2 caminhos + tabela antes→depois + OK humano** antes de mergear. |
 | **Multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) | `business_id` **da sessão, nunca do request** — o webhook é o ponto mais exposto: é rota **pública** (`/webhooks/asaas/{businessId}`), então quem isola o tenant é o `hash_equals` do secret da credencial daquele business, não o global scope. |
 | **Tests biz=1** ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) | cross-tenant sempre biz=1 vs biz=99. **Nunca biz=4.** |
 | **Refund atrás de flag** ([proibicoes](../../proibicoes.md) §FSM) | `POST /v3/payments/{id}/refund` **só** com `ASAAS_REFUND_ENABLED=true`; default `false` → job só loga TODO. |
@@ -213,7 +213,8 @@ Modules/RecurringBilling/Http/Controllers/**       (11 controllers)
         ↕
 Modules/RecurringBilling/Services/**               (AssinaturaService · AssinaturaCobrancaService ·
                                                     InvoiceGeneratorService · GatewayBackfillService ·
-                                                    Boleto/BoletoService + Drivers · Banking/**)
+                                                    CobrancaNoGateway · Boleto/BoletoCredentialResolver ·
+                                                    Banking/**; BoletoService + Drivers removidos em 2026-11-24)
         ↕
 Modules/RecurringBilling/Models/**                 (Plan · Subscription · Invoice · ChargeAttempt ·
                                                     SubscriptionEvent — todos HasBusinessScope)
