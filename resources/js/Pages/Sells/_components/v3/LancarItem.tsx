@@ -36,7 +36,14 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { Textarea } from '@/Components/ui/textarea';
 import { Aviso, Lbl, MoneyInput, Pill } from './primitivos';
 import { useCockpit } from './cockpit-portal';
-import { abaixoDoPiso as ehAbaixoDoPiso, areaUnitaria, quantidadeFaturada, totalDoItem, unitarioLiquido } from './calculo-item';
+import {
+  abaixoDoPiso as ehAbaixoDoPiso,
+  areaUnitaria,
+  quantidadeFaturada,
+  totalDoItem,
+  unidadeDeMedida,
+  unitarioLiquido,
+} from './calculo-item';
 import { brl, fmtBR, fmtQtd, num, parseBR } from './numeros';
 
 export type ProdutoCatalogo = {
@@ -119,7 +126,9 @@ export function LancarItem({
   onConfirmar: (item: ItemLancado) => void;
 }) {
   const cockpit = useCockpit();
-  const dims = produto ? DIMENSIONAL[produto.un] : undefined;
+  /* Sigla do cadastro normalizada (`M2` → `m²`): é ela que decide se há medidas. */
+  const unMedida = produto ? unidadeDeMedida(produto.un) : '';
+  const dims = produto ? DIMENSIONAL[unMedida] : undefined;
   const servico = produto?.tipo === 'servico';
 
   const [pecas, setPecas] = useState('1');
@@ -146,8 +155,9 @@ export function LancarItem({
     setQtdDireta('1');
     setDesc('0');
     setAcr('0');
-    setAltura(produto.un === 'm²' || produto.un === 'm³' ? '0,50' : '0,00');
-    setLargura(produto.un === 'm²' || produto.un === 'm³' || produto.un === 'm' ? '0,10' : '0,00');
+    const u = unidadeDeMedida(produto.un);
+    setAltura(u === 'm²' || u === 'm³' ? '0,50' : '0,00');
+    setLargura(u === 'm²' || u === 'm³' || u === 'm' ? '0,10' : '0,00');
     setEsp('0,00');
     setExecutante(executantes[0]?.id ?? '');
     setObsInterna('');
@@ -174,7 +184,7 @@ export function LancarItem({
   if (!produto) return null;
 
   const medidasResumo = dims
-    ? `${num(nPecas, 0)}× ${num(parseBR(altura), 2)}×${num(parseBR(largura), 2)}${produto.un === 'm³' ? `×${num(parseBR(esp), 2)}` : ''}m`
+    ? `${num(nPecas, 0)}× ${num(parseBR(altura), 2)}×${num(parseBR(largura), 2)}${unMedida === 'm³' ? `×${num(parseBR(esp), 2)}` : ''}m`
     : null;
 
   const confirmar = () =>
@@ -197,7 +207,14 @@ export function LancarItem({
 
   return (
     <Dialog open onOpenChange={(aberto) => !aberto && onFechar()}>
-      <DialogContent container={cockpit} className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
+      {/* `minHeight: 0` em `style`, não em classe: o bundle declara `.sells-cowork { min-height: 100% }`
+          fora de `@layer`, e no conteúdo `fixed` do diálogo isso é 100% da tela — o grid esticava as
+          linhas e abria vãos entre os blocos. Utilitário do Tailwind perde pro bundle (§5 2026-10-14). */}
+      <DialogContent
+        container={cockpit}
+        className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]"
+        style={{ minHeight: 0 }}
+      >
         <DialogHeader>
           <DialogTitle className="text-[15px] leading-[1.3]">Lançar {produto.nome}</DialogTitle>
           <DialogDescription className="text-[11.5px] leading-[1.35]">
@@ -229,7 +246,7 @@ export function LancarItem({
                 <MoneyInput label="Peças" prefix="qt" value={pecas} onChange={setPecas} />
                 <MoneyInput label="Altura" prefix="m" value={altura} onChange={setAltura} />
                 <MoneyInput label="Largura" prefix="m" value={largura} onChange={setLargura} />
-                {produto.un === 'm³' ? (
+                {unMedida === 'm³' ? (
                   <MoneyInput label="Espessura" prefix="m" value={esp} onChange={setEsp} />
                 ) : (
                   <div>
