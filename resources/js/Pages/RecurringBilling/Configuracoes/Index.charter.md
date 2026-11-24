@@ -33,7 +33,7 @@ Centralizar tudo que afeta como o módulo Cobrança Recorrente cobra clientes do
 - **AppShellV2 sidebar** + header `Configurações · cobrança recorrente`
 - **4 seções verticalizadas (cards)** com Tailwind 4 puro:
   - **a. Gateways de boleto/pix** — lista BoletoCredential do business (banco + ambiente + ativo + nome_display) + CTA stub "Adicionar gateway" linkando pra `/financeiro/contas-bancarias` existente (cadastro de credenciais ainda lá enquanto Onda futura não move pra aqui)
-  - **b. Régua de dunning (cobrança)** — texto explicativo + tabela com 3 retentativas (+3d soft / +7d warn / +15d final → past_due → fail) · ícone-severidade colorido (info/warn/bad)
+  - **b. Régua de dunning (cobrança)** — texto explicativo + tabela com 3 retentativas (+3d leve / +7d persistente / +15d final → a assinatura passa para “falhou”), copy em português sem identificador técnico desde 2026-11-23 (UC-RBCFG-12) · ícone-severidade colorido (info/warn/bad) · canais de aviso **E-mail** e **WhatsApp** marcados como "não disponível" (o módulo não envia nenhum dos dois — auditoria b7, 2026-11-23)
   - **c. NFe-de-boleto-pago automática** — toggle visual (disabled) explicando US-RB-044 (NfeBrasil listener) · estado lido do Controller
   - **d. Webhooks** — lista URLs canônicas por gateway com botão "Copiar" (clipboard.writeText) + link pra docs oficiais
 - **Inertia::defer em `gateways`** (toca DB) com fallback skeleton — skill `inertia-defer-default` Tier B
@@ -47,6 +47,7 @@ Centralizar tudo que afeta como o módulo Cobrança Recorrente cobra clientes do
 ## Non-Goals — Features (NÃO faz neste PR)
 
 - ❌ Cadastrar/editar/remover BoletoCredential (CRUD fica em `/financeiro/contas-bancarias` existente até Onda futura mover pra aqui)
+- ❌ Prometer aviso de cobrança por e-mail ou WhatsApp enquanto o módulo não envia (auditoria b7, 2026-11-23)
 - ❌ Editar régua de dunning (hardcoded v1 — Onda futura cria `rb_dunning_rules` table per-business + per-plan)
 - ❌ Toggle real do NFe auto (Onda futura wire ao listener NfeBrasil — US-RB-044)
 - ❌ Test webhook (botão "Testar conexão" — Onda futura dispara payload mock pro gateway)

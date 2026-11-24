@@ -310,6 +310,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesDevolucaoDaVendaTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
@@ -412,6 +413,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeLoteControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeRegimePorLocalTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeServiceCancelarTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeServiceDoubleWriteTest.php \

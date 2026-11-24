@@ -1,0 +1,107 @@
+{
+  "url": "https://staging.oimpresso.com/fisio/configuracoes/whatsapp",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CB MF WhatsApp Escolha por onde saem o link e o lembrete diário. Dá para trocar a qualquer momento, sem perder pacientes. WhatsApp oficial (API da Meta) recomendado Número verificado pela Meta, com modelos aprovados. · Lembrete automático · Sem risco de bloqueio · Custo por mensagem Número da clínica por QR risco de bloqueio Usa o número que a clínica já tem, conectado como aparelho. · Lembrete automático · Sem custo por mensagem · Conexão não oficial Pelo meu WhatsApp grátis Abre o seu WhatsApp com a mensagem pronta. · Envio manual · Sem lembrete automático Ao enviar o link ou o programa, o Fisio abre o seu WhatsApp com a mensagem pronta. Você toca em enviar. Sem lembrete diário automático. Vale para qualquer canal Máximo por hora Não mandar mensagem entre e Lembrete diário às 08:30 (horário do sistema). Só recebe mensagem quem autorizou lembretes no primeiro acesso. Salvar Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(0.984 0.003 247.9)",
+      "border": "oklch(0.92 0.006 90)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "fisio-config-wa-canais",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Configuracoes/Whatsapp",
+    "lado": "prod",
+    "url": "https://staging.oimpresso.com/fisio/configuracoes/whatsapp",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:18.939Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

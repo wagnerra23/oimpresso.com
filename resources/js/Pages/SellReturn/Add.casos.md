@@ -5,7 +5,7 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-11-03"
+last_run: "2026-11-23"
 last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40976713795 (634 passed · 5182 assertions)"
 ---
 
@@ -98,6 +98,30 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 - **Âncora:** #10249 — decisão [W] 2026-11-03 "Abater o título aberto": a devolução dá baixa no título a receber da venda até o que está em aberto; a sobra é crédito do cliente na própria devolução. O protótipo (`prototipo-ui/cowork/Wagner/venda-blade-caixa.jsx`, `VendaDevolucaoForm`) avisa que *a devolução gera crédito pro cliente*.
 - **Aceite:** Dado uma venda de 3.333,15 em aberto · Quando marco 2 un (total 2.222,10) · Então a seção **No Financeiro** mostra "Abate do que o cliente deve nesta venda" = 2.222,10 e "Fica de crédito para o cliente" = 0,00, e depois de salvar o título fica com 1.111,05. Dado a mesma venda com 2.500,00 já recebidos (em aberto 833,15) · Então abate 833,15 e ficam 1.388,95 de crédito; salvo, o título zera e a devolução segue "A pagar". Os números vêm de `POST /sell-return/previa-financeira/{venda}` (só leitura — mesma conta do `store()` e do `DevolucaoVendaTituloService`), não de conta da tela; se o total do servidor diferir do da tela, a tela avisa. Com **Vale-troca**, a tela diz que o vale não abate e que a venda continua em aberto (o vale paga a devolução, e devolução paga não abate — UC-FDEV-04). Venda de outra empresa → `404`; sem permissão → `403`.
 - **Teste:** `tests/Feature/Sells/SellReturnAddContratoTest.php` — `UC-SRADD-09` (dois casos: valor e Tier 0).
+- **Status: 🧪**
+
+---
+
+## NF-e de devolução a partir da devolução salva (onda 1 do protótipo Devolução V3)
+
+> **Âncora:** [RUNBOOK-sell-return-add §6.2](../../../../memory/requisitos/Sells/RUNBOOK-sell-return-add.md) onda 1 ·
+> protótipo `prototipo-ui/cowork/Wagner/devolucao-v3.html` (seção "Identificação da NF-e") · UC-FNFE-73..80 em
+> `Fiscal/Nfe.casos.md`, que provam a rota `POST /fiscal/acoes/venda-devolucao/{id}/nfe` e o valor da nota.
+> A seção fica fora do formulário: vale para a devolução já salva, nunca para o que está sendo editado.
+
+## UC-SRADD-10 · Sem a flag, sem permissão fiscal ou sem devolução salva, a seção não aparece `[must]`
+- **Aceite:** Dado `nfebrasil.devolucao_pela_venda` desligada (ou ligada só para outras empresas em `NFEBRASIL_DEVOLUCAO_PELA_VENDA_BIZ`), ou o usuário sem `fiscal.nfe.acoes`, ou a venda sem devolução salva · Quando o registro abre · Então `venda.nfe_devolucao` é `null` e não há seção de NF-e. Com as três condições, a seção aparece (controle positivo).
+- **Teste:** `tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php` — `UC-SRADD-10`.
+- **Status: 🧪**
+
+## UC-SRADD-11 · Quando a rota recusaria, a seção mostra o motivo e não oferece o botão `[must]`
+- **Aceite:** Dado uma devolução que a rota recusaria (por exemplo, tudo já declarado em NF-e) · Quando o registro abre · Então a seção mostra a mesma mensagem da recusa e não há botão de emitir.
+- **Teste:** `tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php` — `UC-SRADD-11`.
+- **Status: 🧪**
+
+## UC-SRADD-12 · Quando dá para emitir, a seção diz quantos itens a nota declara `[must]`
+- **Aceite:** Dado um plano com dois itens a declarar · Quando o registro abre · Então a seção diz "Declara 2 itens" e oferece "Emitir NF-e de devolução", que chama a rota do Fiscal.
+- **Teste:** `tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php` — `UC-SRADD-12`.
 - **Status: 🧪**
 
 ---

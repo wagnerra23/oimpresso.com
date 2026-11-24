@@ -11,6 +11,7 @@ declare(strict_types=1);
  *   UC-RBCFG-03 — gateway de um business não aparece pro outro [T0]
  *   UC-RBCFG-04 — a URL de webhook reflete o business da sessão [T0][V0]
  *   UC-RBCFG-09 — URL e header exibidos são os que o webhook de fato atende [V0]
+ *   UC-RBCFG-12 — a copy da régua e da NFe está em português, sem identificador técnico
  */
 
 use Illuminate\Support\Facades\Schema;
@@ -165,6 +166,56 @@ it('UC-RBCFG-02 · expõe régua de dunning canônica com 3 retentativas estrutu
         expect($r['rotulo'])->not->toBeEmpty();
         expect($r['descricao'])->not->toBeEmpty();
     }
+});
+
+/**
+ * Auditoria RB b7: o módulo não envia e-mail nem WhatsApp de cobrança. A régua não promete esses
+ * canais: eles vêm marcados como não disponíveis, e nenhum texto da régua diz que são enviados.
+ */
+it('UC-RBCFG-02 · a régua marca e-mail e WhatsApp como não disponíveis e não promete envio', function () {
+    $response   = app(ConfiguracoesController::class)->index(request());
+    $propsProp  = (new ReflectionClass($response))->getProperty('props');
+    $propsProp->setAccessible(true);
+    $regua = $propsProp->getValue($response)['regua_dunning'];
+
+    expect($regua['canais_aviso'])->toBe([
+        ['canal' => 'E-mail', 'disponivel' => false],
+        ['canal' => 'WhatsApp', 'disponivel' => false],
+    ]);
+
+    $textos = mb_strtolower($regua['descricao'].' '.implode(' ', array_column($regua['retentativas'], 'descricao')));
+    expect(str_contains($textos, 'whatsapp'))->toBeFalse()
+        ->and(str_contains($textos, 'email'))->toBeFalse()
+        ->and(str_contains($textos, 'e-mail'))->toBeFalse();
+});
+
+/**
+ * Forma do protótipo rb-config (medição 2026-11-23, divergência 8): a régua e a NFe automática
+ * falam a língua do operador. Identificador de código (status, coluna, nome de componente) na
+ * copy é o que a sonda acusou (`past_due → fail`, "detail drawer", `fiscal_type`).
+ */
+it('UC-RBCFG-12 · a copy da régua e da NFe está em português, sem identificador técnico', function () {
+    $response  = app(ConfiguracoesController::class)->index(request());
+    $propsProp = (new ReflectionClass($response))->getProperty('props');
+    $propsProp->setAccessible(true);
+    $props = $propsProp->getValue($response);
+
+    $regua = $props['regua_dunning'];
+    $textos = [$regua['descricao'], $props['nfe_auto']['descricao']];
+    foreach ($regua['retentativas'] as $r) {
+        $textos[] = $r['descricao'];
+    }
+
+    foreach ($textos as $t) {
+        // snake_case (past_due, fiscal_type), seta de transição de status e jargão de UI em inglês.
+        expect(preg_match('/\b[a-z]+_[a-z_]+\b/', $t))->toBe(0)
+            ->and(str_contains($t, '→'))->toBeFalse()
+            ->and(preg_match('/\b(fail|drawer|soft decline|webhook)\b/i', $t))->toBe(0);
+    }
+
+    // A frase final da régua é a do protótipo.
+    expect($regua['retentativas'][2]['descricao'])
+        ->toBe('Falha definitiva — a assinatura passa para “falhou” e pede ação manual no detalhe da assinatura.');
 });
 
 /**

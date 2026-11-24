@@ -1,0 +1,49 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Pesquisa.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 9 Agenda Pacientes Prescrever Biblioteca Pesquisa ⋯ mais 4 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fisio › Pesquisa Fibromialgia e exercício Parecer CEP [Nº] · protocolo p1 · TCLE tcle-1 · desde 01/11/2026 · pesquisadora responsável [NOME] em andamento Incluir participante Área do pesquisador. O código do participante não vem do nome nem do CPF. A tabela que liga código a paciente fica só na clínica. Participantes 12 10 no estudo · 2 saíram Pendências abertas 4 1 vencida Eventos adversos 3 aguardando revisão Exportações 2 última em 09/11 Participantes Pendências Eventos adversos Exportação Assistente Participantes quem saiu continua na lista, com o motivo P-7KQ3MA Marta L. 01/11/2026 no estudo Registrar saída P-H4XC9T Ana N. 03/11/2026 no estudo Registrar saída P-9RWE3F Lúcia M. 01/11/2026 perda de seguimento não atende há 5 semanas Ver P-D7NUY4 Paula S. 04/11/2026 revogou revogou pelo portal em 10/11 Ver",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Pesquisa/Index",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Pesquisa.dc.html",
+    "componente": "Pesquisa.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:43.282Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

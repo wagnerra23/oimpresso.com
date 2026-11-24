@@ -51,29 +51,36 @@ class ConfiguracoesController extends Controller
             // rb_dunning_rules table per-business). Espelha pattern catalogado
             // em CAPTERRA-FICHA.md (Stripe Smart Retries / Asaas reenvios).
             'regua_dunning' => [
+                // Copy em português, sem identificador técnico (protótipo rb-config; UC-RBCFG-12).
                 'descricao' => 'Régua padrão de cobrança em caso de falha de pagamento. '
-                    . 'Cada retentativa dispara dunning (boleto novo, novo email, novo WhatsApp). '
-                    . 'Após a 3ª retentativa, a assinatura entra em past_due → fail e exige ação manual.',
+                    . 'Após a 3ª retentativa, a assinatura passa para “falhou” e pede ação manual.',
+                // Auditoria RB b7 (2026-11-23): o módulo não envia e-mail nem WhatsApp de cobrança
+                // (nenhum Mail/Notification/Whatsapp em Modules/RecurringBilling). A tela dizia que
+                // cada retentativa mandava os dois; agora diz que os canais não estão disponíveis.
+                'canais_aviso' => [
+                    ['canal' => 'E-mail', 'disponivel' => false],
+                    ['canal' => 'WhatsApp', 'disponivel' => false],
+                ],
                 'retentativas' => [
                     [
                         'ordem'      => 1,
                         'dias'       => 3,
                         'rotulo'     => '1ª retentativa',
-                        'descricao'  => 'Soft decline — provavelmente saldo insuficiente ou intermitência gateway.',
+                        'descricao'  => 'Falha leve — provavelmente saldo insuficiente ou instabilidade do banco.',
                         'severidade' => 'info',
                     ],
                     [
                         'ordem'      => 2,
                         'dias'       => 7,
                         'rotulo'     => '2ª retentativa',
-                        'descricao'  => 'Cobrança persistente — emite dunning escalado (email + WhatsApp).',
+                        'descricao'  => 'Cobrança persistente — nova tentativa no gateway.',
                         'severidade' => 'warn',
                     ],
                     [
                         'ordem'      => 3,
                         'dias'       => 15,
                         'rotulo'     => '3ª retentativa (final)',
-                        'descricao'  => 'Falha definitiva — assinatura vira past_due → fail, requer ação manual no detail drawer.',
+                        'descricao'  => 'Falha definitiva — a assinatura passa para “falhou” e pede ação manual no detalhe da assinatura.',
                         'severidade' => 'bad',
                     ],
                 ],
@@ -86,9 +93,9 @@ class ConfiguracoesController extends Controller
             // listener real estar em produção biz=1).
             'nfe_auto' => [
                 'ativo'      => false,
-                'descricao'  => 'Quando uma fatura é paga (Asaas/Inter PJ webhook), '
-                    . 'o sistema dispara automaticamente a emissão de NFe via Módulo NfeBrasil. '
-                    . 'Requer plano com fiscal_type = nfe ou nfse cadastrado.',
+                'descricao'  => 'Quando uma fatura é paga (aviso do Asaas ou do Banco Inter), '
+                    . 'o sistema emite a nota fiscal automaticamente. '
+                    . 'Vale para planos com emissão NFe ou NFS-e.',
                 'us_ref'      => 'US-RB-044',
                 'editavel_em' => 'Em breve (Onda futura — toggle por business + per-plan override).',
             ],
