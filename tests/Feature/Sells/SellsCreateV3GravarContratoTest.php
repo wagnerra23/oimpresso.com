@@ -605,13 +605,108 @@ it('UC-V404 · gravando, o cliente padrão vem do cadastro desta empresa e as li
     }
     expect($cena['clientes'])->toBe([$cena['cliente']]);
 
-    // Nenhuma lista de demonstração: transportadoras, executantes, tabelas e o pipeline de 7 etapas.
-    foreach (['itens', 'catalogo', 'tabelas', 'fsm', 'papeisDoUsuario', 'executantes', 'transportadoras'] as $lista) {
+    // Nenhuma lista de demonstração: executantes, tabelas e o pipeline de 7 etapas. As transportadoras
+    // vêm do cadastro desta empresa (UC-V413) — nenhuma da cena.
+    foreach (['itens', 'catalogo', 'tabelas', 'fsm', 'papeisDoUsuario', 'executantes'] as $lista) {
         expect($cena[$lista])->toBe([]);
     }
+    expect(collect($cena['transportadoras'])->pluck('nome')->all())->not->toContain('Transportadora Sul Ltda');
     expect($props['gravacao'])->not->toHaveKey('cliente');
 
     // Tier 0: o cliente mostrado é o da empresa da sessão.
     expect((int) $props['gravacao']['contactId'])->toBe($padraoId);
     expect((int) DB::table('contacts')->where('id', $padraoId)->value('business_id'))->toBe($this->bizId);
+});
+
+/** Transportadora no cadastro da empresa dada, com cidade própria. */
+function v3gravarTransportadora(int $bizId, string $nome): int
+{
+    $cidadeId = (int) DB::table('cities')->insertGetId([
+        'nome' => 'Cidade V3 '.uniqid(), 'uf' => 'SC', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    return (int) DB::table('transportadoras')->insertGetId([
+        'razao_social' => $nome, 'cnpj_cpf' => '00.000.000/0000-00', 'logradouro' => 'Rua de teste, 1',
+        'cidade_id' => $cidadeId, 'business_id' => $bizId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/** As chaves de transporte que `camposDoTransporte` (entrega-dominio.ts) monta. */
+function v3gravarComTransporte(int $transportadoraId): callable
+{
+    return function (object $test, object $a, object $b) use ($transportadoraId): array {
+        return v3gravarPayloadV3($test, $a, $b) + [
+            'mod_frete' => 0,
+            'transportadora_id' => $transportadoraId,
+            'placa' => 'abc-1d23',
+            'uf' => 'SC',
+            'qtd_volumes' => 2,
+            'numeracao_volumes' => '1-2',
+            'especie' => 'Caixa',
+            'peso_bruto' => 12.5,
+            'peso_liquido' => 11.75,
+        ];
+    };
+}
+
+it('UC-V413 · o transporte da V3 fica na venda: transportadora, frete por conta, placa, volumes, pesos, remessa e endereço', function () {
+    $transportadoraId = v3gravarTransportadora($this->bizId, 'Transportadora V3 desta empresa');
+    $montar = function (object $test, object $a, object $b) use ($transportadoraId): array {
+        $p = v3gravarComTransporte($transportadoraId)($test, $a, $b);
+        $p['shipping_status'] = 'shipped';
+        $p['shipping_details'] = 'CT-e 123';
+        $p['shipping_address'] = 'Rua da Obra, 10 · Joinville/SC';
+        $p['delivered_to'] = 'Quem recebe';
+
+        return $p;
+    };
+    $v = v3gravarVender($this, $montar);
+
+    expect((int) $v['venda']->transportadora_id)->toBe($transportadoraId);
+    expect((int) $v['venda']->mod_frete)->toBe(0);
+    expect($v['venda']->placa)->toBe('ABC1D23');
+    expect($v['venda']->uf)->toBe('SC');
+    expect((int) $v['venda']->qtd_volumes)->toBe(2);
+    expect($v['venda']->numeracao_volumes)->toBe('1-2');
+    expect($v['venda']->especie)->toBe('Caixa');
+    expect((float) $v['venda']->peso_bruto)->toBe(12.5);
+    expect((float) $v['venda']->peso_liquido)->toBe(11.75);
+    expect($v['venda']->shipping_status)->toBe('shipped');
+    expect($v['venda']->shipping_details)->toBe('CT-e 123');
+    expect($v['venda']->shipping_address)->toBe('Rua da Obra, 10 · Joinville/SC');
+    expect($v['venda']->delivered_to)->toBe('Quem recebe');
+    // Controle: o transporte não mexe em valor nem em estoque — o mesmo da venda do UC-V380.
+    expect((float) $v['venda']->final_total)->toBe(156.23);
+    expect($v['saldos'])->toBe([7.0, 8.0]);
+});
+
+it('UC-V413 · transportadora de outra empresa não entra na venda (Tier 0)', function () {
+    $outroBiz = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
+    if ($outroBiz === 0) {
+        $this->markTestSkipped('Sem uma segunda empresa no banco para o caso cross-tenant.');
+    }
+    $alheia = v3gravarTransportadora($outroBiz, 'Transportadora V3 de outra empresa');
+
+    $v = v3gravarVender($this, v3gravarComTransporte($alheia));
+
+    expect($v['venda']->transportadora_id)->toBeNull();
+    // O resto do transporte e a venda gravam normalmente.
+    expect($v['venda']->placa)->toBe('ABC1D23');
+    expect((float) $v['venda']->final_total)->toBe(156.23);
+});
+
+it('UC-V413 · gravando, a consulta lista as transportadoras do cadastro desta empresa e só dela', function () {
+    v3gravarLigar($this);
+    $minha = v3gravarTransportadora($this->bizId, 'Transportadora V3 desta empresa');
+    $outroBiz = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
+    $alheia = $outroBiz ? v3gravarTransportadora($outroBiz, 'Transportadora V3 de outra empresa') : 0;
+
+    $props = $this->get('/sells/create-v3')->viewData('page')['props'];
+    $cods = collect($props['cena']['transportadoras'])->pluck('cod')->all();
+
+    expect($cods)->toContain((string) $minha);
+    expect($cods)->not->toContain((string) $alheia);
+    $linha = collect($props['cena']['transportadoras'])->firstWhere('cod', (string) $minha);
+    expect($linha['nome'])->toBe('Transportadora V3 desta empresa');
+    expect($linha['uf'])->toBe('SC');
 });

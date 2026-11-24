@@ -353,7 +353,8 @@ Até 2026-11-23, gravando, só o nome do cliente vinha do cadastro: o endereço 
 
 - **Dado** a gravação ligada,
 - **Quando** o operador abre "Entrega e frete",
-- **Então** aparece só o **Valor do frete**, que entra no total e é gravado (UC-V380), com o aviso *"A venda grava só o valor do frete"*. Transportadora, veículo, volumes, remessa e endereço de entrega não aparecem: a lista de transportadoras era de demonstração e o resto sumiria ao gravar.
+- **Então** a entrega segue o UC-V413: o que a venda grava do transporte aparece, e a lista de transportadoras é a do cadastro desta empresa, nunca a de demonstração.
+- _(Até 2026-11-24 aqui aparecia só o **Valor do frete**, com o aviso "A venda grava só o valor do frete": transportadora, veículo, volumes, remessa e endereço não eram gravados.)_
 - **Quando** lança um serviço,
 - **Então** o lançamento diz que *"o funcionário vinculado e a data prevista ainda não são gravados"*, em vez de oferecer os funcionários da demonstração.
 - Sem a gravação, a entrega e o lançamento seguem como antes.
@@ -448,6 +449,24 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 
 - **[BACKLOG]** Gravando, EAN, código de fábrica e categoria saem com travessão: `ProductUtil::filterProduct` não os devolve (medido em 2026-11-24: seleciona id, nome, tipo, variação, estoque, preço, `sub_sku` e unidade). O cadastro não tem coluna própria para EAN nem para código de fábrica (ficam em campos personalizados configurados por empresa); qual campo é qual é decisão de cadastro, não da venda. Categoria exige `category_id` + `categories` na busca, que a POS e o Create também usam.
 - **[BACKLOG]** "Novo cadastro" no rodapé da consulta, como no protótipo: a nova venda não cadastra produto.
+
+## UC-V413 · Gravando, a entrega grava o transporte da venda
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php`, `tests/js/gravacao-dominio.test.ts` e `tests/js/sells-v3-gravando-sem-cena.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador abre "Entrega e frete",
+- **Então** aparecem **Frete por conta**, a **transportadora** (código, nome e "Consultar cadastro… F2"), **placa** e **UF do veículo**, **volumes** (quantidade, espécie, numeração, peso bruto e líquido), **status da remessa**, **rastreio** e o **endereço de entrega** ("Entregar em outro endereço").
+- **E** a consulta lista as transportadoras do cadastro (`/transportadoras`) **desta empresa** (filtro por `business_id`); o código é o id do cadastro.
+- **Quando** grava a venda ou o orçamento,
+- **Então** o store grava em `transactions`: `mod_frete` (o código do frete por conta, 0 a 4 ou 9), `transportadora_id`, `placa`, `uf`, `qtd_volumes`, `numeracao_volumes`, `especie`, `peso_bruto`, `peso_liquido`, `shipping_status` (Pedido, Embalado, Enviado, Entregue ou Cancelado), `shipping_details` (rastreio), `shipping_address` (o endereço digitado numa linha; vazio = o do cadastro do cliente) e `delivered_to` (o recebedor).
+- **E** transportadora de outra empresa não entra: o store grava `transportadora_id` nulo.
+- **E** com "9 — Sem ocorrência de transporte" o grupo de transporte vai zerado; o endereço de entrega continua.
+- Total e estoque não mudam por causa do transporte: o frete segue em `shipping_charges` (UC-V380).
+- Gravando, item sem peso cadastrado entra como zero no peso somado (sem a massa presumida por unidade da cena).
+- Renavam, ANTT, modalidade, UF de destino, marca, coleta e previsão de entrega não têm coluna na venda e não aparecem gravando; a tela diz quais são.
+
+- **[BACKLOG]** A NF-e (`Modules/NfeBrasil`) ainda monta o transporte com `modFrete = 9` e sem transportadora (medido em 2026-11-24, `NfeService.php`): ler os dados gravados aqui é trabalho fiscal à parte.
 - O "F2" de "Consultar cadastro… F2" do passo 1 continua só no rótulo: nenhum atalho de teclado abre a consulta de cliente.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
