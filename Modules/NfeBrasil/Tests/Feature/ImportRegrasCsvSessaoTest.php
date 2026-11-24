@@ -125,17 +125,20 @@ it('UC-NFIM-14 · a sessão não cresce com o tamanho do CSV', function () {
         ->assertRedirect()->assertSessionHasNoErrors();
     $grande = nfssTamanhoSessao();
 
-    // Pré-condição anti-vácuo: o preview grande de fato conferiu as 3000 linhas — senão a sessão
-    // pequena seria por o CSV não ter sido lido.
-    $lotes = nfssLotes($this->biz, $this->user->id);
-    expect($lotes)->toHaveCount(1); // o preview novo substituiu o pendente anterior
-    expect(json_decode((string) file_get_contents($lotes[0]), true))->toHaveCount(3000);
+    // Pré-condição anti-vácuo, pelo resumo da conferência (vale com ou sem esta mudança): o preview
+    // grande de fato conferiu as 3000 linhas — senão a sessão pequena seria por o CSV não ter sido lido.
+    expect(session('preview.total_validas'))->toBe(3000);
 
-    // 300× mais linhas e a sessão praticamente igual (os dois previews levam 10 amostras no flash). Antes desta mudança o grande carregava as
-    // 3000 linhas na sessão (~780 KB); a margem de 200 bytes cobre o flash de amostras.
+    // 300× mais linhas e a sessão praticamente igual (os dois previews levam 10 amostras no flash).
+    // Com as linhas na sessão, a diferença medida aqui era de centenas de KB.
     expect($grande - $pequeno)->toBeLessThan(200);
     expect(session()->has('nfe_import_csv_linhas'))->toBeFalse();
     expect(session(ImportRegrasCsvConferencia::SESSAO_REF))->toBeString();
+
+    // As linhas foram para o arquivo, e o preview novo substituiu o pendente anterior.
+    $lotes = nfssLotes($this->biz, $this->user->id);
+    expect($lotes)->toHaveCount(1);
+    expect(json_decode((string) file_get_contents($lotes[0]), true))->toHaveCount(3000);
 });
 
 it('UC-NFIM-14 · conferir e aplicar grava as mesmas linhas do CSV e apaga o lote', function () {
@@ -219,11 +222,14 @@ it('UC-NFIM-14 · lote abandonado há mais de 24h é podado no próximo preview'
     $conf = app(ImportRegrasCsvConferencia::class);
     $velho = $conf->guardar($this->outra, $this->user->id, [['ncm' => NFSS_NCM_PREFIXO . '9999']]);
     $caminhoVelho = ImportRegrasCsvConferencia::raizAbsoluta() . '/' . $conf->caminho($this->outra, $this->user->id, $velho);
-    touch($caminhoVelho, now()->subHours(ImportRegrasCsvConferencia::VALIDADE_HORAS + 1)->getTimestamp());
-    clearstatcache();
-
     $recente = $conf->guardar($this->outra, $this->user->id + 1, [['ncm' => NFSS_NCM_PREFIXO . '9998']]);
     $caminhoRecente = ImportRegrasCsvConferencia::raizAbsoluta() . '/' . $conf->caminho($this->outra, $this->user->id + 1, $recente);
+
+    // Envelhece DEPOIS de guardar o recente: quem tem de podar é o preview abaixo, não o guardar
+    // deste próprio teste.
+    touch($caminhoVelho, now()->subHours(ImportRegrasCsvConferencia::VALIDADE_HORAS + 1)->getTimestamp());
+    clearstatcache();
+    expect(file_exists($caminhoVelho))->toBeTrue();
 
     $this->post('/nfe-brasil/tributacao/import/preview', ['arquivo' => nfssArquivo(1)])
         ->assertRedirect()->assertSessionHasNoErrors();
