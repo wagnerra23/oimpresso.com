@@ -10,7 +10,8 @@ use Illuminate\Support\Collection;
 /**
  * Driver de extrato bancário — contract genérico cross-banco.
  *
- * Separado de `BoletoDriverContract` (cobrança) — SoC ADR 0094 §5.
+ * Separado dos drivers de cobrança (hoje no Modules/PaymentGateway; o
+ * `BoletoDriverContract` do RB foi removido em 2026-11-24) — SoC ADR 0094 §5.
  * Implementações: `InterStatementDriver` (Fase 2). Próximos:
  * `SicoobStatementDriver`, `BtgStatementDriver`, `CoraStatementDriver`.
  *

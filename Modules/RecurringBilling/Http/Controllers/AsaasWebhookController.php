@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\ContaBancaria;
 use App\Support\Privacy\PiiRedactor;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 
 /**
  * Recebe webhooks do Asaas.
@@ -19,8 +21,10 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  * Sem auth middleware (é chamado pelo Asaas externamente).
  *
  * **Tier 0 multi-tenant**: validamos o token de autenticação no header
- * `asaas-access-token` contra `BoletoCredential.config_json.webhook_secret`
- * da credencial Asaas ativa do business antes de processar. Wagner configura
+ * `asaas-access-token` contra o `webhook_secret` da credencial `asaas` ativa no PaymentGateway
+ * (`payment_gateway_credentials`, desde a onda 2 de 2026-11-24; antes vinha de
+ * `rb_boleto_credentials`)
+ * do business antes de processar. Wagner configura
  * esse token no painel Asaas (Account → Integrações → Webhooks) durante o
  * onboarding da credencial. Mesmo pattern do `InterWebhookController`.
  */
@@ -35,21 +39,26 @@ class AsaasWebhookController extends Controller
     public function handle(Request $request, int $businessId): JsonResponse
     {
         // Tier 0 multi-tenant: autenticidade ANTES de qualquer processamento/dispatch.
-        // Credencial escopada por business_id (global scope HasBusinessScope + where explícito)
+        // Credencial escopada por business_id (where explícito em CobrancaNoGateway::credencial)
         // — token do business A nunca casa com o secret do business B.
-        $credential = BoletoCredential::where('business_id', $businessId)
-            ->where('banco', 'asaas')
-            ->where('ativo', true)
-            ->first();
-
-        if (! $credential) {
+        try {
+            $credential = app(CobrancaNoGateway::class)->credencial($businessId, 'asaas');
+        } catch (CredentialMisconfiguredException) {
             return $this->reject('credential_not_found', $businessId, 404);
         }
 
-        $expectedSecret = $credential->webhookSecret();
+        // O PG cifra o config_json inteiro e guarda o segredo em claro dentro dele. Config que
+        // não decifra (APP_KEY trocada) vale como sem segredo: rejeita, nunca 500.
+        // getAttribute() é onde o cast encrypted:array decifra (e lança DecryptException).
+        try {
+            $config = $credential->getAttribute('config_json');
+        } catch (DecryptException) {
+            $config = null;
+        }
+        $expectedSecret = is_array($config) ? ($config['webhook_secret'] ?? null) : null;
         $providedSecret = (string) $request->header(self::AUTH_HEADER, '');
 
-        if (! $expectedSecret || ! hash_equals((string) $expectedSecret, $providedSecret)) {
+        if (! is_string($expectedSecret) || $expectedSecret === '' || ! hash_equals($expectedSecret, $providedSecret)) {
             return $this->reject('secret_mismatch', $businessId, 401);
         }
 
