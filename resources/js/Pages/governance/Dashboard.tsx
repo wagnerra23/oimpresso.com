@@ -25,6 +25,7 @@ import EmptyState from '@/Components/shared/EmptyState'
 import SubNav from '@/Components/shared/SubNav'
 import { Grid, Inline } from '@/Components/layout'
 import GovernancaSubNav from '@/Pages/governance/_shared/GovernancaSubNav'
+import { fmtDataBr } from '@/Lib/datetime-br'
 import {
   ClipboardList,
   BarChart3,
@@ -805,7 +806,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           tone={complianceColor(kpis.compliance_pct) as any}
           label="Conformidade"
           value={`${kpis.compliance_pct}%`}
-          description={`v1.1.0 — próx revisão ${next_review_at}`}
+          description={`v1.1.0 — próx revisão ${fmtDataBr(next_review_at)}`}
         />
       </KpiGrid>
 
