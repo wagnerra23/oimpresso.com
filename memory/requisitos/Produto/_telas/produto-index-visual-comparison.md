@@ -75,7 +75,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | "Informar NCM" na barra de selecionados (no protótipo desde 2026-11-06) | não existia até 2026-11-06; **feito em 2026-11-06** (UC-PIDX-43): diálogo com o NCM, confirmar só com 8 dígitos | feito; tela lida no código e no Vitest |
 > | Filtro "Uso" (Para vender, Material, Serviço) (no protótipo desde 2026-11-06) | não existia até 2026-11-06; **feito em 2026-11-06** (UC-PIDX-44): campo "Uso" nos filtros e chip "Uso: …" | feito; tela lida no código e no Vitest |
 > | "Excluídos" na Situação e "Restaurar" no menu da linha (no protótipo desde 2026-11-06) | não existia até 2026-11-06; **feito em 2026-11-06** (UC-PIDX-45): excluir guarda o produto, "Restaurar" o devolve | feito; tela lida no código e no Vitest |
-> | Aviso "Você veio de… / Voltar e usar" | não existe | FALTA |
+> | Aviso "Você veio de… / Voltar e usar" | não existia até 2026-11-24; **feito em 2026-11-24** (UC-PIDX-53): aviso na lista, com volta levando o produto escolhido (painel aberto ou um marcado). Nenhuma tela manda para cá ainda — Nova venda, Orçamento e OS entram cada uma no seu PR | feito na lista; sem origem ligada, não aparece |
 > | Aba Relatório: linhas por página (10/25/50/100) | fixo em 25 até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18) com as opções da lista Blade (25 … 1000, Todos), mantendo Anterior/Próxima | feito, com opções diferentes de propósito |
 > | Aba Relatório: lucro potencial em verde | cor comum do texto até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18): verde se positivo, vermelho se negativo, total sem cor | feito |
 > | Aba Relatório: a busca da lista filtra o relatório | não filtra | de propósito — a aba Blade também não usava a busca (UC-PIDX-08) |

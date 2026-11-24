@@ -63,6 +63,8 @@ import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import NcmEmLote from './_components/lista/NcmEmLote';
 import { MOLDURA_JANELA, TITULO_JANELA } from './_components/lista/moldura-janela';
 import PaletaProduto from './_components/lista/PaletaProduto';
+import AvisoDeOrigem from './_components/lista/AvisoDeOrigem';
+import { CHAVE_ORIGEM, lerOrigem, urlDeVolta, type OrigemDaBusca } from './_components/lista/origem-de-busca';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
@@ -266,6 +268,39 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
 
   const pode = (p: keyof PermissoesLista) => permissions[p] === true;
   const linhas = lista?.data ?? [];
+
+  // UC-PIDX-53 — "Você veio de… / Voltar e usar": outra tela mandou procurar um produto. A origem fica
+  // guardada na aba porque cada filtro refaz a URL (contrato em `origem-de-busca.ts`).
+  const [origem, setOrigem] = useState<OrigemDaBusca | null>(() => {
+    let guardada: string | null = null;
+    try {
+      guardada = window.sessionStorage.getItem(CHAVE_ORIGEM);
+    } catch {
+      guardada = null;
+    }
+    const o = lerOrigem(window.location.search, guardada);
+    try {
+      if (o) window.sessionStorage.setItem(CHAVE_ORIGEM, JSON.stringify(o));
+    } catch {
+      /* sem armazenamento, o aviso vale só até o próximo filtro */
+    }
+    return o;
+  });
+  const esquecerOrigem = () => {
+    setOrigem(null);
+    try {
+      window.sessionStorage.removeItem(CHAVE_ORIGEM);
+    } catch {
+      /* nada guardado */
+    }
+  };
+  // O produto a levar de volta: o aberto no painel, senão o único marcado na lista.
+  const escolhidoParaOrigem: { id: number; nome: string } | null = (() => {
+    if (verId != null && detalhe && detalhe.id === verId) return { id: detalhe.id, nome: detalhe.nome };
+    if (selecionados.length !== 1) return null;
+    const l = linhas.find((x) => x.id === selecionados[0]);
+    return l ? { id: l.id, nome: l.nome } : null;
+  })();
 
   const ir = (patch: Partial<FiltrosLista>) => {
     setSelecionados([]);
@@ -477,6 +512,18 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         />
 
         <div className="pb-body" ref={corpoRef}>
+          {origem && (
+            <AvisoDeOrigem
+              origem={origem}
+              escolhido={escolhidoParaOrigem}
+              aoVoltar={(id) => {
+                const destino = urlDeVolta(origem.de, id);
+                esquecerOrigem();
+                irPara(destino);
+              }}
+              aoDispensar={esquecerOrigem}
+            />
+          )}
           <div className="pb-kpis" data-contract="produto-kpis">
             <Deferred
               data="kpis"
