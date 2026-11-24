@@ -78,15 +78,16 @@ class SyncBankBalancesJob implements ShouldQueue
         // o segredo vem do PaymentGateway, com o `config_json` decifrado pelo cast
         // (decisão b1; onda 1 da saída de `rb_boleto_credentials`, 2026-11-24).
         $vinculo = $conta->gatewayCredential;
-        if (! $vinculo || ! in_array($vinculo->banco, ['asaas', 'inter'], true)) {
+        $banco = (string) $vinculo?->getAttribute('banco');
+        if (! in_array($banco, ['asaas', 'inter'], true)) {
             return null;
         }
 
         $credencial = app(CobrancaNoGateway::class)
-            ->credencial((int) $conta->business_id, (string) $vinculo->banco, (string) $vinculo->ambiente);
+            ->credencial((int) $conta->business_id, $banco, (string) ($vinculo?->getAttribute('ambiente') ?? 'production'));
         $config = $credencial->config_json ?? [];
 
-        return match ($vinculo->banco) {
+        return match ($banco) {
             'asaas' => $this->fetchAsaasSaldo($config, (string) $credencial->ambiente),
             'inter' => $this->fetchInterSaldo($conta, $config),
         };

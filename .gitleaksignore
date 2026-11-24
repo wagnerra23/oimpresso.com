@@ -103,3 +103,10 @@ edaf567a860a78952fb36814f70da9b0651461fd:.github/workflows/deploy.yml:curl-auth-
 9ded53652e78514c2be5af27f2c7630c17e0e1c7:Modules/Marketplaces/Tests/Feature/MarketplacesOAuthNuvemshopContratoTest.php:generic-api-key:34
 # 2026-11-18 #11154: valor FICTÍCIO do header X-API-Key num teste (OISEG-*), commit histórico do PR; a linha atual monta o valor em runtime e não casa a regra.
 65699974b827ce7395ae93c331e5d18cec3b9029:Modules/Officeimpresso/Tests/Feature/SegredosForaDosLogsTest.php:generic-api-key:79
+
+# 2026-11-24 — SyncBankBalancesJob.php, linha 115 do commit 9e8c412 (PR #11412). FALSO
+# POSITIVO: era a lista dos NOMES dos campos obrigatorios da credencial Inter, sem
+# valor nenhum. O commit seguinte (1ec985f) reescreveu a lista com um nome por linha e
+# o arquivo vivo nao casa mais a regra; este fingerprint so cobre o commit ja
+# empurrado, que e imutavel. Nada a rotacionar.
+9e8c4124620c58cb7d275faf9f50abe79e93c9de:Modules/RecurringBilling/Jobs/SyncBankBalancesJob.php:generic-api-key:115
