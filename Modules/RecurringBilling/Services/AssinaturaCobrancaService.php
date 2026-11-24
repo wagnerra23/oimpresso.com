@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
 use Modules\RecurringBilling\Events\AssinaturaAtualizada;
-use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Models\Subscription;
 
@@ -343,12 +343,13 @@ class AssinaturaCobrancaService
         array $changes,
     ): void {
         if ($gateway === 'asaas') {
-            $cred = BoletoCredential::where('business_id', $businessId)
-                ->where('banco', 'asaas')
-                ->where('ativo', true)
-                ->first();
-
-            if (! $cred) {
+            // Credencial do PaymentGateway (decisão b1; onda 1 da saída de rb_boleto_credentials,
+            // 2026-11-24). O cast `encrypted:array` entrega o `api_key` em claro. Antes lia
+            // `rb_boleto_credentials`, onde o `api_key` fica cifrado campo a campo e era mandado
+            // assim no header — o PUT só funcionava com credencial gravada em claro.
+            try {
+                $cred = $this->gateway->credencial($businessId, 'asaas');
+            } catch (CredentialMisconfiguredException) {
                 throw new \DomainException('Sem credencial Asaas configurada para o business.');
             }
 

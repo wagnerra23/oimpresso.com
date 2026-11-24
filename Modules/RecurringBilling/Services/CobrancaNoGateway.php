@@ -41,24 +41,39 @@ class CobrancaNoGateway
         return $this->servico($businessId, $gatewayKey)->consultar(self::cobranca($ref));
     }
 
-    private function servico(int $businessId, string $gatewayKey): PaymentGatewayService
+    /**
+     * Credencial ativa da empresa no PaymentGateway, com o `config_json` já decifrado pelo cast.
+     *
+     * Sem `$ambiente`, vale a de produção quando há as duas. Com `$ambiente`, só aquele — é o caso
+     * de quem ainda aponta para uma linha de `rb_boleto_credentials` e precisa do mesmo ambiente.
+     * Também usada pelo reajuste de assinatura no Asaas e pelo sync de saldo (onda 1 da saída de
+     * `rb_boleto_credentials`, 2026-11-24).
+     */
+    public function credencial(int $businessId, string $gatewayKey, ?string $ambiente = null): PaymentGatewayCredential
     {
-        // SUPERADMIN: roda em job, sem sessão; o business_id vem do construtor do job e filtra a busca.
+        // SUPERADMIN: roda em job e em service sem sessão garantida; o business_id vem de quem chama e filtra a busca.
         $credencial = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('gateway_key', $gatewayKey)
             ->where('ativo', true)
+            ->when($ambiente !== null, fn ($q) => $q->where('ambiente', $ambiente))
             ->orderByRaw("CASE WHEN ambiente = 'production' THEN 0 ELSE 1 END")
             ->orderByDesc('id')
             ->first();
 
         if ($credencial === null) {
+            $qual = $ambiente !== null ? " ({$ambiente})" : '';
             throw new CredentialMisconfiguredException(
-                "Empresa {$businessId} sem credencial '{$gatewayKey}' ativa em payment_gateway_credentials"
+                "Empresa {$businessId} sem credencial '{$gatewayKey}'{$qual} ativa em payment_gateway_credentials"
             );
         }
 
-        return (new PaymentGatewayService())->comCredencial($credencial);
+        return $credencial;
+    }
+
+    private function servico(int $businessId, string $gatewayKey): PaymentGatewayService
+    {
+        return (new PaymentGatewayService())->comCredencial($this->credencial($businessId, $gatewayKey));
     }
 
     /** O driver do PG lê só `gateway_external_id` (e `tipo` no estorno Pix do Inter). */

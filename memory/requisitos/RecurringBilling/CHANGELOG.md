@@ -47,6 +47,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Sem PR ainda:** cobrar com o cartão salvo; os outros leitores de `rb_boleto_credentials` (o `BoletoService` saiu em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)). **Do [W]:** `paymentgateway:migrate-credentials --apply` para consertar credencial já copiada com o segredo cifrado do RB.
 
+**Onda 1 da saída de `rb_boleto_credentials` (2026-11-24, depois do `--apply`):** reajuste de assinatura no Asaas e sync de saldo passam a ler a credencial do PaymentGateway; o reajuste deixa de mandar o `api_key` cifrado e o saldo Asaas sandbox deixa de ir para produção — [#11412](https://github.com/wagnerra23/oimpresso.com/pull/11412).
+
 **Onda 3 (2026-11-24):** a lista de gateways da tela de Configurações (`/recurring-billing/configuracoes`) passa a vir de `payment_gateway_credentials` (Inter, C6 e Asaas do business), a mesma fonte que cobra (`CobrancaNoGateway`). A tela continua só de leitura: nenhum código de produção grava em `rb_boleto_credentials` (o único escritor é o script `scripts/inter-credentials/_remote_install.php`).
 
 ### Outubro 2026

@@ -133,9 +133,10 @@ export default function SellReturnIndex({ kpis, devolucoes, permissions }: SellR
           subtitle={`Devoluções registradas, venda de origem e o que falta pagar ao cliente${soProprias ? ' · só as suas' : ''}`}
           subnav={<SubNav items={NAV_VENDAS} ariaLabel="Vendas e telas vinculadas" />}
           actions={
-            // A devolução começa pela venda: abre-se a venda e usa-se Devolver.
+            // Abre a etapa 1 do protótipo Devolução V3: escolher a venda que está voltando
+            // (SellReturn/Create). Antes levava a /sells, e a pessoa saía da área de devoluções.
             <Button asChild>
-              <Link href="/sells" title="A devolução começa pela venda — abra a venda e use Devolver">
+              <Link href="/sell-return/create" title="Escolha a venda finalizada que está voltando">
                 + Nova devolução
               </Link>
             </Button>

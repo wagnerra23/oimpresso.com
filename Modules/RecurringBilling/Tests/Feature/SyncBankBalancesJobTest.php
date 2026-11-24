@@ -21,10 +21,10 @@ uses(Tests\TestCase::class);
 /**
  * US-RB-045 · SyncBankBalancesJob — sync saldo Inter via Banking API v2.
  *
- * Foco da suite: **regressão de descriptografia** — BoletoService grava
- * `certificado_key_b64` (e `client_secret`) com Crypt::encryptString. O Sync
- * precisa descifrar antes de passar pro InterBankingClient, senão a mTLS
- * recebe ciphertext em vez de PEM.
+ * Foco da suite: **o segredo vem do PaymentGateway** (decisão b1; onda 1 da saída de
+ * `rb_boleto_credentials`, 2026-11-24). A conta ainda aponta para a linha do RB pelo FK do
+ * Financeiro, mas dela o job lê só banco e ambiente; o `config_json` usado é o do PG, decifrado
+ * pelo cast `encrypted:array`. Se o PEM chegasse cifrado, a mTLS receberia ciphertext.
  */
 const FAKE_INTER_PEM = "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----\n";
 
@@ -35,7 +35,7 @@ beforeEach(function () {
 
     Cache::flush();
 
-    foreach (['fin_contas_bancarias', 'rb_boleto_credentials', 'business'] as $tbl) {
+    foreach (['fin_contas_bancarias', 'rb_boleto_credentials', 'payment_gateway_credentials', 'business'] as $tbl) {
         Schema::dropIfExists($tbl);
     }
 
@@ -52,6 +52,21 @@ beforeEach(function () {
         $t->string('ambiente', 20)->default('production');
         $t->boolean('ativo')->default(true);
         $t->json('config_json');
+        $t->timestamps();
+    });
+
+    // Credencial do PaymentGateway — de onde o job tira o segredo (onda 1, 2026-11-24).
+    Schema::create('payment_gateway_credentials', function ($t) {
+        $t->id();
+        $t->unsignedInteger('business_id')->index();
+        $t->string('gateway_key', 30);
+        $t->string('ambiente', 20)->default('production');
+        $t->boolean('ativo')->default(true);
+        $t->string('nome_display')->nullable();
+        $t->longText('config_json')->nullable();
+        $t->unsignedInteger('conta_bancaria_id')->nullable();
+        $t->string('health_status', 20)->nullable();
+        $t->timestamp('health_checked_at')->nullable();
         $t->timestamps();
     });
 
@@ -74,7 +89,7 @@ afterEach(function () {
     // roda mesmo em teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements),
     // então dropá-las no MySQL persistente corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
-        foreach (['fin_contas_bancarias', 'rb_boleto_credentials', 'business'] as $tbl) {
+        foreach (['fin_contas_bancarias', 'rb_boleto_credentials', 'payment_gateway_credentials', 'business'] as $tbl) {
             Schema::dropIfExists($tbl);
         }
     }
@@ -86,30 +101,42 @@ afterEach(function () {
     }
 });
 
-function fakeInterBalanceCredential(int $businessId): int
+function fakeInterBalanceCredential(int $businessId, bool $comCredencialPg = true): int
 {
     DB::table('business')->insert(['id' => $businessId, 'name' => "Biz {$businessId}"]);
 
-    // Replica o formato gravado por BoletoService::encryptConfig:
-    //   client_secret + certificado_key_b64 sob Crypt::encryptString;
-    //   certificado_crt_b64 em claro (cert público).
-    $config = [
-        'client_id'           => 'cid',
-        'client_secret'       => Crypt::encryptString('csec'),
-        'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n"),
-        'certificado_key_b64' => Crypt::encryptString(base64_encode(FAKE_INTER_PEM)),
-        'conta_corrente'      => '12345678',
-    ];
-
+    // A linha do RB só dá banco e ambiente ao job. O config dela é propositalmente inútil:
+    // se o job voltasse a ler o segredo daqui, a mTLS e o OAuth quebrariam.
     $credId = DB::table('rb_boleto_credentials')->insertGetId([
         'business_id' => $businessId,
         'banco'       => 'inter',
         'ambiente'    => 'production',
         'ativo'       => true,
-        'config_json' => json_encode($config),
+        'config_json' => json_encode(['client_id' => 'nao-usar-rb']),
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);
+
+    if ($comCredencialPg) {
+        // Insert cru: o model do PG tem LogsActivity (activity_log fora deste schema sintético).
+        // config_json no formato do cast `encrypted:array` — o segredo fica em claro dentro dele.
+        DB::table('payment_gateway_credentials')->insert([
+            'business_id'  => $businessId,
+            'gateway_key'  => 'inter',
+            'ambiente'     => 'production',
+            'ativo'        => true,
+            'nome_display' => 'Inter Teste',
+            'config_json'  => Crypt::encryptString(json_encode([
+                'client_id'           => 'cid',
+                'client_secret'       => 'csec',
+                'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n"),
+                'certificado_key_b64' => base64_encode(FAKE_INTER_PEM),
+                'conta_corrente'      => '12345678',
+            ])),
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+    }
 
     return DB::table('fin_contas_bancarias')->insertGetId([
         'business_id'              => $businessId,
@@ -135,7 +162,7 @@ function fakeInterSaldoEndpoint(float $disponivel = 1234.56): void
     ]);
 }
 
-it('descriptografa certificado_key_b64 antes de chamar InterBankingClient (regressão crítica)', function () {
+it('usa o certificado em claro da credencial do PaymentGateway, não a linha do RB (regressão crítica)', function () {
     fakeInterBalanceCredential(businessId: 1);
     fakeInterSaldoEndpoint();
 
@@ -227,4 +254,14 @@ it('on-demand: contaBancariaId sincroniza só a conta especificada', function ()
     $rowB = DB::table('fin_contas_bancarias')->where('id', $contaB)->first();
     expect((float) $rowA->saldo_cached)->toBe(100.0)
         ->and($rowB->saldo_cached)->toBeNull();
+});
+
+it('sem credencial Inter no PaymentGateway, a conta é pulada e o saldo não muda', function () {
+    $contaId = fakeInterBalanceCredential(businessId: 1, comCredencialPg: false);
+    fakeInterSaldoEndpoint(disponivel: 777);
+
+    (new SyncBankBalancesJob())->handle();
+
+    expect(DB::table('fin_contas_bancarias')->where('id', $contaId)->value('saldo_cached'))->toBeNull();
+    Http::assertNothingSent();
 });
