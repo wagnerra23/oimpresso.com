@@ -9,6 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/Components/PageHeader';
+import AbasVendas from '../_components/AbasVendas';
 import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import { Button } from '@/Components/ui/button';
@@ -168,7 +169,11 @@ export default function ShipmentsIndex(props: ShipmentsPageProps) {
       <Head title="Remessas" />
       <Stack gap={4} className="p-6">
         <div data-contract="cabecalho">
-          <PageHeader title="Remessas" subtitle="Fila de entrega: quem leva, em que status e com qual documento." />
+          <PageHeader
+            title="Remessas"
+            subtitle="Fila de entrega: quem leva, em que status e com qual documento."
+            below={<AbasVendas ativa="remessas" />}
+          />
         </div>
 
         <Grid asChild min="sm" gap={3} className="rounded-lg border border-border bg-card p-4">
