@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/ConfigWhatsApp.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 8 Agenda Pacientes Prescrever Biblioteca Configurações ⋯ mais 3 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fisio · Configurações WhatsApp Escolha por onde saem o link, o lembrete diário e a confirmação de consulta. Dá para trocar a qualquer momento, sem perder pacientes. WhatsApp Agendamento pelo app WhatsApp oficial (API da Meta) recomendado Número verificado pela Meta, com modelos aprovados. · Lembrete e confirmação automáticos · Sem risco de bloqueio · Custo por mensagem Número da clínica por QR risco de bloqueio Usa o número que a clínica já tem, conectado como aparelho. · Lembrete e confirmação automáticos · Sem custo por mensagem · Conexão não oficial Pelo meu WhatsApp grátis Abre o seu WhatsApp com a mensagem pronta. · Envio manual · Sem lembrete automático · Funciona no plano grátis API oficial da Meta ● número verificado Número (48) [TELEFONE] Nome exibido Clínica [NOME] Custo estimado R$ 0,62–0,73 por paciente/mês Modelos de mensagem Link do portal primeiro acesso e PIN aprovado · utilidade Lembrete diário com botão \"já fiz\" aprovado · utilidade Confirmação de consulta confirmo · remarcar · não vou aprovado · utilidade Vaga liberada oferta da lista de espera em análise Cada modelo tem duas versões. Se a Meta classificar uma como marketing (cerca de 9 vezes mais cara), o Fisio usa a outra. Vale para qualquer canal Horário padrão do lembrete Não mandar mensagem entre Confirmação de consulta na véspera, às 18:00 2 dias antes desligada Só recebe mensagem quem autorizou lembretes no primeiro acesso. Responder SAIR desliga na hora. Cancelar Salvar",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Configuracoes/Whatsapp",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/ConfigWhatsApp.dc.html",
+    "componente": "ConfigWhatsApp.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:18.624Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}
