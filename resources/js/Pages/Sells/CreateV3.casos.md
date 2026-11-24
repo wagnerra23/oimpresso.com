@@ -433,6 +433,23 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 
 Âncora: `ComissaoModal` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. Até 2026-11-24 a gaveta se chamava "Modelo de comissão da venda", escolhia o tipo num seletor com "Adicionar", não mostrava as bases da venda e tinha "Fechar" e "Confirmar comissão" com a mesma ação. Ficam de fora, porque mexem em valor (REGRA MESTRE): o rateio "Liberação por parcela recebida", o ciclo provisionada · aprovada · paga, a nota de estorno e os padrões do protótipo para agência (margem a 5%).
 
+## UC-V412 · "Consultar produto… F3" mostra a busca em tabela e lança o item escolhido
+
+**Status:** 🧪 — `tests/js/sells-v3-consulta-produto.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a venda aberta e não travada,
+- **Quando** o operador clica em "Consultar produto… F3" (no cabeçalho do passo Itens) ou aperta F3 sem outra janela aberta,
+- **Então** abre "Consulta de produtos e serviços", com as colunas SKU · Produto / serviço · Cód. EAN · Cód. fábrica · Categoria · Tipo · Unid. · Tabela · Estoque. O F3 deixa de abrir a busca do navegador só quando a consulta abre.
+- **E** a lista é a mesma busca do passo 2: sem gravar, o catálogo da cena (todo, enquanto não se digita); gravando, o `/products/list` a partir de 2 letras, com aviso enquanto faltam.
+- **Quando** o operador clica no SKU de uma linha,
+- **Então** a consulta fecha e abre o mesmo lançamento da busca do passo 2 ("Lançar <produto>").
+
+Âncora: `ConsultaProduto` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`.
+
+- **[BACKLOG]** Gravando, EAN, código de fábrica e categoria saem com travessão: `ProductUtil::filterProduct` não os devolve (medido em 2026-11-24: seleciona id, nome, tipo, variação, estoque, preço, `sub_sku` e unidade). O cadastro não tem coluna própria para EAN nem para código de fábrica (ficam em campos personalizados configurados por empresa); qual campo é qual é decisão de cadastro, não da venda. Categoria exige `category_id` + `categories` na busca, que a POS e o Create também usam.
+- **[BACKLOG]** "Novo cadastro" no rodapé da consulta, como no protótipo: a nova venda não cadastra produto.
+- O "F2" de "Consultar cadastro… F2" do passo 1 continua só no rótulo: nenhum atalho de teclado abre a consulta de cliente.
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,
@@ -1383,6 +1400,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-24 (G-6):** o fechamento deixou de mostrar a nota de bastidor do pagamento (`payment_status=due`) e o parágrafo sobre o "porte da comissão"; o resumo da comissão passou a ser o da âncora, com as mesmas funções e bases da gaveta (`totaisComissao` é a mesma conta que a gaveta já recebia), e a condição de pagamento passou a mostrar código e nome (UC-V409, novo). Nenhum valor mudou: a gravação, o total e o payload são os mesmos, e o botão do resumo passou de "Configurar…" para "Configurar comissão" (o teste do UC-V408 acompanha).
 - **Revalidação de 2026-11-24, segunda (G-6):** o topo passou a ser o `PageHeader` da âncora (sem o selo "V3"), os passos numerados passaram a ser 1 Cliente · 2 Itens · 3 Fechamento, com as gavetas sem número, e "Gravar venda" passou a se chamar "Finalizar venda" (UC-V410, novo). Só forma: a ação do botão, o payload e o total são os mesmos.
 - **Revalidação de 2026-11-24, terceira (G-6):** a gaveta de comissão ganhou a forma da âncora: título "Comissão desta venda", faixa Bruto · Líquido · Margem no topo, um botão por tipo de beneficiário e rodapé só com "Fechar" (UC-V411, novo). Os testes do UC-V408 e do UC-V409 acompanham o título e o botão novos. Nenhum valor muda: as contas são as mesmas funções do domínio.
+- **Revalidação de 2026-11-24, quarta (G-6):** o passo Itens ganhou "Consultar produto… F3" e o atalho F3, que abrem a busca do passo 2 em tabela e lançam o item escolhido pelo mesmo lançamento (UC-V412, novo). Nenhum valor muda: o preço exibido é o que a busca já trazia e o lançamento calcula como antes.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
