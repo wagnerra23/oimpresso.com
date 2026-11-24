@@ -161,6 +161,7 @@ module: RecurringBilling
 - [CmdPalette.tsx](../../../resources/js/Pages/RecurringBilling/_components/CmdPalette.tsx)
 - [JanaPanel.tsx](../../../resources/js/Pages/RecurringBilling/_components/JanaPanel.tsx)
 - [PixAutomaticoBloco.tsx](../../../resources/js/Pages/RecurringBilling/_components/PixAutomaticoBloco.tsx)
+- [PlanoFormDrawer.tsx](../../../resources/js/Pages/RecurringBilling/_components/PlanoFormDrawer.tsx)
 - [PresentationMode.tsx](../../../resources/js/Pages/RecurringBilling/_components/PresentationMode.tsx)
 - [RecurringBillingSubNav.tsx](../../../resources/js/Pages/RecurringBilling/_components/RecurringBillingSubNav.tsx)
 - [Sparkline.tsx](../../../resources/js/Pages/RecurringBilling/_components/Sparkline.tsx)
