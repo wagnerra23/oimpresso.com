@@ -57,7 +57,6 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Onda 5a (2026-11-24):** `rb:backfill-gateway` (US-RB-052) e `rb:health` passam a ler a credencial do PaymentGateway. O backfill acha a credencial pela conta (`ContaBancaria::credencialGateway`) e, sem ela, por banco no business, como antes; o health conta credenciais Inter/C6/Asaas ativas no PG e mede o frescor do saldo sem depender de `rb_gateway_credential_id`.
 **Onda 5b (2026-11-24):** sai o código morto da credencial do RB: `BoletoCredential`, `BoletoCredentialResolver` e a interface dele (com o binding), a relação `ContaBancaria::gatewayCredential()`, a regra `rb_gateway_credential_id` do `UpdateAccountRequest` e o script `scripts/inter-credentials/`, que gravava direto em `rb_boleto_credentials`. A tabela e a coluna continuam até a onda 5c.
-
 ### Outubro 2026
 
 - Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).
