@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-22**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-11-24**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -35,15 +35,15 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-10-27 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-10-28 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-11-16 |
-| Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-11-24 |
+| Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-11-23 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-14 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-26 |
 | Marketplaces | [BRIEFING](../requisitos/Marketplaces/BRIEFING.md) | 2026-10-27 |
-| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-11-12 |
+| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-11-23 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-11-18 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-11-19 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-11-05 |
@@ -51,7 +51,7 @@ lente: [construir]
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-27 |
 | Producao | [BRIEFING](../requisitos/Producao/BRIEFING.md) | 2026-11-16 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-11-12 |
-| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
+| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-11-24 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-10-27 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-10-13 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-11-18 |
@@ -151,8 +151,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **459** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 392 · superseded: 28 · proposto: 25 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **461** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 392 · superseded: 28 · proposto: 27 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **6** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -433,7 +433,7 @@ lente: [construir]
 
 ## Rastro
 
-- **636** handoffs · **814** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **637** handoffs · **814** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-11-18-refutacao-gt-g5-lote-11161-r1`
   - `2026-11-17-gerente-merge-fila`
@@ -443,4 +443,4 @@ lente: [construir]
   - `2026-11-14-runbook-deploy-producao`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-11-22 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-11-24 · deriva das fontes canônicas, não as substitui._

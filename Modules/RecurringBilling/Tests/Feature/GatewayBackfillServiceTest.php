@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schema;
 use Modules\Financeiro\Models\ContaBancaria;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Models\SubscriptionEvent;
 use Modules\RecurringBilling\Services\GatewayBackfillService;
@@ -27,7 +27,7 @@ uses(Tests\TestCase::class);
  *
  * Cenários:
  *  1. Atribui via FK reverso credencial→conta (fonte credencial_da_conta)
- *  2. Atribui via FK direto conta.rb_gateway_credential_id
+ *  2. Atribui via vínculo antigo conta.payment_gateway_credential_id
  *  3. Fallback credencial_por_banco (banco_codigo 336 → c6)
  *  4. Cora (403) bloqueada — driver_nao_suportado:cora
  *  5. Sem credencial ativa → bloqueada sem_credencial_ativa
@@ -69,22 +69,26 @@ beforeEach(function () {
         $t->unsignedInteger('business_id')->index();
         $t->string('banco_codigo', 5)->nullable();
         $t->boolean('ativo_para_boleto')->default(false);
-        $t->unsignedBigInteger('rb_gateway_credential_id')->nullable();
+        $t->unsignedInteger('account_id')->nullable();
+        $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
         $t->json('metadata')->nullable();
         $t->timestamps();
         $t->softDeletes();
     });
 
-    Schema::dropIfExists('rb_boleto_credentials');
-    Schema::create('rb_boleto_credentials', function ($t) {
+    // Desde a onda 5a (2026-11-24) o backfill lê a credencial do PaymentGateway.
+    Schema::dropIfExists('payment_gateway_credentials');
+    Schema::create('payment_gateway_credentials', function ($t) {
         $t->id();
         $t->unsignedInteger('business_id')->index();
-        $t->unsignedInteger('conta_bancaria_id')->nullable();
-        $t->string('banco', 20);
+        $t->string('gateway_key', 30);
         $t->string('ambiente', 20)->default('production');
         $t->boolean('ativo')->default(true);
-        $t->json('config_json')->nullable();
-        $t->string('nome_display', 100)->nullable();
+        $t->string('nome_display')->nullable();
+        $t->longText('config_json')->nullable();
+        $t->unsignedInteger('conta_bancaria_id')->nullable();
+        $t->string('health_status', 20)->nullable();
+        $t->timestamp('health_checked_at')->nullable();
         $t->timestamps();
     });
 
@@ -123,32 +127,44 @@ afterEach(function () {
         && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
         Schema::dropIfExists('activity_log');
         Schema::dropIfExists('rb_subscription_events');
-        Schema::dropIfExists('rb_boleto_credentials');
+        Schema::dropIfExists('payment_gateway_credentials');
         Schema::dropIfExists('fin_contas_bancarias');
         Schema::dropIfExists('rb_subscriptions');
     }
     session()->flush();
 });
 
-function makeConta(int $bizId, ?string $bancoCodigo, ?int $credId = null): ContaBancaria
+function makeConta(int $bizId, ?string $bancoCodigo, ?int $credIdLegado = null): ContaBancaria
 {
-    return ContaBancaria::create([
-        'business_id'              => $bizId,
-        'banco_codigo'             => $bancoCodigo,
-        'ativo_para_boleto'        => true,
-        'rb_gateway_credential_id' => $credId,
+    $conta = ContaBancaria::create([
+        'business_id'       => $bizId,
+        'account_id'        => 1000 + ContaBancaria::query()->withoutGlobalScopes()->count() + 1,
+        'banco_codigo'      => $bancoCodigo,
+        'ativo_para_boleto' => true,
     ]);
+    if ($credIdLegado !== null) {
+        // Vínculo antigo: a conta aponta para a credencial do PG.
+        $conta->forceFill(['payment_gateway_credential_id' => $credIdLegado])->save();
+    }
+
+    return $conta;
 }
 
-function makeCredencial(int $bizId, string $banco, ?int $contaBancariaId = null, bool $ativo = true): BoletoCredential
+function makeCredencial(int $bizId, string $banco, ?int $contaBancariaId = null, bool $ativo = true): PaymentGatewayCredential
 {
-    return BoletoCredential::create([
+    // Ligação principal: credencial.conta_bancaria_id = conta.account_id.
+    $accountId = $contaBancariaId !== null
+        ? ContaBancaria::query()->withoutGlobalScopes()->whereKey($contaBancariaId)->value('account_id')
+        : null;
+
+    return PaymentGatewayCredential::create([
         'business_id'       => $bizId,
-        'conta_bancaria_id' => $contaBancariaId,
-        'banco'             => $banco,
+        'conta_bancaria_id' => $accountId,
+        'gateway_key'       => $banco,
         'ambiente'          => 'production',
         'ativo'             => $ativo,
         'nome_display'      => "Cred {$banco} teste",
+        'config_json'       => [],
     ]);
 }
 
@@ -168,7 +184,7 @@ function makeSubGatewayNull(int $bizId, ?int $contaBancariaId, string $status = 
     ]);
 }
 
-test('1. Atribui via FK reverso credencial→conta (credencial_da_conta)', function () {
+test('1. Atribui pela credencial do PG ligada à conta (credencial_da_conta)', function () {
     $conta = makeConta(1, '077');
     makeCredencial(1, 'inter', $conta->id);
     $sub = makeSubGatewayNull(1, $conta->id);
@@ -190,7 +206,7 @@ test('1. Atribui via FK reverso credencial→conta (credencial_da_conta)', funct
     expect($event->by_actor)->toBe('system:rb:backfill-gateway');
 });
 
-test('2. Atribui via FK direto conta.rb_gateway_credential_id', function () {
+test('2. Atribui pelo vínculo antigo conta.payment_gateway_credential_id', function () {
     $cred = makeCredencial(1, 'inter');
     $conta = makeConta(1, '077', $cred->id);
     $sub = makeSubGatewayNull(1, $conta->id);

@@ -10,7 +10,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Ban, Eye, MoreVertical, Pencil, Plus, Printer, Search, Trash2, Undo2, Wallet } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
-import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
+import AbasVendas from '../_components/AbasVendas';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -75,15 +75,6 @@ const COLUNAS: Array<[string, boolean]> = [
   ['Adicionado por', false],
 ];
 // Telas do menu Vendas (abas do protótipo) — rotas reais de produção.
-const ABAS = [
-  { key: 'pos', label: 'Lista de POS', href: '/pos' },
-  { key: 'rascunhos', label: 'Rascunhos', href: '/sells/drafts' },
-  { key: 'cotacoes', label: 'Cotações', href: '/sells/quotations' },
-  { key: 'remessas', label: 'Remessas', href: '/shipments' },
-  { key: 'assinaturas', label: 'Assinaturas', href: '/subscriptions' },
-  { key: 'caixa', label: 'Caixa do dia', href: '/vendas/caixa' },
-];
-
 const ymd = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -182,13 +173,11 @@ export default function SellsPosIndex({ permissions, urls }: SellsPosIndexProps)
                 )}
               </>
             }
+            below={<AbasVendas ativa="pos" />}
           />
         </div>
 
         <div className="w-full px-6 pt-5 space-y-4">
-          <div data-contract="tabs">
-            <PageHeaderTabs ghosts={ABAS} activeGhostKey="pos" maxVisible={6} />
-          </div>
 
           <Inline asChild gap={3} align="end" wrap>
           <section data-contract="filtros" aria-label="Filtros">

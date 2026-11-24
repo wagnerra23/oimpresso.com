@@ -36,8 +36,8 @@ use Modules\PaymentGateway\Services\DescontoPontualidade;
  *   - TituloBaixa usa idempotency_key UUID derivado de cobranca_id (determinístico).
  *
  * Conta bancária resolver:
- *   1. ContaBancaria.rb_gateway_credential_id == cobranca.payment_gateway_credential_id
- *      (assume FK foi reusada na migração credentials — Onda 2 do roadmap PaymentGateway)
+ *   1. payment_gateway_credentials.conta_bancaria_id == ContaBancaria.account_id, depois
+ *      ContaBancaria.payment_gateway_credential_id (ver resolveContaBancaria)
  *   2. Fallback: ContaBancaria do business do evento + ativo_para_boleto=true (primeira)
  *   3. Se nenhuma resolve: cria Titulo SEM Baixa + log warning (Wagner reconcilia)
  *

@@ -83,7 +83,7 @@ describe('grid de itens · a preferência de colunas chega na tela', () => {
 
     // "Ações" fecha o grid e não entra na preferência — é operação, não informação.
     expect(cabecalhosDoGrid()).toEqual([
-      'Produto / serviço', 'Quant.', 'R$ Valor', 'R$ Total', 'Categoria', 'Ações',
+      'Produto / serviço', 'Quant.', 'R$ valor', 'R$ total', 'Categoria', 'Ações',
     ]);
   });
 
@@ -91,7 +91,7 @@ describe('grid de itens · a preferência de colunas chega na tela', () => {
     montarCom(['produto', 'total', 'qtd', 'preco']);
 
     expect(cabecalhosDoGrid()).toEqual([
-      'Produto / serviço', 'R$ Total', 'Quant.', 'R$ Valor', 'Ações',
+      'Produto / serviço', 'R$ total', 'Quant.', 'R$ valor', 'Ações',
     ]);
   });
 
@@ -102,7 +102,7 @@ describe('grid de itens · a preferência de colunas chega na tela', () => {
     montarCom(['produto', 'qtd', 'total']);
 
     expect(cabecalhosDoGrid()).toEqual([
-      'R$ Valor', 'Produto / serviço', 'Quant.', 'R$ Total', 'Ações',
+      'R$ valor', 'Produto / serviço', 'Quant.', 'R$ total', 'Ações',
     ]);
   });
 
@@ -137,7 +137,7 @@ describe('grid de itens · a preferência de colunas chega na tela', () => {
     // topo de `COLUNAS` — agrupar as fixas primeiro punha `R$ Total` no 4º lugar, e foi
     // isso que a regressão de pixel de `Sells/CreateV3` (2,63%) denunciou.
     expect(cabecalhosDoGrid()).toEqual([
-      'Produto / serviço', 'Quant.', 'R$ Valor', 'Desc. %', 'Acrésc. %', 'R$ Total', 'Ações',
+      'Produto / serviço', 'Quant.', 'R$ valor', 'Desc. %', 'Acrésc. %', 'R$ total', 'Ações',
     ]);
     // controle: o padrão do domínio é o que a tela desenhou (menos a coluna de Ações)
     expect(colunasPadrao()).toHaveLength(cabecalhosDoGrid().length - 1);

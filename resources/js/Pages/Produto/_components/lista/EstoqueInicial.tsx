@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { MOLDURA_JANELA, TITULO_JANELA } from './moldura-janela';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -92,9 +93,9 @@ export default function EstoqueInicialProduto({ produto, aoFechar, aoSalvar, bus
 
   return (
     <Dialog open={produto !== null} onOpenChange={(o) => !o && !salvando && aoFechar()}>
-      <DialogContent className="sm:max-w-[1180px]" container={container}>
+      <DialogContent className={`${MOLDURA_JANELA} sm:max-w-[1180px]`} container={container}>
         <DialogHeader>
-          <DialogTitle>Estoque inicial · {produto?.nome ?? ''}</DialogTitle>
+          <DialogTitle className={TITULO_JANELA}>Estoque inicial · {produto?.nome ?? ''}</DialogTitle>
           <DialogDescription>
             Uma linha por local do negócio: quantidade, custo unitário sem imposto, validade e lote. O saldo do produto muda ao salvar.
           </DialogDescription>

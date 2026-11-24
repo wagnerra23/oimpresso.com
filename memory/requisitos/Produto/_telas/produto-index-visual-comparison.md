@@ -321,6 +321,16 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > nas cinco janelas da lista; igualar só a do cadastro rápido a deixaria diferente das irmãs. Os
 > campos da janela seguem o `ui/input` do DS.
 >
+> **Corrigido em 2026-11-24, ainda não medido em produção:** a moldura veio do `Modal` do DS
+> (`prototipo-ui/design-system/components/Modal/Modal.jsx`), que é o que o protótipo usa. As janelas
+> da lista passaram a usar `_components/lista/moldura-janela.ts`: fundo `--surface`, cantos
+> `--radius-lg`, 20px de respiro, título `600 17px/1.3` com `-.01em`. Valem para Cadastro rápido,
+> Estoque inicial, Informar NCM, Confirmar, Adicionar/Remover do local e WooCommerce Sync.
+> O `ui/dialog` ficou como estava: ele serve outras 31 telas, e os tokens só existem dentro do
+> `.cockpit`, onde só parte delas monta. "Etiquetas" não é janela em produção (abre
+> `/labels/show`), então não entra. A sombra do `Modal` do DS (`0 24px 60px -12px`) não foi medida
+> contra a produção e ficou de fora. **Medir depois do deploy.**
+>
 > **PROTÓTIPO ATRASADO** (a produção tem, o protótipo não): "Garantia" na aba Dados; o selo "Para
 > vender · com 4 variações" (UC-PIDX-46) no lugar de "Variável"; as abas Lotes, Receita e Roteiro; o
 > filtro Natureza fiscal; o texto da busca. E o protótipo ainda tem "Usar em uma OS" no menu Ações,
