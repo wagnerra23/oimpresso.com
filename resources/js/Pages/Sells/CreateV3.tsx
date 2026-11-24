@@ -171,6 +171,8 @@ type Props = {
     /* Tabelas permitidas ao usuário e a do local (UC-V397); id 0 = preço padrão. */
     tabelas: TabelaDePreco[];
     tabelaPadraoId: number | null;
+    /** Etapas do processo em que a venda entra ao gravar (UC-V413). Opcional: servidor antigo não manda. */
+    etapas?: { key: string; label: string }[];
   };
   cena: {
     cliente: Cliente;
@@ -1301,11 +1303,24 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           {/* Gravando, o pipeline da cena não vem (UC-V406): a venda ainda não existe, e a etapa
               em que ela nasce é a do pipeline real da empresa, escolhida pelo que foi gravado. */}
           {situacaoAberta && gravacao && (
-            <p className="p-4 text-[12.5px] leading-[1.45] text-muted-foreground">
-              Ainda não gravada. Ao gravar, a venda entra no fluxo de vendas da empresa (se ele estiver
-              ativo), na etapa que o sistema escolhe pelo que foi gravado: orçamento, venda paga ou venda a
-              prazo.
-            </p>
+            <Stack gap={0} className="p-4">
+              {/* As etapas do processo em que a venda vai entrar (UC-V413): nenhuma marcada, porque a
+                  venda ainda não existe — a etapa de entrada sai do que for gravado. */}
+              {(gravacao.etapas ?? []).length > 0 && (
+                <div data-testid="situacao-etapas" className="mb-3">
+                  {(gravacao.etapas ?? []).map((e) => (
+                    <Inline key={e.key} gap={3} align="center" className="py-1.5">
+                      <span aria-hidden className="inline-flex size-2 flex-none rounded-full bg-border" />
+                      <span className="text-[12.5px] leading-[1.35] text-muted-foreground">{e.label}</span>
+                    </Inline>
+                  ))}
+                </div>
+              )}
+              <p className="text-[12.5px] leading-[1.45] text-muted-foreground">
+                Ainda não gravada. Ao gravar, a venda entra {(gravacao.etapas ?? []).length > 0 ? 'neste fluxo' : 'no fluxo de vendas da empresa (se ele estiver ativo)'},
+                na etapa que o sistema escolhe pelo que foi gravado: orçamento, venda paga ou venda a prazo.
+              </p>
+            </Stack>
           )}
           {situacaoAberta && !gravacao && (
             <Stack gap={0} className="p-4">
