@@ -22,7 +22,7 @@ use Modules\RecurringBilling\Http\Requests\UpdateAssinaturaRequest;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class);
@@ -164,7 +164,7 @@ function makeUpdateController(): RecurringBillingController
 
 function makeUpdateService(): AssinaturaCobrancaService
 {
-    return new AssinaturaCobrancaService(Mockery::mock(BoletoService::class));
+    return new AssinaturaCobrancaService(Mockery::mock(CobrancaNoGateway::class));
 }
 
 function jsonPutRequest(array $payload): UpdateAssinaturaRequest

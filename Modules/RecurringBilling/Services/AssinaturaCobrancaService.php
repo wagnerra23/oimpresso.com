@@ -13,7 +13,6 @@ use Modules\RecurringBilling\Events\AssinaturaAtualizada;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Models\Subscription;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
 
 /**
  * Service thin de orquestração de cobrança de assinatura (US-RB-042 extraído).
@@ -27,8 +26,9 @@ use Modules\RecurringBilling\Services\Boleto\BoletoService;
  */
 class AssinaturaCobrancaService
 {
+    /** Cancelar a cobrança no banco sai pelo driver do PaymentGateway (decisão b1, 2026-11-23). */
     public function __construct(
-        private readonly BoletoService $boletos,
+        private readonly CobrancaNoGateway $gateway,
     ) {}
 
     /**
@@ -96,25 +96,29 @@ class AssinaturaCobrancaService
             ];
         }
 
-        try {
-            DB::transaction(function () use ($invoice, $motivo) {
-                $this->boletos->cancelar(
-                    $invoice->business_id,
-                    $invoice->gateway_ref,
-                    $motivo,
-                );
-                $invoice->update(['status' => 'canceled']);
-            });
-        } catch (\BadMethodCallException $e) {
-            // C6Driver — cancelamento manual obrigatório no portal banco
+        if ($invoice->gateway === 'c6') {
+            // C6: cancelamento manual no portal do banco (CNAB de baixa) — o mesmo contrato de antes,
+            // sem chamar API nenhuma. Não muda com a troca de driver.
             return [
                 'ok' => false,
                 'gateway_call' => false,
-                'error' => $e->getMessage(),
+                'error' => "Cancele '{$invoice->gateway_ref}' manualmente no portal C6 (Empresarial → Cobrança → Boletos).",
                 'requires_manual_action' => true,
                 'http_status' => 501,
                 'invoice' => $invoice,
             ];
+        }
+
+        try {
+            DB::transaction(function () use ($invoice, $motivo) {
+                $this->gateway->cancelar(
+                    (int) $invoice->business_id,
+                    (string) $invoice->gateway,
+                    (string) $invoice->gateway_ref,
+                    $motivo,
+                );
+                $invoice->update(['status' => 'canceled']);
+            });
         } catch (\Throwable $e) {
             return [
                 'ok' => false,

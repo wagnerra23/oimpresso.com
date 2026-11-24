@@ -24,7 +24,7 @@ use Modules\PaymentGateway\Services\PaymentGatewayService;
  *
  * Valor: o estorno passa `null` (total) ou centavos inteiros; nada de float.
  */
-final class CobrancaNoGateway
+class CobrancaNoGateway
 {
     public function cancelar(int $businessId, string $gatewayKey, string $ref, string $motivo): void
     {
