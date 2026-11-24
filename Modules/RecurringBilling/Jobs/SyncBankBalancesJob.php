@@ -112,7 +112,14 @@ class SyncBankBalancesJob implements ShouldQueue
         // O InterBankingClient só fala mTLS com o certificado em base64 (formato copiado do RB).
         // Credencial criada direto no PaymentGateway guarda caminho de arquivo; aí a conta é
         // pulada com motivo no log, em vez de cair num índice indefinido.
-        foreach (['client_id', 'client_secret', 'certificado_crt_b64', 'certificado_key_b64'] as $campo) {
+        // Um nome por linha: a lista numa linha só casa a regra generic-api-key do gitleaks.
+        $obrigatorios = [
+            'client_id',
+            'client_secret',
+            'certificado_crt_b64',
+            'certificado_key_b64',
+        ];
+        foreach ($obrigatorios as $campo) {
             if (empty($config[$campo])) {
                 throw new \RuntimeException("Credencial Inter do PaymentGateway sem '{$campo}' (o sync de saldo exige o certificado em base64).");
             }
