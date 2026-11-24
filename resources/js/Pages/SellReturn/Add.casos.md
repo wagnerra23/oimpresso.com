@@ -81,7 +81,7 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 - **Origem:** pedido P-039 (processo "Devolução, troca e garantia" de Fluxos: "quantidade até a vendida").
 - **Persona:** Larissa — o cliente devolveu 2 de 3 e volta depois com a terceira.
 - **Aceite:** Dado 3 unidades vendidas e 2 já devolvidas · Quando reabro a devolução · Então a linha traz as 2 já devolvidas e o teto segue 3, logo só 1 ainda pode voltar · E ao salvar 3 o estoque sobe só 1 (12 → 13), a devolução continua uma só e o total vai a 3.333,15, o mesmo de devolver as 3 de uma vez · E 4 é recusado sem mexer em nada.
-- **Como a tela conta:** o campo "Devolver" é acumulado (store() atualiza a devolução da venda); é por isso que o teto não cai para 1 — o que volta agora é o acumulado menos o já devolvido.
+- **Como a tela conta:** desde 2026-11-24 (layout do protótipo Devolução V3, venda sem nota) o operador digita só o que **volta agora** e a coluna "Pode voltar" mostra vendida − já devolvida (aqui 1). O que vai ao store() continua sendo o **acumulado** (já devolvido + volta agora = 3), por `acumuladoTxt()` em `_components/devolucaoCalculo.ts` — provado em `tests/js/sell-return-volta-agora.test.ts`. Linha sem nada voltando reenvia o já devolvido exatamente como veio, para nunca reduzir o que já voltou.
 - **Teste:** `SellReturnAddContratoTest` — `UC-SRADD-07 [V0][E0] a segunda devolução da mesma venda desconta a primeira`.
 - **Regressão que defende:** a segunda devolução somar de novo as unidades da primeira (estoque e valor em dobro).
 - **Status: 🧪**
@@ -89,7 +89,7 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 ## UC-SRADD-08 · "Devolver tudo" devolve a venda inteira descontando o que já voltou `[V0]` `[E0]` `[must]`
 - **Origem:** pedido P-038 (processo "Devolução, troca e garantia" de Fluxos: devolução total ou parcial).
 - **Persona:** Larissa — o cliente traz de volta tudo o que levou, e uma peça já tinha voltado antes.
-- **Aceite:** Dado uma venda de 3 × 1.234,50 + 2 × 50,00 com 10% de desconto e 1 unidade já devolvida (1.111,05) · Quando clico "Devolver tudo" · Então cada linha recebe a vendida (o campo é acumulado: 3 e 2), a tela mostra "Já devolvido antes 1.111,05 · Volta agora 2.312,10" · E ao salvar a devolução da venda vai a 3.423,15, segue uma só, e o estoque sobe só o que faltava (P 11 → 13, Q 10 → 12) — o mesmo total de uma venda gêmea devolvida inteira de uma vez.
+- **Aceite:** Dado uma venda de 3 × 1.234,50 + 2 × 50,00 com 10% de desconto e 1 unidade já devolvida (1.111,05) · Quando clico "Devolver todo o saldo" · Então cada linha recebe o que ainda pode voltar (2 e 2) e a tela posta o acumulado (3 e 2), a tela mostra "Já devolvido antes 1.111,05" e o valor que volta agora, 2.312,10 · E ao salvar a devolução da venda vai a 3.423,15, segue uma só, e o estoque sobe só o que faltava (P 11 → 13, Q 10 → 12) — o mesmo total de uma venda gêmea devolvida inteira de uma vez.
 - **Teste:** `SellReturnAddContratoTest` — `UC-SRADD-08 [V0][E0] devolver tudo devolve a venda inteira descontando o que já voltou`. O botão em si só copia `quantidade_vendida_txt` para cada linha; o teste posta esse payload.
 - **Regressão que defende:** devolver tudo creditar de novo o que já tinha voltado (estoque e valor em dobro).
 - **Status: 🧪**
@@ -97,6 +97,7 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 ## UC-SRADD-09 · Antes de salvar, a tela diz quanto abate do que o cliente deve e quanto vira crédito `[V0]` `[T0]` `[must]`
 - **Âncora:** #10249 — decisão [W] 2026-11-03 "Abater o título aberto": a devolução dá baixa no título a receber da venda até o que está em aberto; a sobra é crédito do cliente na própria devolução. O protótipo (`prototipo-ui/cowork/Wagner/venda-blade-caixa.jsx`, `VendaDevolucaoForm`) avisa que *a devolução gera crédito pro cliente*.
 - **Aceite:** Dado uma venda de 3.333,15 em aberto · Quando marco 2 un (total 2.222,10) · Então a seção **No Financeiro** mostra "Abate do que o cliente deve nesta venda" = 2.222,10 e "Fica de crédito para o cliente" = 0,00, e depois de salvar o título fica com 1.111,05. Dado a mesma venda com 2.500,00 já recebidos (em aberto 833,15) · Então abate 833,15 e ficam 1.388,95 de crédito; salvo, o título zera e a devolução segue "A pagar". Os números vêm de `POST /sell-return/previa-financeira/{venda}` (só leitura — mesma conta do `store()` e do `DevolucaoVendaTituloService`), não de conta da tela; se o total do servidor diferir do da tela, a tela avisa. Com **Vale-troca**, a tela diz que o vale não abate e que a venda continua em aberto (o vale paga a devolução, e devolução paga não abate — UC-FDEV-04). Venda de outra empresa → `404`; sem permissão → `403`.
+- **O que muda agora** (item 4 das pendências, 2026-11-24): a prévia recebe o acumulado e devolve o abatimento TOTAL da devolução; a tela mostra "Abate agora" = abate − já abatido, e o "em aberto hoje" sem o que a própria devolução já abateu. Sem nada voltando agora, a seção Financeiro some e o botão de salvar fica desabilitado (a DEV2026/0004 mostrava o abatimento total com nada voltando).
 - **Teste:** `tests/Feature/Sells/SellReturnAddContratoTest.php` — `UC-SRADD-09` (dois casos: valor e Tier 0).
 - **Status: 🧪**
 
@@ -207,3 +208,16 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.
 - 2026-11-24 · [CC] Add.tsx lê a `?fila=` de SellReturn/Create (UC-SRCRE-09): salva a venda e abre a próxima escolhida; sem fila, volta à lista como antes. O post ao `store()` não mudou — UC-SRADD-* seguem valendo (revalidados pela leitura do diff; o veredito da lane é deste PR).
 - 2026-11-24 · [CC] pedido [W] por print: o registro abre no layout do protótipo Devolução V3 — cartões 1 Origem (com "Trocar venda") · 2 Itens · 3 Pagamento, e o fechamento com o total e "Salvar devolução" fixo à direita. Mesmos estados, mesma conta (`calcularTotais`), mesmo post ao `store()` e as mesmas âncoras `data-contract`; nenhum UC mudou.
+
+---
+
+## Venda sem nota (layout do protótipo Devolução V3, 2026-11-24)
+
+> **Âncora:** `prototipo-ui/cowork/Wagner/devolucao-v3.html` — `blocoSn()` / `renderSnItens()` (venda finalizada sem nota que volta: Origem com "Documento fiscal · Sem nota", "Itens que voltam ao estoque", Conferência, "Retorno ao estoque · Sem tributos").
+
+## UC-SRADD-13 · A tela sabe se a venda tem nota `[T0]` `[must]`
+- **Persona:** Larissa — devolve uma venda de balcão sem NF-e.
+- **Aceite:** Dado uma venda sem emissão autorizada · Quando o registro abre · Então `venda.nota` é `null` e a tela mostra "Documento fiscal · Sem nota" e o aviso "Venda sem documento fiscal" · E emissão rejeitada, ou autorizada de OUTRA empresa com o mesmo `transaction_id`, não conta · E a autorizada da mesma empresa vira `{numero, tipo}` (NFC-e pelo modelo 65). Mesma regra do filtro "Com NF-e / Sem nota" de `/sell-return/create`.
+- **Teste:** `SellReturnAddContratoTest` — `UC-SRADD-13 [T0] a tela sabe se a venda tem nota: só a NF-e autorizada da MESMA empresa conta`.
+- **Regressão que defende:** a tela dizer "sem nota" para venda com NF-e (ou mostrar a nota de outra empresa).
+- **Status: 🧪**

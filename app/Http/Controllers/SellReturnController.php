@@ -559,7 +559,33 @@ class SellReturnController extends Controller
             'desconto_tipo' => (string) (! empty($devolucao->discount_type) ? $devolucao->discount_type : $sell->discount_type),
             'desconto_valor_txt' => $num(! empty($devolucao->discount_amount) ? $devolucao->discount_amount : $sell->discount_amount),
             'linhas' => $linhas,
+            'nota' => $this->inertiaNotaDaVenda($business_id, (int) $sell->id),
             'nfe_devolucao' => $this->inertiaNfeDevolucao($business_id, $devolucao),
+        ];
+    }
+
+    /**
+     * A nota fiscal da venda (emissão autorizada, da MESMA empresa) — mesma regra do filtro
+     * "Com NF-e / Sem nota" de /sell-return/create (origemVendas). Null = venda sem nota: a tela
+     * mostra o retorno ao estoque sem documento fiscal (protótipo Devolução V3, venda sem nota).
+     *
+     * @return array{numero:string, tipo:string}|null
+     */
+    private function inertiaNotaDaVenda(int $business_id, int $vendaId): ?array
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_emissoes')) {
+            return null;
+        }
+        $nota = DB::table('nfe_emissoes')
+            ->where('business_id', $business_id)
+            ->where('transaction_id', $vendaId)
+            ->where('status', 'autorizada')
+            ->orderByDesc('id')
+            ->first(['numero', 'modelo']);
+
+        return $nota === null ? null : [
+            'numero' => (string) $nota->numero,
+            'tipo' => ((string) ($nota->modelo ?? '55')) === '65' ? 'NFC-e' : 'NF-e',
         ];
     }
 

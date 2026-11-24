@@ -16,13 +16,14 @@ import { PageHeader } from '@/Components/PageHeader';
 import { FormSection } from '@/Components/ui/form-section';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
+import { Badge } from '@/Components/ui/badge';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Grid, Inline, Stack } from '@/Components/layout';
-import { calcularTotais, numUf } from './_components/devolucaoCalculo';
+import { acumuladoTxt, calcularTotais, numUf, podeVoltar } from './_components/devolucaoCalculo';
 import { lerFila, urlDoRegistro } from './_components/devolucaoFila';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { TriangleAlert } from 'lucide-react';
@@ -57,6 +58,8 @@ interface VendaOrigem {
   desconto_tipo: string;
   desconto_valor_txt: string;
   linhas: LinhaVenda[];
+  // Nota fiscal autorizada da venda; null = venda sem nota (retorno só ao estoque, sem documento fiscal).
+  nota: { numero: string; tipo: string } | null;
   // Onda 1 Devolução V3: null esconde a seção (flag desligada, sem permissão fiscal ou sem devolução salva).
   nfe_devolucao: NfeDevolucao | null;
 }
@@ -91,6 +94,9 @@ interface SellReturnAddProps {
 const fmtBRL = (n: number): string =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n || 0);
 
+const fmtQtd = (n: number): string =>
+  new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 }).format(n || 0);
+
 const fmtData = (valor: string): string => {
   const partes = (String(valor || '').split(' ')[0] ?? '').split('-');
   return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : valor;
@@ -106,10 +112,12 @@ function csrf(): string {
 // ──────────────────────────────────────────────────────────────
 // FORMULÁRIO
 // ──────────────────────────────────────────────────────────────
+const rotulo = 'text-xs font-medium uppercase tracking-wide text-muted-foreground';
+
 function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
-  const [quantidades, setQuantidades] = useState<string[]>(() =>
-    venda.linhas.map((l) => (numUf(l.quantidade_devolvida_txt) > 0 ? l.quantidade_devolvida_txt : '')),
-  );
+  // Protótipo Devolução V3 (venda sem nota): o campo é "Volta agora" — o que volta NESTA vez.
+  // O store() segue recebendo o acumulado; acumuladoTxt() faz a ponte (UC-SRADD-07/08 intactos).
+  const [voltaAgora, setVoltaAgora] = useState<string[]>(() => venda.linhas.map(() => ''));
   const [numeroDevolucao, setNumeroDevolucao] = useState(venda.numero_devolucao_txt);
   const [descontoTipo, setDescontoTipo] = useState(venda.desconto_tipo);
   const [descontoValor, setDescontoValor] = useState(venda.desconto_valor_txt);
@@ -117,29 +125,22 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
   // US-VEST-021 — pagar ao cliente depois (fica "A pagar" na lista) ou já como vale-troca.
   const [pagamento, setPagamento] = useState<'depois' | 'vale'>('depois');
 
-  const linhasCalculo = venda.linhas.map((l, i) => ({
-    quantidade_txt: quantidades[i] ?? '',
-    preco_unitario_txt: l.preco_unitario_txt,
-  }));
+  const semNota = venda.nota === null;
+  const saldos = venda.linhas.map((l) => podeVoltar(l.quantidade_vendida, l.quantidade_devolvida_txt));
+  // O que vai ao store(): acumulado por linha (já devolvido + volta agora).
+  const acumulados = venda.linhas.map((l, i) => acumuladoTxt(l.quantidade_devolvida_txt, voltaAgora[i] ?? ''));
+
   const totais = useMemo(
-    () => calcularTotais(linhasCalculo, descontoTipo, descontoValor, venda.imposto?.percentual ?? null),
+    () =>
+      calcularTotais(
+        venda.linhas.map((l, i) => ({ quantidade_txt: acumulados[i] ?? '', preco_unitario_txt: l.preco_unitario_txt })),
+        descontoTipo,
+        descontoValor,
+        venda.imposto?.percentual ?? null,
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [quantidades, descontoTipo, descontoValor, venda],
+    [voltaAgora, descontoTipo, descontoValor, venda],
   );
-
-  // R1: teto = vendida. Decimal só quando a unidade permite.
-  const erros = venda.linhas.map((l, i) => {
-    const q = numUf(quantidades[i] ?? '');
-    if (q < 0) return 'Quantidade inválida.';
-    if (!l.permite_decimal && !Number.isInteger(q)) return 'Esta unidade não aceita fração.';
-    return null;
-  });
-  const algumaQuantidade = quantidades.some((q) => numUf(q) > 0);
-  const podeSalvar = algumaQuantidade && erros.every((e) => e === null) && !salvando;
-
-  // P-038 · UC-SRADD-08: o campo "Devolver" é ACUMULADO (a devolução da venda é uma só e o
-  // store() a atualiza). "Devolver tudo" põe a vendida em cada linha; o que volta agora é o
-  // total novo menos o já devolvido. Nenhuma conta nova: as duas somas são calcularTotais().
   const totaisJaDevolvidos = useMemo(
     () =>
       calcularTotais(
@@ -150,31 +151,45 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
       ),
     [venda, descontoTipo, descontoValor],
   );
+  // Valor do que volta agora = total acumulado depois − total já devolvido (mesma conta, duas vezes).
+  const valorAgora = totais.total - totaisJaDevolvidos.total;
   const jaDevolveu = venda.linhas.some((l) => numUf(l.quantidade_devolvida_txt) > 0);
-  const tudoMarcado = venda.linhas.every((l, i) => numUf(quantidades[i] ?? '') === l.quantidade_vendida);
-  const devolverTudo = () => setQuantidades(venda.linhas.map((l) => l.quantidade_vendida_txt));
 
+  // R1: teto = o que ainda pode voltar. Decimal só quando a unidade permite.
+  const erros = venda.linhas.map((l, i) => {
+    const q = numUf(voltaAgora[i] ?? '');
+    if (q < 0) return 'Quantidade inválida.';
+    if (!l.permite_decimal && !Number.isInteger(q)) return 'Esta unidade não aceita fração.';
+    return null;
+  });
+  const unidadesAgora = voltaAgora.reduce((s, q) => s + Math.max(0, numUf(q)), 0);
+  const itensAgora = voltaAgora.filter((q) => numUf(q) > 0).length;
+  const algoVolta = itensAgora > 0;
+  // Item 4 das pendências (2026-11-24): sem nada voltando agora não há o que salvar.
+  const podeSalvar = algoVolta && erros.every((e) => e === null) && !salvando;
+  const saldoTotal = saldos.reduce((s, x) => s + x, 0);
+
+  const devolverTodoSaldo = () => setVoltaAgora(venda.linhas.map((_l, i) => (saldos[i]! > 0 ? String(saldos[i]).replace('.', ',') : '')));
+  const limpar = () => setVoltaAgora(venda.linhas.map(() => ''));
   const mudarQuantidade = (i: number, texto: string) => {
-    const linha = venda.linhas[i];
-    if (!linha) return;
-    const valor = numUf(texto) > linha.quantidade_vendida ? linha.quantidade_vendida_txt : texto;
-    setQuantidades((qs) => qs.map((q, j) => (j === i ? valor : q)));
+    const saldo = saldos[i] ?? 0;
+    const valor = numUf(texto) > saldo ? String(saldo).replace('.', ',') : texto;
+    setVoltaAgora((qs) => qs.map((q, j) => (j === i ? valor : q)));
   };
 
-  // UC-SRADD-09 · prévia financeira: quanto abate do que o cliente deve na venda e quanto vira
-  // crédito. A conta é do servidor (mesmo calculateInvoiceTotal do store + a regra do #10249);
-  // a tela só mostra. Pedida 400 ms depois da última digitação.
+  // UC-SRADD-09 · prévia financeira. O servidor recebe o ACUMULADO (como o store()) e devolve o
+  // abatimento total da devolução; a tela mostra o que muda AGORA (abate − já abatido).
   const [previa, setPrevia] = useState<PreviaFinanceira | null>(null);
   const [previaErro, setPreviaErro] = useState(false);
-  const chavePrevia = JSON.stringify([quantidades, descontoTipo, descontoValor]);
+  const chavePrevia = JSON.stringify([voltaAgora, descontoTipo, descontoValor]);
   useEffect(() => {
-    if (!algumaQuantidade) {
+    if (!algoVolta) {
       setPrevia(null);
       return;
     }
     const corpo = new URLSearchParams();
     venda.linhas.forEach((l, i) => {
-      corpo.append(`products[${i}][quantity]`, quantidades[i] ?? '');
+      corpo.append(`products[${i}][quantity]`, acumulados[i] ?? '');
       corpo.append(`products[${i}][unit_price_inc_tax]`, l.preco_unitario_txt);
     });
     corpo.append('discount_type', descontoTipo);
@@ -206,22 +221,23 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
       controle.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chavePrevia, algumaQuantidade, venda]);
+  }, [chavePrevia, algoVolta, venda]);
   // Dupla prova à vista: o total da tela (espelho) e o do servidor têm de bater.
   const totalDivergente = previa !== null && Math.abs(previa.total - totais.total) > 0.005;
+  const abateAgora = previa?.financeiro ? Math.max(0, previa.financeiro.abate - previa.financeiro.ja_abatido) : 0;
 
   const salvar = async (e: FormEvent) => {
     e.preventDefault();
     if (!podeSalvar) return;
     setSalvando(true);
 
-    // Mesmas chaves e mesmos textos do form Blade (sell_return/add.blade.php).
+    // Mesmas chaves e mesmos textos do form Blade (sell_return/add.blade.php); a quantidade é o acumulado.
     const corpo = new URLSearchParams();
     corpo.append('transaction_id', String(venda.id));
     corpo.append('invoice_no', numeroDevolucao);
     corpo.append('transaction_date', venda.data_devolucao_txt);
     venda.linhas.forEach((l, i) => {
-      corpo.append(`products[${i}][quantity]`, quantidades[i] ?? '');
+      corpo.append(`products[${i}][quantity]`, acumulados[i] ?? '');
       corpo.append(`products[${i}][unit_price_inc_tax]`, l.preco_unitario_txt);
       corpo.append(`products[${i}][sell_line_id]`, String(l.sell_line_id));
     });
@@ -280,9 +296,37 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
     }
   };
 
-  // Layout do protótipo Devolução V3 (prototipo-ui/cowork/Wagner/devolucao-v3.html, pedido [W]
-  // 2026-11-24): cartões numerados à esquerda, fechamento e "Salvar" à direita. Só a forma
-  // mudou — os estados, a conta (calcularTotais) e o post ao store() são os de antes.
+  const documento = venda.nota ? `${venda.nota.tipo} ${venda.nota.numero}` : 'Sem nota';
+  const acao = semNota ? 'Devolver ao estoque' : 'Salvar devolução';
+
+  // Conferência (protótipo, venda sem nota): avisos antes de devolver ao estoque.
+  const avisos: { tom: 'neg' | 'pos' | 'info'; titulo: string; texto: string }[] = [];
+  if (!algoVolta) {
+    avisos.push(
+      saldoTotal > 0
+        ? { tom: 'neg', titulo: 'Nenhuma quantidade para voltar.', texto: 'Informe quanto de cada item está voltando.' }
+        : { tom: 'neg', titulo: 'Nada mais pode voltar.', texto: 'Tudo o que foi vendido nesta venda já voltou ao estoque.' },
+    );
+  } else {
+    avisos.push({
+      tom: 'pos',
+      titulo: semNota ? 'Pronto para devolver ao estoque.' : 'Pronto para salvar.',
+      texto: `${fmtQtd(unidadesAgora)} un voltam para ${venda.local ?? 'o estoque'} e a venda ${venda.numero} é reduzida em ${fmtBRL(valorAgora)}.`,
+    });
+  }
+  if (semNota) {
+    avisos.push({
+      tom: 'info',
+      titulo: 'Venda sem documento fiscal.',
+      texto: 'Não há nota de devolução: o retorno ajusta a venda, o estoque e o financeiro.',
+    });
+  }
+  const corAviso = { neg: 'border-destructive/20 bg-destructive-soft', pos: 'border-success/20 bg-success-soft', info: 'border-info/20 bg-info-soft' } as const;
+  const corTitulo = { neg: 'text-destructive-fg', pos: 'text-success-fg', info: 'text-info-fg' } as const;
+
+  // Layout do protótipo Devolução V3 (prototipo-ui/cowork/Wagner/devolucao-v3.html, venda sem
+  // nota — blocoSn/renderSnItens): origem, itens que voltam, conferência; à direita o retorno ao
+  // estoque e a ação. Os estados, a conta (calcularTotais) e o post ao store() são os de antes.
   return (
     <form onSubmit={salvar} data-contract="formulario">
       <Grid gap={4} className="mt-4 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -290,23 +334,40 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
           <Card data-contract="venda-origem">
             <CardHeader>
               <CardTitle>1 · Origem da devolução</CardTitle>
-              <CardDescription>A venda finalizada que está voltando.</CardDescription>
+              <CardDescription>{semNota ? 'Venda sem nota que está voltando.' : 'A venda finalizada que está voltando.'}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Stack gap={3}>
+              <Stack gap={4}>
                 <Grid min="sm" gap={4} className="text-sm">
                   <Stack gap={0}>
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Venda</span>
+                    <span className={rotulo}>Venda</span>
                     <Link href={`/sells/${venda.id}`} className="font-mono font-semibold">{venda.numero}</Link>
-                    <span className="text-xs text-muted-foreground">{fmtData(venda.data)}</span>
+                    <span className="text-xs text-muted-foreground">Finalizada em {fmtData(venda.data)}</span>
                   </Stack>
                   <Stack gap={0}>
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Cliente</span>
+                    <span className={rotulo}>Cliente</span>
                     <strong className="break-words">{venda.cliente ?? '—'}</strong>
                   </Stack>
-                  <Stack gap={0}>
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Local</span>
+                  <Stack gap={0} data-contract="documento-fiscal">
+                    <span className={rotulo}>Documento fiscal</span>
+                    <strong>{documento}</strong>
+                    {semNota && <span className="text-xs text-muted-foreground">O retorno só movimenta o estoque</span>}
+                  </Stack>
+                </Grid>
+                <Grid min="sm" gap={4} className="text-sm">
+                  {/* O store() devolve ao local da venda; escolher outro depósito é a onda 2 (RUNBOOK §6). */}
+                  <Stack gap={0} data-contract="deposito-entrada">
+                    <span className={rotulo}>Depósito de entrada</span>
                     <strong className="break-words">{venda.local ?? '—'}</strong>
+                    <span className="text-xs text-muted-foreground">O local da venda</span>
+                  </Stack>
+                  <Stack gap={1}>
+                    <Label htmlFor="devolucao-numero" className={rotulo}>Número da devolução</Label>
+                    <Input id="devolucao-numero" value={numeroDevolucao} placeholder="gerado ao salvar" onChange={(e) => setNumeroDevolucao(e.target.value)} />
+                  </Stack>
+                  <Stack gap={1}>
+                    <Label htmlFor="devolucao-data" className={rotulo}>Data</Label>
+                    <Input id="devolucao-data" value={venda.data_devolucao_txt} readOnly />
                   </Stack>
                 </Grid>
                 <Inline justify="end">
@@ -320,115 +381,143 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
 
           <Card data-contract="itens">
             <CardHeader>
-              <CardTitle>2 · Itens a devolver</CardTitle>
-              <CardDescription>Quanto de cada item volta. O total é sempre o acumulado da devolução desta venda.</CardDescription>
+              <Inline justify="between" gap={3} className="flex-wrap items-start">
+                <Stack gap={1}>
+                  <CardTitle>2 · Itens que voltam ao estoque</CardTitle>
+                  <CardDescription>Limitado ao que foi vendido menos o que já voltou.</CardDescription>
+                </Stack>
+                <Inline gap={2}>
+                  <Button type="button" variant="outline" size="sm" onClick={devolverTodoSaldo} disabled={saldoTotal <= 0} data-contract="devolver-tudo">
+                    Devolver todo o saldo
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={limpar} disabled={!algoVolta}>
+                    Limpar
+                  </Button>
+                </Inline>
+              </Inline>
             </CardHeader>
             <CardContent>
-          <Grid min="sm" gap={4} className="mb-4">
-            <Stack gap={1}>
-              <Label htmlFor="devolucao-numero" className="text-xs text-muted-foreground">Número da devolução</Label>
-              <Input id="devolucao-numero" value={numeroDevolucao} placeholder="gerado ao salvar" onChange={(e) => setNumeroDevolucao(e.target.value)} />
-            </Stack>
-            <Stack gap={1}>
-              <Label htmlFor="devolucao-data" className="text-xs text-muted-foreground">Data</Label>
-              <Input id="devolucao-data" value={venda.data_devolucao_txt} readOnly />
-            </Stack>
-          </Grid>
-
-          <Inline justify="end" className="mb-2">
-            <Button type="button" variant="outline" size="sm" onClick={devolverTudo} disabled={tudoMarcado} data-contract="devolver-tudo">
-              Devolver tudo
-            </Button>
-          </Inline>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm" aria-label="Itens da venda e quantidade a devolver">
-              <thead>
-                <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="py-2 pr-2">Produto</th>
-                  <th className="py-2 pr-2 text-right">Vendida</th>
-                  <th className="py-2 pr-2 text-right">Preço unitário</th>
-                  <th className="py-2 pr-2 text-right">Já devolvida</th>
-                  <th className="py-2 pr-2 text-right">Devolver</th>
-                  <th className="py-2 text-right">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {venda.linhas.map((l, i) => (
-                  <tr key={l.sell_line_id} className="border-b border-border align-top">
-                    <td className="py-2 pr-2">
-                      <strong>{l.produto}</strong>
-                      {l.sku && <div className="font-mono text-xs text-muted-foreground">{l.sku}</div>}
-                    </td>
-                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_vendida_txt} {l.unidade}</td>
-                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{fmtBRL(numUf(l.preco_unitario_txt))}</td>
-                    <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_devolvida_txt}</td>
-                    <td className="w-40 py-2 pr-2 text-right">
-                      <Input
-                        className="text-right"
-                        inputMode="decimal"
-                        value={quantidades[i] ?? ''}
-                        placeholder="0"
-                        aria-label={`Quantidade a devolver de ${l.produto} (máximo ${l.quantidade_vendida_txt})`}
-                        aria-invalid={erros[i] !== null}
-                        onChange={(e) => mudarQuantidade(i, e.target.value)}
-                      />
-                      {erros[i] && <p className="mt-1 text-xs text-destructive">{erros[i]}</p>}
-                    </td>
-                    <td className="py-2 text-right font-mono tabular-nums">
-                      {fmtBRL(numUf(quantidades[i] ?? '') * numUf(l.preco_unitario_txt))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-              <div className="mt-4" data-contract="desconto">
-          <Grid min="sm" gap={4}>
-            <Stack gap={1}>
-              <Label htmlFor="devolucao-desconto-tipo" className="text-xs text-muted-foreground">Tipo de desconto</Label>
-              <Select value={descontoTipo || SEM_DESCONTO} onValueChange={(v) => setDescontoTipo(v === SEM_DESCONTO ? '' : v)}>
-                <SelectTrigger id="devolucao-desconto-tipo" className="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={SEM_DESCONTO}>Nenhum</SelectItem>
-                  <SelectItem value="fixed">Valor fixo</SelectItem>
-                  <SelectItem value="percentage">Percentual</SelectItem>
-                </SelectContent>
-              </Select>
-            </Stack>
-            <Stack gap={1}>
-              <Label htmlFor="devolucao-desconto" className="text-xs text-muted-foreground">Desconto</Label>
-              <Input id="devolucao-desconto" inputMode="decimal" value={descontoValor} onChange={(e) => setDescontoValor(e.target.value)} />
-            </Stack>
-          </Grid>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm" aria-label="Itens da venda e quantidade que volta agora">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+                      <th className="py-2 pr-2">Produto</th>
+                      <th className="py-2 pr-2 text-right">Vendido</th>
+                      <th className="py-2 pr-2 text-right">Já voltou</th>
+                      <th className="py-2 pr-2 text-right">Pode voltar</th>
+                      <th className="py-2 pr-2 text-right">Volta agora</th>
+                      <th className="py-2 text-right">Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {venda.linhas.map((l, i) => {
+                      const saldo = saldos[i] ?? 0;
+                      const ja = numUf(l.quantidade_devolvida_txt);
+                      const qAgora = numUf(voltaAgora[i] ?? '');
+                      const preco = numUf(l.preco_unitario_txt);
+                      return (
+                        <tr key={l.sell_line_id} className="border-b border-border align-top">
+                          <td className="py-2 pr-2">
+                            <strong>{l.produto}</strong>
+                            {l.sku && <div className="font-mono text-xs text-muted-foreground">{l.sku}</div>}
+                          </td>
+                          <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_vendida_txt}</td>
+                          <td className="py-2 pr-2 text-right font-mono tabular-nums">{ja > 0 ? l.quantidade_devolvida_txt : '—'}</td>
+                          <td className="py-2 pr-2 text-right font-mono font-semibold tabular-nums">{fmtQtd(saldo)}</td>
+                          <td className="w-32 py-2 pr-2 text-right">
+                            <Input
+                              className="text-right"
+                              inputMode="decimal"
+                              value={voltaAgora[i] ?? ''}
+                              placeholder="0"
+                              disabled={saldo <= 0}
+                              aria-label={`Quantidade de ${l.produto} que volta agora (até ${fmtQtd(saldo)})`}
+                              aria-invalid={erros[i] !== null}
+                              onChange={(e) => mudarQuantidade(i, e.target.value)}
+                            />
+                            {erros[i] && <p className="mt-1 text-xs text-destructive">{erros[i]}</p>}
+                          </td>
+                          <td className="py-2 text-right font-mono tabular-nums">
+                            {qAgora > 0 ? fmtBRL(qAgora * preco) : '—'}
+                            <small className="block text-xs text-muted-foreground">{fmtBRL(preco)} /{l.unidade || 'un'}</small>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="font-semibold">
+                      <td className="py-2 pr-2">{itensAgora} {itensAgora === 1 ? 'item voltando' : 'itens voltando'}</td>
+                      <td /><td /><td />
+                      <td className="py-2 pr-2 text-right font-mono tabular-nums">{fmtQtd(unidadesAgora)}</td>
+                      <td className="py-2 text-right font-mono tabular-nums">{fmtBRL(algoVolta ? valorAgora : 0)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
+              <div className="mt-4" data-contract="desconto">
+                <Grid min="sm" gap={4}>
+                  <Stack gap={1}>
+                    <Label htmlFor="devolucao-desconto-tipo" className="text-xs text-muted-foreground">Tipo de desconto</Label>
+                    <Select value={descontoTipo || SEM_DESCONTO} onValueChange={(v) => setDescontoTipo(v === SEM_DESCONTO ? '' : v)}>
+                      <SelectTrigger id="devolucao-desconto-tipo" className="w-full"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={SEM_DESCONTO}>Nenhum</SelectItem>
+                        <SelectItem value="fixed">Valor fixo</SelectItem>
+                        <SelectItem value="percentage">Percentual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Stack>
+                  <Stack gap={1}>
+                    <Label htmlFor="devolucao-desconto" className="text-xs text-muted-foreground">Desconto</Label>
+                    <Input id="devolucao-desconto" inputMode="decimal" value={descontoValor} onChange={(e) => setDescontoValor(e.target.value)} />
+                  </Stack>
+                </Grid>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card data-contract="conferencia">
+            <CardHeader>
+              <CardTitle>3 · Conferência</CardTitle>
+              <CardDescription>{semNota ? 'Antes de devolver ao estoque.' : 'Antes de salvar a devolução.'}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Stack gap={2} aria-live="polite">
+                {avisos.map((a) => (
+                  <div key={a.titulo} className={`rounded-md border px-3 py-2 text-sm ${corAviso[a.tom]}`}>
+                    <strong className={corTitulo[a.tom]}>{a.titulo}</strong> <span className="text-foreground">{a.texto}</span>
+                  </div>
+                ))}
+              </Stack>
             </CardContent>
           </Card>
 
           <Card data-contract="pagamento-cliente">
             <CardHeader>
-              <CardTitle>3 · Pagamento ao cliente</CardTitle>
+              <CardTitle>4 · Pagamento ao cliente</CardTitle>
               <CardDescription>Como o cliente recebe o que a devolução deixa a favor dele.</CardDescription>
             </CardHeader>
             <CardContent>
-          <RadioGroup value={pagamento} onValueChange={(v) => setPagamento(v as 'depois' | 'vale')} className="gap-3">
-            <Inline gap={2} className="items-start">
-              <RadioGroupItem id="pagar-depois" value="depois" />
-              <Label htmlFor="pagar-depois" className="font-normal">
-                Pagar depois — a devolução fica &quot;A pagar&quot; na lista de devoluções
-              </Label>
-            </Inline>
-            <Inline gap={2} className="items-start">
-              <RadioGroupItem id="pagar-vale" value="vale" disabled={!venda.cliente_aceita_vale} />
-              <Label htmlFor="pagar-vale" className="font-normal">
-                Vale-troca — o que falta pagar da devolução vira saldo do cliente, para usar no caixa como Adiantamento
-                {!venda.cliente_aceita_vale && (
-                  <span className="block text-xs text-muted-foreground">
-                    Indisponível: a venda é do Cliente padrão. Cadastre o cliente na venda para dar vale-troca.
-                  </span>
-                )}
-              </Label>
-            </Inline>
-          </RadioGroup>
+              <RadioGroup value={pagamento} onValueChange={(v) => setPagamento(v as 'depois' | 'vale')} className="gap-3">
+                <Inline gap={2} className="items-start">
+                  <RadioGroupItem id="pagar-depois" value="depois" />
+                  <Label htmlFor="pagar-depois" className="font-normal">
+                    Pagar depois — a devolução fica &quot;A pagar&quot; na lista de devoluções
+                  </Label>
+                </Inline>
+                <Inline gap={2} className="items-start">
+                  <RadioGroupItem id="pagar-vale" value="vale" disabled={!venda.cliente_aceita_vale} />
+                  <Label htmlFor="pagar-vale" className="font-normal">
+                    Vale-troca — o que falta pagar da devolução vira saldo do cliente, para usar no caixa como Adiantamento
+                    {!venda.cliente_aceita_vale && (
+                      <span className="block text-xs text-muted-foreground">
+                        Indisponível: a venda é do Cliente padrão. Cadastre o cliente na venda para dar vale-troca.
+                      </span>
+                    )}
+                  </Label>
+                </Inline>
+              </RadioGroup>
             </CardContent>
           </Card>
         </Stack>
@@ -436,93 +525,127 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
         <Stack gap={4} className="h-fit lg:sticky lg:top-4">
           <Card data-contract="totais">
             <CardHeader>
-              <CardTitle>Fechamento</CardTitle>
-              <CardDescription>Venda {venda.numero}</CardDescription>
+              <Inline justify="between" gap={2} className="items-start">
+                <Stack gap={1}>
+                  <CardTitle>Retorno ao estoque</CardTitle>
+                  <CardDescription>{semNota ? 'Venda sem nota' : `Venda com ${documento}`}</CardDescription>
+                </Stack>
+                {semNota && !venda.imposto && (
+                  <Badge variant="warning">Sem tributos</Badge>
+                )}
+              </Inline>
             </CardHeader>
             <CardContent>
               <Stack gap={3}>
-                <div className="rounded-md border border-border bg-muted/40 p-3">
-                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total da devolução</span>
-                  <b className="block font-mono text-2xl tabular-nums">{fmtBRL(totais.total)}</b>
-                  {jaDevolveu && (
-                    <small className="text-muted-foreground" data-contract="volta-agora">
-                      Já devolvido antes: {fmtBRL(totaisJaDevolvidos.total)} · Volta agora: {fmtBRL(totais.total - totaisJaDevolvidos.total)}
-                    </small>
-                  )}
+                <div className="rounded-md border border-border bg-muted/40 p-3" data-contract="volta-agora">
+                  <span className={rotulo}>Unidades que voltam</span>
+                  <b className="block font-mono text-2xl tabular-nums">{fmtQtd(unidadesAgora)} un</b>
+                  <small className="text-muted-foreground">
+                    {fmtBRL(algoVolta ? valorAgora : 0)} · {venda.local ?? '—'}
+                  </small>
                 </div>
                 <Stack gap={1} className="text-sm tabular-nums">
-                  <Inline justify="between"><span>Subtotal</span><span className="font-mono">{fmtBRL(totais.subtotal)}</span></Inline>
-                  <Inline justify="between"><span>(−) Desconto</span><span className="font-mono">{fmtBRL(totais.desconto)}</span></Inline>
-                  <Inline justify="between">
-                    <span>(+) Imposto{venda.imposto ? ` (${venda.imposto.nome} · ${venda.imposto.percentual}%)` : ''}</span>
-                    <span className="font-mono">{fmtBRL(totais.imposto)}</span>
-                  </Inline>
+                  <Inline justify="between"><span className="text-muted-foreground">Venda</span><span className="font-mono">{venda.numero}</span></Inline>
+                  <Inline justify="between"><span className="text-muted-foreground">Documento fiscal</span><span>{venda.nota ? documento : 'Nenhum'}</span></Inline>
+                  {jaDevolveu && (
+                    <Inline justify="between"><span className="text-muted-foreground">Já devolvido antes</span><span className="font-mono">{fmtBRL(totaisJaDevolvidos.total)}</span></Inline>
+                  )}
+                  {algoVolta && (
+                    <>
+                      <Inline justify="between"><span className="text-muted-foreground">(−) Desconto</span><span className="font-mono">{fmtBRL(totais.desconto - totaisJaDevolvidos.desconto)}</span></Inline>
+                      {venda.imposto && (
+                        <Inline justify="between">
+                          <span className="text-muted-foreground">(+) Imposto ({venda.imposto.nome} · {venda.imposto.percentual}%)</span>
+                          <span className="font-mono">{fmtBRL(totais.imposto - totaisJaDevolvidos.imposto)}</span>
+                        </Inline>
+                      )}
+                      <Inline justify="between" className="font-semibold">
+                        <span>Total da devolução depois de salvar</span><span className="font-mono">{fmtBRL(totais.total)}</span>
+                      </Inline>
+                    </>
+                  )}
                 </Stack>
               </Stack>
             </CardContent>
           </Card>
 
-          {algumaQuantidade && (
+          {algoVolta && (
             <Card data-contract="previa-financeira">
               <CardHeader>
-                <CardTitle>No Financeiro</CardTitle>
+                <CardTitle>Financeiro</CardTitle>
+                <CardDescription>Conta a receber da venda</CardDescription>
               </CardHeader>
               <CardContent>
-            {previaErro && !previa && (
-              <p className="text-sm text-muted-foreground">Não foi possível calcular o efeito no Financeiro agora. A devolução pode ser salva normalmente.</p>
-            )}
-            {!previa && !previaErro && <Skeleton className="h-12 w-full" />}
-            {previa && (
-              <Stack gap={1} className="text-sm" aria-live="polite">
-                {totalDivergente && (
-                  <p className="text-destructive" data-contract="previa-divergente">
-                    O servidor calculou {fmtBRL(previa.total)} para esta devolução, diferente do total acima. Confira antes de salvar.
-                  </p>
+                {previaErro && !previa && (
+                  <p className="text-sm text-muted-foreground">Não foi possível calcular o efeito no Financeiro agora. A devolução pode ser salva normalmente.</p>
                 )}
-                {previa.ja_pago_ao_cliente > 0 && (
-                  <span>Já pago ao cliente nesta devolução: {fmtBRL(previa.ja_pago_ao_cliente)}</span>
-                )}
-                {pagamento === 'depois' ? (
-                  previa.financeiro?.tem_titulo ? (
-                    <>
-                      <span>
-                        Abate do que o cliente deve nesta venda: <strong>{fmtBRL(previa.financeiro.abate)}</strong>
-                        {' '}(em aberto hoje: {fmtBRL(previa.financeiro.em_aberto_na_venda)})
-                      </span>
-                      <span>
-                        Fica de crédito para o cliente: <strong>{fmtBRL(previa.financeiro.credito)}</strong>
-                        {previa.financeiro.credito > 0 && ' — a devolução fica "A pagar" na lista de devoluções'}
-                      </span>
-                    </>
-                  ) : (
-                    <span>
-                      A venda não tem conta a receber em aberto no Financeiro: os <strong>{fmtBRL(previa.devido_ao_cliente)}</strong> ficam de crédito para o cliente.
-                    </span>
-                  )
-                ) : (
-                  <>
-                    <span>Vale-troca no saldo do cliente: <strong>{fmtBRL(previa.devido_ao_cliente)}</strong></span>
-                    {previa.financeiro?.tem_titulo && (
-                      <span className="text-muted-foreground">
-                        O vale não abate o que o cliente deve: a venda continua com {fmtBRL(previa.financeiro.em_aberto_na_venda)} em aberto no Financeiro.
-                      </span>
+                {!previa && !previaErro && <Skeleton className="h-12 w-full" />}
+                {previa && (
+                  <Stack gap={1} className="text-sm" aria-live="polite">
+                    {totalDivergente && (
+                      <p className="text-destructive" data-contract="previa-divergente">
+                        O servidor calculou {fmtBRL(previa.total)} para esta devolução, diferente do total acima. Confira antes de salvar.
+                      </p>
                     )}
-                  </>
+                    {previa.ja_pago_ao_cliente > 0 && (
+                      <span>Já pago ao cliente nesta devolução: {fmtBRL(previa.ja_pago_ao_cliente)}</span>
+                    )}
+                    {pagamento === 'depois' ? (
+                      previa.financeiro?.tem_titulo ? (
+                        <>
+                          <span>
+                            Abate agora do que o cliente deve nesta venda: <strong>{fmtBRL(abateAgora)}</strong>
+                            {' '}(em aberto hoje: {fmtBRL(Math.max(0, previa.financeiro.em_aberto_na_venda - previa.financeiro.ja_abatido))})
+                          </span>
+                          {previa.financeiro.ja_abatido > 0 && (
+                            <span className="text-muted-foreground">Já abatido pela devolução antes: {fmtBRL(previa.financeiro.ja_abatido)}</span>
+                          )}
+                          <span>
+                            Crédito do cliente nesta devolução depois de salvar: <strong>{fmtBRL(previa.financeiro.credito)}</strong>
+                            {previa.financeiro.credito > 0 && ' — a devolução fica "A pagar" na lista de devoluções'}
+                          </span>
+                        </>
+                      ) : (
+                        <span>
+                          A venda não tem conta a receber em aberto no Financeiro: os <strong>{fmtBRL(previa.devido_ao_cliente)}</strong> da devolução ficam de crédito para o cliente.
+                        </span>
+                      )
+                    ) : (
+                      <>
+                        <span>Vale-troca no saldo do cliente: <strong>{fmtBRL(previa.devido_ao_cliente)}</strong></span>
+                        {previa.financeiro?.tem_titulo && (
+                          <span className="text-muted-foreground">
+                            O vale não abate o que o cliente deve: a venda continua com {fmtBRL(previa.financeiro.em_aberto_na_venda)} em aberto no Financeiro.
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </Stack>
                 )}
-              </Stack>
-            )}
               </CardContent>
             </Card>
           )}
 
-          <Stack gap={2}>
-            <Button type="submit" disabled={!podeSalvar}>
-              {salvando ? 'Salvando…' : 'Salvar devolução'}
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/sell-return">Cancelar</Link>
-            </Button>
-          </Stack>
+          <Card data-contract="acao">
+            <CardContent className="pt-6">
+              <Stack gap={3}>
+                <Inline justify="between" className="items-baseline text-sm">
+                  <span className={rotulo}>Volta ao estoque</span>
+                  <b className="font-mono tabular-nums">{fmtQtd(unidadesAgora)} un</b>
+                  <span className="font-mono tabular-nums text-muted-foreground">{fmtBRL(algoVolta ? valorAgora : 0)}</span>
+                </Inline>
+                <Button type="submit" disabled={!podeSalvar}>
+                  {salvando ? 'Salvando…' : acao}
+                </Button>
+                <span className={`text-center text-xs ${podeSalvar || salvando ? 'text-muted-foreground' : 'text-destructive'}`}>
+                  {algoVolta ? 'O estoque é atualizado ao salvar.' : 'Informe ao menos uma quantidade para voltar.'}
+                </span>
+                <Button variant="outline" asChild>
+                  <Link href="/sell-return">Cancelar</Link>
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
         </Stack>
       </Grid>
     </form>
