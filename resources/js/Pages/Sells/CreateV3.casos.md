@@ -465,6 +465,20 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 
 - **[BACKLOG]** A V3 entrar no processo do modelo de fluxo da empresa, em vez de sempre em `venda_com_producao`, é decisão de produto e muda `IniciarPipelineVendaV3`; a Situação acompanha porque lê o mesmo processo.
 
+## UC-V415 · As colunas que existem nos dois catálogos têm o nome e o grupo da âncora
+
+**Status:** 🧪 — `tests/js/sells-v3-colunas-rotulos.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** o catálogo de colunas do grid de itens,
+- **Então** as colunas que mostram o mesmo dado nos dois catálogos têm o rótulo e o grupo do protótipo: "Cód. produto" (era SKU), "Comprimento (m)" (era Altura (m); a unidade fica), "Estoque" (era Saldo), "Funcionário" (era Executante), "Tipo de impressão" (era Impressão), "Prazo da etapa" (era Prazo), "R$ valor" e "R$ total", e "Unidade" no grupo Identificação (era Medidas).
+- **E** a chave de cada coluna não muda: a escolha que o operador salvou continua carregando igual.
+
+Âncora: `COLUNAS` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`; o teste lê o protótipo, não repete os rótulos.
+
+- **[BACKLOG]** Colunas que só o protótipo tem e não fazem conta de dinheiro: Seq., Tipo, Medidas, Fórmula, CEST, Em produção, Local da aplicação, Obs. da produção, Local de estoque.
+- **[BACKLOG]** "R$ tabela", "R$ desconto" e "R$ outros" calculam dinheiro na linha (quantidade × preço × percentual): entram com dupla prova, antes→depois e aprovação [W] (REGRA MESTRE).
+- **[BACKLOG]** Colunas que só a produção tem (Código de barras, Cód. de fábrica, Categoria, Área un., Alíquota, Origem, Acabamento, Aplicação, Saldo após, Lote, Depósito): tirá-las apagaria a escolha salva de quem as usa; é decisão de produto, não de forma.
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,
@@ -1417,6 +1431,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-24, terceira (G-6):** a gaveta de comissão ganhou a forma da âncora: título "Comissão desta venda", faixa Bruto · Líquido · Margem no topo, um botão por tipo de beneficiário e rodapé só com "Fechar" (UC-V411, novo). Os testes do UC-V408 e do UC-V409 acompanham o título e o botão novos. Nenhum valor muda: as contas são as mesmas funções do domínio.
 - **Revalidação de 2026-11-24, quarta (G-6):** o passo Itens ganhou "Consultar produto… F3" e o atalho F3, que abrem a busca do passo 2 em tabela e lançam o item escolhido pelo mesmo lançamento (UC-V412, novo). Nenhum valor muda: o preço exibido é o que a busca já trazia e o lançamento calcula como antes.
 - **Revalidação de 2026-11-24, quinta (G-6):** gravando, a Situação passou a listar as etapas do processo `venda_com_producao` desta empresa, que o servidor manda em `gravacao.etapas` (UC-V414, novo). Antes mostrava só o texto. Nenhum valor muda.
+- **Revalidação de 2026-11-24, sexta (G-6):** as colunas que existem nos dois catálogos ganharam o nome e o grupo da âncora, com as chaves mantidas (UC-V415, novo). O teste do UC-V367 acompanha "R$ valor" e "R$ total". Nenhum valor muda.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
