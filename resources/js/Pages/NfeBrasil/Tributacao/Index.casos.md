@@ -528,7 +528,7 @@ last_run: "2026-11-23"
   `DetalheDrawer`: botão "Abrir no módulo Fiscal", destino `fiscal-modulo` com o produto) + UC-PIDX-25 do
   [`Produto/Index.casos.md`](../../Produto/Index.casos.md). O simulador é o mesmo do UC-NFTR-08: nada é
   gravado, e o valor não é preenchido de antemão (quem simula digita).
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-22 a partir do JUnit), 1 teste. Até 2026-11-24 esta linha dizia ⬜ "nasce neste PR", texto do PR que criou o caso (#9450).
 
 ---
 
