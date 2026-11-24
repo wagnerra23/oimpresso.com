@@ -5,10 +5,14 @@ irmaos: RegraForm.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F7 · §
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta regra decide a alíquota que sai na nota — errar aqui é multa fiscal, não bug de tela.
 owner: wagner
-last_run: "2026-11-13"
+last_run: "2026-11-23"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 
+> ℹ️ **`last_run` 2026-11-13 → 2026-11-23 (G-6).** O `RegraForm.tsx` mudou em 2026-11-15 (#10879,
+> R-NFE-025b). A data nova é a do manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23
+> a partir do JUnit do CI), que tem `pass` para os 9 UC desta tela — execução posterior à mudança.
+>
 > ℹ️ **`last_run` 2026-10-07 → 2026-11-13 (G-6), sem re-execução.** A mudança no `RegraForm.tsx` é o
 > R-NFE-025b (PR #10879): os campos CST PIS e CST COFINS na seção Alíquotas. Ela é o UC-NFRF-09, escrito
 > no mesmo PR com o teste que o cita; nenhum outro UC desta tela depende dos campos novos. O bump marca o
