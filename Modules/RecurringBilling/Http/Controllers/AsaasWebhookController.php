@@ -49,11 +49,13 @@ class AsaasWebhookController extends Controller
 
         // O PG cifra o config_json inteiro e guarda o segredo em claro dentro dele. Config que
         // não decifra (APP_KEY trocada) vale como sem segredo: rejeita, nunca 500.
+        // getAttribute() é onde o cast encrypted:array decifra (e lança DecryptException).
         try {
-            $expectedSecret = $credential->config_json['webhook_secret'] ?? null;
+            $config = $credential->getAttribute('config_json');
         } catch (DecryptException) {
-            $expectedSecret = null;
+            $config = null;
         }
+        $expectedSecret = is_array($config) ? ($config['webhook_secret'] ?? null) : null;
         $providedSecret = (string) $request->header(self::AUTH_HEADER, '');
 
         if (! is_string($expectedSecret) || $expectedSecret === '' || ! hash_equals($expectedSecret, $providedSecret)) {
