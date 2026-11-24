@@ -15,6 +15,8 @@ declare(strict_types=1);
  *   UC-RBPNC-02 — slug é único POR BUSINESS, nunca global [T0]          (Create.casos.md)
  *   UC-RBPNE-01 — editar valor/ciclo preserva os demais campos [V0]     (Edit.casos.md)
  *   UC-RBPNE-02 — editar plano de outro business é 404 [T0]             (Edit.casos.md)
+ *   UC-RBPNC-03 — /planos/novo é a lista com o drawer de novo plano    (Create.casos.md)
+ *   UC-RBPNE-03 — /planos/{id}/editar é a lista com o drawer de edição (Edit.casos.md)
  */
 
 use Illuminate\Http\Request;
@@ -360,4 +362,54 @@ it('R-RB-WAVE6-6 — store rejeita slug duplicado per business (unique scoped)',
     $requestOther->validateResolved(); // não lança
 
     expect(true)->toBeTrue(); // chegou aqui = unique scoped per biz OK
+});
+
+/**
+ * Lê componente e props de uma Inertia\Response sem rendê-la (as props deferidas não rodam).
+ *
+ * @return array{0: string, 1: array<string, mixed>}
+ */
+function rbPlanoInertia(\Inertia\Response $response): array
+{
+    return [(fn () => $this->component)->call($response), (fn () => $this->props)->call($response)];
+}
+
+it('UC-RBPNC-03 — /planos/novo rende a lista com o drawer de novo plano aberto (props da lista + defaults)', function () {
+    [$componente, $props] = rbPlanoInertia(makeControllerSkippingAuth()->create());
+
+    // O componente continua sendo Planos/Create, mas ele é a lista: precisa das props dela,
+    // e as caras chegam deferidas (o drawer abre sem esperar o paginate).
+    expect($componente)->toBe('RecurringBilling/Planos/Create')
+        ->and($props)->toHaveKeys(['filters', 'plans', 'kpis', 'defaults'])
+        ->and($props['plans'])->toBeInstanceOf(\Inertia\DeferProp::class)
+        ->and($props['kpis'])->toBeInstanceOf(\Inertia\DeferProp::class)
+        ->and($props['defaults'])->toBe([
+            'ciclo'       => 'monthly',
+            'trial_days'  => 0,
+            'ativo'       => true,
+            'fiscal_type' => 'none',
+        ]);
+});
+
+it('UC-RBPNE-03 — /planos/{id}/editar rende a lista com o drawer de edição aberto no plano da sessão', function () {
+    $plan = Plan::withoutGlobalScopes()->create([
+        'business_id' => 1,
+        'name'        => 'Plano Drawer Edicao',
+        'slug'        => 'plano-drawer-edicao',
+        'valor'       => 150.0,
+        'ciclo'       => 'quarterly',
+        'ativo'       => false,
+        'fiscal_type' => 'nfse',
+        'fiscal_servico' => '1401',
+    ]);
+
+    [$componente, $props] = rbPlanoInertia(makeControllerSkippingAuth()->edit($plan->id));
+
+    expect($componente)->toBe('RecurringBilling/Planos/Edit')
+        ->and($props)->toHaveKeys(['filters', 'plans', 'kpis', 'plan'])
+        ->and($props['plans'])->toBeInstanceOf(\Inertia\DeferProp::class)
+        ->and($props['plan']['id'])->toBe($plan->id)
+        ->and($props['plan']['ciclo'])->toBe('quarterly')
+        ->and($props['plan']['ativo'])->toBeFalse()
+        ->and($props['plan']['fiscal_servico'])->toBe('1401');
 });
