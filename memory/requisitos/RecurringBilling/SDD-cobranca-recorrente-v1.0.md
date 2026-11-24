@@ -443,7 +443,7 @@ Casos: `UC-RBPA-01..14` em `resources/js/Pages/RecurringBilling/Index.casos.md`.
 
 O que falta: cobrar as faturas seguintes com o token salvo e mostrar o cartão na tela (decisão b5 da
 auditoria de 2026-11-19: o cartão recorrente entra na tela). O bloco "Cartão recorrente" no drawer da
-assinatura (bandeira e final, atrás da mesma flag) está **em andamento** em [#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355). Cobrar com o token
+assinatura (bandeira e final, atrás da mesma flag) foi mergeado em 2026-11-23 em [#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355); não conferido em produção (flag desligada). Cobrar com o token
 salvo não tem PR em 2026-11-23. Casos: `UC-RBCC-01..04` em `Index.casos.md`.
 
 ---
@@ -513,7 +513,7 @@ migração sem PR em 2026-11-23).
 | D5 | **`C6Driver::cancelar()` é stub** que lança exceção | `SPEC.md` US-RB-042 |
 | D6 | **Sem endpoint de charge dedicado** (`POST /invoices/{id}/charge` da US-RB-004 não existe); cobrança acontece por geração de boleto/PIX + baixa por webhook | `SPEC.md` US-RB-004 |
 | D7 | **Sem proração** em upgrade/downgrade mid-cycle (US-RB-006) e sem reajuste no aniversário | `SPEC.md` US-RB-003/006 |
-| D9 | **Duas pilhas de driver para o mesmo banco — resolvido em 2026-11-24.** Até então o boleto usava `Services/Boleto/Drivers/{Asaas,C6,Inter}` + `rb_boleto_credentials`, e Pix Automático e cartão o PaymentGateway + `payment_gateway_credentials`. O dono é o PaymentGateway ([ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md)). Cancelar e estornar migraram em [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358) e [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359); o `BoletoService` e os drivers do RB saíram em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409). Resta `rb_boleto_credentials`, lida pelo `BoletoCredentialResolver`, Configurações e wizard | `ls Modules/PaymentGateway/Services/Drivers/ Modules/RecurringBilling/Services/Boleto/` |
+| D9 | **Duas pilhas de driver para o mesmo banco — resolvido em 2026-11-24.** Até então o boleto usava `Services/Boleto/Drivers/{Asaas,C6,Inter}` + `rb_boleto_credentials`, e Pix Automático e cartão o PaymentGateway + `payment_gateway_credentials`. O dono é o PaymentGateway ([ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md)). Cancelar e estornar migraram em [#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356) (credencial), [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358) e [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359); o `BoletoService` e os drivers do RB saíram em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409). Resta `rb_boleto_credentials`, lida pelo `BoletoCredentialResolver`, Configurações e wizard | `ls Modules/PaymentGateway/Services/Drivers/ Modules/RecurringBilling/Services/Boleto/` |
 | D10 | **Fatura paga não chega ao Financeiro como título.** A ponte é do Financeiro (decisão b2, 2026-11-23) | F13 |
 | D8 | `InvoiceController@cancel` lê `session('business.id')`; **todo o resto do módulo** lê `session('user.business_id')`. Ambas as chaves existem (`SetSessionData` grava as duas) — **não é bug medido**, é inconsistência de vocabulário que confunde quem lê | `InvoiceController@cancel` × `RecurringBillingController`/`PlanController` |
 
@@ -702,7 +702,7 @@ Casos: `UC-RBPA-01..14` (`Index.casos.md`).
 gateway; *então* o token do cartão fica ligado à assinatura. Fluxo: F11.
 1. `[T0]` número de cartão (13 a 19 dígitos) nunca é gravado nem logado.
 2. `[must]` o mesmo token não é salvo duas vezes (`ja_salvo`).
-3. 🟡 Mostrar o cartão na tela: **em andamento** ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355)). Cobrar as faturas seguintes com o token: sem PR.
+3. 🟡 Mostrar o cartão na tela: mergeado em 2026-11-23 ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355)), não conferido em produção (flag desligada). Cobrar as faturas seguintes com o token: sem PR.
 Casos: `UC-RBCC-01..04` (`Index.casos.md`).
 
 #### CU-RB-18 — Marcar a fatura paga a partir da cobrança do PaymentGateway (US-RB-057) `[must]` `[V0]` `[T0]` 🧪
@@ -882,8 +882,8 @@ merge de quem for atendê-lo — G-2).
 | Trilha | Item | Estado |
 |---|---|---|
 | **Correção `[V0]`** | decidir o remédio do §9.1 (assinatura sem plano) | ✅ remédio "a" escolhido por [W] e entregue em 2026-10-19 (#9606) |
-| Dados | apagar contato não apaga fatura (b6) | em andamento: [#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346) |
-| Tela | régua de cobrança sem e-mail nem WhatsApp na tela (b7) | em andamento: [#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350) |
+| Dados | apagar contato não apaga fatura (b6) | ✅ mergeado em 2026-11-23 ([#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346)); FKs não conferidas em produção |
+| Tela | régua de cobrança sem e-mail nem WhatsApp na tela (b7) | ✅ mergeado em 2026-11-23 ([#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350)) |
 | **Correção `[V0]`** | US-RB-056 — unificar as 3 regras de próximo vencimento | aberta |
 | Paridade DoD | US-RB-001 `setup_fee`/`indice_reajuste` · US-RB-002 `trialing` · US-RB-005 `tipo_cancelamento`+`credit_note` | parciais declaradas |
 | Cobrança | US-RB-004 endpoint de charge + smart retry soft/hard decline | D6 |
@@ -892,10 +892,10 @@ merge de quem for atendê-lo — G-2).
 | Gateway | `C6Driver::cancelar()` (CNAB ocorrência 02) | D5 |
 | Diferencial | ligar `nfebrasil.auto_emission_on_invoice_paid` com evidência de prod | US-RB-044 — ligar é do [W] |
 | Cobrança | ligar `RB_COBRAR_PIX_AUTOMATICO`, `RB_SALVAR_CARTAO` e `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` em prod | do [W] |
-| Cobrança | cartão na tela (b5) | em andamento ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355)) |
+| Cobrança | cartão na tela (b5) | ✅ mergeado em 2026-11-23 ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355)); flag desligada |
 | Cobrança | cobrar com o cartão salvo | sem PR |
-| Tela | Faturas na forma do protótipo (filtros numa linha, pílula, sem CTA vazio) | em andamento ([#11366](https://github.com/wagnerra23/oimpresso.com/pull/11366)) |
-| Gateway | migrar a pilha de boleto do RB para o PaymentGateway (D9, b1) | cancelar/estornar ✅ ([#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)); `BoletoService` e drivers removidos ([#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)); leitores de `rb_boleto_credentials`: sem PR |
+| Tela | Faturas na forma do protótipo (filtros numa linha, pílula, sem CTA vazio) | ✅ mergeado em 2026-11-23 ([#11366](https://github.com/wagnerra23/oimpresso.com/pull/11366)) |
+| Gateway | migrar a pilha de boleto do RB para o PaymentGateway (D9, b1) | cancelar/estornar ✅ ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356), [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)); `BoletoService` e drivers removidos ([#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)); leitores de `rb_boleto_credentials`: sem PR |
 | Financeiro | ponte `InvoicePaid` → título e baixa (D10, b2) | do Financeiro |
 | Governança | a linha do §8.2 na allowlist per-PR | **parent** |
 | **Non-Goals do domínio** | §6.2 vazio — candidatos: *"não somos MoR"* ([ADR arq/0004](adr/arq/0004-take-rate-vs-merchant-of-record.md)), *"não fazemos cartão tokenizado próprio"*, *"não emitimos NFS-e aqui"* ([ADR arq/0002](adr/arq/0002-nfse-submodulo-vs-nfebrasil.md)) | ⛔ **só [W]** |
