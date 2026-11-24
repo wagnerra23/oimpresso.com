@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 148 arquivos em 9 papéis.
+**Total mapeado:** 150 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -104,7 +104,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [Show.tsx](../../../resources/js/Pages/Produto/Show.tsx)
 - [StockHistory.tsx](../../../resources/js/Pages/Produto/StockHistory.tsx)
 
-## Componentes / apoio de tela — 32
+## Componentes / apoio de tela — 33
 
 - [CadastroDrawer.tsx](../../../resources/js/Pages/Produto/Cadastros/_components/CadastroDrawer.tsx)
 - [EditarSoArmazenagem.tsx](../../../resources/js/Pages/Produto/_components/EditarSoArmazenagem.tsx)
@@ -127,6 +127,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [NaturezaFiscal.tsx](../../../resources/js/Pages/Produto/_components/formulario/NaturezaFiscal.tsx)
 - [ProdutoFormulario.tsx](../../../resources/js/Pages/Produto/_components/formulario/ProdutoFormulario.tsx)
 - [AcoesProduto.tsx](../../../resources/js/Pages/Produto/_components/lista/AcoesProduto.tsx)
+- [AvisoDeOrigem.tsx](../../../resources/js/Pages/Produto/_components/lista/AvisoDeOrigem.tsx)
 - [CadastroRapido.tsx](../../../resources/js/Pages/Produto/_components/lista/CadastroRapido.tsx)
 - [EstoqueInicial.tsx](../../../resources/js/Pages/Produto/_components/lista/EstoqueInicial.tsx)
 - [FiltrosLista.tsx](../../../resources/js/Pages/Produto/_components/lista/FiltrosLista.tsx)
@@ -167,7 +168,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [Show.casos.md](../../../resources/js/Pages/Produto/Show.casos.md)
 - [StockHistory.casos.md](../../../resources/js/Pages/Produto/StockHistory.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 22
+## Demais arquivos (manifestos, docs, assets e misc) — 23
 
 - [armazenagem.ts](../../../resources/js/Pages/Produto/_components/formulario/armazenagem.ts)
 - [cest.ts](../../../resources/js/Pages/Produto/_components/formulario/cest.ts)
@@ -187,6 +188,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [estoque-inicial-dominio.ts](../../../resources/js/Pages/Produto/_components/lista/estoque-inicial-dominio.ts)
 - [formato.ts](../../../resources/js/Pages/Produto/_components/lista/formato.ts)
 - [navegacao.ts](../../../resources/js/Pages/Produto/_components/lista/navegacao.ts)
+- [origem-de-busca.ts](../../../resources/js/Pages/Produto/_components/lista/origem-de-busca.ts)
 - [tipos.ts](../../../resources/js/Pages/Produto/_components/lista/tipos.ts)
 - [useLargurasGuardadas.ts](../../../resources/js/Pages/Produto/_components/lista/useLargurasGuardadas.ts)
 - [useTamanho.ts](../../../resources/js/Pages/Produto/_components/lista/useTamanho.ts)
