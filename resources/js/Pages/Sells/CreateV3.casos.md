@@ -124,7 +124,7 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 **Status:** 🧪 — testes escritos, sem veredito no manifesto do G-7 ainda.
 
 - **Dado** a flag `useV3SellsGravar` ligada e uma venda nova, final, com 3 × 19,90 (10% de desconto na linha) + 2 × 50,00, desconto de 5,00, frete de 7,50 e 156,23 em dinheiro (vetor de teste sintético),
-- **Quando** o operador clica em **Gravar venda**,
+- **Quando** o operador clica em **Finalizar venda**,
 - **Então** a tela posta em `/pos` o payload no formato do `transform()` do `Sells/Create.tsx`, e o store grava `final_total` 156,23, frete 7,50, desconto 5,00, pagamento 156,23 (`paid`) e baixa 3 e 2 do estoque — **igual**, campo a campo, à mesma venda feita pelo payload do Create.
 
 Prova em duas metades que dividem uma fixture (`tests/fixtures/sells-v3/venda-simples.json`):
@@ -158,7 +158,7 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 
 - **Dado** a gravação ligada e um usuário com `max_sales_discount_percent` preenchido,
 - **Quando** o desconto da venda passa do teto (em %, direto; em R$, contra o teto % do subtotal — a regra do `validateDiscount` do Create),
-- **Então** a tela avisa no lugar da "alçada de 10%" de cena e **Gravar venda** recusa com o motivo. Teto vazio ou 0 não limita, como no Create.
+- **Então** a tela avisa no lugar da "alçada de 10%" de cena e **Finalizar venda** recusa com o motivo. Teto vazio ou 0 não limita, como no Create.
 
 ## UC-V384 · Preço e desconto da linha só se editam com a permissão do usuário
 
@@ -277,7 +277,7 @@ Até o grupo 3, gravando, a consulta de clientes ficava escondida (a lista era d
 **Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
 
 - **Quando** a tabela muda (no cartão, no "Voltar" ou pelo cliente), **então** cada linha é buscada de novo em `/products/list` com a tabela nova e ganha o preço dela (`handlePriceGroupChange` do Create). A linha que a busca não devolve fica com o preço que tinha, e a tela avisa quantas ficaram.
-- Enquanto reprecifica, **Gravar venda** fica desabilitado ("Aplicando a tabela…").
+- Enquanto reprecifica, **Finalizar venda** fica desabilitado ("Aplicando a tabela…").
 - Prova por dois caminhos, na venda da fixture do UC-V380 com uma tabela que dá 15,00 ao Produto A e nada ao B: à mão, 3 × 15,00 − 10% = 40,50 · 2 × 50,00 = 100,00 · 140,50 − 5,00 + frete 7,50 = **143,00** (sem tabela, 156,23). O vitest chega a 143 pela regra da tela; o Pest busca no `filterProduct` real (15,00 e 50,00) e grava 143,00 no store, com o grupo em `selling_price_group_id` e o estoque igual ao do UC-V380.
 
 ## UC-V399 · Cliente com tabela aplica a dele; sem tabela mantém a atual `[V0]`
@@ -408,6 +408,18 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 - **Então** cada condição de pagamento aparece com código e nome ("18 — PIX", "02 — Boleto 30/60").
 
 Âncora: `ComissaoResumo` e o pagamento de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. Lá a nota sobre `payment_status=due` está dentro de `<Meta>`, que só aparece no modo de anotação do protótipo; a produção a mostrava a todo operador. Até 2026-11-24 o resumo mostrava só a "Base líquida" e um parágrafo dizendo que a comissão por beneficiário fazia "parte do porte da comissão — próximo passo", e a condição de pagamento aparecia só pelo código ("18").
+
+## UC-V410 · O topo e os passos são os da âncora
+
+**Status:** 🧪 — `tests/js/sells-v3-topo-passos.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a tela aberta, com ou sem a gravação,
+- **Então** o topo é o cabeçalho padrão da página (`PageHeader`): "Nova venda" e "Cliente, itens, pagamento. O resto tem valor padrão.", sem selo "V3" e sem botão de voltar.
+- **E** os passos numerados são três: 1 Cliente · 2 Itens · 3 Fechamento. "Entrega e frete" e "Observações e produção" são gavetas, sem número.
+- **Quando** a gravação está ligada,
+- **Então** o botão que grava a venda final se chama "Finalizar venda" (grava com `status: 'final'`, como antes).
+
+Âncora: `VendaV3Create` e `Create` de `prototipo-ui/cowork/Wagner/venda-v3.jsx` (`<Passo n="1" />Cliente`, `<Passo n="2" />Itens`, `<Passo n="3" />Fechamento`; as gavetas sem `Passo`). O botão "Voltar para Vendas" do protótipo só existe quando a V3 é aberta por "Adicionar venda" (rota `venda-nova`, que passa `onVoltar`); esta Page é a rota `venda-v3`, onde o protótipo não passa `onVoltar`. Até 2026-11-24 a produção tinha um `h1` escrito à mão com selo "V3", numerava as gavetas como 3 e 4, deixava o Fechamento sem número e chamava o botão de "Gravar venda".
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
@@ -1357,6 +1369,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-23 (G-6):** com `gravacao`, a tela deixou de mostrar dados de demonstração (UC-V404 a UC-V407, novos): o cliente padrão vem do cadastro, a entrega mostra só o valor do frete, a situação diz "Não gravada" e o detalhe do item não traz tributação fixa. O botão "Salvar como orçamento" passou a gravar sem conferir o papel de demonstração (UC-V401 segue igual: o payload e o estágio não mudam). Sem `gravacao` nada muda, e os controles de cada caso novo provam isso.
 - **Revalidação de 2026-11-23, segunda (G-6):** com `gravacao`, a comissão deixou de usar a margem de 30% fixos, as parcelas deixaram de vir numeradas como "VD-2026" e o lançamento do item deixou de oferecer as informações adicionais de demonstração (UC-V408, novo). A gaveta de parcelas também deixou de mostrar conta de destino e plano de contas, que eram de demonstração (`CONTAS`, `PLANOS` em `parcelas-dominio.ts`) e que nenhum cadastro da empresa alimenta. Sem `gravacao` nada muda, e os controles provam isso.
 - **Revalidação de 2026-11-24 (G-6):** o fechamento deixou de mostrar a nota de bastidor do pagamento (`payment_status=due`) e o parágrafo sobre o "porte da comissão"; o resumo da comissão passou a ser o da âncora, com as mesmas funções e bases da gaveta (`totaisComissao` é a mesma conta que a gaveta já recebia), e a condição de pagamento passou a mostrar código e nome (UC-V409, novo). Nenhum valor mudou: a gravação, o total e o payload são os mesmos, e o botão do resumo passou de "Configurar…" para "Configurar comissão" (o teste do UC-V408 acompanha).
+- **Revalidação de 2026-11-24, segunda (G-6):** o topo passou a ser o `PageHeader` da âncora (sem o selo "V3"), os passos numerados passaram a ser 1 Cliente · 2 Itens · 3 Fechamento, com as gavetas sem número, e "Gravar venda" passou a se chamar "Finalizar venda" (UC-V410, novo). Só forma: a ação do botão, o payload e o total são os mesmos.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

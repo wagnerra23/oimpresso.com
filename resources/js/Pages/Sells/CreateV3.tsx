@@ -30,6 +30,7 @@
 // Âncora de design: prototipo-ui/cowork/Felipe/venda-v3.jsx (seção sells-create.jsx · window.VendaV3Create)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { PageHeader } from '@/Components/PageHeader';
 import { Search, Settings } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -969,11 +970,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         )}
       </Sec>
 
-      {/* ─── Passo 3 · Entrega e frete (gaveta) ──────────────────────────── */}
+      {/* ─── Gaveta · Entrega e frete (sem número: no protótipo as gavetas não são passos) ─ */}
       <Sec
         title={
           <>
-            <Passo n={3} />
             Entrega e frete
           </>
         }
@@ -995,11 +995,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         />
       </Sec>
 
-      {/* ─── Passo 4 · Observações e produção (gaveta) ───────────────────── */}
+      {/* ─── Gaveta · Observações e produção (sem número, idem) ─────────────── */}
       <Sec
         title={
           <>
-            <Passo n={4} />
             Observações e produção
           </>
         }
@@ -1118,7 +1117,11 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             className="border-b border-border px-4 py-3"
             style={{ background: 'color-mix(in oklch, var(--color-success) 5%, var(--color-card))' }}
           >
-            <h3 className="m-0 text-[15px] font-semibold leading-[1.3]">Fechamento</h3>
+            {/* Protótipo: 1 Cliente · 2 Itens · 3 Fechamento (`<Passo n="3" />Fechamento`). */}
+            <h3 className="m-0 text-[15px] font-semibold leading-[1.3]">
+              <Passo n={3} />
+              Fechamento
+            </h3>
             <span className="ml-auto">
               <Pill tom={payStatus === 'paid' ? 'success' : payStatus === 'partial' ? 'warning' : 'destructive'}>
                 {payStatus === 'paid' ? 'Pago' : payStatus === 'partial' ? 'Parcial' : 'A receber'}
@@ -1375,7 +1378,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             )}
             {gravacao && (
               <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando || reprecificando} onClick={() => gravar()}>
-                {gravando ? 'Gravando…' : reprecificando ? 'Aplicando a tabela…' : 'Gravar venda'}
+                {gravando ? 'Gravando…' : reprecificando ? 'Aplicando a tabela…' : 'Finalizar venda'}
               </Button>
             )}
             {avisoPreco && (
@@ -1426,6 +1429,14 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   // Os drawers renderizam em PORTAL, fora daqui — cada `<DialogContent>` repete
   // a classe, senão o campo do drawer fica 30px enquanto a página fica 34,19px.
   return (
+    <>
+    {/* Topo = PageHeader do protótipo (`VendaV3Create`, venda-v3.jsx): título + subtítulo.
+        Sem botão "Voltar para Vendas": no protótipo ele só existe quando a V3 é aberta por
+        "Adicionar venda" (rota `venda-nova`, que passa `onVoltar`); na rota própria da V3
+        (`venda-v3`, que é esta Page em /sells/create-v3) o protótipo não passa `onVoltar`. */}
+    <div data-contract="header">
+      <PageHeader title="Nova venda" subtitle="Cliente, itens, pagamento. O resto tem valor padrão." />
+    </div>
     <Stack gap={4} className="venda-v3 mx-auto max-w-[1400px] p-4">
       {/* Marcador honesto: quem abrir por engano precisa saber em 1 segundo.
           Só sem `gravacao` — com a flag useV3SellsGravar ligada a tela grava de verdade. */}
@@ -1440,16 +1451,6 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           </div>
         </Inline>
       )}
-
-      <Inline gap={3} align="center" wrap>
-        {/* 22px/1.3 + tracking = o h1 do `PageHeader` do DS vivo (DesignSync
-            019dd02f), que é o que o protótipo renderiza. `text-xl` dava 20px. */}
-        <h1 className="text-[22px] font-semibold leading-[1.3] tracking-[-.015em]">Nova venda</h1>
-        <Pill tom="primary" mono>
-          V3
-        </Pill>
-        <p className="text-sm text-muted-foreground">Cliente, itens, pagamento. O resto tem valor padrão.</p>
-      </Inline>
 
       <Grid gap={4} className="items-start lg:grid-cols-[minmax(0,1fr)_336px]">
         {esquerda}
@@ -1578,6 +1579,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         </div>
       )}
     </Stack>
+    </>
   );
 }
 
