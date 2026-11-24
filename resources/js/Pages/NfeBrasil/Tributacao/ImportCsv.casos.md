@@ -42,7 +42,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
 | UC-NFIM-08 | Reimportar o mesmo CSV atualiza as regras pela chave, não duplica | must `[V0]` | charter (idempotente pela chave) · SDD `CU-NFE-07` | `ImportRegrasCsvReimportTest` | 🧪 |
-| UC-NFIM-09 | Depois de editar a regra pela tela, a reimportação muda a versão vigente e não reescreve a encerrada | must `[V0]` `[fiscal]` | SPEC NfeBrasil R-NFE-019 · charter (idempotente pela chave) | `ImportRegrasCsvVersaoVigenteTest` | ❌ |
+| UC-NFIM-09 | Depois de editar a regra pela tela, a reimportação muda a versão vigente e não reescreve a encerrada | must `[V0]` `[fiscal]` | SPEC NfeBrasil R-NFE-019 · charter (idempotente pela chave) | `ImportRegrasCsvVersaoVigenteTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -211,21 +211,21 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Persona:** quem ajustou uma alíquota pela tela e depois reimporta a planilha do contador.
 - **Aceite:** Dado uma regra importada (ICMS 18%) e depois editada pela tela (25%), o que gera uma
   versão nova e encerra a antiga · Quando reimporto o CSV com 17% · Então a versão **vigente** passa a
-  17% e a versão **encerrada** continua com 18%.
+  17% e a versão **encerrada** continua com 18%. Segundo caminho: o motor tributário calcula ICMS de
+  170,00 num item de 1.000,00 de SP para MG.
 - **Teste:** [`ImportRegrasCsvVersaoVigenteTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvVersaoVigenteTest.php)
   — `UC-NFIM-09 · …`.
 - **Contrato:** SPEC NfeBrasil R-NFE-019 (editar gera versão nova; a antiga só ganha `valida_ate`,
   nenhuma outra coluna muda, e continua explicando as notas emitidas com ela) + a idempotência pela
   chave do charter.
-- **Por que nasce ❌:** medido no CT 100 em 2026-11-24. `ImportRegrasCsvService::aplicar` procura a
-  regra existente pela chave com `first()` e não filtra a vigência, então acha a versão **encerrada**
-  (menor `id`) e faz `update` nela. Resultado: a versão encerrada passa de 18% para 17% (o histórico
-  das notas antigas muda) e a vigente fica em 25%, que é o que a nota continua usando, embora o
-  resumo diga "1 atualizada". A correção muda valor de imposto e é decisão [W] (regra mestre de
-  valor e estoque), não conserto silencioso.
-- **Fora da lane:** o arquivo não está na allowlist do `nfebrasil-pest.yml` porque nasce vermelho; entra
-  junto com a correção, como foi feito com o UC-NFRF-04.
-- **Status: ❌** — ver §Recibo.
+- **Nasceu ❌ em 2026-11-24, corrigido no mesmo PR.** Medido no CT 100: `ImportRegrasCsvService::aplicar`
+  procurava a regra pela chave com `first()` sem filtrar a vigência, achava a versão **encerrada** (menor
+  `id`) e fazia `update` nela. A encerrada passava de 18% para 17% e a vigente ficava em 25%, embora o
+  resumo dissesse "1 atualizada". A correção olha só a versão vigente e, quando a linha muda um valor,
+  gera versão nova como a tela (R-NFE-019); linha igual não grava. Aprovada por [W] em 2026-11-24 depois
+  do antes → depois (regra mestre de valor). Produção, lida no mesmo dia: 12 regras de 1 empresa, nenhuma
+  versão encerrada e nenhuma importação por CSV registrada, então nenhum valor gravado muda.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
 
 ---
 
@@ -249,7 +249,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
-| 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado do branch (`627553bf6`) com `vendor/composer` próprio · `ImportRegrasCsvReimportTest` + `ImportRegrasCsvVersaoVigenteTest` | UC-NFIM-08: **2 passed**. UC-NFIM-09: **1 failed** — *"Failed asserting that 0.17 is identical to 0.18"*: a versão encerrada recebeu o valor do CSV. Antes, sem esse assert, o mesmo caso falhava com *"0.25 is identical to 0.17"*: a vigente não mudou. Versões lidas do banco depois da reimportação: encerrada `0.1700` (`valida_ate` 2026-11-23), vigente `0.2500`. 36 asserções. |
+| 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado do branch (`627553bf6`) com `vendor/composer` próprio · `ImportRegrasCsvReimportTest` + `ImportRegrasCsvVersaoVigenteTest` | UC-NFIM-08: **2 passed**. UC-NFIM-09: **1 failed** — *"Failed asserting that 0.17 is identical to 0.18"*: a versão encerrada recebeu o valor do CSV. Antes, sem esse assert, o mesmo caso falhava com *"0.25 is identical to 0.17"*: a vigente não mudou. Versões lidas do banco depois da reimportação: encerrada `0.1700` (`valida_ate` 2026-11-23), vigente `0.2500`. 36 asserções. Com a correção (`f164c68a1`): UC-NFIM-09 **1 passed · 14 assertions**, motor incluído (ICMS 170,00); com o `ImportRegrasCsvService` do `main` no mesmo worktree, **1 failed** (*"0.17 is identical to 0.18"*). Testes vizinhos da importação, do aceite do contador e do motor: 65 passed; os 3 do UC-NFIM-05/06 caem igual com o serviço do `main` (o staging não tem `cst_pis`). |
 | 2026-10-06 | CT 100 `oimpresso-staging`, cópia isolada da branch da thread 19, `--filter=UC-NFIM` | controller anterior: UC-NFIM-04 **vermelho** (302, regra gravada no biz 2) · controller novo: UC-NFIM-04 **verde**; UC-NFIM-01/02 verdes nos dois. UC-NFIM-03 **vermelho nos dois**: o usuário semeado do biz 1 no staging tem o papel `Admin#1`, que concede todas as permissões, então revogar a permissão direta não muda nada. É ambiente, não a mudança — 17 asserções |
 
 > ⚠️ **Este arquivo de teste NÃO foi adicionado à allowlist da lane** — pelas mesmas duas razões do

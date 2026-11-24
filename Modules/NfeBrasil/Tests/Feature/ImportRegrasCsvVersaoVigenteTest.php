@@ -143,4 +143,12 @@ it('UC-NFIM-09 · regra editada pela tela: a reimportação muda a versão vigen
     // O que o motor usa é a versão vigente: é ela que tem de ter o valor do CSV.
     expect(rvvVigentes())->toHaveCount(2);
     expect(rvvIcms(null))->toBe(0.17);
+
+    // Segundo caminho: o motor que a nota usa. Item de 1.000,00 de SP para MG (cai na regra de
+    // todas as UFs) sai com ICMS 170,00. Antes da correção saía 250,00 (a versão da tela).
+    $tributo = (new \Modules\NfeBrasil\Services\MotorTributarioService)->calcular(
+        new \Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext(ncm: '84439100', valor: 1000.0),
+        businessId: rvvBiz(), ufOrigem: 'SP', ufDestino: 'MG',
+    );
+    expect($tributo->valor_icms)->toBe(170.0);
 });
