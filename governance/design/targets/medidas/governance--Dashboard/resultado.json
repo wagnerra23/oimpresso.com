@@ -11,14 +11,14 @@
   "tema": "light (nos dois lados)",
   "viewport": "1280x900",
   "medidoEm": "2026-11-24",
-  "como": "sonda `design-diff.mjs --probe` injetada nos dois lados: protótipo servido por http local (servidor do design-diff-lote, _ds/ pelo ds-runtime-path) em iframe 1280x900 com oimpresso.route do override; produção em iframe da mesma origem a 1280x900, Chrome logado, sonda carregada por upload de arquivo e conferida por sha256. Método e canário em memory/requisitos/Jana/governance-dashboard-extension-visual-comparison.md (seção \"Medição 2026-11-24\").",
+  "como": "sonda `design-diff.mjs --probe` injetada nos dois lados: protótipo servido por http local (servidor do design-diff-lote, _ds/ pelo ds-runtime-path) em iframe 1280x900 com oimpresso.route do override; produção em iframe da mesma origem a 1280x900, Chrome logado, sonda colada no console da página (ramos sem papel fixados em null) e o JSON conferido por sha256 contra o devolvido; re-medição de 2026-11-24 depois do #11407, com o painel MCP carregado antes da sonda. Método e canário em memory/requisitos/Jana/governance-dashboard-extension-visual-comparison.md (seção \"Medição 2026-11-24\").",
   "reproduz": "node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/governance--Dashboard/prod.json governance/design/targets/medidas/governance--Dashboard/design.json --check --contrato governance/design/contracts/governance.contract.json",
   "contrato": "governance/design/contracts/governance.contract.json",
   "d0": [
     "D0 · IDENTIDADE DA VIEW  (contrato: governance/design/contracts/governance.contract.json)",
-    "    prod   CASOU      13/22 copies  ✓ Governança MCP · Custo",
+    "    prod   CASOU      19/22 copies  ✓ Governança MCP · Chamadas",
     "    design CASOU      22/22 copies  ✓ Governança MCP · Chamadas",
-    "    veredito OK  — 13 x 22 copies"
+    "    veredito OK  — 19 x 22 copies"
   ],
   "compare": {
     "rows": [
@@ -81,22 +81,6 @@
         "design": "presente",
         "veredito": "SEM-DADO",
         "detalhe": "região só existe de um lado"
-      },
-      {
-        "dim": "D9",
-        "campo": "kpis-constituicao.dataIso",
-        "prod": "1× — 2026-08-05",
-        "design": "0",
-        "veredito": "DIVERGE (bug)",
-        "detalhe": "a travessia introduziu forma crua que o design não tem"
-      },
-      {
-        "dim": "D9",
-        "campo": "kpis-constituicao.formato-de-data",
-        "prod": "ISO",
-        "design": "dd/mm/aaaa",
-        "veredito": "DIVERGE (bug)",
-        "detalhe": "mesma região, formatos opostos"
       },
       {
         "dim": "D9",
@@ -187,7 +171,7 @@
         "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
       }
     ],
-    "bugs": 3,
+    "bugs": 1,
     "shell": 0,
     "drawer": 0,
     "declaradas": 0,

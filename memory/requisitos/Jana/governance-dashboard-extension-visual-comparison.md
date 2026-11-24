@@ -110,7 +110,7 @@ Mede as **4 telas** com fonte no `governance-page.jsx` (Dashboard, Policies, Aud
 
 | Tela | Dono do veredito | Veredito |
 |---|---|---|
-| `governance/Dashboard` | [`governance-dashboard-gap.md`](../Governance/governance-dashboard-gap.md) | DIVERGE — 2 reais, 1 decidida |
+| `governance/Dashboard` | [`governance-dashboard-gap.md`](../Governance/governance-dashboard-gap.md) | DIVERGE — 2 reais, 1 decidida; re-medido após o #11407: 1 decidida, 0 reais (período em `Select` fica para decidir) |
 | `governance/Policies` | [`governance-policies-gap.md`](../Governance/governance-policies-gap.md) | IGUAL nas dimensões medidas |
 | `governance/Audit` | [`governance-audit-gap.md`](../Governance/governance-audit-gap.md) | DIVERGE — 5 reais, 1 não conclusivo |
 | `governance/DriftAlerts` | [`governance-drift-alerts-gap.md`](../Governance/governance-drift-alerts-gap.md) | IGUAL nas dimensões medidas |
