@@ -166,7 +166,7 @@ Não assina recorrência hoje. É a destinatária do **diferencial** US-RB-044 (
 
 | Regra | Onde morde neste módulo |
 |---|---|
-| **REGRA MESTRE valor/estoque** ([proibicoes](../../proibicoes.md)) | `InvoiceGeneratorService` (gera fatura), `AssinaturaService::atualizarCobranca` (muda valor), `RefundCobrancaAsaasJob` (devolve dinheiro), `BoletoService` (emite título). Todo CU marcado `[V0]` exige **dupla confirmação por 2 caminhos + tabela antes→depois + OK humano** antes de mergear. |
+| **REGRA MESTRE valor/estoque** ([proibicoes](../../proibicoes.md)) | `InvoiceGeneratorService` (gera fatura), `AssinaturaService::atualizarCobranca` (muda valor), `RefundCobrancaAsaasJob` (devolve dinheiro), o driver do PaymentGateway que emite o título (o `BoletoService` do RB foi removido em 2026-11-24). Todo CU marcado `[V0]` exige **dupla confirmação por 2 caminhos + tabela antes→depois + OK humano** antes de mergear. |
 | **Multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) | `business_id` **da sessão, nunca do request** — o webhook é o ponto mais exposto: é rota **pública** (`/webhooks/asaas/{businessId}`), então quem isola o tenant é o `hash_equals` do secret da credencial daquele business, não o global scope. |
 | **Tests biz=1** ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)) | cross-tenant sempre biz=1 vs biz=99. **Nunca biz=4.** |
 | **Refund atrás de flag** ([proibicoes](../../proibicoes.md) §FSM) | `POST /v3/payments/{id}/refund` **só** com `ASAAS_REFUND_ENABLED=true`; default `false` → job só loga TODO. |
@@ -213,7 +213,8 @@ Modules/RecurringBilling/Http/Controllers/**       (11 controllers)
         ↕
 Modules/RecurringBilling/Services/**               (AssinaturaService · AssinaturaCobrancaService ·
                                                     InvoiceGeneratorService · GatewayBackfillService ·
-                                                    Boleto/BoletoService + Drivers · Banking/**)
+                                                    CobrancaNoGateway · Boleto/BoletoCredentialResolver ·
+                                                    Banking/**; BoletoService + Drivers removidos em 2026-11-24)
         ↕
 Modules/RecurringBilling/Models/**                 (Plan · Subscription · Invoice · ChargeAttempt ·
                                                     SubscriptionEvent — todos HasBusinessScope)
@@ -321,7 +322,7 @@ status `canceled_at_period_end`, `credit_note` do saldo restante, e o evento `Co
 **F5 — Cancelar fatura no gateway** `[V0]` `[T0]`
 
 `Faturas/Index.tsx` → `POST /financeiro/rb-invoices/{invoice}/cancelar` → `InvoiceController@cancel`
-→ `AssinaturaCobrancaService::cancelInvoice` → `CobrancaNoGateway` → driver do PaymentGateway do gateway da fatura (desde [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359), 2026-11-24; antes `BoletoService::cancelar`). C6: 501 de ação manual, sem chamada.
+→ `AssinaturaCobrancaService::cancelInvoice` → `CobrancaNoGateway` → driver do PaymentGateway do gateway da fatura (desde [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359), 2026-11-24; o `BoletoService` foi removido em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)). C6: 501 de ação manual, sem chamada.
 
 1. **Permissão `recurringbilling.invoices.cancel`** (`InvoiceController.php:122`; até 2026-11 este SDD usava o nome antigo `recurringbilling.invoice.cancel`) — sem ela, **403** antes de qualquer coisa.
 2. `Invoice::where('business_id', …)->whereKey(…)->firstOrFail()` → **404 cross-tenant**.
@@ -514,7 +515,7 @@ migração sem PR em 2026-11-23).
 | D5 | **`C6Driver::cancelar()` é stub** que lança exceção | `SPEC.md` US-RB-042 |
 | D6 | **Sem endpoint de charge dedicado** (`POST /invoices/{id}/charge` da US-RB-004 não existe); cobrança acontece por geração de boleto/PIX + baixa por webhook | `SPEC.md` US-RB-004 |
 | D7 | **Sem proração** em upgrade/downgrade mid-cycle (US-RB-006) e sem reajuste no aniversário | `SPEC.md` US-RB-003/006 |
-| D9 | **Duas pilhas de driver para o mesmo banco.** O boleto usa `Services/Boleto/Drivers/{Asaas,C6,Inter}` + `rb_boleto_credentials`; Pix Automático e cartão usam o PaymentGateway + `payment_gateway_credentials`. O dono é o PaymentGateway ([ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md)); desde 2026-11-24 cancelar e estornar usam o PaymentGateway ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356), [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)); o `BoletoService` ficou sem chamador de produção e a remoção não tem PR | `ls Modules/PaymentGateway/Services/Drivers/ Modules/RecurringBilling/Services/Boleto/Drivers/` |
+| D9 | **Duas pilhas de driver para o mesmo banco — resolvido em 2026-11-24.** Até então o boleto usava `Services/Boleto/Drivers/{Asaas,C6,Inter}` + `rb_boleto_credentials`, e Pix Automático e cartão o PaymentGateway + `payment_gateway_credentials`. O dono é o PaymentGateway ([ADR 0456](../../decisions/0456-paymentgateway-dono-dos-drivers-de-cobranca.md)). Cancelar e estornar migraram em [#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356) (credencial), [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358) e [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359); o `BoletoService` e os drivers do RB saíram em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409). Resta `rb_boleto_credentials`, lida pelo `BoletoCredentialResolver`, Configurações e wizard | `ls Modules/PaymentGateway/Services/Drivers/ Modules/RecurringBilling/Services/Boleto/` |
 | D10 | **Fatura paga não chega ao Financeiro como título.** A ponte é do Financeiro (decisão b2, 2026-11-23) | F13 |
 | D8 | `InvoiceController@cancel` lê `session('business.id')`; **todo o resto do módulo** lê `session('user.business_id')`. Ambas as chaves existem (`SetSessionData` grava as duas) — **não é bug medido**, é inconsistência de vocabulário que confunde quem lê | `InvoiceController@cancel` × `RecurringBillingController`/`PlanController` |
 
@@ -532,8 +533,8 @@ errada: a migration dela é do RB (`2026_05_06_000003`), e o PaymentGateway tem 
 `gateway_webhook_events`.
 
 O que usa o PaymentGateway hoje: Pix Automático (F10), cartão salvo (F11), US-RB-057 (F12) e, desde
-2026-11-24, cancelar e estornar cobrança (F5, [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358) e [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)). A pilha própria do RB
-(`BoletoService` + drivers + `rb_boleto_credentials`) segue no código sem chamador de produção (D9).
+2026-11-24, cancelar e estornar cobrança (F5). A pilha própria do RB (`BoletoService` + drivers) foi
+removida em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409); resta a tabela `rb_boleto_credentials` (D9).
 
 ---
 
@@ -896,7 +897,7 @@ merge de quem for atendê-lo — G-2).
 | Cobrança | cartão na tela (b5) | ✅ mergeado em 2026-11-23 ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355)); flag desligada |
 | Cobrança | cobrar com o cartão salvo | sem PR |
 | Tela | Faturas na forma do protótipo (filtros numa linha, pílula, sem CTA vazio) | ✅ mergeado em 2026-11-23 ([#11366](https://github.com/wagnerra23/oimpresso.com/pull/11366)) |
-| Gateway | migrar a pilha de boleto do RB para o PaymentGateway (D9, b1) | cancelar/estornar ✅ ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356), [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359), 2026-11-24); remover `BoletoService` e os outros leitores de `rb_boleto_credentials`: sem PR |
+| Gateway | migrar a pilha de boleto do RB para o PaymentGateway (D9, b1) | cancelar/estornar ✅ ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356), [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)); `BoletoService` e drivers removidos ([#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)); leitores de `rb_boleto_credentials`: sem PR |
 | Financeiro | ponte `InvoicePaid` → título e baixa (D10, b2) | do Financeiro |
 | Governança | a linha do §8.2 na allowlist per-PR | **parent** |
 | **Non-Goals do domínio** | §6.2 vazio — candidatos: *"não somos MoR"* ([ADR arq/0004](adr/arq/0004-take-rate-vs-merchant-of-record.md)), *"não fazemos cartão tokenizado próprio"*, *"não emitimos NFS-e aqui"* ([ADR arq/0002](adr/arq/0002-nfse-submodulo-vs-nfebrasil.md)) | ⛔ **só [W]** |

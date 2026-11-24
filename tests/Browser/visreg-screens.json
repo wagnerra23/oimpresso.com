@@ -359,7 +359,7 @@
     "a11y": true,
     "component": "Fiscal/Dfe",
     "route": "/fiscal/dfe",
-    "anchor": "Manifestação do destinatário",
+    "anchor": "Manifesto DF-e",
     "baseline": "it_Fiscal_Dfe_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   },
   {

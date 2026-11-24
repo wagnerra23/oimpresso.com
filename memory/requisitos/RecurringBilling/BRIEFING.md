@@ -15,7 +15,7 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 ## Capacidades
 - Planos: CRUD de `rb_plans` com ciclo e trial.
 - Contratos: estados de `rb_subscriptions`.
-- Cobrança via `BoletoService` com driver por gateway (Inter, Asaas, C6) — pilha própria do RB (`Services/Boleto/Drivers` + `rb_boleto_credentials`). O dono dos drivers é o `Modules/PaymentGateway` (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23; decisão b1); desde 2026-11-24 cancelar e estornar saem pelos drivers do PaymentGateway ([#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358) Asaas, [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359) Inter) com a credencial copiada para `payment_gateway_credentials` ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356)); o `BoletoService` ficou sem chamador de produção e a remoção dele não tem PR.
+- Cobrança pelos drivers do `Modules/PaymentGateway` (Inter, Asaas, C6), dono dos drivers e das credenciais (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23; decisão b1). Cancelar e estornar passam pelo `CobrancaNoGateway` desde 2026-11-24, com a credencial copiada para `payment_gateway_credentials` ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356); [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)). A pilha própria do RB (`BoletoService` + drivers Asaas, C6 e Inter) saiu em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409), sem chamador de produção. Ainda leem `rb_boleto_credentials`: o `BoletoCredentialResolver` (usado pelo Financeiro), Configurações e o wizard.
 - Assinatura sem plano: fatura pelo valor negociado (`metadata.valor`/`metadata.ciclo`) desde 2026-10-19 (#9606); `plan_id` é nulável (migration `2026_10_26_130000`).
 - Geração de faturas: `rb:generate-invoices`.
 - Pix Automático (US-RB-020/021, #9870): mandato na **Jornada 2** do BCB (ADR 0455, mesmo PR), cobrado por `rb:cobrar-pix-automatico`, driver e credencial no PaymentGateway. Atrás de `RB_COBRAR_PIX_AUTOMATICO` (padrão `false`).
@@ -31,7 +31,7 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 
 ## Gaps
 - ~~🔴 Assinatura com valor negociado sem plano descartada pelo gerador~~ — resolvido em 2026-10-19 (#9606, remédio "a" de [W]; SDD §9.1 Desfecho).
-- O `BoletoService` e os drivers de boleto do RB seguem no código sem chamador de produção até a remoção (SDD D9).
+- ~~O `BoletoService` e os drivers de boleto do RB seguem no código sem chamador de produção~~ — removidos em 2026-11-24 ([#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)). Resta a tabela `rb_boleto_credentials` e os leitores dela (SDD D9).
 - Fatura paga não gera título/baixa no Financeiro; a ponte é do Financeiro (SDD D10).
 - Dunning/retry é régua hardcoded, não motor; proração ausente. A tela da régua mostra e-mail e WhatsApp como não disponíveis (decisão b7, [#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), 2026-11-23).
 - Flags desligadas em produção: `RB_COBRAR_PIX_AUTOMATICO`, `RB_SALVAR_CARTAO`, `RB_MARCAR_FATURA_PAGA_POR_COBRANCA`, `nfebrasil.auto_emission_on_invoice_paid`. Ligar é do [W] (US-RB-044 e US-RB-057 ficam "parcial (flag desligada)", decisão b8).

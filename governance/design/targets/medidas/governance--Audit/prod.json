@@ -30,7 +30,7 @@
           "valueFontPx": 22
         },
         {
-          "label": "Errors20",
+          "label": "Errors22",
           "textAlign": "start",
           "alignItems": "normal",
           "textColor": "oklch(0.22 0.01 80)",
@@ -120,8 +120,8 @@
         "align": "left",
         "larguraPct": 8.8,
         "mono": false,
-        "corPropria": false,
-        "fontPx": 14,
+        "corPropria": true,
+        "fontPx": 12,
         "weight": "400",
         "blocos": 1,
         "pill": null
@@ -132,7 +132,7 @@
         "align": "left",
         "larguraPct": 20.5,
         "mono": true,
-        "corPropria": false,
+        "corPropria": true,
         "fontPx": 12,
         "weight": "400",
         "blocos": 1,
@@ -143,7 +143,7 @@
         "tag": null,
         "align": "left",
         "larguraPct": 19.1,
-        "mono": false,
+        "mono": true,
         "corPropria": true,
         "fontPx": 12,
         "weight": "400",
@@ -172,7 +172,7 @@
         "tag": null,
         "align": "right",
         "larguraPct": 12.7,
-        "mono": false,
+        "mono": true,
         "corPropria": true,
         "fontPx": 12,
         "weight": "400",
@@ -184,7 +184,7 @@
       "tableLayout": "auto",
       "colunasDeclaradas": 0,
       "linhas": 200,
-      "linhasComEstado": 0
+      "linhasComEstado": 22
     },
     "shell": null,
     "chart": null,
@@ -200,7 +200,8 @@
     "tema": "claro",
     "dialogsAbertos": [],
     "sobrepostosFixos": [],
-    "assinaturaRedigida": "sha256 prefixo ed3444b22d72",
-    "assinaturaNota": "assinatura reduzida ao texto de UI (título, rótulos, cabeçalhos); o texto completo da página tem dado de produção e ficou fora"
+    "assinaturaRedigida": "sha256 prefixo e4366b283996",
+    "assinaturaNota": "assinatura reduzida ao texto de UI (título, rótulos, cabeçalhos); o texto completo da página tem dado de produção e ficou fora",
+    "remedicao": "após o #11405 (deploy 8e16a88869)"
   }
 }
