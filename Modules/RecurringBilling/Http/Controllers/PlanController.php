@@ -39,13 +39,45 @@ class PlanController extends Controller
     public function index(Request $request): InertiaResponse
     {
         $this->ensurePermission();
+
+        return Inertia::render('RecurringBilling/Planos/Index', $this->listaProps($request));
+    }
+
+    /**
+     * GET /recurring-billing/planos/novo
+     *
+     * Desde 2026-11-23 (protótipo rb-planos, ADR UI-0029) "Novo plano" é um drawer sobre a lista:
+     * esta URL rende a lista com o drawer aberto, então leva as mesmas props da lista + os defaults.
+     */
+    public function create(): InertiaResponse
+    {
+        $this->ensurePermission('recurringbilling.plans.manage');
+
+        return Inertia::render('RecurringBilling/Planos/Create', $this->listaProps(request()) + [
+            'defaults' => [
+                'ciclo'       => 'monthly',
+                'trial_days'  => 0,
+                'ativo'       => true,
+                'fiscal_type' => 'none',
+            ],
+        ]);
+    }
+
+    /**
+     * Props da lista de planos — compartilhadas por index, create e edit (os dois últimos são a
+     * lista com o drawer aberto). Paginate e KPIs ficam deferidos.
+     *
+     * @return array<string, mixed>
+     */
+    private function listaProps(Request $request): array
+    {
         $businessId = $this->businessId();
 
         $perPage = (int) $request->integer('per_page', 25);
         $perPage = max(10, min(100, $perPage));
         $search  = trim((string) $request->string('q', ''));
 
-        return Inertia::render('RecurringBilling/Planos/Index', [
+        return [
             'filters' => [
                 'q'        => $search,
                 'per_page' => $perPage,
@@ -56,24 +88,7 @@ class PlanController extends Controller
 
             // KPIs agregados — defer (count separados por status).
             'kpis' => Inertia::defer(fn () => $this->buildKpisPayload($businessId)),
-        ]);
-    }
-
-    /**
-     * GET /recurring-billing/planos/novo
-     */
-    public function create(): InertiaResponse
-    {
-        $this->ensurePermission('recurringbilling.plans.manage');
-
-        return Inertia::render('RecurringBilling/Planos/Create', [
-            'defaults' => [
-                'ciclo'       => 'monthly',
-                'trial_days'  => 0,
-                'ativo'       => true,
-                'fiscal_type' => 'none',
-            ],
-        ]);
+        ];
     }
 
     /**
@@ -121,7 +136,8 @@ class PlanController extends Controller
             ->where('business_id', $businessId)
             ->findOrFail($id);
 
-        return Inertia::render('RecurringBilling/Planos/Edit', [
+        // Lista com o drawer de edição aberto (ver create()).
+        return Inertia::render('RecurringBilling/Planos/Edit', $this->listaProps(request()) + [
             'plan' => [
                 'id'              => $plan->id,
                 'name'            => $plan->name,
@@ -279,6 +295,8 @@ class PlanController extends Controller
                 'name'                     => $p->name,
                 'slug'                     => $p->slug,
                 'descricao_curta'          => $p->descricao_curta,
+                // description + cfop + serviço: o drawer de edição abre sobre a lista (protótipo) e precisa deles.
+                'description'              => $p->description,
                 'valor'                    => (float) $p->valor,
                 'ciclo'                    => $p->ciclo,
                 'ciclo_label'              => $this->cicloLabel($p->ciclo),
@@ -286,6 +304,8 @@ class PlanController extends Controller
                 'trial_days'               => (int) $p->trial_days,
                 'ativo'                    => (bool) $p->ativo,
                 'fiscal_type'              => $p->fiscal_type ?? 'none',
+                'fiscal_cfop'              => $p->fiscal_cfop,
+                'fiscal_servico'           => $p->fiscal_servico,
                 'assinaturas_ativas_count' => (int) ($p->assinaturas_ativas_count ?? 0),
                 'created_at'               => optional($p->created_at)->toIso8601String(),
             ])->values()->toArray(),

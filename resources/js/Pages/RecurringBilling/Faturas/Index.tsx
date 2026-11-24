@@ -530,7 +530,11 @@ export default function FaturasIndex(props: PageProps) {
               })}
             </div>
 
+            {/* Gateway e período com largura fixa (protótipo: 150px e 160px). A largura mora no contêiner:
+                o trigger cowork traz `.cw-input { width: 100% }` fora de @layer, que vence `w-[150px]` —
+                foi por isso que, até 2026-11-23, cada select ocupava a linha inteira (medido: 2213px a 2560). */}
             {/* Gateway dropdown */}
+            <div className="w-[150px] shrink-0">
             <Select
               value={gatewayFilter}
               onValueChange={(v) => {
@@ -538,7 +542,7 @@ export default function FaturasIndex(props: PageProps) {
                 applyFilters({ gateway: v });
               }}
             >
-              <SelectTrigger className="h-8 w-[150px] text-xs font-medium" aria-label="Gateway">
+              <SelectTrigger className="h-8 text-xs font-medium" aria-label="Gateway">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -547,8 +551,10 @@ export default function FaturasIndex(props: PageProps) {
                 ))}
               </SelectContent>
             </Select>
+            </div>
 
             {/* Periodo dropdown */}
+            <div className="w-[160px] shrink-0">
             <Select
               value={periodoFilter}
               onValueChange={(v) => {
@@ -556,7 +562,7 @@ export default function FaturasIndex(props: PageProps) {
                 applyFilters({ periodo: v });
               }}
             >
-              <SelectTrigger className="h-8 w-[160px] text-xs font-medium" aria-label="Período">
+              <SelectTrigger className="h-8 text-xs font-medium" aria-label="Período">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -565,6 +571,7 @@ export default function FaturasIndex(props: PageProps) {
                 ))}
               </SelectContent>
             </Select>
+            </div>
 
           </div>
         </div>

@@ -54,6 +54,7 @@ last_run_ci: "2026-11-23 (PR #11350, b7 da auditoria do RecurringBilling) — a 
 | UC-RBCFG-09 | URL e header exibidos são os que o webhook de fato atende | must `[V0]` | `CU-RB-12` 4 · `CU-RB-07` 1 | `Wave8ConfiguracoesIndexTest` | 🧪 |
 | UC-RBCFG-10 | Pagamento Asaas credita uma vez só, na quitação, e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `AsaasWebhookCreditoUnicoContratoTest` | 🧪 |
 | UC-RBCFG-11 | Pix do Inter quita a fatura do txid, credita uma vez e só se cobre a fatura | must `[T0]` `[V0]` | `CU-RB-07` 5/6 | `InterWebhookCreditoUnicoContratoTest` | 🧪 |
+| UC-RBCFG-12 | A copy da régua e da NFe está em português, sem identificador técnico | should | `CU-RB-12` 2 | `Wave8ConfiguracoesIndexTest` | 🧪 |
 
 ---
 
@@ -74,7 +75,7 @@ last_run_ci: "2026-11-23 (PR #11350, b7 da auditoria do RecurringBilling) — a 
 
 ## UC-RBCFG-02 · A régua de dunning aparece estruturada · `should`
 - **Aceite:** Dado a tela carregada · Quando leio a seção de cobrança escalada · Então vejo as **3
-  retentativas** (+3d / +7d / +15d → `past_due` → falha) como dado estruturado com severidade — não
+  retentativas** (+3d / +7d / +15d → falhou) como dado estruturado com severidade — não
   como parágrafo solto. E vejo **E-mail** e **WhatsApp** marcados como **não disponível**: nenhum
   texto da régua diz que a cobrança manda e-mail ou WhatsApp.
 - **Teste:** [`Wave8ConfiguracoesIndexTest`](../../../../../Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php)
@@ -87,6 +88,24 @@ last_run_ci: "2026-11-23 (PR #11350, b7 da auditoria do RecurringBilling) — a 
   retentativa mandava "novo email, novo WhatsApp" e que a 2ª era "dunning escalado (email +
   WhatsApp)" — o módulo não envia nenhum dos dois (auditoria RecurringBilling b7). Esses canais
   agora aparecem como não disponíveis.
+- **Status: 🧪**
+
+---
+
+## UC-RBCFG-12 · A copy da régua e da NFe está em português · `should`
+- **Aceite:** Dado a tela carregada · Quando leio a régua de cobrança e a NFe automática · Então os
+  textos falam a língua do operador: a última retentativa diz que *"a assinatura passa para “falhou” e
+  pede ação manual no detalhe da assinatura"*, e a NFe diz que vale *"para planos com emissão NFe ou
+  NFS-e"*. Nenhum texto traz identificador de código (`snake_case`, seta de transição de status) nem
+  jargão em inglês (`fail`, `drawer`, `soft decline`, `webhook`).
+- **Teste:** [`Wave8ConfiguracoesIndexTest`](../../../../../Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php)
+  — `UC-RBCFG-12 · a copy da régua e da NFe está em português, sem identificador técnico`.
+- **Contrato:** forma do protótipo `rb-config` (`cobranca-recorrente-page.jsx`, régua e NFe automática),
+  [ADR UI-0029](../../../../../memory/requisitos/_DesignSystem/adr/ui/0029-prototipo-soberano-sobre-adr-ui.md).
+  Medição de 2026-11-23 (divergência 8): a sonda achou `past_due → fail` e "detail drawer" na régua e
+  `fiscal_type` na NFe.
+- **Regressão que defende:** nome de status, de coluna ou de componente voltar para a copy de quem
+  configura a cobrança.
 - **Status: 🧪**
 
 ---

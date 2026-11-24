@@ -1,0 +1,188 @@
+{
+  "url": "https://staging.oimpresso.com/fisio/configuracoes/agendamento",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CB MF Agendamento pelo app O que o paciente pode marcar, remarcar e cancelar sozinho pelo app da clínica. Desligado WhatsApp Agendamento pelo app Quem pode agendar sozinho Pacientes com pacote ou plano ativo Recomendado para começar. Todos os pacientes em tratamento Inclui avulsos com retorno marcado. Ninguém — só ver as consultas O app mostra e remarca pela clínica. Paciente novo marca a 1ª avaliação pelo link público da clínica. Os consentimentos vêm antes do atendimento. O que aparece no app Sessao LOTE7 · 50 min Horários abertos para o app seg ter qua qui sex sáb 08:00 08:30 10:00 14:00 16:00 18:00 Outro horário Acrescentar O resto da agenda continua só pela recepção. Regras Antecedência mínima para marcar (horas) Remarcar ou cancelar até (horas antes) Agendar até quantos dias à frente Faltas sem aviso antes de bloquear o app Lista de espera Check-in \"Cheguei\" no app Sinal por Pix: desligado até a cobrança do Fisio entrar. Política em vigor: versão 1 . Lembrete, confirmação e aviso de vaga saem pelo canal escolhido em Configurações · WhatsApp. Não existe opção de promoção, venda extra no checkout ou nota pública: o app é da clínica, não vitrine. Salvar Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(0.984 0.003 247.9)",
+      "border": "oklch(0.92 0.006 90)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 6,
+      "linhasComEstado": 0
+    },
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Configuracoes/Agendamento",
+    "lado": "prod",
+    "url": "https://staging.oimpresso.com/fisio/configuracoes/agendamento",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:11.571Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

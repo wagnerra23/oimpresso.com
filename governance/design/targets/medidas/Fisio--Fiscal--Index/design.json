@@ -1,0 +1,49 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/FiscalFila.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 8 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fiscal Documentos fiscais do dia Cada pagamento recebido no Fisio gera o documento certo para quem atende. Fase 3 Clínica (CNPJ) Autônomo (CPF) Serviço LC 116 · item 4.08 · fisioterapia configurado uma vez, vale para todas as notas IBS e CBS redução de 60% · destaque na nota obrigatório desde 01/10/2026; no Simples, a partir de 2027 Emissão automática ao receber padrão nacional, pelo módulo NFS-e do oimpresso NFS-e · hoje 3 autorizadas · 1 com problema Marta L. pacote 10 sessões [VALOR] autorizada Ver PDF João R. sessão avulsa [VALOR] autorizada Ver PDF Ana N. pacote 10 sessões [VALOR] enviando Aguardar Lúcia M. mensalidade [VALOR] rejeitada Corrigir Lúcia M. · rejeitada pela prefeitura: endereço do tomador incompleto. Corrija o contato e reenvie.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Fiscal/Index",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/FiscalFila.dc.html",
+    "componente": "FiscalFila.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:26.785Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

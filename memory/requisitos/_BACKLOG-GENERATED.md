@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1099 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1101 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -20,9 +20,9 @@
 | [`Arquivos`](#arquivos) | 33 | 0 | 0 | 0 | 33 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`Fisio`](#fisio) | 29 | 0 | 0 | 0 | 29 |
+| [`RecurringBilling`](#recurringbilling) | 28 | 0 | 0 | 0 | 28 |
 | [`Crm`](#crm) | 27 | 0 | 0 | 0 | 27 |
 | [`Marketplaces`](#marketplaces) | 27 | 0 | 0 | 0 | 27 |
-| [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Officeimpresso`](#officeimpresso) | 24 | 0 | 0 | 0 | 24 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
@@ -756,6 +756,40 @@
 - **US-FISIO-062** — Relatório agregado para a associação — **P1**
 - **US-FISIO-063** — Exames e receitas por foto, com transcrição sugerida e conferida — **P1**
 
+## RecurringBilling
+
+
+### todo
+
+- **US-RB-040** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
+- **US-RB-042** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
+- **US-RB-050** — Inter PJ — PIX cobrança imediata (CYCLE-06 G1 wiring Martinho) _(`p0` · @wagner · sprint cycle-06)_
+- **US-RB-057** — Cobrança paga pelo PaymentGateway marca a fatura da assinatura como paga e dispara InvoicePaid _(`p0`)_
+- **US-RECURRINGBILLING-003** — Escopo 2 — Boleto impresso via Asaas _(`p0` · @wagner)_
+- **US-RECURRINGBILLING-005** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
+- **US-RECURRINGBILLING-007** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
+- **US-RB-044** — Listener InvoicePaid em NfeBrasil — emissão automática NFe55 + DANFE + e-mail _(`p1` · @wagner)_
+- **US-RB-049** — Permissions UI: plans.manage, contracts.manage, webhooks.view (US-RB-001..005) _(`p1` · sprint cycle-04)_
+- **US-RB-052** — Ativar gateway nas 109 assinaturas com gateway=NULL (cobranças dormentes) _(`p1`)_
+- **US-RB-055** — Aplicar recalibração de pricing (setup · trial · anual) — 3 ajustes _(`p1`)_
+- **US-RB-056** — Unificar as 3 implementações de "próximo vencimento" (NoOverflow/EN vs Overflow/PT) — REGRA MESTRE _(`p1`)_
+- **US-RECURRINGBILLING-004** — Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter) _(`p1` · @wagner)_
+- **US-RB-001** — Cadastrar plano de assinatura
+- **US-RB-002** — Criar contrato (subscription)
+- **US-RB-003** — Gerar faturas em ciclo (job)
+- **US-RB-004** — Cobrar fatura (charge attempt)
+- **US-RB-005** — Cancelar contrato
+- **US-RB-006** — Proração em upgrade/downgrade mid-cycle
+- **US-RB-010** — Cadastrar credencial de gateway
+- **US-RB-011** — Salvar cartão tokenizado de cliente
+- **US-RB-012** — Receber webhook de gateway
+- **US-RB-013** — Smart retry em soft decline
+- **US-RB-020** — Solicitar autorização Pix Automático
+- **US-RB-021** — Cobrar via Pix Automático autorizado
+- **US-RB-030** — Configurar régua de inadimplência
+- **US-RB-031** — Disparar régua quando cobrança falha
+- **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
+
 ## Crm
 
 
@@ -821,38 +855,6 @@
 - **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 - **US-MKT-026** — Nuvemshop — conectar a loja (OAuth, token sem vencimento) — **P1** · 4h
 - **US-MKT-027** — Nuvemshop — receptor de notificações assinado + webhooks LGPD — **P1** · 4h
-
-## RecurringBilling
-
-
-### todo
-
-- **US-RB-040** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
-- **US-RB-042** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
-- **US-RB-050** — Inter PJ — PIX cobrança imediata (CYCLE-06 G1 wiring Martinho) _(`p0` · @wagner · sprint cycle-06)_
-- **US-RECURRINGBILLING-003** — Escopo 2 — Boleto impresso via Asaas _(`p0` · @wagner)_
-- **US-RECURRINGBILLING-005** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
-- **US-RECURRINGBILLING-007** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
-- **US-RB-049** — Permissions UI: plans.manage, contracts.manage, webhooks.view (US-RB-001..005) _(`p1` · sprint cycle-04)_
-- **US-RB-052** — Ativar gateway nas 109 assinaturas com gateway=NULL (cobranças dormentes) _(`p1`)_
-- **US-RB-055** — Aplicar recalibração de pricing (setup · trial · anual) — 3 ajustes _(`p1`)_
-- **US-RB-056** — Unificar as 3 implementações de "próximo vencimento" (NoOverflow/EN vs Overflow/PT) — REGRA MESTRE _(`p1`)_
-- **US-RECURRINGBILLING-004** — Escopo 3 — NFSe assíncrona ao pagar (Focus/PlugNotas adapter) _(`p1` · @wagner)_
-- **US-RB-001** — Cadastrar plano de assinatura
-- **US-RB-002** — Criar contrato (subscription)
-- **US-RB-003** — Gerar faturas em ciclo (job)
-- **US-RB-004** — Cobrar fatura (charge attempt)
-- **US-RB-005** — Cancelar contrato
-- **US-RB-006** — Proração em upgrade/downgrade mid-cycle
-- **US-RB-010** — Cadastrar credencial de gateway
-- **US-RB-011** — Salvar cartão tokenizado de cliente
-- **US-RB-012** — Receber webhook de gateway
-- **US-RB-013** — Smart retry em soft decline
-- **US-RB-020** — Solicitar autorização Pix Automático
-- **US-RB-021** — Cobrar via Pix Automático autorizado
-- **US-RB-030** — Configurar régua de inadimplência
-- **US-RB-031** — Disparar régua quando cobrança falha
-- **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
 
 ## Inventory
 
