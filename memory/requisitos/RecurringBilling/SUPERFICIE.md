@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 204 arquivos em 20 papéis.
+**Total mapeado:** 210 arquivos em 20 papéis.
 
 ## Controllers — 12
 
@@ -118,7 +118,7 @@ module: RecurringBilling
 - [api.php](../../../Modules/RecurringBilling/Routes/api.php)
 - [web.php](../../../Modules/RecurringBilling/Routes/web.php)
 
-## Migrations (schema) — 13
+## Migrations (schema) — 14
 
 - [2026_05_06_000001_create_rb_boleto_credentials_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000001_create_rb_boleto_credentials_table.php)
 - [2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php)
@@ -133,6 +133,7 @@ module: RecurringBilling
 - [2026_11_19_100000_cifra_webhook_secret_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_100000_cifra_webhook_secret_rb_boleto_credentials.php)
 - [2026_11_19_110000_add_business_fk_rb_tables.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110000_add_business_fk_rb_tables.php)
 - [2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php)
+- [2026_11_23_100000_rb_contact_plan_fk_restrict.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_23_100000_rb_contact_plan_fk_restrict.php)
 
 ## Seeders — 2
 
@@ -153,12 +154,14 @@ module: RecurringBilling
 - [Edit.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Index.tsx)
 
-## Componentes / apoio de tela — 8
+## Componentes / apoio de tela — 10
 
+- [CartaoRecorrenteBloco.tsx](../../../resources/js/Pages/RecurringBilling/_components/CartaoRecorrenteBloco.tsx)
 - [CheatSheet.tsx](../../../resources/js/Pages/RecurringBilling/_components/CheatSheet.tsx)
 - [CmdPalette.tsx](../../../resources/js/Pages/RecurringBilling/_components/CmdPalette.tsx)
 - [JanaPanel.tsx](../../../resources/js/Pages/RecurringBilling/_components/JanaPanel.tsx)
 - [PixAutomaticoBloco.tsx](../../../resources/js/Pages/RecurringBilling/_components/PixAutomaticoBloco.tsx)
+- [PlanoFormDrawer.tsx](../../../resources/js/Pages/RecurringBilling/_components/PlanoFormDrawer.tsx)
 - [PresentationMode.tsx](../../../resources/js/Pages/RecurringBilling/_components/PresentationMode.tsx)
 - [Sparkline.tsx](../../../resources/js/Pages/RecurringBilling/_components/Sparkline.tsx)
 - [TourOnboarding.tsx](../../../resources/js/Pages/RecurringBilling/_components/TourOnboarding.tsx)
@@ -182,9 +185,9 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 56
+## Testes (Pest) — 59
 
-- 56 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 59 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 36

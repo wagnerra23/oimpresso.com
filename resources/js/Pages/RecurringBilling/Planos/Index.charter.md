@@ -9,6 +9,7 @@ related_us: [US-RB-001]
 related_adrs: [93, 94, 101, 104, 107, 110, 114, 143]
 tier: A
 charter_version: 1
+runbook: memory/requisitos/RecurringBilling/RUNBOOK-recurring-billing-index.md
 visual_source: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx  # 2026-09-09 [C]: ⚠️ RASTRO, NÃO DESIGN APROVADO. A aba "planos" deste arquivo é um `<Placeholder>` de 3 elementos (h2 + p + botão voltar; def. :332-338, uso :369) — não desenha esta tela. E o arquivo é porte REVERSO: `:2` declara "Reescreve a RecurringBilling do git na linguagem do DS" e o próprio texto do placeholder diz "Espelha /recurring-billing/planos do git" — promover ancoraria a tela nela mesma (§5 2026-06-05 e 2026-08-28). Mantido porque a aba existe na sub-nav do hub e o campo é o rastro disso; medido 2026-09-09, remover derrubaria a catraca `design-coverage` (a métrica `declared` só sobe), então trocar por "sem fonte" é decisão [W]. Ausência de outra fonte medida em 2026-09-09 pelas 3 pernas: repo inteiro, projeto Cowork por ID e ledger do espelho (compare 2026-09-08 = sync). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §4.5.
 canon_method: Cowork KB-9.75
 sidebar_group: fin (FINANCEIRO)
@@ -39,8 +40,8 @@ Listar planos de assinatura recorrente do business, com criação/edição/exclu
   - Coluna valor (BRL right-aligned)
   - Coluna assinaturas ativas (count)
   - Coluna fiscal type (badge: NFe / NFS-e / Não emite)
-  - Coluna ativo (badge verde/cinza)
-  - Coluna ações (Editar link · Excluir botão danger)
+  - Coluna status em pílula com borda de 1px, sem ícone (ativo = tom da marca · inativo = muted), forma do protótipo `cr-pill`
+  - Coluna ações (Editar abre o drawer · Excluir botão danger)
 - Busca server-side por nome ou slug (Enter dispara reload partial `only:[plans, kpis]`)
 - Empty state: ícone + texto + CTA pra criar primeiro plano
 - Inertia::defer pra `plans` paginados + `kpis` agregados (skill `inertia-defer-default` Tier B)
@@ -76,7 +77,7 @@ Listar planos de assinatura recorrente do business, com criação/edição/exclu
 ## UX Anti-patterns
 
 - ❌ Inflar lógica de cálculo MRR/ciclo dentro do TSX (canon = computa no Controller `buildKpisPayload`)
-- ❌ Modal/Dialog pra Create/Edit — canon = páginas dedicadas (Create.tsx / Edit.tsx) reusando layout
+- ❌ Página dedicada para Novo/Editar — desde 2026-11-23 os dois abrem o drawer de 560px sobre a lista (`_components/PlanoFormDrawer.tsx`), forma do protótipo `rb-planos`. Até essa data o canon aqui era o oposto (página dedicada); a ADR UI-0029 põe o protótipo acima do charter no eixo forma. As URLs `/novo` e `/{id}/editar` seguem existindo.
 - ❌ Esconder erro de FK/integridade ("plano com assinatura ativa") — sempre mostra contagem exata
 - ❌ Soft delete sem aviso visual ("o plano sumiu" sem flash) — sempre flash success
 - ❌ Hard delete por engano — Plan tem SoftDeletes trait, destroy() chama `delete()` (vira soft)
@@ -88,7 +89,7 @@ Listar planos de assinatura recorrente do business, com criação/edição/exclu
 | Método | Rota | Retorna |
 |---|---|---|
 | GET | `/recurring-billing/planos` | Inertia render `RecurringBilling/Planos/Index` props `{filters, plans (defer), kpis (defer)}` |
-| GET | `/recurring-billing/planos/novo` | redirect via link → Create.tsx |
+| GET | `/recurring-billing/planos/novo` | Create.tsx (lista com o drawer de novo plano aberto) |
 | DELETE | `/recurring-billing/planos/{id}` | redirect + flash (success ou error 422 se assinatura ativa) |
 
 ---

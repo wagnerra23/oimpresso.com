@@ -101,6 +101,7 @@ export function LancarItem({
   podeEditarPreco,
   piso,
   estoqueBloqueia = false,
+  gravando = false,
   onFechar,
   onConfirmar,
 }: {
@@ -111,6 +112,9 @@ export function LancarItem({
   piso?: number | null;
   /** Gravando sem `allow_overselling`: acima do estoque a venda não grava. */
   estoqueBloqueia?: boolean;
+  /** Gravação ligada (UC-V408): as informações adicionais não chegam à gravação, e as listas de
+   *  local e de impressão eram de demonstração. A dobra dá lugar a um aviso. */
+  gravando?: boolean;
   onFechar: () => void;
   onConfirmar: (item: ItemLancado) => void;
 }) {
@@ -386,95 +390,103 @@ export function LancarItem({
           )}
 
           {/* ─── informações adicionais (dobra) ───────────────────────────── */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setAdicionaisAbertas((v) => !v)}
-              aria-expanded={adicionaisAbertas}
-              className="inline-flex items-center gap-1.5 border-0 bg-transparent py-1 text-[11px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground"
-            >
-              <span aria-hidden className={adicionaisAbertas ? 'rotate-180 transition-transform' : 'transition-transform'}>
-                ▾
-              </span>
-              Informações adicionais do item
-              {!adicionaisAbertas && preenchidas > 0 && (
-                <Pill tom="primary">
-                  {preenchidas} preenchida{preenchidas > 1 ? 's' : ''}
-                </Pill>
-              )}
-            </button>
-
-            {adicionaisAbertas && (
-              <Stack gap={3} className="mt-2">
-                <Grid gap={3} className="sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="v3-obs-int" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Observação (uso interno)
-                    </Label>
-                    <Textarea
-                      id="v3-obs-int"
-                      rows={2}
-                      value={obsInterna}
-                      onChange={(e) => setObsInterna(e.target.value)}
-                      placeholder="Cliente aprovou arte por e-mail em 27/07"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="v3-obs-prod" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Observação para a produção
-                    </Label>
-                    <Textarea
-                      id="v3-obs-prod"
-                      rows={2}
-                      value={obsProducao}
-                      onChange={(e) => setObsProducao(e.target.value)}
-                      placeholder="Sangria de 5cm, ilhós a cada 50cm"
-                    />
-                  </div>
-                </Grid>
-                <Grid gap={3} className="sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="v3-local" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Local da aplicação
-                    </Label>
-                    <Select value={local} onValueChange={setLocal}>
-                      <SelectTrigger id="v3-local" className="h-9 w-full text-[13px]">
-                        <SelectValue placeholder="—" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LOCAIS.map((l) => (
-                          <SafeSelectItem key={l} value={l}>
-                            {l}
-                          </SafeSelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="v3-impr" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Tipo de impressão
-                    </Label>
-                    <Select value={impressao} onValueChange={setImpressao}>
-                      <SelectTrigger id="v3-impr" className="h-9 w-full text-[13px]">
-                        <SelectValue placeholder="—" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {IMPRESSOES.map((i) => (
-                          <SafeSelectItem key={i} value={i}>
-                            {i}
-                          </SafeSelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </Grid>
-                <span className="text-[11.5px] leading-[1.4] text-muted-foreground">
-                  A observação de uso interno e a de produção <b>não saem</b> no documento do cliente — a de produção vai
-                  na ordem de produção.
+          {gravando && (
+            <span className="text-[11.5px] leading-[1.4] text-muted-foreground">
+              As informações adicionais do item (observações, local da aplicação e tipo de impressão) ainda não são
+              gravadas pela nova venda.
+            </span>
+          )}
+          {!gravando && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setAdicionaisAbertas((v) => !v)}
+                aria-expanded={adicionaisAbertas}
+                className="inline-flex items-center gap-1.5 border-0 bg-transparent py-1 text-[11px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground"
+              >
+                <span aria-hidden className={adicionaisAbertas ? 'rotate-180 transition-transform' : 'transition-transform'}>
+                  ▾
                 </span>
-              </Stack>
-            )}
-          </div>
+                Informações adicionais do item
+                {!adicionaisAbertas && preenchidas > 0 && (
+                  <Pill tom="primary">
+                    {preenchidas} preenchida{preenchidas > 1 ? 's' : ''}
+                  </Pill>
+                )}
+              </button>
+
+              {adicionaisAbertas && (
+                <Stack gap={3} className="mt-2">
+                  <Grid gap={3} className="sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="v3-obs-int" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Observação (uso interno)
+                      </Label>
+                      <Textarea
+                        id="v3-obs-int"
+                        rows={2}
+                        value={obsInterna}
+                        onChange={(e) => setObsInterna(e.target.value)}
+                        placeholder="Cliente aprovou arte por e-mail em 27/07"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="v3-obs-prod" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Observação para a produção
+                      </Label>
+                      <Textarea
+                        id="v3-obs-prod"
+                        rows={2}
+                        value={obsProducao}
+                        onChange={(e) => setObsProducao(e.target.value)}
+                        placeholder="Sangria de 5cm, ilhós a cada 50cm"
+                      />
+                    </div>
+                  </Grid>
+                  <Grid gap={3} className="sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="v3-local" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Local da aplicação
+                      </Label>
+                      <Select value={local} onValueChange={setLocal}>
+                        <SelectTrigger id="v3-local" className="h-9 w-full text-[13px]">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LOCAIS.map((l) => (
+                            <SafeSelectItem key={l} value={l}>
+                              {l}
+                            </SafeSelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="v3-impr" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Tipo de impressão
+                      </Label>
+                      <Select value={impressao} onValueChange={setImpressao}>
+                        <SelectTrigger id="v3-impr" className="h-9 w-full text-[13px]">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {IMPRESSOES.map((i) => (
+                            <SafeSelectItem key={i} value={i}>
+                              {i}
+                            </SafeSelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </Grid>
+                  <span className="text-[11.5px] leading-[1.4] text-muted-foreground">
+                    A observação de uso interno e a de produção <b>não saem</b> no documento do cliente — a de produção vai
+                    na ordem de produção.
+                  </span>
+                </Stack>
+              )}
+            </div>
+          )}
         </Stack>
 
         <DialogFooter className="sm:justify-between">

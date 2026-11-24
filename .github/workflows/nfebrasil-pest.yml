@@ -310,6 +310,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesDevolucaoDaVendaTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \

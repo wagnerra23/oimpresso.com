@@ -1,7 +1,12 @@
 {
-  "url": "http://127.0.0.1:53594/oimpresso.com.html",
-  "theme": "dark",
-  "assinatura": "OI WR Assinaturas · Cobrança Recorrente Junho 2026 · WR2 Sistemas · assinaturas & contratos Nova assinatura Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ MRR · receita recorrente R$ 3.810,00 8 assinaturas ativas · ticket médio R$ 476,25 Churn este mês 1 saída taxa 11 % Próximas cobranças 1 R$ 3.600,00 a vencer A recuperar R$ 1.810,00 3 cobranças falhas Filtrar por Próxima cobrança Início Todo o período 9 assinaturas Dia Semana Mês Ano Tudo Personalizado 9 de 9 PP Padaria Pão Quente Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 AP Auto Posto Trevo Adesivos Frota Mensal · mensal · desde há 2a retentando 1 /3 Boleto · R$ 680,00 RS Restaurante Sabor Caseiro Impressão Trimestral · trimestral · desde há 2a em dia Cartão · R$ 1.200,00 AC Academia CorpoForte Sinalização Mensal · mensal · desde há 2a falhou 3 × Boleto · R$ 450,00 CV Clínica Vida Manutenção Fachada Anual · anual · desde há 3a em dia Pix · R$ 3.600,00 MU Mercado União Adesivos Frota Mensal · mensal · desde há 2a retentando 2 /3 Boleto · R$ 680,00 ES Escola Saber Impressão Trimestral · trimestral · desde há 2a pausada FB Farmácia Bem-Estar Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 LB Loja Bella Moda Sinalização Mensal · mensal · desde há 3a cancelada",
+  "url": "http://127.0.0.1:5591/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 83
+  },
+  "theme": "light",
+  "assinatura": "OI WR Planos · cobrança recorrente 5 PLANOS · 4 ATIVOS · MRR dos planos R$ 2.960,00 Novo plano Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ MRR dos planos R$ 2.960,00 ticket médio R$ 493,33 · 6 cobrando Total planos 5 1 inativo Total ativos 4 disponíveis pra novas assinaturas Plano top vendido Sinalização Mensal 2 assin. · R$ 450,00 Distribuição por ciclo Mensal 2 Trimestral 1 Semestral 1 Anual 1 Customizado 0 Buscar Plano Ciclo Valor Assinaturas Fiscal Status Ações Sinalização Mensal sinalizacao-mensal Placas e banners trocados todo mês mensal R$ 450,00 2 NFS-e ativo Editar Excluir Adesivos Frota Mensal adesivos-frota-mensal Reposição de adesivos de frota mensal R$ 680,00 2 NFe ativo Editar Excluir Impressão Trimestral impressao-trimestral Lote de impressos a cada 3 meses trimestral R$ 1.200,00 1 NFe ativo Editar Excluir Manutenção Fachada Anual manutencao-fachada-anual Revisão anual de fachada e letreiro anual R$ 3.600,00 1 NFS-e ativo Editar Excluir Banner Promocional Semestral banner-promocional-semestral Campanha de vitrine a cada 6 meses semestral R$ 900,00 0 Não emite inativo Editar Excluir 5 planos no total Página 1 de 1",
   "roles": {
     "kpi": {
       "count": 4,
@@ -9,34 +14,34 @@
       "overflowX": false,
       "items": [
         {
-          "label": "MRR · receita ",
+          "label": "MRR dos planos",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "Churn este mês",
+          "label": "Total planos51",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "Próximas cobra",
+          "label": "Total ativos4d",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "A recuperarR$ ",
+          "label": "Plano top vend",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         }
@@ -45,18 +50,118 @@
     "title": {
       "fontPx": 22,
       "weight": "700",
-      "color": "oklch(0.94 0.005 90)"
+      "color": "oklch(0.22 0.01 80)"
     },
-    "primary": null,
-    "filterRows": null,
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "rgb(255, 255, 255)"
+    },
+    "filterRows": 1,
     "contratos": [],
-    "celulas": null,
-    "tabela": null,
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 25.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 11.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 12.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 10.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 9.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.945 0.045 295)",
+          "dot": false
+        }
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 20.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
     "shell": {
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-menu > .sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -64,6 +169,7 @@
         "itemGrupo": {
           "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -71,6 +177,7 @@
         "grupoHeader": {
           "seletor": ".sb-group-h",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -78,6 +185,7 @@
         "containerMenu": {
           "seletor": ".sb-menu",
           "n": 1,
+          "ocultos": 0,
           "css": {
             "height": "525px",
             "minHeight": "0px",
@@ -110,10 +218,25 @@
             "w": 18,
             "h": 18,
             "strokeWidth": "1.6px"
-          }
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "lado": "design",
+    "fonte": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+    "rota": "rb-planos",
+    "viewport": "1280x900",
+    "tema": "light",
+    "surface": "#ffffff",
+    "dialogsAbertos": [],
+    "medidoEm": "2026-11-23T19:24:41.338Z"
   }
 }

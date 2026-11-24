@@ -9,11 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Fisio\Entities\ReciboSaude;
 use Modules\Fisio\Services\Fiscal\FilaFiscalDoDia;
 
 /**
  * Documentos fiscais do dia (US-FISIO-023): NFS-e (clínica CNPJ) e fila do Receita Saúde
- * (autônomo CPF). Leitura do núcleo; a única escrita é a marca de envio do recibo.
+ * (autônomo CPF). Leitura do núcleo; a única escrita é a marca do recibo (enviado ou retificar).
  */
 class FiscalController extends Controller
 {
@@ -37,9 +38,22 @@ class FiscalController extends Controller
         abort_unless((bool) $request->user()?->can('fisio.editar'), 403);
         $biz = (int) $request->session()->get('user.business_id');
         abort_unless($this->fila->pagamentoDePaciente($biz, $payment), 404);
-        $numero = $request->validate(['receipt_number' => ['nullable', 'string', 'max:40']])['receipt_number'] ?? null;
+        $dados = $request->validate([
+            'receipt_number' => ['nullable', 'string', 'max:40'],
+            'marca' => ['nullable', 'in:enviado,retificar'],
+        ]);
 
-        $this->fila->marcarEnviado($biz, $payment, $numero, (int) $request->user()->id);
+        // A mesma rota grava as duas marcas do Receita Saúde (US-FISIO-023): "enviado" (padrão) e
+        // "retificar", que só vale para recibo já enviado.
+        if (($dados['marca'] ?? null) === ReciboSaude::RETIFICAR) {
+            if ($this->fila->marcarRetificar($biz, $payment, (int) $request->user()->id) === null) {
+                return back()->withErrors(['marca' => 'Só recibo já enviado pode ser marcado para retificar.']);
+            }
+
+            return back()->with('success', 'Recibo marcado para retificar.');
+        }
+
+        $this->fila->marcarEnviado($biz, $payment, $dados['receipt_number'] ?? null, (int) $request->user()->id);
 
         return back()->with('success', 'Recibo marcado como enviado.');
     }

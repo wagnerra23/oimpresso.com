@@ -127,6 +127,13 @@ type StatusFilter = 'todos' | Periodo['status'];
 
 // EFD-ICMS/IPI download URL — preserva exatamente a lógica do PR #8:
 // /fiscal/sped/icms-ipi/{ano}/{mes-int} → controller gera .txt CONFAZ v3.1.1
+/** "2026-04" → "abril/2026", o rótulo que o protótipo usa na tabela e no botão de gerar. */
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const mesRotulo = (mesIso: string): string => {
+  const [ano, mes] = mesIso.split('-');
+  return `${MESES[Number(mes) - 1] ?? mes}/${ano}`;
+};
+
 const efdHref = (mesIso: string): string => {
   const [ano, mes] = mesIso.split('-');
   return `/fiscal/sped/icms-ipi/${ano}/${parseInt(mes ?? '1', 10)}`;
@@ -230,10 +237,32 @@ export default function Sped({
 
       <FxShell
         route="sped"
-        title="SPED e livros"
+        title="SPED e livros fiscais"
         crumb="Apuração mensal · EFD ICMS-IPI · PIS/COFINS"
         env="em desenvolvimento"
         envTone="warn"
+        actions={
+          // Forma do protótipo (fiscal-subpages.jsx FxSpedPage, medida em 2026-11-23): prévia e
+          // geração ficam no topo e valem para a competência SELECIONADA na tabela.
+          selecionada ? (
+            <Inline gap={2} align="center">
+              <Button type="button" variant="cowork-ghost" onClick={() => setPreview(preview ? null : selecionada)}>
+                <Eye size={13} /> {preview ? 'Fechar prévia' : 'Ver prévia do TXT'}
+              </Button>
+              {motivoBloqueio(selecionada) === null ? (
+                <Button asChild variant="cowork-primary">
+                  <a href={efdHref(selecionada.mesIso)} download title={`Baixar EFD-ICMS-IPI ${selecionada.mes}`}>
+                    <Download size={13} /> Gerar TXT {mesRotulo(selecionada.mesIso)}
+                  </a>
+                </Button>
+              ) : (
+                <Button type="button" variant="cowork-primary" disabled title={motivoBloqueio(selecionada) ?? undefined}>
+                  <Download size={13} /> Gerar TXT {mesRotulo(selecionada.mesIso)}
+                </Button>
+              )}
+            </Inline>
+          ) : null
+        }
       >
         {/* Callout do MVP na primitiva <Alert> do DS (era a classe hand-rolled
             `fx-callout`). O `role="region"` + `aria-label` são MANTIDOS de propósito:
@@ -375,78 +404,48 @@ export default function Sped({
             <small>Ajuste a busca ou o status para ver os períodos disponíveis.</small>
           </div>
         ) : (
-          <div className="fx-table">
+          <div className="fx-table fx-cockpit-notas" data-contract="panorama-sped">
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: 110 }}>Competência</th>
-                  <th style={{ width: 140 }}>Status</th>
-                  <th style={{ textAlign: 'right' }}>Notas autorizadas</th>
-                  <th style={{ textAlign: 'right', width: 160 }}>Valor autorizado</th>
-                  <th style={{ width: 120 }}>Prazo entrega</th>
-                  <th style={{ width: 120, textAlign: 'center' }}>Export</th>
+                  <th>Competência</th>
+                  <th style={{ width: 110 }}>Notas</th>
+                  <th style={{ width: 160 }}>Situação</th>
+                  <th style={{ width: 150 }}>Prazo (heurística)</th>
+                  <th style={{ width: 200, textAlign: 'right' }}>Valor autorizado</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => {
                   const stMeta = STATUS_META[p.status];
+                  const sel = selecionada?.mesIso === p.mesIso;
                   return (
                     <tr
                       key={p.mesIso}
-                      data-selecionada={selecionada?.mesIso === p.mesIso ? 'true' : undefined}
-                      className={selecionada?.mesIso === p.mesIso ? 'bg-accent/40' : undefined}
+                      data-selecionada={sel ? 'true' : undefined}
+                      className={sel ? 'sel' : undefined}
+                      tabIndex={0}
+                      aria-label={`Selecionar competência ${p.mes}`}
+                      aria-selected={sel}
+                      onClick={() => setSelecionadaIso(p.mesIso)}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter' && e.key !== ' ') return;
+                        e.preventDefault();
+                        setSelecionadaIso(p.mesIso);
+                      }}
                     >
-                      <td className="fx-mono fx-strong">
-                        {/* Trocar a competência da barra. É um botão, não a linha
-                            inteira clicável: `<tr onClick>` exige handler de teclado
-                            e um role que a tabela não tem, e o alvo real do operador
-                            é a competência. */}
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="xs"
-                          className="h-auto px-0 font-mono text-xs font-semibold text-foreground"
-                          aria-pressed={selecionada?.mesIso === p.mesIso}
-                          title={`Ver a régua de geração de ${p.mes}`}
-                          onClick={() => setSelecionadaIso(p.mesIso)}
-                        >
-                          {p.mes}
-                        </Button>
+                      <td className="cli">
+                        <b>{mesRotulo(p.mesIso)}</b>
+                        <div>competência {p.mes}</div>
                       </td>
+                      <td className="num"><b>{p.notasAutorizadas}</b></td>
                       <td>
                         <span className={`fx-sefaz ${stMeta.tone}`}>
                           <span className="lbl">{stMeta.label}</span>
                         </span>
                       </td>
-                      <td className="fx-mono" style={{ textAlign: 'right' }}>{p.notasAutorizadas}</td>
-                      <td className="fx-mono fx-strong" style={{ textAlign: 'right' }}>{brl(p.valorAutorizado)}</td>
-                      <td><small>{p.prazoEntrega ?? '—'}</small></td>
-                      <td>
-                        <div className="fx-dfe-acts" style={{ justifyContent: 'center' }}>
-                          <button
-                            type="button"
-                            className="fx-dfe-act"
-                            title={`Pré-visualizar competência ${p.mes}`}
-                            onClick={() => setPreview(p)}
-                          >
-                            <Eye size={11} />
-                          </button>
-                          {motivoBloqueio(p) === null ? (
-                            <a
-                              href={efdHref(p.mesIso)}
-                              className="fx-dfe-act ok"
-                              title={`Baixar EFD-ICMS-IPI ${p.mes} (.txt CONFAZ v3.1.1)`}
-                              download
-                            >
-                              <Download size={11} /> .txt
-                            </a>
-                          ) : (
-                            <button type="button" className="fx-dfe-act" disabled title={motivoBloqueio(p) ?? undefined}>
-                              <Download size={11} /> .txt
-                            </button>
-                          )}
-                        </div>
-                      </td>
+                      <td>{p.prazoEntrega ?? '—'}</td>
+                      <td className="val">{brl(p.valorAutorizado)}</td>
                     </tr>
                   );
                 })}

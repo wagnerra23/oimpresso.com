@@ -178,7 +178,7 @@
     },
     {
       "screen": "Fiscal",
-      "note": "35 arquivo(s)",
+      "note": "36 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -189,7 +189,7 @@
     },
     {
       "screen": "Fisio",
-      "note": "54 arquivo(s)",
+      "note": "55 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -585,7 +585,7 @@
     },
     {
       "screen": "NfeBrasil",
-      "note": "18 arquivo(s)",
+      "note": "20 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -730,8 +730,8 @@
   "progressPct": 64,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "6666c2f95e",
-  "generatedAt": "2026-11-22T17:19:20.409Z",
+  "measuredAgainstSha": "7a1e51857d",
+  "generatedAt": "2026-11-23T22:04:34.531Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

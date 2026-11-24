@@ -6,6 +6,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head } from '@inertiajs/react';
+import { Inline } from '@/Components/layout';
 // Onda 23 v9,75 — sub-components Cowork refinos.
 // TOUR_DONE_KEY compartilhada: user que fez tour no Index não vê aqui (e vice-versa).
 // TourConfiguracoes é local: steps específicos da página (Gateways/Dunning/NFe/Webhooks).
@@ -51,6 +52,7 @@ interface ReguaItem {
 interface Regua {
   descricao: string;
   retentativas: ReguaItem[];
+  canais_aviso: Array<{ canal: string; disponivel: boolean }>;
   editavel_em: string;
 }
 
@@ -227,6 +229,18 @@ export default function ConfiguracoesIndex(props: PageProps) {
               {regua_dunning.descricao}
             </p>
 
+            <Inline gap={2} wrap className="mb-4 text-xs" data-contract="dunning-canais">
+              <span className="text-muted-foreground">Aviso ao cliente:</span>
+              {regua_dunning.canais_aviso.map((c) => (
+                <span
+                  key={c.canal}
+                  className="rounded-full bg-muted px-2 py-0.5 font-medium text-muted-foreground ring-1 ring-border"
+                >
+                  {c.canal} · {c.disponivel ? 'disponível' : 'não disponível'}
+                </span>
+              ))}
+            </Inline>
+
             <div className="space-y-2">
               {regua_dunning.retentativas.map((r) => {
                 const t = SEVERITY_TOKENS[r.severidade];
@@ -333,7 +347,7 @@ const TOUR_STEPS_CONFIG: Array<{ title: string; body: string }> = [
   },
   {
     title: 'Régua de dunning',
-    body: 'Automatiza retentativas quando fatura falha: 3 dias (lembrete), 7 dias (alerta), 15 dias (escalação).',
+    body: 'Retentativas quando a fatura falha: 3, 7 e 15 dias. Aviso ao cliente por e-mail ou WhatsApp ainda não está disponível.',
   },
   {
     title: 'NFe automática (US-RB-044)',

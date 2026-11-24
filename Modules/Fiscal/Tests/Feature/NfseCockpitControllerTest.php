@@ -90,3 +90,79 @@ it('UC-FNFSE-03 · filtro mes invalido nao crasha (ignora silenciosamente)', fun
     $response = $this->get('/fiscal/nfse?mes=INVALIDO');
     $response->assertStatus(200);
 });
+
+/**
+ * UC-FNFSE-13..15 — o que a lista deferida devolve com cada filtro.
+ * Lê o `buildRowsPayload` de verdade (reflection), com duas empresas: a da sessão (98) e a
+ * vizinha (99), que nunca pode aparecer. Números 9_771_xxx reservados para este bloco.
+ */
+function nfseLinha(int $biz, string $numero, string $status, string $criadaEm, array $extra = []): void
+{
+    DB::table('nfse_emissoes')->insert($extra + [
+        'business_id' => $biz, 'competencia' => substr($criadaEm, 0, 7) . '-01', 'numero' => $numero,
+        'tomador_nome' => 'Tomador ' . $numero, 'descricao' => 'Serviço de teste', 'valor_servicos' => 100.00,
+        'idempotency_key' => 'uc-fnfse-' . $numero, 'status' => $status,
+        'created_at' => $criadaEm, 'updated_at' => $criadaEm,
+    ]);
+}
+
+function nfseNumeros(array $filtros): array
+{
+    $m = new ReflectionMethod(Modules\Fiscal\Http\Controllers\NfseCockpitController::class, 'buildRowsPayload');
+    $m->setAccessible(true);
+    $payload = $m->invoke(new Modules\Fiscal\Http\Controllers\NfseCockpitController(), $filtros + ['search' => '', 'status' => 'todas', 'mes' => '2026-10']);
+
+    return array_values(array_filter(
+        array_map(fn ($r) => (string) $r['num'], $payload['data']),
+        fn ($n) => str_starts_with($n, '9771'),
+    ));
+}
+
+function nfseSemear(): void
+{
+    DB::table('nfse_emissoes')->where('numero', 'like', '9771%')->delete();
+    nfseLinha(98, '9771001', 'emitida', '2026-10-05 10:00:00', ['tomador_cnpj' => '11222333000181', 'provider_codigo_verificacao' => 'ABC123XYZ']);
+    nfseLinha(98, '9771002', 'erro', '2026-10-06 10:00:00', ['tomador_nome' => 'Grafica Alfa']);
+    nfseLinha(98, '9771003', 'rascunho', '2026-10-07 10:00:00');
+    nfseLinha(98, '9771004', 'processando', '2026-10-08 10:00:00', ['tomador_cpf' => '12345678909']);
+    nfseLinha(98, '9771005', 'cancelada', '2026-10-09 10:00:00');
+    nfseLinha(98, '9771006', 'emitida', '2026-09-20 10:00:00');
+    nfseLinha(99, '9771007', 'emitida', '2026-10-10 10:00:00', ['tomador_nome' => 'Grafica Alfa']);
+
+    $user = \App\User::factory()->create(['business_id' => 98]);
+    test()->actingAs($user);
+    session(['business.id' => 98, 'user.business_id' => 98]);
+}
+
+afterEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite' && Schema::hasTable('nfse_emissoes')) {
+        DB::table('nfse_emissoes')->where('numero', 'like', '9771%')->delete();
+    }
+});
+
+it('UC-FNFSE-13 · os chips filtram pela situação da nota de serviço, só da empresa', function () {
+    nfseSemear();
+
+    expect(nfseNumeros([]))->toBe(['9771005', '9771004', '9771003', '9771002', '9771001']); // mais nova primeiro
+    expect(nfseNumeros(['status' => 'autorizadas']))->toBe(['9771001']);
+    expect(nfseNumeros(['status' => 'rejeitadas']))->toBe(['9771002']);
+    expect(nfseNumeros(['status' => 'processando']))->toBe(['9771004', '9771003']);       // rascunho + processando
+    expect(nfseNumeros(['status' => 'canceladas']))->toBe(['9771005']);
+});
+
+it('UC-FNFSE-14 · a busca acha por número, código de verificação, nome e documento do tomador', function () {
+    nfseSemear();
+
+    expect(nfseNumeros(['search' => '9771001']))->toBe(['9771001']);
+    expect(nfseNumeros(['search' => 'ABC123']))->toBe(['9771001']);
+    expect(nfseNumeros(['search' => 'Grafica Alfa']))->toBe(['9771002']);   // a da vizinha, com o mesmo nome, não entra
+    expect(nfseNumeros(['search' => '11222333000181']))->toBe(['9771001']);
+    expect(nfseNumeros(['search' => '12345678909']))->toBe(['9771004']);
+});
+
+it('UC-FNFSE-15 · a competência escolhida restringe as linhas ao mês', function () {
+    nfseSemear();
+
+    expect(nfseNumeros(['mes' => '2026-09']))->toBe(['9771006']);
+    expect(nfseNumeros(['mes' => '2026-10']))->not->toContain('9771006');
+});

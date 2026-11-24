@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 40,
-    "nodes": 1071,
-    "edges": 1454,
+    "nodes": 1073,
+    "edges": 1456,
     "by_node_type": {
       "module": 45,
       "table": 147,
       "adr": 158,
-      "component": 621,
-      "api": 100
+      "component": 622,
+      "api": 101
     },
     "by_edge_type": {
       "ownsTable": 122,
       "ownsLegacyView": 13,
       "consumesTable": 26,
-      "providesApi": 104,
+      "providesApi": 105,
       "charteredByAdr": 30,
       "governedByAdr": 90,
-      "hasComponent": 621,
+      "hasComponent": 622,
       "dependsOn": 165,
       "delegatesTo": 144,
       "migratesTo": 1,
@@ -1510,6 +1510,14 @@
       "id": "api:/fisio",
       "type": "api",
       "prefix": "/fisio",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/consulta/{consulta}/*",
+      "type": "api",
+      "prefix": "/fisio/consulta/{consulta}/*",
       "providers": [
         "Fisio"
       ]
@@ -3748,6 +3756,13 @@
       "module": "Fisio",
       "name": "ConfiguracoesController",
       "desc": "Configurações › WhatsApp: a clínica escolhe o canal (manual, oficial, QR com aceite de risco), teto e silêncio, em fisio_settings (Lote 5)"
+    },
+    {
+      "id": "component:Fisio/ConfirmacaoConsultaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ConfirmacaoConsultaController",
+      "desc": "página pública de um toque da mensagem de confirmação (link assinado, sem PIN): Confirmo e Não vou poder ir dentro do prazo (US-FISIO-017)"
     },
     {
       "id": "component:Fisio/DadosSociaisController",
@@ -12069,6 +12084,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/ConfirmacaoConsultaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/DadosSociaisController",
       "type": "hasComponent",
       "source": "contains"
@@ -12312,6 +12333,12 @@
       "to": "component:Fisio/VendaDoPacoteObserver",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/consulta/{consulta}/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Fisio",

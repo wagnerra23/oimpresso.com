@@ -1,7 +1,12 @@
 {
-  "url": "http://127.0.0.1:53594/oimpresso.com.html",
-  "theme": "dark",
-  "assinatura": "OI WR Assinaturas · Cobrança Recorrente Junho 2026 · WR2 Sistemas · assinaturas & contratos Nova assinatura Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ MRR · receita recorrente R$ 3.810,00 8 assinaturas ativas · ticket médio R$ 476,25 Churn este mês 1 saída taxa 11 % Próximas cobranças 1 R$ 3.600,00 a vencer A recuperar R$ 1.810,00 3 cobranças falhas Filtrar por Próxima cobrança Início Todo o período 9 assinaturas Dia Semana Mês Ano Tudo Personalizado 9 de 9 PP Padaria Pão Quente Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 AP Auto Posto Trevo Adesivos Frota Mensal · mensal · desde há 2a retentando 1 /3 Boleto · R$ 680,00 RS Restaurante Sabor Caseiro Impressão Trimestral · trimestral · desde há 2a em dia Cartão · R$ 1.200,00 AC Academia CorpoForte Sinalização Mensal · mensal · desde há 2a falhou 3 × Boleto · R$ 450,00 CV Clínica Vida Manutenção Fachada Anual · anual · desde há 3a em dia Pix · R$ 3.600,00 MU Mercado União Adesivos Frota Mensal · mensal · desde há 2a retentando 2 /3 Boleto · R$ 680,00 ES Escola Saber Impressão Trimestral · trimestral · desde há 2a pausada FB Farmácia Bem-Estar Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 LB Loja Bella Moda Sinalização Mensal · mensal · desde há 3a cancelada",
+  "url": "http://127.0.0.1:5591/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 85
+  },
+  "theme": "light",
+  "assinatura": "OI WR Cobrança recorrente 6 COBRANDO · MRR R$ 2.960,00 · CHURN DO MÊS 0% Nova assinatura MRR · receita recorrente R$ 2.960,00 6 assinaturas ativas · ticket médio R$ 493,33 Churn este mês 0 cancelamentos taxa 0% · 1 no total Próxima cobrança amanhã R$ 450,00 · 1 cobrança Retentando ou falhou 3 requer ação · R$ 1.810,00 a recuperar Filtrar por Próxima cobrança Início Todo o período 9 assinaturas Dia Semana Mês Ano Tudo Personalizado Mostrar só favoritos 2 Status Todas 9 Em dia 4 Retentando 2 Falhou 1 Pausada 1 Cancelada 1 Próxima cobrança Qualquer data Hoje Amanhã Esta semana Próx. 30 dias Personalizado Por plano Sinalização Mensal R$ 450,00 · 2 ativas Adesivos Frota Mensal R$ 680,00 · 2 ativas Impressão Trimestral R$ 1.200,00 · 1 ativa Manutenção Fachada Anual R$ 3.600,00 · 1 ativa MRR filtrado R$ 2.960,00 6 cobrando de 6 9 de 9 PP Padaria Pão Quente Sinalização Mensal · mensal · desde há 2a · próx. 10 jun em dia Pix · R$ 450,00 AP Auto Posto Trevo Adesivos Frota Mensal · mensal · desde há 1a · próx. 5 jun retentando 1 / 3 Boleto · R$ 680,00 RS Restaurante Sabor Caseiro Impressão Trimestral · trimestral · desde há 2a · próx. 20 jul em dia Cartão · R$ 1.200,00 AC Academia CorpoForte Sinalização Mensal · mensal · desde há 1a · próx. 28 mai falhou 3 × Boleto · R$ 450,00 CV Clínica Vida Manutenção Fachada Anual · anual · desde há 2a · próx. 1 mar em dia Pix · R$ 3.600,00 MU Mercado União Adesivos Frota Mensal · mensal · desde há 2a · próx. 3 jun retentando 2 / 3 Boleto · R$ 680,00 ES Escola Saber Impressão Trimestral · trimestral · desde há 2a pausada FB Farmácia Bem-Estar Sinalização Mensal · mensal · desde há 1a · próx. 2 jun em dia Pix · R$ 450,00 LB Loja Bella Moda Sinalização Mensal · mensal · desde há 2a cancelada",
   "roles": {
     "kpi": {
       "count": 4,
@@ -12,7 +17,7 @@
           "label": "MRR · receita ",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
@@ -20,23 +25,23 @@
           "label": "Churn este mês",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "Próximas cobra",
+          "label": "Próxima cobran",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "A recuperarR$ ",
+          "label": "Retentando ou ",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         }
@@ -45,18 +50,48 @@
     "title": {
       "fontPx": 22,
       "weight": "700",
-      "color": "oklch(0.94 0.005 90)"
+      "color": "oklch(0.22 0.01 80)"
     },
-    "primary": null,
-    "filterRows": null,
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "rgb(255, 255, 255)"
+    },
+    "filterRows": 5,
     "contratos": [],
-    "celulas": null,
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 1.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 93.8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 5,
+        "pill": null
+      }
+    ],
     "tabela": null,
     "shell": {
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-menu > .sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -64,6 +99,7 @@
         "itemGrupo": {
           "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -71,6 +107,7 @@
         "grupoHeader": {
           "seletor": ".sb-group-h",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -78,6 +115,7 @@
         "containerMenu": {
           "seletor": ".sb-menu",
           "n": 1,
+          "ocultos": 0,
           "css": {
             "height": "525px",
             "minHeight": "0px",
@@ -110,10 +148,25 @@
             "w": 18,
             "h": 18,
             "strokeWidth": "1.6px"
-          }
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "lado": "design",
+    "fonte": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+    "rota": "rb-assinaturas",
+    "viewport": "1280x900",
+    "tema": "light",
+    "surface": "#ffffff",
+    "dialogsAbertos": [],
+    "medidoEm": "2026-11-23T19:24:03.534Z"
   }
 }
