@@ -469,6 +469,21 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 - **[BACKLOG]** A NF-e (`Modules/NfeBrasil`) ainda monta o transporte com `modFrete = 9` e sem transportadora (medido em 2026-11-24, `NfeService.php`): ler os dados gravados aqui é trabalho fiscal à parte.
 - O "F2" de "Consultar cadastro… F2" do passo 1 continua só no rótulo: nenhum atalho de teclado abre a consulta de cliente.
 
+## UC-V414 · Gravando, a Situação mostra as etapas do processo em que a venda vai entrar
+
+**Status:** 🧪 — `tests/js/sells-v3-situacao-etapas.test.tsx` e `tests/Feature/Sells/SellsCreateV3GravarContratoTest.php` (UC-V414), sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e o processo `venda_com_producao` ativo nesta empresa,
+- **Quando** o operador abre a Situação,
+- **Então** ela lista as etapas desse processo, na ordem dele, sem "Em espera" (desvio da produção) e sem "Cancelada" (saída de qualquer etapa), e nenhuma fica marcada: a venda ainda não existe, e a etapa de entrada sai do que for gravado.
+- **E** só aparecem etapas desta empresa (Tier 0, `business_id` na query).
+- **Quando** o processo está desativado, ou o servidor não manda etapas,
+- **Então** fica só o texto, como antes.
+
+Âncora: `SituacaoVenda` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. As etapas vêm de `SellsV3Controller::etapasDaVenda`, que lê o mesmo processo de `IniciarPipelineVendaV3` — é nele que a venda da V3 entra ao gravar. **Não** é o modelo de fluxo escolhido em `/fluxos` (ADR 0435): o inventário de 2026-11-24 falava em "etapas do modelo de fluxo da empresa", mas a V3 grava sempre em `venda_com_producao`. Mostrar o modelo seria mostrar um caminho que a venda não segue.
+
+- **[BACKLOG]** A V3 entrar no processo do modelo de fluxo da empresa, em vez de sempre em `venda_com_producao`, é decisão de produto e muda `IniciarPipelineVendaV3`; a Situação acompanha porque lê o mesmo processo.
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,
@@ -1420,6 +1435,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-24, segunda (G-6):** o topo passou a ser o `PageHeader` da âncora (sem o selo "V3"), os passos numerados passaram a ser 1 Cliente · 2 Itens · 3 Fechamento, com as gavetas sem número, e "Gravar venda" passou a se chamar "Finalizar venda" (UC-V410, novo). Só forma: a ação do botão, o payload e o total são os mesmos.
 - **Revalidação de 2026-11-24, terceira (G-6):** a gaveta de comissão ganhou a forma da âncora: título "Comissão desta venda", faixa Bruto · Líquido · Margem no topo, um botão por tipo de beneficiário e rodapé só com "Fechar" (UC-V411, novo). Os testes do UC-V408 e do UC-V409 acompanham o título e o botão novos. Nenhum valor muda: as contas são as mesmas funções do domínio.
 - **Revalidação de 2026-11-24, quarta (G-6):** o passo Itens ganhou "Consultar produto… F3" e o atalho F3, que abrem a busca do passo 2 em tabela e lançam o item escolhido pelo mesmo lançamento (UC-V412, novo). Nenhum valor muda: o preço exibido é o que a busca já trazia e o lançamento calcula como antes.
+- **Revalidação de 2026-11-24, quinta (G-6):** gravando, a Situação passou a listar as etapas do processo `venda_com_producao` desta empresa, que o servidor manda em `gravacao.etapas` (UC-V414, novo). Antes mostrava só o texto. Nenhum valor muda.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
