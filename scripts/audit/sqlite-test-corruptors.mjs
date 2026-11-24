@@ -94,14 +94,13 @@ const SKIP_CALL = /markTestSkipped/;
 // ===========================================================================
 
 // Tabelas unique-seeded de ALTA colisão (constraint é só documental no relatório).
+// rb_boleto_credentials / BoletoCredential saíram em 2026-11-24 (tabela apagada na onda 5c).
 const UNIQUE_SEEDED = new Map([
   ['payment_gateway_credentials', 'pg_cred_biz_gw_amb_unique'],
-  ['rb_boleto_credentials', 'rb_boleto_cred_biz_banco_unique'],
 ]);
 // Model Eloquent → tabela unique-seeded (o insert real dos testes é Model::create).
 const MODEL_TO_TABLE = new Map([
   ['PaymentGatewayCredential', 'payment_gateway_credentials'],
-  ['BoletoCredential', 'rb_boleto_credentials'],
 ]);
 const ISOLATION_TRAITS_G = /\b(RefreshDatabase|LazilyRefreshDatabase|DatabaseTransactions|DatabaseMigrations)\b/g;
 // Condição de driver NÃO-sqlite (`!== 'sqlite'` / `! $isSqliteMemory`) — TRUE no MySQL.

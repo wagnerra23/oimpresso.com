@@ -222,3 +222,16 @@ it('UC-SRCRE-07 venda que já tem devolução traz o número dela', function () 
     expect(srcreIds($vendas))->toBe([$this->vd]);
     expect($vendas['data'][0]['devolucao_numero'])->toBe($this->prefixo . 'DV');
 });
+
+it('UC-SRCRE-08 cada venda traz o cliente dela, para a tela só juntar vendas do mesmo cliente', function () {
+    $contato = DB::table('contacts')->where('business_id', $this->bizId)->value('id');
+    if ($contato === null) {
+        $this->markTestSkipped('Sem contato no tenant de teste.');
+    }
+    DB::table('transactions')->where('id', $this->vs)->update(['contact_id' => $contato]);
+
+    $vendas = srcreVendas($this, ['q' => $this->prefixo . 'VS']);
+
+    expect(srcreIds($vendas))->toBe([$this->vs]);
+    expect($vendas['data'][0]['contato_id'])->toBe((int) $contato);
+});

@@ -13,8 +13,10 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  * Copia as credenciais que só existem em `rb_boleto_credentials` (RecurringBilling) para
  * `payment_gateway_credentials` (dono: PaymentGateway, ADR 0170 · decisão b1 de 2026-11-23).
  *
- * Usada pela migration de dados `2026_11_23_120000_copia_credenciais_rb_para_payment_gateway` e
- * pelo `paymentgateway:migrate-credentials`. Uma regra só, nos dois.
+ * Usada pela migration de dados `2026_11_23_120000_copia_credenciais_rb_para_payment_gateway`. O
+ * comando `paymentgateway:migrate-credentials` saiu em 2026-11-24 (onda 5c), junto com a tabela de
+ * origem, apagada pela `2026_11_24_120000_drop_rb_boleto_credentials`. A classe fica porque a migration
+ * de 23/11 ainda roda numa base nova; lá a tabela existe e está vazia, então a cópia não faz nada.
  *
  * Por que não é cópia de coluna (o que o comando antigo fazia):
  *  1. SEGREDO — o RB cifra campo a campo (`Crypt::encryptString` em `client_secret`, `api_key`,

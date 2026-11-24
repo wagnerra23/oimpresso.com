@@ -12,7 +12,9 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { ArrowLeft, FileText, Plus, RefreshCw, Search, Send } from 'lucide-react';
+import { FileText, Plus, RefreshCw, Search, Send } from 'lucide-react';
+import { PageHeader } from '@/Components/PageHeader';
+import AbasVendas from './_components/AbasVendas';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -197,32 +199,30 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
     <>
       <Head title="Cotações" />
 
-      <div className="sells-cowork sells-cowork-quotations container mx-auto px-6 py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-3">
-            <Button variant="ghost" size="icon" asChild aria-label="Voltar">
-              <Link href={urls.back}>
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-semibold tracking-tight">Cotações</h1>
-                <span className="vd-quote-badge" aria-label="Tipo: Orçamento">Orçamento</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
+      <div className="sells-cowork sells-cowork-quotations">
+        {/* Header — cabeçalho canônico + abas do módulo (protótipo venda-blade.jsx) */}
+        <div data-contract="header">
+          <PageHeader
+            title="Cotações"
+            subtitle={
+              <>
+                <span className="vd-quote-badge" aria-label="Tipo: Orçamento">Orçamento</span>{' '}
                 Propostas formais — enviar pro cliente e converter em venda quando aprovado.
-              </p>
-            </div>
-          </div>
-          <Button asChild>
-            <Link href="/sells/create?sub_status=quotation">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova cotação
-            </Link>
-          </Button>
+              </>
+            }
+            actions={
+              <Button asChild>
+                <Link href="/sells/create?sub_status=quotation">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova cotação
+                </Link>
+              </Button>
+            }
+            below={<AbasVendas ativa="cotacoes" />}
+          />
         </div>
+
+        <div className="container mx-auto px-6 py-6 space-y-6">
 
         {/* KPI */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -375,6 +375,7 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
         <Deferred data="customers" fallback={null}>
           <></>
         </Deferred>
+        </div>
       </div>
     </>
   );

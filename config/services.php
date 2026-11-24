@@ -78,7 +78,7 @@ return [
     | Asaas — flags de segurança financeira
     |--------------------------------------------------------------------------
     |
-    | Credenciais Asaas (api_key, ambiente) vivem em `rb_boleto_credentials`
+    | Credenciais Asaas (api_key, ambiente) vivem em `payment_gateway_credentials`
     | criptografadas por tenant — NÃO ficam aqui.
     |
     | Aqui só vive a flag global pra refund (estorno de cobrança JÁ PAGA).
@@ -118,7 +118,8 @@ return [
     |
     | ⚠️ Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): credenciais por tenant
     | (client_id/client_secret/cert paths/secret_webhook/chave_pix) ficam em
-    | `rb_boleto_credentials.config_json` criptografadas. NÃO use estas envs
+    | `payment_gateway_credentials.config_json` (cifrado; até 2026-11-24 em
+    | `rb_boleto_credentials`). NÃO use estas envs
     | pra credencial real de produção.
     |
     | As envs aqui só atendem (a) sandbox local de dev (Wagner cobrança
@@ -127,7 +128,7 @@ return [
     | de validação assinatura quando o tenant não cadastrou o seu).
     |
     | InterPixCobrancaService (US-RB-050) e InterWebhookController (US-RB-051)
-    | priorizam SEMPRE config_json do BoletoCredential do tenant; estes valores
+    | priorizam SEMPRE o config_json da credencial do tenant; estes valores
     | são fallback dev-only.
     */
     'inter' => [

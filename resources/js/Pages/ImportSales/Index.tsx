@@ -8,6 +8,7 @@ import { Deferred, Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Download, Search, Trash2, Upload } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
+import AbasVendas from '@/Pages/Sells/_components/AbasVendas';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -125,6 +126,7 @@ export default function ImportSalesIndex({ campos, lotes, estado, limiteSincrono
             title="Importação de vendas"
             subtitle="Traga vendas de fora por planilha, com prévia e mapeamento de colunas antes de gravar."
             actions={<Button variant="outline" asChild><a href={urls.vendas}>Todas as vendas</a></Button>}
+            below={<AbasVendas ativa="importar" />}
           />
         </div>
 
