@@ -31,6 +31,9 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 - Configurações mostra a URL e o header reais dos webhooks — [#11203](https://github.com/wagnerra23/oimpresso.com/pull/11203).
 - Testes de isolamento entre empresas pela rota, 98 × 99 — [#11345](https://github.com/wagnerra23/oimpresso.com/pull/11345).
 
+**Gateway (b1)**
+- Remove a pilha de boleto própria do RB (`BoletoService` e os drivers Asaas, C6 e Inter da pasta `Services/Boleto`), sem chamador de produção desde [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359); ficam o `BoletoCredentialResolver` e `rb_boleto_credentials` — [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409).
+
 **Testes e documentação**
 - Testes da lane voltam a medir o comando e o usuário reais — [#11287](https://github.com/wagnerra23/oimpresso.com/pull/11287).
 - README e ARCHITECTURE marcados como desenho de abril; SCOPE e RUNBOOK com ponteiros vivos — [#11214](https://github.com/wagnerra23/oimpresso.com/pull/11214).

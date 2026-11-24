@@ -2,7 +2,7 @@
 id: requisitos-recurring-billing-briefing
 module: RecurringBilling
 status: producao
-updated_at: "2026-11-23"
+updated_at: "2026-11-24"
 distilled_at: "2026-09-06"
 distilled_by: jana:distill-module-truth
 ---
@@ -15,13 +15,13 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 ## Capacidades
 - Planos: CRUD de `rb_plans` com ciclo e trial.
 - Contratos: estados de `rb_subscriptions`.
-- Cobrança via `BoletoService` com driver por gateway (Inter, Asaas, C6) — pilha própria do RB (`Services/Boleto/Drivers` + `rb_boleto_credentials`). O dono dos drivers é o `Modules/PaymentGateway` (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23; decisão b1); a migração do boleto não tem PR em 2026-11-23.
+- Cobrança pelos drivers do `Modules/PaymentGateway` (Inter, Asaas, C6), dono dos drivers e das credenciais (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23; decisão b1). Cancelar e estornar passam pelo `CobrancaNoGateway` desde 2026-11-24 ([#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)). A pilha própria do RB (`BoletoService` + drivers Asaas, C6 e Inter) saiu em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409), sem chamador de produção. Ainda leem `rb_boleto_credentials`: o `BoletoCredentialResolver` (usado pelo Financeiro), Configurações e o wizard.
 - Assinatura sem plano: fatura pelo valor negociado (`metadata.valor`/`metadata.ciclo`) desde 2026-10-19 (#9606); `plan_id` é nulável (migration `2026_10_26_130000`).
 - Geração de faturas: `rb:generate-invoices`.
 - Pix Automático (US-RB-020/021, #9870): mandato na **Jornada 2** do BCB (ADR 0455, mesmo PR), cobrado por `rb:cobrar-pix-automatico`, driver e credencial no PaymentGateway. Atrás de `RB_COBRAR_PIX_AUTOMATICO` (padrão `false`).
 - Cartão salvo (US-RB-011, #9951): o token do cartão pago na página do Asaas fica ligado à assinatura; número de cartão nunca é gravado. Atrás de `RB_SALVAR_CARTAO` (padrão `false`). Cartão na tela (b5): em andamento em [#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355). Cobrar com o token: sem PR.
 - Cobrança paga no PaymentGateway → fatura paga (US-RB-057, #9844). Atrás de `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` (padrão `false`).
-- Cancelamento: `POST /financeiro/rb-invoices/{invoice}/cancelar` (UI `Faturas/Index.tsx`) — Inter e Asaas por API; C6 exige cancelamento manual no portal (driver lança `BadMethodCallException`, US-RB-042 `_parcial_`).
+- Cancelamento: `POST /financeiro/rb-invoices/{invoice}/cancelar` (UI `Faturas/Index.tsx`) — Inter e Asaas por API, pelo driver do PaymentGateway; C6 responde 501 de ação manual no portal, sem chamada ao banco (US-RB-042 `_parcial_`).
 - Webhook Asaas em `POST /api/webhooks/asaas/{businessId}`: autenticado por segredo cifrado (#11227), idempotente por `(business_id, provider, event_id)` em `pg_webhook_events` (#11242), processado pela fila `rb_webhooks` (worker no `Kernel` desde #11230). Credita uma vez e só na quitação, e dispara `InvoicePaid` só na transição (#11223). O Inter (`/webhooks/inter/pix/{id}`) segue o mesmo contrato desde [#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352): fatura achada pelo `txid` gravado em `gateway_ref`, crédito só na quitação; Pix que não é de fatura do RB deixa de lançar crédito.
 - Fatura paga **não** vira título no Financeiro: a ponte (consumidor de `InvoicePaid`) é do Financeiro (decisão b2). Hoje o efeito é crédito em `account_transactions`. Fluxo completo: SDD F13.
 - Acesso: pacote `recurringbilling_module` em todas as rotas web (#11205) e permissão própria por rota (#11247).
