@@ -206,3 +206,4 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 - 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.
 - 2026-11-24 · [CC] Add.tsx lê a `?fila=` de SellReturn/Create (UC-SRCRE-09): salva a venda e abre a próxima escolhida; sem fila, volta à lista como antes. O post ao `store()` não mudou — UC-SRADD-* seguem valendo (revalidados pela leitura do diff; o veredito da lane é deste PR).
+- 2026-11-24 · [CC] pedido [W] por print: o registro abre no layout do protótipo Devolução V3 — cartões 1 Origem (com "Trocar venda") · 2 Itens · 3 Pagamento, e o fechamento com o total e "Salvar devolução" fixo à direita. Mesmos estados, mesma conta (`calcularTotais`), mesmo post ao `store()` e as mesmas âncoras `data-contract`; nenhum UC mudou.
