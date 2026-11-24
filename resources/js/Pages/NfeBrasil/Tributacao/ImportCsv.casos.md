@@ -34,13 +34,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Contrato | Teste | Status |
 |----|-------------|------|----------|-------|--------|
-| UC-NFIM-01 | O preview confere sem gravar nada | must `[V0]` | charter §Non-Goals (mecanismo) · SDD `CU-NFE-07` | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFIM-02 | Aplicar sem preview não grava nada | must `[V0]` | SDD `CU-NFE-07` item 2 | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFIM-03 | Aplicar exige a permissão fiscal | must `[T0]` `[V0]` | charter §Backend · US-NFE-010 | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFIM-04 | O que foi conferido num tenant não pode ser gravado noutro | must `[T0]` `[V0]` | ADR 0093 · charter §Non-Goals | `TributacaoGatesContratoTest` | 🧪 (verde no CT 100 em 2026-10-06; sem veredito de lane) |
-| UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
-| UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
-| UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
+| UC-NFIM-01 | O preview confere sem gravar nada | must `[V0]` | charter §Non-Goals (mecanismo) · SDD `CU-NFE-07` | `TributacaoGatesContratoTest` | ✅ |
+| UC-NFIM-02 | Aplicar sem preview não grava nada | must `[V0]` | SDD `CU-NFE-07` item 2 | `TributacaoGatesContratoTest` | ✅ |
+| UC-NFIM-03 | Aplicar exige a permissão fiscal | must `[T0]` `[V0]` | charter §Backend · US-NFE-010 | `TributacaoGatesContratoTest` | ✅ |
+| UC-NFIM-04 | O que foi conferido num tenant não pode ser gravado noutro | must `[T0]` `[V0]` | ADR 0093 · charter §Non-Goals | `TributacaoGatesContratoTest` | ✅ (verde no CT 100 em 2026-10-06; `pass` no manifesto G-7 de 2026-11-23) |
+| UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | ✅ |
+| UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | ✅ |
+| UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | ✅ |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -65,7 +65,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   de mover a gravação para o primeiro passo (a tentação existe porque as linhas já estão parseadas
   ali). O `[V0]` é literal: 300 regras gravadas sem conferência mudam a alíquota de 300 famílias de
   produto de uma vez.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -86,7 +86,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   **"import concluído"** — falso sucesso, que é pior que erro porque o operador vai embora achando
   que importou. O caso semeia uma regra existente antes, para poder afirmar que a contagem **não
   mudou** em vez de afirmar que "está vazio".
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -107,7 +107,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   em 3 de 5 mutações — SDD §5.4.1). Justamente por ser a exceção boa, é a que um "padroniza tudo
   igual ao resto" apaga. Note que este UC e o `UC-NFIM-04` medem coisas **diferentes**: quem pode
   (permissão) × onde grava (tenant).
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -138,7 +138,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Nota de método:** o assert é sobre **onde a regra existe depois** (nenhuma linha do CSV em B),
   não sobre a mensagem nem sobre o status HTTP — status acoplado reprovaria arbitrariamente a saída
   (a), que devolve erro, ou a (b), que devolve sucesso.
-- **Status: 🧪** — fechado em 2026-10-06 pela saída (a): o `preview` carimba o business em
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("fechado em 2026-10-06 pela saída (a): o `preview` carimba o business em").
   `nfe_import_csv_business_id` e o `aplicar` **recusa** e descarta o lote quando o carimbo falta ou
   diverge. Vermelho com o controller anterior e verde com o novo, no CT 100 (ver §Recibo). Fica 🧪,
   não ✅, porque o arquivo de teste ainda não está na allowlist da lane. SDD §5.3 F8 e §9 R2
@@ -160,7 +160,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Contrato:** P-155 (regime por local emissor) + R-NFE-030 (redução de base). Os números vêm do
   Delphi do cliente por dois caminhos: a configuração (redução 61,11% e 33,33%, ICMS 18%) e as
   notas emitidas desde 2024 (base ÷ valor = 0,3889 em 689 itens CST 20 e 0,6667 em 444 itens CST 10).
-- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 2 testes. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; veredito da lane `nfebrasil-pest`.").
 
 ## UC-NFIM-06 · Carga do legado por arquivo, com conferência antes · `must` `[V0]`
 
@@ -172,7 +172,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   8` e nenhuma regra aparece em outro business.
 - **Teste:** [`ImportRegrasLegadoSaborBrasilTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php)
   — os dois `UC-NFIM-06 · …`.
-- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 2 testes. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; veredito da lane `nfebrasil-pest`.").
 
 ---
 
@@ -187,7 +187,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   de operação ausente segue falhando.
 - **Teste:** [`ImportRegrasCriarOperacoesTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php)
   — os três `UC-NFIM-07 · …`.
-- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 3 testes. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; veredito da lane `nfebrasil-pest`.").
 
 ---
 
