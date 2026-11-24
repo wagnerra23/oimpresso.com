@@ -5,8 +5,8 @@ irmaos: Eventos.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-03"
-last_run_ci: "0 UC executado nesta corrida — Pest roda no CT 100/CI, nunca local (ADR 0062); 3 UC nascem com teste novo no arquivo já listado na allowlist da lane required; veredito pendente das lanes"
+last_run: "2026-11-24"
+last_run_ci: "revalidado em 2026-11-24 ao levar a tela à forma do protótipo: a timeline virou o cartão 'Eventos aplicados' (quando, ponto, descrição, cStat em pílula com borda), os chips levam o código do evento, o aviso de janelas legais saiu do topo e a nota de rodapé do protótipo entrou. A âncora fiscal-eventos-timeline segue no cartão (contrato-de-tela limpo); nenhum UC cita classe, rótulo de chip nem o aviso. Anterior: 0 UC executado nesta corrida — Pest roda no CT 100/CI, nunca local (ADR 0062); 3 UC nascem com teste novo no arquivo já listado na allowlist da lane required; veredito pendente das lanes"
 related_us: [US-FISCAL-007]
 ---
 
