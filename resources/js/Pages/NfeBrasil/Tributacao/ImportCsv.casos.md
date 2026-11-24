@@ -43,7 +43,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
 | UC-NFIM-10 | Arquivo acima de 5 MB é recusado antes de ser lido | must `[V0]` | charter §Goals (máx 5 MB) · §Pendências | `ImportRegrasCsvArquivoTest` | 🧪 |
 | UC-NFIM-11 | CSV em Latin-1 ou UTF-16 é lido; separado por ponto e vírgula é recusado com aviso próprio | must `[V0]` | charter §Pendências (encoding/separador) · SDD `CU-NFE-07` | `ImportRegrasCsvArquivoTest` | 🧪 |
-| UC-NFIM-12 | O resumo da conferência aparece na tela | must `[V0]` | charter §Goals (preview com amostras e erros) · SDD `CU-NFE-07` item 2 | `ImportRegrasCsvArquivoTest` | 🧪 |
+| UC-NFIM-12 | O resumo da conferência aparece na tela | must `[V0]` | charter §Goals (preview com amostras e erros) · SDD `CU-NFE-07` item 2 | `ImportRegrasCsvArquivoTest` · vitest `nfe-import-csv-confirmacao` | 🧪 |
+| UC-NFIM-13 | Aplicar pede confirmação; cancelar não envia nada | must `[V0]` | charter §Goals (aplicação sob `confirm()`) · §Anti-hooks | vitest `nfe-import-csv-confirmacao` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -227,7 +228,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Aceite:** Dado um CSV conferido · Quando a tela recarrega · Então ela recebe o resumo (total de
   válidas, total de erros, amostras). Controle: sem conferência, a página abre sem resumo.
 - **Teste:** [`ImportRegrasCsvArquivoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php)
-  — `UC-NFIM-12 · …`.
+  — `UC-NFIM-12 · …` (a página recebe o resumo) e [`nfe-import-csv-confirmacao.test.tsx`](../../../../../tests/js/nfe-import-csv-confirmacao.test.tsx)
+  — `UC-NFIM-12 · …` (a tela mostra o resumo e o botão de aplicar). Com o `ImportCsv.tsx` do `main`, o render cai.
 - **Contrato:** charter §Goals (preview com amostras e erros antes do aplicar) + SDD `CU-NFE-07` item 2.
 - **Achado de 2026-11-24:** o `ImportCsv.tsx` lia `props.flash.preview`, mas o middleware do Inertia
   compartilha só `success`, `error`, `info` e `slash` (medido no CT 100). Desde a criação da tela (#131,
@@ -235,6 +237,17 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `show()` passou a enviar o resumo como prop `preview`. Produção, lida no mesmo dia: nenhuma importação
   por CSV registrada.
 - **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-13 · Aplicar pede confirmação; cancelar não envia nada · `must` `[V0]`
+
+- **Persona:** quem conferiu o arquivo e clicou em "Aplicar" sem querer.
+- **Aceite:** Dado um resumo com regras válidas · Quando clico em "Aplicar N regra(s)" e cancelo a confirmação ·
+  Então nada é enviado ao servidor. Quando confirmo · Então o pedido vai para `/nfe-brasil/tributacao/import/aplicar`.
+- **Teste:** [`nfe-import-csv-confirmacao.test.tsx`](../../../../../tests/js/nfe-import-csv-confirmacao.test.tsx)
+  — os dois `UC-NFIM-13 …`. Controle por mutação em 2026-11-24: sem o `return` do `confirm`, o caso do cancelamento cai.
+- **Contrato:** charter §Goals (*"Aplicação idempotente sob `confirm()`"*) e §Anti-hooks (*"Não aplica o import sem
+  `confirm()` explícito do usuário"*).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Importar regras por CSV — resumo na tela e confirmação ao aplicar").
 
 ---
 
@@ -252,8 +265,6 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   chave (NCM + UF origem + UF destino)"* e o Service implementa por `first()` + `update()`/`create()`.
   `ImportRegrasCsvServiceTest` cobre o Service; falta o caso ponta-a-ponta que reimporta o mesmo CSV
   e prova que a contagem não dobra.
-- `[BACKLOG]` **`confirm()` antes de aplicar.** Charter §Anti-hooks pede confirmação explícita e o
-  `.tsx` implementa. Comportamento de **cliente** — precisaria de e2e; a tela não tem spec.
 
 ---
 
