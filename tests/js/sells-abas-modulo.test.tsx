@@ -11,7 +11,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ABAS_VENDAS, abasVisiveis } from '@/Pages/Sells/_components/AbasVendas';
+import { ABAS_VENDAS, abasVisiveis } from '@/Pages/Sells/_components/abasVendasDados';
 
 const raiz = resolve(__dirname, '../..');
 const ler = (p: string) => readFileSync(resolve(raiz, p), 'utf8');
