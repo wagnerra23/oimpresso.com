@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { calcularTotais, numUf } from './_components/devolucaoCalculo';
+import { lerFila, urlDoRegistro } from './_components/devolucaoFila';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { TriangleAlert } from 'lucide-react';
 
@@ -262,7 +263,15 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
           toast.error(vj?.mensagem ?? `A devolução foi salva, mas o vale-troca não (HTTP ${vt.status}).`);
         }
       }
-      router.visit('/sell-return');
+      // Várias vendas do mesmo cliente (escolhidas em /sell-return/create): cada uma é uma
+      // devolução própria; salva esta, abre a próxima da fila.
+      const fila = lerFila(window.location.search);
+      if (fila.length) {
+        toast.info(`Agora a venda seguinte — faltam ${fila.length}.`);
+        router.visit(urlDoRegistro(fila));
+      } else {
+        router.visit('/sell-return');
+      }
     } catch {
       toast.error('Erro de rede ao salvar a devolução.');
     } finally {
@@ -501,6 +510,22 @@ function SecaoNfeDevolucao({ nfe }: { nfe: NfeDevolucao }) {
 // ──────────────────────────────────────────────────────────────
 // PÁGINA
 // ──────────────────────────────────────────────────────────────
+/** Quando a devolução junta várias vendas, diz quantas ainda vêm depois desta. */
+function AvisoFila() {
+  const faltam = typeof window === 'undefined' ? 0 : lerFila(window.location.search).length;
+  if (!faltam) return null;
+  return (
+    <Alert className="mt-4" data-contract="aviso-fila">
+      <AlertTitle>Devolução de várias vendas</AlertTitle>
+      <AlertDescription>
+        {faltam === 1
+          ? 'Depois de salvar esta venda, abre a próxima venda escolhida.'
+          : `Depois de salvar esta venda, abrem as próximas ${faltam} vendas escolhidas, uma de cada vez.`}
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export default function SellReturnAdd({ venda }: SellReturnAddProps) {
   return (
     <AppShellV2
@@ -515,6 +540,8 @@ export default function SellReturnAdd({ venda }: SellReturnAddProps) {
           subtitle="O que volta ao estoque e quanto fica a pagar ao cliente"
         />
       </div>
+
+      <AvisoFila />
 
       {/* Aviso do protótipo (venda-blade-caixa.jsx, VendaDevolucaoForm), texto literal. */}
       <Alert className="mt-4" data-contract="aviso-devolucao">

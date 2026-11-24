@@ -7,6 +7,7 @@ import { Deferred, Head } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pencil, Search } from 'lucide-react';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import AbasVendas from '@/Pages/Sells/_components/AbasVendas';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -219,6 +220,7 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
             title="Pedido de venda"
             subtitle="Pedidos que ainda não viraram venda — status e quantidade restante a atender."
             actions={permissions.create ? <PageHeaderPrimary label="Adicionar pedido" href={urls.create} /> : undefined}
+            below={<AbasVendas ativa="pedidos" />}
           />
         </div>
 

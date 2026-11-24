@@ -11,6 +11,7 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Pencil, Power, Search, Trash2, X } from 'lucide-react';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import AbasVendas from '@/Pages/Sells/_components/AbasVendas';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -360,6 +361,7 @@ export default function DiscountIndex({ descontos, opcoes: op, formatoData, perm
                 <PageHeaderPrimary label="Adicionar desconto" onClick={() => { setForm(formVazio()); setErro(''); setTermo(''); }} disabled={!pode} />
               </span>
             )}
+            below={<AbasVendas ativa="descontos" />}
           />
         </div>
 
