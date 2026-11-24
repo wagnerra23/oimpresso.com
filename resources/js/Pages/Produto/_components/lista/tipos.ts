@@ -404,6 +404,8 @@ export interface PermissoesLista {
   access_default_selling_price?: boolean;
   /** `product.armazenagem` (#10765): só os locais de armazenagem do produto. */
   armazenagem?: boolean;
+  /** `purchase.create`: a tela de transferência de estoque (UC-PIDX-52). */
+  transferir?: boolean;
 }
 
 /** Rótulos do protótipo (TYPE_LABEL do produto-blade.jsx). */

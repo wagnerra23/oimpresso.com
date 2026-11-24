@@ -369,6 +369,10 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       case 'historico':
         irPara(`/products/stock-history/${l.id}`);
         return;
+      case 'transferir':
+        // UC-PIDX-52: a transferência de estoque, com o produto como botão "Adicionar" (UC-TRCRT-07).
+        irPara(`/stock-transfers/create?produto=${l.id}`);
+        return;
       case 'duplicar':
         irPara(`/products/create?d=${l.id}`);
         return;
