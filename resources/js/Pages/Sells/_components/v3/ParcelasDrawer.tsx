@@ -93,8 +93,10 @@ function Escolha({
   label: string;
   value: string;
   onChange: (v: string) => void;
-  options: string[];
+  /** Texto puro, ou `{ value, label }` quando o que se mostra não é o que se guarda. */
+  options: (string | { value: string; label: string })[];
 }) {
+  const opcoes = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o));
   return (
     <Campo label={label}>
       <Select value={value} onValueChange={onChange}>
@@ -102,9 +104,9 @@ function Escolha({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {options.map((o) => (
-            <SafeSelectItem key={o} value={o} className="text-[12.5px]">
-              {o}
+          {opcoes.map((o) => (
+            <SafeSelectItem key={o.value} value={o.value} className="text-[12.5px]">
+              {o.label}
             </SafeSelectItem>
           ))}
         </SelectContent>
@@ -261,7 +263,8 @@ export default function ParcelasDrawer({
               label="Condição"
               value={condicao}
               onChange={aplicarCondicao}
-              options={CONDICOES.map((c) => c.id)}
+              /* "18 — PIX", como na âncora: só o código ("18") não diz qual condição é. */
+              options={CONDICOES.map((c) => ({ value: c.id, label: `${c.id} — ${c.nome}` }))}
             />
             <Campo label="Parcelas">
               <Input

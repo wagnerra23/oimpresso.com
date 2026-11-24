@@ -53,39 +53,38 @@ beforeEach(function () {
         $table->unique(['provider', 'event_id'], 'pg_webhook_idempotency');
     });
 
-    Schema::dropIfExists('rb_boleto_credentials');
-    Schema::create('rb_boleto_credentials', function ($table) {
+    Schema::dropIfExists('payment_gateway_credentials');
+    Schema::create('payment_gateway_credentials', function ($table) {
         $table->id();
         $table->unsignedInteger('business_id')->index();
-        $table->string('banco', 20);
+        $table->string('gateway_key', 30);
         $table->string('ambiente', 20)->default('production');
         $table->boolean('ativo')->default(true);
-        $table->json('config_json');
+        $table->longText('config_json')->nullable();
         $table->timestamps();
     });
 });
 
 afterEach(function () {
-    // pg_webhook_events/rb_boleto_credentials são reais-migradas; o afterEach roda mesmo
+    // pg_webhook_events/payment_gateway_credentials são reais-migradas; o afterEach roda mesmo
     // em teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-las
     // no MySQL persistente corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
         Schema::dropIfExists('pg_webhook_events');
-        Schema::dropIfExists('rb_boleto_credentials');
+        Schema::dropIfExists('payment_gateway_credentials');
     }
 });
 
 function seedInterCredential(int $businessId, string $secret = 'sek-abc'): void
 {
-    DB::table('rb_boleto_credentials')->insert([
+    // Desde a onda 2 (2026-11-24) o segredo vem da credencial do PaymentGateway: config_json
+    // cifrado inteiro (cast encrypted:array), segredo em claro dentro dele.
+    DB::table('payment_gateway_credentials')->insert([
         'business_id' => $businessId,
-        'banco'       => 'inter',
+        'gateway_key' => 'inter',
         'ambiente'    => 'production',
         'ativo'       => true,
-        'config_json' => json_encode([
-            'webhook_secret' => \Illuminate\Support\Facades\Crypt::encryptString($secret),
-            'client_id'      => 'cid',
-        ]),
+        'config_json' => \Illuminate\Support\Facades\Crypt::encryptString(json_encode(['webhook_secret' => $secret, 'client_id' => 'cid'])),
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);
@@ -224,11 +223,11 @@ it('dispatcha job na fila correta (rb_webhooks)', function () {
 
 it('credencial inativa também rejeita 404', function () {
     Queue::fake();
-    DB::table('rb_boleto_credentials')->insert([
+    DB::table('payment_gateway_credentials')->insert([
         'business_id' => 1,
-        'banco'       => 'inter',
+        'gateway_key' => 'inter',
         'ativo'       => false,
-        'config_json' => json_encode(['webhook_secret' => \Illuminate\Support\Facades\Crypt::encryptString('sek')]),
+        'config_json' => \Illuminate\Support\Facades\Crypt::encryptString(json_encode(['webhook_secret' => 'sek'])),
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);

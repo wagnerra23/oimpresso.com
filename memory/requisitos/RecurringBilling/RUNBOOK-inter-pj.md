@@ -46,6 +46,8 @@ Origem: gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 4
 | Webhook URL registrada no portal Inter | Portal Inter > PIX > Webhooks (`PUT /webhooks/pix-recebidos`) | `https://oimpresso.com/webhooks/inter/pix/1` |
 | Header secret webhook | Portal Inter > Webhook > "Header personalizado" | Nome `X-Inter-Webhook-Secret`, valor = `config_json.webhook_secret` |
 
+> ⚠️ **Desde 2026-11-24 (ondas 1 e 2 da saída de `rb_boleto_credentials`)** o sync de saldo e o webhook `X-Inter-Webhook-Secret` leem a credencial `inter` ativa em `payment_gateway_credentials` (wizard do PaymentGateway), não a linha do RB. A linha em `rb_boleto_credentials` desta seção sozinha não liga mais o webhook: o `webhook_secret` tem de estar no `config_json` da credencial do PG.
+
 > ⚠️ O webhook Inter usa **shared secret** no header `X-Inter-Webhook-Secret`, **NÃO HMAC-SHA256**. Wagner configura o header custom no portal Inter via `PUT /webhooks/pix-recebidos` durante o setup.
 
 Comando consolidado de check (SSH Hostinger):
