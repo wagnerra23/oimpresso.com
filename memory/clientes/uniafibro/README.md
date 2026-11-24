@@ -19,6 +19,12 @@ related:
 
 **Uniafibro-SC** = União das Associações de Fibromiálgicos de Santa Catarina. Em formação (sem CNPJ próprio). Agrega **7 associações** + grupos/núcleos locais, em 4 das 6 mesorregiões de SC.
 
+> **Atualização 24/11/2026 ([W]):** a Uniafibro-SC terá **CNPJ novo, próprio**. Não herda o CNPJ da AGFESC.
+> O estatuto revisado (versão de 24/11/2026) ainda diz o contrário no Art. 1º ("nova denominação da AGFESC,
+> inscrita no CNPJ…") e trata a reforma como conversão da AGFESC (Art. 88). Esses artigos precisam ser
+> reescritos para constituição de entidade nova antes do registro em cartório.
+> O [plano macro](plano-macro-rede-sc.md) §1.1 também parte da conversão da AGFESC; vale esta decisão.
+
 > **Atualização 23/11/2026 ([W]):** o time são as 7 associações que revisaram o estatuto juntas em 20/11
 > (AGFESC, AREFI, AFICOR, AFIBROMAR, ASCAF, AFAGAS e AFASJ). A ACPFA (Joinville) **não** faz parte da rede.
 > Eventos, números e Instagrams: [eventos-e-acoes-consolidado.md](eventos-e-acoes-consolidado.md).
