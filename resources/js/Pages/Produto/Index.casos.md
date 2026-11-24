@@ -656,7 +656,8 @@ last_run_ci: "2026-11-24, aviso Você veio de / Voltar e usar (UC-PIDX-53): loca
 - **Teste:** [`produto-origem-da-busca.test.tsx`](../../../../tests/js/produto-origem-da-busca.test.tsx) — `UC-PIDX-53` (caminho interno, leitura da URL e da aba, a URL de volta, o texto do aviso, o botão desligado e o retorno com o id — Vitest do `Frontend / Vite build`). Mutação conferida em 2026-11-24: tirar a trava de `//` derruba dois casos.
 - **Contrato:** protótipo `cowork/Felipe/produto-blade.jsx` (`entrada` + `.pb-volta`, "Chegou de outro módulo? (OS/orçamento pedindo um produto)"); inventário da tela, item "Aviso “Você veio de… / Voltar e usar”". O protótipo volta sem dizer qual produto; aqui vai o escolhido na lista. As origens — Nova venda (V3), Orçamento da Comunicação Visual e OS da Produção — foram escolhidas pelo [W] em 2026-11-24 e entram cada uma no seu PR, lendo `produto_escolhido`.
 - **Gates:** nenhum novo; o aviso só navega. Usar o produto no documento é da tela de origem, com as regras dela.
-- **Fora daqui:** o que a tela de origem faz com `produto_escolhido` (cada origem no seu PR).
+- **Aba nova (`canal`):** quando a origem não guarda rascunho, ela abre a lista numa aba nova e manda também `canal=<id>`. Aí "Voltar e usar" manda o produto (id, SKU, nome — sem preço) por `BroadcastChannel` (`@/Lib/produto-escolhido`), mostra "“<nome>” foi para <origem>. Pode fechar esta aba." e fecha a aba. Primeira origem: Nova venda V3 (UC-V410). `canal` fora do formato (letras, números, hífen, até 64) é ignorado.
+- **Fora daqui:** o que a tela de origem faz com o produto (cada origem no seu PR).
 - **Status: ⬜** — nasce neste PR.
 
 ## Achados de governança (o trio prometia o que não tinha)

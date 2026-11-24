@@ -63,6 +63,7 @@ import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import NcmEmLote from './_components/lista/NcmEmLote';
 import AvisoDeOrigem from './_components/lista/AvisoDeOrigem';
 import { CHAVE_ORIGEM, lerOrigem, urlDeVolta, type OrigemDaBusca } from './_components/lista/origem-de-busca';
+import { enviarProdutoEscolhido } from '@/Lib/produto-escolhido';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
@@ -293,12 +294,26 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
     }
   };
   // O produto a levar de volta: o aberto no painel, senão o único marcado na lista.
-  const escolhidoParaOrigem: { id: number; nome: string } | null = (() => {
-    if (verId != null && detalhe && detalhe.id === verId) return { id: detalhe.id, nome: detalhe.nome };
+  const escolhidoParaOrigem: { id: number; nome: string; sku: string | null } | null = (() => {
+    if (verId != null && detalhe && detalhe.id === verId) return { id: detalhe.id, nome: detalhe.nome, sku: detalhe.sku || null };
     if (selecionados.length !== 1) return null;
     const l = linhas.find((x) => x.id === selecionados[0]);
-    return l ? { id: l.id, nome: l.nome } : null;
+    return l ? { id: l.id, nome: l.nome, sku: l.sku || null } : null;
   })();
+  // Aba aberta pela origem (com `canal`): depois de mandar o produto, esta aba só confirma.
+  const [entregue, setEntregue] = useState<string | null>(null);
+  const voltarComProduto = (o: OrigemDaBusca, p: { id: number; nome: string; sku: string | null }) => {
+    if (o.canal && enviarProdutoEscolhido({ canal: o.canal, produtoId: p.id, sku: p.sku, nome: p.nome })) {
+      esquecerOrigem();
+      setEntregue(`“${p.nome}” foi para ${o.rotulo}. Pode fechar esta aba.`);
+      // Só fecha aba aberta por script (a origem abriu com window.open); senão fica a confirmação.
+      window.close();
+      return;
+    }
+    const destino = urlDeVolta(o.de, p.id);
+    esquecerOrigem();
+    irPara(destino);
+  };
 
   const ir = (patch: Partial<FiltrosLista>) => {
     setSelecionados([]);
@@ -510,13 +525,14 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
             <AvisoDeOrigem
               origem={origem}
               escolhido={escolhidoParaOrigem}
-              aoVoltar={(id) => {
-                const destino = urlDeVolta(origem.de, id);
-                esquecerOrigem();
-                irPara(destino);
-              }}
+              aoVoltar={() => escolhidoParaOrigem && voltarComProduto(origem, escolhidoParaOrigem)}
               aoDispensar={esquecerOrigem}
             />
+          )}
+          {entregue && (
+            <div className="pb-volta" role="status" data-contract="produto-origem-entregue">
+              <span>{entregue}</span>
+            </div>
           )}
           <div className="pb-kpis" data-contract="produto-kpis">
             <Deferred
