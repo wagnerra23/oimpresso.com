@@ -152,9 +152,12 @@ class Onda22AnexosPillPermissionTest extends FinanceiroTestCase
         $aprovado = $this->makeTitulo($businessId, ['tipo' => 'pagar', 'status' => 'aberto', 'aprovacao_status' => 'aprovado']);
         $semWorkflow = $this->makeTitulo($businessId, ['tipo' => 'pagar', 'status' => 'aberto', 'aprovacao_status' => null]);
 
+        // Filtra pela emissão (hoje): o vencimento do makeTitulo é hoje+7 e, nos últimos 7 dias
+        // do mês, caía fora do período padrão (mês atual) — a lista vinha vazia (visto 2026-11-24).
         $response = $this->inertiaGet('/financeiro/unificado', [
             'aprovacao_status' => ['pendente'],
             'lifecycle' => ['ap'],
+            'data_campo' => 'emissao',
         ]);
         $response->assertOk();
 
