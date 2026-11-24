@@ -229,26 +229,31 @@ describe('UC-FNFE-12 · a lista não promete o que não tem', () => {
       ...cena.rows,
       data: [
         nota({ id: 10, num: 1, dest: '—', cnpj: null, cpf: null }),
-        nota({ id: 11, num: 2, dest: 'Gráfica Ribeirão', cnpj: null, cpf: null }),
+        nota({ id: 11, num: 2, dest: 'Gráfica Ribeirão', cnpj: null, cpf: null, uf: null }),
         nota({ id: 12, num: 3, dest: '—', cnpj: '22641309000188', cpf: null }),
       ],
     },
   };
 
-  const infoDe = (i: number) =>
-    linhas()[i]?.querySelectorAll('td')[1]?.querySelector('small')?.textContent ?? '';
+  // Forma do protótipo desde 2026-11-23 (FxNotasTable): o destinatário vai em <b> na célula
+  // "Cliente / chave", e a sub-linha junta documento e UF. O contrato é o mesmo de antes:
+  // nenhum separador entre dois vazios.
+  const nomeDe = (i: number) => linhas()[i]?.querySelector('td.cli > b')?.textContent ?? '';
+  const infoDe = (i: number) => linhas()[i]?.querySelector('td.cli > div')?.textContent ?? '';
 
   it('sem destinatário e sem documento, a célula não vira "— · —"', () => {
     render(<Nfe {...cenaSemDest} />);
 
-    expect(infoDe(0)).toBe('—');
+    expect(nomeDe(0)).toBe('—');
+    expect(infoDe(0)).toBe('SC');
+    expect(infoDe(1)).toBe('—'); // sem documento e sem UF: um traço só
   });
 
   it('com só um dos dois, mostra o que existe — sem separador solto', () => {
     render(<Nfe {...cenaSemDest} />);
 
-    expect(infoDe(1)).toBe('Gráfica Ribeirão');
-    expect(infoDe(2)).toBe('22641309000188');
+    expect(nomeDe(1)).toBe('Gráfica Ribeirão');
+    expect(infoDe(2)).toBe('22641309000188 · SC');
 
     for (let i = 0; i < 3; i++) {
       const t = infoDe(i);
@@ -262,6 +267,7 @@ describe('UC-FNFE-12 · a lista não promete o que não tem', () => {
   it('com os dois presentes, nada muda — não-regressão', () => {
     render(<Nfe {...cena} />);
 
-    expect(infoDe(0)).toBe('Rota Livre Comercio · 12345678000199');
+    expect(nomeDe(0)).toBe('Rota Livre Comercio');
+    expect(infoDe(0)).toBe('12345678000199 · SC');
   });
 });

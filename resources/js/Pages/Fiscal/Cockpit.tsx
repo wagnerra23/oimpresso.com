@@ -25,6 +25,7 @@ import DensidadeToggle from './_components/DensidadeToggle';
 import EventosDrawer, { type EventoFiscal } from './_components/EventosDrawer';
 import FxShell from './_components/FxShell';
 import LoteSaidaModal, { type TipoSaidaLote } from './_components/LoteSaidaModal';
+import { enviarLote } from './_lib/lote-saida';
 import NFSeDrawer, { type NFSeDrawerData } from './_components/NFSeDrawer';
 import NotaDrawerV2, { type NotaDrawerData } from './_components/NotaDrawerV2';
 import RibbonSpark from './_components/RibbonSpark';
@@ -253,40 +254,9 @@ export default function Cockpit({
   const abrirSaida = (tipo: TipoSaidaLote) => { setLoteMsg(null); setSaida(tipo); };
   const confirmarSaida = async () => {
     if (!saida || idsLote.length === 0) return;
-    const rota = { zip: 'xml', pdf: 'danfe', email: 'reenviar-email' }[saida];
     setLoteBusy(true);
     try {
-      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
-      const res = await fetch(`/nfe-brasil/emissoes/lote/${rota}`, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
-        body: JSON.stringify({ ids: idsLote }),
-      });
-      const ctype = res.headers.get('Content-Type') ?? '';
-      if (!res.ok || (saida !== 'email' && ctype.includes('json'))) {
-        const corpo = ctype.includes('json') ? await res.json().catch(() => ({})) : {};
-        setLoteMsg(corpo.message ?? 'Não foi possível concluir a ação em lote.');
-        return;
-      }
-      if (saida === 'email') {
-        const r = await res.json();
-        setLoteMsg(`E-mail reenviado de ${r.enviadas} nota${r.enviadas === 1 ? '' : 's'}`
-          + (r.falhas ? ` · ${r.falhas} falharam` : '')
-          + (r.fora ? ` · ${r.fora} fora (não autorizadas)` : ''));
-        return;
-      }
-      const fora = Number(res.headers.get('X-Lote-Fora') ?? 0);
-      const blob = await res.blob();
-      const nome = /filename="?([^";]+)"?/.exec(res.headers.get('Content-Disposition') ?? '')?.[1]
-        ?? (saida === 'zip' ? 'xmls.zip' : 'danfes.pdf');
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = nome;
-      a.click();
-      URL.revokeObjectURL(url);
-      setLoteMsg(fora > 0 ? `${fora} nota${fora > 1 ? 's' : ''} fora do arquivo (não autorizada ou sem arquivo)` : null);
+      setLoteMsg(await enviarLote(saida, idsLote));
     } finally {
       setLoteBusy(false);
       setSaida(null);
