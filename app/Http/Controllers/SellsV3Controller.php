@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Business;
 use App\Domain\Fsm\Models\SaleProcess;
-use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Scopes\ScopeByBusiness;
 use App\Services\Sells\IniciarPipelineVendaV3;
 use App\BusinessLocation;
@@ -128,11 +127,13 @@ class SellsV3Controller extends Controller
             return [];
         }
 
-        return $processo->stages()
+        // `toBase()`: só duas colunas, sem hidratar o modelo. A relação já filtra pelo processo,
+        // que acima foi achado com o business_id desta empresa.
+        return $processo->stages()->toBase()
             ->whereNotIn('key', ['on_hold', 'cancelled'])
             ->orderBy('sort_order')
             ->get(['key', 'name'])
-            ->map(fn (SaleProcessStage $e) => ['key' => (string) $e->key, 'label' => (string) $e->name])
+            ->map(fn (object $e) => ['key' => (string) $e->key, 'label' => (string) $e->name])
             ->values()
             ->all();
     }
