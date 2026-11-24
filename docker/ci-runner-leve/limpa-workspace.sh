@@ -74,6 +74,26 @@ else
   echo "limpa-workspace: espelho indisponível, segue sem ele"
 fi
 
+# ── Compacta os packs quando acumulam ───────────────────────────────────────────
+# O actions/checkout grava gc.auto=0, então cada fetch deixa um pack novo e nada junta nem
+# apaga. Medido 2026-11-24 na vaga 2, ligada havia 5 dias: 657 packs, 6,85 milhões de objetos
+# e 2,5 GB no .git, dentro do tmpfs de 4 GB do _work — 89% cheio, e jobs caindo com "No space
+# left on device" já no setup-node. Os objetos distintos eram 283 mil (24× repetidos), e 204 mil
+# deles já estavam no espelho. `repack -a -d -l` junta tudo num pack, descarta as cópias e deixa
+# de fora o que o espelho tem (-l: objetos de alternates não entram). Roda só acima do limite,
+# em RAM (tmpfs), com prioridade baixa; falha não impede o job.
+LIMITE_PACKS=50
+packs=$(find "$ws/.git/objects/pack" -maxdepth 1 -name '*.pack' 2>/dev/null | wc -l)
+if [ "$packs" -gt "$LIMITE_PACKS" ]; then
+  antes=$(du -sm "$ws/.git" 2>/dev/null | cut -f1)
+  if timeout 300 nice -n 10 git -C "$ws" repack -a -d -l -q; then
+    git -C "$ws" prune-packed >/dev/null 2>&1 || true
+    echo "limpa-workspace: $packs packs compactados, .git ${antes} MB -> $(du -sm "$ws/.git" 2>/dev/null | cut -f1) MB"
+  else
+    echo "limpa-workspace: repack falhou com $packs packs; segue sem ele"
+  fi
+fi
+
 limpa_repo() {
   cd "$ws" || return 1
   git sparse-checkout disable >/dev/null 2>&1 || true
