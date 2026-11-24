@@ -577,3 +577,32 @@ it('UC-SRADD-09 [T0] prévia de venda de outra empresa é 404, e sem permissão 
     $this->actingAs($semPermissao)->withSession(sraddSessao($semPermissao));
     $previa($this->vendaA['transaction_id'])->assertStatus(403);
 });
+
+it('UC-SRADD-13 [T0] a tela sabe se a venda tem nota: só a NF-e autorizada da MESMA empresa conta', function () {
+    if (! Schema::hasTable('nfe_emissoes')) {
+        $this->markTestSkipped('nfe_emissoes ausente — roda na lane MySQL / CT 100.');
+    }
+    $a = $this->vendaA['transaction_id'];
+    $b = $this->vendaB['transaction_id'];
+    $emissao = fn (int $biz, int $venda, string $status, int $numero, string $modelo = '55') => DB::table('nfe_emissoes')->insert([
+        'business_id' => $biz, 'transaction_id' => $venda, 'modelo' => $modelo, 'serie' => '913',
+        'numero' => $numero, 'status' => $status, 'valor_total' => 1, 'emitido_em' => now(),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    // Sem emissão nenhuma: venda sem nota.
+    expect(sraddVenda($this, $a)['nota'])->toBeNull();
+
+    // Emissão rejeitada não é nota; emissão de OUTRA empresa com o mesmo transaction_id também não.
+    $emissao($this->bizId, $a, 'rejeitada', 9_131_001);
+    $emissao($this->outroBizId, $a, 'autorizada', 9_131_002);
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: a emissão alheia autorizada existe para esta venda.
+    expect(DB::table('nfe_emissoes')->where('transaction_id', $a)->where('business_id', $this->outroBizId)->where('status', 'autorizada')->exists())->toBeTrue();
+    expect(sraddVenda($this, $a)['nota'])->toBeNull();
+
+    // Controle positivo: autorizada da mesma empresa vira a nota da venda (NFC-e pelo modelo 65).
+    $emissao($this->bizId, $a, 'autorizada', 9_131_003);
+    expect(sraddVenda($this, $a)['nota'])->toBe(['numero' => '9131003', 'tipo' => 'NF-e']);
+    $emissao($this->bizId, $b, 'autorizada', 9_131_004, '65');
+    expect(sraddVenda($this, $b)['nota'])->toBe(['numero' => '9131004', 'tipo' => 'NFC-e']);
+});

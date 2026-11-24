@@ -66,3 +66,24 @@ export function calcularTotais(
 
   return { subtotal, desconto, imposto, total: subtotal + imposto - desconto };
 }
+
+/**
+ * Layout do protótipo Devolução V3 (venda sem nota): o operador digita o que VOLTA AGORA, mas o
+ * store() continua recebendo o ACUMULADO da devolução da venda (UC-SRADD-07/08) — a escrita não
+ * muda. Esta função faz a ponte, linha a linha:
+ *   - nada voltando agora → reenvia o já devolvido EXATAMENTE como veio do servidor (o mesmo texto
+ *     que a tela antiga postava ao abrir), para nunca reduzir o que já voltou;
+ *   - voltando algo → já devolvido + volta agora, em texto pt-BR com vírgula e sem separador de
+ *     milhar ("1234,5"): Util::num_uf lê a vírgula como decimal. Nunca "1.500" (seria 1500).
+ */
+export function acumuladoTxt(jaDevolvidoTxt: string, voltaAgoraTxt: string): string {
+  const agora = numUf(voltaAgoraTxt);
+  if (!(agora > 0)) return numUf(jaDevolvidoTxt) > 0 ? jaDevolvidoTxt : '';
+  const total = Math.round((numUf(jaDevolvidoTxt) + agora) * 10000) / 10000;
+  return String(total).replace('.', ',');
+}
+
+/** Quanto ainda pode voltar numa linha: vendida − já devolvida (nunca negativo). */
+export function podeVoltar(vendida: number, jaDevolvidoTxt: string): number {
+  return Math.max(0, Math.round((vendida - numUf(jaDevolvidoTxt)) * 10000) / 10000);
+}
