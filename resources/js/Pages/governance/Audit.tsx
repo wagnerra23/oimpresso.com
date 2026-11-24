@@ -217,16 +217,21 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 <tbody>
                   {entries.map((e) => (
                     <tr key={e.id} className="border-b border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                      <td className="px-3 py-2 text-xs text-zinc-500 font-mono">
+                      {/* Linha não-ok ganha a trilha à esquerda, como `.gov-table tr.alerta` do
+                          protótipo (governance-page.css): inset 2px na 1ª célula, token --warn. */}
+                      <td
+                        className={`px-3 py-2 text-xs text-zinc-500 font-mono${e.status === 'ok' ? '' : ' shadow-[inset_2px_0_0_var(--warn)]'}`}
+                        data-estado={e.status === 'ok' ? undefined : 'alerta'}
+                      >
                         {new Date(e.created_at).toLocaleString('pt-BR')}
                       </td>
-                      <td className="px-3 py-2">{e.user_id ? `#${e.user_id}` : '—'}</td>
-                      <td className="px-3 py-2 font-mono text-xs">{e.endpoint}</td>
-                      <td className="px-3 py-2 text-xs text-zinc-500">{e.tool_or_resource || '—'}</td>
+                      <td className="px-3 py-2 text-xs text-muted-foreground">{e.user_id ? `#${e.user_id}` : '—'}</td>
+                      <td className="px-3 py-2 font-mono text-xs text-muted-foreground">{e.endpoint}</td>
+                      <td className="px-3 py-2 font-mono text-xs text-zinc-500">{e.tool_or_resource || '—'}</td>
                       <td className="px-3 py-2">
                         <Badge variant="outline" className={statusColor(e.status)}>{e.status}</Badge>
                       </td>
-                      <td className="px-3 py-2 text-right text-xs text-zinc-500">
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-xs text-zinc-500">
                         {e.duration_ms ? `${e.duration_ms}ms` : '—'}
                       </td>
                     </tr>
