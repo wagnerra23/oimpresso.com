@@ -153,7 +153,7 @@ export default function ComissaoDrawer({
 
         <Stack gap={4} className="min-h-0 overflow-auto">
           {/* ─── topo: bases da venda + gatilho (faixa da âncora) ─────────── */}
-          <div data-testid="comissao-bases" className="flex flex-wrap items-end gap-4 rounded-lg border border-border bg-muted/40 p-3">
+          <Inline gap={4} align="end" wrap data-testid="comissao-bases" className="rounded-lg border border-border bg-muted/40 p-3">
             {([
               ['Bruto', totais.bruto],
               ['Líquido de desconto', totais.liquido],
@@ -167,7 +167,7 @@ export default function ComissaoDrawer({
             <div className="ml-auto min-w-[240px]">
               <Escolha label="Quando a comissão passa a ser devida" value={gatilho} onChange={onGatilhoChange} options={GATILHOS} />
             </div>
-          </div>
+          </Inline>
           <span className="-mt-2 block text-[11.5px] leading-snug text-muted-foreground">
             {gatilho === 'recebimento'
               ? 'Cada parcela recebida libera a fatia dela — venda inadimplente não gera comissão.'
@@ -177,13 +177,13 @@ export default function ComissaoDrawer({
           {/* ─── beneficiários ───────────────────────────────────────────── */}
           <Inline gap={2} align="center" className="flex-wrap">
             <Lbl className="mb-0">Beneficiários</Lbl>
-            <span className="ml-auto flex flex-wrap gap-1.5" aria-label="Adicionar beneficiário">
+            <Inline gap={1} wrap aria-label="Adicionar beneficiário" className="ml-auto">
               {TIPOS_BENEFICIARIO.map((t) => (
                 <Button key={t.k} type="button" variant="outline" size="sm" className="h-[26px] rounded-full px-[9px] text-[12px]" onClick={() => adicionar(t.k)}>
                   + {t.l.split(' (')[0]}
                 </Button>
               ))}
-            </span>
+            </Inline>
           </Inline>
 
           {beneficiarios.length === 0 ? (
