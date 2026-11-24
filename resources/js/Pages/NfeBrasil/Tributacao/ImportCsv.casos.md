@@ -41,6 +41,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
+| UC-NFIM-14 | Abrir a tela de import por CSV exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -191,12 +192,24 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
+## UC-NFIM-14 · Abrir a tela de import por CSV exige a permissão fiscal · `must` `[T0]`
+
+- **Persona:** o usuário do tenant sem `nfe.tributacao.manage` que clica em "Import CSV" na tela de
+  Tributação.
+- **Aceite:** Dado um usuário sem `nfe.tributacao.manage` (com `nfebrasil.consult.view`) · Quando
+  ele abre `/nfe-brasil/tributacao/import` · Então recebe 403, e não o formulário de upload.
+  Controle positivo: com a permissão, a tela abre com as colunas obrigatórias.
+- **Teste:** [`TributacaoAbrirTelaPermissaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoAbrirTelaPermissaoTest.php)
+  — `UC-NFIM-14 · abrir o import por CSV pede nfe.tributacao.manage`.
+- **Contrato:** charter §Backend (permissão `nfe.tributacao.manage` para o import) · US-NFE-010 ·
+  decisão do dono em 2026-11-24 (pendência 4 da Tributação: gatear o GET).
+- **Regressão que defende:** a tela de escrita fiscal abrir para quem não pode importar.
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Antes (fato até 2026-11-24):** o `show` não checava permissão e entregava só a constante
+  `COLUNAS_OBRIGATORIAS` — sem vazamento de dado; ficou no backlog como decisão.
+
 ## Backlog — sem UC até ganhar teste ou contrato
 
-- `[BACKLOG]` **O GET da tela é ungated.** `ImportRegrasController@show` não checa permissão — só
-  as duas mutações checam. Ele entrega apenas a constante `COLUNAS_OBRIGATORIAS`, então não há
-  vazamento de dado; o que existe é uma tela de escrita fiscal visível a qualquer usuário do tenant.
-  Gatear ou não é decisão.
 - `[BACKLOG]` **Linhas parseadas vão inteiras para a sessão, sem limite.** `session()->put('nfe_import_csv_linhas', $resultado['linhas'])`
   guarda todas as linhas válidas — um CSV de 5 MB (o teto do upload declarado no charter) vira um
   payload de sessão proporcional. Não há cap. Vira UC quando houver um limite declarado em alguma
@@ -215,6 +228,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-11-24 | CT 100 `oimpresso-staging` (checkout `56f45a3c52`), só as 3 rotas GET trocadas no `web.php` do container e devolvidas depois (sha256 conferido) · usuários novos do tenant 98 | **sem o gate (rotas do container):** 2 failed · 5 assertions (*"Expected 403 but received 200"* nas duas telas). **Com o gate:** `TributacaoAbrirTelaPermissaoTest` 2 passed; junto com `TributacaoGatesContratoTest` e `RegraTributariaIbsCbsValidacaoTest`: 14 passed · 1 skipped (UC-NFRF-09, migração `cst_pis` ausente no container) · 134 assertions. |
 | 2026-10-06 | CT 100 `oimpresso-staging`, cópia isolada da branch da thread 19, `--filter=UC-NFIM` | controller anterior: UC-NFIM-04 **vermelho** (302, regra gravada no biz 2) · controller novo: UC-NFIM-04 **verde**; UC-NFIM-01/02 verdes nos dois. UC-NFIM-03 **vermelho nos dois**: o usuário semeado do biz 1 no staging tem o papel `Admin#1`, que concede todas as permissões, então revogar a permissão direta não muda nada. É ambiente, não a mudança — 17 asserções |
 
 > ⚠️ **Este arquivo de teste NÃO foi adicionado à allowlist da lane** — pelas mesmas duas razões do

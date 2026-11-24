@@ -438,6 +438,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
             Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoAbrirTelaPermissaoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php \

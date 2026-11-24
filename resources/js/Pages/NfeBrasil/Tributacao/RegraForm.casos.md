@@ -49,6 +49,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-06 | Formato de IBS/CBS inválido é recusado sem gravar | must `[fiscal]` | NT 2025.002 · padrão decimal das alíquotas (UC-NFCD-04) | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 | UC-NFRF-08 | Os campos de IBS/CBS aparecem e salvam pela tela | should `[fiscal]` | US-FISCAL-021 · charter §Goals (alíquota decimal) · UC-NFRF-05 | `RegraTributariaIbsCbsValidacaoTest` · e2e `nfe-tributacao-regra.spec.ts` | 🧪 |
 | UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
+| UC-NFRF-11 | Abrir a tela de regra (nova ou edição) exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
 > e saiu dele em 2026-10-06, com o gate no `destroy` (playbook Fiscal thread 18).
@@ -233,13 +234,27 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   da edição não trazê-los (o "Atualizar" grava nulo por cima, a armadilha do UC-NFRF-08).
 - **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFRF-11 · Abrir a tela de regra (nova ou edição) exige a permissão fiscal · `must` `[T0]`
+
+- **Persona:** o vendedor do tenant, sem `nfe.tributacao.manage`, que clica em "Nova regra" na tela
+  de Tributação.
+- **Aceite:** Dado um usuário sem `nfe.tributacao.manage` (com outra permissão fiscal,
+  `nfebrasil.consult.view`) · Quando ele abre `/nfe-brasil/tributacao/regras/create` ou a edição de
+  uma regra que **existe** no tenant dele · Então recebe 403 nas duas, e não o formulário. Controle
+  positivo: com a permissão, as mesmas URLs abrem o `RegraForm` (vazio no create; com a regra no
+  edit). A regra existir no tenant é o que separa este 403 do 404 do `UC-NFRF-03`.
+- **Teste:** [`TributacaoAbrirTelaPermissaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoAbrirTelaPermissaoTest.php)
+  — `UC-NFRF-11 · abrir nova regra e edição pede nfe.tributacao.manage`.
+- **Contrato:** charter §Backend (permissão para `create|store|edit|update`) · US-NFE-010 · decisão
+  do dono em 2026-11-24 (pendência 4 da Tributação: gatear o GET).
+- **Regressão que defende:** a tela de escrita fiscal abrir para quem não pode salvar — o usuário
+  preenche a regra inteira e só descobre no 403 do salvar.
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Antes (fato até 2026-11-24):** os dois GETs renderizavam sem checar permissão; ficou no backlog
+  como decisão até o dono pedir o gate.
+
 ## Backlog — sem UC até ganhar teste ou contrato
 
-- `[BACKLOG]` **Os GETs da tela são ungated.** `@create` e `@edit` renderizam sem checar permissão
-  (o `edit` ao menos escopa por business). O charter afirma a permissão para
-  `create|store|edit|update` em bloco; o código só a aplica nos dois que escrevem. Não virou UC
-  separado porque a saída (gatear o GET? assumir que ver o formulário vazio é inofensivo?) é
-  decisão — e o `edit` já é coberto contra vazamento por `UC-NFRF-03`.
 - `[BACKLOG]` **Unicidade da chave (NCM + UF origem + UF destino).** O próprio charter lista em
   §Pendências: *"[ ] Confirmar validação de unicidade da chave no FormRequest"*. Sem ela, duas
   regras iguais competem no Nível 2 e a que vence depende da ordenação — que é justamente o que
@@ -257,6 +272,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-11-24 | CT 100 `oimpresso-staging` (checkout `56f45a3c52`), só as 3 rotas GET trocadas no `web.php` do container e devolvidas depois (sha256 conferido) · usuários novos do tenant 98 | **sem o gate (rotas do container):** 2 failed · 5 assertions (*"Expected 403 but received 200"* nas duas telas). **Com o gate:** `TributacaoAbrirTelaPermissaoTest` 2 passed; junto com `TributacaoGatesContratoTest` e `RegraTributariaIbsCbsValidacaoTest`: 14 passed · 1 skipped (UC-NFRF-09, migração `cst_pis` ausente no container) · 134 assertions. |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c59f6107a` (thread 05, após `<Grid>` na seção Reforma e `edit()` sem guarda de nulo) · `RegraTributariaIbsCbsValidacaoTest` | **4 passed · 54 assertions** (UC-NFRF-05/06/07/08). PHPStan no `TributacaoController`: sem erros. |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c565e22bb` (thread 05) · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 4 passed · 54 assertions. **Mesmo teste com o `TributacaoController` do `main`:** UC-NFRF-08 1 failed (*"two arrays are identical"* — a prop `regra` não traz os 5). `TributacaoControllerTest` 7 passed. `TributacaoGatesContratoTest` 3 failed **iguais com o controller do `main`** (UC-NFRF-01/04 · UC-NFIM-03: o `Admin#1` do staging, abaixo). |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado do branch da thread 04 · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 3 passed · 30 assertions. **Mesmo teste com o `UpsertRegraTributariaRequest` do `main`:** 3 failed (UC-NFRF-05/07: arrays diferentes — os 5 campos voltam nulos; UC-NFRF-06: *"Session is missing expected key [errors]"*). |
