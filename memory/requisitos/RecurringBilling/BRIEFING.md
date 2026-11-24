@@ -31,7 +31,7 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 
 ## Gaps
 - ~~🔴 Assinatura com valor negociado sem plano descartada pelo gerador~~ — resolvido em 2026-10-19 (#9606, remédio "a" de [W]; SDD §9.1 Desfecho).
-- O `BoletoService` e os drivers de boleto do RB seguem no código sem chamador de produção até a remoção (SDD D9).
+- ~~O `BoletoService` e os drivers de boleto do RB seguem no código sem chamador de produção~~ — removidos em 2026-11-24 ([#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)). Resta a tabela `rb_boleto_credentials` e os leitores dela (SDD D9).
 - Fatura paga não gera título/baixa no Financeiro; a ponte é do Financeiro (SDD D10).
 - Dunning/retry é régua hardcoded, não motor; proração ausente. A tela da régua mostra e-mail e WhatsApp como não disponíveis (decisão b7, [#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), 2026-11-23).
 - Flags desligadas em produção: `RB_COBRAR_PIX_AUTOMATICO`, `RB_SALVAR_CARTAO`, `RB_MARCAR_FATURA_PAGA_POR_COBRANCA`, `nfebrasil.auto_emission_on_invoice_paid`. Ligar é do [W] (US-RB-044 e US-RB-057 ficam "parcial (flag desligada)", decisão b8).
