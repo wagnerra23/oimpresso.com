@@ -151,6 +151,7 @@ class ConfiguracoesController extends Controller
                             'inter' => 'Banco Inter PJ',
                             'c6'    => 'C6 Bank',
                             'asaas' => 'Asaas',
+                            default => ucfirst((string) $c->gateway_key),
                         },
                         'ambiente'          => $c->ambiente,
                         'ambiente_label'    => $c->ambiente === 'production' ? 'Produção' : 'Sandbox',
