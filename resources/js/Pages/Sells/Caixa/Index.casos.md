@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o que a tela garante é o agregado do dia (valor, forma de pagamento, origem, caixa aberto) — isso não muda num refactor visual.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-24"
 last_run_ci: "revalidado no PR #10366 (props do dia deferidas, UC-SCAIXA-15); veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -138,3 +138,6 @@ last_run_ci: "revalidado no PR #10366 (props do dia deferidas, UC-SCAIXA-15); ve
 
 - `[BACKLOG]` Contagem por cédula (denominações) na tela — segue no modal legado `/cash-register/close-register/{id}`.
 - `[BACKLOG]` Sangria e suprimento: o caixa do UltimatePOS não grava esses tipos (`cash_register_transactions.transaction_type` só tem `initial`/`sell`/`expense`/`refund`); exigiria regra e endpoint novos — decisão [W].
+
+## Trilha do tempo
+- 2026-11-24 · [CL] revalidação G-6: a tela ganhou a barra de abas do módulo Vendas (`Pages/Sells/_components/AbasVendas.tsx`, slot `below` do `PageHeader`). Nenhum UC desta tela descreve o cabeçalho nem a navegação entre telas, então nenhum muda. Prova da barra: `tests/js/sells-abas-modulo.test.tsx`.

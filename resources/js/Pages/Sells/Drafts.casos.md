@@ -4,7 +4,7 @@ irmaos: Drafts.charter.md (lei) · Drafts.tsx · tests/Feature/Sells/SellsDrafts
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: rascunho é a venda que a Larissa deixa pela metade quando o telefone toca — quem vê qual rascunho, e de qual empresa, não pode mudar num refactor visual.
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -158,3 +158,4 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 ## Trilha do tempo
 - 2026-10-30 · [W+C] Decisões pendentes D-23, D-24, D-25 do documento "Casos de uso por tela", para casos marcados como decisão do [W] que não tinham pergunta.
 - 2026-10-14 · [CL] trio completado (etapa E1 do regime de evolução: tela saía em `missing_casos`). Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358 · US-SELL-060.
+- 2026-11-24 · [CL] revalidação G-6: a tela ganhou a barra de abas do módulo Vendas (`Pages/Sells/_components/AbasVendas.tsx`, slot `below` do `PageHeader`) e o cabeçalho passou a ser o `PageHeader` padrão (selo no subtítulo; a seta de voltar saiu, o `Esc` continua). Nenhum UC desta tela descreve o cabeçalho nem a navegação entre telas, então nenhum muda. Prova da barra: `tests/js/sells-abas-modulo.test.tsx`.
