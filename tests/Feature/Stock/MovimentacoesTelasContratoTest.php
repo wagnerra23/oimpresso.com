@@ -169,3 +169,42 @@ it('UC-AJIDX-03 [T0] o Ver da lista de ajustes devolve o detalhe em JSON, só do
 
     $this->getJson("/stock-adjustments/{$alheio['id']}")->assertStatus(404);
 });
+
+// "Transferir entre locais" da lista de produtos: `?produto={id}` vira os botões "Adicionar" do
+// formulário. Só leitura — a linha segue vindo de `linhaDoProduto`, já coberta pelo UC-TRCRT-05.
+
+it('UC-TRCRT-07 [T0] ?produto= oferece as variações do produto da empresa, e de outra empresa nada', function () {
+    $simples = EstoqueFixture::singleProduct($this->biz);
+    $variavel = EstoqueFixture::variableProduct($this->biz, 2);
+    $alheio = EstoqueFixture::singleProduct($this->outro);
+    movtLogin($this, $this->biz, ['purchase.create', 'access_all_locations']);
+
+    $s = movtPagina($this, '/stock-transfers/create?produto=' . $simples->productId, 'StockTransfer/Create', true)['produto_sugerido'];
+    expect($s['id'])->toBe($simples->productId);
+    expect(array_column($s['variacoes'], 'variation_id'))->toBe([$simples->variationId(0)]);
+    $nomeSimples = (string) DB::table('products')->where('id', $simples->productId)->value('name');
+    expect($s['variacoes'][0]['nome'])->toBe($nomeSimples);
+
+    $v = movtPagina($this, '/stock-transfers/create?produto=' . $variavel->productId, 'StockTransfer/Create', true)['produto_sugerido'];
+    expect(array_column($v['variacoes'], 'variation_id'))->toBe([$variavel->variationId(0), $variavel->variationId(1)]);
+    $nomeVariavel = (string) DB::table('products')->where('id', $variavel->productId)->value('name');
+    expect(array_column($v['variacoes'], 'nome'))->toBe([$nomeVariavel . ' · Var 1', $nomeVariavel . ' · Var 2']);
+
+    // Tier 0: produto de outra empresa não vira sugestão.
+    expect(movtPagina($this, '/stock-transfers/create?produto=' . $alheio->productId, 'StockTransfer/Create', true)['produto_sugerido'])->toBeNull();
+    // Sem o parâmetro, nada muda na tela.
+    expect(movtPagina($this, '/stock-transfers/create', 'StockTransfer/Create', true)['produto_sugerido'])->toBeNull();
+});
+
+it('UC-TRCRT-07 sem saldo próprio para transferir, ?produto= não sugere nada', function () {
+    $semEstoque = EstoqueFixture::singleProduct($this->biz, false);
+    $kit = EstoqueFixture::singleProduct($this->biz);
+    DB::table('products')->where('id', $kit->productId)->update(['type' => 'combo']);
+    movtLogin($this, $this->biz, ['purchase.create', 'access_all_locations']);
+
+    foreach ([$semEstoque, $kit] as $p) {
+        $props = movtPagina($this, '/stock-transfers/create?produto=' . $p->productId, 'StockTransfer/Create', true);
+        expect($props)->toHaveKey('produto_sugerido');
+        expect($props['produto_sugerido'])->toBeNull();
+    }
+});
