@@ -209,7 +209,7 @@ States gerenciados pelo `AssinaturaService` ([ADR 0143 FSM pipeline pattern](../
 | **C6Driver** | ✅ prod | production | agencia + conta + codigo_cliente | `Services/Boleto/Drivers/C6Driver.php` |
 | **AsaasDriver** | ✅ prod | sandbox + production | api_key | `Services/Boleto/Drivers/AsaasDriver.php` |
 
-Resolução via `BoletoCredentialResolver` (Wave 23 D2 reuse cross-module Financeiro/NfeBrasil).
+Resolução: até 2026-11-24 via `BoletoCredentialResolver`; desde a onda 5b, credencial do PaymentGateway (`CobrancaNoGateway::credencial`, `ContaBancaria::credencialGateway`).
 
 ## Multi-tenant Tier 0
 
@@ -253,5 +253,5 @@ Cobertura: AssinaturaService (D2/D4 lifecycle), BoletoService (3 drivers), Webho
 
 - ⛔ NÃO tocar US-RB-044 NFe-de-boleto-pago sem ADR mãe nova
 - ⛔ NÃO `forceDelete` em Subscription com invoices vinculadas — use cancel
-- ⛔ NÃO bypass `BoletoCredentialResolver` direto via `BoletoCredential::find()` — use o resolver pra garantir `decryptConfig` correto
+- ⛔ NÃO ler credencial de gateway fora de `CobrancaNoGateway::credencial` / `ContaBancaria::credencialGateway` — eles filtram pelo business_id e só devolvem credencial ativa (substituem o `BoletoCredentialResolver`, removido em 2026-11-24)
 - ⛔ NÃO commit credenciais em config_json sem `Crypt::encryptString` em `client_secret`/`api_key`/`certificado_key_b64`/`certificado_senha`

@@ -356,8 +356,7 @@ php artisan paymentgateway:inter:register-webhook --credential=ID [--url=URL] [-
 # Re-cifra credenciais com a APP_KEY atual (rotação) — dry-run por padrão
 php artisan paymentgateway:rewrap-credentials [--business=N] [--apply]
 
-# Migra credencial legada de boleto para payment_gateway_credentials — dry-run por padrão
-php artisan paymentgateway:migrate-credentials [--business=N] [--apply]
+# (paymentgateway:migrate-credentials saiu em 2026-11-24 com a tabela rb_boleto_credentials — onda 5c)
 
 # Cadastra as permissions Spatie do módulo
 php artisan paymentgateway:register-permissions [--business=all|N] [--dry-run]

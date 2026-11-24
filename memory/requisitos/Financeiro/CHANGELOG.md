@@ -8,6 +8,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 
 ## [Unreleased]
 
+### Coluna `rb_gateway_credential_id` removida (2026-11-24)
+
+- A migration `drop_rb_boleto_credentials` do RecurringBilling apaga `fin_contas_bancarias.rb_gateway_credential_id` (FK `fin_conta_rb_cred_fk` e índice `fin_conta_rb_cred_idx`). A conta liga à credencial pelo PaymentGateway (`ContaBancaria::credencialGateway`).
+
 ### Conta bancária liga à credencial do PaymentGateway (2026-11-24)
 
 - `ContaBancaria::credencialGateway()` e o scope `comCredencialGateway()` resolvem a credencial ativa do PaymentGateway da conta, pela mesma regra do `OnCobrancaPagaCreateFinanceiroTitulo` (`payment_gateway_credentials.conta_bancaria_id` = `account_id`, depois `payment_gateway_credential_id`), sempre no business_id da conta. O pagamento pelo banco Inter (`InterPagadorBanco`, US-FIN-079) passa a usar essa credencial em vez de `rb_gateway_credential_id` → `rb_boleto_credentials`. A relação `gatewayCredential()` e a coluna ficam até a onda 5.

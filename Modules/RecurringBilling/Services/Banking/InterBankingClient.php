@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  * boleto + PIX charging, não a Banking API. SoC ADR 0094 §5.
  *
  * Reusa o mesmo cert mTLS (`certificado_crt_b64` + `certificado_key_b64`)
- * gravado em `BoletoCredential.config_json`. Token OAuth é cacheado por
+ * gravado no `config_json` da credencial do PaymentGateway (até 2026-11-24, `rb_boleto_credentials`). Token OAuth é cacheado por
  * `(business_id, scope)` durante 50min (token Inter expira em 60min).
  *
  * @see US-RB-045
