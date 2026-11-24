@@ -81,7 +81,8 @@ final class CopiaCredencialLegadaRb
             if ($pg === null) {
                 $linha['acao'] = 'criar';
                 if ($aplicar) {
-                    PaymentGatewayCredential::withoutGlobalScopes()->create([
+                    // Sem withoutGlobalScopes: o escopo global só filtra consulta; o create grava o business_id explícito da linha do RB.
+                    PaymentGatewayCredential::create([
                         'business_id' => (int) $rb->business_id,
                         'gateway_key' => $gatewayKey,
                         'ambiente' => (string) $rb->ambiente,
