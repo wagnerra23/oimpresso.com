@@ -56,7 +56,6 @@ SELECT CONCAT(\"contacts_email_real=\", COUNT(*)) FROM contacts WHERE email IS N
 SELECT CONCAT(\"contacts_cpf_real=\",   COUNT(*)) FROM contacts WHERE cpf_cnpj IS NOT NULL AND cpf_cnpj<>\"\" AND cpf_cnpj <> LPAD(id,14,\"0\");
 SELECT CONCAT(\"users_email_real=\",    COUNT(*)) FROM users    WHERE email IS NOT NULL AND email<>\"\" AND email <> CONCAT(\"user\",id,\"@staging.local\");
 SELECT CONCAT(\"wa_messages_left=\",    COUNT(*)) FROM whatsapp_messages;
-SELECT CONCAT(\"boleto_creds_left=\",   COUNT(*)) FROM rb_boleto_credentials;
 SELECT CONCAT(\"nfe_certs_left=\",      COUNT(*)) FROM nfe_certificados;
 "' 2>&1 | grep -vi "using a password" | tee /tmp/staging-pii-check.txt
 if grep -qE "=([1-9][0-9]*)$" /tmp/staging-pii-check.txt; then

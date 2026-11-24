@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 182 arquivos em 16 papéis.
+**Total mapeado:** 180 arquivos em 16 papéis.
 
 ## Controllers — 14
 
@@ -94,12 +94,11 @@ module: PaymentGateway
 - [RecorrenciaPixAtualizada.php](../../../Modules/PaymentGateway/Events/RecorrenciaPixAtualizada.php)
 - [LancarPagamentoDaCobrancaNaVenda.php](../../../Modules/PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda.php)
 
-## Console / Commands — 8
+## Console / Commands — 7
 
 - [EmitTrialExpiredCobrancasCommand.php](../../../Modules/PaymentGateway/Console/Commands/EmitTrialExpiredCobrancasCommand.php)
 - [InterImportarRecebimentosCommand.php](../../../Modules/PaymentGateway/Console/Commands/InterImportarRecebimentosCommand.php)
 - [InterReconcilePixCommand.php](../../../Modules/PaymentGateway/Console/Commands/InterReconcilePixCommand.php)
-- [MigrateCredentialsCommand.php](../../../Modules/PaymentGateway/Console/Commands/MigrateCredentialsCommand.php)
 - [RegisterInterWebhookCommand.php](../../../Modules/PaymentGateway/Console/Commands/RegisterInterWebhookCommand.php)
 - [RegisterPermissionsCommand.php](../../../Modules/PaymentGateway/Console/Commands/RegisterPermissionsCommand.php)
 - [RetryOrphanWebhookCommand.php](../../../Modules/PaymentGateway/Console/Commands/RetryOrphanWebhookCommand.php)
@@ -158,9 +157,9 @@ module: PaymentGateway
 - [CnabRetorno.casos.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.casos.md)
 - [Index.casos.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.casos.md)
 
-## Testes (Pest) — 57
+## Testes (Pest) — 56
 
-- 50 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
+- 49 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
 - 1 em [Modules/PaymentGateway/Tests/Feature/Cnab/Drivers/](../../../Modules/PaymentGateway/Tests/Feature/Cnab/Drivers)
 - 6 em [Modules/PaymentGateway/Tests/Feature/Settings/](../../../Modules/PaymentGateway/Tests/Feature/Settings)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

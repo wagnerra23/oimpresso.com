@@ -65,7 +65,8 @@ UPDATE transactions SET
   repair_serial_no = NULL, repair_defects = NULL;
 
 -- ── Credenciais / tokens / certificados → TRUNCATE (staging não age externo) ─
-TRUNCATE TABLE rb_boleto_credentials;
+-- rb_boleto_credentials saiu em 2026-11-24 (migration drop_rb_boleto_credentials); dump antigo ainda pode trazer.
+DROP TABLE IF EXISTS rb_boleto_credentials;
 TRUNCATE TABLE payment_gateway_credentials;
 TRUNCATE TABLE nfe_certificados;
 TRUNCATE TABLE mcp_tokens;

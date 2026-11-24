@@ -78,7 +78,7 @@ return [
     | Asaas — flags de segurança financeira
     |--------------------------------------------------------------------------
     |
-    | Credenciais Asaas (api_key, ambiente) vivem em `rb_boleto_credentials`
+    | Credenciais Asaas (api_key, ambiente) vivem em `payment_gateway_credentials`
     | criptografadas por tenant — NÃO ficam aqui.
     |
     | Aqui só vive a flag global pra refund (estorno de cobrança JÁ PAGA).
