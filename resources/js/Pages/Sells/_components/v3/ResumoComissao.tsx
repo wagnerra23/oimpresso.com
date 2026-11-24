@@ -15,6 +15,7 @@
  * mesmas bases (`totais`), para os dois lugares mostrarem o mesmo número.
  */
 
+import { Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { Lbl, Pill } from './primitivos';
 import { brl, num } from './numeros';
@@ -66,9 +67,12 @@ export default function ResumoComissao({
   const liberada = porParcela ? comissaoLiberada(soma, gatilho, parcelas, totalDaVenda) : 0;
 
   return (
-    <div
+    <Inline
       data-testid="resumo-comissao"
-      className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-muted p-3"
+      gap={3}
+      align="center"
+      wrap
+      className="rounded-lg border border-border bg-muted p-3"
     >
       <div>
         <Lbl>Comissão da venda</Lbl>
@@ -81,7 +85,7 @@ export default function ResumoComissao({
         )}
       </div>
 
-      <div className="flex min-w-0 flex-wrap gap-[5px]">
+      <Inline wrap className="min-w-0 gap-[5px]">
         {beneficiarios.length === 0 ? (
           <span className="text-[12px] leading-[1.4] text-muted-foreground">Nenhum beneficiário — venda sem comissão</span>
         ) : (
@@ -91,9 +95,9 @@ export default function ResumoComissao({
             </Pill>
           ))
         )}
-      </div>
+      </Inline>
 
-      <span className="ml-auto flex items-center gap-2">
+      <Inline gap={2} align="center" className="ml-auto">
         {porParcela && (
           <Pill mono tom={liberada > 0 ? 'success' : 'neutro'} title="Comissão já devida pelas parcelas baixadas">
             {brl(liberada)} devida · {recebidas}/{parcelas.length} parcelas
@@ -105,7 +109,7 @@ export default function ResumoComissao({
         <Button type="button" variant="outline" size="sm" onClick={onAbrir}>
           Configurar comissão
         </Button>
-      </span>
-    </div>
+      </Inline>
+    </Inline>
   );
 }
