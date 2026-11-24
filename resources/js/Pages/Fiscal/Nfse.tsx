@@ -14,7 +14,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { FileSearch, FileText } from 'lucide-react';
+import { FileSearch, FileText, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import DensidadeToggle from './_components/DensidadeToggle';
@@ -107,20 +107,29 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
           { keys: ['2'], label: 'NF-e' },
         ]}
         actions={
-          <Input
-            type="month"
-            className="w-auto"
-            value={filters.mes}
-            onChange={(e) => apply({ mes: e.target.value })}
-            aria-label="Filtrar competência"
-          />
+          <Inline gap={2} align="center">
+            <Input
+              type="month"
+              className="w-auto"
+              value={filters.mes}
+              onChange={(e) => apply({ mes: e.target.value })}
+              aria-label="Filtrar competência"
+            />
+            {/* Primário do protótipo (FxEmitir, fiscal-page.jsx:117, medido em 2026-11-23): na NFS-e
+                ele leva à emissão. Aqui vai à tela real de emissão do módulo NFSe. */}
+            <Button asChild variant="cowork-primary">
+              <a href="/nfse/emitir">
+                <Plus size={12} aria-hidden="true" /> Emitir
+              </a>
+            </Button>
+          </Inline>
         }
       >
-        {/* Filtros */}
-        <Inline gap={2} align="center" wrap className="mb-3" data-contract="fiscal-nfse-filters">
+        {/* Busca numa linha própria e chips na seguinte, como no protótipo (FxNotasPage): antes a
+            busca dividia a linha com os 8 controles e os chips quebravam em 2 linhas. */}
+        <div className="relative mb-2 max-w-[520px]">
           {/* Espaço da lupa pela utilitária canon `.cw-input-icon-left`, NÃO `pl-*`:
               a Tailwind é layered e perde pro `.cw-input` unlayered (cowork-fields.css). */}
-          <div className="relative min-w-[240px] flex-1">
             <FileSearch
               size={13}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -134,7 +143,8 @@ export default function Nfse({ filters: initialFilters, counts, rows }: NfseProp
               onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
               onKeyDown={(e) => e.key === 'Enter' && apply({ search: filters.search })}
             />
-          </div>
+        </div>
+        <Inline gap={2} align="center" wrap className="mb-3" data-contract="fiscal-nfse-filters">
           <Button
             type="button"
             {...chipProps(filters.status === 'todas')}
