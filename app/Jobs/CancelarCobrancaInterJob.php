@@ -130,7 +130,8 @@ class CancelarCobrancaInterJob implements ShouldQueue
 
         // 6) Resolve identificador Inter (nossoNumero / codigoSolicitacao).
         //    Convenção Inter PJ: campo gravado no momento da emissão pela
-        //    InterDriver::emitir() → BoletoResult.nossoNumero. O charge model
+        //    driver de emissão (hoje InterDriver::emitirBoleto() do PaymentGateway;
+        //    antes o InterDriver do RB, via BoletoResult.nossoNumero). O charge model
         //    real (a ser landed em US futura) deve expor um desses campos.
         $nossoNumero = $charge->nosso_numero
             ?? $charge->codigo_solicitacao

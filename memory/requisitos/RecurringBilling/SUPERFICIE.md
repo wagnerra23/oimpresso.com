@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 204 arquivos em 20 papéis.
+**Total mapeado:** 202 arquivos em 20 papéis.
 
 ## Controllers — 12
 
@@ -188,17 +188,15 @@ module: RecurringBilling
 - 55 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 36
+## Demais arquivos (manifestos, docs, assets e misc) — 34
 
 - [.gitkeep](../../../Modules/RecurringBilling/Config/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Console/.gitkeep)
 - [BankStatementDriverContract.php](../../../Modules/RecurringBilling/Contracts/BankStatementDriverContract.php)
 - [BoletoCredentialResolverInterface.php](../../../Modules/RecurringBilling/Contracts/BoletoCredentialResolverInterface.php)
-- [BoletoDriverContract.php](../../../Modules/RecurringBilling/Contracts/BoletoDriverContract.php)
 - [.gitkeep](../../../Modules/RecurringBilling/Database/Migrations/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Database/Seeders/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Database/factories/.gitkeep)
-- [BoletoResult.php](../../../Modules/RecurringBilling/Dto/BoletoResult.php)
 - [PixCobResult.php](../../../Modules/RecurringBilling/Dto/PixCobResult.php)
 - [StatementLineDto.php](../../../Modules/RecurringBilling/Dto/StatementLineDto.php)
 - [.gitkeep](../../../Modules/RecurringBilling/Entities/.gitkeep)
