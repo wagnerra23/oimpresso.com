@@ -5,7 +5,7 @@ irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-27"
+last_run: "2026-11-23"
 ---
 
 # Casos de Uso & Aceite — SPED e livros
@@ -201,6 +201,27 @@ dados (`K010` só existe com `K001`=0) e o Bloco 1 traz `1001`=0 com o `1010` de
 ⚠️ Os 13 indicadores do `1010` saem `N` até o contador decidir — ver perguntas abertas na US-FISCAL-028.
 **Pronto quando:** os indicadores de abertura batem com o Guia num mês vazio.
 
+## UC-FSPED-15 — Os 23 registros do gerador saem no arquivo de um mês com nota
+Status: 🧪 (`SpedBlocosNoArquivoTest::UC-FSPED-15`)
+Dado uma competência com uma NF-e autorizada · Quando o TXT é gerado · Então `0000`, `0001`, `0005`, `0150`,
+`0190`, `0200`, `0990`, `C001`, `C100`, `C170`, `C190`, `C990`, `E001`, `E100`, `E110`, `E116`, `E990`,
+`H001`, `H990`, `9001`, `9900`, `9990` e `9999` aparecem como linha do arquivo. Substitui o caso que só
+procurava os nomes dos métodos no código-fonte.
+**Pronto quando:** a lista é conferida contra as linhas `|REG|…|` do TXT, não contra o fonte.
+
+## UC-FSPED-16 — O E110 soma o ICMS dos C190, e o E116 só sai com ICMS a recolher
+Status: 🧪 (`SpedBlocosNoArquivoTest::UC-FSPED-16`)
+Dado duas NF-e de 1.000,00 e 500,00 com ICMS de 18% · Então os C190 somam 270,00 de ICMS, o `E110` sai com
+débito, saldo apurado e ICMS a recolher de 270,00, e o `E116` sai uma vez com 270,00 vencendo dia 20 do mês
+seguinte. Dado o mesmo mês sem ICMS (Simples, sem motor) · Então o `E110` sai zerado, não há `E116` e o
+`E990` conta 4 linhas.
+**Pronto quando:** os dois lados (com e sem ICMS) são lidos no arquivo gerado.
+
+## UC-FSPED-17 — O Bloco H sai sem movimento
+Status: 🧪 (`SpedBlocosNoArquivoTest::UC-FSPED-17`)
+Dado qualquer competência · Então `H001` = 1, `H990` = 2 e nenhum `H005`/`H010`. O inventário real (declaração
+de 31/12) depende da integração com o Estoque e segue fora deste caso.
+
 ## UC-FSF1-03 — Competência em aberto é recusada antes de qualquer query
 Status: 🧪 (`SpedOndaF1Test` — 10 casos: 4 sobre a guarda do Service + 6 sobre a régua da tela. **14 passed (182 assertions)** medidos no CT 100 em 2026-09-03; o manifesto do G-7 é alimentado pelas lanes de CI, não por rodada local — daí 🧪 e não ✅)
 Dado uma competência cujo mês ainda não terminou · Quando alguém pede a geração — pela tela ou
@@ -355,9 +376,9 @@ executado" **sozinha**, sem editar código.
 > errada — por isso **não viram UC** (lápide §5 2026-06-05: teste que não prova comportamento é pior
 > que ausente, porque parece cobertura). Viram UC quando um teste gerar o TXT e inspecionar as linhas.
 
-- **[BACKLOG · source-grep] TXT traz os 23 registros canônicos dos Blocos 0+C+E+H+9** — `SpedIcmsIpiGeneratorServiceTest::contract: 23 registros canon` procura os NOMES DE MÉTODO (`registro0000`…) no fonte e conta um array literal escrito no próprio teste. Não gera arquivo nem valida linha `|REG|…|`.
-- **[BACKLOG · source-grep] Bloco E: E110 consolida os débitos do C190 e E116 só sai com ICMS a recolher** — os dois casos assertam `toContain("array_sum(array_column(...))")` e `toContain("if ($vlTotalDebitos > 0)")` no fonte.
-- **[BACKLOG · source-grep] Bloco H é esqueleto (IND_MOV=1)** — asserta `toContain('registroH001(1)')` no fonte; o inventário real exige integração Stock/ProductCatalogue (declaração de 31/12).
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FSPED-15] ~~TXT traz os 23 registros canônicos dos Blocos 0+C+E+H+9~~ — `SpedIcmsIpiGeneratorServiceTest::contract: 23 registros canon` procura os NOMES DE MÉTODO (`registro0000`…) no fonte e conta um array literal escrito no próprio teste. Não gera arquivo nem valida linha `|REG|…|`.
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FSPED-16] ~~Bloco E: E110 consolida os débitos do C190 e E116 só sai com ICMS a recolher~~ — os dois casos assertam `toContain("array_sum(array_column(...))")` e `toContain("if ($vlTotalDebitos > 0)")` no fonte.
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FSPED-17] ~~Bloco H é esqueleto (IND_MOV=1)~~ — asserta `toContain('registroH001(1)')` no fonte; o inventário real exige integração Stock/ProductCatalogue (declaração de 31/12).
 - **[BACKLOG · source-grep] Span OTel `fiscal.sped.gerar`** — grep da string no fonte.
 - **[BACKLOG · ⬜ sem teste] Panorama das 5 competências** — mês, notas autorizadas, valor, status (aberto/pronto/entregue) e prazo. `SpedController::index` agrega; nenhum teste asserta o payload das 5 competências. _(O gate do export deixou de ser só "tem notas?" em 2026-09-03: agora são as 4 checagens do `UC-FSF1-03` mais a contagem de notas, e as checagens **têm** teste. O que segue sem teste é a agregação em si.)_ _(O prazo exibido usa dia 15 como heurística; o prazo legal da EFD é fixado por cada UF.)_
 - **[BACKLOG · ⬜ sem teste] Smoke PVA-EFD homologação CONFAZ** — importar o TXT no validador oficial sem erro estrutural. _(O golden file passou a existir em 2026-09-03 — `UC-FSF1-05` —, e ele confere estrutura, blocos e contadores. O que continua sem prova é a importação no **PVA-EFD real**, que é ferramenta externa; e o golden já expõe dois motivos pelos quais o PVA recusaria hoje: CNPJ/IE vazios e UF fixa. Ver o aviso no UC-FSF1-05.)_

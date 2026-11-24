@@ -42,6 +42,7 @@ contains:
   - "AgendaController — agenda da clínica: semana, marcar, status, desmarcar, bloqueio de horário, lista de espera e liberar o app (US-FISIO-014/015)"
   - "ConfigAgendamentoController — Configurações › Agendamento pelo app: ligar, quem marca, tipos liberados, horários e regras (US-FISIO-015)"
   - "PortalAgendaController — agenda do paciente no portal: horários livres, marcar, remarcar, cancelar, confirmar, Cheguei, nota e lista de espera (US-FISIO-016)"
+  - "ConfirmacaoConsultaController — página pública de um toque da mensagem de confirmação (link assinado, sem PIN): Confirmo e Não vou poder ir dentro do prazo (US-FISIO-017)"
   - "Laudo de avaliação biopsicossocial no modelo SES-SC (Deliberação 500/CIB/2026): formulário, matriz IFBr-M (MatrizIfbrm) e equipe; finalizado não muda (fisio_laudos_bps, fisio_laudos_bps_equipe — US-FISIO-060)"
   - "LaudoBiopsicossocialController — cria, preenche, monta a equipe, finaliza com as regras do modelo SES-SC e abre nova versão; apoio de dor e adesão (ApoioFisioterapia) e PDF no layout oficial (LaudoBiopsicossocialDocumento) (US-FISIO-060)"
   - "Estudo de pesquisa (fisio_studies) e consentimento `pesquisa` por estudo, com a versão do TCLE aprovada pelo CEP; `treino_ia` separado (etapa 07 P-02)"
@@ -72,6 +73,7 @@ url_prefixes:
   - /fisio/programas/* (editor de programa — itens, dose, ordem, protocolo)
   - /fisio/protocolos/* (protocolos-modelo — copiar e editar a cópia da clínica)
   - /fisio/p/{token}/* (portal público do paciente — link + PIN e consentimentos; US-FISIO-007a)
+  - /fisio/consulta/{consulta}/* (confirmação da consulta pela mensagem do WhatsApp — link assinado, sem PIN; US-FISIO-017)
 ---
 
 # Modules/Fisio

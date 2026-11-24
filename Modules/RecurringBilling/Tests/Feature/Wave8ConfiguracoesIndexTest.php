@@ -168,6 +168,27 @@ it('UC-RBCFG-02 · expõe régua de dunning canônica com 3 retentativas estrutu
 });
 
 /**
+ * Auditoria RB b7: o módulo não envia e-mail nem WhatsApp de cobrança. A régua não promete esses
+ * canais: eles vêm marcados como não disponíveis, e nenhum texto da régua diz que são enviados.
+ */
+it('UC-RBCFG-02 · a régua marca e-mail e WhatsApp como não disponíveis e não promete envio', function () {
+    $response   = app(ConfiguracoesController::class)->index(request());
+    $propsProp  = (new ReflectionClass($response))->getProperty('props');
+    $propsProp->setAccessible(true);
+    $regua = $propsProp->getValue($response)['regua_dunning'];
+
+    expect($regua['canais_aviso'])->toBe([
+        ['canal' => 'E-mail', 'disponivel' => false],
+        ['canal' => 'WhatsApp', 'disponivel' => false],
+    ]);
+
+    $textos = mb_strtolower($regua['descricao'].' '.implode(' ', array_column($regua['retentativas'], 'descricao')));
+    expect(str_contains($textos, 'whatsapp'))->toBeFalse()
+        ->and(str_contains($textos, 'email'))->toBeFalse()
+        ->and(str_contains($textos, 'e-mail'))->toBeFalse();
+});
+
+/**
  * Cenário 3 — Webhooks URLs canônicas com business_id correto na URL.
  */
 it('UC-RBCFG-04 · expõe webhooks Asaas e Inter PJ com URL scopada por business_id', function () {

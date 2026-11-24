@@ -129,7 +129,9 @@ jobs:
           vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-recurringbilling-junit.xml \
             Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/CartaoRecorrenteDrawerContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/ContatoNaoApagaFaturaContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/RecurringBillingTenantIsolationTest.php \

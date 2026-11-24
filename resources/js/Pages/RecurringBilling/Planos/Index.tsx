@@ -7,13 +7,11 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router, usePage } from '@inertiajs/react';
 import {
-  CheckCircle2,
   Pencil,
   Plus,
   Search,
   Trash2,
   TrendingUp,
-  XCircle,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -30,6 +28,7 @@ import Sparkline from '../_components/Sparkline';
 import CmdPalette from '../_components/CmdPalette';
 import TourOnboarding, { TOUR_DONE_KEY } from '../_components/TourOnboarding';
 import CheatSheet from '../_components/CheatSheet';
+import PlanoFormDrawer, { type PlanoDrawerModo } from '../_components/PlanoFormDrawer';
 
 // ────────────────────────────────────────────────────────────────
 // TIPOS
@@ -43,6 +42,7 @@ interface PlanRow {
   name: string;
   slug: string;
   descricao_curta: string | null;
+  description: string | null;
   valor: number;
   ciclo: Ciclo;
   ciclo_label: string;
@@ -50,6 +50,8 @@ interface PlanRow {
   trial_days: number;
   ativo: boolean;
   fiscal_type: FiscalType;
+  fiscal_cfop: string | null;
+  fiscal_servico: string | null;
   assinaturas_ativas_count: number;
   created_at: string | null;
 }
@@ -82,6 +84,8 @@ interface PageProps {
   plans?: PlansPaginated;
   kpis?: KpisPayload;
   flash?: { success?: string; error?: string };
+  /** Create/Edit abrem a lista com o drawer já aberto (URLs /novo e /{id}/editar). */
+  drawerInicial?: PlanoDrawerModo | null;
   [key: string]: unknown;
 }
 
@@ -202,16 +206,15 @@ function CicloDistribuicao({ kpis }: { kpis: KpisPayload }) {
   );
 }
 
+// Pílula do protótipo (`cr-pill neutro` / `inativo`): sem ícone, com borda de 1px.
 function StatusBadge({ ativo }: { ativo: boolean }) {
-  return ativo ? (
-    <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success-fg ring-1 ring-success/20">
-      <CheckCircle2 size={11} />
-      ativo
-    </span>
-  ) : (
-    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground ring-1 ring-border">
-      <XCircle size={11} />
-      inativo
+  return (
+    <span
+      className={`inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+        ativo ? 'border-primary/25 bg-primary/10 text-primary' : 'border-border bg-muted text-muted-foreground'
+      }`}
+    >
+      {ativo ? 'ativo' : 'inativo'}
     </span>
   );
 }
@@ -259,8 +262,21 @@ export default function PlanosIndex(props: PageProps) {
   const [showCmdPalette, setShowCmdPalette] = useState(false);
   const [showCheatsheet, setShowCheatsheet] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  // Novo/Editar abrem o drawer sobre a lista (protótipo rb-planos), não uma página à parte.
+  const [drawer, setDrawer] = useState<PlanoDrawerModo | null>(props.drawerInicial ?? null);
 
   const rows = plans?.data ?? [];
+
+  function abrirEdicao(p: PlanRow) {
+    setDrawer({
+      modo: 'editar',
+      plan: {
+        id: p.id, name: p.name, slug: p.slug, description: p.description, descricao_curta: p.descricao_curta,
+        valor: p.valor, ciclo: p.ciclo, ciclo_dias: p.ciclo_dias, trial_days: p.trial_days, ativo: p.ativo,
+        fiscal_type: p.fiscal_type, fiscal_cfop: p.fiscal_cfop, fiscal_servico: p.fiscal_servico,
+      },
+    });
+  }
 
   // Onda 21 v9,75 — Tour onboarding 1ª vez (TOUR_DONE_KEY compartilhado com Index Assinaturas).
   useEffect(() => {
@@ -299,7 +315,7 @@ export default function PlanosIndex(props: PageProps) {
         }
       } else if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
-        router.visit('/recurring-billing/planos/novo');
+        setDrawer({ modo: 'novo' });
       } else if (e.key === '?') {
         e.preventDefault();
         setShowCheatsheet(true);
@@ -308,9 +324,10 @@ export default function PlanosIndex(props: PageProps) {
         setShowCmdPalette(true);
       }
     };
+    if (drawer) return; // com o drawer aberto, as teclas são do formulário
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [rows, activeId]);
+  }, [rows, activeId, drawer]);
 
   // Onda 21 v9,75 — KPIs derivados (ticket médio + plano top vendido).
   const ticketMedio = useMemo(() => {
@@ -389,14 +406,15 @@ export default function PlanosIndex(props: PageProps) {
               >
                 <kbd className="rounded bg-muted px-1 text-[10px] font-mono text-muted-foreground ring-1 ring-border">?</kbd>
               </button>
-              <Link
-                href="/recurring-billing/planos/novo"
+              <button
+                type="button"
+                onClick={() => setDrawer({ modo: 'novo' })}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary"
               >
                 <Plus size={14} />
                 Novo plano
                 <kbd className="ml-1 rounded bg-primary px-1 text-[10px] font-mono">N</kbd>
-              </Link>
+              </button>
             </div>
           </div>
         </header>
@@ -482,7 +500,7 @@ export default function PlanosIndex(props: PageProps) {
 
           <Deferred data="plans" fallback={<ListSkeleton />}>
             {rows.length === 0 ? (
-              <EmptyState />
+              <EmptyState onNovo={() => setDrawer({ modo: 'novo' })} />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -535,14 +553,15 @@ export default function PlanosIndex(props: PageProps) {
                         </td>
                         <td className="px-4 py-2.5 text-right">
                           <div className="inline-flex items-center gap-1">
-                            <Link
-                              href={`/recurring-billing/planos/${p.id}/editar`}
+                            <button
+                              type="button"
+                              onClick={() => abrirEdicao(p)}
                               className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-foreground hover:bg-muted"
                               title="Editar"
                             >
                               <Pencil size={12} />
                               Editar
-                            </Link>
+                            </button>
                             <button
                               type="button"
                               onClick={() => handleDelete(p)}
@@ -577,6 +596,7 @@ export default function PlanosIndex(props: PageProps) {
       </div>
 
       {/* Onda 21 v9,75 — Overlays: Tour onboarding (1ª vez compartilhado), CheatSheet (?), CmdPalette (⌘K) */}
+      {drawer && <PlanoFormDrawer key={drawer.modo === 'editar' ? drawer.plan.id : 'novo'} alvo={drawer} onClose={() => setDrawer(null)} />}
       {showTour && (
         <TourOnboarding onClose={() => setShowTour(false)} />
       )}
@@ -594,7 +614,8 @@ export default function PlanosIndex(props: PageProps) {
           onPick={(item) => {
             setShowCmdPalette(false);
             if (item.kind === 'plan') {
-              router.visit(`/recurring-billing/planos/${item.id}/editar`);
+              const alvo = rows.find((r) => r.id === item.id);
+              if (alvo) abrirEdicao(alvo);
             } else if (item.kind === 'sub') {
               router.visit('/recurring-billing');
             }
@@ -609,7 +630,7 @@ export default function PlanosIndex(props: PageProps) {
 // EMPTY + SKELETONS
 // ────────────────────────────────────────────────────────────────
 
-function EmptyState() {
+function EmptyState({ onNovo }: { onNovo: () => void }) {
   return (
     <div className="p-12 text-center">
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -619,13 +640,14 @@ function EmptyState() {
       <div className="mt-1 text-sm text-muted-foreground">
         Crie o primeiro plano pra começar a vincular assinaturas.
       </div>
-      <Link
-        href="/recurring-billing/planos/novo"
+      <button
+        type="button"
+        onClick={onNovo}
         className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary"
       >
         <Plus size={14} />
         Criar primeiro plano
-      </Link>
+      </button>
     </div>
   );
 }

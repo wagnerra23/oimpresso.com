@@ -14,7 +14,7 @@ module: Fiscal
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fiscal/**` + `resources/js/Pages/Fiscal/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 128 arquivos em 13 papéis.
+**Total mapeado:** 130 arquivos em 13 papéis.
 
 ## Controllers — 12
 
@@ -118,12 +118,12 @@ module: Fiscal
 - [Nfse.casos.md](../../../resources/js/Pages/Fiscal/Nfse.casos.md)
 - [Sped.casos.md](../../../resources/js/Pages/Fiscal/Sped.casos.md)
 
-## Testes (Pest) — 43
+## Testes (Pest) — 44
 
-- 43 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
+- 44 em [Modules/Fiscal/Tests/Feature/](../../../Modules/Fiscal/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 16
+## Demais arquivos (manifestos, docs, assets e misc) — 17
 
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt-BR/fiscal.php)
 - [fiscal.php](../../../Modules/Fiscal/Resources/lang/pt/fiscal.php)
@@ -138,6 +138,7 @@ module: Fiscal
 - [densidade-fiscal.ts](../../../resources/js/Pages/Fiscal/_lib/densidade-fiscal.ts)
 - [fiscal-helpers.ts](../../../resources/js/Pages/Fiscal/_lib/fiscal-helpers.ts)
 - [icones-alerta.ts](../../../resources/js/Pages/Fiscal/_lib/icones-alerta.ts)
+- [lote-saida.ts](../../../resources/js/Pages/Fiscal/_lib/lote-saida.ts)
 - [procedencia.ts](../../../resources/js/Pages/Fiscal/_lib/procedencia.ts)
 - [sefaz-actions.ts](../../../resources/js/Pages/Fiscal/_lib/sefaz-actions.ts)
 - [sefaz-codes.ts](../../../resources/js/Pages/Fiscal/_lib/sefaz-codes.ts)

@@ -52,8 +52,14 @@ class ConfiguracoesController extends Controller
             // em CAPTERRA-FICHA.md (Stripe Smart Retries / Asaas reenvios).
             'regua_dunning' => [
                 'descricao' => 'Régua padrão de cobrança em caso de falha de pagamento. '
-                    . 'Cada retentativa dispara dunning (boleto novo, novo email, novo WhatsApp). '
                     . 'Após a 3ª retentativa, a assinatura entra em past_due → fail e exige ação manual.',
+                // Auditoria RB b7 (2026-11-23): o módulo não envia e-mail nem WhatsApp de cobrança
+                // (nenhum Mail/Notification/Whatsapp em Modules/RecurringBilling). A tela dizia que
+                // cada retentativa mandava os dois; agora diz que os canais não estão disponíveis.
+                'canais_aviso' => [
+                    ['canal' => 'E-mail', 'disponivel' => false],
+                    ['canal' => 'WhatsApp', 'disponivel' => false],
+                ],
                 'retentativas' => [
                     [
                         'ordem'      => 1,
@@ -66,7 +72,7 @@ class ConfiguracoesController extends Controller
                         'ordem'      => 2,
                         'dias'       => 7,
                         'rotulo'     => '2ª retentativa',
-                        'descricao'  => 'Cobrança persistente — emite dunning escalado (email + WhatsApp).',
+                        'descricao'  => 'Cobrança persistente — nova tentativa no gateway.',
                         'severidade' => 'warn',
                     ],
                     [
