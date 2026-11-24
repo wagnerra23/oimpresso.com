@@ -56,6 +56,16 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Teste:** `SellReturnCreateContratoTest` — `UC-SRCRE-07`.
 - **Status: 🧪**
 
+## UC-SRCRE-08 · Cada venda traz o cliente dela `[must]`
+- **Aceite:** Dado uma venda finalizada com cliente · Quando aparece na lista · Então traz o `contato_id` do cliente, que a tela usa para só juntar na mesma devolução vendas do mesmo cliente (pedido [W] 2026-11-24).
+- **Teste:** `SellReturnCreateContratoTest` — `UC-SRCRE-08`.
+- **Status: 🧪**
+
+## UC-SRCRE-09 · Várias vendas do mesmo cliente viram uma fila de devoluções `[must]`
+- **Aceite:** Dado duas ou mais vendas do mesmo cliente escolhidas com um clique · Quando o usuário continua · Então o registro abre a primeira e, a cada devolução salva, abre a próxima na ordem escolhida; cada venda vira a sua própria devolução, pelo mesmo `store()` (pedido [W] 2026-11-24).
+- **Teste:** `tests/js/sell-return-fila.test.ts` — `UC-SRCRE-09`.
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -65,3 +75,4 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Trilha do tempo
 - 2026-11-24 · [CC] tela nasce por criar-tela.mjs (PT-01) e é preenchida com a etapa 1 do protótipo Devolução V3. Refs: UI-0013 · ADR 0264 G-1/G-2 · ADR 0093.
+- 2026-11-24 · [CC] pedido [W] por print: um clique na linha escolhe a venda e soma no totalizador; várias vendas do mesmo cliente entram juntas (UC-SRCRE-08/09).
