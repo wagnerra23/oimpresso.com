@@ -380,6 +380,16 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 - **Fora destes três casos:** NFS-e marcada fica fora do lote e a confirmação diz quantas; o PDF/XML de NFS-e é de outro módulo.
 
+## UC-FCKP-25 — O alerta de falha da busca não mostra o caminho do servidor `[must]`
+
+**Dado** a busca de notas recebidas falhando com um erro do PHP que cita o arquivo (`called in /home/... on line N`)
+**Quando** o alerta é gravado, ou um alerta antigo com o caminho inteiro aparece no cockpit
+**Então** o texto mostrado traz o erro sem o caminho do servidor; o log continua com a mensagem inteira.
+
+- **Por que existe:** em 2026-11-24 o alerta do cockpit exibia o caminho da conta de hospedagem a quem abrisse a tela.
+- **Teste:** `Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php` — `UC-FCKP-25 · …`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)

@@ -297,6 +297,16 @@ corresponde — buscar pelo nome de um emitente não traz a nota do outro.
 - **Teste:** `DfeControllerTest` — `UC-FDFE-17 · a aba Histórico mostra as manifestações reais, com a justificativa do evento`.
 - **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-FDFE-18 — A busca e a manifestação chegam a montar a conexão com a SEFAZ `[must]` `[T0]`
+
+**Dado** uma empresa com CNPJ e certificado A1
+**Quando** a busca diária de notas recebidas ou uma manifestação monta a conexão do NFePHP
+**Então** a conexão sai com o modelo 55 e segue para a SEFAZ, sem erro de tipo.
+
+- **Por que existe:** em 2026-11-24 o cockpit do biz=1 mostrava "A busca das notas recebidas na SEFAZ falhou" com `Tools::model(): Argument #1 ($model) must be of type ?int, string given`. Os dois services são `strict_types` e passavam `'55'`; os testes existentes injetavam um `toolsFactory` e nunca montavam o Tools real.
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-18 · a busca e a manifestação montam o Tools do NFePHP com o modelo 55, sem TypeError` (os dois services, Tools real, certificado autoassinado gerado no teste).
+- **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)

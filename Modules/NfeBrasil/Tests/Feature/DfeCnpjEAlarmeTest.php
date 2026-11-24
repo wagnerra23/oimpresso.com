@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Fiscal\Http\Controllers\CockpitController;
 use Modules\NfeBrasil\Jobs\BuscarDfesRecebidosJob;
+use Modules\NfeBrasil\Services\CertificadoService;
+use Modules\NfeBrasil\Services\Manifestacao\DistribuicaoDfeService;
+use Modules\NfeBrasil\Services\Manifestacao\ManifestacaoService;
 use Modules\NfeBrasil\Support\CnpjDoEmitente;
+use NFePHP\NFe\Tools;
 
 uses(Tests\TestCase::class);
 
@@ -97,4 +101,51 @@ it('UC-FCKP-14 · o cockpit Fiscal mostra a falha só para a própria empresa, e
 
     DB::table('mcp_alertas_eventos')->where('business_id', $this->a)->where('tipo', BuscarDfesRecebidosJob::TIPO_ALERTA)->update(['status' => 'arquivado']);
     expect($m->invoke($c, $this->a))->toBeNull();
+});
+
+/** Certificado A1 autoassinado, só para o NFePHP conseguir ler (nada vai à SEFAZ). */
+function dfeAlarmePfx(string $senha): string
+{
+    $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+    $csr = openssl_csr_new(['commonName' => 'TESTE DFE FICTICIO'], $key, ['digest_alg' => 'sha256']);
+    $x509 = openssl_csr_sign($csr, null, $key, 365, ['digest_alg' => 'sha256']);
+    openssl_pkcs12_export($x509, $pfx, $key, $senha);
+
+    return $pfx;
+}
+
+it('UC-FDFE-18 · a busca e a manifestação montam o Tools do NFePHP com o modelo 55, sem TypeError', function (string $classe) {
+    // Em produção (2026-11-24) toda busca morria em "Tools::model(): Argument #1 ($model) must be of
+    // type ?int, string given": os dois services são strict_types e passavam '55'. Os outros testes
+    // injetam um toolsFactory e nunca chegavam ao NFePHP de verdade; aqui o Tools é o real.
+    cnpj41($this->a, '11.222.333/0001-81', null); # pii-allowlist: CNPJ fictício de fixture
+    $cert = Mockery::mock(CertificadoService::class);
+    $cert->shouldReceive('carregarParaSefaz')->andReturn(['pfx_binary' => dfeAlarmePfx('1234'), 'senha' => '1234']);
+
+    $m = new ReflectionMethod($classe, 'buildTools');
+    $m->setAccessible(true);
+    $tools = $m->invoke(new $classe($cert), $this->a);
+
+    expect($tools)->toBeInstanceOf(Tools::class);
+    expect($tools->model())->toBe(55);
+})->with([DistribuicaoDfeService::class, ManifestacaoService::class]);
+
+it('UC-FCKP-25 · o alerta da falha não mostra o caminho do servidor, nem os gravados antes da correção', function () {
+    $erro = 'NFePHP\NFe\Common\Tools::model(): Argument #1 ($model) must be of type ?int, string given, '
+        . 'called in /home/conta/domains/exemplo/Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php on line 363';
+
+    (new BuscarDfesRecebidosJob($this->a))->failed(new TypeError($erro));
+    $gravado = DB::table('mcp_alertas_eventos')->where('business_id', $this->a)->where('tipo', BuscarDfesRecebidosJob::TIPO_ALERTA)->value('descricao');
+    expect($gravado)->toBe('NFePHP\NFe\Common\Tools::model(): Argument #1 ($model) must be of type ?int, string given');
+
+    // Alerta gravado antes da correção, com o caminho inteiro: o cockpit limpa na hora de mostrar.
+    DB::table('mcp_alertas_eventos')->where('business_id', $this->a)->where('tipo', BuscarDfesRecebidosJob::TIPO_ALERTA)->update(['descricao' => $erro]);
+    session(['user.business_id' => $this->a]);
+    $alertas = new ReflectionMethod(CockpitController::class, 'computeAlerts');
+    $alertas->setAccessible(true);
+    $sub = collect($alertas->invoke(new CockpitController(), ['cert' => null, 'dfeCount' => 0]))->firstWhere('title', 'A busca das notas recebidas na SEFAZ falhou')['sub'] ?? null;
+
+    expect($sub)->not->toBeNull();
+    expect($sub)->not->toContain('/home/');
+    expect($sub)->not->toContain('called in');
 });
