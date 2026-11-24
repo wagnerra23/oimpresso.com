@@ -115,17 +115,17 @@ const colunas: ColumnDef<VendaOrigem>[] = [
       const v = row.original;
       // Visita Inertia → SellReturn/Add. A venda que já tem devolução abre a mesma tela, na edição.
       return (
-        // O clique no botão não pode também marcar a linha.
-        <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         <Button asChild variant="outline" size="sm">
           <Link
             href={`/sell-return/add/${v.id}`}
+            // O clique no botão não pode também marcar a linha.
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
             aria-label={v.devolucao_numero ? `Abrir a devolução da venda ${v.numero}` : `Usar a venda ${v.numero}`}
           >
             {v.devolucao_numero ? 'Abrir devolução' : 'Usar esta venda'}
           </Link>
         </Button>
-        </span>
       );
     },
   },
