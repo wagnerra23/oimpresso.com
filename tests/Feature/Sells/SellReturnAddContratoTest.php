@@ -600,8 +600,10 @@ it('UC-SRADD-13 [T0] a tela sabe se a venda tem nota: só a NF-e autorizada da M
     expect(DB::table('nfe_emissoes')->where('transaction_id', $a)->where('business_id', $this->outroBizId)->where('status', 'autorizada')->exists())->toBeTrue();
     expect(sraddVenda($this, $a)['nota'])->toBeNull();
 
-    // Controle positivo: autorizada da mesma empresa vira a nota da venda (NFC-e pelo modelo 65).
-    $emissao($this->bizId, $a, 'autorizada', 9_131_003);
+    // Controle positivo: a emissão da venda (única por empresa+venda — nfe_emissoes_biz_tx_unique)
+    // passa a autorizada e vira a nota da venda; NFC-e pelo modelo 65.
+    DB::table('nfe_emissoes')->where('business_id', $this->bizId)->where('transaction_id', $a)
+        ->update(['status' => 'autorizada', 'numero' => 9_131_003]);
     expect(sraddVenda($this, $a)['nota'])->toBe(['numero' => '9131003', 'tipo' => 'NF-e']);
     $emissao($this->bizId, $b, 'autorizada', 9_131_004, '65');
     expect(sraddVenda($this, $b)['nota'])->toBe(['numero' => '9131004', 'tipo' => 'NFC-e']);
