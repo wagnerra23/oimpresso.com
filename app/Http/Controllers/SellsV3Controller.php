@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Business;
 use App\Domain\Fsm\Models\SaleProcess;
+use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Scopes\ScopeByBusiness;
 use App\Services\Sells\IniciarPipelineVendaV3;
 use App\BusinessLocation;
@@ -131,7 +132,7 @@ class SellsV3Controller extends Controller
             ->whereNotIn('key', ['on_hold', 'cancelled'])
             ->orderBy('sort_order')
             ->get(['key', 'name'])
-            ->map(fn ($e) => ['key' => (string) $e->key, 'label' => (string) $e->name])
+            ->map(fn (SaleProcessStage $e) => ['key' => (string) $e->key, 'label' => (string) $e->name])
             ->values()
             ->all();
     }
