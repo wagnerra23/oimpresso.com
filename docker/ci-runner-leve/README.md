@@ -104,6 +104,29 @@ Depois liga o roteamento no GitHub (sem PR):
 gh variable set CI_RUNNER_LEVE --body ct100 --repo wagnerra23/oimpresso.com
 ```
 
+## Reiniciar uma vaga sem derrubar um job
+
+Não reinicie vaga com `systemctl restart ci-runner-leve@N` "quando ela estiver livre". Com a fila
+cheia, a vaga fica livre só ~2 s entre um job e o seguinte, e o GitHub entrega o próximo nesse
+intervalo. O job morto não mostra erro na hora: fica **10 minutos em andamento sem nenhum passo**,
+sem log, e cai com *"The self-hosted runner lost communication with the server"*.
+
+Medido em 2026-11-24: um laço manual que esperava `pgrep Runner.Worker` dar vazio e então reiniciava
+as vagas 2, 4 e 7 (para esvaziar o tmpfs do `_work`) derrubou dois jobs: vaga 4, job entregue
+20:11:52Z, restart 20:11:53Z; vaga 7, job anterior terminou 20:22:44Z, o seguinte chegou 20:22:46Z,
+restart 20:22:46Z. Nos 9.174 runs do dia, esses foram os únicos jobs de runner que terminaram sem
+nenhum passo por causa de runner (outros 3 sem passos eram cancelamento por `concurrency`).
+
+- Para esvaziar o `_work`, não reinicie: o hook `limpa-workspace.sh` limpa antes de cada job.
+- Se precisar parar uma vaga mesmo assim, olhe logo depois se ela pegou job no instante da parada:
+  `docker logs --since <hora-da-checagem> ci-leve-N 2>&1 | grep 'Running job:'`. Se pegou, re-rode
+  o job (`gh run rerun <run> --failed`) em vez de esperar os 10 minutos.
+- O `atualiza.sh` faz a cópia da credencial antes da última checagem (a janela vira só o
+  `systemctl stop`) e imprime `AVISO vaga N: o job '…' chegou no instante da parada` no journal
+  quando mesmo assim pega um. Ver: `journalctl -u ci-runner-leve-atualiza | grep AVISO`.
+- Para achar jobs presos assim: `steps` vazio na API (`gh api repos/<repo>/actions/jobs/<id> --jq
+  '.steps|length'` = 0) com `runner_name` `ct100-leve-*` e anotação "lost communication".
+
 ## Desligar (se o CT 100 cair, os jobs voltam pro GitHub)
 
 ```bash

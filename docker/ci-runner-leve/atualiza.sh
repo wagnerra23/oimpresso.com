@@ -52,13 +52,28 @@ for C in $(docker ps -a --format '{{.Names}}' | grep -E '^ci-leve-[0-9]+$' | sor
   for _ in $(seq 1 60); do ocupada "$N" || break; sleep 30; done
   if ocupada "$N"; then echo "vaga $N segue ocupada após 30 min; fica para a próxima volta"; falhas=1; continue; fi
 
+  # Tudo o que é só leitura vem ANTES da última checagem, para que entre "livre" e
+  # "parada" não sobre nada além do systemctl stop. Medido 2026-11-24: com fila cheia
+  # a vaga fica livre ~2 s entre um job e o seguinte (vaga 7: job terminou 20:22:44Z,
+  # o próximo chegou 20:22:46Z). Um restart nesse intervalo mata o job recém-entregue:
+  # ele fica 10 min "em andamento" sem nenhum passo e cai com "The self-hosted runner
+  # lost communication with the server" (jobs 138740819248 e 138749776154).
   tmp=$(mktemp -d)
   for f in "${CREDS[@]}"; do docker cp -a "$C:/home/runner/$f" "$tmp/$f"; done
   # Registro antigo pode não ter --disableupdate; marca na credencial copiada,
   # que é o mesmo campo que o config.sh grava (RunnerSettings.DisableUpdate).
   jq '.disableUpdate = true' "$tmp/.runner" > "$tmp/.runner.novo" && cat "$tmp/.runner.novo" > "$tmp/.runner"
   rm -f "$tmp/.runner.novo"
+  desde=$(date -u -d '-2 sec' +%Y-%m-%dT%H:%M:%SZ)
+  if ocupada "$N"; then
+    echo "vaga $N pegou job durante a cópia da credencial; fica para a próxima volta"
+    find "$tmp" -mindepth 1 -delete && rmdir "$tmp"; falhas=1; continue
+  fi
   systemctl stop "ci-runner-leve@$N"
+  # A janela não chega a zero: o GitHub pode entregar o job entre a checagem e o stop.
+  # Quando acontece, o runner já imprimiu "Running job:"; avisa para re-rodar.
+  perdido=$(docker logs --since "$desde" "$C" 2>&1 | sed -n 's/^.*Z: Running job: //p' | tail -1)
+  [ -n "$perdido" ] && echo "AVISO vaga $N: o job '$perdido' chegou no instante da parada e vai cair em ~10 min; re-rode com gh run rerun <run> --failed"
   docker rename "$C" "$C-anterior"
   bash "$DIR/cria-vaga.sh" "$N"
   for f in "${CREDS[@]}"; do docker cp -a "$tmp/$f" "$C:/home/runner/$f"; done
