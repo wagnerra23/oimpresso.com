@@ -159,7 +159,7 @@ it('D5 — README cita 4 anti-patterns proibidos Tier 0', function () {
     expect($readme)->toContain('US-RB-044');  // NFe-de-boleto-pago canônico irrevogável
     expect($readme)->toContain('Crypt::encryptString');  // credenciais
     expect($readme)->toContain('forceDelete');  // append-only canon
-    expect($readme)->toContain('BoletoCredentialResolver');  // bypass guard
+    expect($readme)->toContain('ContaBancaria::credencialGateway');  // credencial só pelo PaymentGateway (desde 2026-11-24)
 });
 
 // ---------- D9 (+4): zero-cost OTel canon ----------

@@ -32,7 +32,8 @@ class IniciarPipelineVendaV3
 {
     public const ORIGEM = 'venda_v3';
 
-    private const PROCESSO = 'venda_com_producao';
+    /** Público: a Situação da V3 (SellsV3Controller::etapasDaVenda) mostra as etapas deste processo. */
+    public const PROCESSO = 'venda_com_producao';
 
     public function __construct(private InitialStageResolver $resolver)
     {

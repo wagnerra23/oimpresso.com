@@ -208,8 +208,10 @@ describe('Venda V3 gravando · sem dados de cena', () => {
   /* UC-V408 — comissão: o seletor "Base" abre pelo teclado (o Radix monta as opções só aberto). */
   function abrirBaseDaComissao() {
     fireEvent.click(screen.getByRole('button', { name: 'Configurar comissão' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
-    const trigger = screen.getByText('Líquido de desconto').closest('button') as HTMLElement;
+    fireEvent.click(screen.getByRole('button', { name: '+ Funcionário' }));
+    // "Líquido de desconto" também é rótulo da faixa de bases no topo da gaveta (UC-V411):
+    // o seletor é o que está dentro de um botão.
+    const trigger = screen.getAllByText('Líquido de desconto').map((e) => e.closest('button')).find(Boolean) as HTMLElement;
     fireEvent.keyDown(trigger, { key: 'Enter' });
   }
 

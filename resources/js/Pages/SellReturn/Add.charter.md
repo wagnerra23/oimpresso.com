@@ -50,6 +50,13 @@ Devolver item de uma venda: quanto volta pro estoque e quanto vira saldo a pagar
   `POST /fiscal/acoes/venda-devolucao/{devolucao}/nfe`. A seção fica fora do formulário e não emite ao
   salvar: a segunda devolução substitui a primeira (CU-DEV-03) e a NF-e não volta atrás (UC-SRADD-10..12).
 
+- R10 Layout do protótipo Devolução V3, venda sem nota ([W] 2026-11-24): o operador digita o que **volta agora**
+  (teto = vendida − já devolvida); o post ao `store()` continua acumulado e idêntico (`acumuladoTxt()`).
+  Sem nada voltando, o botão fica desabilitado e a prévia financeira some. O botão diz "Devolver ao estoque"
+  (o protótipo diz "Estornar", mas devolução nunca é "estorno" — `memory/dominio/vendas.md`). O depósito de
+  entrada é o local da venda, só exibido: escolher outro e o motivo por item são a onda 2 (RUNBOOK §6).
+  Efeito colateral declarado: esta tela não REDUZ mais uma devolução já salva nem salva só desconto/número.
+
 ## Fora desta tela (do texto revisado, não implementado)
 
 - R3 Motivo em texto livre no histórico: o `store()` não grava motivo — exigiria mudar a escrita.

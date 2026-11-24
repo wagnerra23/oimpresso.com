@@ -19,7 +19,7 @@
  * ⚠️ TIER 0 — VALOR: comissão é dinheiro devido a alguém. A tela segue sem gravar.
  */
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
@@ -121,7 +121,6 @@ export default function ComissaoDrawer({
   margemConhecida?: boolean;
 }) {
   const cockpit = useCockpit();
-  const [novoTipo, setNovoTipo] = useState<TipoBeneficiario>('funcionario');
 
   const total = useMemo(() => comissaoTotal(beneficiarios, totais), [beneficiarios, totais]);
   const pctVenda = percentualSobreALiquida(total, totais);
@@ -129,11 +128,14 @@ export default function ComissaoDrawer({
   const alerta = margemConhecida && comeMaisQueMetadeDaMargem(total, totais);
   const bases = margemConhecida ? BASES : BASES.filter((b) => b.value !== 'margem');
 
-  const adicionar = () => {
+  /* Um botão por tipo, como a âncora (`ComissaoModal`, venda-v3.jsx). Os padrões do
+     beneficiário novo (base líquida, 3%) ficam os de antes: o protótipo põe agência em margem
+     a 5%, e mudar o padrão mudaria o valor da comissão (REGRA MESTRE) — fica de fora da forma. */
+  const adicionar = (tipo: TipoBeneficiario) => {
     const nome = pessoas[0]?.nome ?? '';
     onBeneficiariosChange([
       ...beneficiarios,
-      { k: Date.now(), tipo: novoTipo, nome, base: 'liquido', regra: 'percentual', pct: '3', valor: '0' },
+      { k: Date.now(), tipo, nome, base: 'liquido', regra: 'percentual', pct: '3', valor: '0' },
     ]);
   };
 
@@ -146,35 +148,42 @@ export default function ComissaoDrawer({
     <Dialog open={aberto} onOpenChange={(v) => !v && onFechar()}>
       <DialogContent container={cockpit} className="venda-v3 max-h-[88vh] sm:max-w-[1000px]">
         <DialogHeader>
-          <DialogTitle>Modelo de comissão da venda</DialogTitle>
+          <DialogTitle>Comissão desta venda</DialogTitle>
         </DialogHeader>
 
         <Stack gap={4} className="min-h-0 overflow-auto">
-          {/* ─── gatilho ─────────────────────────────────────────────────── */}
-          <Grid gap={3} className="sm:grid-cols-2">
-            <Escolha label="Quando a comissão passa a ser devida" value={gatilho} onChange={onGatilhoChange} options={GATILHOS} />
-            <div className="self-end">
-              <span className="block text-[11.5px] leading-snug text-muted-foreground">
-                {gatilho === 'recebimento'
-                  ? 'Cada parcela recebida libera a fatia dela — venda inadimplente não gera comissão.'
-                  : 'O direito nasce inteiro no evento, mesmo antes de o cliente pagar.'}
-              </span>
+          {/* ─── topo: bases da venda + gatilho (faixa da âncora) ─────────── */}
+          <Inline gap={4} align="end" wrap data-testid="comissao-bases" className="rounded-lg border border-border bg-muted/40 p-3">
+            {([
+              ['Bruto', totais.bruto],
+              ['Líquido de desconto', totais.liquido],
+              ['Margem estimada', margemConhecida ? totais.margem : null],
+            ] as const).map(([l, v]) => (
+              <div key={l}>
+                <Lbl className="mb-0">{l}</Lbl>
+                <b className="text-[13.5px] tabular-nums">{v === null ? '—' : brl(v)}</b>
+              </div>
+            ))}
+            <div className="ml-auto min-w-[240px]">
+              <Escolha label="Quando a comissão passa a ser devida" value={gatilho} onChange={onGatilhoChange} options={GATILHOS} />
             </div>
-          </Grid>
+          </Inline>
+          <span className="-mt-2 block text-[11.5px] leading-snug text-muted-foreground">
+            {gatilho === 'recebimento'
+              ? 'Cada parcela recebida libera a fatia dela — venda inadimplente não gera comissão.'
+              : 'O direito nasce inteiro no evento, mesmo antes de o cliente pagar.'}
+          </span>
 
           {/* ─── beneficiários ───────────────────────────────────────────── */}
-          <Inline gap={3} align="end" className="flex-wrap">
-            <div className="min-w-[260px] flex-1">
-              <Escolha
-                label="Adicionar beneficiário"
-                value={novoTipo}
-                onChange={setNovoTipo}
-                options={TIPOS_BENEFICIARIO.map((t) => ({ value: t.k, label: t.l }))}
-              />
-            </div>
-            <Button type="button" onClick={adicionar}>
-              Adicionar
-            </Button>
+          <Inline gap={2} align="center" className="flex-wrap">
+            <Lbl className="mb-0">Beneficiários</Lbl>
+            <Inline gap={1} wrap aria-label="Adicionar beneficiário" className="ml-auto">
+              {TIPOS_BENEFICIARIO.map((t) => (
+                <Button key={t.k} type="button" variant="outline" size="sm" className="h-[26px] rounded-full px-[9px] text-[12px]" onClick={() => adicionar(t.k)}>
+                  + {t.l.split(' (')[0]}
+                </Button>
+              ))}
+            </Inline>
           </Inline>
 
           {beneficiarios.length === 0 ? (
@@ -240,38 +249,34 @@ export default function ComissaoDrawer({
             </Stack>
           )}
 
-          {/* ─── resumo ──────────────────────────────────────────────────── */}
-          <Inline gap={4} align="center" className={'flex-wrap rounded-lg border p-3 ' + (alerta ? 'border-warning/40 bg-warning-soft' : 'border-border bg-muted/40')}>
-            <div>
-              <Lbl className="mb-0">Comissão da venda</Lbl>
-              <b className="text-[15px] tabular-nums">{brl(total)}</b>
-              {total > 0 && <span className="ml-1 text-[11.5px] text-muted-foreground">· {num(pctVenda, 2)}% da venda</span>}
+          {/* ─── avisos (na âncora, `Alert` no fim do corpo) ─────────────── */}
+          {alerta && (
+            <div role="status" className="rounded-lg border border-warning/40 bg-warning-soft p-3 text-[12.5px] leading-snug text-warning-fg">
+              A comissão come mais da metade da margem desta venda.
             </div>
-            {gatilho === 'recebimento' && (
-              <div>
-                <Lbl className="mb-0">Liberada até agora</Lbl>
-                <b className="text-[15px] tabular-nums">{brl(liberada)}</b>
-              </div>
-            )}
-            {alerta && (
-              <span className="ml-auto text-[11.5px] leading-snug text-warning-fg">
-                A comissão come mais da metade da margem desta venda.
-              </span>
-            )}
-            {!margemConhecida && (
-              <span className="ml-auto text-[11.5px] leading-snug text-muted-foreground">
-                A margem depende do custo dos produtos, que a nova venda ainda não lê.
-              </span>
-            )}
-          </Inline>
+          )}
+          {!margemConhecida && (
+            <span className="block text-[11.5px] leading-snug text-muted-foreground">
+              A margem depende do custo dos produtos, que a nova venda ainda não lê.
+            </span>
+          )}
         </Stack>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onFechar}>
-            Fechar
-          </Button>
+        {/* Rodapé da âncora: o total e um só botão. O "Confirmar comissão" que havia ao lado
+            fazia o mesmo que "Fechar" (`onFechar`): o que se configura vale na hora. */}
+        <DialogFooter className="sm:items-center">
+          <div data-testid="comissao-total" className="mr-auto">
+            <Lbl className="mb-0">Total de comissão</Lbl>
+            <b className="text-[17px] tabular-nums">{brl(total)}</b>
+            {total > 0 && <span className="ml-1 text-[11.5px] text-muted-foreground">· {num(pctVenda, 2)}% da venda</span>}
+            {gatilho === 'recebimento' && (
+              <span className="ml-3 text-[11.5px] text-muted-foreground">
+                Liberada até agora <b className="tabular-nums text-foreground">{brl(liberada)}</b>
+              </span>
+            )}
+          </div>
           <Button type="button" onClick={onFechar}>
-            Confirmar comissão
+            Fechar
           </Button>
         </DialogFooter>
       </DialogContent>

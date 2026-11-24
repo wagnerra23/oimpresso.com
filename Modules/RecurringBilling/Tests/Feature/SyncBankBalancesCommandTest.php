@@ -26,11 +26,26 @@ beforeEach(function () {
         Schema::create('fin_contas_bancarias', function (Blueprint $t) {
             $t->bigIncrements('id');
             $t->unsignedInteger('business_id');
-            $t->unsignedBigInteger('rb_gateway_credential_id')->nullable();
+            $t->unsignedInteger('account_id')->nullable();
+            $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
             $t->decimal('saldo_cached', 22, 4)->nullable();
             $t->timestamp('saldo_atualizado_em')->nullable();
             $t->string('tipo_conta', 50)->nullable();
             $t->softDeletes();
+            $t->timestamps();
+        });
+    }
+
+    // Desde a onda 4 (2026-11-24) o job seleciona as contas pela credencial do PaymentGateway.
+    if (! Schema::hasTable('payment_gateway_credentials')) {
+        Schema::create('payment_gateway_credentials', function (Blueprint $t) {
+            $t->id();
+            $t->unsignedInteger('business_id');
+            $t->string('gateway_key', 30);
+            $t->string('ambiente', 20)->default('production');
+            $t->boolean('ativo')->default(true);
+            $t->longText('config_json')->nullable();
+            $t->unsignedInteger('conta_bancaria_id')->nullable();
             $t->timestamps();
         });
     }
@@ -42,6 +57,7 @@ afterEach(function () {
     // corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
         Schema::dropIfExists('fin_contas_bancarias');
+        Schema::dropIfExists('payment_gateway_credentials');
     }
 });
 

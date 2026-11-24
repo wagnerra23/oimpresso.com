@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Support\Privacy\PiiRedactor;
-use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Models\ChargeAttempt;
 use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Models\Plan;
@@ -39,7 +38,6 @@ dataset('rb_pii_models', [
     'Invoice'           => [Invoice::class],
     'ChargeAttempt'     => [ChargeAttempt::class],
     'Plan'              => [Plan::class],
-    'BoletoCredential'  => [BoletoCredential::class],
 ]);
 
 it('Model %s usa LogsActivity trait (D7.b LGPD audit trail)', function (string $modelClass) {

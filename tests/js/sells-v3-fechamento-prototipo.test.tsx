@@ -100,13 +100,13 @@ describe('UC-V409 · o fechamento fala a língua do operador', () => {
     expect(within(r).getByText('A cada parcela recebida')).toBeTruthy();
 
     fireEvent.click(within(r).getByRole('button', { name: 'Configurar comissão' }));
-    expect(screen.getByRole('heading', { name: 'Modelo de comissão da venda' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Comissão desta venda' })).toBeTruthy();
   });
 
   it('com um beneficiário, o resumo mostra o mesmo valor e percentual da gaveta', () => {
     render(<SellsCreateV3 businessId={1} cena={cena} />);
     fireEvent.click(within(resumo()).getByRole('button', { name: 'Configurar comissão' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Funcionário' }));
 
     // A gaveta adiciona o funcionário com 3% sobre o líquido: 3% de 10,00 = 0,30.
     const gaveta = semEspaco(screen.getByRole('dialog').textContent);
