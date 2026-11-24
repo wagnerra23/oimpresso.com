@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Models\Invoice;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 
 uses(Tests\TestCase::class);
 
@@ -69,7 +69,7 @@ afterEach(function () {
  * Cenário 1 (idempotência): invoice já canceled → ok + skipped, sem chamar gateway.
  */
 it('UC-RBFAT-06 · retorna idempotente quando invoice já canceled (skip gateway)', function () {
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $boletos->shouldNotReceive('cancelar');
 
     $service = new AssinaturaCobrancaService($boletos);
@@ -94,7 +94,7 @@ it('UC-RBFAT-06 · retorna idempotente quando invoice já canceled (skip gateway
  * Cenário 2 (guard pago): invoice paga → 422 (use estorno).
  */
 it('UC-RBFAT-05 · bloqueia cancelamento quando invoice paga e sugere estorno', function () {
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $boletos->shouldNotReceive('cancelar');
 
     $service = new AssinaturaCobrancaService($boletos);
@@ -120,7 +120,7 @@ it('UC-RBFAT-05 · bloqueia cancelamento quando invoice paga e sugere estorno', 
  * Cenário 3 (happy path local-only): invoice open sem gateway_ref → cancela só local sem chamar gateway.
  */
 it('UC-RBFAT-07 · cancela local quando invoice nunca foi enviada ao gateway', function () {
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $boletos->shouldNotReceive('cancelar');
 
     $service = new AssinaturaCobrancaService($boletos);

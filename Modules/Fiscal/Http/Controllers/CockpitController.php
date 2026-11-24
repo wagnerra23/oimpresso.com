@@ -477,7 +477,7 @@ class CockpitController extends Controller
                 'level'  => 'crit',
                 'icon'   => 'receipt',
                 'title'  => 'A busca das notas recebidas na SEFAZ falhou',
-                'sub'    => mb_strimwidth((string) $falhaDfe->descricao, 0, 140, '…'),
+                'sub'    => mb_strimwidth(\Modules\NfeBrasil\Jobs\BuscarDfesRecebidosJob::mensagemParaTela((string) $falhaDfe->descricao), 0, 140, '…'),
                 'action' => 'Abrir configuração',
                 'goto'   => 'fiscal_config',
             ];

@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 180 arquivos em 16 papéis.
+**Total mapeado:** 182 arquivos em 16 papéis.
 
 ## Controllers — 14
 
@@ -33,7 +33,7 @@ module: PaymentGateway
 - [SicoobApiWebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php)
 - [WebhookProcessor.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php)
 
-## Services — 30
+## Services — 31
 
 - [BaixaDeBoletoMigrado.php](../../../Modules/PaymentGateway/Services/BaixaDeBoletoMigrado.php)
 - [CnabBoletoAdapter.php](../../../Modules/PaymentGateway/Services/Cnab/CnabBoletoAdapter.php)
@@ -49,6 +49,7 @@ module: PaymentGateway
 - [SicoobCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/SicoobCnabDriver.php)
 - [SicrediCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/SicrediCnabDriver.php)
 - [CobrancaDoAppGateway.php](../../../Modules/PaymentGateway/Services/CobrancaDoAppGateway.php)
+- [CopiaCredencialLegadaRb.php](../../../Modules/PaymentGateway/Services/CopiaCredencialLegadaRb.php)
 - [DescontoPontualidade.php](../../../Modules/PaymentGateway/Services/DescontoPontualidade.php)
 - [AsaasDriver.php](../../../Modules/PaymentGateway/Services/Drivers/AsaasDriver.php)
 - [BcbPixDriver.php](../../../Modules/PaymentGateway/Services/Drivers/BcbPixDriver.php)
@@ -113,7 +114,7 @@ module: PaymentGateway
 
 - [web.php](../../../Modules/PaymentGateway/Routes/web.php)
 
-## Migrations (schema) — 13
+## Migrations (schema) — 14
 
 - [2026_05_19_120000_create_payment_gateway_credentials_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120000_create_payment_gateway_credentials_table.php)
 - [2026_05_19_120001_create_cobrancas_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120001_create_cobrancas_table.php)
@@ -128,6 +129,7 @@ module: PaymentGateway
 - [2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php](../../../Modules/PaymentGateway/Database/Migrations/2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php)
 - [2026_10_27_150000_create_tef_transacoes_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_10_27_150000_create_tef_transacoes_table.php)
 - [2026_10_30_120000_add_cnab_ultimo_numero_to_payment_gateway_credentials.php](../../../Modules/PaymentGateway/Database/Migrations/2026_10_30_120000_add_cnab_ultimo_numero_to_payment_gateway_credentials.php)
+- [2026_11_23_120000_copia_credenciais_rb_para_payment_gateway.php](../../../Modules/PaymentGateway/Database/Migrations/2026_11_23_120000_copia_credenciais_rb_para_payment_gateway.php)
 
 ## Config — 1
 

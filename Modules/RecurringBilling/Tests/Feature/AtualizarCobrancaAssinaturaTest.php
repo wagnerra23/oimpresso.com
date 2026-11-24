@@ -10,7 +10,7 @@ use Modules\RecurringBilling\Events\AssinaturaAtualizada;
 use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 
 uses(Tests\TestCase::class);
 
@@ -106,7 +106,7 @@ it('atualiza valor e ciclo, reflete no Asaas mock e dispara evento AssinaturaAtu
         ],
     ]);
 
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $service = new AssinaturaCobrancaService($boletos);
 
     $result = $service->atualizarCobrancaAssinatura(1, $subscription->id, [
@@ -145,7 +145,7 @@ it('retorna 404 quando assinatura nao pertence ao business solicitado', function
         'metadata' => ['valor' => 100.00, 'ciclo' => 'mensal', 'forma_pagamento' => 'boleto'],
     ]);
 
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $service = new AssinaturaCobrancaService($boletos);
 
     // Tenta acessar a assinatura de biz=2 passando biz=1
@@ -186,7 +186,7 @@ it('retorna idempotente quando nada muda e nao chama gateway', function () {
         ],
     ]);
 
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $service = new AssinaturaCobrancaService($boletos);
 
     $result = $service->atualizarCobrancaAssinatura(1, $subscription->id, [

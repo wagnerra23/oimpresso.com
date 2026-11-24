@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
 use Modules\RecurringBilling\Jobs\CancelarCobrancaAsaasJob;
-use Modules\RecurringBilling\Models\BoletoCredential;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class);
@@ -28,7 +27,8 @@ uses(Tests\TestCase::class);
  *   4. doc_type != boleto_asaas falha
  *   5. Erro 4xx Asaas → RuntimeException pra fila reagendar
  *
- * Default biz=1; cross-tenant adversário biz=99 (convenção ADR 0101).
+ * Tenant 98; cross-tenant adversário biz=99 (ADR 0358). Credencial em payment_gateway_credentials
+ * desde a decisão b1 (2026-11-23): o cancelamento sai pelo driver do PaymentGateway.
  *
  * Pattern espelha AsaasDriverTest (Http::fake) + EstornarBoletoJobTest
  * (schema SQLite manual + FakeBoletoCharge MorphTo).
@@ -68,16 +68,18 @@ beforeEach(function () {
         $t->string('gateway_ref', 60)->nullable();  // pay_xxx Asaas
     });
 
-    // Tabela rb_boleto_credentials — BoletoService::driver() lê daqui
-    Schema::create('rb_boleto_credentials', function ($table) {
+    // Credencial do PaymentGateway — CobrancaNoGateway lê daqui (decisão b1, 2026-11-23)
+    Schema::create('payment_gateway_credentials', function ($table) {
         $table->id();
         $table->unsignedInteger('business_id')->index();
-        $table->unsignedInteger('conta_bancaria_id')->nullable();
-        $table->string('banco', 30);
+        $table->string('gateway_key', 30);
         $table->string('ambiente', 20)->default('production');
         $table->boolean('ativo')->default(true);
         $table->string('nome_display')->nullable();
-        $table->json('config_json');
+        $table->longText('config_json')->nullable();
+        $table->unsignedInteger('conta_bancaria_id')->nullable();
+        $table->string('health_status', 20)->nullable();
+        $table->timestamp('health_checked_at')->nullable();
         $table->timestamps();
     });
 
@@ -135,11 +137,11 @@ beforeEach(function () {
 
 afterEach(function () {
     // Tabelas CORE reais-migradas (users/permissions/roles/transaction_documents) +
-    // rb_boleto_credentials; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // payment_gateway_credentials; o afterEach roda mesmo em teste pulado (PHPUnit 12:
     // tearDown gated só por hasMetRequirements), então dropá-las no MySQL persistente
     // corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
-        foreach (['transaction_documents', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_charges', 'rb_boleto_credentials', 'users'] as $tbl) {
+        foreach (['transaction_documents', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_charges', 'payment_gateway_credentials', 'users'] as $tbl) {
             Schema::dropIfExists($tbl);
         }
     }
@@ -148,16 +150,17 @@ afterEach(function () {
 
 function ccajCriarCredencialAsaas(int $bizId): void
 {
-    BoletoCredential::create([
+    // Insert cru: o model do PG tem LogsActivity (activity_log fora deste schema sintético).
+    // config_json no formato do cast `encrypted:array` — o segredo fica em claro dentro dele.
+    DB::table('payment_gateway_credentials')->insert([
         'business_id' => $bizId,
-        'banco' => 'asaas',
+        'gateway_key' => 'asaas',
         'ambiente' => 'sandbox',
         'ativo' => true,
         'nome_display' => 'Asaas Teste',
-        'config_json' => [
-            'api_key' => Crypt::encryptString('$aact_test_token'),
-            'ambiente' => 'sandbox',
-        ],
+        'config_json' => Crypt::encryptString(json_encode(['api_key' => '$aact_test_token'])),
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
 }
 
@@ -194,12 +197,12 @@ function ccajCriarDocumento(int $bizId, int $txId, string $docType, int $docId, 
 }
 
 it('1. cancela cobrança Asaas pending via DELETE /payments/{id} (mock Http)', function () {
-    ccajCriarCredencialAsaas(1);
-    $charge = ccajCriarCharge(1, 'pay_to_cancel');
-    $doc = ccajCriarDocumento(1, 2001, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '150.0000');
+    ccajCriarCredencialAsaas(98);
+    $charge = ccajCriarCharge(98, 'pay_to_cancel');
+    $doc = ccajCriarDocumento(98, 2001, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '150.0000');
 
-    $this->actingAs(ccajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake([
         'sandbox.asaas.com/api/v3/payments/pay_to_cancel' => Http::response([
@@ -208,11 +211,11 @@ it('1. cancela cobrança Asaas pending via DELETE /payments/{id} (mock Http)', f
     ]);
 
     $job = new CancelarCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'venda cancelada — teste',
     );
-    $job->handle(app(BoletoService::class));
+    $job->handle(app(CobrancaNoGateway::class));
 
     // DELETE foi enviado ao endpoint correto com access_token
     Http::assertSent(function ($request) {
@@ -223,10 +226,10 @@ it('1. cancela cobrança Asaas pending via DELETE /payments/{id} (mock Http)', f
 });
 
 it('2. idempotência: charge já cancelled retorna sem chamar API', function () {
-    ccajCriarCredencialAsaas(1);
-    $charge = ccajCriarCharge(1, 'pay_idempotente');
+    ccajCriarCredencialAsaas(98);
+    $charge = ccajCriarCharge(98, 'pay_idempotente');
     $doc = ccajCriarDocumento(
-        1,
+        98,
         2002,
         TransactionDocument::DOC_BOLETO_ASAAS,
         $charge->id,
@@ -234,40 +237,40 @@ it('2. idempotência: charge já cancelled retorna sem chamar API', function () 
         TransactionDocument::STATUS_CANCELLED,
     );
 
-    $this->actingAs(ccajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake(); // qualquer chamada cai aqui → assertNothingSent valida
 
     $job = new CancelarCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'rerun idempotente',
     );
-    $job->handle(app(BoletoService::class));
+    $job->handle(app(CobrancaNoGateway::class));
 
     // Nenhuma chamada HTTP foi feita — short-circuit por idempotência
     Http::assertNothingSent();
 });
 
 it('3. cross-tenant: businessId != doc.business_id falha', function () {
-    ccajCriarCredencialAsaas(1);
+    ccajCriarCredencialAsaas(98);
     $charge = ccajCriarCharge(99, 'pay_other_tenant');
     $doc = ccajCriarDocumento(99, 2003, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '200.0000');
 
-    $this->actingAs(ccajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake();
 
-    // Job claim biz=1 mas o documento é de biz=99
+    // Job claim biz=98 mas o documento é de biz=99
     $job = new CancelarCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'cross-tenant ataque',
     );
 
-    expect(fn () => $job->handle(app(BoletoService::class)))
+    expect(fn () => $job->handle(app(CobrancaNoGateway::class)))
         ->toThrow(RuntimeException::class, 'Cross-tenant violation');
 
     // E nenhuma chamada Asaas foi disparada
@@ -275,35 +278,35 @@ it('3. cross-tenant: businessId != doc.business_id falha', function () {
 });
 
 it('4. doc_type != boleto_asaas falha', function () {
-    ccajCriarCredencialAsaas(1);
-    $charge = ccajCriarCharge(1, 'pay_wrong_type');
+    ccajCriarCredencialAsaas(98);
+    $charge = ccajCriarCharge(98, 'pay_wrong_type');
     // boleto_inter — esse Job só aceita boleto_asaas
-    $doc = ccajCriarDocumento(1, 2004, TransactionDocument::DOC_BOLETO_INTER, $charge->id, '500.0000');
+    $doc = ccajCriarDocumento(98, 2004, TransactionDocument::DOC_BOLETO_INTER, $charge->id, '500.0000');
 
-    $this->actingAs(ccajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake();
 
     $job = new CancelarCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'tipo errado',
     );
 
-    expect(fn () => $job->handle(app(BoletoService::class)))
+    expect(fn () => $job->handle(app(CobrancaNoGateway::class)))
         ->toThrow(RuntimeException::class, "doc_type inválido pra CancelarCobrancaAsaasJob: 'boleto_inter'");
 
     Http::assertNothingSent();
 });
 
 it('5. erro 4xx Asaas dispara retry (RuntimeException relancada)', function () {
-    ccajCriarCredencialAsaas(1);
-    $charge = ccajCriarCharge(1, 'pay_500_error');
-    $doc = ccajCriarDocumento(1, 2005, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '777.0000');
+    ccajCriarCredencialAsaas(98);
+    $charge = ccajCriarCharge(98, 'pay_500_error');
+    $doc = ccajCriarDocumento(98, 2005, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '777.0000');
 
-    $this->actingAs(ccajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(ccajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     // Asaas devolve 401 (token inválido / expirado) — caso real em prod
     Http::fake([
@@ -313,12 +316,12 @@ it('5. erro 4xx Asaas dispara retry (RuntimeException relancada)', function () {
     ]);
 
     $job = new CancelarCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'erro gateway',
     );
 
-    expect(fn () => $job->handle(app(BoletoService::class)))
+    expect(fn () => $job->handle(app(CobrancaNoGateway::class)))
         ->toThrow(RuntimeException::class, 'Asaas API retornou erro');
 
     // E a chamada HTTP foi efetivamente tentada (não foi short-circuit)
@@ -326,4 +329,24 @@ it('5. erro 4xx Asaas dispara retry (RuntimeException relancada)', function () {
         return $request->method() === 'DELETE'
             && str_ends_with($request->url(), '/payments/pay_500_error');
     });
+});
+
+it('6. b1: credencial só no rb_boleto_credentials (sem payment_gateway_credentials) não cancela e falha visível', function () {
+    // Sem ccajCriarCredencialAsaas: a empresa não tem credencial asaas ativa no PaymentGateway.
+    $charge = ccajCriarCharge(98, 'pay_sem_credencial_pg');
+    $doc = ccajCriarDocumento(98, 2006, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id, '10.0000');
+
+    $this->actingAs(ccajCriarUser(98));
+    session(['user.business_id' => 98]);
+    Http::fake();
+
+    $job = new CancelarCobrancaAsaasJob(
+        businessId: 98,
+        transactionDocumentId: $doc->id,
+        motivo: 'sem credencial no PG',
+    );
+
+    expect(fn () => $job->handle(app(CobrancaNoGateway::class)))
+        ->toThrow(\Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException::class, "sem credencial 'asaas' ativa");
+    Http::assertNothingSent();
 });

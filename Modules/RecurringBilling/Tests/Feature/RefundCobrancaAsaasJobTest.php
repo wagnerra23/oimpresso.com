@@ -23,8 +23,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
 use Modules\RecurringBilling\Jobs\RefundCobrancaAsaasJob;
-use Modules\RecurringBilling\Models\BoletoCredential;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class);
@@ -39,7 +38,8 @@ uses(Tests\TestCase::class);
  *   4. Cross-tenant: businessId != document.business_id → RuntimeException
  *   5. doc_type != boleto_asaas → RuntimeException
  *
- * Default biz=1; cross-tenant adversário biz=99 (convenção ADR 0101).
+ * Tenant 98; cross-tenant adversário biz=99 (ADR 0358). Credencial em payment_gateway_credentials
+ * desde a decisão b1 (2026-11-23): consulta e estorno saem pelo driver do PaymentGateway.
  * Pattern espelha CancelarCobrancaAsaasJobTest.
  */
 class FakeAsaasRefundChargeStub extends Model
@@ -73,15 +73,18 @@ beforeEach(function () {
         $t->string('status', 20)->nullable();
     });
 
-    Schema::create('rb_boleto_credentials', function ($table) {
+    // Credencial do PaymentGateway — CobrancaNoGateway lê daqui (decisão b1, 2026-11-23)
+    Schema::create('payment_gateway_credentials', function ($table) {
         $table->id();
         $table->unsignedInteger('business_id')->index();
-        $table->unsignedInteger('conta_bancaria_id')->nullable();
-        $table->string('banco', 30);
+        $table->string('gateway_key', 30);
         $table->string('ambiente', 20)->default('production');
         $table->boolean('ativo')->default(true);
         $table->string('nome_display')->nullable();
-        $table->json('config_json');
+        $table->longText('config_json')->nullable();
+        $table->unsignedInteger('conta_bancaria_id')->nullable();
+        $table->string('health_status', 20)->nullable();
+        $table->timestamp('health_checked_at')->nullable();
         $table->timestamps();
     });
 
@@ -138,11 +141,11 @@ beforeEach(function () {
 
 afterEach(function () {
     // Tabelas CORE reais-migradas (users/permissions/roles/transaction_documents) +
-    // rb_boleto_credentials; o afterEach roda mesmo em teste pulado (PHPUnit 12:
+    // payment_gateway_credentials; o afterEach roda mesmo em teste pulado (PHPUnit 12:
     // tearDown gated só por hasMetRequirements), então dropá-las no MySQL persistente
     // corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
-        foreach (['transaction_documents', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_refund_charges', 'rb_boleto_credentials', 'users'] as $tbl) {
+        foreach (['transaction_documents', 'role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'fake_asaas_refund_charges', 'payment_gateway_credentials', 'users'] as $tbl) {
             Schema::dropIfExists($tbl);
         }
     }
@@ -151,16 +154,17 @@ afterEach(function () {
 
 function rcajCriarCredencialAsaas(int $bizId): void
 {
-    BoletoCredential::create([
+    // Insert cru: o model do PG tem LogsActivity (activity_log fora deste schema sintético).
+    // config_json no formato do cast `encrypted:array` — o segredo fica em claro dentro dele.
+    DB::table('payment_gateway_credentials')->insert([
         'business_id' => $bizId,
-        'banco' => 'asaas',
+        'gateway_key' => 'asaas',
         'ambiente' => 'sandbox',
         'ativo' => true,
         'nome_display' => 'Asaas Teste',
-        'config_json' => [
-            'api_key' => Crypt::encryptString('$aact_refund_token'),
-            'ambiente' => 'sandbox',
-        ],
+        'config_json' => Crypt::encryptString(json_encode(['api_key' => '$aact_refund_token'])),
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
 }
 
@@ -199,12 +203,12 @@ function rcajCriarDocumento(int $bizId, int $txId, string $docType, int $docId, 
 
 it('1. refund Asaas paid charge via POST /payments/{id}/refund (mock Http)', function () {
     Config::set('services.asaas.refund_enabled', true);
-    rcajCriarCredencialAsaas(1);
-    $charge = rcajCriarCharge(1, 'pay_to_refund', 'paid');
-    $doc = rcajCriarDocumento(1, 3001, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
+    rcajCriarCredencialAsaas(98);
+    $charge = rcajCriarCharge(98, 'pay_to_refund', 'paid');
+    $doc = rcajCriarDocumento(98, 3001, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
 
-    $this->actingAs(rcajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(rcajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake([
         // fetchPayment (GET) — Asaas retorna status RECEIVED (paid, ainda não refunded)
@@ -221,29 +225,30 @@ it('1. refund Asaas paid charge via POST /payments/{id}/refund (mock Http)', fun
     ]);
 
     $job = new RefundCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'venda cancelada — refund teste',
     );
-    $job->handle(app(BoletoService::class));
+    $job->handle(app(CobrancaNoGateway::class));
 
     // POST /refund foi disparado com body contendo description
     Http::assertSent(function ($request) {
         return $request->method() === 'POST'
             && str_ends_with($request->url(), '/payments/pay_to_refund/refund')
             && $request->hasHeader('access_token', '$aact_refund_token')
-            && str_contains((string) ($request['description'] ?? ''), 'venda cancelada');
+            && str_contains((string) ($request['description'] ?? ''), 'venda cancelada')
+            && ! isset($request['value']); // refund TOTAL: sem "value" no corpo, como antes
     });
 });
 
 it('UC-RBFAT-13 · 2. idempotência: charge Asaas já REFUNDED → no-op (POST refund NÃO chamado)', function () {
     Config::set('services.asaas.refund_enabled', true);
-    rcajCriarCredencialAsaas(1);
-    $charge = rcajCriarCharge(1, 'pay_already_refunded', 'paid');
-    $doc = rcajCriarDocumento(1, 3002, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
+    rcajCriarCredencialAsaas(98);
+    $charge = rcajCriarCharge(98, 'pay_already_refunded', 'paid');
+    $doc = rcajCriarDocumento(98, 3002, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
 
-    $this->actingAs(rcajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(rcajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake([
         // GET — Asaas já retorna REFUNDED
@@ -255,11 +260,11 @@ it('UC-RBFAT-13 · 2. idempotência: charge Asaas já REFUNDED → no-op (POST r
     Log::spy();
 
     $job = new RefundCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'rerun idempotente',
     );
-    $job->handle(app(BoletoService::class));
+    $job->handle(app(CobrancaNoGateway::class));
 
     // GET aconteceu, mas POST /refund NÃO
     Http::assertSent(fn ($request) => $request->method() === 'GET'
@@ -276,12 +281,12 @@ it('UC-RBFAT-13 · 2. idempotência: charge Asaas já REFUNDED → no-op (POST r
 
 it('UC-RBFAT-12 · 3. flag ASAAS_REFUND_ENABLED=false → NÃO chama API, só loga TODO', function () {
     Config::set('services.asaas.refund_enabled', false);
-    rcajCriarCredencialAsaas(1);
-    $charge = rcajCriarCharge(1, 'pay_flag_off', 'paid');
-    $doc = rcajCriarDocumento(1, 3003, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
+    rcajCriarCredencialAsaas(98);
+    $charge = rcajCriarCharge(98, 'pay_flag_off', 'paid');
+    $doc = rcajCriarDocumento(98, 3003, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
 
-    $this->actingAs(rcajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(rcajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake([
         // GET pode ser chamado pra checar status remoto antes do guard
@@ -293,11 +298,11 @@ it('UC-RBFAT-12 · 3. flag ASAAS_REFUND_ENABLED=false → NÃO chama API, só lo
     Log::spy();
 
     $job = new RefundCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'teste flag off',
     );
-    $job->handle(app(BoletoService::class));
+    $job->handle(app(CobrancaNoGateway::class));
 
     // POST /refund NÃO foi chamado — flag desligada
     Http::assertNotSent(fn ($request) => $request->method() === 'POST'
@@ -311,22 +316,22 @@ it('UC-RBFAT-12 · 3. flag ASAAS_REFUND_ENABLED=false → NÃO chama API, só lo
 
 it('UC-RBFAT-13 · 4. cross-tenant: businessId != doc.business_id → RuntimeException', function () {
     Config::set('services.asaas.refund_enabled', true);
-    rcajCriarCredencialAsaas(1);
+    rcajCriarCredencialAsaas(98);
     $charge = rcajCriarCharge(99, 'pay_other_tenant', 'paid');
     $doc = rcajCriarDocumento(99, 3004, TransactionDocument::DOC_BOLETO_ASAAS, $charge->id);
 
-    $this->actingAs(rcajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(rcajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake();
 
     $job = new RefundCobrancaAsaasJob(
-        businessId: 1, // claim biz=1 mas doc=biz=99
+        businessId: 98, // claim biz=98 mas doc=biz=99
         transactionDocumentId: $doc->id,
         motivo: 'cross-tenant ataque refund',
     );
 
-    expect(fn () => $job->handle(app(BoletoService::class)))
+    expect(fn () => $job->handle(app(CobrancaNoGateway::class)))
         ->toThrow(RuntimeException::class, 'Cross-tenant violation');
 
     Http::assertNothingSent();
@@ -334,23 +339,23 @@ it('UC-RBFAT-13 · 4. cross-tenant: businessId != doc.business_id → RuntimeExc
 
 it('UC-RBFAT-13 · 5. doc_type != boleto_asaas → RuntimeException', function () {
     Config::set('services.asaas.refund_enabled', true);
-    rcajCriarCredencialAsaas(1);
-    $charge = rcajCriarCharge(1, 'pay_wrong_type', 'paid');
+    rcajCriarCredencialAsaas(98);
+    $charge = rcajCriarCharge(98, 'pay_wrong_type', 'paid');
     // boleto_inter — esse Job só aceita boleto_asaas
-    $doc = rcajCriarDocumento(1, 3005, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
+    $doc = rcajCriarDocumento(98, 3005, TransactionDocument::DOC_BOLETO_INTER, $charge->id);
 
-    $this->actingAs(rcajCriarUser(1));
-    session(['user.business_id' => 1]);
+    $this->actingAs(rcajCriarUser(98));
+    session(['user.business_id' => 98]);
 
     Http::fake();
 
     $job = new RefundCobrancaAsaasJob(
-        businessId: 1,
+        businessId: 98,
         transactionDocumentId: $doc->id,
         motivo: 'tipo errado refund',
     );
 
-    expect(fn () => $job->handle(app(BoletoService::class)))
+    expect(fn () => $job->handle(app(CobrancaNoGateway::class)))
         ->toThrow(RuntimeException::class, "doc_type inválido pra RefundCobrancaAsaasJob: 'boleto_inter'");
 
     Http::assertNothingSent();

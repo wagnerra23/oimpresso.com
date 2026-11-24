@@ -360,7 +360,9 @@ class DistribuicaoDfeService
             $configJson,
             Certificate::readPfx($certData['pfx_binary'], $certData['senha']),
         );
-        $tools->model('55');
+        // int, não '55': este arquivo é strict_types e o NFePHP declara model(?int). Com a
+        // string, cada busca de DF-e morria em TypeError antes de chegar à SEFAZ (UC-FDFE-18).
+        $tools->model(55);
         $tools->setEnvironment(AmbienteDoEmitente::resolver($businessId));
         return $tools;
     }

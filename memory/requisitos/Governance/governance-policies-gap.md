@@ -38,3 +38,19 @@ _Re-contados em 2026-09-29; o número de 2026-09-06 vai entre parênteses. Os 4 
 - `grep -nE 'rules\.length' resources/js/Pages/governance/Policies.tsx` → 2 (`:72` filtro, `:163` contador do grupo) (era 0)
 - `grep -nE 'Selo|Ativa"|Desligad' resources/js/Pages/governance/Policies.tsx` → 1 (`:138`, hint da busca — não é selo) (era 0)
 - `grep -nE 'toast\.success|flash' resources/js/Pages/governance/Policies.tsx` → 0
+
+---
+
+## Medição design-diff 2026-11-24 (L6) — substitui a de 2026-09-18 [CC]
+
+Mede `governance/Policies` (/governance/policies) contra a vista `gov-politicas` do protótipo (`prototipo-ui/cowork/Wagner/governance-page.jsx` sha256 `3b1b79c13065…` + `governance-telas.jsx` `c82e0d6bf8a3…`, último commit `34b12a7869` de 2026-11-19, a versão do L5). Tema claro, 1280×900, produção `biz=1`. Método e canário: [visual-comparison do Dashboard, seção "Medição 2026-11-24"](../Jana/governance-dashboard-extension-visual-comparison.md).
+
+A medida de 2026-09-18 não valia: os 4 `design.json` tinham o mesmo sha256 (`a87886…`) porque o lote abria a rota do grupo (`route=governance`, a vista painel) para as 4 telas; Audit, Policies e DriftAlerts nunca tinham sido medidas contra a vista delas. O override `governance/design/targets/roles/governance--Policies.json` fixa o token da vista.
+
+Reproduz: `node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/governance--Policies/prod.json governance/design/targets/medidas/governance--Policies/design.json --check`
+
+**Veredito: IGUAL nas dimensões medidas (D2, D4, D6, D8) — 0 DIVERGE(bug).** 4 KPIs dos dois lados, título 22px/600.
+
+Lido no DOM (não é dimensão da sonda): título "Policies (Governança)" × "Governança — políticas" e rótulos dos KPIs em inglês ("Rules total", "Triggered total") × PT ("Regras no total", "Disparos"). PT-BR em tela superadmin ficou fora do lote L5 por decisão [W]; registro, não conserto.
+
+Fora do veredito nas 4 telas: o shell (sidebar) não foi medido; o `IGUAL` de cor (D6) é fraco, porque os tokens de cor de produção não resolvem na raiz do documento (`--accent`, `--border`… vivem no `.cockpit`); e D9 sai SEM-DADO onde as regiões `data-contract` só existem de um lado.

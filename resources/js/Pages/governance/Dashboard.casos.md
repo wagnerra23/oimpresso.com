@@ -4,7 +4,7 @@ casos: Dashboard · Painel consolidado de governança · /governance/dashboard
 irmaos: Dashboard.charter.md (lei) · RUNBOOK-dashboard.md (receita + smoke) · governance-dashboard-gap.md (GAP-SPEC canon)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes `E2E Playwright · UCs críticos` (e2e) e `PHP / Pest (Unit)` (Pest, depois do wiring na .github/ci-sqlite-pest.list)"
 ---
 
@@ -49,6 +49,7 @@ O valor é **literal** no controller (soma fixa, sem fonte apurada — GAP-SPEC,
 caso trava o **contrato da tela** (o card existe, com a próxima revisão), **não** o número: pinar o
 percentual transformaria uma decisão de régua do [W] em teste vermelho.
 **Pronto quando:** o rótulo "Conformidade" e o texto "próx revisão" estão visíveis no painel.
+A data sai em dd/mm/aaaa (`fmtDataBr`, 2026-11-24 — o L6 mediu ISO cru contra o dd/mm/aaaa do protótipo); o teste não pina o formato.
 **Regressão que defende:** o card sumir do grid da Constituição, ou perder a data de revisão.
 
 ## UC-GDSH-04 — Saúde do ecossistema conta só as últimas 24 h

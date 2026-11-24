@@ -1,28 +1,112 @@
 {
-  "url": "https://staging.oimpresso.com/governance/audit",
-  "theme": "auto",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Audit Log mcp_audit_log forense (Constituição Art. 9). Append-only enforced via trigger MySQL (ADR 0084). Read-only — modificação é incidente P0. Entries no período 1 Errors 1 Users distintos 1 Período Últimas 24h Actor Todos Endpoint Todos Status Todos Quando User Endpoint Tool/Resource Status Duração 18/09/2026, 09:34:56 #1 ErrorException — Limit 200 entries por query. Períodos longos podem truncar — refine filtros pra ver mais. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "url": "https://oimpresso.com/governance/audit",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "Audit Log Período Actor Endpoint Status Quando User Tool/Resource Duração",
   "roles": {
     "kpi": {
-      "count": 0,
-      "tag": null,
-      "overflowX": null,
-      "items": []
+      "count": 3,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Entries no per",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Errors20",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Users distinto",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
     },
     "title": {
-      "fontPx": 24,
+      "fontPx": 22,
       "weight": "600",
-      "color": "oklch(0.137 0.036 258.5)"
+      "color": "oklch(0.22 0.01 80)"
     },
     "primary": null,
-    "filterRows": null,
-    "contratos": [],
+    "filterRows": 1,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
     "celulas": [
       {
         "col": 0,
         "tag": null,
         "align": "left",
-        "larguraPct": 29.9,
+        "larguraPct": 27.6,
         "mono": true,
         "corPropria": true,
         "fontPx": 12,
@@ -34,7 +118,7 @@
         "col": 1,
         "tag": null,
         "align": "left",
-        "larguraPct": 9.5,
+        "larguraPct": 8.8,
         "mono": false,
         "corPropria": false,
         "fontPx": 14,
@@ -46,19 +130,19 @@
         "col": 2,
         "tag": null,
         "align": "left",
-        "larguraPct": 14.5,
-        "mono": false,
+        "larguraPct": 20.5,
+        "mono": true,
         "corPropria": false,
         "fontPx": 12,
         "weight": "400",
-        "blocos": 0,
+        "blocos": 1,
         "pill": null
       },
       {
         "col": 3,
         "tag": null,
         "align": "left",
-        "larguraPct": 20.7,
+        "larguraPct": 19.1,
         "mono": false,
         "corPropria": true,
         "fontPx": 12,
@@ -70,19 +154,24 @@
         "col": 4,
         "tag": null,
         "align": "left",
-        "larguraPct": 11.6,
+        "larguraPct": 11.3,
         "mono": false,
-        "corPropria": false,
-        "fontPx": 14,
-        "weight": "400",
-        "blocos": 0,
-        "pill": null
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "3.35544e+07px",
+          "borda": true,
+          "bg": "oklch(0.95 0.052 163.051)",
+          "dot": false
+        }
       },
       {
         "col": 5,
         "tag": null,
         "align": "right",
-        "larguraPct": 13.7,
+        "larguraPct": 12.7,
         "mono": false,
         "corPropria": true,
         "fontPx": 12,
@@ -94,41 +183,24 @@
     "tabela": {
       "tableLayout": "auto",
       "colunasDeclaradas": 0,
-      "linhas": 1,
+      "linhas": 200,
       "linhasComEstado": 0
     },
-    "shell": {
-      "papeis": {
-        "atalhoTopo": {
-          "seletor": ".sb-shortcuts .sb-shortcut",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "itemGrupo": {
-          "seletor": ".sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "grupoHeader": {
-          "seletor": ".sb-group-h",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "containerMenu": {
-          "seletor": ".sb-menu-grouped",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        }
-      },
-      "atalhos": []
-    }
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "medidoEm": "2026-11-24",
+    "host": "oimpresso.com",
+    "path": "/governance/audit",
+    "componente": "governance / Audit",
+    "businessId": 1,
+    "viewport": "1280x900",
+    "tema": "claro",
+    "dialogsAbertos": [],
+    "sobrepostosFixos": [],
+    "assinaturaRedigida": "sha256 prefixo ed3444b22d72",
+    "assinaturaNota": "assinatura reduzida ao texto de UI (título, rótulos, cabeçalhos); o texto completo da página tem dado de produção e ficou fora"
   }
 }

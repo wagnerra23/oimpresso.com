@@ -430,11 +430,16 @@ imposto do pedido, acréscimo, PIX/boleto/TEF, troca de local e `pos_settings` �
 
 ## UC-V320 · Cada ação da linha do item abre o drawer numa aba própria
 
-**Status:** 🧪 — 3 testes citam o UC e passam localmente (`tests/js/item-acoes-dominio.test.ts`); sem entrada no manifesto até a lane rodar em `main`.
+**Status:** 🧪 — `tests/js/item-acoes-dominio.test.ts` (o mapa ação → aba) e `tests/js/sells-v3-item-abas.test.tsx` (a tela, desde 2026-11-23); sem entrada no manifesto.
 
 - **Dado** uma linha de item com as ações da âncora — lupa "Detalhes do item" e "Impostos",
 - **Quando** o operador escolhe uma delas,
 - **Então** o drawer abre na aba **daquela** ação: a lupa em *Geral*, o Impostos direto em *Tributação*.
+- Cada abertura segue o botão clicado, mesmo que o operador tenha trocado de aba antes de fechar; navegar para o item seguinte com o drawer aberto mantém a aba.
+
+Até 2026-11-23 a tela não cumpria este caso: o drawer fica montado o tempo todo e só lia a aba
+inicial na montagem da página, então o "Impostos" abria em *Geral*. O teste de domínio passava,
+porque ele prova o mapa e não a tela; o teste de render foi o que faltava.
 
 Derivado da âncora (`prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx:63-65 (verificado@70c36b4)`), onde a aba viaja
 no próprio `abrirItem(i, aba)` — não do `.tsx`. O defeito que isto guarda é concreto: a aba

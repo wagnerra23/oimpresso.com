@@ -8,12 +8,12 @@ use App\Domain\Fsm\Models\TransactionDocument;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use App\Scopes\ScopeByBusiness;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 use RuntimeException;
 use Throwable;
 
@@ -23,9 +23,9 @@ use Throwable;
  * US-CASCADE-BOLETO-003 (Asaas slot do hub EstornarBoletoJob).
  *
  * Despachado por `EstornarBoletoJob` quando `doc_type='boleto_asaas'`. Faz a
- * chamada HTTP `DELETE /api/v3/payments/{id}` via `BoletoService::cancelar()`
- * que já abstrai driver Asaas (`AsaasDriver`) + decrypt de credenciais
- * (ADR tech/0007) + roteamento por tenant.
+ * chamada HTTP `DELETE /api/v3/payments/{id}` pelo `AsaasDriver` do PaymentGateway, via
+ * `CobrancaNoGateway` (credencial em `payment_gateway_credentials`). Até 2026-11-23 saía pela
+ * cópia do RB (`BoletoService` + `rb_boleto_credentials`) — decisão b1, ADR 0170.
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093):
  *   - businessId vem do constructor (Job assíncrono não tem session)
@@ -63,7 +63,7 @@ class CancelarCobrancaAsaasJob implements ShouldQueue
         public readonly string $motivo,
     ) {}
 
-    public function handle(BoletoService $service): void
+    public function handle(CobrancaNoGateway $gateway): void
     {
         // 1) Carrega documento ignorando global scope (Job não tem session auth)
         $document = TransactionDocument::withoutGlobalScope(ScopeByBusiness::class)
@@ -117,25 +117,22 @@ class CancelarCobrancaAsaasJob implements ShouldQueue
             );
         }
 
-        // 6) Chama API Asaas via BoletoService (abstrai driver + credenciais)
-        //    BoletoDriverContract::cancelar() faz DELETE /payments/{id} e
-        //    lança RequestException em 4xx/5xx via Http::throw().
+        // 6) Chama a API Asaas pelo driver do PaymentGateway: DELETE /payments/{id};
+        //    4xx/5xx viram GatewayUnavailableException (mensagem traz o status HTTP).
         try {
-            $service->cancelar($this->businessId, $chargeId, $this->motivo);
-        } catch (RequestException $e) {
+            $gateway->cancelar($this->businessId, 'asaas', $chargeId, $this->motivo);
+        } catch (GatewayUnavailableException $e) {
             Log::error('CancelarCobrancaAsaasJob: falha HTTP no DELETE /payments/{id}', [
                 'business_id' => $this->businessId,
                 'document_id' => $document->id,
                 'charge_id' => $chargeId,
-                'status_code' => $e->response?->status(),
-                'response_body' => $e->response?->body(),
+                'erro' => $e->getMessage(),
                 'motivo' => $this->motivo,
             ]);
 
             // Re-lança pra fila reagendar via $tries/$backoff
             throw new RuntimeException(
-                "Asaas API retornou erro ao cancelar charge_id={$chargeId}: "
-                . ($e->response?->status() ?? '?')
+                "Asaas API retornou erro ao cancelar charge_id={$chargeId}: " . $e->getMessage()
             );
         } catch (Throwable $e) {
             Log::error('CancelarCobrancaAsaasJob: erro inesperado', [

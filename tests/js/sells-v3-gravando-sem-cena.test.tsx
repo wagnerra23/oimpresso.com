@@ -197,11 +197,9 @@ describe('Venda V3 gravando · sem dados de cena', () => {
   it('UC-V407 · controle: sem a gravação, o detalhe do item segue com a aba Tributação da cena', () => {
     render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
     fireEvent.click(screen.getByRole('button', { name: /Impostos/ }));
-    // O drawer fica sempre montado e só lê `abaInicial` na montagem da página, então o
-    // "Impostos" abre na aba Geral (defeito anterior a este PR, fora do escopo). O controle
-    // chega à Tributação pela barra de abas, que é o que o operador faz.
+    // Desde 2026-11-23 o "Impostos" abre direto em Tributação (UC-V320, `sells-v3-item-abas.test.tsx`).
     const abas = screen.getByRole('tablist', { name: 'Detalhe do item' });
-    fireEvent.click(within(abas).getByRole('tab', { name: /Tributação/ }));
+    expect(within(abas).getByRole('tab', { name: /Tributação/ }).getAttribute('aria-selected')).toBe('true');
 
     expect(screen.getByDisplayValue('39199090')).toBeTruthy();
     expect(screen.getByText('Confirmar item')).toBeTruthy();
