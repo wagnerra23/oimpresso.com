@@ -59,6 +59,7 @@ Fora da rede: **ACPFA** (Joinville, @acpfa.sc) — decisão [W] 23/11/2026.
 - **Fundos municipais de Tubarão** (idosos e PcD)
 - **Plano de Captação Associação Fibromialgia** (rede AGFESC)
 - **AREFI Kit Sede** — cessão de imóvel, IPTU e custeio (versão Indaial)
+- **Regras de distribuição dos recursos** entre a federação e as associações (rascunho para a assembleia): [distribuicao-de-recursos-regras.md](distribuicao-de-recursos-regras.md)
 
 ## Base legal (resumo — ver pesquisas .md na pasta local)
 
