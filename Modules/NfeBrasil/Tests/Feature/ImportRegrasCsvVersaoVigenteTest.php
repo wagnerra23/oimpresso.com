@@ -5,8 +5,8 @@ declare(strict_types=1);
 // @covers-us US-NFE-010 — a reimportação muda a versão vigente da regra, não a encerrada.
 // Contrato da tela: resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.casos.md — UC-NFIM-09
 // Âncora: SPEC NfeBrasil R-NFE-019 (editar gera versão nova; a antiga só ganha `valida_ate`) +
-// ImportCsv.charter.md (idempotente pela chave). NASCE VERMELHO: fora da allowlist da lane até a
-// correção, que muda valor de imposto e é decisão [W] (regra mestre de valor).
+// ImportCsv.charter.md (idempotente pela chave). Nasceu vermelho em 2026-11-24 (a reimportação
+// gravava na versão encerrada); a correção em ImportRegrasCsvService::aplicar entrou no mesmo PR.
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;

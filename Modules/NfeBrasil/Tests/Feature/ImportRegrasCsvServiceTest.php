@@ -225,8 +225,13 @@ it('aplicar() atualiza existentes pela chave (NCM + UF origem + UF destino)', fu
     $resumo = $svc->aplicar(1, $r['linhas']);
 
     expect($resumo)->toBe(['criadas' => 0, 'atualizadas' => 1, 'falhas' => 0]);
-    expect(NfeFiscalRule::where('business_id', 1)->count())->toBe(1);
-    expect((float) NfeFiscalRule::where('business_id', 1)->first()->aliquota_icms)->toBe(0.18);
+    // R-NFE-019: com versionamento (schema MySQL) o valor novo vai numa versão nova e a antiga
+    // fica encerrada; a regra vigente continua sendo uma só. No schema SQLite deste arquivo, sem
+    // as colunas de vigência, a edição é no lugar.
+    $vigentes = NfeFiscalRule::where('business_id', 1)
+        ->when(NfeFiscalRule::temVersionamento(), fn ($q) => $q->whereNull('valida_ate'));
+    expect((clone $vigentes)->count())->toBe(1);
+    expect((float) $vigentes->first()->aliquota_icms)->toBe(0.18);
 });
 
 it('aplicar() multi-tenant: import biz=1 não afeta biz=99', function () {
