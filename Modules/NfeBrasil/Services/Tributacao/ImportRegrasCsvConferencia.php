@@ -60,7 +60,7 @@ final class ImportRegrasCsvConferencia
             $this->caminho($businessId, $userId, $ref),
             // PRESERVE_ZERO_FRACTION: sem ele a alíquota 0.0 volta do disco como int 0 (medido no
             // teste de ida-e-volta) e o lote aplicado deixa de ser idêntico ao conferido.
-            json_encode(array_values($linhas), JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR),
+            json_encode($linhas, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR),
         );
 
         return $ref;
