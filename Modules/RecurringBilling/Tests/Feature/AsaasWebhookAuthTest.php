@@ -59,14 +59,14 @@ beforeEach(function () {
         $table->unique(['provider', 'event_id'], 'pg_webhook_idempotency');
     });
 
-    Schema::dropIfExists('rb_boleto_credentials');
-    Schema::create('rb_boleto_credentials', function ($table) {
+    Schema::dropIfExists('payment_gateway_credentials');
+    Schema::create('payment_gateway_credentials', function ($table) {
         $table->id();
         $table->unsignedInteger('business_id')->index();
-        $table->string('banco', 20);
+        $table->string('gateway_key', 30);
         $table->string('ambiente', 20)->default('production');
         $table->boolean('ativo')->default(true);
-        $table->json('config_json');
+        $table->longText('config_json')->nullable();
         $table->timestamps();
     });
 });
@@ -74,18 +74,20 @@ beforeEach(function () {
 afterEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         Schema::dropIfExists('pg_webhook_events');
-        Schema::dropIfExists('rb_boleto_credentials');
+        Schema::dropIfExists('payment_gateway_credentials');
     }
 });
 
 function seedAsaasCred(int $businessId, string $secret = 'asaas-tok-ok', bool $ativo = true): void
 {
-    DB::table('rb_boleto_credentials')->insert([
+    // Desde a onda 2 (2026-11-24) o segredo vem da credencial do PaymentGateway: config_json
+    // cifrado inteiro (cast encrypted:array), segredo em claro dentro dele.
+    DB::table('payment_gateway_credentials')->insert([
         'business_id' => $businessId,
-        'banco'       => 'asaas',
+        'gateway_key' => 'asaas',
         'ambiente'    => 'production',
         'ativo'       => $ativo,
-        'config_json' => json_encode(['webhook_secret' => \Illuminate\Support\Facades\Crypt::encryptString($secret)]),
+        'config_json' => \Illuminate\Support\Facades\Crypt::encryptString(json_encode(['webhook_secret' => $secret])),
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);
@@ -181,12 +183,12 @@ it('UC-RBCFG-06 · multi-tenant Tier 0: token do business 1 NÃO credita no busi
     expect(DB::table('pg_webhook_events')->where('business_id', 2)->count())->toBe(0);
 });
 
-it('d4 · segredo gravado em claro (linha que escapou da migration) não autentica: 401', function () {
-    // Auditoria RB d4 (2026-11-19): o webhook compara contra o segredo DECIFRADO. Valor em claro
-    // no config_json não decifra e vira null — fail-secure, mesmo com o header igual ao texto.
+it('d4 · config da credencial que não decifra (APP_KEY trocada) não autentica: 401, nunca 500', function () {
+    // Auditoria RB d4 (2026-11-19), refeito na onda 2 (2026-11-24): o segredo agora vem do
+    // config_json cifrado do PaymentGateway. Config que não decifra vale como sem segredo — fail-secure.
     Queue::fake();
-    DB::table('rb_boleto_credentials')->insert([
-        'business_id' => 1, 'banco' => 'asaas', 'ambiente' => 'production', 'ativo' => true,
+    DB::table('payment_gateway_credentials')->insert([
+        'business_id' => 1, 'gateway_key' => 'asaas', 'ambiente' => 'production', 'ativo' => true,
         'config_json' => json_encode(['webhook_secret' => 'segredo-em-claro']),
         'created_at' => now(), 'updated_at' => now(),
     ]);

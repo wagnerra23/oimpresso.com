@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 232 arquivos em 9 papéis.
+**Total mapeado:** 233 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -166,7 +166,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 50
+## Componentes / apoio de tela — 51
 
 - [EditarRemessaSheet.tsx](../../../resources/js/Pages/Sells/Shipments/_components/EditarRemessaSheet.tsx)
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
@@ -216,6 +216,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [ItemDetalhe.tsx](../../../resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx)
 - [LancarItem.tsx](../../../resources/js/Pages/Sells/_components/v3/LancarItem.tsx)
 - [ParcelasDrawer.tsx](../../../resources/js/Pages/Sells/_components/v3/ParcelasDrawer.tsx)
+- [ResumoComissao.tsx](../../../resources/js/Pages/Sells/_components/v3/ResumoComissao.tsx)
 - [ResumoParcelas.tsx](../../../resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx)
 - [primitivos.tsx](../../../resources/js/Pages/Sells/_components/v3/primitivos.tsx)
 

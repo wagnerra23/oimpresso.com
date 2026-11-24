@@ -58,6 +58,7 @@ import ColunasModal from './_components/v3/ColunasModal';
 import ItemDetalhe from './_components/v3/ItemDetalhe';
 import ParcelasDrawer from './_components/v3/ParcelasDrawer';
 import ResumoParcelas from './_components/v3/ResumoParcelas';
+import ResumoComissao from './_components/v3/ResumoComissao';
 import ConsultaCliente from './_components/v3/ConsultaCliente';
 import {
   rotuloIcmsLongo,
@@ -348,6 +349,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const descAplicado =
     descTipo === 'percentual' ? submitSafe((subtotal * parseBR(descVal)) / 100) : submitSafe(parseBR(descVal));
   const baseTrib = submitSafe(subtotal - descAplicado);
+  /* Bases da comissão — as mesmas da gaveta e do resumo do fechamento. A margem da cena é
+     30% fixos da base; gravando não há custo dos produtos na tela, então a margem fica
+     desconhecida e a comissão não a usa (UC-V408). */
+  const totaisComissao = { bruto: subtotal, liquido: baseTrib, margem: gravacao ? 0 : submitSafe(baseTrib * 0.3) };
   /* Gravando, não há imposto do pedido: o store grava o final_total que recebe, e o
      Create não manda imposto. Os 18% são número de cena do preview. */
   const vImposto = gravacao ? 0 : submitSafe(baseTrib * 0.18);
@@ -1234,33 +1239,20 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           )}
 
           <FaixaSaldo saldo={saldo} />
-          <p className="mt-2.5 text-[11.5px] leading-[1.5] text-muted-foreground">
-            Fechar sem pagamento é caminho normal do balcão: grava <code>payment_status=due</code> e não bloqueia.
-          </p>
           </>
           )}
         </div>
 
-        {/* Comissão — resumo */}
-        <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-          <Inline gap={2} align="center" className="mb-2">
-            <Lbl className="mb-0">Comissão</Lbl>
-            <span className="ml-auto">
-              <button
-                type="button"
-                onClick={() => setComissaoAberta(true)}
-                className="cursor-pointer text-[11.5px] font-semibold leading-none text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground"
-              >
-                {beneficiarios.length > 0 ? `Comissão (${beneficiarios.length})…` : 'Configurar…'}
-              </button>
-            </span>
-          </Inline>
-          <Res l="Base líquida" v={fmtBR(baseTrib)} />
-          <p className="mt-2 text-[11.5px] leading-[1.45] text-muted-foreground">
-            Vários beneficiários por venda, base declarada por beneficiário e gatilho de direito (emissão,
-            faturamento ou a cada parcela recebida) fazem parte do porte da comissão — próximo passo.
-          </p>
-        </div>
+        {/* Comissão — resumo. Âncora: `ComissaoResumo` de `venda-v3.jsx` (seção sells-comissao.jsx).
+            Os valores saem das mesmas funções da gaveta; nada é calculado aqui. */}
+        <ResumoComissao
+          beneficiarios={beneficiarios}
+          totais={totaisComissao}
+          gatilho={gatilhoComissao}
+          parcelas={parcelas}
+          totalDaVenda={total}
+          onAbrir={() => setComissaoAberta(true)}
+        />
 
         {/* Situação — FSM */}
         <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
@@ -1489,9 +1481,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       <ComissaoDrawer
         aberto={comissaoAberta}
         onFechar={() => setComissaoAberta(false)}
-        /* A margem da cena é 30% fixos da base. Gravando não há custo dos produtos na tela,
-           então a margem fica desconhecida e a gaveta não a usa (UC-V408). */
-        totais={{ bruto: subtotal, liquido: baseTrib, margem: gravacao ? 0 : submitSafe(baseTrib * 0.3) }}
+        totais={totaisComissao}
         margemConhecida={!gravacao}
         beneficiarios={beneficiarios}
         onBeneficiariosChange={setBeneficiarios}
