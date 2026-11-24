@@ -101,7 +101,7 @@ class SellsV3Controller extends Controller
      * @return array{locationId:int, contactId:int, clienteNome:string, cliente:array<string, mixed>, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null, criarCliente:bool, registrarPagamento:bool}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>, comissionados:list<array{id:int, nome:string}>, tabelas:list<array{id:int, nome:string}>, tabelaPadraoId:int|null}|null
      */
     /**
-     * Etapas do processo em que a venda da V3 entra ao gravar (UC-V413).
+     * Etapas do processo em que a venda da V3 entra ao gravar (UC-V414).
      *
      * O processo é o de `IniciarPipelineVendaV3` (`venda_com_producao`), não o modelo de fluxo
      * escolhido em /fluxos: é ali que a venda gravada pela V3 de fato entra. Sem o processo ativo,
@@ -167,7 +167,7 @@ class SellsV3Controller extends Controller
             'config' => self::configDaVenda($business = Business::findOrFail($businessId)),
             'comissionados' => self::comissionados($businessId, $business->sales_cmsn_agnt),
             ...self::tabelasDePreco($businessId, (int) $locationId),
-            // Situação (UC-V413): as etapas do processo em que a venda vai entrar ao gravar.
+            // Situação (UC-V414): as etapas do processo em que a venda vai entrar ao gravar.
             'etapas' => self::etapasDaVenda($businessId),
         ];
     }

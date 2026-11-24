@@ -450,9 +450,9 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 - **[BACKLOG]** "Novo cadastro" no rodapé da consulta, como no protótipo: a nova venda não cadastra produto.
 - O "F2" de "Consultar cadastro… F2" do passo 1 continua só no rótulo: nenhum atalho de teclado abre a consulta de cliente.
 
-## UC-V413 · Gravando, a Situação mostra as etapas do processo em que a venda vai entrar
+## UC-V414 · Gravando, a Situação mostra as etapas do processo em que a venda vai entrar
 
-**Status:** 🧪 — `tests/js/sells-v3-situacao-etapas.test.tsx` e `tests/Feature/Sells/SellsCreateV3GravarContratoTest.php` (UC-V413), sem veredito no manifesto ainda.
+**Status:** 🧪 — `tests/js/sells-v3-situacao-etapas.test.tsx` e `tests/Feature/Sells/SellsCreateV3GravarContratoTest.php` (UC-V414), sem veredito no manifesto ainda.
 
 - **Dado** a gravação ligada e o processo `venda_com_producao` ativo nesta empresa,
 - **Quando** o operador abre a Situação,
@@ -1416,7 +1416,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-24, segunda (G-6):** o topo passou a ser o `PageHeader` da âncora (sem o selo "V3"), os passos numerados passaram a ser 1 Cliente · 2 Itens · 3 Fechamento, com as gavetas sem número, e "Gravar venda" passou a se chamar "Finalizar venda" (UC-V410, novo). Só forma: a ação do botão, o payload e o total são os mesmos.
 - **Revalidação de 2026-11-24, terceira (G-6):** a gaveta de comissão ganhou a forma da âncora: título "Comissão desta venda", faixa Bruto · Líquido · Margem no topo, um botão por tipo de beneficiário e rodapé só com "Fechar" (UC-V411, novo). Os testes do UC-V408 e do UC-V409 acompanham o título e o botão novos. Nenhum valor muda: as contas são as mesmas funções do domínio.
 - **Revalidação de 2026-11-24, quarta (G-6):** o passo Itens ganhou "Consultar produto… F3" e o atalho F3, que abrem a busca do passo 2 em tabela e lançam o item escolhido pelo mesmo lançamento (UC-V412, novo). Nenhum valor muda: o preço exibido é o que a busca já trazia e o lançamento calcula como antes.
-- **Revalidação de 2026-11-24, quinta (G-6):** gravando, a Situação passou a listar as etapas do processo `venda_com_producao` desta empresa, que o servidor manda em `gravacao.etapas` (UC-V413, novo). Antes mostrava só o texto. Nenhum valor muda.
+- **Revalidação de 2026-11-24, quinta (G-6):** gravando, a Situação passou a listar as etapas do processo `venda_com_producao` desta empresa, que o servidor manda em `gravacao.etapas` (UC-V414, novo). Antes mostrava só o texto. Nenhum valor muda.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

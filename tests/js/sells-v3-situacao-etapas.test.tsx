@@ -1,7 +1,7 @@
 /**
  * Venda V3 — gravando, a Situação mostra as etapas do processo em que a venda vai entrar.
  *
- * @covers-us UC-V413
+ * @covers-us UC-V414
  *
  * Âncora: `SituacaoVenda` de `prototipo-ui/cowork/Wagner/venda-v3.jsx` (lista as etapas do fluxo).
  * As etapas vêm do servidor (`gravacao.etapas`, SellsV3Controller::etapasDaVenda — o processo de
@@ -77,7 +77,7 @@ const etapas = [
 ];
 const abrirSituacao = () => fireEvent.click(screen.getByRole('button', { name: /Situação/ }));
 
-describe('UC-V413 · a Situação mostra as etapas do processo', () => {
+describe('UC-V414 · a Situação mostra as etapas do processo', () => {
   it('gravando, lista as etapas na ordem que o servidor mandou, sem marcar nenhuma', () => {
     render(<SellsCreateV3 businessId={1} cena={cena} gravacao={{ ...gravacao, etapas }} />);
     abrirSituacao();

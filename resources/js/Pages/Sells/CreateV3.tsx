@@ -171,7 +171,7 @@ type Props = {
     /* Tabelas permitidas ao usuário e a do local (UC-V397); id 0 = preço padrão. */
     tabelas: TabelaDePreco[];
     tabelaPadraoId: number | null;
-    /** Etapas do processo em que a venda entra ao gravar (UC-V413). Opcional: servidor antigo não manda. */
+    /** Etapas do processo em que a venda entra ao gravar (UC-V414). Opcional: servidor antigo não manda. */
     etapas?: { key: string; label: string }[];
   };
   cena: {
@@ -1304,7 +1304,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
               em que ela nasce é a do pipeline real da empresa, escolhida pelo que foi gravado. */}
           {situacaoAberta && gravacao && (
             <Stack gap={0} className="p-4">
-              {/* As etapas do processo em que a venda vai entrar (UC-V413): nenhuma marcada, porque a
+              {/* As etapas do processo em que a venda vai entrar (UC-V414): nenhuma marcada, porque a
                   venda ainda não existe — a etapa de entrada sai do que for gravado. */}
               {(gravacao.etapas ?? []).length > 0 && (
                 <div data-testid="situacao-etapas" className="mb-3">

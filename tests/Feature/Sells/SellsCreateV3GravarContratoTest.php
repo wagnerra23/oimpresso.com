@@ -616,7 +616,7 @@ it('UC-V404 · gravando, o cliente padrão vem do cadastro desta empresa e as li
     expect((int) DB::table('contacts')->where('id', $padraoId)->value('business_id'))->toBe($this->bizId);
 });
 
-it('UC-V413 · gravando, a Situação recebe as etapas do processo em que a venda vai entrar, só desta empresa', function () {
+it('UC-V414 · gravando, a Situação recebe as etapas do processo em que a venda vai entrar, só desta empresa', function () {
     v3gravarLigar($this);
     v3gravarPermitir($this->user, ['access_all_locations']);
     (new \Database\Seeders\FsmProcessoVendaComProducaoSeeder())->runForBusiness($this->bizId);
