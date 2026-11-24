@@ -61,6 +61,7 @@ import ParcelasDrawer from './_components/v3/ParcelasDrawer';
 import ResumoParcelas from './_components/v3/ResumoParcelas';
 import ResumoComissao from './_components/v3/ResumoComissao';
 import ConsultaCliente from './_components/v3/ConsultaCliente';
+import ConsultaProduto from './_components/v3/ConsultaProduto';
 import {
   rotuloIcmsLongo,
   type ClienteConsulta,
@@ -261,6 +262,8 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
      inicial — o padrão do balcão — e é a primeira linha de `cena.clientes`. */
   const [cli, setCli] = useState<Cliente>(cena.cliente);
   const [consultaAberta, setConsultaAberta] = useState(false);
+  /* "Consultar produto… F3" (UC-V412): a mesma busca do passo 2, vista em tabela. */
+  const [consultaProdAberta, setConsultaProdAberta] = useState(false);
   /* Gravando, o cliente escolhido na consulta (UC-V393); null = o cliente padrão da empresa. */
   const [cliGravacao, setCliGravacao] = useState<ClienteDaGravacao | null>(null);
   const [comissionadoId, setComissionadoId] = useState<number | null>(null);
@@ -401,6 +404,21 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const temPapel = !atual.role || papeisDoUsuario.includes(atual.role);
   const travada = ['producao', 'faturada', 'entregue'].includes(estagio);
   const cancelada = estagio === 'cancelada';
+
+  /* F3 abre a consulta de produto (UC-V412). O navegador também usa F3 (procurar na página):
+     o preventDefault só acontece quando a consulta de fato abre. Com uma janela aberta
+     (lançamento, item, parcelas…) ou a venda travada, o F3 fica com o navegador. */
+  useEffect(() => {
+    if (travada || cancelada) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'F3' || e.defaultPrevented) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      e.preventDefault();
+      setConsultaProdAberta(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [travada, cancelada]);
   const podeExecutar = temPapel && !!prox && !cancelada;
 
   /* Gravando, a busca é a do Create (/products/list, ProductUtil::filterProduct) e cada
@@ -757,6 +775,11 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             <Pill tom="neutro" mono>
               {itens.length === 1 ? '1 item' : `${itens.length} itens`}
             </Pill>
+            {!travada && !cancelada && (
+              <Button type="button" variant="outline" size="sm" onClick={() => setConsultaProdAberta(true)}>
+                Consultar produto… F3
+              </Button>
+            )}
             <button
               type="button"
               onClick={() => setColunasAberto(true)}
@@ -1518,6 +1541,15 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       {/* Onda extra — consulta de clientes. `cena.clientes ?? [cli]` mantém a tela
           honesta se o controller vier de uma versão sem a chave: a consulta abre
           mostrando o cadastro que já está na venda, em vez de uma lista vazia. */}
+      <ConsultaProduto
+        aberta={consultaProdAberta}
+        onFechar={() => setConsultaProdAberta(false)}
+        busca={busca}
+        onBuscaChange={setBusca}
+        encontrados={gravacao || busca ? achados : catalogo}
+        remoto={!!gravacao}
+        onEscolher={setLancando}
+      />
       <ConsultaCliente
         aberta={consultaAberta}
         onFechar={() => setConsultaAberta(false)}
