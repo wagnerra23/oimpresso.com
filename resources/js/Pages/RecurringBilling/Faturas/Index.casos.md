@@ -250,7 +250,7 @@ last_run_ci: "2026-11-23 (PR forma do protótipo, auditoria RecurringBilling) �
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Sem a permissão `recurringbilling.invoice.cancel` → **403** antes de tocar o gateway
+- **[BACKLOG]** Sem a permissão `recurringbilling.invoices.cancel` → **403** antes de tocar o gateway
   (`CU-RB-06` item 1). O código existe (`InvoiceController@cancel`); **nenhum teste hoje o prova**.
 - **[BACKLOG]** A auditoria (`activity('recurringbilling.invoice')`) grava **sucesso E falha**, com
   quem/quando/motivo/erro (`CU-RB-06` item 5) — exigência Procon/LGPD do charter.
