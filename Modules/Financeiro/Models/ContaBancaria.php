@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
-use Modules\RecurringBilling\Models\BoletoCredential;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -39,7 +38,7 @@ class ContaBancaria extends Model
         'beneficiario_cidade', 'beneficiario_uf', 'beneficiario_cep',
         'certificado_path', 'certificado_password_encrypted',
         'ativo_para_boleto', 'metadata',
-        'rb_gateway_credential_id', 'saldo_cached', 'saldo_atualizado_em', 'tipo_conta',
+        'saldo_cached', 'saldo_atualizado_em', 'tipo_conta',
         // Legacy migration (ADR 0118) — preenchidos pelo importer Python /
         // Modules/MigrationFactory futuro. Null em contas cadastradas nativas.
         'legacy_source', 'legacy_id', 'legacy_imported_at',
@@ -150,15 +149,6 @@ class ContaBancaria extends Model
         };
 
         return $query->where(fn ($w) => $w->whereExists($credencial('conta'))->orWhereExists($credencial('legado')));
-    }
-
-    /**
-     * Vínculo antigo com `rb_boleto_credentials`. Desde a onda 4 (2026-11-24) nenhum leitor de
-     * credencial usa esta relação; sai com a coluna na onda 5.
-     */
-    public function gatewayCredential(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
-        return $this->belongsTo(BoletoCredential::class, 'rb_gateway_credential_id');
     }
 
     public function getBancoNomeAttribute(): string

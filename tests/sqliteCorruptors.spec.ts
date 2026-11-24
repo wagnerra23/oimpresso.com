@@ -208,22 +208,6 @@ it('resolve driver a partir da credencial', function () {
     expect(r.tier === 'S' || r.tier === 'A').toBe(true);
   });
 
-  it('IRMÃO REAL: BoletoCredential::create em rb_boleto_credentials sem rede → vaza (regressão do repo)', () => {
-    const src = `<?php
-it('resolve driver inter', function () {
-    BoletoCredential::create([
-        'business_id'  => 1,
-        'banco'        => 'inter',
-        'ambiente'     => 'sandbox',
-    ]);
-    $this->assertTrue(true);
-});`;
-    const r = leaksUniqueRowOnMysql(src, 'X/BoletoServiceTest.php');
-    expect(r).not.toBeNull();
-    expect(r.leaksOnMysql).toBe(true);
-    expect(r.uncleaned).toContain('rb_boleto_credentials');
-  });
-
   it('insert RAW DB::table(...)->insert sem isolamento também vaza', () => {
     const src = `<?php
 beforeEach(function () {

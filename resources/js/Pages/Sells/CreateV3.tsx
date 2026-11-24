@@ -30,6 +30,7 @@
 // Âncora de design: prototipo-ui/cowork/Felipe/venda-v3.jsx (seção sells-create.jsx · window.VendaV3Create)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { PageHeader } from '@/Components/PageHeader';
 import { Search, Settings } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -62,6 +63,7 @@ import ParcelasDrawer from './_components/v3/ParcelasDrawer';
 import ResumoParcelas from './_components/v3/ResumoParcelas';
 import ResumoComissao from './_components/v3/ResumoComissao';
 import ConsultaCliente from './_components/v3/ConsultaCliente';
+import ConsultaProduto from './_components/v3/ConsultaProduto';
 import {
   rotuloIcmsLongo,
   type ClienteConsulta,
@@ -171,6 +173,8 @@ type Props = {
     /* Tabelas permitidas ao usuário e a do local (UC-V397); id 0 = preço padrão. */
     tabelas: TabelaDePreco[];
     tabelaPadraoId: number | null;
+    /** Etapas do processo em que a venda entra ao gravar (UC-V414). Opcional: servidor antigo não manda. */
+    etapas?: { key: string; label: string }[];
   };
   cena: {
     cliente: Cliente;
@@ -262,6 +266,8 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
      inicial — o padrão do balcão — e é a primeira linha de `cena.clientes`. */
   const [cli, setCli] = useState<Cliente>(cena.cliente);
   const [consultaAberta, setConsultaAberta] = useState(false);
+  /* "Consultar produto… F3" (UC-V412): a mesma busca do passo 2, vista em tabela. */
+  const [consultaProdAberta, setConsultaProdAberta] = useState(false);
   /* Gravando, o cliente escolhido na consulta (UC-V393); null = o cliente padrão da empresa. */
   const [cliGravacao, setCliGravacao] = useState<ClienteDaGravacao | null>(null);
   const [comissionadoId, setComissionadoId] = useState<number | null>(null);
@@ -402,6 +408,21 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   const temPapel = !atual.role || papeisDoUsuario.includes(atual.role);
   const travada = ['producao', 'faturada', 'entregue'].includes(estagio);
   const cancelada = estagio === 'cancelada';
+
+  /* F3 abre a consulta de produto (UC-V412). O navegador também usa F3 (procurar na página):
+     o preventDefault só acontece quando a consulta de fato abre. Com uma janela aberta
+     (lançamento, item, parcelas…) ou a venda travada, o F3 fica com o navegador. */
+  useEffect(() => {
+    if (travada || cancelada) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'F3' || e.defaultPrevented) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      e.preventDefault();
+      setConsultaProdAberta(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [travada, cancelada]);
   const podeExecutar = temPapel && !!prox && !cancelada;
 
   /* Gravando, a busca é a do Create (/products/list, ProductUtil::filterProduct) e cada
@@ -798,6 +819,11 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             <Pill tom="neutro" mono>
               {itens.length === 1 ? '1 item' : `${itens.length} itens`}
             </Pill>
+            {!travada && !cancelada && (
+              <Button type="button" variant="outline" size="sm" onClick={() => setConsultaProdAberta(true)}>
+                Consultar produto… F3
+              </Button>
+            )}
             <button
               type="button"
               onClick={() => setColunasAberto(true)}
@@ -1018,11 +1044,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         )}
       </Sec>
 
-      {/* ─── Passo 3 · Entrega e frete (gaveta) ──────────────────────────── */}
+      {/* ─── Gaveta · Entrega e frete (sem número: no protótipo as gavetas não são passos) ─ */}
       <Sec
         title={
           <>
-            <Passo n={3} />
             Entrega e frete
           </>
         }
@@ -1044,11 +1069,10 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         />
       </Sec>
 
-      {/* ─── Passo 4 · Observações e produção (gaveta) ───────────────────── */}
+      {/* ─── Gaveta · Observações e produção (sem número, idem) ─────────────── */}
       <Sec
         title={
           <>
-            <Passo n={4} />
             Observações e produção
           </>
         }
@@ -1167,7 +1191,11 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             className="border-b border-border px-4 py-3"
             style={{ background: 'color-mix(in oklch, var(--color-success) 5%, var(--color-card))' }}
           >
-            <h3 className="m-0 text-[15px] font-semibold leading-[1.3]">Fechamento</h3>
+            {/* Protótipo: 1 Cliente · 2 Itens · 3 Fechamento (`<Passo n="3" />Fechamento`). */}
+            <h3 className="m-0 text-[15px] font-semibold leading-[1.3]">
+              <Passo n={3} />
+              Fechamento
+            </h3>
             <span className="ml-auto">
               <Pill tom={payStatus === 'paid' ? 'success' : payStatus === 'partial' ? 'warning' : 'destructive'}>
                 {payStatus === 'paid' ? 'Pago' : payStatus === 'partial' ? 'Parcial' : 'A receber'}
@@ -1324,11 +1352,24 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           {/* Gravando, o pipeline da cena não vem (UC-V406): a venda ainda não existe, e a etapa
               em que ela nasce é a do pipeline real da empresa, escolhida pelo que foi gravado. */}
           {situacaoAberta && gravacao && (
-            <p className="p-4 text-[12.5px] leading-[1.45] text-muted-foreground">
-              Ainda não gravada. Ao gravar, a venda entra no fluxo de vendas da empresa (se ele estiver
-              ativo), na etapa que o sistema escolhe pelo que foi gravado: orçamento, venda paga ou venda a
-              prazo.
-            </p>
+            <Stack gap={0} className="p-4">
+              {/* As etapas do processo em que a venda vai entrar (UC-V414): nenhuma marcada, porque a
+                  venda ainda não existe — a etapa de entrada sai do que for gravado. */}
+              {(gravacao.etapas ?? []).length > 0 && (
+                <div data-testid="situacao-etapas" className="mb-3">
+                  {(gravacao.etapas ?? []).map((e) => (
+                    <Inline key={e.key} gap={3} align="center" className="py-1.5">
+                      <span aria-hidden className="inline-flex size-2 flex-none rounded-full bg-border" />
+                      <span className="text-[12.5px] leading-[1.35] text-muted-foreground">{e.label}</span>
+                    </Inline>
+                  ))}
+                </div>
+              )}
+              <p className="text-[12.5px] leading-[1.45] text-muted-foreground">
+                Ainda não gravada. Ao gravar, a venda entra {(gravacao.etapas ?? []).length > 0 ? 'neste fluxo' : 'no fluxo de vendas da empresa (se ele estiver ativo)'},
+                na etapa que o sistema escolhe pelo que foi gravado: orçamento, venda paga ou venda a prazo.
+              </p>
+            </Stack>
           )}
           {situacaoAberta && !gravacao && (
             <Stack gap={0} className="p-4">
@@ -1424,7 +1465,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
             )}
             {gravacao && (
               <Button size="lg" variant="outline" className="w-full" disabled={!itens.length || temInvalida || gravando || reprecificando} onClick={() => gravar()}>
-                {gravando ? 'Gravando…' : reprecificando ? 'Aplicando a tabela…' : 'Gravar venda'}
+                {gravando ? 'Gravando…' : reprecificando ? 'Aplicando a tabela…' : 'Finalizar venda'}
               </Button>
             )}
             {avisoPreco && (
@@ -1475,6 +1516,14 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
   // Os drawers renderizam em PORTAL, fora daqui — cada `<DialogContent>` repete
   // a classe, senão o campo do drawer fica 30px enquanto a página fica 34,19px.
   return (
+    <>
+    {/* Topo = PageHeader do protótipo (`VendaV3Create`, venda-v3.jsx): título + subtítulo.
+        Sem botão "Voltar para Vendas": no protótipo ele só existe quando a V3 é aberta por
+        "Adicionar venda" (rota `venda-nova`, que passa `onVoltar`); na rota própria da V3
+        (`venda-v3`, que é esta Page em /sells/create-v3) o protótipo não passa `onVoltar`. */}
+    <div data-contract="header">
+      <PageHeader title="Nova venda" subtitle="Cliente, itens, pagamento. O resto tem valor padrão." />
+    </div>
     <Stack gap={4} className="venda-v3 mx-auto max-w-[1400px] p-4">
       {/* Marcador honesto: quem abrir por engano precisa saber em 1 segundo.
           Só sem `gravacao` — com a flag useV3SellsGravar ligada a tela grava de verdade. */}
@@ -1489,16 +1538,6 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           </div>
         </Inline>
       )}
-
-      <Inline gap={3} align="center" wrap>
-        {/* 22px/1.3 + tracking = o h1 do `PageHeader` do DS vivo (DesignSync
-            019dd02f), que é o que o protótipo renderiza. `text-xl` dava 20px. */}
-        <h1 className="text-[22px] font-semibold leading-[1.3] tracking-[-.015em]">Nova venda</h1>
-        <Pill tom="primary" mono>
-          V3
-        </Pill>
-        <p className="text-sm text-muted-foreground">Cliente, itens, pagamento. O resto tem valor padrão.</p>
-      </Inline>
 
       <Grid gap={4} className="items-start lg:grid-cols-[minmax(0,1fr)_336px]">
         {esquerda}
@@ -1566,6 +1605,15 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       {/* Onda extra — consulta de clientes. `cena.clientes ?? [cli]` mantém a tela
           honesta se o controller vier de uma versão sem a chave: a consulta abre
           mostrando o cadastro que já está na venda, em vez de uma lista vazia. */}
+      <ConsultaProduto
+        aberta={consultaProdAberta}
+        onFechar={() => setConsultaProdAberta(false)}
+        busca={busca}
+        onBuscaChange={setBusca}
+        encontrados={gravacao || busca ? achados : catalogo}
+        remoto={!!gravacao}
+        onEscolher={setLancando}
+      />
       <ConsultaCliente
         aberta={consultaAberta}
         onFechar={() => setConsultaAberta(false)}
@@ -1627,6 +1675,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         </div>
       )}
     </Stack>
+    </>
   );
 }
 

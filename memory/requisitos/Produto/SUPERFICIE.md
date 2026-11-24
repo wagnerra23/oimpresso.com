@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 150 arquivos em 9 papéis.
+**Total mapeado:** 151 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -168,7 +168,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [Show.casos.md](../../../resources/js/Pages/Produto/Show.casos.md)
 - [StockHistory.casos.md](../../../resources/js/Pages/Produto/StockHistory.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 23
+## Demais arquivos (manifestos, docs, assets e misc) — 24
 
 - [armazenagem.ts](../../../resources/js/Pages/Produto/_components/formulario/armazenagem.ts)
 - [cest.ts](../../../resources/js/Pages/Produto/_components/formulario/cest.ts)
@@ -187,6 +187,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [encaixe.ts](../../../resources/js/Pages/Produto/_components/lista/encaixe.ts)
 - [estoque-inicial-dominio.ts](../../../resources/js/Pages/Produto/_components/lista/estoque-inicial-dominio.ts)
 - [formato.ts](../../../resources/js/Pages/Produto/_components/lista/formato.ts)
+- [moldura-janela.ts](../../../resources/js/Pages/Produto/_components/lista/moldura-janela.ts)
 - [navegacao.ts](../../../resources/js/Pages/Produto/_components/lista/navegacao.ts)
 - [origem-de-busca.ts](../../../resources/js/Pages/Produto/_components/lista/origem-de-busca.ts)
 - [tipos.ts](../../../resources/js/Pages/Produto/_components/lista/tipos.ts)

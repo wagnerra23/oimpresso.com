@@ -11,8 +11,8 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * Wave 18 RETRY D8 — 6° FormRequest tipado. Diferente de `StoreAccountRequest`
  * (criação completa), este edita conta existente — campos `name` opcionais
- * (preservar via Eloquent `fill` sem sobrescrever), `rb_gateway_credential_id`
- * permitido pra trocar gateway boleto.
+ * (preservar via Eloquent `fill` sem sobrescrever). `rb_gateway_credential_id` saiu em
+ * 2026-11-24 (onda 5b): a conta liga à credencial pelo wizard do PaymentGateway.
  *
  * Multi-tenant Tier 0 (ADR 0093): `business_id` NUNCA aceito do request —
  * Controller valida via $account->business_id === session('user.business_id').
@@ -53,7 +53,6 @@ class UpdateAccountRequest extends FormRequest
             'ativo_para_boleto'         => ['sometimes', 'nullable', 'boolean'],
 
             // Wiring com RecurringBilling gateway
-            'rb_gateway_credential_id'  => ['sometimes', 'nullable', 'integer', 'min:1'],
         ];
     }
 

@@ -59,7 +59,6 @@ beforeEach(function () {
     Schema::dropIfExists('rb_invoices');
     Schema::dropIfExists('rb_subscriptions');
     Schema::dropIfExists('rb_plans');
-    Schema::dropIfExists('rb_boleto_credentials');
 
     Schema::create('rb_plans', function ($t) {
         $t->id();
