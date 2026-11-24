@@ -69,8 +69,10 @@ on:
       - 'tests/js/resumo-parcelas.test.tsx'
       - 'tests/js/item-tributacao.test.tsx'
       - 'tests/js/sells-v3-item-abas.test.tsx'
+      - 'tests/js/sells-v3-fechamento-prototipo.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ResumoComissao.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
       # UC-V404..V407 (2026-11-23): gravando, nada da cena aparece — render da Page e dos dois
       # componentes que mudaram por isso (entrega e lançamento do item).
@@ -124,8 +126,10 @@ on:
       - 'tests/js/resumo-parcelas.test.tsx'
       - 'tests/js/item-tributacao.test.tsx'
       - 'tests/js/sells-v3-item-abas.test.tsx'
+      - 'tests/js/sells-v3-fechamento-prototipo.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ResumoComissao.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
       # UC-V404..V407 (2026-11-23): gravando, nada da cena aparece — render da Page e dos dois
       # componentes que mudaram por isso (entrega e lançamento do item).
@@ -236,6 +240,7 @@ jobs:
             tests/js/item-fiscal-calculo.test.ts \
             tests/js/item-tributacao.test.tsx \
             tests/js/sells-v3-item-abas.test.tsx \
+            tests/js/sells-v3-fechamento-prototipo.test.tsx \
             tests/js/sells-v3-gravando-sem-cena.test.tsx \
             tests/numberPtBR.test.ts \
             tests/br-inputs.test.tsx \

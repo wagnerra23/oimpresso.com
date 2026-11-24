@@ -5,7 +5,7 @@ irmaos: CreateV3.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: luiz
-last_run: "2026-11-23"
+last_run: "2026-11-24"
 ---
 
 # Casos de Uso & Aceite — Venda V3 (preview)
@@ -393,6 +393,21 @@ Até 2026-11-23 o detalhe abria, para qualquer produto, com NCM, CFOP, CST e al�
 - Sem a gravação, os três seguem como na cena.
 
 Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham numeradas como "VD-2026 1/2" e com contas e plano de contas de demonstração ("2 — Banco Itaú c/c", "1.1.5 — Recebido em depósito"), e o lançamento oferecia locais e tipos de impressão de demonstração que não chegavam à gravação. Plano de parcelas e comissão por beneficiário continuam recusados na gravação (UC-V381).
+
+## UC-V409 · O fechamento fala a língua do operador, e o resumo da comissão é o da âncora
+
+**Status:** 🧪 — `tests/js/sells-v3-fechamento-prototipo.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a tela aberta, com ou sem a gravação,
+- **Então** o pagamento e a comissão não mostram anotação de bastidor: nem `payment_status`, nem "caminho normal do balcão", nem "porte da comissão".
+- **Quando** a venda não tem beneficiário de comissão,
+- **Então** o resumo diz "Comissão da venda" com o valor zerado, "Nenhum beneficiário — venda sem comissão", o gatilho ("A cada parcela recebida") e o botão "Configurar comissão", que abre o modelo de comissão.
+- **Quando** o operador adiciona um beneficiário,
+- **Então** o resumo mostra um selo com o nome (ou o tipo) e o valor dele, e o total e o percentual da venda iguais aos da gaveta.
+- **Quando** abre a gaveta de parcelas,
+- **Então** cada condição de pagamento aparece com código e nome ("18 — PIX", "02 — Boleto 30/60").
+
+Âncora: `ComissaoResumo` e o pagamento de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. Lá a nota sobre `payment_status=due` está dentro de `<Meta>`, que só aparece no modo de anotação do protótipo; a produção a mostrava a todo operador. Até 2026-11-24 o resumo mostrava só a "Base líquida" e um parágrafo dizendo que a comissão por beneficiário fazia "parte do porte da comissão — próximo passo", e a condição de pagamento aparecia só pelo código ("18").
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
@@ -1341,6 +1356,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-21 (G-6):** `CreateV3.tsx` passou a guardar as duas notas da gaveta "Observações e produção" e a mandá-las na gravação (UC-V403, novo), e a passar quantas parcelas e quantos beneficiários de comissão a venda tem, para a gravação recusar com motivo (UC-V381, dois casos novos). Sem `gravacao` nada muda. Os demais UCs seguem valendo: o payload sem nota é o mesmo da fixture do UC-V380.
 - **Revalidação de 2026-11-23 (G-6):** com `gravacao`, a tela deixou de mostrar dados de demonstração (UC-V404 a UC-V407, novos): o cliente padrão vem do cadastro, a entrega mostra só o valor do frete, a situação diz "Não gravada" e o detalhe do item não traz tributação fixa. O botão "Salvar como orçamento" passou a gravar sem conferir o papel de demonstração (UC-V401 segue igual: o payload e o estágio não mudam). Sem `gravacao` nada muda, e os controles de cada caso novo provam isso.
 - **Revalidação de 2026-11-23, segunda (G-6):** com `gravacao`, a comissão deixou de usar a margem de 30% fixos, as parcelas deixaram de vir numeradas como "VD-2026" e o lançamento do item deixou de oferecer as informações adicionais de demonstração (UC-V408, novo). A gaveta de parcelas também deixou de mostrar conta de destino e plano de contas, que eram de demonstração (`CONTAS`, `PLANOS` em `parcelas-dominio.ts`) e que nenhum cadastro da empresa alimenta. Sem `gravacao` nada muda, e os controles provam isso.
+- **Revalidação de 2026-11-24 (G-6):** o fechamento deixou de mostrar a nota de bastidor do pagamento (`payment_status=due`) e o parágrafo sobre o "porte da comissão"; o resumo da comissão passou a ser o da âncora, com as mesmas funções e bases da gaveta (`totaisComissao` é a mesma conta que a gaveta já recebia), e a condição de pagamento passou a mostrar código e nome (UC-V409, novo). Nenhum valor mudou: a gravação, o total e o payload são os mesmos, e o botão do resumo passou de "Configurar…" para "Configurar comissão" (o teste do UC-V408 acompanha).
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
