@@ -49,6 +49,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Onda 1 da saída de `rb_boleto_credentials` (2026-11-24, depois do `--apply`):** reajuste de assinatura no Asaas e sync de saldo passam a ler a credencial do PaymentGateway; o reajuste deixa de mandar o `api_key` cifrado e o saldo Asaas sandbox deixa de ir para produção — [#11412](https://github.com/wagnerra23/oimpresso.com/pull/11412).
 
+**Onda 4 (2026-11-24):** sync de extrato e de saldo e o pagamento pelo Inter do Financeiro acham a credencial pela conta no PaymentGateway (`ContaBancaria::credencialGateway`), não mais por `fin_contas_bancarias.rb_gateway_credential_id`. Medido em produção antes da troca: nenhuma das 105 contas aponta para `rb_boleto_credentials` e a única credencial do PG não está ligada a conta, então os três já não rodavam para conta nenhuma. `BoletoCredentialResolver` fica sem leitor em produção; sai na onda 5 com a coluna.
+
 ### Outubro 2026
 
 - Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).

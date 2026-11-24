@@ -22,9 +22,10 @@ uses(Tests\TestCase::class);
  * US-RB-045 · SyncBankBalancesJob — sync saldo Inter via Banking API v2.
  *
  * Foco da suite: **o segredo vem do PaymentGateway** (decisão b1; onda 1 da saída de
- * `rb_boleto_credentials`, 2026-11-24). A conta ainda aponta para a linha do RB pelo FK do
- * Financeiro, mas dela o job lê só banco e ambiente; o `config_json` usado é o do PG, decifrado
- * pelo cast `encrypted:array`. Se o PEM chegasse cifrado, a mTLS receberia ciphertext.
+ * `rb_boleto_credentials`, 2026-11-24). Desde a onda 4 a conta liga à credencial do PG pelo
+ * `account_id` (`ContaBancaria::credencialGateway`); a linha do RB que a conta ainda aponta fica só
+ * de isca. O `config_json` usado é o do PG, decifrado pelo cast `encrypted:array`. Se o PEM
+ * chegasse cifrado, a mTLS receberia ciphertext.
  */
 const FAKE_INTER_PEM = "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----\n";
 
@@ -77,6 +78,7 @@ beforeEach(function () {
         $t->char('banco_codigo', 3)->nullable();
         $t->boolean('ativo_para_boleto')->default(true);
         $t->unsignedBigInteger('rb_gateway_credential_id')->nullable();
+        $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
         $t->decimal('saldo_cached', 15, 2)->nullable();
         $t->timestamp('saldo_atualizado_em')->nullable();
         $t->timestamps();
@@ -105,8 +107,9 @@ function fakeInterBalanceCredential(int $businessId, bool $comCredencialPg = tru
 {
     DB::table('business')->insert(['id' => $businessId, 'name' => "Biz {$businessId}"]);
 
-    // A linha do RB só dá banco e ambiente ao job. O config dela é propositalmente inútil:
-    // se o job voltasse a ler o segredo daqui, a mTLS e o OAuth quebrariam.
+    // Isca: a conta ainda aponta para esta linha do RB, com config inútil. Se o job voltasse a
+    // ler daqui, a mTLS e o OAuth quebrariam.
+    $accountId = 900 + $businessId;
     $credId = DB::table('rb_boleto_credentials')->insertGetId([
         'business_id' => $businessId,
         'banco'       => 'inter',
@@ -126,6 +129,7 @@ function fakeInterBalanceCredential(int $businessId, bool $comCredencialPg = tru
             'ambiente'     => 'production',
             'ativo'        => true,
             'nome_display' => 'Inter Teste',
+            'conta_bancaria_id' => $accountId,
             'config_json'  => Crypt::encryptString(json_encode([
                 'client_id'           => 'cid',
                 'client_secret'       => 'csec',
@@ -140,6 +144,7 @@ function fakeInterBalanceCredential(int $businessId, bool $comCredencialPg = tru
 
     return DB::table('fin_contas_bancarias')->insertGetId([
         'business_id'              => $businessId,
+        'account_id'               => $accountId,
         'banco_codigo'             => '077',
         'ativo_para_boleto'        => true,
         'rb_gateway_credential_id' => $credId,

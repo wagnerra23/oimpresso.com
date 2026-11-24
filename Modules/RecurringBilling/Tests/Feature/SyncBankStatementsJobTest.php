@@ -31,7 +31,7 @@ beforeEach(function () {
 
     Cache::flush();
 
-    foreach (['fin_extrato_lancamentos', 'fin_contas_bancarias', 'rb_boleto_credentials', 'business'] as $tbl) {
+    foreach (['fin_extrato_lancamentos', 'fin_contas_bancarias', 'payment_gateway_credentials', 'business'] as $tbl) {
         Schema::dropIfExists($tbl);
     }
 
@@ -41,13 +41,16 @@ beforeEach(function () {
         $t->timestamps();
     });
 
-    Schema::create('rb_boleto_credentials', function ($t) {
+    // Desde a onda 4 (2026-11-24) o extrato lê a credencial do PaymentGateway ligada à conta.
+    Schema::create('payment_gateway_credentials', function ($t) {
         $t->id();
         $t->unsignedInteger('business_id')->index();
-        $t->string('banco', 10);
+        $t->string('gateway_key', 30);
         $t->string('ambiente', 20)->default('production');
         $t->boolean('ativo')->default(true);
-        $t->json('config_json');
+        $t->string('nome_display')->nullable();
+        $t->longText('config_json')->nullable();
+        $t->unsignedInteger('conta_bancaria_id')->nullable();
         $t->timestamps();
     });
 
@@ -58,6 +61,7 @@ beforeEach(function () {
         $t->char('banco_codigo', 3)->nullable();
         $t->boolean('ativo_para_boleto')->default(true);
         $t->unsignedBigInteger('rb_gateway_credential_id')->nullable();
+        $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
         $t->decimal('saldo_cached', 15, 2)->nullable();
         $t->timestamp('saldo_atualizado_em')->nullable();
         $t->timestamps();
@@ -82,11 +86,11 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    // business/rb_boleto_credentials/fin_* são reais-migradas; o afterEach roda mesmo em
+    // business/payment_gateway_credentials/fin_* são reais-migradas; o afterEach roda mesmo em
     // teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-las
     // no MySQL persistente corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
-        foreach (['fin_extrato_lancamentos', 'fin_contas_bancarias', 'rb_boleto_credentials', 'business'] as $tbl) {
+        foreach (['fin_extrato_lancamentos', 'fin_contas_bancarias', 'payment_gateway_credentials', 'business'] as $tbl) {
             Schema::dropIfExists($tbl);
         }
     }
@@ -98,35 +102,38 @@ afterEach(function () {
     }
 });
 
-function fakeInterCredential(int $businessId): int
+function fakeInterCredential(int $businessId, ?int $accountId = null): int
 {
-    DB::table('business')->insert(['id' => $businessId, 'name' => "Biz {$businessId}"]);
+    if (! DB::table('business')->where('id', $businessId)->exists()) {
+        DB::table('business')->insert(['id' => $businessId, 'name' => "Biz {$businessId}"]);
+    }
+    $accountId ??= 500 + DB::table('fin_contas_bancarias')->count() + 1;
 
-    $config = [
-        'client_id'           => 'cid',
-        'client_secret'       => Crypt::encryptString('csec'),
-        'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n"),
-        'certificado_key_b64' => Crypt::encryptString(base64_encode("-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----\n")),
-        'conta_corrente'      => '12345678',
-    ];
-
-    $credId = DB::table('rb_boleto_credentials')->insertGetId([
-        'business_id' => $businessId,
-        'banco'       => 'inter',
-        'ambiente'    => 'production',
-        'ativo'       => true,
-        'config_json' => json_encode($config),
-        'created_at'  => now(),
-        'updated_at'  => now(),
+    // Credencial Inter do PaymentGateway ligada à conta por account_id (config cifrado inteiro).
+    DB::table('payment_gateway_credentials')->insert([
+        'business_id'       => $businessId,
+        'gateway_key'       => 'inter',
+        'ambiente'          => 'production',
+        'ativo'             => true,
+        'conta_bancaria_id' => $accountId,
+        'config_json'       => Crypt::encryptString(json_encode([
+            'client_id'           => 'cid',
+            'client_secret'       => 'csec',
+            'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n"),
+            'certificado_key_b64' => base64_encode("-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----\n"),
+            'conta_corrente'      => '12345678',
+        ])),
+        'created_at'        => now(),
+        'updated_at'        => now(),
     ]);
 
     return DB::table('fin_contas_bancarias')->insertGetId([
-        'business_id'              => $businessId,
-        'banco_codigo'             => '077',
-        'ativo_para_boleto'        => true,
-        'rb_gateway_credential_id' => $credId,
-        'created_at'               => now(),
-        'updated_at'               => now(),
+        'business_id'       => $businessId,
+        'account_id'        => $accountId,
+        'banco_codigo'      => '077',
+        'ativo_para_boleto' => true,
+        'created_at'        => now(),
+        'updated_at'        => now(),
     ]);
 }
 
@@ -220,23 +227,24 @@ it('multi-tenant: o bypass do scope é EXPLÍCITO — varre todos os tenants mes
 });
 
 it('skip conta sem credencial Inter (e.g. asaas, c6)', function () {
-    DB::table('business')->insert(['id' => 4, 'name' => 'Biz']);
+    DB::table('business')->insert(['id' => 1, 'name' => 'Biz']);
 
-    $credId = DB::table('rb_boleto_credentials')->insertGetId([
-        'business_id' => 1,
-        'banco'       => 'asaas',
-        'ativo'       => true,
-        'config_json' => json_encode(['api_key' => 'k']),
-        'created_at'  => now(),
-        'updated_at'  => now(),
+    DB::table('payment_gateway_credentials')->insert([
+        'business_id'       => 1,
+        'gateway_key'       => 'asaas',
+        'ativo'             => true,
+        'conta_bancaria_id' => 700,
+        'config_json'       => Crypt::encryptString(json_encode(['api_key' => 'k'])),
+        'created_at'        => now(),
+        'updated_at'        => now(),
     ]);
 
     DB::table('fin_contas_bancarias')->insert([
-        'business_id'              => 1,
-        'banco_codigo'             => '274',
-        'rb_gateway_credential_id' => $credId,
-        'created_at'               => now(),
-        'updated_at'               => now(),
+        'business_id'  => 1,
+        'account_id'   => 700,
+        'banco_codigo' => '274',
+        'created_at'   => now(),
+        'updated_at'   => now(),
     ]);
 
     Http::fake();
@@ -245,6 +253,59 @@ it('skip conta sem credencial Inter (e.g. asaas, c6)', function () {
 
     Http::assertNothingSent();
     expect(DB::table('fin_extrato_lancamentos')->count())->toBe(0);
+});
+
+it('Tier 0: credencial Inter de outra empresa apontando para o mesmo account_id não liga a conta', function () {
+    // Onda 4 (2026-11-24): a ligação conta → credencial exige o mesmo business_id dos dois lados.
+    DB::table('business')->insert([['id' => 1, 'name' => 'Biz 1'], ['id' => 2, 'name' => 'Biz 2']]);
+    DB::table('payment_gateway_credentials')->insert([
+        'business_id'       => 2,
+        'gateway_key'       => 'inter',
+        'ativo'             => true,
+        'conta_bancaria_id' => 800,
+        'config_json'       => Crypt::encryptString(json_encode(['client_id' => 'outra-empresa'])),
+        'created_at'        => now(),
+        'updated_at'        => now(),
+    ]);
+    DB::table('fin_contas_bancarias')->insert([
+        'business_id' => 1, 'account_id' => 800, 'banco_codigo' => '077',
+        'created_at'  => now(), 'updated_at' => now(),
+    ]);
+
+    Http::fake();
+
+    (new SyncBankStatementsJob())->handle();
+
+    Http::assertNothingSent();
+});
+
+it('vínculo antigo: fin_contas_bancarias.payment_gateway_credential_id também liga a conta', function () {
+    DB::table('business')->insert(['id' => 1, 'name' => 'Biz 1']);
+    $credId = DB::table('payment_gateway_credentials')->insertGetId([
+        'business_id' => 1,
+        'gateway_key' => 'inter',
+        'ativo'       => true,
+        'config_json' => Crypt::encryptString(json_encode([
+            'client_id'           => 'cid',
+            'client_secret'       => 'csec',
+            'certificado_crt_b64' => base64_encode("-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----\n"),
+            'certificado_key_b64' => base64_encode("-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----\n"),
+            'conta_corrente'      => '12345678',
+        ])),
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ]);
+    $contaId = DB::table('fin_contas_bancarias')->insertGetId([
+        'business_id' => 1, 'banco_codigo' => '077', 'payment_gateway_credential_id' => $credId,
+        'created_at'  => now(), 'updated_at' => now(),
+    ]);
+    fakeInterExtrato([
+        ['idTransacao' => 'tx-legado', 'dataInclusao' => '2026-05-07', 'tipoOperacao' => 'C', 'valor' => '10', 'titulo' => 'PIX', 'descricao' => 'a'],
+    ]);
+
+    (new SyncBankStatementsJob())->handle();
+
+    expect(DB::table('fin_extrato_lancamentos')->where('conta_bancaria_id', $contaId)->count())->toBe(1);
 });
 
 it('on-demand: passa contaBancariaId pra sincar só uma conta', function () {
