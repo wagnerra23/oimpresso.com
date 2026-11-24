@@ -142,12 +142,12 @@ beforeEach(function () {
         'created_by' => $this->user->id, 'transaction_date' => $data,
         'final_total' => 120.00, 'total_before_tax' => 120.00];
 
-    $this->vn = srcreTransacao($base + ['invoice_no' => $this->prefixo . 'VN']);
-    $this->vs = srcreTransacao($base + ['invoice_no' => $this->prefixo . 'VS']);
-    $this->vd = srcreTransacao($base + ['invoice_no' => $this->prefixo . 'VD']);
-    $this->rs = srcreTransacao($base + ['invoice_no' => $this->prefixo . 'RS', 'status' => 'draft']);
-    $this->dv = srcreTransacao($base + ['invoice_no' => $this->prefixo . 'DV', 'type' => 'sell_return',
-        'return_parent_id' => $this->vd]);
+    $this->vn = srcreTransacao(array_merge($base, ['invoice_no' => $this->prefixo . 'VN']));
+    $this->vs = srcreTransacao(array_merge($base, ['invoice_no' => $this->prefixo . 'VS']));
+    $this->vd = srcreTransacao(array_merge($base, ['invoice_no' => $this->prefixo . 'VD']));
+    $this->rs = srcreTransacao(array_merge($base, ['invoice_no' => $this->prefixo . 'RS', 'status' => 'draft']));
+    $this->dv = srcreTransacao(array_merge($base, ['invoice_no' => $this->prefixo . 'DV', 'type' => 'sell_return',
+        'return_parent_id' => $this->vd]));
 
     DB::table('nfe_emissoes')->insert([
         'business_id' => $this->bizId, 'transaction_id' => $this->vn, 'modelo' => '55', 'serie' => '987',
