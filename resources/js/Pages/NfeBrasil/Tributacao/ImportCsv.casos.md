@@ -5,7 +5,7 @@ irmaos: ImportCsv.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F8 · §
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única porta que escreve CENTENAS de regras tributárias de uma vez — e ela resolve o tenant DUAS vezes, em momentos diferentes.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 
@@ -41,6 +41,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
+| UC-NFIM-10 | Arquivo acima de 5 MB é recusado antes de ser lido | must `[V0]` | charter §Goals (máx 5 MB) · §Pendências | `ImportRegrasCsvArquivoTest` | 🧪 |
+| UC-NFIM-11 | CSV em Latin-1 ou UTF-16 é lido; separado por ponto e vírgula é recusado com aviso próprio | must `[V0]` | charter §Pendências (encoding/separador) · SDD `CU-NFE-07` | `ImportRegrasCsvArquivoTest` | 🧪 |
+| UC-NFIM-12 | O resumo da conferência aparece na tela | must `[V0]` | charter §Goals (preview com amostras e erros) · SDD `CU-NFE-07` item 2 | `ImportRegrasCsvArquivoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -189,6 +192,50 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   — os três `UC-NFIM-07 · …`.
 - **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
 
+## UC-NFIM-10 · Arquivo acima de 5 MB é recusado antes de ser lido · `must` `[V0]`
+
+- **Persona:** quem tenta subir uma planilha exportada inteira, com milhares de linhas.
+- **Aceite:** Dado um CSV de mais de 5 MB · Quando confiro · Então aparece "Arquivo muito grande (máx 5 MB)."
+  e nada vai para a conferência. Controle positivo: o mesmo conteúdo, pequeno, é conferido.
+- **Teste:** [`ImportRegrasCsvArquivoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php)
+  — `UC-NFIM-10 · …`.
+- **Contrato:** charter §Goals (*"máx 5 MB, `.csv`/`.txt`"*) e §Pendências. A regra é o `max:5120` do
+  `ImportRegrasCsvRequest`, que já existia; este caso só a prova.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-11 · Codificação e separador do CSV · `must` `[V0]`
+
+- **Persona:** quem salva a planilha pelo Excel em português, que pode gerar ponto e vírgula, Windows-1252
+  ou "Texto Unicode" (UTF-16).
+- **Aceite:** Dado um CSV em Windows-1252 com acento numa coluna extra · Quando confiro · Então as linhas
+  são lidas e o texto chega ao resumo sem corromper ("Peça"). Dado um CSV em UTF-16 com BOM · Então ele é
+  lido como o UTF-8. Dado um CSV separado por ponto e vírgula · Então nenhuma linha é aceita e o aviso diz
+  que o arquivo está separado por ponto e vírgula e deve ser salvo separado por vírgula, com ponto decimal.
+  Nada é gravado em nenhum dos casos.
+- **Teste:** [`ImportRegrasCsvArquivoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php)
+  — os três `UC-NFIM-11 · …`.
+- **Contrato:** charter §Pendências (*"comportamento com CSV malformado (encoding/separador)"*).
+- **Por que ponto e vírgula segue recusado:** nesse formato o Excel grava o decimal com vírgula ("0,18").
+  Aceitar exigiria ler número com vírgula, que é decisão de valor à parte (regra mestre de valor). A
+  conversão de codificação não toca número: os campos da regra são códigos e alíquotas em ASCII.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-12 · O resumo da conferência aparece na tela · `must` `[V0]`
+
+- **Persona:** quem clicou em "Conferir" e espera ver quantas linhas valem, as amostras e os erros, para
+  então aplicar.
+- **Aceite:** Dado um CSV conferido · Quando a tela recarrega · Então ela recebe o resumo (total de
+  válidas, total de erros, amostras). Controle: sem conferência, a página abre sem resumo.
+- **Teste:** [`ImportRegrasCsvArquivoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php)
+  — `UC-NFIM-12 · …`.
+- **Contrato:** charter §Goals (preview com amostras e erros antes do aplicar) + SDD `CU-NFE-07` item 2.
+- **Achado de 2026-11-24:** o `ImportCsv.tsx` lia `props.flash.preview`, mas o middleware do Inertia
+  compartilha só `success`, `error`, `info` e `slash` (medido no CT 100). Desde a criação da tela (#131,
+  2026-05-06) o resumo não aparecia e o botão Aplicar não tinha efeito, porque só age com resumo. O
+  `show()` passou a enviar o resumo como prop `preview`. Produção, lida no mesmo dia: nenhuma importação
+  por CSV registrada.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
 ---
 
 ## Backlog — sem UC até ganhar teste ou contrato
@@ -215,6 +262,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado (`596110b9e`) com `vendor/composer` próprio · `ImportRegrasCsvArquivoTest` + `ImportRegrasCsvServiceTest` + `TributacaoGatesContratoTest` | **25 passed · 116 assertions** (UC-NFIM-10/11/12 e os vizinhos). Com o controller e o parser do `main` no mesmo worktree: UC-NFIM-11 (3) e UC-NFIM-12 **4 failed**; UC-NFIM-10 passa nos dois (o limite já existia). |
 | 2026-10-06 | CT 100 `oimpresso-staging`, cópia isolada da branch da thread 19, `--filter=UC-NFIM` | controller anterior: UC-NFIM-04 **vermelho** (302, regra gravada no biz 2) · controller novo: UC-NFIM-04 **verde**; UC-NFIM-01/02 verdes nos dois. UC-NFIM-03 **vermelho nos dois**: o usuário semeado do biz 1 no staging tem o papel `Admin#1`, que concede todas as permissões, então revogar a permissão direta não muda nada. É ambiente, não a mudança — 17 asserções |
 
 > ⚠️ **Este arquivo de teste NÃO foi adicionado à allowlist da lane** — pelas mesmas duas razões do
