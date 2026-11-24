@@ -74,6 +74,26 @@ else
   echo "limpa-workspace: espelho indisponível, segue sem ele"
 fi
 
+# ── Compactação do .git ─────────────────────────────────────────────────────────
+# O _work é tmpfs de 4 GB (cria-vaga.sh) e o .git nunca era compactado: cada fetch
+# deixava um pack novo, e os packs da época antes do espelho repetiam a história do
+# main. Medido 2026-11-24 ~19:50Z: .git de 1,1 a 2,7 GB por vaga (até 657 packs),
+# tmpfs a 79-89%, e os jobs caindo em "Set up job" com "No space left on device" ao
+# extrair actions/setup-node — esse passo roda ANTES deste hook, então o espaço tem
+# de sobrar do job anterior. `repack -a -d -l` deixa fora o que o espelho já tem;
+# nas 8 vagas o .git foi a 133-142 MB em ~16 s, com fsck --connectivity-only limpo.
+# Só roda com 20+ packs (barato no caso comum). O repack é atômico: se falhar, o .git
+# antigo fica e o job segue.
+packs=$(git -C "$ws" count-objects -v 2>/dev/null | sed -n 's/^packs: //p')
+if [ "${packs:-0}" -ge 20 ]; then
+  git -C "$ws" reflog expire --expire=now --all 2>/dev/null
+  if git -C "$ws" repack -a -d -l -q && git -C "$ws" prune-packed; then
+    echo "limpa-workspace: .git compactado ($packs packs -> $(git -C "$ws" count-objects -v | sed -n 's/^packs: //p'))"
+  else
+    echo "limpa-workspace: repack falhou, segue sem compactar"
+  fi
+fi
+
 limpa_repo() {
   cd "$ws" || return 1
   git sparse-checkout disable >/dev/null 2>&1 || true

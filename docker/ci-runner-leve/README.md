@@ -29,6 +29,12 @@ Medido em 2026-10-27 19:20Z: **1.471 runs na fila** contra **26 rodando**. O gar
   versionado (medido 2026-10-28: 14 de 25 falhas nos `ct100-leve-*`). Resíduo em `_temp`/`_tool`
   ainda passa entre jobs; isso é aceitável porque só roda código de quem tem push ou de fork
   aprovado (ver ⚠️ abaixo).
+- **O `_work` é tmpfs de 4 GB** (`cria-vaga.sh`), e o espaço que falta ali derruba o job em
+  "Set up job", antes de qualquer hook: em 2026-11-24 ~19:05Z jobs caíram com *"No space left on
+  device"* ao extrair `actions/setup-node`. O disco do CT 100 estava em 80% com 39 GB livres; quem
+  enchia era o `.git` do workspace, nunca compactado (1,1 a 2,7 GB por vaga, até 657 packs). O
+  `limpa-workspace.sh` agora faz `git repack -a -d -l` quando há 20+ packs: nas 8 vagas o `.git`
+  foi a ~135 MB e o tmpfs a 28%. Para conferir: `docker exec ci-leve-N df -h /home/runner/_work`.
 - A conexão é **de saída** para o GitHub: não precisa de porta aberta, IP fixo nem Tailscale.
 
 ## Capacidade do CT 100 (Proxmox `sistema`, 192.168.0.2)
