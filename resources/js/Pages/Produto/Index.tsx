@@ -61,6 +61,7 @@ import { useLargurasGuardadas } from './_components/lista/useLargurasGuardadas';
 import { useTamanho } from './_components/lista/useTamanho';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import NcmEmLote from './_components/lista/NcmEmLote';
+import { MOLDURA_JANELA, TITULO_JANELA } from './_components/lista/moldura-janela';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
@@ -775,9 +776,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
 
       <AlertDialog open={confirmar !== null} onOpenChange={(o) => !o && setConfirmar(null)}>
         {confirmar && (
-          <AlertDialogContent container={cockpit}>
+          <AlertDialogContent className={MOLDURA_JANELA} container={cockpit}>
             <AlertDialogHeader>
-              <AlertDialogTitle>{confirmar.titulo}</AlertDialogTitle>
+              <AlertDialogTitle className={TITULO_JANELA}>{confirmar.titulo}</AlertDialogTitle>
               <AlertDialogDescription>{confirmar.corpo}</AlertDialogDescription>
             </AlertDialogHeader>
             {confirmar.aviso && <p className="text-[12px] text-[var(--warn)]">{confirmar.aviso}</p>}
@@ -799,9 +800,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       </AlertDialog>
 
       <Dialog open={localModal !== null} onOpenChange={(o) => !o && setLocalModal(null)}>
-        <DialogContent container={cockpit}>
+        <DialogContent className={MOLDURA_JANELA} container={cockpit}>
           <DialogHeader>
-            <DialogTitle>{localModal === 'add' ? 'Adicionar ao local' : 'Remover do local'}</DialogTitle>
+            <DialogTitle className={TITULO_JANELA}>{localModal === 'add' ? 'Adicionar ao local' : 'Remover do local'}</DialogTitle>
             <DialogDescription>
               {selecionados.length} produto(s) selecionado(s).{' '}
               {localModal === 'add'
@@ -857,9 +858,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       />
 
       <Dialog open={wooModal} onOpenChange={setWooModal}>
-        <DialogContent container={cockpit}>
+        <DialogContent className={MOLDURA_JANELA} container={cockpit}>
           <DialogHeader>
-            <DialogTitle>WooCommerce Sync</DialogTitle>
+            <DialogTitle className={TITULO_JANELA}>WooCommerce Sync</DialogTitle>
             <DialogDescription>{selecionados.length} produto(s) selecionado(s).</DialogDescription>
           </DialogHeader>
           <DialogFooter>
