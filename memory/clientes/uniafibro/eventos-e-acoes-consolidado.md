@@ -28,14 +28,14 @@ related:
 | AGFESC Girassóis (sede) | Criciúma e 14 núcleos · Sul | grupo 2020, fundação 09/2023 | @assgirassoisfibromialgicossc (13,5 mil) · núcleos @agfescgravatal (428), @fibromialgicoscriciuma (172), @rincao_fibro (24) | falta |
 | AFIBROMAR | Maravilha e Extremo Oeste · Oeste | 07/2025 | @afibromar2025 (2.998) · núcleo @afibromarnucleocunhapora (148) | afibromarmaravilha@gmail.com · (49) 9949-6130 |
 | AFICOR | Concórdia e Alto Uruguai · Oeste | 14/10/2021 | @aficor2021 (2.491) | falta |
-| AFASJ | São José · Grande Florianópolis | 10/2025 | @associacaofibromialgiaamigossj (1.560) | grupo de WhatsApp na bio |
+| AFASJ | São José · Grande Florianópolis | 14/10/2025 | @fibromialgicossjsc (6.502) · @associacaofibromialgiaamigossj (1.560) | (48) 8471-2009 (Receita) · grupo de WhatsApp na bio |
 | AREFI | Indaial e Médio Vale · Vale do Itajaí | 09/2023 | @arefi_regional_fibromialgia (3.641) · @arefivale (858, antigo, parado desde 05/2024) | arefi.vale@gmail.com · (47) 98815-0242 |
 | AFAGAS | Gaspar · Vale do Itajaí | 04/2026 | @afagas2026 (673) | falta |
 | ASCAF | Cocal do Sul · Sul | 2026 | @ascaf10 (100) | falta |
 | Homens de Fibro SC (grupo da Uniafibro) | estadual | 11/2026 | @homensdefibro.sc | WhatsApp (48) 99987-2822 |
 | **Uniafibro-SC** | estadual · em formação | 11/2026 | @uniafibro2026 (317) · uniafibro.com.br | e-mail e telefone ainda não existem |
 
-**Alcance nas redes:** somando os perfis acima, **mais de 26 mil seguidores** (a mesma pessoa pode seguir mais de um perfil).
+**Alcance nas redes:** somando os perfis acima, **mais de 33 mil seguidores** (a mesma pessoa pode seguir mais de um perfil).
 Em 23/11/2026 o @homensdefibro.sc passou a seguir todos esses perfis.
 
 Presença: **4 das 6 mesorregiões** (Sul, Vale do Itajaí, Oeste e Grande Florianópolis). Faltam Norte e Serra.
@@ -43,12 +43,13 @@ A ACPFA (Joinville) não faz parte da rede (decisão [W] 23/11/2026).
 
 ### 1.1 Outros grupos de fibromialgia em SC no Instagram (fora da rede, 23/11/2026)
 
-Candidatos para chegar às regiões que faltam. A conta de São José a confirmar com o [W]: a AFASJ usa
-@associacaofibromialgiaamigossj, mas existe também @fibromialgicossjsc.
+Candidatos para chegar às regiões que faltam.
+
+> **24/11/2026 ([W]):** @fibromialgicossjsc (Fibromiálgicos SJ) é o Instagram da AFASJ e saiu desta lista;
+> está na tabela da rede, acima, junto com @associacaofibromialgiaamigossj.
 
 | Perfil | Onde | Seguidores |
 |---|---|---|
-| @fibromialgicossjsc | São José · Grande Florianópolis | 6.502 |
 | @fibromialgiasc_itajai | Itajaí · Vale do Itajaí | 4.646 |
 | @asf.lages__ (ASF) | Lages · Serra | 1.048 |
 | @fibrofloripa | Florianópolis | 589 |
