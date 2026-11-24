@@ -51,6 +51,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Onda 4 (2026-11-24):** sync de extrato e de saldo e o pagamento pelo Inter do Financeiro acham a credencial pela conta no PaymentGateway (`ContaBancaria::credencialGateway`), não mais por `fin_contas_bancarias.rb_gateway_credential_id`. Medido em produção antes da troca: nenhuma das 105 contas aponta para `rb_boleto_credentials` e a única credencial do PG não está ligada a conta, então os três já não rodavam para conta nenhuma. `BoletoCredentialResolver` fica sem leitor em produção; sai na onda 5 com a coluna.
 
+**Onda 5a (2026-11-24):** `rb:backfill-gateway` (US-RB-052) e `rb:health` passam a ler a credencial do PaymentGateway. O backfill acha a credencial pela conta (`ContaBancaria::credencialGateway`) e, sem ela, por banco no business, como antes; o health conta credenciais Inter/C6/Asaas ativas no PG e mede o frescor do saldo sem depender de `rb_gateway_credential_id`.
+
 ### Outubro 2026
 
 - Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).
