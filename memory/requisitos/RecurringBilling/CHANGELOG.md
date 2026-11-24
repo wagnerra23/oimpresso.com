@@ -51,6 +51,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Onda 2 (2026-11-24):** os webhooks Asaas (`/api/webhooks/asaas/{businessId}`) e Inter Pix (`/webhooks/inter/pix/{businessId}`) conferem o header contra o `webhook_secret` da credencial ativa no PaymentGateway, não mais contra `rb_boleto_credentials`. Config que não decifra vira 401, nunca 500. Medido em produção antes da troca: `rb_boleto_credentials` vazia e `pg_webhook_events` sem nenhum evento, então as duas rotas já devolviam 404 para toda empresa; a única credencial ativa no PG (Inter, empresa 1) não tem `webhook_secret`, e o webhook Inter dela passa de 404 para 401 até alguém cadastrar o segredo no wizard. Nenhum código de produção grava segredo em `rb_boleto_credentials`; o segredo novo se cadastra no wizard do PaymentGateway.
 
+**Onda 3 (2026-11-24):** a lista de gateways da tela de Configurações (`/recurring-billing/configuracoes`) passa a vir de `payment_gateway_credentials` (Inter, C6 e Asaas do business), a mesma fonte que cobra (`CobrancaNoGateway`). A tela continua só de leitura: nenhum código de produção grava em `rb_boleto_credentials` (o único escritor é o script `scripts/inter-credentials/_remote_install.php`).
+
 **Onda 4 (2026-11-24):** sync de extrato e de saldo e o pagamento pelo Inter do Financeiro acham a credencial pela conta no PaymentGateway (`ContaBancaria::credencialGateway`), não mais por `fin_contas_bancarias.rb_gateway_credential_id`. Medido em produção antes da troca: nenhuma das 105 contas aponta para `rb_boleto_credentials` e a única credencial do PG não está ligada a conta, então os três já não rodavam para conta nenhuma. `BoletoCredentialResolver` fica sem leitor em produção; sai na onda 5 com a coluna.
 
 ### Outubro 2026
