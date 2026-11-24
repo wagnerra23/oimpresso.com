@@ -8,7 +8,7 @@ use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\ContaBancaria;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Models\SubscriptionEvent;
 
@@ -19,10 +19,10 @@ use Modules\RecurringBilling\Models\SubscriptionEvent;
  *
  * Regra de resolução (NADA inventado — derivada de ADR arq/0007 + BoletoService):
  *
- *   1. FK direto da conta: fin_contas_bancarias.rb_gateway_credential_id →
- *      credencial ativa → gateway = credencial.banco.
- *   2. FK reverso: rb_boleto_credentials.conta_bancaria_id = s.conta_bancaria_id
- *      (ativo=1) → gateway = credencial.banco.
+ *   1. Credencial do PaymentGateway ligada à conta (`ContaBancaria::credencialGateway`:
+ *      `conta_bancaria_id` = `account_id`, depois `payment_gateway_credential_id`) →
+ *      gateway = credencial.gateway_key. Até a onda 5a (2026-11-24) as duas ligações
+ *      eram com `rb_boleto_credentials`.
  *   3. Fallback: banco_codigo da conta (077=inter · 336=c6 · 403=cora) mapeia
  *      pro driver; se o business tem credencial ativa DESSE banco → atribui.
  *   4. Fail-closed (Tier 0 dinheiro): sem credencial ativa viável OU driver
@@ -94,10 +94,11 @@ class GatewayBackfillService
             ->orderBy('id')
             ->get();
 
-        $credenciaisAtivas = BoletoCredential::query()
+        // Sem config_json no select: aqui só importa o gateway, e o segredo não precisa sair do banco.
+        $credenciaisAtivas = PaymentGatewayCredential::query()
             ->where('business_id', $businessId)
             ->where('ativo', true)
-            ->get();
+            ->get(['id', 'business_id', 'gateway_key', 'conta_bancaria_id']);
 
         $stats = [
             'total_null'  => 0,
@@ -174,7 +175,7 @@ class GatewayBackfillService
 
     /**
      * @param  \Illuminate\Support\Collection<int, ContaBancaria>       $contas
-     * @param  \Illuminate\Support\Collection<int, BoletoCredential>    $credenciaisAtivas
+     * @param  \Illuminate\Support\Collection<int, PaymentGatewayCredential>    $credenciaisAtivas
      *
      * @return array{gateway:string|null, fonte:string|null, motivo:string|null, banco_codigo:string|null}
      */
@@ -198,16 +199,11 @@ class GatewayBackfillService
             ? (string) $conta->getAttribute('banco_codigo')
             : null;
 
-        // 1) FK direto da conta (fin_contas_bancarias.rb_gateway_credential_id — ADR arq/0007)
-        //    ou FK reverso (rb_boleto_credentials.conta_bancaria_id). Credencial INATIVA
-        //    apontada pelo FK não conta — cai pros caminhos seguintes.
-        $credencialIdDaConta = $conta->getAttribute('rb_gateway_credential_id');
-        $porConta = $credencialIdDaConta !== null
-            ? $credenciaisAtivas->firstWhere('id', $credencialIdDaConta)
-            : null;
-        $porConta ??= $credenciaisAtivas->firstWhere('conta_bancaria_id', $contaId);
+        // 1) Credencial do PaymentGateway ligada à conta, no business da conta. Credencial
+        //    INATIVA não conta — cai pros caminhos seguintes.
+        $porConta = $conta->credencialGateway();
         if ($porConta !== null) {
-            $banco = (string) $porConta->getAttribute('banco');
+            $banco = (string) $porConta->getAttribute('gateway_key');
 
             if (! in_array($banco, self::DRIVERS_SUPORTADOS, true)) {
                 return ['gateway' => null, 'fonte' => null, 'motivo' => "driver_nao_suportado:{$banco}", 'banco_codigo' => $bancoCodigo];
@@ -227,7 +223,7 @@ class GatewayBackfillService
             return ['gateway' => null, 'fonte' => null, 'motivo' => "driver_nao_suportado:{$driver}", 'banco_codigo' => $bancoCodigo];
         }
 
-        $porBanco = $credenciaisAtivas->firstWhere('banco', $driver);
+        $porBanco = $credenciaisAtivas->firstWhere('gateway_key', $driver);
         if ($porBanco !== null) {
             return ['gateway' => $driver, 'fonte' => 'credencial_por_banco', 'motivo' => null, 'banco_codigo' => $bancoCodigo];
         }

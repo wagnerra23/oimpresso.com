@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 233 arquivos em 9 papéis.
+**Total mapeado:** 235 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -166,9 +166,10 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 51
+## Componentes / apoio de tela — 52
 
 - [EditarRemessaSheet.tsx](../../../resources/js/Pages/Sells/Shipments/_components/EditarRemessaSheet.tsx)
+- [AbasVendas.tsx](../../../resources/js/Pages/Sells/_components/AbasVendas.tsx)
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
 - [CobrancaDrawer.tsx](../../../resources/js/Pages/Sells/_components/CobrancaDrawer.tsx)
 - [CommissionSplitEditor.tsx](../../../resources/js/Pages/Sells/_components/CommissionSplitEditor.tsx)
@@ -248,10 +249,11 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 - [Subscriptions.casos.md](../../../resources/js/Pages/Sells/Subscriptions.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 26
+## Demais arquivos (manifestos, docs, assets e misc) — 27
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
+- [abasVendasDados.ts](../../../resources/js/Pages/Sells/_components/abasVendasDados.ts)
 - [dropdownEntries.ts](../../../resources/js/Pages/Sells/_components/dropdownEntries.ts)
 - [edicaoVenda.ts](../../../resources/js/Pages/Sells/_components/edicaoVenda.ts)
 - [naturezaLancamento.ts](../../../resources/js/Pages/Sells/_components/naturezaLancamento.ts)
