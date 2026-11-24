@@ -46,6 +46,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Onda 1 da saída de `rb_boleto_credentials` (2026-11-24, depois do `--apply`):** reajuste de assinatura no Asaas e sync de saldo passam a ler a credencial do PaymentGateway; o reajuste deixa de mandar o `api_key` cifrado e o saldo Asaas sandbox deixa de ir para produção — [#11412](https://github.com/wagnerra23/oimpresso.com/pull/11412).
 
+**Onda 2 (2026-11-24):** os webhooks Asaas (`/api/webhooks/asaas/{businessId}`) e Inter Pix (`/webhooks/inter/pix/{businessId}`) conferem o header contra o `webhook_secret` da credencial ativa no PaymentGateway, não mais contra `rb_boleto_credentials`. Config que não decifra vira 401, nunca 500. Medido em produção antes da troca: `rb_boleto_credentials` vazia e `pg_webhook_events` sem nenhum evento, então as duas rotas já devolviam 404 para toda empresa; a única credencial ativa no PG (Inter, empresa 1) não tem `webhook_secret`, e o webhook Inter dela passa de 404 para 401 até alguém cadastrar o segredo no wizard. A tela de Configurações ainda grava o segredo no RB (onda 3).
+
 ### Outubro 2026
 
 - Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).

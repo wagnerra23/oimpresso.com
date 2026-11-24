@@ -343,10 +343,11 @@ status `canceled_at_period_end`, `credit_note` do saldo restante, e o evento `Co
 — valor não numérico dá 404) → `AsaasWebhookController@handle`. A rota está em `Routes/api.php`, que o
 `RouteServiceProvider` carrega sob o prefixo `api`; até a v1.0.1 este SDD omitia o `/api`.
 
-1. **Autenticidade ANTES de qualquer processamento:** carrega a `BoletoCredential` Asaas **ativa**
-   daquele business; sem credencial → **404**; compara o header `asaas-access-token` com
-   `config_json.webhook_secret` (cifrado desde [#11227](https://github.com/wagnerra23/oimpresso.com/pull/11227))
-   por **`hash_equals`** → não bate → **401**.
+1. **Autenticidade ANTES de qualquer processamento:** carrega a credencial Asaas **ativa** daquele
+   business em `payment_gateway_credentials` (`CobrancaNoGateway::credencial`; até 2026-11-24 era a
+   `BoletoCredential` do RB, com o segredo cifrado desde [#11227](https://github.com/wagnerra23/oimpresso.com/pull/11227));
+   sem credencial → **404**; compara o header `asaas-access-token` com `config_json.webhook_secret`
+   por **`hash_equals`** → não bate, ou config que não decifra → **401**.
    *É aqui que mora o isolamento multi-tenant desta rota:* o token do business A nunca casa com o
    secret do B — o global scope não ajuda numa rota sem sessão.
 2. **Idempotência por empresa:** `pg_webhook_events` com `UNIQUE(business_id, provider, event_id)` desde

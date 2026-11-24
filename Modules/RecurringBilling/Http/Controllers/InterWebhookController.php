@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Support\Privacy\PiiRedactor;
 use Modules\RecurringBilling\Jobs\ProcessInterWebhookJob;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 
 /**
  * Recebe webhooks PIX do Banco Inter (`pix.recebido`).
@@ -22,7 +24,9 @@ use Modules\RecurringBilling\Models\BoletoCredential;
  * Sem auth middleware (chamado pelo Inter externamente).
  *
  * **Tier 0 multi-tenant**: validamos shared secret no header
- * `X-Inter-Webhook-Secret` contra `BoletoCredential.config_json.webhook_secret`
+ * `X-Inter-Webhook-Secret` contra o `webhook_secret` da credencial `inter` ativa no PaymentGateway
+ * (`payment_gateway_credentials`, desde a onda 2 de 2026-11-24; antes vinha de
+ * `rb_boleto_credentials`)
  * do business antes de processar. Wagner configura o header custom no
  * Inter via `PUT /webhooks/pix-recebidos` durante onboarding da credencial.
  *
@@ -40,19 +44,22 @@ class InterWebhookController extends Controller
 
     public function handle(Request $request, int $businessId): JsonResponse
     {
-        $credential = BoletoCredential::where('business_id', $businessId)
-            ->where('banco', 'inter')
-            ->where('ativo', true)
-            ->first();
-
-        if (! $credential) {
+        try {
+            $credential = app(CobrancaNoGateway::class)->credencial($businessId, 'inter');
+        } catch (CredentialMisconfiguredException) {
             return $this->reject('credential_not_found', $businessId, 404);
         }
 
-        $expectedSecret = $credential->webhookSecret();
+        // O PG cifra o config_json inteiro e guarda o segredo em claro dentro dele. Config que
+        // não decifra (APP_KEY trocada) vale como sem segredo: rejeita, nunca 500.
+        try {
+            $expectedSecret = $credential->config_json['webhook_secret'] ?? null;
+        } catch (DecryptException) {
+            $expectedSecret = null;
+        }
         $providedSecret = (string) $request->header(self::AUTH_HEADER, '');
 
-        if (! $expectedSecret || ! hash_equals((string) $expectedSecret, $providedSecret)) {
+        if (! is_string($expectedSecret) || $expectedSecret === '' || ! hash_equals($expectedSecret, $providedSecret)) {
             return $this->reject('secret_mismatch', $businessId, 401);
         }
 
