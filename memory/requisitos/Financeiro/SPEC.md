@@ -418,7 +418,7 @@ owner: wagner
 
 Pedido Wagner 2026-05-13 (sessão fin-4 esclarecida) — fatia A do epic "Financeiro OfficeImpresso base + Inter boleto + integrar venda". OfficeImpresso (legacy Delphi) imprime 2ª via boleto via PDF — paridade.
 
-`InterDriver` ([Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php:86](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php#L86)) JÁ TEM método `pdf(string $nossoNumero): string` retornando PDF base64 via `InterApi->getPdfNossoNumero()`. Falta só wiring: rota + controller + botão na UI já existente `/boletos` (Onda 1 MVP).
+O `InterDriver` do RB (`Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php:86`) tinha método `pdf(string $nossoNumero): string` retornando PDF base64 via `InterApi->getPdfNossoNumero()`. ⚠️ Esse driver foi removido em 2026-11-24 ([#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)); o [`InterDriver` do PaymentGateway](../../../Modules/PaymentGateway/Services/Drivers/InterDriver.php), dono dos drivers desde a decisão b1, não tem `pdf()`, então a base aqui precisa ser refeita lá. Falta só wiring: rota + controller + botão na UI já existente `/boletos` (Onda 1 MVP).
 
 Pré-req: titulo precisa ter `nosso_numero` populado (emissão prévia manual via tinker OU via fatia C de auto-emissão). Smoke usa titulo manualmente criado com nosso_numero gravado direto no DB.
 
@@ -462,7 +462,7 @@ Pré-req: titulo precisa ter `nosso_numero` populado (emissão prévia manual vi
 
 ## Refs
 
-- [Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php#L86](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php#L86) — método `pdf()` base
+- `Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php#L86` — método `pdf()` base (removido em 2026-11-24, [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409); o driver do PaymentGateway não tem `pdf()`)
 - US-FIN-010 ARQ-0003 Boleto via Strategy (acima)
 - [memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md](../RecurringBilling/RUNBOOK-inter-pj.md) — config cert Inter
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 multi-tenant
@@ -552,7 +552,7 @@ Pedido Wagner 2026-05-13 — fatia C do epic Financeiro/integrar-venda + paridad
 
 Bloqueado por **US-RB-045** (Inter PJ Banking API homologação biz=4) — sem cert válido + client_id/secret, smoke real impossível. Pode rodar dev/test isolado com mocks antes, mas merge production exige homolog SEFAZ-Inter passar.
 
-`InterDriver::emitir()` ([Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php:25](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php#L25)) já implementa cria-boleto via API + retorna `BoletoResult` DTO. Falta wiring assíncrono via Observer + Job.
+`InterDriver::emitirBoleto()` do PaymentGateway ([Modules/PaymentGateway/Services/Drivers/InterDriver.php:59](../../../Modules/PaymentGateway/Services/Drivers/InterDriver.php#L59)) implementa cria-boleto via API e retorna `CobrancaEmitidaResult` (até 2026-11-24 a referência era o `InterDriver::emitir()` do RB, removido em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)). Falta wiring assíncrono via Observer + Job.
 
 Trade-off arquitetural: persistir PDF base64 inline na coluna (`pdf_base64` longtext ~300KB/linha) OU storage externo (`pdf_path` apontando pra `storage/app/boletos/{biz}/{id}.pdf`). **Recomendação**: storage externo — tabela leve + backup separado + cleanup periódico. Decisão antes da migration.
 
@@ -655,7 +655,7 @@ Trade-off arquitetural: persistir PDF base64 inline na coluna (`pdf_base64` long
 
 ## Refs
 
-- [Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php) — base
+- [Modules/PaymentGateway/Services/Drivers/InterDriver.php](../../../Modules/PaymentGateway/Services/Drivers/InterDriver.php) — base (antes o driver do RB, removido em 2026-11-24, [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409))
 - [memory/requisitos/RecurringBilling/RUNBOOK-inter-pj.md](../RecurringBilling/RUNBOOK-inter-pj.md) — config homolog
 - [memory/requisitos/RecurringBilling/SPEC.md](../RecurringBilling/SPEC.md) §US-RB-001 — peça seguinte (NFe55)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 IRREVOGÁVEL

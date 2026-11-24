@@ -31,6 +31,9 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 - Configurações mostra a URL e o header reais dos webhooks — [#11203](https://github.com/wagnerra23/oimpresso.com/pull/11203).
 - Testes de isolamento entre empresas pela rota, 98 × 99 — [#11345](https://github.com/wagnerra23/oimpresso.com/pull/11345).
 
+**Gateway (b1)**
+- Remove a pilha de boleto própria do RB (`BoletoService` e os drivers Asaas, C6 e Inter da pasta `Services/Boleto`), sem chamador de produção desde [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359); ficam o `BoletoCredentialResolver` e `rb_boleto_credentials` — [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409).
+
 **Testes e documentação**
 - Testes da lane voltam a medir o comando e o usuário reais — [#11287](https://github.com/wagnerra23/oimpresso.com/pull/11287).
 - README e ARCHITECTURE marcados como desenho de abril; SCOPE e RUNBOOK com ponteiros vivos — [#11214](https://github.com/wagnerra23/oimpresso.com/pull/11214).
@@ -42,7 +45,7 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Gateway (b1, 2026-11-24):** cópia das credenciais do RB para `payment_gateway_credentials` decifrando o segredo e sem ligar conta ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356); a migration roda no próximo deploy e só cria o que falta); cancelar e estornar cobrança Asaas pelo driver do PaymentGateway ([#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358)); cancelar boleto Inter e fatura pelo driver do PaymentGateway ([#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)).
 
-**Sem PR ainda:** cobrar com o cartão salvo; remover o `BoletoService` e os outros leitores de `rb_boleto_credentials`. **Do [W]:** `paymentgateway:migrate-credentials --apply` para consertar credencial já copiada com o segredo cifrado do RB.
+**Sem PR ainda:** cobrar com o cartão salvo; os outros leitores de `rb_boleto_credentials` (o `BoletoService` saiu em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)). **Do [W]:** `paymentgateway:migrate-credentials --apply` para consertar credencial já copiada com o segredo cifrado do RB.
 
 ### Outubro 2026
 
