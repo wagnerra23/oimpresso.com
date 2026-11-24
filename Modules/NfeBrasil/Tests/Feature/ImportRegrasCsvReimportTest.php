@@ -142,26 +142,3 @@ it('UC-NFIM-08 · reimportar com alíquota nova atualiza a regra em vez de criar
     expect(rimIcms(null))->toBe(0.17);
     expect(rimIcms('RJ'))->toBe(0.07);
 });
-
-it('UC-NFIM-08 · regra editada pela tela antes: a reimportação muda a versão vigente', function () {
-    if (! Schema::hasColumn('nfe_fiscal_rules', 'valida_ate')) {
-        $this->markTestSkipped('Sem versionamento de regra (migração 2026_10_07_000001).');
-    }
-    rimLogar();
-    rimImportar(rimCsv());
-
-    // Editar pela tela gera versão nova (R-NFE-019): a antiga fica com `valida_ate`.
-    $todas = rimVigentes()->firstWhere('uf_destino', null)->id;
-    $this->put("/nfe-brasil/tributacao/regras/{$todas}", [
-        'ncm' => '84439100', 'uf_origem' => 'SP', 'uf_destino' => null, 'cfop' => '5102',
-        'csosn' => '102', 'cst' => null, 'aliquota_icms' => 0.25, 'aliquota_pis' => 0.0065,
-        'aliquota_cofins' => 0.03, 'aliquota_ipi' => 0,
-    ])->assertSessionHasNoErrors();
-    expect(rimIcms(null))->toBe(0.25);
-
-    rimImportar(rimCsv(icmsTodas: 0.17));
-
-    // O que o motor usa é a versão vigente: é ela que tem de ter o valor do CSV.
-    expect(rimVigentes())->toHaveCount(2);
-    expect(rimIcms(null))->toBe(0.17);
-});

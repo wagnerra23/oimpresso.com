@@ -268,6 +268,9 @@ jobs:
         #   permissão e fronteira de tenant da tributação (UC-NFRF-01..04 · UC-NFIM-01..04).
         #   Ficou fora da lista desde 2026-07-28 porque UC-NFRF-04 e UC-NFIM-04 nasceram
         #   vermelhos por desenho; o NFRF-04 fecha na thread 18 e o NFIM-04 na thread 19 (#8827).
+        # + ImportRegrasCsvReimportTest (2026-11-24): reimportar o mesmo CSV atualiza, nao duplica
+        #   (UC-NFIM-08). O ImportRegrasCsvVersaoVigenteTest (UC-NFIM-09) NAO entra: nasce vermelho
+        #   por desenho (a reimportacao reescreve a versao encerrada); entra junto com a correcao.
         # + RegraTributariaIbsCbsValidacaoTest (2026-10-07, playbook Fiscal thread 04): a regra
         #   grava os 5 campos IBS/CBS (UC-NFRF-05/06/07). CT 100: 3 passed / 30 assertions; com o
         #   FormRequest do main, 3 failed. Tenant 98 + usuario novo so com nfe.tributacao.manage.
@@ -383,6 +386,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/HasArquivosTraitTest.php \
             Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvReimportTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php \
             Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
