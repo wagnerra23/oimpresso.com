@@ -22,6 +22,7 @@ use App\Transaction;
 use App\TransactionPayment;
 use App\TransactionSellLine;
 use App\TransactionSellLinesPurchaseLines;
+use App\Transportadora;
 use App\Variation;
 use App\VariationLocationDetails;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +32,47 @@ use App\CashRegister;
 
 class TransactionUtil extends Util
 {
+    /**
+     * Transporte gravado na venda (colunas da NF-e em `transactions`). Devolve só as chaves que
+     * vierem no input. A transportadora só entra se for desta empresa (ADR 0093); de outra, ou
+     * inexistente, vira null. Nada aqui é valor nem estoque: o frete segue em `shipping_charges`.
+     *
+     * @return array<string, mixed>
+     */
+    protected function transporteDaVenda(int $business_id, array $input): array
+    {
+        $out = [];
+        if (array_key_exists('transportadora_id', $input)) {
+            $id = (int) $input['transportadora_id'];
+            $out['transportadora_id'] = $id > 0
+                && Transportadora::where('business_id', $business_id)->whereKey($id)->exists() ? $id : null;
+        }
+        if (isset($input['mod_frete']) && in_array((int) $input['mod_frete'], [0, 1, 2, 3, 4, 9], true)) {
+            $out['mod_frete'] = (int) $input['mod_frete'];
+        }
+        if (isset($input['placa'])) {
+            $out['placa'] = mb_substr(strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', (string) $input['placa'])), 0, 9);
+        }
+        if (isset($input['uf'])) {
+            $out['uf'] = mb_substr(strtoupper(trim((string) $input['uf'])), 0, 2);
+        }
+        if (isset($input['qtd_volumes'])) {
+            $out['qtd_volumes'] = max(0, (int) $input['qtd_volumes']);
+        }
+        foreach (['numeracao_volumes', 'especie'] as $campo) {
+            if (isset($input[$campo])) {
+                $out[$campo] = mb_substr(trim((string) $input[$campo]), 0, 20);
+            }
+        }
+        foreach (['peso_bruto', 'peso_liquido'] as $campo) {
+            if (isset($input[$campo]) && is_numeric($input[$campo])) {
+                $out[$campo] = round(min(max((float) $input[$campo], 0), 99999.999), 3);
+            }
+        }
+
+        return $out;
+    }
+
     /**
      * Add Sell transaction
      *
@@ -120,6 +162,9 @@ class TransactionUtil extends Util
             // ADR 0251 — veículo na venda direta de oficina (nullable; só vem quando
             // OficinaAuto habilitado + vendedor selecionou/cadastrou veículo).
             'vehicle_id' => ! empty($input['vehicle_id']) ? $input['vehicle_id'] : null,
+            // Transporte da NF-e (UC-V409): só as chaves que vierem. A Nova venda V3 manda; o Blade
+            // e o Sells/Create não mandam, e as colunas ficam no default do banco.
+            ...$this->transporteDaVenda((int) $business_id, $input),
             'packing_charge' => ! empty($input['packing_charge']) ? $input['packing_charge'] : 0,
             'packing_charge_type' => ! empty($input['packing_charge_type']) ? $input['packing_charge_type'] : null,
             'service_custom_field_1' => ! empty($input['service_custom_field_1']) ? $input['service_custom_field_1'] : null,

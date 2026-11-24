@@ -62,6 +62,7 @@ import { useTamanho } from './_components/lista/useTamanho';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import NcmEmLote from './_components/lista/NcmEmLote';
 import { MOLDURA_JANELA, TITULO_JANELA } from './_components/lista/moldura-janela';
+import PaletaProduto from './_components/lista/PaletaProduto';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
@@ -777,6 +778,12 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           )}
         </div>
       </div>
+
+      {/* Ctrl+K / ⌘K: telas do módulo + ir direto a um produto (PaletaProduto do protótipo). */}
+      <PaletaProduto
+        irPara={irPara}
+        abrirProduto={(id) => (pode('update') ? irPara(`/products/${id}/edit`) : abrirDetalhe(id))}
+      />
 
       <AlertDialog open={confirmar !== null} onOpenChange={(o) => !o && setConfirmar(null)}>
         {confirmar && (

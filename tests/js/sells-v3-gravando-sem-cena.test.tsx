@@ -1,7 +1,7 @@
 /**
  * Venda V3 gravando — nada da cena de demonstração aparece como dado real.
  *
- * @covers-us UC-V404 UC-V405 UC-V406 UC-V407 UC-V408
+ * @covers-us UC-V404 UC-V405 UC-V406 UC-V407 UC-V408 UC-V413
  *
  * A cena abaixo é a que o `SellsV3Controller` manda com a gravação ligada (a forma é provada no
  * Pest do UC-V404, `SellsCreateV3GravarContratoTest.php`): o cliente padrão lido do cadastro e as
@@ -109,15 +109,22 @@ describe('Venda V3 gravando · sem dados de cena', () => {
     expect(document.body.textContent).not.toContain('Termas do Gravatal');
   });
 
-  it('UC-V405 · gravando, a entrega mostra só o valor do frete e diz o que não grava', () => {
+  it('UC-V413 · gravando, a entrega mostra o que a venda grava: frete por conta, transportadora, veículo, volumes, remessa e endereço', () => {
     render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
     fireEvent.click(screen.getByRole('button', { name: /Entrega e frete/ }));
 
     expect(screen.getByText('Valor do frete (entra no total)')).toBeTruthy();
-    expect(screen.getByText('A venda grava só o valor do frete')).toBeTruthy();
-    expect(screen.queryByText('Placa do veículo')).toBeNull();
-    expect(screen.queryByText('Endereço de entrega')).toBeNull();
-    expect(screen.queryByText('Frete por conta')).toBeNull();
+    expect(screen.getByText('Frete por conta')).toBeTruthy();
+    expect(screen.getByText('Nome / razão social da transportadora')).toBeTruthy();
+    expect(screen.getByText('Placa do veículo')).toBeTruthy();
+    expect(screen.getByText('Quantidade de volumes')).toBeTruthy();
+    expect(screen.getByText('Rastreio / conhecimento')).toBeTruthy();
+    expect(screen.getByText('Endereço de entrega')).toBeTruthy();
+    expect(screen.queryByText('A venda grava só o valor do frete')).toBeNull();
+    // O que a venda ainda não grava não aparece, e a tela diz qual é.
+    expect(screen.queryByText('Renavam')).toBeNull();
+    expect(screen.queryByText('Data da coleta')).toBeNull();
+    expect(screen.getByText(/Renavam, ANTT, modalidade, UF de destino, marca, coleta e previsão/)).toBeTruthy();
   });
 
   it('UC-V405 · controle: sem a gravação, o preview segue com transportadora, veículo e endereço', () => {
