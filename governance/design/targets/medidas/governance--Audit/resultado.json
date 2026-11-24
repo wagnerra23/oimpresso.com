@@ -150,40 +150,11 @@
         "detalhe": "região só existe de um lado"
       },
       {
-        "dim": "D6",
-        "campo": "estado de linha",
-        "prod": "0/200",
-        "design": "16/200",
-        "veredito": "DIVERGE (dado?)",
-        "detalhe": "um lado distingue linha por estado (trilha/apagado) e o outro não — pode ser capacidade ausente OU nenhuma linha nesse estado hoje; confira antes de tratar como defeito"
-      },
-      {
-        "dim": "D6",
-        "campo": "col1.cor",
-        "prod": "herda a da linha",
-        "design": "cor própria",
-        "veredito": "DIVERGE (bug)"
-      },
-      {
-        "dim": "D6",
-        "campo": "col2.cor",
-        "prod": "herda a da linha",
-        "design": "cor própria",
-        "veredito": "DIVERGE (bug)"
-      },
-      {
         "dim": "D4",
-        "campo": "col3.mono",
-        "prod": "sem mono",
-        "design": "mono",
-        "veredito": "DIVERGE (bug)"
-      },
-      {
-        "dim": "D4",
-        "campo": "col5.mono",
-        "prod": "sem mono",
-        "design": "mono",
-        "veredito": "DIVERGE (bug)"
+        "campo": "linha da tabela",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
       },
       {
         "dim": "SHELL",
@@ -202,12 +173,19 @@
         "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
       }
     ],
-    "bugs": 5,
+    "bugs": 1,
     "shell": 0,
     "drawer": 0,
     "declaradas": 0,
     "porDeclaracao": [],
     "declaracoesSemEfeito": [],
     "sameTheme": true
+  },
+  "remedicao": {
+    "medidoEm": "2026-11-24",
+    "apos": "#11405 (merge 8e16a88869, deploy concluído)",
+    "conferencia": "JSON compacto do prod.json conferido browser × disco por sha256 (prefixo eaf301a0ea52f770, 2762 bytes) antes de gravar",
+    "sonda_sha256": "358fd0f0d994a012… (a mesma do L6)",
+    "veredito": "as 5 divergências do L6 (estado de linha, col1.cor, col2.cor, col3.mono, col5.mono) sumiram; restam D2 filtro linhas (não conclusivo, fora do lote) e SAÚDE tokens.prod (os tokens vivem no .cockpit, não na raiz)"
   }
 }

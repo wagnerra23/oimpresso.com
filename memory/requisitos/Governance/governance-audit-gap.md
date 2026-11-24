@@ -60,3 +60,20 @@ Reproduz: `node scripts/design/design-diff.mjs --compare governance/design/targe
 Lido no DOM: título "Audit Log" e KPIs "Entries no período" / "Errors" / "Users distintos" em inglês × "Governança — auditoria" / "Registros…" / "Com erro" / "Atores distintos". Fora do lote L5 por decisão [W].
 
 Fora do veredito nas 4 telas: o shell (sidebar) não foi medido; o `IGUAL` de cor (D6) é fraco, porque os tokens de cor de produção não resolvem na raiz do documento (`--accent`, `--border`… vivem no `.cockpit`); e D9 sai SEM-DADO onde as regiões `data-contract` só existem de um lado.
+
+### Re-medição 2026-11-24, depois do #11405 [CC]
+
+O [#11405](https://github.com/wagnerra23/oimpresso.com/pull/11405) (merge `8e16a88869`, deploy concluído) corrigiu as 5 divergências reais acima em `Audit.tsx`: a 1ª célula da linha não-ok ganha `inset 2px 0 0 var(--warn)` (o `.gov-table tr.alerta` do protótipo), User e Endpoint passam a `text-muted-foreground`, e Tool/Resource e Duração passam a `font-mono`. Re-medido em produção `biz=1` com a mesma sonda (sha256 `358fd0f0…`), o mesmo override de papéis, tema claro e 1280×900; o `prod.json` foi conferido browser × disco por sha256 antes de gravar. O `design.json` não mudou.
+
+**Veredito: as 5 sumiram. Resta 1 não conclusivo (D2).** O `--check` continua saindo 1 por causa dele.
+
+| Dim | Campo | Antes (L6) | Depois | Protótipo |
+|---|---|---|---|---|
+| D6 | estado de linha | 0 de 200 | 22 de 200 | 16 de 200 |
+| D6 | cor da coluna User | herda a da linha | cor própria | cor própria |
+| D6 | cor da coluna Endpoint | herda a da linha | cor própria | cor própria |
+| D4 | coluna Tool/Resource | sem mono | mono | mono |
+| D4 | coluna Duração | sem mono | mono | mono |
+| D2 | linhas do filtro | 1 × 3 | 1 × 3 | não conclusivo, fora deste lote |
+
+A contagem de linhas marcadas depende do dado (22 erros na amostra de produção, 16 no mock), então o que se compara é "marca ou não marca", não o número. Seguem fora: a copy em inglês (decisão [W]) e "Limpar filtros"/contagem além do teto (item Decidir).
