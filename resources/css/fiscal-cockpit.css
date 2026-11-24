@@ -69,7 +69,7 @@
   border-bottom: 1px solid var(--fx-border);
 }
 .fx-hero-l { flex: 1; min-width: 0; }
-.fx-hero-l h1 { margin: 0; font-size: var(--fs-7); font-weight: 700; letter-spacing: -0.015em; }
+.fx-hero-l h1 { margin: 0; font-size: var(--fs-7); font-weight: 600; letter-spacing: -0.015em; } /* 600 = .fx-h h1 do protótipo (medido 2026-11-23) */
 .fx-hero-crumb { display: block; font-size: var(--fs-3); color: var(--fx-text-mute); margin-top: 2px; }
 .fx-hero-r { display: flex; align-items: center; gap: 8px; }
 
@@ -653,53 +653,23 @@
 /* ─── Sparkline (cockpit) ─── */
 .fx-spark { vertical-align: middle; }
 
-/* ─── Eventos timeline (sub-página 5) ─── */
-.fx-timeline {
-  position: relative;
-  padding: 8px 0 8px 24px;
-  background: var(--fx-surface);
-  border: 1px solid var(--fx-border);
-  border-radius: 10px;
-}
-.fx-timeline::before {
-  content: "";
-  position: absolute;
-  left: 16px; top: 0; bottom: 0;
-  width: 1px;
-  background: var(--fx-border);
-}
-.fx-tl-item {
-  position: relative;
-  padding: 12px 16px 12px 16px;
-  border-bottom: 1px solid var(--fx-border-2);
-}
-.fx-tl-item:last-child { border-bottom: none; }
-.fx-tl-item::before {
-  content: "";
-  position: absolute;
-  left: -14px; top: 17px;
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--fx-surface);
-  box-shadow: 0 0 0 1px var(--fx-border);
-}
-.fx-tl-item.cce::before      { background: var(--ok); }
-.fx-tl-item.cancel::before   { background: var(--bad); }
-.fx-tl-item.epec::before     { background: var(--warn); }
-.fx-tl-item.manifest::before { background: var(--fis); }
-.fx-tl-h {
-  display: flex; gap: 8px; align-items: center;
-  font-size: 12.5px;
-  flex-wrap: wrap;
-}
-.fx-tl-h b { font-weight: 600; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-2); color: var(--fx-text-dim); }
-.fx-tl-h .when { color: var(--fx-text-mute); font-size: var(--fs-2); margin-left: auto; }
-.fx-tl-desc {
-  font-size: var(--fs-3);
-  color: var(--fx-text-dim);
-  margin-top: 6px;
-  line-height: 1.45;
-}
+/* ─── Eventos timeline (sub-página 5) · forma do protótipo (fiscal-page.css L131-168), medida em 2026-11-24 ─── */
+.fx-card { border: 1px solid var(--fx-border); border-radius: 12px; background: var(--fx-surface); overflow: hidden; }
+.fx-card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--fx-border); background: var(--fx-bg-2); font-size: var(--fs-2); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--fx-text-mute); }
+.fx-tl { display: flex; flex-direction: column; }
+.fx-tl-i { display: grid; grid-template-columns: 96px 22px 1fr auto; gap: 10px; align-items: start; padding: 12px 16px; border-bottom: 1px solid var(--fx-border-2); }
+.fx-tl-i:last-child { border-bottom: 0; }
+.fx-tl-when { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-2); color: var(--fx-text-mute); padding-top: 2px; }
+.fx-tl-i .fx-tl-dot { width: 22px; display: grid; place-items: center; padding-top: 4px; }
+.fx-tl-i .fx-tl-dot i { width: 8px; height: 8px; border-radius: 50%; background: var(--fis); display: block; }
+.fx-tl-i[data-kind="cancel"] .fx-tl-dot i { background: var(--bad); }
+.fx-tl-i[data-kind="epec"] .fx-tl-dot i { background: var(--warn); }
+.fx-tl-i[data-kind="manifest"] .fx-tl-dot i { background: var(--color-info); }
+.fx-tl-b b { display: block; font-size: var(--fs-4); color: var(--fx-text); }
+.fx-tl-b small { font-size: var(--fs-2); color: var(--fx-text-dim); }
+.fx-nota-rodape { font-size: var(--fs-2); color: var(--fx-text-mute); margin: 4px 0 0; max-width: 78ch; text-wrap: pretty; }
+/* Usado pela gaveta da nota (NotaDrawerV2), não pela página de Eventos. */
+.fx-tl-desc { font-size: var(--fs-3); color: var(--fx-text-dim); margin-top: 6px; line-height: 1.45; }
 .fx-tl-badge {
   display: inline-flex;
   padding: 2px 8px;
@@ -897,28 +867,6 @@
   box-shadow: 0 1px 2px rgba(0,0,0,.06);
 }
 
-/* Tabela unificada — tipo NF-e/NFC-e/NFS-e visual */
-.fx-tipo-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: var(--fs-2);
-  font-weight: 600;
-}
-.fx-tipo-dot::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-.fx-tipo-dot.t-nfe   { background: oklch(0.96 0.02 240); color: oklch(0.45 0.13 240); }
-.fx-tipo-dot.t-nfe::before   { background: oklch(0.55 0.15 240); }
-.fx-tipo-dot.t-nfce  { background: oklch(0.96 0.03 300); color: oklch(0.45 0.14 300); }
-.fx-tipo-dot.t-nfce::before  { background: oklch(0.55 0.16 300); }
-.fx-tipo-dot.t-nfse  { background: var(--ok-soft); color: var(--ok); }
-.fx-tipo-dot.t-nfse::before  { background: var(--ok); }
 
 .fx-row-actions {
   display: inline-flex;
@@ -1462,11 +1410,44 @@
 
 /* ── TEMA ESCURO · rodapé e pontos de tipo (playbook tema-escuro thread 03 PR-b · 2026-10-07) ──
    Medido em produção no escuro: o rodapé sticky (cheat sheet) era rgba(255,255,255,.92) fixo
-   nas 7 telas do Fiscal, e os pontos NF-e/NFC-e eram pastéis fixos (o NFS-e já usava --ok-soft).
-   Sem cor crua nova: o rodapé herda --fx-surface; os pontos derivam o matiz do --accent. */
+   nas 7 telas do Fiscal. Sem cor crua nova: o rodapé herda --fx-surface. (Os pontos de tipo
+   .fx-tipo-dot saíram em 2026-11-23: o Cockpit passou ao .fx-tipo do protótipo.) */
 .cockpit[data-theme="dark"] .fx-shell-foot,
 .dark .fx-shell-foot { background: color-mix(in oklch, var(--fx-surface) 92%, transparent); }
-.cockpit[data-theme="dark"] .fx-tipo-dot.t-nfe,
-.dark .fx-tipo-dot.t-nfe { background: oklch(from var(--accent) 0.30 0.07 240); color: oklch(from var(--accent) 0.85 0.10 240); }
-.cockpit[data-theme="dark"] .fx-tipo-dot.t-nfce,
-.dark .fx-tipo-dot.t-nfce { background: oklch(from var(--accent) 0.30 0.07 300); color: oklch(from var(--accent) 0.85 0.10 300); }
+
+/* ── TABELA DO PAINEL · forma do protótipo (fiscal-page.css L99-123, L162-163), medida em 2026-11-23.
+   Só no Cockpit: NF-e, NFS-e, DF-e e gavetas usam as mesmas classes e não foram medidas. */
+.fx-cockpit-notas .num b { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-4); color: var(--fx-text); }
+.fx-cockpit-notas .num small { display: block; font-size: var(--fs-1); color: var(--fx-text-mute); }
+.fx-cockpit-notas .cli b { font-size: var(--fs-4); color: var(--fx-text); }
+.fx-cockpit-notas .cli div { font-size: var(--fs-2); color: var(--fx-text-mute); }
+.fx-cockpit-notas .fx-link { cursor: pointer; color: inherit; text-decoration: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; }
+.fx-cockpit-notas .fx-link:hover { text-decoration: none; }
+.fx-cockpit-notas .fx-link:hover b { color: var(--fis); }
+.fx-cockpit-notas .fx-key { display: block; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-1); color: var(--fx-text-mute); margin-top: 2px; }
+.fx-cockpit-notas .val { text-align: right; font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--fx-text); white-space: nowrap; }
+.fx-cockpit-notas .fx-rej { font-size: var(--fs-2); color: var(--bad); margin-top: 3px; }
+.fx-cockpit-notas .fx-tipo { display: inline-flex; align-items: center; gap: 5px; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-1); border: 1px solid var(--fx-border); border-radius: 4px; padding: 2px 6px; color: var(--fx-text-dim); white-space: nowrap; }
+.fx-cockpit-notas .fx-tipo::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--fis); }
+.fx-cockpit-notas .fx-tipo.t-nfce::before { background: var(--color-info); }
+.fx-cockpit-notas .fx-tipo.t-nfse::before { background: var(--ok); }
+.fx-cockpit-notas .fx-sefaz, .fx-tl-i .fx-sefaz { gap: 5px; padding: 2px 9px; border-radius: 999px; border: 1px solid; font-weight: 600; white-space: nowrap; }
+.fx-cockpit-notas .fx-sefaz .lbl, .fx-tl-i .fx-sefaz .lbl { font-weight: inherit; }
+.fx-cockpit-notas .fx-sefaz.ok, .fx-tl-i .fx-sefaz.ok { color: var(--ok);   border-color: color-mix(in oklch, var(--ok) 28%, transparent);   background: color-mix(in oklch, var(--ok) 8%, transparent); }
+.fx-cockpit-notas .fx-sefaz.warn, .fx-tl-i .fx-sefaz.warn { color: var(--warn); border-color: color-mix(in oklch, var(--warn) 30%, transparent); background: color-mix(in oklch, var(--warn) 8%, transparent); }
+.fx-cockpit-notas .fx-sefaz.bad, .fx-tl-i .fx-sefaz.bad { color: var(--bad);  border-color: color-mix(in oklch, var(--bad) 30%, transparent);  background: color-mix(in oklch, var(--bad) 8%, transparent); }
+.fx-cockpit-notas .fx-row-act { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: inherit; min-width: 24px; min-height: 24px; padding: 1px 5px; }
+.fx-cockpit-notas a.fx-row-act { display: inline-flex; align-items: center; text-decoration: none; }
+.fx-cockpit-notas tbody tr { cursor: pointer; }
+.fx-cockpit-notas tbody tr.sel td { background: var(--fis-soft); }
+
+/* ── DÉBITOS CONHECIDOS · forma do protótipo (fiscal-page.css L7, L216-223), medida em 2026-11-23. */
+.fx-page > .fx-debitos, .fx-debitos { margin-top: 8px; }
+.fx-debitos { display: flex; flex-direction: column; gap: 6px; }
+.fx-debitos h3 { margin: 0; font-size: var(--fs-1); text-transform: uppercase; letter-spacing: .07em; color: var(--fx-text-mute); font-weight: 600; }
+.fx-debito { display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--fx-border); border-left: 2px solid var(--fx-border); border-radius: 8px; background: var(--fx-bg-2); padding: 10px 14px; }
+.fx-debito[data-tom="danger"] { border-left-color: var(--bad); }
+.fx-debito[data-tom="warn"], .fx-debito[data-tom="warning"] { border-left-color: var(--warn); }
+.fx-debito[data-tom="info"] { border-left-color: var(--fis); }
+.fx-debito b { font-size: var(--fs-3); color: var(--fx-text); }
+.fx-debito small { font-size: var(--fs-2); color: var(--fx-text-dim); text-wrap: pretty; max-width: 92ch; }

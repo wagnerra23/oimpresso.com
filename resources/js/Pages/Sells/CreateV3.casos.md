@@ -379,6 +379,21 @@ Até 2026-11-23, gravando, só o nome do cliente vinha do cadastro: o endereço 
 
 Até 2026-11-23 o detalhe abria, para qualquer produto, com NCM, CFOP, CST e alíquota fixos da demonstração, e o fluxo e os anexos traziam pessoas e arquivos de demonstração.
 
+## UC-V408 · Gravando, comissão, parcelas e lançamento do item não usam valores de demonstração
+
+**Status:** 🧪 — `tests/js/sells-v3-gravando-sem-cena.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador abre o modelo de comissão da venda,
+- **Então** não há base "Margem (venda − custo)" nem alerta de margem, e a gaveta diz que a margem depende do custo dos produtos, que a nova venda ainda não lê.
+- **Quando** monta parcelas no fechamento,
+- **Então** cada parcela é numerada só pela posição ("1/2", "2/2"), sem número de documento, e a gaveta não mostra conta de destino nem plano de contas (nem no gerador, nem na tabela, nem ao editar a parcela): diz que eles ainda não são gravados pela nova venda.
+- **Quando** lança um item,
+- **Então** a janela diz que as informações adicionais (observações, local da aplicação e tipo de impressão) ainda não são gravadas, e não mostra os campos nem as listas de local e de impressão.
+- Sem a gravação, os três seguem como na cena.
+
+Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham numeradas como "VD-2026 1/2" e com contas e plano de contas de demonstração ("2 — Banco Itaú c/c", "1.1.5 — Recebido em depósito"), e o lançamento oferecia locais e tipos de impressão de demonstração que não chegavam à gravação. Plano de parcelas e comissão por beneficiário continuam recusados na gravação (UC-V381).
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,
@@ -415,11 +430,16 @@ imposto do pedido, acréscimo, PIX/boleto/TEF, troca de local e `pos_settings` �
 
 ## UC-V320 · Cada ação da linha do item abre o drawer numa aba própria
 
-**Status:** 🧪 — 3 testes citam o UC e passam localmente (`tests/js/item-acoes-dominio.test.ts`); sem entrada no manifesto até a lane rodar em `main`.
+**Status:** 🧪 — `tests/js/item-acoes-dominio.test.ts` (o mapa ação → aba) e `tests/js/sells-v3-item-abas.test.tsx` (a tela, desde 2026-11-23); sem entrada no manifesto.
 
 - **Dado** uma linha de item com as ações da âncora — lupa "Detalhes do item" e "Impostos",
 - **Quando** o operador escolhe uma delas,
 - **Então** o drawer abre na aba **daquela** ação: a lupa em *Geral*, o Impostos direto em *Tributação*.
+- Cada abertura segue o botão clicado, mesmo que o operador tenha trocado de aba antes de fechar; navegar para o item seguinte com o drawer aberto mantém a aba.
+
+Até 2026-11-23 a tela não cumpria este caso: o drawer fica montado o tempo todo e só lia a aba
+inicial na montagem da página, então o "Impostos" abria em *Geral*. O teste de domínio passava,
+porque ele prova o mapa e não a tela; o teste de render foi o que faltava.
 
 Derivado da âncora (`prototipo-ui/cowork/Felipe/venda-v3/sells-create.jsx:63-65 (verificado@70c36b4)`), onde a aba viaja
 no próprio `abrirItem(i, aba)` — não do `.tsx`. O defeito que isto guarda é concreto: a aba
@@ -1320,6 +1340,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-03, segunda (G-6):** com a gravação ligada, "Salvar como orçamento" passou a gravar e a venda e o orçamento da V3 passaram a nascer no pipeline (UC-V400 a UC-V402, novos). Sem `gravacao` o botão segue avançando o estágio em memória e nenhum UC anterior mudou; o payload da fixture ganhou `origem_tela`, e o vitest e o Pest do UC-V380 seguem comparando o mesmo total e o mesmo estoque.
 - **Revalidação de 2026-11-21 (G-6):** `CreateV3.tsx` passou a guardar as duas notas da gaveta "Observações e produção" e a mandá-las na gravação (UC-V403, novo), e a passar quantas parcelas e quantos beneficiários de comissão a venda tem, para a gravação recusar com motivo (UC-V381, dois casos novos). Sem `gravacao` nada muda. Os demais UCs seguem valendo: o payload sem nota é o mesmo da fixture do UC-V380.
 - **Revalidação de 2026-11-23 (G-6):** com `gravacao`, a tela deixou de mostrar dados de demonstração (UC-V404 a UC-V407, novos): o cliente padrão vem do cadastro, a entrega mostra só o valor do frete, a situação diz "Não gravada" e o detalhe do item não traz tributação fixa. O botão "Salvar como orçamento" passou a gravar sem conferir o papel de demonstração (UC-V401 segue igual: o payload e o estágio não mudam). Sem `gravacao` nada muda, e os controles de cada caso novo provam isso.
+- **Revalidação de 2026-11-23, segunda (G-6):** com `gravacao`, a comissão deixou de usar a margem de 30% fixos, as parcelas deixaram de vir numeradas como "VD-2026" e o lançamento do item deixou de oferecer as informações adicionais de demonstração (UC-V408, novo). A gaveta de parcelas também deixou de mostrar conta de destino e plano de contas, que eram de demonstração (`CONTAS`, `PLANOS` em `parcelas-dominio.ts`) e que nenhum cadastro da empresa alimenta. Sem `gravacao` nada muda, e os controles provam isso.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

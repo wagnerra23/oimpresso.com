@@ -234,3 +234,42 @@ it('UC-FNFE-03 · a tabela oficial está instalada — sem ela a tela perde a tr
 
     expect(count(Modules\Fiscal\Services\SefazCstatService::tabela()))->toBeGreaterThan(400);
 });
+
+it('UC-FNFE-66 · a lista deferida filtra por aba, situação e busca, da mais nova para a mais antiga', function () {
+    fiscalNfeCockpitExigeBanco($this);
+
+    $nota = function (int $biz, int $numero, string $modelo, string $status, int $minutosAtras, ?string $motivo = null) {
+        NfeEmissao::withoutGlobalScopes()->create([
+            'business_id' => $biz, 'modelo' => $modelo, 'serie' => '1', 'numero' => $numero,
+            'status' => $status, 'cstat' => $status === 'autorizada' ? 100 : 778, 'motivo' => $motivo,
+            'valor_total' => 10.00, 'emitido_em' => now()->subMinutes($minutosAtras),
+            'chave_44' => str_pad($numero . FISCAL_TAG_TEST, 44, '0', STR_PAD_RIGHT),
+        ]);
+    };
+    $nota(FISCAL_BIZ_TENANT, 9301, '55', 'autorizada', 30);
+    $nota(FISCAL_BIZ_TENANT, 9302, '55', 'rejeitada', 10, 'Informado NCM inexistente');
+    $nota(FISCAL_BIZ_TENANT, 9303, '65', 'autorizada', 20);
+    $nota(FISCAL_BIZ_FICTICIO, 9304, '55', 'autorizada', 5);
+
+    session(['business.id' => FISCAL_BIZ_TENANT, 'user.business_id' => FISCAL_BIZ_TENANT]);
+
+    $metodo = new ReflectionMethod(Modules\Fiscal\Http\Controllers\NfeCockpitController::class, 'buildRowsPayload');
+    $metodo->setAccessible(true);
+    $numeros = function (array $filtros) use ($metodo): array {
+        $payload = $metodo->invoke(new Modules\Fiscal\Http\Controllers\NfeCockpitController(), $filtros + ['search' => '', 'status' => 'todas', 'tab' => 'saida_nfe', 'focus' => '']);
+        expect($payload['meta']['per_page'])->toBe(50);
+
+        return array_values(array_filter(
+            array_map(fn ($r) => (int) $r['num'], $payload['data']),
+            fn ($n) => $n >= 9301 && $n <= 9304,
+        ));
+    };
+
+    expect($numeros([]))->toBe([9302, 9301]);                                   // NF-e, mais nova primeiro, sem a da vizinha
+    expect($numeros(['tab' => 'saida_nfce']))->toBe([9303]);                     // só NFC-e
+    expect($numeros(['status' => 'rejeitadas']))->toBe([9302]);
+    expect($numeros(['status' => 'autorizadas']))->toBe([9301]);
+    expect($numeros(['search' => '9301']))->toBe([9301]);                        // por número
+    expect($numeros(['search' => 'NCM inexist']))->toBe([9302]);                 // pelo motivo da rejeição
+    expect($numeros(['tab' => 'saida_nfce', 'search' => '9304']))->toBe([]);     // número da vizinha não aparece
+});

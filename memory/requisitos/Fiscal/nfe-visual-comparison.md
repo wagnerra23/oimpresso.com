@@ -108,6 +108,25 @@ adr: 0107
 | SEFAZ codes map | `SEFAZ_CODES` 100/110/220/539/691/778/999 | ✅ Controller `sefazCodes()` + prop pra frontend | OK |
 | Mapa "Jana sugere" | `SEFAZ_ACTIONS` receita por cstat | ✅ `NotaDrawer.SEFAZ_ACTIONS` | OK |
 
+## Medição de runtime — 2026-11-23 · produção (oimpresso.com) × espelho · tema claro nos dois
+
+> A MESMA sonda (`design-diff.mjs --probe`, SHA-256 `358fd0f0…` conferido dentro da página da prod)
+> nos dois lados, tema claro nos dois (o tema em que a prod abre; nada forçado). Espelho por
+> `design-diff-lote.mjs --lado design --tema light`; papéis em
+> `governance/design/targets/roles/Fiscal--Nfe.json`. O `--compare` do dono não rodou: a
+> extensão do Chrome redige parte da saída da prod; os números abaixo são os campos que saíram inteiros.
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D4 | título | 22px · 700 | 22px · 600 | **DÍVIDA A FECHAR** (o mesmo `.fx-hero-l h1` das 7 telas; corrigido no Cockpit pelo #11363, que vale para todas) |
+| D4 | texto do título | "NF-e · NFC-e" | "NF-e · NFC-e" | IGUAL |
+| D6 | botão primário | "Emitir", presente (desabilitado nesta empresa) | "Emitir", presente | IGUAL na presença; cor não comparável (estado desabilitado) |
+| D7 | filtros | 8 botões em 1 linha: Todas · Autorizadas · Rejeitadas · Janela 24h · Processando + 3 | 5 chips em 1 linha: Todas · Pra resolver hoje · Janela 24h aberta · Aguardando SEFAZ · Só balcão (NFC-e) | **DÍVIDA A FECHAR** — conjunto e rótulos diferentes |
+| D8 | colunas | 5: Número · Chave / destinatário · Status SEFAZ · Valor · Emissão | 7: seleção · Tipo · Número · Cliente / chave · Status · Prazo · Valor | **DÍVIDA A FECHAR** — faltam seleção, Tipo e Prazo; a prod tem Emissão, que o protótipo não tem |
+| D8 | Número | mono 14px 700, 2 blocos | mono 14px 700, 2 blocos | IGUAL |
+| D8 | Status | texto 12px 700, **sem pílula** | pílula 999px com borda, 12px 600 | **DÍVIDA A FECHAR** |
+| D8 | Valor | mono 13px 700, à direita | mono à direita, com as ações XML/PDF na mesma célula | **DÍVIDA A FECHAR** — ações por linha ausentes |
+
 ## Histórico
 
 - **2026-05-20** — Wagner aprovou escopo PR #1 = NF-e sub-página 2. Implementação fiel ao prototype Cowork (port direto). Screenshot baseline visual será criada em PR #2 quando Cockpit (sub-página 1) tiver dados reais agregados. Override `/mwart-override` registrado pra visual-regression CI.

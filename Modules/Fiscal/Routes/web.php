@@ -149,6 +149,13 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->middleware('throttle:30,1')
             ->name('acoes.nfe.devolucao');
 
+        // Onda 1 Devolução V3 · a mesma NF-e, a partir da devolução de venda registrada (atrás de
+        // nfebrasil.devolucao_pela_venda; desligada responde 404).
+        Route::post('/acoes/venda-devolucao/{sellReturn}/nfe', [AcoesController::class, 'devolucaoDaVenda'])
+            ->whereNumber('sellReturn')
+            ->middleware('throttle:30,1')
+            ->name('acoes.venda_devolucao.nfe');
+
         // ─── PR #7 Wave: ⌘K palette cross-fiscal ────────────────────────
         // Busca global em notas + DF-e (throttle 60/min — usuário digita rápido).
         Route::get('/palette/search', [PaletteSearchController::class, 'search'])

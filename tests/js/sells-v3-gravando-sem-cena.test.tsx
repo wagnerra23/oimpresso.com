@@ -1,7 +1,7 @@
 /**
  * Venda V3 gravando — nada da cena de demonstração aparece como dado real.
  *
- * @covers-us UC-V404 UC-V405 UC-V406 UC-V407
+ * @covers-us UC-V404 UC-V405 UC-V406 UC-V407 UC-V408
  *
  * A cena abaixo é a que o `SellsV3Controller` manda com a gravação ligada (a forma é provada no
  * Pest do UC-V404, `SellsCreateV3GravarContratoTest.php`): o cliente padrão lido do cadastro e as
@@ -197,14 +197,107 @@ describe('Venda V3 gravando · sem dados de cena', () => {
   it('UC-V407 · controle: sem a gravação, o detalhe do item segue com a aba Tributação da cena', () => {
     render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
     fireEvent.click(screen.getByRole('button', { name: /Impostos/ }));
-    // O drawer fica sempre montado e só lê `abaInicial` na montagem da página, então o
-    // "Impostos" abre na aba Geral (defeito anterior a este PR, fora do escopo). O controle
-    // chega à Tributação pela barra de abas, que é o que o operador faz.
+    // Desde 2026-11-23 o "Impostos" abre direto em Tributação (UC-V320, `sells-v3-item-abas.test.tsx`).
     const abas = screen.getByRole('tablist', { name: 'Detalhe do item' });
-    fireEvent.click(within(abas).getByRole('tab', { name: /Tributação/ }));
+    expect(within(abas).getByRole('tab', { name: /Tributação/ }).getAttribute('aria-selected')).toBe('true');
 
     expect(screen.getByDisplayValue('39199090')).toBeTruthy();
     expect(screen.getByText('Confirmar item')).toBeTruthy();
     expect(screen.queryByText('O detalhe do item ainda não está disponível na nova venda')).toBeNull();
+  });
+  /* UC-V408 — comissão: o seletor "Base" abre pelo teclado (o Radix monta as opções só aberto). */
+  function abrirBaseDaComissao() {
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }));
+    const trigger = screen.getByText('Líquido de desconto').closest('button') as HTMLElement;
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+  }
+
+  it('UC-V408 · gravando, a comissão não oferece base por margem nem alerta de margem e diz por quê', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
+    abrirBaseDaComissao();
+
+    expect(screen.getByRole('option', { name: 'Bruto (antes do desconto)' })).toBeTruthy();
+    expect(screen.queryByRole('option', { name: 'Margem (venda − custo)' })).toBeNull();
+    expect(screen.getByText('A margem depende do custo dos produtos, que a nova venda ainda não lê.')).toBeTruthy();
+    expect(screen.queryByText('A comissão come mais da metade da margem desta venda.')).toBeNull();
+  });
+
+  it('UC-V408 · controle: sem a gravação, a comissão segue com a base por margem da cena', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
+    abrirBaseDaComissao();
+
+    expect(screen.getByRole('option', { name: 'Margem (venda − custo)' })).toBeTruthy();
+    expect(screen.queryByText('A margem depende do custo dos produtos, que a nova venda ainda não lê.')).toBeNull();
+  });
+
+  /* UC-V408 — parcelas: gera o plano padrão (2 parcelas). A tabela se confere ANTES de abrir a
+     edição: o diálogo de edição é modal e o Radix marca o resto da página com aria-hidden, então
+     uma busca por papel ("columnheader") depois dele não acha a tabela em nenhum dos dois modos. */
+  function gerarParcelas() {
+    fireEvent.click(screen.getByRole('button', { name: 'Parcelar…' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gerar parcelas' }));
+    // Pré-condição dos dois modos: a tabela existe e está visível para a busca por papel.
+    expect(screen.getByRole('columnheader', { name: 'Vencimento' })).toBeTruthy();
+  }
+  /* Abre "Editar parcela…" da primeira, pelo teclado, como em `produto-excluir-restaurar.test.tsx`. */
+  function editarPrimeiraParcela() {
+    fireEvent.keyDown(screen.getAllByTitle('Ações da parcela')[0]!, { key: 'Enter' });
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Editar parcela…' }));
+  }
+
+  it('UC-V408 · gravando, as parcelas saem só com a posição, sem documento, conta nem plano de contas da cena', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaGravando} gravacao={gravacao} />);
+    gerarParcelas();
+
+    expect(screen.getAllByText('1/2').length).toBeGreaterThan(0);
+    expect(screen.getByText('Conta de destino e plano de contas ainda não são gravados pela nova venda.')).toBeTruthy();
+    expect(screen.queryByText('Caixa / conta de destino')).toBeNull();
+    expect(screen.queryByRole('columnheader', { name: 'Conta' })).toBeNull();
+
+    editarPrimeiraParcela();
+    expect(screen.getByRole('heading', { name: 'Parcela 1/2' })).toBeTruthy();
+    expect(screen.queryByText('Plano de contas')).toBeNull();
+    const texto = document.body.textContent ?? '';
+    for (const cena of ['VD-2026', 'Caixa financeiro', 'Banco Itaú', 'Banco Sicredi', 'Recebido em depósito']) {
+      expect(texto).not.toContain(cena);
+    }
+  });
+
+  it('UC-V408 · controle: sem a gravação, as parcelas seguem com documento, conta e plano de contas da cena', () => {
+    render(<SellsCreateV3 businessId={1} cena={cenaPreview} />);
+    gerarParcelas();
+
+    expect(screen.getAllByText('VD-2026 1/2').length).toBeGreaterThan(0);
+    expect(screen.getByText('Caixa / conta de destino')).toBeTruthy();
+    expect(screen.getByRole('columnheader', { name: 'Conta' })).toBeTruthy();
+
+    editarPrimeiraParcela();
+    expect(screen.getByRole('heading', { name: 'Parcela 1/2' })).toBeTruthy();
+    expect(screen.getByText('Plano de contas')).toBeTruthy();
+    expect(screen.queryByText('Conta de destino e plano de contas ainda não são gravados pela nova venda.')).toBeNull();
+  });
+
+  it('UC-V408 · gravando, o lançamento diz que as informações adicionais não gravam, sem as listas da cena', () => {
+    // A tela passa `gravando={!!gravacao}` ao LancarItem; aqui o componente direto, como no UC-V405,
+    // porque gravando o lançamento sai da busca do cadastro, que este render não tem.
+    const produto = {
+      sku: 'SKU-1', nome: 'Produto de teste', un: 'un', preco: 10, estoque: 5,
+      tipo: 'produto' as const, ean: null, fabrica: null, categoria: null,
+    };
+    const { rerender } = render(
+      <LancarItem produto={produto} executantes={[]} podeEditarPreco gravando onFechar={() => {}} onConfirmar={() => {}} />,
+    );
+    expect(
+      screen.getByText(/As informações adicionais do item \(observações, local da aplicação e tipo de impressão\) ainda não são/),
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Informações adicionais do item/ })).toBeNull();
+
+    // Controle: sem a gravação, a dobra volta.
+    rerender(
+      <LancarItem produto={produto} executantes={[]} podeEditarPreco onFechar={() => {}} onConfirmar={() => {}} />,
+    );
+    expect(screen.getByRole('button', { name: /Informações adicionais do item/ })).toBeTruthy();
+    expect(screen.queryByText(/ainda não são/)).toBeNull();
   });
 });

@@ -7,7 +7,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-07"
 parent_module: RecurringBilling
-related_us: [US-RB-002]
+related_us: [US-RB-002, US-RB-011]
 related_adrs: [110, 107, 109, 104, 93, 114, 101, 94, 143]
 tier: A
 charter_version: 1
@@ -36,7 +36,8 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 - AppShellV2 sidebar + `.rec-cowork` wrapper escopa CSS verbatim do prototipo
 - **Pix Automático** (US-RB-020 · [W] 2026-10-26): bloco no drawer, depois do fiscal, só com `RB_COBRAR_PIX_AUTOMATICO` ligada. Sem mandato → "Pedir autorização" (`POST /recurring-billing/{id}/pix-automatico`); `CRIADA` → QR + Pix copia e cola para o cliente aprovar no app do banco; `APROVADA` → texto de que as faturas são cobradas de 10 a 2 dias antes; recusada/expirada/cancelada → "Pedir nova autorização". Forma: `PixAutoCard` do protótipo `cobranca-recorrente-page.jsx`. QR preto no branco nos dois temas (leitura pelo app do banco).
-- Header `Cobrança recorrente` + subtitle mono `N ATIVAS · MRR R$ X · CHURN Y%` + 4 tabs (Assinaturas / Planos / Faturas / Configurações) + CTA `+ Nova assinatura`
+- **Cartão recorrente** (US-RB-011 · b5 [W] 2026-11-19 "Entra"): bloco no drawer, depois do Pix Automático, só em assinatura no cartão e só com `RB_SALVAR_CARTAO` ligada. Flag desligada → a prop `cartao_recorrente` vem `null` e o bloco **não aparece** (mesma regra do Pix Automático). Com cartão salvo → "`<bandeira>` final `<últimos 4>`"; sem → texto de que o cartão fica salvo no 1º pagamento no cartão. Nunca o token. Forma: `CartaoRecorrenteCard` do protótipo; a lista de tentativas fica para quando a régua de cartão (US-RB-013) existir.
+- Header `Cobrança recorrente` + subtitle mono `N ATIVAS · MRR R$ X · CHURN Y%` + CTA `+ Nova assinatura`. Abaixo do título, a faixa de navegação das 4 vistas (Assinaturas · Planos · Faturas · Configurações), sem contador, derivada dos `ghosts` do sidebar (`_components/RecurringBillingSubNav.tsx`) — forma do protótipo `ph-nav` desde 2026-11-23; antes eram abas com contador à direita do título
 - 4 KPI cards: MRR (hero dark + sparkline derivada) · Churn mês · Próxima cobrança · Retentado falhos
 - 3-col body sub-tab Assinaturas:
   - Coluna 1 filtros (~220px): toggle favoritos + Próxima cobrança (qualquer/hoje/amanhã/semana/30d) + Status (todas/em_dia/retentando/falhou/pausada/cancelada) + Plano + MRR filtrado
@@ -61,7 +62,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 
 ## Non-Goals — Features (NÃO faz neste PR)
 
-- ❌ Tabs Planos / Faturas / Configurações funcionais (placeholder "em construção" — Ondas 6/7/8)
+- ~~❌ Tabs Planos / Faturas / Configurações funcionais (placeholder "em construção" — Ondas 6/7/8)~~ — superado: as 3 têm Page própria e a navegação é a faixa de abas do protótipo (2026-11-23)
 - ❌ CmdPalette ⌘K com Jana IA (Onda 9)
 - ❌ Modo apresentação fullscreen (REFINO #4)
 - ❌ Tour onboarding 4 passos (REFINO #4)

@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-11-19T11:10:26.893Z",
-    "total_lines": 25446,
+    "generated_at": "2026-11-24T10:38:11.105Z",
+    "total_lines": 25407,
     "file_count": 45,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -29,7 +29,7 @@
     "resources/css/fin-ia.css": 323,
     "resources/css/fin-mobile.css": 67,
     "resources/css/fin-output.css": 1012,
-    "resources/css/fiscal-cockpit.css": 1472,
+    "resources/css/fiscal-cockpit.css": 1453,
     "resources/css/foundations.css": 20,
     "resources/css/inertia.css": 306,
     "resources/css/kb.css": 263,
@@ -43,7 +43,7 @@
     "resources/css/sells-cowork-quotations.css": 92,
     "resources/css/sells-cowork-show.css": 132,
     "resources/css/sells-cowork-subscriptions.css": 143,
-    "resources/css/sells-cowork.css": 4053,
+    "resources/css/sells-cowork.css": 4033,
     "resources/css/sells-kb975-cheatsheet.css": 242,
     "resources/css/sells-kb975-emit-modals.css": 505,
     "resources/css/sells-kb975-next-action.css": 280,

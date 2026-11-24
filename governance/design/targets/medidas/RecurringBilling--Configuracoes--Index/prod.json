@@ -1,7 +1,20 @@
 {
-  "url": "https://staging.oimpresso.com/recurring-billing/configuracoes",
-  "theme": "auto",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Configurações · cobrança recorrente Gateways de pagamento, régua de dunning, NFe automática e webhooks por gateway. atalhos Gateways de boleto/pix Credenciais ativas e sandbox cadastradas neste business. Nenhum gateway cadastrado Cadastre uma credencial Inter PJ, C6 ou Asaas para começar a cobrar. Adicionar gateway Régua de dunning (cobrança) Cronograma de retentativas quando uma fatura falha no pagamento. Régua padrão de cobrança em caso de falha de pagamento. Cada retentativa dispara dunning (boleto novo, novo email, novo WhatsApp). Após a 3ª retentativa, a assinatura entra em past_due → fail e exige ação manual. 1ª retentativa + 3 d Soft decline — provavelmente saldo insuficiente ou intermitência gateway. 2ª retentativa + 7 d Cobrança persistente — emite dunning escalado (email + WhatsApp). 3ª retentativa (final) + 15 d Falha definitiva — assinatura vira past_due → fail, requer ação manual no detail drawer. Em breve (Onda futura — régua per-business + per-plan). NFe-de-boleto-pago automática Emissão fiscal disparada automaticamente ao receber pagamento. Desativada Ref. Em breve Quando uma fatura é paga (Asaas/Inter PJ webhook), o sistema dispara automaticamente a emissão de NFe via Módulo NfeBrasil. Requer plano com fiscal_type = nfe ou nfse cadastrado. Em breve (Onda futura — toggle por business + per-plan override). Webhooks URLs canônicas pra colar no painel admin do gateway. POST Asaas docs Webhook unificado (pagamento, assinatura, transferência) Copiar Autenticação: Header X-Webhook-Token configurado no Asaas (Account → Integrações → Webhooks). POST Banco Inter PJ docs Webhook PIX recebido (pix.recebido) Copiar Autenticação: Header X-Inter-Webhook-Secret validado contra config_json.webhook_secret da credencial Inter ativa. 1 / 4 Tour · Configurações Gateways de pagamento Configuram quais bancos recebem cobrança — Inter PJ, C6 Bank ou Asaas. Sandbox = teste, production = real. Não mostrar mais Anterior Próximo Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "url": "https://oimpresso.com/recurring-billing/configuracoes",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "Gateways de pagamento, régua de dunning, NFe automática e webhooks por gateway. · Gateways de boleto/pix · Adicionar gateway · Régua de dunning (cobrança) · Cronograma de retentativas quando uma fatura falha no pagamento. · NFe-de-boleto-pago automática · Emissão fiscal disparada automaticamente ao receber pagamento. · Desativada · Em breve · Webhooks · Copiar",
   "roles": {
     "kpi": {
       "count": 0,
@@ -16,41 +29,307 @@
     },
     "primary": null,
     "filterRows": null,
-    "contratos": [],
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "gateways",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "dunning",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 2
+        },
+        "exemplos": {
+          "snakeCru": [
+            "past_due"
+          ]
+        }
+      },
+      {
+        "nome": "nfe",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 1
+        },
+        "exemplos": {
+          "snakeCru": [
+            "fiscal_type"
+          ]
+        }
+      },
+      {
+        "nome": "webhooks",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
     "celulas": null,
     "tabela": null,
     "shell": {
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-shortcuts .sb-shortcut",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "auto",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "217px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 217,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 1,
+          "texto": "IA",
+          "textoProprio": false
         },
         "itemGrupo": {
           "seletor": ".sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 42,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "auto",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "225px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 225,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 1,
+          "texto": "Clientes",
+          "textoProprio": false
         },
         "grupoHeader": {
           "seletor": ".sb-group-h",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 9,
+          "ocultos": 0,
+          "css": {
+            "height": "27.75px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "10.5px",
+            "fontWeight": "600",
+            "lineHeight": "15.75px",
+            "letterSpacing": "0.63px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "233px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 233,
+            "h": 27.8
+          },
+          "icone": {
+            "w": 12,
+            "h": 12,
+            "strokeWidth": "2px"
+          },
+          "blocos": 2,
+          "texto": "CADASTRO3",
+          "textoProprio": false
         },
         "containerMenu": {
           "seletor": ".sb-menu-grouped",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "1911.75px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "0px",
+            "display": "flex",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "249px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 249,
+            "h": 1911.8
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 92,
+          "texto": "IAVisão geralAtendimento15406CADASTRO3ClientesProdutos13Fabricação5G PCOMERCIAL5",
+          "textoProprio": false
         }
       },
-      "atalhos": []
-    }
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geral",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento15406",
+          "atual": null
+        }
+      ]
+    },
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "lado": "prod",
+    "host": "oimpresso.com",
+    "rota": "/recurring-billing/configuracoes",
+    "componenteInertia": "RecurringBilling/Configuracoes/Index",
+    "business_id": 1,
+    "viewport": "1280x900",
+    "tema": "light",
+    "sobrepostosFixos": [],
+    "dialogsAbertos": [],
+    "medidoEm": "2026-11-23T19:25:51.224Z",
+    "assinaturaRedigida": "texto de produção (biz=1) substituído pelas 11 cópias de UI do contrato que nele aparecem; o original tinha nomes de cliente e valores (sha256 a2b86a81e6ba, 2566 chars, não versionado)"
   }
 }

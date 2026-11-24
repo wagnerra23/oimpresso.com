@@ -5,8 +5,8 @@ irmaos: Eventos.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-03"
-last_run_ci: "0 UC executado nesta corrida — Pest roda no CT 100/CI, nunca local (ADR 0062); 3 UC nascem com teste novo no arquivo já listado na allowlist da lane required; veredito pendente das lanes"
+last_run: "2026-11-24"
+last_run_ci: "revalidado em 2026-11-24 ao levar a tela à forma do protótipo: a timeline virou o cartão 'Eventos aplicados' (quando, ponto, descrição, cStat em pílula com borda), os chips levam o código do evento, o aviso de janelas legais saiu do topo e a nota de rodapé do protótipo entrou. A âncora fiscal-eventos-timeline segue no cartão (contrato-de-tela limpo); nenhum UC cita classe, rótulo de chip nem o aviso. Anterior: 0 UC executado nesta corrida — Pest roda no CT 100/CI, nunca local (ADR 0062); 3 UC nascem com teste novo no arquivo já listado na allowlist da lane required; veredito pendente das lanes"
 related_us: [US-FISCAL-007]
 ---
 
@@ -217,8 +217,12 @@ e cada item carrega a âncora (`Arquivo.casos.md:linha`) de onde saiu.
   vermelhos; parar de excluir bullet tachado → o `fiscal.nfe.view` reaparece, 1 vermelho; derivar
   o rótulo do tom → `source-grep` vira "sem teste", 1 vermelho; trocar o nó ausente por contêiner
   vazio → 1 vermelho.
-- **Fronteira honesta:** o teste mede o **DOM** (títulos, tons, âncoras, ausência). A borda tonal,
-  o dot do Badge e a leitura em 1280px no tema escuro são olho humano no smoke (R1).
+- **Fronteira honesta:** o teste mede o **DOM** (títulos, tons, âncoras, ausência). A borda tonal
+  e a leitura em 1280px no tema escuro são olho humano no smoke (R1).
+- **Forma (2026-11-23):** o item passou de `Alert` + `Badge` para o `.fx-debito` do protótipo
+  (`fiscal-page.css` L216-223), medido produção × protótipo no escuro. O rótulo do marcador
+  (`sem teste`, `source-grep`) não aparece na tela, porque o protótipo não o mostra; segue no
+  atributo `data-rotulo`, que é o que o teste lê.
 - **Teste:** `tests/js/fiscal-debitos-conhecidos.test.tsx` — 5 casos citando `UC-FEVT-08`.
 - **Status:** 🧪 lane **advisory**; veredito pendente.
 
@@ -229,7 +233,7 @@ e cada item carrega a âncora (`Arquivo.casos.md:linha`) de onde saiu.
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-09] ~~A justificativa exibida é truncada, para não vazar PII do XML~~ — Dado um evento com justificativa longa · Quando a linha renderiza · Então só um trecho inicial aparece. _Anti-hook do charter (o texto do motivo da SEFAZ pode conter dado pessoal); o corte existe no Controller, sem teste._
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-10] ~~Filtro por categoria e por janela de tempo~~ — 7, 30 ou 90 dias, com 30 como padrão. _Existe no Controller; sem teste do resultado._
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FEVT-11] ~~A nota de origem vem junto sem multiplicar consultas~~ — o charter limita a **um** relacionamento carregado; nenhum teste guarda esse limite.
-- **[BACKLOG · 🧪 coberto em outra tela] As ações que GERAM evento** (cancelamento, carta de correção, inutilização, retransmissão, manifestação) têm contrato em [`Nfe.casos.md`](Nfe.casos.md) (`UC-FNFE-04..07`) e [`Dfe.casos.md`](Dfe.casos.md) (`UC-FDFE-03/04`) — o dispatch vive lá, esta tela só **lê** o resultado. Não se duplica UC entre telas irmãs.
+- [~~BACKLOG~~ · tirado da lista em 2026-11-23: é apontador, não dívida] ~~As ações que GERAM evento~~ (cancelamento, carta de correção, inutilização, retransmissão, manifestação) têm contrato em [`Nfe.casos.md`](Nfe.casos.md) (`UC-FNFE-04..07`) e [`Dfe.casos.md`](Dfe.casos.md) (`UC-FDFE-03/04`) — o dispatch vive lá, esta tela só **lê** o resultado. Não se duplica UC entre telas irmãs.
 
 ## Como rodar a suíte
 

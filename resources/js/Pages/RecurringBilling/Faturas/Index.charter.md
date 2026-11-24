@@ -9,6 +9,7 @@ related_us: [US-RB-042]
 related_adrs: [93, 94, 101, 104, 107, 114, 143]
 tier: A
 charter_version: 1
+runbook: memory/requisitos/RecurringBilling/RUNBOOK-recurring-billing-index.md
 visual_source: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx  # 2026-09-09 [C]: ⚠️ RASTRO, NÃO DESIGN APROVADO. A aba "faturas" deste arquivo é um `<Placeholder>` de 3 elementos (h2 + p + botão voltar; def. :332-338, uso :370) — não desenha esta tela. E o arquivo é porte REVERSO: `:2` declara "Reescreve a RecurringBilling do git na linguagem do DS" e o próprio texto do placeholder diz "Espelha /recurring-billing/faturas do git" — promover ancoraria a tela nela mesma (§5 2026-06-05 e 2026-08-28). Mantido porque a aba existe na sub-nav do hub e o campo é o rastro disso; medido 2026-09-09, remover derrubaria a catraca `design-coverage` (a métrica `declared` só sobe), então trocar por "sem fonte" é decisão [W]. Ausência de outra fonte medida em 2026-09-09 pelas 3 pernas: repo inteiro, projeto Cowork por ID e ledger do espelho (compare 2026-09-08 = sync). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §4.5.
 canon_method: Cowork KB-9.75 — Onda 7
 sidebar_group: fin (FINANCEIRO)
@@ -31,32 +32,32 @@ Listar **faturas individuais** (`rb_invoices`) com filtros por status (open/paid
 ## Goals — Features (faz · v1)
 
 - AppShellV2 layout + Header `Faturas · cobrança recorrente` + breadcrumb implícito
-- CTA "Nova fatura" (stub disabled · em breve)
+- Sem CTA no cabeçalho: o protótipo (vista `rb-faturas`) não tem. O antigo "Nova fatura · em breve" desabilitado saiu em 2026-11-23 (botão que não faz nada é promessa vazia).
 - 4 KPI cards: **Pago este mês** (hero verde) · **Pendente** (zinc) · **Atrasado** (rose) · **Total de faturas** (zinc)
-- Filter bar horizontal:
-  - Status pills (Todas / Pagas / Pendentes / Atrasadas / Canceladas)
-  - Gateway dropdown (Todos / Inter / C6 / Asaas)
-  - Período dropdown (Qualquer / Mês atual / Próximo mês / Atrasadas)
-  - Search input (busca cliente OR número documento)
+- Filter bar numa linha (forma do protótipo, 2026-11-23):
+  - Status em chips com borda (Todas / Pagas / Pendentes / Atrasadas / Reembolsadas / Canceladas). Só os status que `rb_invoices.status` tem: o protótipo mostra também Parciais, Estornadas e Chargeback, que o modelo não tem — ficam fora até existirem no backend
+  - Gateway dropdown (Todos gateways / Banco Inter / C6 Bank / Asaas) na mesma linha
+  - Período dropdown (Qualquer / Mês atual / Próximo mês / Apenas atrasadas)
+- Cabeçalho da lista: busca (cliente OR número documento, atalho `/`) + contagem "N / total"
 - Tabela:
   - Número documento (mono)
   - Cliente nome (truncate · CNPJ secundário)
   - Plano (subscription.plan.name · null se avulsa)
   - Valor (BRL · tabular-nums)
   - Vencimento (data BR · label "há Nd" / "em Nd" / "hoje")
-  - Status badge (open=amber · paid=emerald · overdue=rose · canceled=zinc strikethrough · refunded=zinc)
-  - Gateway badge (inter/c6/asaas pill colorida)
+  - Status em pílula com borda de 1px, por token do DS (Pendente=marca · Paga=success · Atrasada=destructive · Cancelada=muted riscada · Reembolsada=muted)
+  - Gateway como etiqueta neutra de texto (Banco Inter / C6 Bank / Asaas), sem cor por banco
   - Ações: botão "Cancelar" (só se `is_cancelavel` true · abre dialog confirm)
 - Inertia::defer em `kpis` + `invoices` (props caras — agregação + paginate eager)
 - Multi-tenant Tier 0: `HasBusinessScope` automático em Invoice + Repository scopa explícito + Pest cross-tenant biz=1 vs biz=99
-- Permission gate Spatie pra cancel: `recurringbilling.invoice.cancel`
+- Permission gate Spatie pra cancel: `recurringbilling.invoices.cancel` (InvoiceController.php:122; o nome antigo `recurringbilling.invoice.cancel` não era declarado em lugar nenhum)
 - Tailwind 4 puro (sem `.rec-*` CSS escopado)
 
 ---
 
 ## Non-Goals — Features (NÃO faz neste PR)
 
-- ❌ Criar fatura avulsa via UI (CTA "Nova fatura" stub · Onda 9 ou separado)
+- ❌ Criar fatura avulsa via UI — nem como botão desabilitado (o protótipo não tem o CTA)
 - ❌ Drawer detalhe completo da fatura (ChargeAttempts timeline · DanfeBoletoLink · ReceiptDownload — fica em Onda 9)
 - ❌ Bulk cancel (selecionar N linhas)
 - ❌ Reenviar boleto/PIX manual

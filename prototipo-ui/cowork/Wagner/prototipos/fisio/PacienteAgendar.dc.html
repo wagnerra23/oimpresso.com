@@ -34,17 +34,27 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
           <button type="button" onClick="{{p.pick}}" aria-pressed="{{p.on}}" style="flex: 1; height: 42px; border-radius: 999px; border: {{p.bd}}; background: {{p.bg}}; font: inherit; font-size: 14px; color: oklch(0.22 0.01 80); cursor: pointer">{{p.n}}</button>
         </sc-for>
       </div>
+      <sc-if value="{{semAutorizacao}}" hint-placeholder-val="{{ false }}">
+        <div role="alert" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; background: oklch(0.955 0.072 75); color: oklch(0.40 0.10 70); font-size: 14px">
+          <b style="font-weight: 600">Falta a autorização de {{pesNome}}</b>
+          <span>Só dá para marcar por outra pessoa adulta depois que ela autorizar você na clínica. A clínica registra a autorização e libera aqui.</span>
+          <span>Para um filho menor de idade, você precisa estar cadastrado como responsável legal dele.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{temAutorizacao}}" hint-placeholder-val="{{ true }}">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: {{pacBg}}; color: {{pacFg}}">
         <span style="font-size: 14px"><b style="font-weight: 600">{{pacT}}</b> {{pacD}}</span>
         <sc-if value="{{pacAcabando}}" hint-placeholder-val="{{ true }}"><a href="PacienteConsultas.dc.html" style="font-size: 13px; font-weight: 600; white-space: nowrap">Renovar</a></sc-if>
       </div>
+      <sc-if value="{{pesNota}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{pesNotaT}}</span></sc-if>
       <sc-for list="{{tipos}}" as="t" hint-placeholder-count="3">
         <button type="button" onClick="{{t.pick}}" aria-pressed="{{t.on}}" style="text-align: left; padding: 12px 14px; border-radius: 14px; border: {{t.bd}}; background: {{t.bg}}; font: inherit; color: oklch(0.22 0.01 80); display: flex; flex-direction: column; gap: 2px; cursor: pointer">
           <span style="display: flex; justify-content: space-between; gap: 8px"><b style="font-weight: 600">{{t.n}}</b><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: oklch(0.50 0.01 80)">{{t.dur}}</span></span>
           <span style="font-size: 13px; color: oklch(0.50 0.01 80)">{{t.d}}</span>
         </button>
       </sc-for>
-      <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Continuar</button>
+      </sc-if>
+      <button type="button" onClick="{{next1}}" aria-disabled="{{semAutorizacaoTxt}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: {{cta1Bg}}; color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Continuar</button>
     </div>
   </sc-if>
 
@@ -81,7 +91,7 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
       </div>
       <button type="button" onClick="{{toggleEspera}}" aria-pressed="{{esperaOn}}" style="text-align: left; padding: 12px 14px; border-radius: 14px; border: {{esperaBd}}; background: {{esperaBg}}; font: inherit; color: oklch(0.22 0.01 80); display: flex; gap: 12px; align-items: center; cursor: pointer">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="oklch(0.45 0.15 295)" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
-        <span style="display: flex; flex-direction: column"><b style="font-weight: 600; font-size: 14px">{{esperaT}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">Se alguém desmarcar antes, te aviso no WhatsApp. Quem confirmar primeiro fica com a vaga.</span></span>
+        <span style="display: flex; flex-direction: column"><b style="font-weight: 600; font-size: 14px">{{esperaT}}</b><span style="font-size: 13px; color: oklch(0.50 0.01 80)">Se alguém desmarcar antes, te aviso pelo app (e no WhatsApp, se você autorizou). Quem confirmar primeiro fica com a vaga.</span></span>
       </button>
       <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">Continuar</button>
     </div>
@@ -104,7 +114,7 @@ a{color:oklch(0.45 0.15 295)}a:hover{color:oklch(0.22 0.01 80)}
           <span style="font-size: 13px">Desconta no valor da consulta. Devolvido se você desmarcar até 24 h antes.</span>
         </div>
       </sc-if>
-      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">Lembrete no WhatsApp na véspera. Remarcar ou cancelar pelo app até 24 h antes.</span>
+      <span style="font-size: 13px; color: oklch(0.50 0.01 80)">Lembrete na véspera pelo app; no WhatsApp só se você autorizou em Configurações. Remarcar ou cancelar pelo app até 24 h antes.</span>
       <button type="button" onClick="{{next}}" style="margin-top: auto; height: 54px; border-radius: 14px; border: 0; background: oklch(0.55 0.15 295); color: #FFFFFF; font: inherit; font-weight: 600; font-size: 17px">{{cta}}</button>
     </div>
   </sc-if>
@@ -129,12 +139,14 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state, P = 'oklch(0.55 0.15 295)', INK = 'oklch(0.22 0.01 80)', LINE = 'oklch(0.90 0.004 90)';
     const sel = (on) => ({ on: on ? 'true' : 'false', bd: on ? '2px solid ' + P : '1px solid ' + LINE, bg: on ? 'oklch(0.95 0.04 295)' : '#FFFFFF' });
-    const PESSOAS = { eu: ['Eu', 8, 10], mae: ['[NOME] (mãe)', 0, 0] };
+    // [3] = vínculo: 'proprio' · 'responsavel' (responsável legal cadastrado de menor) · 'sem' (adulto sem autorização registrada)
+    const PESSOAS = { eu: ['Eu', 8, 10, 'proprio'], filho: ['[NOME] (filho)', 0, 0, 'responsavel'], mae: ['[NOME] (mãe)', 0, 0, 'sem'] };
     const TIPOS = { retorno: ['Sessão do pacote', '50 min', 'Consome 1 sessão do pacote. Sem sinal.'], tele: ['Teleconsulta', '30 min', 'A distância. A clínica combina com você como será o contato.'], aval: ['Reavaliação', '60 min', 'Revisa o programa e as metas.'] };
     const PROFS = { dj: ['Dra. Dejeane', 'Fisioterapeuta · acompanha você', 'DR', P, 'amanhã'], rf: ['Dr. [NOME]', 'Fisioterapeuta', 'DN', 'oklch(0.45 0.08 220)', 'qua'] };
     const DIAS = [['seg', '20', false], ['ter', '21', true], ['qua', '22', true], ['qui', '23', true], ['sex', '24', true], ['sáb', '25', false]];
     const HORAS = ['08:30', '10:00', '14:00', '15:30', '17:30', '18:00'];
     const pes = PESSOAS[s.pessoa];
+    const autorizado = pes[3] !== 'sem';
     const temPacote = pes[2] > 0, restam = pes[2] - pes[1];
     const temSinal = !(s.tipo === 'retorno' && temPacote);
     const dia = DIAS[s.dia];
@@ -144,6 +156,9 @@ class Component extends DCLogic {
       stepLabel: s.step === 5 ? 'pronto' : 'passo ' + s.step + ' de 4',
       dots: [1, 2, 3, 4].map(i => ({ bg: i <= Math.min(s.step, 4) ? P : LINE })),
       pessoas: Object.keys(PESSOAS).map(k => Object.assign({ n: PESSOAS[k][0], pick: () => this.setState({ pessoa: k, tipo: PESSOAS[k][2] ? s.tipo : 'aval' }) }, sel(s.pessoa === k))),
+      pesNome: pes[0], semAutorizacao: !autorizado, temAutorizacao: autorizado, semAutorizacaoTxt: autorizado ? 'false' : 'true',
+      cta1Bg: autorizado ? P : 'oklch(0.80 0.005 90)', next1: autorizado ? () => this.setState({ step: 2 }) : () => {},
+      pesNota: pes[3] === 'responsavel', pesNotaT: 'Você é o responsável legal cadastrado. Os avisos desta consulta vão para você.',
       pacT: temPacote ? 'Pacote:' : 'Sem pacote ativo.', pacD: temPacote ? pes[1] + ' de ' + pes[2] + ' sessões usadas' + (restam <= 2 ? ' · faltam ' + restam : '') : 'A primeira vez passa por avaliação.',
       pacAcabando: temPacote && restam <= 2,
       pacBg: temPacote && restam <= 2 ? 'oklch(0.96 0.05 85)' : 'oklch(0.95 0.04 295)', pacFg: temPacote && restam <= 2 ? 'oklch(0.38 0.09 70)' : 'oklch(0.40 0.15 295)',
@@ -157,7 +172,7 @@ class Component extends DCLogic {
       resumo: [{ k: 'Para', v: pes[0] }, { k: 'O quê', v: TIPOS[s.tipo][0] }, { k: 'Com', v: PROFS[s.prof][0] }, { k: 'Quando', v: quando }, { k: 'Onde', v: s.tipo === 'tele' ? 'Vídeo pelo app' : 'Clínica [NOME]' }],
       temSinal, cta: temSinal ? 'Pagar sinal e confirmar' : 'Confirmar agendamento',
       pedeFicha: s.tipo === 'aval',
-      confirmText: TIPOS[s.tipo][0] + ' com ' + PROFS[s.prof][0] + ', ' + quando + '.' + (s.espera ? ' Se abrir vaga antes, aviso no WhatsApp.' : ''),
+      confirmText: TIPOS[s.tipo][0] + ' com ' + PROFS[s.prof][0] + ', ' + quando + '.' + (s.espera ? ' Se abrir vaga antes, aviso pelo app.' : ''),
       next: () => this.setState({ step: Math.min(5, s.step + 1) }),
       back: () => this.setState({ step: Math.max(1, s.step - 1) }),
       restart: () => this.setState({ step: 1, espera: false })

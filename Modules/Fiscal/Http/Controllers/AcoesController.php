@@ -695,4 +695,59 @@ class AcoesController extends Controller
             return back()->with('error', self::falhaGenerica('emitir a NF-e de devolução'));
         }
     }
+
+    /**
+     * POST /fiscal/acoes/venda-devolucao/{sellReturn}/nfe
+     *
+     * Onda 1 do protótipo Devolução V3: a NF-e de devolução sai da devolução de venda registrada,
+     * declarando só o saldo ainda não declarado. O vínculo linha → item e as recusas estão em
+     * DevolucaoService::planoDaDevolucaoDeVenda; a recusa volta com a mensagem dela, porque é o
+     * que diz ao usuário por que ir à tela do Fiscal.
+     */
+    public function devolucaoDaVenda(DevolucaoService $devolucao, int $sellReturn): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        if (! DevolucaoService::ligadaPara($businessId)) {
+            abort(404);
+        }
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            abort(403, 'Sem permissão fiscal.nfe.acoes');
+        }
+
+        try {
+            $plano = $devolucao->planoDaDevolucaoDeVenda($businessId, $sellReturn);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        try {
+            $nova = $devolucao->emitirDevolucao($businessId, $plano['origem_id'], $plano['itens']);
+
+            Log::info('Fiscal.acoes.devolucao_da_venda ok', [
+                'business_id'      => $businessId,
+                'sell_return_id'   => $sellReturn,
+                'nfe_origem_id'    => $plano['origem_id'],
+                'nfe_devolucao_id' => $nova->id,
+                'status'           => $nova->status,
+            ]);
+
+            return back()->with(
+                $nova->status === 'autorizada' ? 'success' : 'error',
+                $nova->status === 'autorizada'
+                    ? "NF-e de devolução nº {$nova->numero} autorizada · cstat {$nova->cstat}"
+                    : "NF-e de devolução enviada · status {$nova->status} · cstat {$nova->cstat} · {$nova->motivo}",
+            );
+        } catch (\Throwable $e) {
+            Log::error('Fiscal.acoes.devolucao_da_venda falhou', [
+                'business_id'    => $businessId,
+                'sell_return_id' => $sellReturn,
+                'error'          => $e->getMessage(),
+            ]);
+
+            report($e);
+
+            return back()->with('error', self::falhaGenerica('emitir a NF-e de devolução'));
+        }
+    }
 }

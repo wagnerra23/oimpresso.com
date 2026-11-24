@@ -5,7 +5,7 @@ owner: wagner
 status: draft
 last_validated: "2026-10-05"
 parent_module: Sells
-related_prototype: n/a (o desenho de venda-menu cobre só a lista; o registro herda PT-02 e segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/Wagner/devolucao-v3.html
 runbook: memory/requisitos/Sells/RUNBOOK-sell-return-add.md
 alcance:
   rota: /sell-return/add/{id}
@@ -44,6 +44,11 @@ Devolver item de uma venda: quanto volta pro estoque e quanto vira saldo a pagar
 - R8 Efeito no Financeiro antes de salvar (#10249, [W] 2026-11-03): a tela mostra quanto a devolução abate do
   título a receber da venda e quanto vira crédito do cliente, lendo `POST /sell-return/previa-financeira/{venda}`
   (só leitura; a conta é a do servidor). Com vale-troca, diz que o vale não abate (UC-SRADD-09).
+- R9 NF-e de devolução (onda 1 do protótipo Devolução V3, 2026-11-23): com a devolução salva, a flag
+  `nfebrasil.devolucao_pela_venda` ligada e a permissão `fiscal.nfe.acoes`, a seção "NF-e de devolução"
+  diz quantos itens a nota declara (só o saldo ainda não declarado) ou por que não dá, e o botão chama
+  `POST /fiscal/acoes/venda-devolucao/{devolucao}/nfe`. A seção fica fora do formulário e não emite ao
+  salvar: a segunda devolução substitui a primeira (CU-DEV-03) e a NF-e não volta atrás (UC-SRADD-10..12).
 
 ## Fora desta tela (do texto revisado, não implementado)
 
