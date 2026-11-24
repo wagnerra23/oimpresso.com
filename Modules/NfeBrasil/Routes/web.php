@@ -147,9 +147,14 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         });
 
         // CRUD regras
-        Route::get('regras/create', [TributacaoController::class, 'create'])->name('regras.create');
+        // Abrir as telas de regra e de import também pede nfe.tributacao.manage (UC-NFRF-11 ·
+        // UC-NFIM-14): antes só o salvar/importar pedia, e quem não tinha via o form e levava 403.
+        Route::get('regras/create', [TributacaoController::class, 'create'])
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)
+            ->name('regras.create');
         Route::post('regras', [TributacaoController::class, 'store'])->name('regras.store');
         Route::get('regras/{id}/edit', [TributacaoController::class, 'edit'])
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)
             ->whereNumber('id')->name('regras.edit');
         Route::put('regras/{id}', [TributacaoController::class, 'update'])
             ->whereNumber('id')->name('regras.update');
@@ -157,7 +162,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->whereNumber('id')->name('regras.destroy');
 
         // Import CSV em massa (US-NFE-010 fase 3)
-        Route::get('import', [ImportRegrasController::class, 'show'])->name('import.show');
+        Route::get('import', [ImportRegrasController::class, 'show'])
+            ->middleware(PermissaoNfe::class.':'.PermissaoNfe::TRIBUTACAO)
+            ->name('import.show');
         Route::post('import/preview', [ImportRegrasController::class, 'preview'])->name('import.preview');
         Route::post('import/aplicar', [ImportRegrasController::class, 'aplicar'])->name('import.aplicar');
     });
