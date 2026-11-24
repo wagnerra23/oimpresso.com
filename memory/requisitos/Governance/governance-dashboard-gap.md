@@ -49,3 +49,25 @@ gerado_em: 2026-09-29
 - `grep -cEi 'Atalhos|Documentos canônicos|Trust Tiers' prototipo-ui/cowork/Wagner/governance-page.jsx` → 0 (ausência no mockup)
 - `grep -cEi 'custom|De.*Até|type="date"' prototipo-ui/cowork/Wagner/governance-page.jsx` → 0 (ausência no mockup — intervalo custom da seção MCP)
 - `grep -cEi 'ver todos|drill-down|histórico →' prototipo-ui/cowork/Wagner/governance-page.jsx` → 0 (ausência no mockup — links das 3 listas)
+
+---
+
+## Medição design-diff 2026-11-24 (L6) — substitui a de 2026-09-18 [CC]
+
+Mede `governance/Dashboard` (/governance/dashboard) contra a vista `governance` do protótipo (`prototipo-ui/cowork/Wagner/governance-page.jsx` sha256 `3b1b79c13065…` + `governance-telas.jsx` `c82e0d6bf8a3…`, último commit `34b12a7869` de 2026-11-19, a versão do L5). Tema claro, 1280×900, produção `biz=1`. Método e canário: [visual-comparison do Dashboard, seção "Medição 2026-11-24"](../Jana/governance-dashboard-extension-visual-comparison.md).
+
+A medida de 2026-09-18 não valia: os 4 `design.json` tinham o mesmo sha256 (`a87886…`) porque o lote abria a rota do grupo (`route=governance`, a vista painel) para as 4 telas; Audit, Policies e DriftAlerts nunca tinham sido medidas contra a vista delas. O override `governance/design/targets/roles/governance--Dashboard.json` fixa o token da vista.
+
+Reproduz: `node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/governance--Dashboard/prod.json governance/design/targets/medidas/governance--Dashboard/design.json --check --contrato governance/design/contracts/governance.contract.json`
+
+**Veredito: DIVERGE — 2 reais, 1 decidida.** D0 OK (13 de 22 cópias do contrato em produção × 22 de 22 no protótipo).
+
+| Dim | Campo | Produção | Protótipo | Leitura |
+|---|---|---|---|---|
+| D9 | data em `kpis-constituicao` | `2026-08-05` (ISO) | dd/mm/aaaa | **real** — a data da próxima revisão sai crua no card |
+| D2 | `kpi.count` | 6 | 5 | **decidida** — produção mostra Conformidade como 6º KPI; o protótipo a desenha como régua por artigo, rejeitada em 2026-09-09 por falta de fonte (tabela acima) |
+| — | seção MCP | 9 das 22 cópias do contrato ausentes (Chamadas, Taxa de sucesso, Latência p95, as abas Acesso e permissões / Usuários e ferramentas, e os períodos Hoje · Ontem · 7 dias · Mês anterior) | todas presentes | **real, a confirmar** — lido no DOM; o período em produção é um `Select` (opções fora do DOM fechado), então os rótulos de período podem ser só forma |
+| D4 | título 22px/600 · valor do KPI 22px | igual | igual | IGUAL |
+| D8 | alinhamento do KPI | igual | igual | IGUAL |
+
+Fora do veredito nas 4 telas: o shell (sidebar) não foi medido; o `IGUAL` de cor (D6) é fraco, porque os tokens de cor de produção não resolvem na raiz do documento (`--accent`, `--border`… vivem no `.cockpit`); e D9 sai SEM-DADO onde as regiões `data-contract` só existem de um lado.

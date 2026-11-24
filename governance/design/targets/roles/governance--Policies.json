@@ -1,0 +1,16 @@
+{
+  "_medido_em": "2026-11-24",
+  "_por_que": "O governance-page.jsx serve as 4 telas numa rota só por vista (app.jsx: governance · gov-politicas · gov-auditoria · gov-drift); sem token por tela o lote cai na rota do grupo e o design.json sai igual nas 4 (a medida de 2026-09-18, sha a87886… nas 4). Papéis medidos no DOM dos dois lados em 2026-11-24.",
+  "token": "gov-politicas",
+  "roles": {
+    "prod": {
+      "kpi": "main [data-slot=\"kpi-grid\"] > *",
+      "title": "main h1",
+      "filterControls": "main [data-slot=\"inline\"] > *"
+    },
+    "design": {
+      "kpi": ".gov-page [data-contract=\"politicas-kpis\"] > *",
+      "title": ".gov-page h1"
+    }
+  }
+}
