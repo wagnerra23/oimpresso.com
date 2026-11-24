@@ -69,6 +69,7 @@ const DEFER_GUARD_ONLY_ALLOWLIST = [
     'team-mcp/Tasks/Index'          => 'default-destructure `{ modulos = [], owners = [], ... }` + `?? {}`',
     'Essentials/Messages/Index'     => '`messages` semeia useState(messages ?? []) — não dá pra embrulhar em <Deferred>; guarda por default (fix #3867)',
     'Ponto/Mobile/Index'            => 'só repassa `totais`/`linhas` pro filho _components/MeuEspelho, que embrulha em <Deferred data={["totais","linhas"]}> e ainda guarda `if (!totais || !linhas)` — mesmo desenho da Jana/Index (thread 06, 2026-09-29)',
+    'SellReturn/Create'             => 'DataTable recebe `vendas?.data ?? []` e fica montada FORA do <Deferred>: dentro dele, cada troca de filtro desmontaria a tabela e a busca perderia o foco (§5 2026-10-13); vazio mostra "Carregando vendas…"',
     'Auditoria/Detail'              => 'early-return `if (!activity) { return ... }` antes de qualquer deref (sweep 2026-07-06)',
 ];
 

@@ -407,19 +407,21 @@ class SellReturnController extends Controller
             ->orderByDesc('transactions.id')
             ->paginate(self::INERTIA_POR_PAGINA)
             ->withQueryString()
-            ->through(fn ($r) => [
-                'id' => (int) $r->id,
-                'numero' => (string) $r->invoice_no,
-                'data' => (string) $r->transaction_date,
-                'cliente' => $r->contato_empresa ?: $r->contato_nome,
-                'documento' => $r->contato_documento ?: null,
-                'uf' => $r->contato_uf ?: null,
-                'nota' => empty($r->nfe_numero) ? null : [
-                    'numero' => (string) $r->nfe_numero,
-                    'tipo' => ((string) ($r->nfe_modelo ?? '55')) === '65' ? 'NFC-e' : 'NF-e',
+            // As colunas vêm de join/subselect e não são atributos declarados do Model:
+            // lidas por getAttribute() para o larastan enxergar o tipo.
+            ->through(fn (Transaction $r) => [
+                'id' => (int) $r->getAttribute('id'),
+                'numero' => (string) $r->getAttribute('invoice_no'),
+                'data' => (string) $r->getAttribute('transaction_date'),
+                'cliente' => $r->getAttribute('contato_empresa') ?: $r->getAttribute('contato_nome'),
+                'documento' => $r->getAttribute('contato_documento') ?: null,
+                'uf' => $r->getAttribute('contato_uf') ?: null,
+                'nota' => empty($r->getAttribute('nfe_numero')) ? null : [
+                    'numero' => (string) $r->getAttribute('nfe_numero'),
+                    'tipo' => ((string) ($r->getAttribute('nfe_modelo') ?? '55')) === '65' ? 'NFC-e' : 'NF-e',
                 ],
-                'devolucao_numero' => $r->devolucao_numero ?: null,
-                'total' => (float) $r->final_total,
+                'devolucao_numero' => $r->getAttribute('devolucao_numero') ?: null,
+                'total' => (float) $r->getAttribute('final_total'),
             ]);
     }
 

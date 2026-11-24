@@ -19,6 +19,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Segmented } from '@/Components/ui/segmented';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade SellReturnController@origemVendas
@@ -75,10 +76,10 @@ const colunas: ColumnDef<VendaOrigem>[] = [
       const v = row.original;
       const sub = [v.documento, v.uf].filter(Boolean).join(' · ');
       return (
-        <div className="flex min-w-0 flex-col">
+        <Stack gap={0} className="min-w-0">
           <strong className="break-words">{v.cliente ?? '—'}</strong>
           {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
-        </div>
+        </Stack>
       );
     },
   },
@@ -148,14 +149,15 @@ export default function SellReturnCreate({ vendas, filtros }: SellReturnCreatePr
         />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <Grid gap={4} className="mt-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card>
           <CardHeader>
             <CardTitle>1 · Origem da devolução</CardTitle>
             <CardDescription>Escolha a venda finalizada que está voltando.</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <div data-contract="filtros" className="flex flex-wrap items-center gap-3">
+          <CardContent>
+            <Stack gap={3}>
+            <Inline data-contract="filtros" wrap align="center" gap={3}>
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Vendas finalizadas</span>
               <Segmented
                 value={filtros.nota}
@@ -163,7 +165,7 @@ export default function SellReturnCreate({ vendas, filtros }: SellReturnCreatePr
                 options={FILTROS_NOTA}
                 aria-label="Filtrar por nota"
               />
-            </div>
+            </Inline>
 
             <div data-contract="lista">
               <DataTable
@@ -185,6 +187,7 @@ export default function SellReturnCreate({ vendas, filtros }: SellReturnCreatePr
               Com NF-e, a devolução pode gerar a nota de devolução com os tributos da nota original. Sem nota, como
               nas vendas da Rota Livre, o retorno só ajusta a venda, o estoque e o financeiro.
             </p>
+            </Stack>
           </CardContent>
         </Card>
 
@@ -193,7 +196,8 @@ export default function SellReturnCreate({ vendas, filtros }: SellReturnCreatePr
             <CardTitle>Fechamento fiscal</CardTitle>
             <CardDescription>Aguardando a origem</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent>
+            <Stack gap={3}>
             <div className="rounded-md border border-border bg-muted/40 p-3">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Total da devolução
@@ -204,9 +208,10 @@ export default function SellReturnCreate({ vendas, filtros }: SellReturnCreatePr
             <p className="text-xs text-muted-foreground">
               Os itens e os totais aparecem quando a venda for escolhida.
             </p>
+            </Stack>
           </CardContent>
         </Card>
-      </div>
+      </Grid>
     </AppShellV2>
   );
 }
