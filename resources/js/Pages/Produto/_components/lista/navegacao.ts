@@ -5,12 +5,14 @@
 // só navega por Inertia quando a empresa tem a chave `useV2ProdutoCadastro` ligada
 // (`contexto.telas_react`). Chave desligada: página inteira, e cada empresa segue no Blade como antes.
 //
-// Editar produto fica de fora: a tela React de edição ainda não tem o preço do produto (o preço do
-// produto existente segue no Blade — Create.casos.md UC-PCAD-09 §Fora deste UC). Abrir a edição
-// React tiraria da pessoa o lugar de mudar o preço.
+// Editar produto também abre a tela React (decisão [W] 2026-11-24, para todos os tipos). Até
+// 2026-11-24 ficava de fora porque a edição React não tinha preço; o preço do produto simples
+// chegou no UC-PEDIT-16. Variações e composição ainda não se editam na tela React: o [W] aceitou
+// esse buraco em troca de a lista não mandar mais ninguém ao Blade.
 
 const TELAS_REACT: RegExp[] = [
   /^\/products\/create(\?.*)?$/,
+  /^\/products\/\d+\/edit(\?.*)?$/,
   /^\/products\/stock-history\/\d+(\?.*)?$/,
   /^\/products\/add-selling-prices\/\d+(\?.*)?$/,
 ];
