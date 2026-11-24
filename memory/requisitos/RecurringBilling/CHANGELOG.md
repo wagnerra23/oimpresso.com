@@ -58,6 +58,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 **Onda 5a (2026-11-24):** `rb:backfill-gateway` (US-RB-052) e `rb:health` passam a ler a credencial do PaymentGateway. O backfill acha a credencial pela conta (`ContaBancaria::credencialGateway`) e, sem ela, por banco no business, como antes; o health conta credenciais Inter/C6/Asaas ativas no PG e mede o frescor do saldo sem depender de `rb_gateway_credential_id`.
 **Onda 5b (2026-11-24):** sai o código morto da credencial do RB: `BoletoCredential`, `BoletoCredentialResolver` e a interface dele (com o binding), a relação `ContaBancaria::gatewayCredential()`, a regra `rb_gateway_credential_id` do `UpdateAccountRequest` e o script `scripts/inter-credentials/`, que gravava direto em `rb_boleto_credentials`. A tabela e a coluna continuam até a onda 5c.
 
+**Onda 5c (2026-11-24):** a migration `2026_11_24_120000_drop_rb_boleto_credentials` apaga `fin_contas_bancarias.rb_gateway_credential_id` e a tabela `rb_boleto_credentials`. Ela recusa rodar se a tabela tiver alguma linha; em produção tinha 0. Sai também o `paymentgateway:migrate-credentials`; a `CopiaCredencialLegadaRb` fica porque a migration de cópia de 23/11 ainda roda numa base nova.
+
 ### Outubro 2026
 
 - Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).

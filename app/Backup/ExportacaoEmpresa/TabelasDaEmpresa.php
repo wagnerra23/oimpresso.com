@@ -48,7 +48,7 @@ final class TabelasDaEmpresa
 
     /** Têm `business_id` mas não saem: credencial, governança, cache, log técnico. */
     public const TABELAS_FORA = [
-        'nfe_certificados', 'payment_gateway_credentials', 'rb_boleto_credentials',
+        'nfe_certificados', 'payment_gateway_credentials',
         'nfse_provider_configs', 'whatsapp_business_configs', 'janaia_connections',
         'jana_cache_semantico', 'jana_negative_cache', 'ai_usage_log', 'kb_bridge_state',
         'gateway_webhook_events', 'pg_webhook_events', 'inter_webhook_log', 'user_lockouts',

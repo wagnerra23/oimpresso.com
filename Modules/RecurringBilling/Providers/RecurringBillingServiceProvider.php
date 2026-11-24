@@ -122,8 +122,8 @@ class RecurringBillingServiceProvider extends ServiceProvider
      *
      * Implementação física do service vem em PRs paralelos (M1+M2). Wiring aqui
      * registra o binding pra Laravel resolver via container. Multi-tenant Tier 0
-     * IRREVOGÁVEL (ADR 0093): credenciais lidas SEMPRE de `rb_boleto_credentials`
-     * por `business_id`, NUNCA de `config('services.inter')`. Config aqui é só
+     * IRREVOGÁVEL (ADR 0093): credenciais lidas SEMPRE de `payment_gateway_credentials`
+     * (até 2026-11-24, `rb_boleto_credentials`) por `business_id`, NUNCA de `config('services.inter')`. Config aqui é só
      * shared infra (api_base_url, paths default).
      */
     protected function registerInterPixServices(): void
