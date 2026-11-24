@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista garante QUAIS devoluções a pessoa vê e QUANTO elas somam — isso não muda num refactor visual.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -15,6 +15,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
      "Editar" de <a> para <Link> (visita Inertia ao SellReturn/Add), o que a regra L4 do charter já
      descreve. A seção nova desta edição (UC-SRETVT-*, vale-troca, US-VEST-021) é do servidor e não
      toca o .tsx. Nenhum UC muda de status. -->
+
+<!-- REVALIDAÇÃO 2026-11-24 (G-6): o Index.tsx mudou só no `href` do botão "+ Nova devolução",
+     de /sells para /sell-return/create (SellReturn/Create, etapa 1 do protótipo Devolução V3).
+     Nenhum UC desta lista fala do botão; o destino novo é contrato de Create.casos.md (UC-SRCRE-*).
+     Nenhum UC muda de status. -->
 
 # Casos de Uso & Aceite — Devolução de venda · lista
 
