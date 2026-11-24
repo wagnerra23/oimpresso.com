@@ -76,7 +76,7 @@ import {
   salvarColunas,
   textoDaColuna,
 } from './_components/v3/colunas-dominio';
-import { type Transportadora } from './_components/v3/entrega-dominio';
+import { type Transportadora, type TransporteDaVenda } from './_components/v3/entrega-dominio';
 import { brl, fmtBR, fmtQtd, num, parseBR, submitSafe } from './_components/v3/numeros';
 import { descontoAcimaDoTeto, montarPayloadVenda, totalParaGravar } from './_components/v3/gravacao-dominio';
 import { descontoInicial, linhaParaSomar, temSelectDeComissionado, type ConfigVenda, type PrazoDoCliente } from './_components/v3/config-business-dominio';
@@ -539,6 +539,8 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
 
   const [gravando, setGravando] = useState(false);
   const [erroGravar, setErroGravar] = useState<string | null>(null);
+  /* Transporte da gaveta "Entrega e frete", gravando (UC-V409). */
+  const [transporte, setTransporte] = useState<TransporteDaVenda | undefined>(undefined);
   /* `orcamento`: "Salvar como orçamento" grava pelo mesmo /pos com status de orçamento (UC-V401). */
   const gravar = (orcamento = false) => {
     if (!gravacao) return;
@@ -563,6 +565,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       tabelaId,
       orcamento,
       notas: { venda: notaVenda, interna: notaInterna },
+      transporte,
       parcelas: parcelas.length,
       beneficiarios: beneficiarios.length,
     });
@@ -1017,6 +1020,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
           onFreteChange={setFrete}
           transportadoras={cena.transportadoras ?? []}
           gravando={!!gravacao}
+          onTransporteChange={setTransporte}
         />
       </Sec>
 
