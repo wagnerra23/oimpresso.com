@@ -14,6 +14,7 @@ import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/Components/PageHeader';
 import { FormSection } from '@/Components/ui/form-section';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -279,19 +280,50 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
     }
   };
 
+  // Layout do protótipo Devolução V3 (prototipo-ui/cowork/Wagner/devolucao-v3.html, pedido [W]
+  // 2026-11-24): cartões numerados à esquerda, fechamento e "Salvar" à direita. Só a forma
+  // mudou — os estados, a conta (calcularTotais) e o post ao store() são os de antes.
   return (
     <form onSubmit={salvar} data-contract="formulario">
-      <Stack gap={4} className="mt-4">
-        <FormSection title="Venda de origem" data-contract="venda-origem">
-          <Grid min="sm" gap={4} className="text-sm">
-            <span><strong>Venda:</strong> <Link href={`/sells/${venda.id}`}>#{venda.numero}</Link></span>
-            <span><strong>Data:</strong> {fmtData(venda.data)}</span>
-            <span><strong>Cliente:</strong> {venda.cliente ?? '—'}</span>
-            <span><strong>Local:</strong> {venda.local ?? '—'}</span>
-          </Grid>
-        </FormSection>
+      <Grid gap={4} className="mt-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <Stack gap={4} className="min-w-0">
+          <Card data-contract="venda-origem">
+            <CardHeader>
+              <CardTitle>1 · Origem da devolução</CardTitle>
+              <CardDescription>A venda finalizada que está voltando.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Stack gap={3}>
+                <Grid min="sm" gap={4} className="text-sm">
+                  <Stack gap={0}>
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Venda</span>
+                    <Link href={`/sells/${venda.id}`} className="font-mono font-semibold">{venda.numero}</Link>
+                    <span className="text-xs text-muted-foreground">{fmtData(venda.data)}</span>
+                  </Stack>
+                  <Stack gap={0}>
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Cliente</span>
+                    <strong className="break-words">{venda.cliente ?? '—'}</strong>
+                  </Stack>
+                  <Stack gap={0}>
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Local</span>
+                    <strong className="break-words">{venda.local ?? '—'}</strong>
+                  </Stack>
+                </Grid>
+                <Inline justify="end">
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/sell-return/create">Trocar venda</Link>
+                  </Button>
+                </Inline>
+              </Stack>
+            </CardContent>
+          </Card>
 
-        <FormSection title="Itens a devolver" data-contract="itens">
+          <Card data-contract="itens">
+            <CardHeader>
+              <CardTitle>2 · Itens a devolver</CardTitle>
+              <CardDescription>Quanto de cada item volta. O total é sempre o acumulado da devolução desta venda.</CardDescription>
+            </CardHeader>
+            <CardContent>
           <Grid min="sm" gap={4} className="mb-4">
             <Stack gap={1}>
               <Label htmlFor="devolucao-numero" className="text-xs text-muted-foreground">Número da devolução</Label>
@@ -350,9 +382,7 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
               </tbody>
             </table>
           </div>
-        </FormSection>
-
-        <FormSection title="Desconto e total" data-contract="totais">
+              <div className="mt-4" data-contract="desconto">
           <Grid min="sm" gap={4}>
             <Stack gap={1}>
               <Label htmlFor="devolucao-desconto-tipo" className="text-xs text-muted-foreground">Tipo de desconto</Label>
@@ -370,24 +400,74 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
               <Input id="devolucao-desconto" inputMode="decimal" value={descontoValor} onChange={(e) => setDescontoValor(e.target.value)} />
             </Stack>
           </Grid>
+              </div>
+            </CardContent>
+          </Card>
 
-          <Stack gap={1} className="mt-4 items-end text-sm tabular-nums">
-            <span>Subtotal: {fmtBRL(totais.subtotal)}</span>
-            <span>(−) Desconto: {fmtBRL(totais.desconto)}</span>
-            <span>
-              (+) Imposto{venda.imposto ? ` (${venda.imposto.nome} · ${venda.imposto.percentual}%)` : ''}: {fmtBRL(totais.imposto)}
-            </span>
-            <strong className="text-base">Total devolvido: {fmtBRL(totais.total)}</strong>
-            {jaDevolveu && (
-              <span data-contract="volta-agora">
-                Já devolvido antes: {fmtBRL(totaisJaDevolvidos.total)} · Volta agora: {fmtBRL(totais.total - totaisJaDevolvidos.total)}
-              </span>
-            )}
-          </Stack>
-        </FormSection>
+          <Card data-contract="pagamento-cliente">
+            <CardHeader>
+              <CardTitle>3 · Pagamento ao cliente</CardTitle>
+              <CardDescription>Como o cliente recebe o que a devolução deixa a favor dele.</CardDescription>
+            </CardHeader>
+            <CardContent>
+          <RadioGroup value={pagamento} onValueChange={(v) => setPagamento(v as 'depois' | 'vale')} className="gap-3">
+            <Inline gap={2} className="items-start">
+              <RadioGroupItem id="pagar-depois" value="depois" />
+              <Label htmlFor="pagar-depois" className="font-normal">
+                Pagar depois — a devolução fica &quot;A pagar&quot; na lista de devoluções
+              </Label>
+            </Inline>
+            <Inline gap={2} className="items-start">
+              <RadioGroupItem id="pagar-vale" value="vale" disabled={!venda.cliente_aceita_vale} />
+              <Label htmlFor="pagar-vale" className="font-normal">
+                Vale-troca — o que falta pagar da devolução vira saldo do cliente, para usar no caixa como Adiantamento
+                {!venda.cliente_aceita_vale && (
+                  <span className="block text-xs text-muted-foreground">
+                    Indisponível: a venda é do Cliente padrão. Cadastre o cliente na venda para dar vale-troca.
+                  </span>
+                )}
+              </Label>
+            </Inline>
+          </RadioGroup>
+            </CardContent>
+          </Card>
+        </Stack>
 
-        {algumaQuantidade && (
-          <FormSection title="No Financeiro" data-contract="previa-financeira">
+        <Stack gap={4} className="h-fit lg:sticky lg:top-4">
+          <Card data-contract="totais">
+            <CardHeader>
+              <CardTitle>Fechamento</CardTitle>
+              <CardDescription>Venda {venda.numero}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Stack gap={3}>
+                <div className="rounded-md border border-border bg-muted/40 p-3">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total da devolução</span>
+                  <b className="block font-mono text-2xl tabular-nums">{fmtBRL(totais.total)}</b>
+                  {jaDevolveu && (
+                    <small className="text-muted-foreground" data-contract="volta-agora">
+                      Já devolvido antes: {fmtBRL(totaisJaDevolvidos.total)} · Volta agora: {fmtBRL(totais.total - totaisJaDevolvidos.total)}
+                    </small>
+                  )}
+                </div>
+                <Stack gap={1} className="text-sm tabular-nums">
+                  <Inline justify="between"><span>Subtotal</span><span className="font-mono">{fmtBRL(totais.subtotal)}</span></Inline>
+                  <Inline justify="between"><span>(−) Desconto</span><span className="font-mono">{fmtBRL(totais.desconto)}</span></Inline>
+                  <Inline justify="between">
+                    <span>(+) Imposto{venda.imposto ? ` (${venda.imposto.nome} · ${venda.imposto.percentual}%)` : ''}</span>
+                    <span className="font-mono">{fmtBRL(totais.imposto)}</span>
+                  </Inline>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          {algumaQuantidade && (
+            <Card data-contract="previa-financeira">
+              <CardHeader>
+                <CardTitle>No Financeiro</CardTitle>
+              </CardHeader>
+              <CardContent>
             {previaErro && !previa && (
               <p className="text-sm text-muted-foreground">Não foi possível calcular o efeito no Financeiro agora. A devolução pode ser salva normalmente.</p>
             )}
@@ -431,40 +511,20 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                 )}
               </Stack>
             )}
-          </FormSection>
-        )}
+              </CardContent>
+            </Card>
+          )}
 
-        <FormSection title="Pagamento ao cliente" data-contract="pagamento-cliente">
-          <RadioGroup value={pagamento} onValueChange={(v) => setPagamento(v as 'depois' | 'vale')} className="gap-3">
-            <Inline gap={2} className="items-start">
-              <RadioGroupItem id="pagar-depois" value="depois" />
-              <Label htmlFor="pagar-depois" className="font-normal">
-                Pagar depois — a devolução fica &quot;A pagar&quot; na lista de devoluções
-              </Label>
-            </Inline>
-            <Inline gap={2} className="items-start">
-              <RadioGroupItem id="pagar-vale" value="vale" disabled={!venda.cliente_aceita_vale} />
-              <Label htmlFor="pagar-vale" className="font-normal">
-                Vale-troca — o que falta pagar da devolução vira saldo do cliente, para usar no caixa como Adiantamento
-                {!venda.cliente_aceita_vale && (
-                  <span className="block text-xs text-muted-foreground">
-                    Indisponível: a venda é do Cliente padrão. Cadastre o cliente na venda para dar vale-troca.
-                  </span>
-                )}
-              </Label>
-            </Inline>
-          </RadioGroup>
-        </FormSection>
-
-        <Inline justify="end" gap={2}>
-          <Button variant="outline" asChild>
-            <Link href="/sell-return">Cancelar</Link>
-          </Button>
-          <Button type="submit" disabled={!podeSalvar}>
-            {salvando ? 'Salvando…' : 'Salvar devolução'}
-          </Button>
-        </Inline>
-      </Stack>
+          <Stack gap={2}>
+            <Button type="submit" disabled={!podeSalvar}>
+              {salvando ? 'Salvando…' : 'Salvar devolução'}
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/sell-return">Cancelar</Link>
+            </Button>
+          </Stack>
+        </Stack>
+      </Grid>
     </form>
   );
 }
