@@ -8,6 +8,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 
 ## [Unreleased]
 
+### Conta bancária liga à credencial do PaymentGateway (2026-11-24)
+
+- `ContaBancaria::credencialGateway()` e o scope `comCredencialGateway()` resolvem a credencial ativa do PaymentGateway da conta, pela mesma regra do `OnCobrancaPagaCreateFinanceiroTitulo` (`payment_gateway_credentials.conta_bancaria_id` = `account_id`, depois `payment_gateway_credential_id`), sempre no business_id da conta. O pagamento pelo banco Inter (`InterPagadorBanco`, US-FIN-079) passa a usar essa credencial em vez de `rb_gateway_credential_id` → `rb_boleto_credentials`. A relação `gatewayCredential()` e a coluna ficam até a onda 5.
+
 ### Wave 18 saturação 68→95 (2026-05-16)
 
 - **D4 SoC brutal** — Criado `Modules\Financeiro\Repositories\TituloRepository` com 5 métodos canônicos (`listarPaginado`, `totaisAbertos`, `vencidosAntigos`, `aging`, `acharPorOrigem`). Singleton via FinanceiroServiceProvider. Consumers futuros: UnificadoController, FluxoController, FinanceiroHealthCommand. Substitui `Titulo::where(...)` inline em Controllers.

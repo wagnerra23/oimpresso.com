@@ -53,6 +53,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Onda 3 (2026-11-24):** a lista de gateways da tela de Configurações (`/recurring-billing/configuracoes`) passa a vir de `payment_gateway_credentials` (Inter, C6 e Asaas do business), a mesma fonte que cobra (`CobrancaNoGateway`). A tela continua só de leitura: nenhum código de produção grava em `rb_boleto_credentials` (o único escritor é o script `scripts/inter-credentials/_remote_install.php`).
 
+**Onda 4 (2026-11-24):** sync de extrato e de saldo e o pagamento pelo Inter do Financeiro acham a credencial pela conta no PaymentGateway (`ContaBancaria::credencialGateway`), não mais por `fin_contas_bancarias.rb_gateway_credential_id`. Medido em produção antes da troca: nenhuma das 105 contas aponta para `rb_boleto_credentials` e a única credencial do PG não está ligada a conta, então os três já não rodavam para conta nenhuma. `BoletoCredentialResolver` fica sem leitor em produção; sai na onda 5 com a coluna.
+
 ### Outubro 2026
 
 - Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).
