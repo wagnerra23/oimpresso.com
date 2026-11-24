@@ -421,6 +421,18 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 
 Âncora: `VendaV3Create` e `Create` de `prototipo-ui/cowork/Wagner/venda-v3.jsx` (`<Passo n="1" />Cliente`, `<Passo n="2" />Itens`, `<Passo n="3" />Fechamento`; as gavetas sem `Passo`). O botão "Voltar para Vendas" do protótipo só existe quando a V3 é aberta por "Adicionar venda" (rota `venda-nova`, que passa `onVoltar`); esta Page é a rota `venda-v3`, onde o protótipo não passa `onVoltar`. Até 2026-11-24 a produção tinha um `h1` escrito à mão com selo "V3", numerava as gavetas como 3 e 4, deixava o Fechamento sem número e chamava o botão de "Gravar venda".
 
+## UC-V411 · A gaveta de comissão tem a forma da âncora
+
+**Status:** 🧪 — `tests/js/sells-v3-comissao-gaveta-forma.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gaveta de comissão aberta,
+- **Então** o título é "Comissão desta venda" e o topo mostra Bruto, Líquido de desconto e Margem estimada da venda, com o "Quando a comissão passa a ser devida" ao lado. Sem o custo dos produtos (gravando), a margem aparece como travessão, não como zero.
+- **E** há um botão por tipo de beneficiário ("+ Funcionário", "+ Representante", "+ Agência / parceiro", "+ Técnico / instalador"), e cada um adiciona o seu tipo, com base líquida e 3%, como antes.
+- **E** o rodapé mostra o total de comissão e só o botão "Fechar".
+- Os números da faixa e do total são os do domínio (`comissaoTotal`), conferidos por dois caminhos no teste: a função e a conta à mão (3% de 90,00 = 2,70).
+
+Âncora: `ComissaoModal` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. Até 2026-11-24 a gaveta se chamava "Modelo de comissão da venda", escolhia o tipo num seletor com "Adicionar", não mostrava as bases da venda e tinha "Fechar" e "Confirmar comissão" com a mesma ação. Ficam de fora, porque mexem em valor (REGRA MESTRE): o rateio "Liberação por parcela recebida", o ciclo provisionada · aprovada · paga, a nota de estorno e os padrões do protótipo para agência (margem a 5%).
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,
@@ -1370,6 +1382,7 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-23, segunda (G-6):** com `gravacao`, a comissão deixou de usar a margem de 30% fixos, as parcelas deixaram de vir numeradas como "VD-2026" e o lançamento do item deixou de oferecer as informações adicionais de demonstração (UC-V408, novo). A gaveta de parcelas também deixou de mostrar conta de destino e plano de contas, que eram de demonstração (`CONTAS`, `PLANOS` em `parcelas-dominio.ts`) e que nenhum cadastro da empresa alimenta. Sem `gravacao` nada muda, e os controles provam isso.
 - **Revalidação de 2026-11-24 (G-6):** o fechamento deixou de mostrar a nota de bastidor do pagamento (`payment_status=due`) e o parágrafo sobre o "porte da comissão"; o resumo da comissão passou a ser o da âncora, com as mesmas funções e bases da gaveta (`totaisComissao` é a mesma conta que a gaveta já recebia), e a condição de pagamento passou a mostrar código e nome (UC-V409, novo). Nenhum valor mudou: a gravação, o total e o payload são os mesmos, e o botão do resumo passou de "Configurar…" para "Configurar comissão" (o teste do UC-V408 acompanha).
 - **Revalidação de 2026-11-24, segunda (G-6):** o topo passou a ser o `PageHeader` da âncora (sem o selo "V3"), os passos numerados passaram a ser 1 Cliente · 2 Itens · 3 Fechamento, com as gavetas sem número, e "Gravar venda" passou a se chamar "Finalizar venda" (UC-V410, novo). Só forma: a ação do botão, o payload e o total são os mesmos.
+- **Revalidação de 2026-11-24, terceira (G-6):** a gaveta de comissão ganhou a forma da âncora: título "Comissão desta venda", faixa Bruto · Líquido · Margem no topo, um botão por tipo de beneficiário e rodapé só com "Fechar" (UC-V411, novo). Os testes do UC-V408 e do UC-V409 acompanham o título e o botão novos. Nenhum valor muda: as contas são as mesmas funções do domínio.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.
