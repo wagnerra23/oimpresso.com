@@ -267,6 +267,17 @@ export default function ItemDetalhe({
 }) {
   const cockpit = useCockpit();
   const [aba, setAba] = useState<Aba>(abaInicial);
+  /* O drawer fica montado o tempo todo (a Page só troca a `linha`), então o `useState` acima lê
+     `abaInicial` uma vez, na montagem da página. Até 2026-11-23 o "Impostos" abria em Geral por
+     isso (UC-V320). Ao ABRIR, a aba volta a ser a do botão clicado; navegar entre itens com o
+     drawer aberto não muda nada aqui, e a aba escolhida pelo operador se mantém. É o ajuste de
+     estado durante o render que o React recomenda, e evita mostrar a aba errada por um quadro. */
+  const abertoNaAba: Aba | null = linha ? abaInicial : null;
+  const [abertoNaAbaAntes, setAbertoNaAbaAntes] = useState<Aba | null>(abertoNaAba);
+  if (abertoNaAba !== abertoNaAbaAntes) {
+    setAbertoNaAbaAntes(abertoNaAba);
+    if (abertoNaAba) setAba(abertoNaAba);
+  }
   /* Gravando, nenhuma aba é desenhada: os valores fiscais delas (NCM 39199090, CFOP 5102,
      alíquota 18) eram fixos da cena para qualquer produto, e fluxo e anexos traziam pessoas
      e arquivos de demonstração. Nada do drawer volta para a linha nem vai na gravação. */
