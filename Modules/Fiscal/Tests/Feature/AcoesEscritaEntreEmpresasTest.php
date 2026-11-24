@@ -195,3 +195,30 @@ it('UC-FNFE-64 · inutilizar usa a empresa da sessão, mesmo que o corpo traga o
     $c->inutilizar(Request::create('/x', 'POST', $pedido), escInutServico($log));
     expect($log[1][1])->toBe($this->bizB);
 });
+
+it('UC-FNFE-65 · retransmitir só aceita nota rejeitada, denegada ou com erro de envio', function () {
+    $c = new AcoesController();
+
+    // Fora da lista: volta com erro e o serviço da SEFAZ não é chamado.
+    foreach (['autorizada' => 9_391_020, 'cancelada' => 9_391_021, 'pendente' => 9_391_022] as $status => $numero) {
+        $log = new ArrayObject();
+        $id = escNota($this->bizA, $numero, $status);
+        session()->forget('error');
+
+        $c->retransmitir(Request::create('/x', 'POST'), escNfeServico($log), $id);
+
+        expect(count($log))->toBe(0, "status {$status} chegou ao serviço");
+        expect((string) session('error'))->toContain("Status atual: {$status}");
+        expect(DB::table('nfe_emissoes')->where('id', $id)->value('status'))->toBe($status);
+    }
+
+    // Controle: os três status da lista chegam ao serviço.
+    foreach (['rejeitada' => 9_391_023, 'denegada' => 9_391_024, 'erro_envio' => 9_391_025] as $status => $numero) {
+        $log = new ArrayObject();
+        $id = escNota($this->bizA, $numero, $status);
+
+        $c->retransmitir(Request::create('/x', 'POST'), escNfeServico($log), $id);
+
+        expect($log->getArrayCopy())->toBe([['retransmitir', $this->bizA, $id]]);
+    }
+});
