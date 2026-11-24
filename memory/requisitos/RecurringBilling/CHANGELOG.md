@@ -8,7 +8,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + SemVer.
 
 ## [Unreleased]
 
-### Novembro 2026 — auditoria do módulo (lotes L0, L1, L2 e L5)
+### Novembro 2026 — auditoria do módulo (lotes L0 a L5)
 
 Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-11-23 a pedido do [W].
 
@@ -36,9 +36,13 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 - README e ARCHITECTURE marcados como desenho de abril; SCOPE e RUNBOOK com ponteiros vivos — [#11214](https://github.com/wagnerra23/oimpresso.com/pull/11214).
 - Charters e casos alinhados ao 301 e ao desfecho do UC-RBSUB-05 — [#11238](https://github.com/wagnerra23/oimpresso.com/pull/11238).
 - Gap e map do protótipo refeitos sobre a fonte de design — [#11219](https://github.com/wagnerra23/oimpresso.com/pull/11219).
-- ADRs 0455 (Pix Automático na Jornada 2) e 0456 (PaymentGateway dono dos drivers) — [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), mergeado em 2026-11-23 (status `proposto`). BRIEFING e SDD 1.1.0 — [#11354](https://github.com/wagnerra23/oimpresso.com/pull/11354), em revisão. SPEC: US-RB-ESC0/1/2 marcadas `duplicate` das US-RECURRINGBILLING-001/002/003; US-RB-044 e US-RB-057 voltam a parcial (flag desligada, b8); nome da permissão `recurringbilling.invoices.cancel` no SPEC, SDD, charter e casos de Faturas — PR deste lote.
+- ADRs 0455 (Pix Automático na Jornada 2) e 0456 (PaymentGateway dono dos drivers) — [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), mergeado em 2026-11-23 (status `proposto`). BRIEFING e SDD 1.1.0 — [#11354](https://github.com/wagnerra23/oimpresso.com/pull/11354). SPEC: US-RB-ESC0/1/2 marcadas `duplicate` das US-RECURRINGBILLING-001/002/003; US-RB-044 e US-RB-057 voltam a parcial (flag desligada, b8); nome da permissão `recurringbilling.invoices.cancel` no SPEC, SDD, charter e casos de Faturas — PR deste lote.
 
-**Em andamento (PR aberto em 2026-11-23):** cartão recorrente no drawer da assinatura ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355), b5), Faturas na forma do protótipo ([#11366](https://github.com/wagnerra23/oimpresso.com/pull/11366)), apagar contato ou plano não leva assinaturas e faturas ([#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346), b6), régua sem e-mail nem WhatsApp na tela ([#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), b7), navegador + axe nas 6 telas ([#11353](https://github.com/wagnerra23/oimpresso.com/pull/11353)). Sem PR ainda: cobrar com o cartão salvo e migração do boleto para o PaymentGateway (b1).
+**Mergeados em 2026-11-23 e 2026-11-24:** cartão recorrente no drawer da assinatura ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355), b5), Faturas na forma do protótipo ([#11366](https://github.com/wagnerra23/oimpresso.com/pull/11366)), apagar contato ou plano não leva assinaturas e faturas ([#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346), b6), régua sem e-mail nem WhatsApp na tela ([#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), b7), navegador + axe nas 6 telas ([#11353](https://github.com/wagnerra23/oimpresso.com/pull/11353)). BRIEFING e SDD 1.1.0 ([#11354](https://github.com/wagnerra23/oimpresso.com/pull/11354)) mergeados em 2026-11-24.
+
+**Gateway (b1, 2026-11-24):** cópia das credenciais do RB para `payment_gateway_credentials` decifrando o segredo e sem ligar conta ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356); a migration roda no próximo deploy e só cria o que falta); cancelar e estornar cobrança Asaas pelo driver do PaymentGateway ([#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358)); cancelar boleto Inter e fatura pelo driver do PaymentGateway ([#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)).
+
+**Sem PR ainda:** cobrar com o cartão salvo; remover o `BoletoService` e os outros leitores de `rb_boleto_credentials`. **Do [W]:** `paymentgateway:migrate-credentials --apply` para consertar credencial já copiada com o segredo cifrado do RB.
 
 ### Outubro 2026
 
