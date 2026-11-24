@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\RecurringBilling\Services\Banking\InterBankingClient;
-use Modules\RecurringBilling\Services\CobrancaNoGateway;
 
 /**
  * Sincroniza saldo de todos os bancos com API (Asaas, Inter).
@@ -47,8 +46,8 @@ class SyncBankBalancesJob implements ShouldQueue
         // `Modules/RecurringBilling/Console/Commands/SyncBankBalancesCommand.php`.
         $query = ContaBancaria::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
-            ->whereNotNull('rb_gateway_credential_id')
-            ->with('gatewayCredential');
+            // Credencial Asaas ou Inter ativa do PaymentGateway ligada à conta (onda 4, 2026-11-24).
+            ->comCredencialGateway(['asaas', 'inter']);
 
         if ($this->contaBancariaId) {
             $query->where('id', $this->contaBancariaId);
@@ -73,23 +72,18 @@ class SyncBankBalancesJob implements ShouldQueue
 
     private function fetchSaldo(ContaBancaria $conta): ?float
     {
-        // A conta ainda aponta para `rb_boleto_credentials` pelo FK do Financeiro
-        // (`rb_gateway_credential_id`, onda 4). Dessa linha saem só o banco e o ambiente;
-        // o segredo vem do PaymentGateway, com o `config_json` decifrado pelo cast
-        // (decisão b1; onda 1 da saída de `rb_boleto_credentials`, 2026-11-24).
-        $vinculo = $conta->gatewayCredential;
-        $banco = (string) $vinculo?->getAttribute('banco');
-        if (! in_array($banco, ['asaas', 'inter'], true)) {
+        // Credencial do PaymentGateway ligada à própria conta, com o `config_json` decifrado pelo
+        // cast (decisão b1; ondas 1 e 4 da saída de `rb_boleto_credentials`, 2026-11-24).
+        $credencial = $conta->credencialGateway(['asaas', 'inter']);
+        if ($credencial === null) {
             return null;
         }
-
-        $credencial = app(CobrancaNoGateway::class)
-            ->credencial((int) $conta->business_id, $banco, (string) ($vinculo?->getAttribute('ambiente') ?? 'production'));
         $config = $credencial->config_json ?? [];
 
-        return match ($banco) {
+        return match ((string) $credencial->gateway_key) {
             'asaas' => $this->fetchAsaasSaldo($config, (string) $credencial->ambiente),
             'inter' => $this->fetchInterSaldo($conta, $config),
+            default => null,
         };
     }
 
