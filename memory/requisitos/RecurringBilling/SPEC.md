@@ -873,7 +873,7 @@ Origem: `/comparativo RecurringBilling` 2026-05-06. Capacidade #4 🟡 — `Bole
 - [ ] Teste Pest cobrindo os 3 drivers (depende de #1)
 
 ## Referências
-- BoletoDriverContract.php
+- BoletoDriverContract.php (removido em 2026-11-24 com a pilha de boleto do RB; os drivers de cobrança são do PaymentGateway)
 - InterDriver::cancelar() (referência)
 - CAPTERRA-INVENTARIO.md item #4
 
