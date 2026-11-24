@@ -104,6 +104,7 @@ export default function ComissaoDrawer({
   parcelas,
   totalDaVenda,
   pessoas,
+  margemConhecida = true,
 }: {
   aberto: boolean;
   onFechar: () => void;
@@ -115,6 +116,9 @@ export default function ComissaoDrawer({
   parcelas: { valor: string; lanc: string }[];
   totalDaVenda: number;
   pessoas: { id: string; nome: string; papel: string }[];
+  /** Gravando (UC-V408): a tela não lê o custo dos produtos, então não há margem. Sem ela,
+   *  some a base "Margem" e o alerta de margem, que na cena usava 30% fixos da base. */
+  margemConhecida?: boolean;
 }) {
   const cockpit = useCockpit();
   const [novoTipo, setNovoTipo] = useState<TipoBeneficiario>('funcionario');
@@ -122,7 +126,8 @@ export default function ComissaoDrawer({
   const total = useMemo(() => comissaoTotal(beneficiarios, totais), [beneficiarios, totais]);
   const pctVenda = percentualSobreALiquida(total, totais);
   const liberada = comissaoLiberada(total, gatilho, parcelas, totalDaVenda);
-  const alerta = comeMaisQueMetadeDaMargem(total, totais);
+  const alerta = margemConhecida && comeMaisQueMetadeDaMargem(total, totais);
+  const bases = margemConhecida ? BASES : BASES.filter((b) => b.value !== 'margem');
 
   const adicionar = () => {
     const nome = pessoas[0]?.nome ?? '';
@@ -203,7 +208,7 @@ export default function ComissaoDrawer({
                         onChange={(v) => alterar(b.k, { nome: v })}
                         options={pessoas.map((p) => ({ value: p.nome, label: `${p.nome} · ${p.papel}` }))}
                       />
-                      <Escolha label="Base" value={b.base} onChange={(v) => alterar(b.k, { base: v as BaseComissao })} options={BASES} />
+                      <Escolha label="Base" value={b.base} onChange={(v) => alterar(b.k, { base: v as BaseComissao })} options={bases} />
                       <Escolha label="Regra" value={b.regra} onChange={(v) => alterar(b.k, { regra: v as Beneficiario['regra'] })} options={REGRAS} />
                       {b.regra === 'fixo' ? (
                         <Campo label="Valor (R$)">
@@ -251,6 +256,11 @@ export default function ComissaoDrawer({
             {alerta && (
               <span className="ml-auto text-[11.5px] leading-snug text-warning-fg">
                 A comissão come mais da metade da margem desta venda.
+              </span>
+            )}
+            {!margemConhecida && (
+              <span className="ml-auto text-[11.5px] leading-snug text-muted-foreground">
+                A margem depende do custo dos produtos, que a nova venda ainda não lê.
               </span>
             )}
           </Inline>

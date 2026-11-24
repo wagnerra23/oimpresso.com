@@ -46,6 +46,17 @@ final class MensagensFisio
     }
 
     /**
+     * Confirmação da consulta (etapa 04 A6). Diz só dia, hora e clínica: nada do motivo da
+     * sessão. O link abre a página de um toque (Confirmo · Não vou poder ir · Preciso remarcar).
+     */
+    public static function confirmacao(string $nome, string $clinica, string $quando, string $url): string
+    {
+        $ola = $nome !== '' ? "Oi, {$nome}!" : 'Oi!';
+
+        return "{$ola} Sua sessão com {$clinica} é {$quando}.\n\nConfirme com um toque:\n{$url}";
+    }
+
+    /**
      * A mensagem gravada no módulo Whatsapp é deste envio do Fisio, PARA ESTE paciente? Usado pelo
      * fallback do painel (T-09e). O telefone sozinho não basta: outro módulo escreve para o mesmo
      * número, e dois pacientes podem ter o celular do mesmo responsável. Por isso o texto é casado

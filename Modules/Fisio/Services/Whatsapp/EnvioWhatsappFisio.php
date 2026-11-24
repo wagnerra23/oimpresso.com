@@ -45,6 +45,9 @@ class EnvioWhatsappFisio
     /** Aviso da avaliação do estudo (etapa 07 P-05): um por participante e momento. */
     public const AVALIACAO_ESTUDO = 'avaliacao_estudo';
 
+    /** Confirmação da consulta (etapa 04 A6): uma por atendimento, não por dia. */
+    public const CONFIRMACAO = 'confirmacao';
+
     /** Saúde em que o módulo Whatsapp não consegue entregar nem pelo fallback. */
     private const CAIDO = ['disconnected', 'banned'];
 
@@ -143,13 +146,16 @@ class EnvioWhatsappFisio
      *
      * @param  callable(): (T|null)  $preparar
      * @param  array<string, mixed>  $extra
+     * `$chave` troca o dia pela chave de idempotência: a confirmação da consulta sai uma vez por
+     * atendimento, mesmo que o paciente tenha duas sessões no mesmo dia.
+     *
      * @param  (callable(Carbon, T): void)|null  $despachar
      * @return array{saida: Carbon, dados: T}|null
      */
-    public function reservar(Patient $paciente, string $tipo, callable $preparar, array $extra = [], ?callable $despachar = null): ?array
+    public function reservar(Patient $paciente, string $tipo, callable $preparar, array $extra = [], ?callable $despachar = null, ?string $chave = null): ?array
     {
         $biz = (int) $paciente->business_id;
-        $dia = $this->hoje($biz);
+        $dia = $chave ?? $this->hoje($biz);
         $descricao = self::descricao($tipo, $dia);
 
         return Cache::lock("fisio:wa:{$biz}:{$paciente->id}:{$tipo}:{$dia}", 30)->block(10, fn () => DB::transaction(function () use ($paciente, $biz, $tipo, $dia, $descricao, $preparar, $extra, $despachar) {
@@ -210,7 +216,7 @@ class EnvioWhatsappFisio
         $agendados = Activity::query()
             ->where('log_name', self::LOG)
             ->where('business_id', $businessId)
-            ->whereIn('event', ['whatsapp_'.self::PROGRAMA, 'whatsapp_'.self::LEMBRETE, 'whatsapp_'.self::AVALIACAO_ESTUDO])
+            ->whereIn('event', ['whatsapp_'.self::PROGRAMA, 'whatsapp_'.self::LEMBRETE, 'whatsapp_'.self::AVALIACAO_ESTUDO, 'whatsapp_'.self::CONFIRMACAO])
             ->where('created_at', '>=', $agora->copy()->subDay())
             ->pluck('properties')
             ->map(function ($p) {

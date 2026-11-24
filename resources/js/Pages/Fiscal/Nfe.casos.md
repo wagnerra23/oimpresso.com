@@ -5,7 +5,7 @@ irmaos: Nfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-11-04"
+last_run: "2026-11-23"
 ---
 
 # Casos de Uso & Aceite — Notas NF-e / NFC-e
@@ -733,6 +733,26 @@ o envia ao serviço **Então** vai a empresa da sessão; o corpo não escolhe a 
 
 Status: 🧪
 
+## UC-FNFE-65 · Retransmitir só aceita nota rejeitada, denegada ou com erro de envio · `must`
+
+**Dado** uma nota da empresa `autorizada`, `cancelada` ou `pendente` **Quando** o operador pede a
+retransmissão **Então** a tela volta com o erro que diz o status atual, o serviço da SEFAZ não é chamado
+e a nota não muda. Com `rejeitada`, `denegada` ou `erro_envio`, a mesma ação chega ao serviço. Âncora:
+CU-FISC-10 (a whitelist do `AcoesController::retransmitir`). Teste: `AcoesEscritaEntreEmpresasTest`
+(caminho de runtime; o `UC-FNFE-09` segue provando a whitelist do Service).
+
+Status: 🧪
+
+## UC-FNFE-66 · A lista deferida filtra por aba, situação e busca · `must` `[T0]`
+
+**Dado** NF-e e NFC-e da empresa, uma delas rejeitada com motivo, e uma NF-e da vizinha **Quando** a lista
+deferida é montada **Então** a aba NF-e traz só modelo 55, da mais nova para a mais antiga, e a aba NFC-e
+só o 65; os chips "rejeitadas" e "autorizadas" separam as situações; a busca acha pelo número e pelo motivo
+da rejeição; a nota da vizinha nunca aparece; e a página tem 50 linhas. Âncora: CU-FISC-01 · CU-FISC-12.
+Teste: `NfeCockpitMultiTenantTest`.
+
+Status: 🧪
+
 ---
 
 ## A NF-e de devolução sai da devolução de venda registrada (onda 1 do protótipo Devolução V3)
@@ -904,13 +924,17 @@ Status: 🧪
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
-- **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
-- **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FNFE-66] ~~Lista deferida filtra por tab/status/busca com paginação 50~~ — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FNFE-65; a lane NfeBrasil roda em MySQL com as migrations] ~~Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`~~ — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
 - **[BACKLOG · 🟡 parcialmente coberto] Drawer: mapa "Jana sugere" por cstat rejeitado, pílula temporal na linha** — comportamento de UI, sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`). **Reduzido em 2026-09-03:** a metade "atalhos J/K + Enter" saiu deste item e virou `UC-FNFE-10`, com teste de render que morde (4 mutações provadas). O que fica aqui é o que segue descoberto: o mapa guiado por `cstat` e a pílula temporal.
-- **[BACKLOG · ⬜ sem teste] NF-e de devolução total ou parcial** (pedido de 2026-10-23) `[V0]` — Dado
+- [~~BACKLOG~~ · feito no backend → `UC-FNFE-40`, `UC-FNFE-41` e `NfeDevolucaoTest` (R-NFE-026/027: `refNFe` = chave da origem, parcial proporcional com saldo, nota alheia recusada)] ~~NF-e de devolução total ou parcial~~ (pedido de 2026-10-23) `[V0]` — Dado
   uma venda com NF-e autorizada e 2 de 3 itens devolvidos, Quando emito a devolução, Então a NF-e de
   devolução referencia a chave da original e leva só os 2 itens; com tudo devolvido, leva a nota
   inteira. Fonte: UC-TRB-13 do protótipo fiscal (proposta) e o processo "Devolução, troca e garantia".
+- **[BACKLOG · ⬜ sem ação] Botão de devolução no drawer da nota** (separado do item acima em 2026-11-23) `[V0]` `[E0]` — a
+  devolução existe no backend (`POST` em `Fiscal/Routes/web.php`) e tem teste, mas nenhuma tela a oferece. Dado uma NF-e
+  autorizada aberta no drawer, Quando o operador escolhe itens e quantidades a devolver, Então a NF-e de devolução é emitida
+  por essa rota. Mexe em valor e estoque: antes→depois e dupla prova antes do merge.
 - **[BACKLOG · ⬜ sem teste] Remessa para conserto e o retorno** (pedido de 2026-10-23) `[E0]` — Dado um
   bem enviado para conserto, Quando emito a remessa, Então a nota fica "aguardando retorno" e o bem não
   sai do estoque como venda; ao registrar a volta, a nota de retorno fica ligada à remessa e o saldo

@@ -31,6 +31,7 @@ Mostrar, para o dia, a NFS-e das vendas a pacientes (clínica com CNPJ) e a fila
 
 - Fila do Receita Saúde: um item por pagamento do dia de venda a paciente, com "falta CPF do pagador" quando não há CPF — UC-FFI-01, UC-FFI-02.
 - Marcar o recibo como enviado, com número opcional — UC-FFI-03.
+- Marcar para retificar o recibo já enviado que saiu com erro ("Precisa retificar"), pela mesma rota da marca, mantendo o número; marcar enviado de novo fecha a retificação — UC-FFI-06. O protótipo `FiscalFila.dc.html` não desenha a ação; o status `retificar` vem do SPEC (US-FISIO-023).
 - Listar as NFS-e do dia das vendas a pacientes, com o erro da prefeitura quando rejeitada.
 
 ## Non-Goals (não faz)

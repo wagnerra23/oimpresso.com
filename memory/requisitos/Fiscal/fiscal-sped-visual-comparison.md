@@ -69,6 +69,24 @@ Wagner aprovou Wave 3 final 2026-05-20 — placeholder consciente, notice claro 
 | `.fx-table` + `.fx-sefaz` + `.fx-empty` | reaproveitados | ✅ | ✅ |
 | brl helper | _lib | ✅ | ✅ |
 
+## Medição de runtime — 2026-11-23 · produção (oimpresso.com) × espelho · tema claro nos dois
+
+> A MESMA sonda (`design-diff.mjs --probe`, SHA-256 `358fd0f0…` conferido dentro da página da prod)
+> nos dois lados, tema claro nos dois (o tema em que a prod abre; nada forçado). Espelho por
+> `design-diff-lote.mjs --lado design --tema light`; papéis em
+> `governance/design/targets/roles/Fiscal--Sped.json`. O `--compare` do dono não rodou: a
+> extensão do Chrome redige parte da saída da prod; os números abaixo são os campos que saíram inteiros.
+
+| dim | campo | produção | protótipo | veredito |
+|---|---|---|---|---|
+| D4 | título | 22px · 700 | 22px · 600 | **DÍVIDA A FECHAR** (o mesmo `.fx-hero-l h1` das 7 telas; corrigido no Cockpit pelo #11363, que vale para todas) |
+| D4 | texto do título | "SPED e livros" | "SPED e livros fiscais" | **DÍVIDA A FECHAR** (rótulo) |
+| D6 | botão primário | **ausente** | "Gerar TXT abril/2026" | **DÍVIDA A FECHAR** |
+| D8 | colunas | 6: Competência · Status · Notas autorizadas · Valor autorizado · Prazo entrega · Export | 5: Competência · Notas · Situação · Prazo (heurística) · Valor autorizado | **DÍVIDA A FECHAR** — ordem, rótulos e a coluna Export |
+| D8 | Status/Situação | pílula 99px **sem borda**, 12px 500 | pílula 999px **com borda**, 12px 600 | **DÍVIDA A FECHAR** (mesma família do Status do Cockpit) |
+| D8 | Competência | botão 12px 600 mono | texto 14px 700, 2 blocos | **DÍVIDA A FECHAR** |
+| D8 | tabela | `auto` · 5 linhas | `auto` · 5 linhas | IGUAL |
+
 ## Histórico
 
 - **2026-05-20** — Wave 3 final, **placeholder consciente**. Gerador SPED EFD ICMS/IPI + PIS/COFINS em PR dedicado pós-MVP fiscal.
