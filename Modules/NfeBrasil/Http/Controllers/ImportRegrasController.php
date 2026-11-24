@@ -28,7 +28,7 @@ class ImportRegrasController extends Controller
     /** Chave de sessão com o business em que o preview foi conferido (UC-NFIM-04). */
     private const SESSAO_BUSINESS = ImportRegrasCsvConferencia::SESSAO_BUSINESS;
 
-    /** Chave de sessão com a referência do lote conferido — as linhas ficam em arquivo (UC-NFIM-14). */
+    /** Chave de sessão com a referência do lote conferido — as linhas ficam em arquivo (UC-NFIM-15). */
     private const SESSAO_REF = ImportRegrasCsvConferencia::SESSAO_REF;
 
     public function __construct(
@@ -50,7 +50,7 @@ class ImportRegrasController extends Controller
         $resultado = $this->service->parse($request->file('arquivo'));
         $businessId = (int) $request->session()->get('business.id');
 
-        // As validadas vão para um arquivo e a sessão guarda só a referência (UC-NFIM-14): um CSV de
+        // As validadas vão para um arquivo e a sessão guarda só a referência (UC-NFIM-15): um CSV de
         // 5 MB virava 30,9 MB de sessão, lida e regravada a cada request. O carimbo do business
         // segue na sessão porque o aplicar acontece noutro request e o confere (UC-NFIM-04).
         $ref = $this->conferencia->guardar($businessId, (int) $request->user()->id, $resultado['linhas']);

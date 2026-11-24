@@ -41,7 +41,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
-| UC-NFIM-14 | A sessão do usuário não cresce com o tamanho do CSV conferido | must `[T0]` | charter §UX (5 MB) · ADR 0093 · medição 2026-11-24 | `ImportRegrasCsvSessaoTest` | 🧪 |
+| UC-NFIM-15 | A sessão do usuário não cresce com o tamanho do CSV conferido | must `[T0]` | charter §UX (5 MB) · ADR 0093 · medição 2026-11-24 | `ImportRegrasCsvSessaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -192,7 +192,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-NFIM-14 · A sessão do usuário não cresce com o tamanho do CSV · `must` `[T0]`
+## UC-NFIM-15 · A sessão do usuário não cresce com o tamanho do CSV · `must` `[T0]`
 
 - **Persona:** responsável fiscal que confere o CSV do contador, de até 5 MB (o teto do upload no
   charter), e só aplica depois de ler o resumo — às vezes navegando por outras telas no meio.

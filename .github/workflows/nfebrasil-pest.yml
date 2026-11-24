@@ -268,7 +268,7 @@ jobs:
         #   permissão e fronteira de tenant da tributação (UC-NFRF-01..04 · UC-NFIM-01..04).
         #   Ficou fora da lista desde 2026-07-28 porque UC-NFRF-04 e UC-NFIM-04 nasceram
         #   vermelhos por desenho; o NFRF-04 fecha na thread 18 e o NFIM-04 na thread 19 (#8827).
-        # + ImportRegrasCsvSessaoTest (2026-11-24, UC-NFIM-14): o lote do Import CSV sai da sessao
+        # + ImportRegrasCsvSessaoTest (2026-11-24, UC-NFIM-15): o lote do Import CSV sai da sessao
         #   (5 MB de CSV levavam a sessao a 31,5 MB). CT 100: 7 passed / 53 assertions; com o
         #   controller do main, 5 failed. Tenant 98/99 + usuario novo so com nfe.tributacao.manage.
         # + RegraTributariaIbsCbsValidacaoTest (2026-10-07, playbook Fiscal thread 04): a regra

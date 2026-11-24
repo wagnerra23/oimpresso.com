@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Guarda as linhas conferidas no preview do Import CSV FORA da sessão do usuário (UC-NFIM-14).
+ * Guarda as linhas conferidas no preview do Import CSV FORA da sessão do usuário (UC-NFIM-15).
  *
  * Por que existe: o `preview` guardava todas as linhas válidas em `session()`. Medido no CT 100 em
  * 2026-11-24: um CSV de 5 MB (o teto do upload, 119.153 linhas) virava 30,9 MB de sessão

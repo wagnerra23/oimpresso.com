@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // @covers-us US-NFE-010 — Import CSV de regras tributárias: o lote conferido não mora na sessão.
-// Contrato: resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.casos.md — UC-NFIM-14
+// Contrato: resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.casos.md — UC-NFIM-15
 // (com UC-NFIM-02 e UC-NFIM-04 reafirmados no novo armazenamento).
 
 use Illuminate\Http\UploadedFile;
@@ -17,7 +17,7 @@ use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 uses(Tests\TestCase::class);
 
 /**
- * UC-NFIM-14 · a sessão do usuário não cresce com o tamanho do CSV.
+ * UC-NFIM-15 · a sessão do usuário não cresce com o tamanho do CSV.
  *
  * Medido no CT 100 em 2026-11-24, antes desta mudança: um CSV de 5 MB (teto do upload, 119.153
  * linhas) virava 30,9 MB de sessão serializada. Produção usa SESSION_DRIVER=file, então esse
@@ -116,7 +116,7 @@ afterEach(function () {
     }
 });
 
-it('UC-NFIM-14 · a sessão não cresce com o tamanho do CSV', function () {
+it('UC-NFIM-15 · a sessão não cresce com o tamanho do CSV', function () {
     $this->post('/nfe-brasil/tributacao/import/preview', ['arquivo' => nfssArquivo(10)])
         ->assertRedirect()->assertSessionHasNoErrors();
     $pequeno = nfssTamanhoSessao();
@@ -141,7 +141,7 @@ it('UC-NFIM-14 · a sessão não cresce com o tamanho do CSV', function () {
     expect(json_decode((string) file_get_contents($lotes[0]), true))->toHaveCount(3000);
 });
 
-it('UC-NFIM-14 · conferir e aplicar grava as mesmas linhas do CSV e apaga o lote', function () {
+it('UC-NFIM-15 · conferir e aplicar grava as mesmas linhas do CSV e apaga o lote', function () {
     $this->post('/nfe-brasil/tributacao/import/preview', ['arquivo' => nfssArquivo(3)])
         ->assertRedirect()->assertSessionHasNoErrors();
     expect(nfssLotes($this->biz, $this->user->id))->toHaveCount(1);
@@ -165,7 +165,7 @@ it('UC-NFIM-14 · conferir e aplicar grava as mesmas linhas do CSV e apaga o lot
     expect(session()->has(ImportRegrasCsvConferencia::SESSAO_REF))->toBeFalse();
 });
 
-it('UC-NFIM-14 · o JSON do lote devolve exatamente as linhas que o parse produziu', function () {
+it('UC-NFIM-15 · o JSON do lote devolve exatamente as linhas que o parse produziu', function () {
     $service = app(ImportRegrasCsvService::class);
     $linhas = $service->parse(nfssCsv(4))['linhas'];
     expect($linhas)->toHaveCount(4);
@@ -218,7 +218,7 @@ it('UC-NFIM-02 · referência ausente ou forjada não grava nada', function () {
     expect(nfssContar($this->biz))->toBe(0);
 });
 
-it('UC-NFIM-14 · lote abandonado há mais de 24h é podado no próximo preview', function () {
+it('UC-NFIM-15 · lote abandonado há mais de 24h é podado no próximo preview', function () {
     $conf = app(ImportRegrasCsvConferencia::class);
     $velho = $conf->guardar($this->outra, $this->user->id, [['ncm' => NFSS_NCM_PREFIXO . '9999']]);
     $caminhoVelho = ImportRegrasCsvConferencia::raizAbsoluta() . '/' . $conf->caminho($this->outra, $this->user->id, $velho);
