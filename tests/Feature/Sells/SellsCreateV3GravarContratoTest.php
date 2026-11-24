@@ -626,7 +626,7 @@ function v3gravarTransportadora(int $bizId, string $nome): int
     ]);
 
     return (int) DB::table('transportadoras')->insertGetId([
-        'razao_social' => $nome, 'cnpj_cpf' => '00.000.000/0000-00', 'logradouro' => 'Rua de teste, 1',
+        'razao_social' => $nome, 'cnpj_cpf' => 'ISENTO', 'logradouro' => 'Rua de teste, 1',
         'cidade_id' => $cidadeId, 'business_id' => $bizId, 'created_at' => now(), 'updated_at' => now(),
     ]);
 }
@@ -697,6 +697,7 @@ it('UC-V413 · transportadora de outra empresa não entra na venda (Tier 0)', fu
 
 it('UC-V413 · gravando, a consulta lista as transportadoras do cadastro desta empresa e só dela', function () {
     v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
     $minha = v3gravarTransportadora($this->bizId, 'Transportadora V3 desta empresa');
     $outroBiz = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
     $alheia = $outroBiz ? v3gravarTransportadora($outroBiz, 'Transportadora V3 de outra empresa') : 0;

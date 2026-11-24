@@ -194,13 +194,13 @@ export default function EntregaFrete({
   const [outroEndereco, setOutroEndereco] = useState(false);
   const [placa, setPlaca] = useState('');
   const [qtdVolumes, setQtdVolumes] = useState('1');
-  const [especie, setEspecie] = useState(ESPECIES[0]);
+  const [especie, setEspecie] = useState(ESPECIES[0] ?? 'Caixa');
   const [numeracao, setNumeracao] = useState('1');
   const [statusRemessa, setStatusRemessa] = useState(
-    gravando ? STATUS_REMESSA_GRAVADO[0][0] : STATUS_REMESSA[0],
+    gravando ? (STATUS_REMESSA_GRAVADO[0]?.[0] ?? 'Pedido') : (STATUS_REMESSA[0] ?? 'Pendente'),
   );
   const [rastreio, setRastreio] = useState('');
-  const [endereco, setEndereco] = useState<EnderecoEntrega>({ ...ENDERECO_VAZIO, uf: UFS[0] });
+  const [endereco, setEndereco] = useState<EnderecoEntrega>({ ...ENDERECO_VAZIO, uf: UFS[0] ?? 'SC' });
   const campoEndereco = (k: keyof EnderecoEntrega) => (v: string) => setEndereco((e) => ({ ...e, [k]: v }));
 
   const semTransporte = semOcorrenciaDeTransporte(porConta);
