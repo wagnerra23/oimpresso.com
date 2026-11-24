@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: pedido que ainda não virou venda — quem vê, quem muda o status e em que negócio isso grava não muda num refactor visual.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -55,3 +55,4 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Trilha do tempo
 - 2026-10-01 · [CL] trio criado na thread 06 do playbook `venda-menu`. Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358.
+- 2026-11-24 · [CL] revalidação G-6: a tela ganhou a barra de abas do módulo Vendas (`Pages/Sells/_components/AbasVendas.tsx`, slot `below` do `PageHeader`). Nenhum UC desta tela descreve o cabeçalho nem a navegação entre telas, então nenhum muda. Prova da barra: `tests/js/sells-abas-modulo.test.tsx`.
