@@ -33,7 +33,7 @@ related:
 | 4 | **AFICOR** | Associação de Fibromiálgicos de Concórdia e Região do Alto Uruguai Catarinense | Concórdia/SC | *pendente registro* | Fundada 14/10/2021 | — | @aficor2021 |
 | 5 | **ASCAF** | Associação Sul Cocalense de Apoio aos Fibromiálgicos | Cocal do Sul/SC | *pendente registro* | Formalizada 2026 | — | @ascaf10 |
 | 6 | **AFAGAS** | Associação de Fibromialgia de Gaspar | Gaspar/SC | *pendente registro* | Fundada 04/2026 | — | @afagas2026 |
-| 7 | **AFASJ** | Associação de Fibromialgia e Amigos de São José | São José/SC | *pendente registro* | Fundada 10/2025 | — | @associacaofibromialgiaamigossj |
+| 7 | **AFASJ** | Associação de Fibromialgia e Amigos de São José | São José/SC | ativo na Receita (número fora do git) | Fundada 14/10/2025 | Indianara Rodrigues dos Santos | @fibromialgicossjsc (Fibromiálgicos SJ) · @associacaofibromialgiaamigossj |
 
 Fora da rede: **ACPFA** (Joinville, @acpfa.sc) — decisão [W] 23/11/2026.
 

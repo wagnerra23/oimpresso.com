@@ -62,6 +62,7 @@ import { useTamanho } from './_components/lista/useTamanho';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import NcmEmLote from './_components/lista/NcmEmLote';
 import { MOLDURA_JANELA, TITULO_JANELA } from './_components/lista/moldura-janela';
+import PaletaProduto from './_components/lista/PaletaProduto';
 import AvisoDeOrigem from './_components/lista/AvisoDeOrigem';
 import { CHAVE_ORIGEM, lerOrigem, urlDeVolta, type OrigemDaBusca } from './_components/lista/origem-de-busca';
 import { enviarProdutoEscolhido } from '@/Lib/produto-escolhido';
@@ -382,6 +383,10 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         return;
       case 'historico':
         irPara(`/products/stock-history/${l.id}`);
+        return;
+      case 'transferir':
+        // UC-PIDX-52: a transferência de estoque, com o produto como botão "Adicionar" (UC-TRCRT-07).
+        irPara(`/stock-transfers/create?produto=${l.id}`);
         return;
       case 'duplicar':
         irPara(`/products/create?d=${l.id}`);
@@ -836,6 +841,12 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           )}
         </div>
       </div>
+
+      {/* Ctrl+K / ⌘K: telas do módulo + ir direto a um produto (PaletaProduto do protótipo). */}
+      <PaletaProduto
+        irPara={irPara}
+        abrirProduto={(id) => (pode('update') ? irPara(`/products/${id}/edit`) : abrirDetalhe(id))}
+      />
 
       <AlertDialog open={confirmar !== null} onOpenChange={(o) => !o && setConfirmar(null)}>
         {confirmar && (
