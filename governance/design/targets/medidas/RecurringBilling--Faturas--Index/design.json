@@ -1,7 +1,12 @@
 {
-  "url": "http://127.0.0.1:53594/oimpresso.com.html",
-  "theme": "dark",
-  "assinatura": "OI WR Assinaturas · Cobrança Recorrente Junho 2026 · WR2 Sistemas · assinaturas & contratos Nova assinatura Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ MRR · receita recorrente R$ 3.810,00 8 assinaturas ativas · ticket médio R$ 476,25 Churn este mês 1 saída taxa 11 % Próximas cobranças 1 R$ 3.600,00 a vencer A recuperar R$ 1.810,00 3 cobranças falhas Filtrar por Próxima cobrança Início Todo o período 9 assinaturas Dia Semana Mês Ano Tudo Personalizado 9 de 9 PP Padaria Pão Quente Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 AP Auto Posto Trevo Adesivos Frota Mensal · mensal · desde há 2a retentando 1 /3 Boleto · R$ 680,00 RS Restaurante Sabor Caseiro Impressão Trimestral · trimestral · desde há 2a em dia Cartão · R$ 1.200,00 AC Academia CorpoForte Sinalização Mensal · mensal · desde há 2a falhou 3 × Boleto · R$ 450,00 CV Clínica Vida Manutenção Fachada Anual · anual · desde há 3a em dia Pix · R$ 3.600,00 MU Mercado União Adesivos Frota Mensal · mensal · desde há 2a retentando 2 /3 Boleto · R$ 680,00 ES Escola Saber Impressão Trimestral · trimestral · desde há 2a pausada FB Farmácia Bem-Estar Sinalização Mensal · mensal · desde há 2a em dia Pix · R$ 450,00 LB Loja Bella Moda Sinalização Mensal · mensal · desde há 3a cancelada",
+  "url": "http://127.0.0.1:5591/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 84
+  },
+  "theme": "light",
+  "assinatura": "OI WR Faturas · cobrança recorrente 15 FATURAS · ATRASADAS 3 Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ Pago este mês R$ 450,00 faturas liquidadas no mês corrente Pendente R$ 2.470,00 abertas com vencimento futuro Atrasado R$ 1.810,00 3 faturas vencidas Total de faturas 15 histórico completo Todas 15 Pagas 4 Pendentes 3 Atrasadas 3 Parciais 1 Estornadas 1 Reembolsadas 1 Chargeback 1 Canceladas 1 Todos gateways Banco Inter C6 Bank Asaas Qualquer período Mês atual Próximo mês Apenas atrasadas 15 / 15 Número Cliente Plano Valor Vencimento Status Gateway Ações FAT-2026-0512 Padaria Pão Quente 12.•••.•••/0001-22 Sinalização Mensal R$ 450,00 10/05/2026 — Paga Banco Inter Estornar FAT-2026-0518 Auto Posto Trevo 08.•••.•••/0001-09 Adesivos Frota Mensal R$ 680,00 05/05/2026 há 27d Atrasada Banco Inter Cancelar FAT-2026-0521 Academia CorpoForte 33.•••.•••/0001-50 Sinalização Mensal R$ 450,00 28/05/2026 há 4d Atrasada Asaas Cancelar FAT-2026-0524 Mercado União 55.•••.•••/0001-31 Adesivos Frota Mensal R$ 680,00 03/05/2026 há 29d Atrasada C6 Bank Cancelar FAT-2026-0527 Farmácia Bem-Estar 71.•••.•••/0001-66 Sinalização Mensal R$ 450,00 22/05/2026 — Paga Asaas Estornar FAT-2026-0530 Restaurante Sabor Caseiro 21.•••.•••/0001-77 Impressão Trimestral R$ 1.200,00 20/04/2026 — Paga Banco Inter Estornar FAT-2026-0601 Farmácia Bem-Estar 71.•••.•••/0001-66 Sinalização Mensal R$ 450,00 01/06/2026 — Paga Asaas Estornar FAT-2026-0602 Padaria Pão Quente 12.•••.•••/0001-22 Sinalização Mensal R$ 450,00 10/06/2026 em 9d Pendente Banco Inter Cancelar FAT-2026-0603 Clínica Vida 45.•••.•••/0001-18 avulsa R$ 820,00 15/06/2026 em 14d Pendente Banco Inter Cancelar FAT-2026-0604 Restaurante Sabor Caseiro 21.•••.•••/0001-77 Impressão Trimestral R$ 1.200,00 20/07/2026 em 49d Pendente C6 Bank Cancelar FAT-2026-0490 Loja Bella Moda 82.•••.•••/0001-90 Sinalização Mensal R$ 450,00 10/04/2026 — Cancelada Asaas — FAT-2026-0498 Escola Saber 60.•••.•••/0001-04 Impressão Trimestral R$ 1.200,00 18/04/2026 — Estornada duplicidade Asaas — FAT-2026-0505 Farmácia Bem-Estar 71.•••.•••/0001-66 Sinalização Mensal R$ 450,00 22/04/2026 — Reembolsada solicitação do cliente Banco Inter — FAT-2026-0509 Restaurante Sabor Caseiro 21.•••.•••/0001-77 Impressão Trimestral R$ 1.200,00 20/04/2026 — Chargeback contestação no cartão Asaas — FAT-2026-0526 Mercado União 55.•••.•••/0001-31 Adesivos Frota Mensal R$ 680,00 pago R$ 400,00 · falta R$ 280,00 20/05/2026 — Paga parcial C6 Bank Estornar",
   "roles": {
     "kpi": {
       "count": 4,
@@ -9,34 +14,34 @@
       "overflowX": false,
       "items": [
         {
-          "label": "MRR · receita ",
+          "label": "Pago este mêsR",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "Churn este mês",
+          "label": "PendenteR$ 2.4",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "Próximas cobra",
+          "label": "AtrasadoR$ 1.8",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         },
         {
-          "label": "A recuperarR$ ",
+          "label": "Total de fatur",
           "textAlign": "left",
           "alignItems": "normal",
-          "textColor": "oklch(0.94 0.005 90)",
+          "textColor": "oklch(0.22 0.01 80)",
           "smallAlign": "left",
           "valueFontPx": 22
         }
@@ -45,18 +50,126 @@
     "title": {
       "fontPx": 22,
       "weight": "700",
-      "color": "oklch(0.94 0.005 90)"
+      "color": "oklch(0.22 0.01 80)"
     },
     "primary": null,
-    "filterRows": null,
+    "filterRows": 4,
     "contratos": [],
-    "celulas": null,
-    "tabela": null,
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 17.1,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 20.1,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.96 0.03 145)",
+          "dot": false
+        }
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 8.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 15,
+      "linhasComEstado": 0
+    },
     "shell": {
       "papeis": {
         "atalhoTopo": {
           "seletor": ".sb-menu > .sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -64,6 +177,7 @@
         "itemGrupo": {
           "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -71,6 +185,7 @@
         "grupoHeader": {
           "seletor": ".sb-group-h",
           "n": 0,
+          "ocultos": 0,
           "css": null,
           "caixa": null,
           "icone": null
@@ -78,6 +193,7 @@
         "containerMenu": {
           "seletor": ".sb-menu",
           "n": 1,
+          "ocultos": 0,
           "css": {
             "height": "525px",
             "minHeight": "0px",
@@ -110,10 +226,25 @@
             "w": 18,
             "h": 18,
             "strokeWidth": "1.6px"
-          }
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "lado": "design",
+    "fonte": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+    "rota": "rb-faturas",
+    "viewport": "1280x900",
+    "tema": "light",
+    "surface": "#ffffff",
+    "dialogsAbertos": [],
+    "medidoEm": "2026-11-23T19:24:20.845Z"
   }
 }

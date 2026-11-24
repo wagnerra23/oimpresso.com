@@ -140,13 +140,14 @@ class AgendaDoPaciente
         });
     }
 
-    public function confirmar(Appointment $a): void
+    /** `$canal`: `portal` (app) ou `whatsapp` (link de um toque da mensagem de confirmação, A6). */
+    public function confirmar(Appointment $a, string $canal = 'portal'): void
     {
         if ($a->status !== 'agendado') {
             return; // confirmar de novo não muda nada
         }
         $this->agenda->mudarStatus($a, 'confirmado');
-        $a->forceFill(['confirmation_channel' => 'portal'])->save();
+        $a->forceFill(['confirmation_channel' => $canal])->save();
     }
 
     /** "Cheguei" (A19): a partir de 1 h antes, se a clínica ligou o check-in. */

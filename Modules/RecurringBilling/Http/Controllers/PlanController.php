@@ -279,6 +279,8 @@ class PlanController extends Controller
                 'name'                     => $p->name,
                 'slug'                     => $p->slug,
                 'descricao_curta'          => $p->descricao_curta,
+                // description + cfop + serviço: o drawer de edição abre sobre a lista (protótipo) e precisa deles.
+                'description'              => $p->description,
                 'valor'                    => (float) $p->valor,
                 'ciclo'                    => $p->ciclo,
                 'ciclo_label'              => $this->cicloLabel($p->ciclo),
@@ -286,6 +288,8 @@ class PlanController extends Controller
                 'trial_days'               => (int) $p->trial_days,
                 'ativo'                    => (bool) $p->ativo,
                 'fiscal_type'              => $p->fiscal_type ?? 'none',
+                'fiscal_cfop'              => $p->fiscal_cfop,
+                'fiscal_servico'           => $p->fiscal_servico,
                 'assinaturas_ativas_count' => (int) ($p->assinaturas_ativas_count ?? 0),
                 'created_at'               => optional($p->created_at)->toIso8601String(),
             ])->values()->toArray(),

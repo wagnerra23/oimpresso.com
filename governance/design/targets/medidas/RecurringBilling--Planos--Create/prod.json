@@ -1,0 +1,585 @@
+{
+  "url": "https://oimpresso.com/recurring-billing/planos/novo",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "auto",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "217px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 217,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 1,
+          "texto": "IA",
+          "textoProprio": false
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 42,
+          "ocultos": 0,
+          "css": {
+            "height": "34px",
+            "minHeight": "auto",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "225px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 225,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 1,
+          "texto": "Clientes",
+          "textoProprio": false
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 9,
+          "ocultos": 0,
+          "css": {
+            "height": "27.75px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "10.5px",
+            "fontWeight": "600",
+            "lineHeight": "15.75px",
+            "letterSpacing": "0.63px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "233px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 233,
+            "h": 27.8
+          },
+          "icone": {
+            "w": 12,
+            "h": 12,
+            "strokeWidth": "2px"
+          },
+          "blocos": 2,
+          "texto": "CADASTRO3",
+          "textoProprio": false
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "1911.75px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "0px",
+            "display": "flex",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "249px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 249,
+            "h": 1911.8
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 92,
+          "texto": "IAVisão geralAtendimento15406CADASTRO3ClientesProdutos13Fabricação5G PCOMERCIAL5",
+          "textoProprio": false
+        }
+      },
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geral",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento15406",
+          "atual": null
+        }
+      ]
+    },
+    "chart": null,
+    "drawer": {
+      "raiz": "main > div",
+      "presente": true,
+      "papeis": {
+        "raiz": {
+          "seletor": "main > div",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "900px",
+            "minHeight": "900px",
+            "padding": "24px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "oklch(0.97 0.004 90)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "1020px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 1020,
+            "h": 900
+          },
+          "icone": {
+            "w": 12,
+            "h": 12,
+            "strokeWidth": "2px"
+          },
+          "blocos": 38,
+          "texto": "Voltar pra PlanosNovo planoCADASTRAR · COBRANÇA RECORRENTEIdentificaçãoNome do p",
+          "textoProprio": false
+        },
+        "titulo": {
+          "seletor": "h1",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "32px",
+            "minHeight": "0px",
+            "padding": "0px",
+            "margin": "4px 0px 0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "24px",
+            "fontWeight": "600",
+            "lineHeight": "32px",
+            "letterSpacing": "-0.6px",
+            "textTransform": "none",
+            "color": "oklch(0.137 0.036 258.5)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "221.656px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 221.7,
+            "h": 32
+          },
+          "icone": null,
+          "blocos": 1,
+          "texto": "Novo plano",
+          "textoProprio": true
+        },
+        "rodape": {
+          "seletor": "form > div.justify-end",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "44px",
+            "minHeight": "0px",
+            "padding": "8px 0px 0px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "972px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 972,
+            "h": 44
+          },
+          "icone": {
+            "w": 14,
+            "h": 14,
+            "strokeWidth": "2px"
+          },
+          "blocos": 4,
+          "texto": "CancelarEscSalvar plano⌘↵",
+          "textoProprio": false
+        },
+        "botao": {
+          "seletor": "form button.bg-primary",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "36px",
+            "minHeight": "auto",
+            "padding": "8px 16px",
+            "margin": "0px",
+            "gap": "6px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "14px",
+            "fontWeight": "500",
+            "lineHeight": "20px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "rgb(255, 255, 255)",
+            "backgroundColor": "oklch(0.55 0.15 295)",
+            "borderRadius": "12px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "165.922px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 165.9,
+            "h": 36
+          },
+          "icone": {
+            "w": 14,
+            "h": 14,
+            "strokeWidth": "2px"
+          },
+          "blocos": 2,
+          "texto": "Salvar plano⌘↵",
+          "textoProprio": true
+        },
+        "campo": {
+          "seletor": "form input",
+          "n": 6,
+          "ocultos": 0,
+          "css": {
+            "height": "38px",
+            "minHeight": "0px",
+            "padding": "8px 12px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "inline-block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "lineHeight": "20px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "12px",
+            "borderWidth": "1px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "458px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 458,
+            "h": 38
+          },
+          "icone": null,
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        },
+        "secao": {
+          "seletor": "form > section",
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "270.25px",
+            "minHeight": "0px",
+            "padding": "20px",
+            "margin": "0px 0px 16px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "20.25px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.22 0.01 80)",
+            "backgroundColor": "oklch(1 0 0)",
+            "borderRadius": "12px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "972px",
+            "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.92 0.006 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 972,
+            "h": 270.3
+          },
+          "icone": null,
+          "blocos": 10,
+          "texto": "IdentificaçãoNome do plano *Ex: Plano Anual ProSlug Gerado automaticamente do no",
+          "textoProprio": false
+        },
+        "rotulo": {
+          "seletor": "form > section > h2",
+          "n": 3,
+          "ocultos": 0,
+          "css": {
+            "height": "20px",
+            "minHeight": "0px",
+            "padding": "0px",
+            "margin": "0px 0px 12px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+            "fontSize": "14px",
+            "fontWeight": "600",
+            "lineHeight": "20px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.137 0.036 258.5)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.92 0.006 90)",
+            "opacity": "1",
+            "width": "932px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 932,
+            "h": 20
+          },
+          "icone": null,
+          "blocos": 1,
+          "texto": "Identificação",
+          "textoProprio": true
+        }
+      },
+      "tokens": {
+        "referencia": "main",
+        "naGaveta": {
+          "--border": "oklch(.9 .004 90)",
+          "--bg-2": "oklch(.965 .004 90)",
+          "--surface": "#ffffff",
+          "--text": "oklch(.22 .01 80)",
+          "--text-dim": "oklch(.5 .01 80)",
+          "--text-mute": "oklch(.555 .01 80)",
+          "--accent": "oklch(.55 .15 295)",
+          "--font-sans": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+          "--font-mono": "IBM Plex Mono,ui-monospace,SF Mono,Menlo,monospace"
+        },
+        "naPagina": {
+          "--border": "oklch(.9 .004 90)",
+          "--bg-2": "oklch(.965 .004 90)",
+          "--surface": "#ffffff",
+          "--text": "oklch(.22 .01 80)",
+          "--text-dim": "oklch(.5 .01 80)",
+          "--text-mute": "oklch(.555 .01 80)",
+          "--accent": "oklch(.55 .15 295)",
+          "--font-sans": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+          "--font-mono": "IBM Plex Mono,ui-monospace,SF Mono,Menlo,monospace"
+        },
+        "vazios": [],
+        "difereDaPagina": []
+      }
+    }
+  },
+  "__meta": {
+    "lado": "prod",
+    "host": "oimpresso.com",
+    "rota": "/recurring-billing/planos/novo",
+    "componenteInertia": "RecurringBilling/Planos/Create",
+    "business_id": 1,
+    "viewport": "1280x900",
+    "tema": "light",
+    "sobrepostosFixos": [],
+    "dialogsAbertos": [],
+    "medidoEm": "2026-11-23T19:25:58.354Z",
+    "assinaturaRedigida": "texto de produção (biz=1) substituído pelas 0 cópias de UI do contrato que nele aparecem; o original tinha nomes de cliente e valores (sha256 ebc09315c9eb, 1394 chars, não versionado)"
+  }
+}

@@ -76,6 +76,8 @@ on:
       - 'tests/js/sells-v3-gravando-sem-cena.test.tsx'
       - 'resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx'
       - 'resources/js/Pages/Sells/_components/v3/LancarItem.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ComissaoDrawer.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ParcelasDrawer.tsx'
       # Onda VALOR (2026-09-03): 3 specs que existiam e rodavam em ZERO lanes — medido
       # contra origin/main casando o basename de cada um dos 46 specs do include do
       # vitest contra os 128 workflows E os alias npm de fato invocados por workflow:
@@ -128,6 +130,8 @@ on:
       - 'tests/js/sells-v3-gravando-sem-cena.test.tsx'
       - 'resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx'
       - 'resources/js/Pages/Sells/_components/v3/LancarItem.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ComissaoDrawer.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ParcelasDrawer.tsx'
       # Onda VALOR (2026-09-03): 3 specs que existiam e rodavam em ZERO lanes — medido
       # contra origin/main casando o basename de cada um dos 46 specs do include do
       # vitest contra os 128 workflows E os alias npm de fato invocados por workflow:
