@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // @covers-us US-NFE-010 — o upload do CSV de regras tem limite de 5 MB e recusa arquivo malformado sem gravar.
-// Contrato da tela: resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.casos.md — UC-NFIM-10 · UC-NFIM-11
+// Contrato da tela: resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.casos.md — UC-NFIM-10 · UC-NFIM-11 · UC-NFIM-12
 // Âncora: ImportCsv.charter.md §Goals ("máx 5 MB, `.csv`/`.txt`") e §Pendências ("Confirmar limite
 // de 5 MB e comportamento com CSV malformado (encoding/separador)") + SDD CU-NFE-07.
 
@@ -49,6 +49,12 @@ function arqLimpar(): void
     }
     DB::table('nfe_fiscal_rules')->whereIn('id', $regras)->delete();
     DB::statement('SET FOREIGN_KEY_CHECKS=1');
+}
+
+/** O resumo como a página recebe (prop `preview` do Inertia), lido no GET seguinte à conferência. */
+function arqResumoNaPagina(): ?array
+{
+    return test()->get('/nfe-brasil/tributacao/import')->assertOk()->viewData('page')['props']['preview'] ?? null;
 }
 
 function arqPreview(string $conteudo, string $nome = 'regras.csv')
@@ -120,38 +126,54 @@ it('UC-NFIM-11 · separador ponto e vírgula não passa da conferência e o avis
     expect(arqContar())->toBe(0);
 });
 
-it('UC-NFIM-11 · arquivo em Latin-1 com acento numa coluna extra não derruba a conferência', function () {
+it('UC-NFIM-11 · arquivo em Latin-1 com acento numa coluna extra é lido e o resumo chega à página', function () {
     arqLogar();
 
-    // Coluna extra "descricao" com texto acentuado em ISO-8859-1 (o "Salvar como CSV" antigo do
-    // Excel) e uma linha com NCM inválido, para o texto ir parar na lista de erros.
+    // Coluna extra "descricao" com texto acentuado em Windows-1252 (o "CSV" antigo do Excel no
+    // Windows) e uma linha com NCM inválido, para o texto ir parar na lista de erros do resumo.
     $csv = arqCabecalho() . ",descricao\n"
         . "84439100,SP,,5102,102,,0.18,0.0065,0.03,0,Impressão\n"
         . "8443,SP,,5102,102,,0.18,0.0065,0.03,0,Peça\n";
-    $latin1 = mb_convert_encoding($csv, 'ISO-8859-1', 'UTF-8');
+    $latin1 = mb_convert_encoding($csv, 'Windows-1252', 'UTF-8');
     expect(mb_check_encoding($latin1, 'UTF-8'))->toBeFalse(); // pré-condição: o arquivo NÃO é UTF-8
 
-    $res = arqPreview($latin1)->assertRedirect()->assertSessionHasNoErrors();
+    arqPreview($latin1)->assertRedirect()->assertSessionHasNoErrors();
 
-    $preview = $res->getSession()->get('preview');
-    expect($preview['total_validas'])->toBe(1);
-    expect($preview['total_erros'])->toBe(1);
-
-    // A página da importação abre com o resumo (a tela recebe o preview em JSON).
-    $this->get('/nfe-brasil/tributacao/import')->assertOk();
+    $resumo = arqResumoNaPagina();
+    expect($resumo['total_validas'])->toBe(1);
+    expect($resumo['total_erros'])->toBe(1);
+    expect($resumo['erros'][0]['raw']['descricao'])->toBe('Peça'); // convertido, não corrompido
     expect(arqContar())->toBe(0);
 });
 
-it('UC-NFIM-11 · arquivo em UTF-16 (o "Texto Unicode" do Excel) é recusado sem gravar', function () {
+it('UC-NFIM-11 · arquivo em UTF-16 (o "Texto Unicode" do Excel) é lido como o UTF-8', function () {
     arqLogar();
 
     $utf16 = "\xFF\xFE" . mb_convert_encoding(arqCabecalho() . "\n84439100,SP,,5102,102,,0.18,0.0065,0.03,0\n", 'UTF-16LE', 'UTF-8');
 
-    $res = arqPreview($utf16)->assertRedirect();
-    $preview = $res->getSession()->get('preview');
-    if ($preview !== null) {
-        expect($preview['total_validas'])->toBe(0);
-    }
-    expect(session('nfe_import_csv_linhas') ?? [])->toBe([]);
-    expect(arqContar())->toBe(0);
+    arqPreview($utf16)->assertRedirect()->assertSessionHasNoErrors();
+
+    $resumo = arqResumoNaPagina();
+    expect($resumo['total_validas'])->toBe(1);
+    expect($resumo['amostras'][0]['ncm'])->toBe('84439100');
+    expect((float) $resumo['amostras'][0]['aliquota_icms'])->toBe(0.18);
+    expect(arqContar())->toBe(0); // conferir não grava
+});
+
+// ---------------------------------------------------------------------------------------
+// UC-NFIM-12 · O resumo da conferência aparece na tela
+// ---------------------------------------------------------------------------------------
+it('UC-NFIM-12 · depois de conferir, a página recebe o resumo com as linhas válidas', function () {
+    arqLogar();
+
+    // Controle: sem conferência, a página abre sem resumo.
+    expect(arqResumoNaPagina())->toBeNull();
+
+    arqPreview(arqCabecalho() . "\n84439100,SP,,5102,102,,0.18,0.0065,0.03,0\n8443,SP,,5102,102,,0.18,0,0,0\n")
+        ->assertSessionHasNoErrors();
+
+    $resumo = arqResumoNaPagina();
+    expect($resumo['total_validas'])->toBe(1);
+    expect($resumo['total_erros'])->toBe(1);
+    expect($resumo['amostras'][0]['ncm'])->toBe('84439100');
 });

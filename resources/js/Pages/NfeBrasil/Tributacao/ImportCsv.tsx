@@ -38,19 +38,20 @@ interface Preview {
 
 interface Props {
   colunas_obrigatorias: string[];
+  /** Resumo da conferência (UC-NFIM-12) — prop da página; o middleware não compartilha o flash `preview`. */
+  preview?: Preview | null;
 }
 
 interface FlashProps {
-  flash?: { preview?: Preview; success?: string };
+  flash?: { success?: string };
 }
 
 function pct(v: number): string {
   return `${(v * 100).toFixed(2).replace('.', ',')}%`;
 }
 
-function ImportCsv({ colunas_obrigatorias }: Props) {
+function ImportCsv({ colunas_obrigatorias, preview }: Props) {
   const { props } = usePage<FlashProps>();
-  const preview = props.flash?.preview;
   const success = props.flash?.success;
 
   const form = useForm<{ arquivo: File | null }>({ arquivo: null });
