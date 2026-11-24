@@ -1,0 +1,23 @@
+
+  DESIGN-DIFF — prod(light) × design(light)
+
+  ✓ [D2] layout: prod=ok · design=ok → IGUAL
+  ✓ [D4] tipografia: prod=ok · design=ok → IGUAL
+  ✓ [D6] cor: prod=ok · design=ok → IGUAL
+  ✓ [D8] kpi align: prod=ok · design=ok → IGUAL
+  ⬜ [D9] fisio-protocolo-detalhe: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] fisio-protocolos-lista: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-alcas: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-corpo: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-modos: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-rodape: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D9] sb-topo: prod=presente · design=ausente → SEM-DADO (região só existe de um lado)
+  ⬜ [D4] linha da tabela: prod=não medido · design=não medido → SEM-DADO (passe `tableRow` em __DD_ROLES nos DOIS lados)
+  ⬜ [SHELL] shell: prod=não medido · design=não medido → SEM-DADO (declare window.__SB_ROLES nos DOIS lados — node scripts/design/design-diff.mjs --shell-roles imprime o mapa)
+  ✗ [SAÚDE] tokens.prod: prod=--accent --pos --neg --warn --text-dim --sunken --border · design=— → NÃO MEDI (token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback)
+  ✗ [SAÚDE] tokens.design: prod=— · design=--accent --pos --neg --warn --text-dim --sunken --border → NÃO MEDI (token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback)
+
+  ✗ DIVERGE(bug): 0
+  ▲ SHELL a classificar: 0
+
+exit=0
