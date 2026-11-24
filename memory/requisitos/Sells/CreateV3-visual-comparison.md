@@ -187,12 +187,12 @@ Gravando, a comissão também tem duas portas: o seletor "Comissionado" do rodap
 |---|---|---|
 | Topo | botão "Voltar para Vendas · esc" | DÍVIDA A FECHAR |
 | Numeração das seções | protótipo: 1 Cliente · 2 Itens · 3 Fechamento; produção: 1 Cliente · 2 Itens · 3 Entrega e frete · 4 Observações e produção, e o Fechamento sem número | DÍVIDA A FECHAR |
-| Cliente | local da venda, data da venda, pedido de venda vinculado, campos personalizados, venda de reparo | BACKLOG (#10207, #10215) |
+| Cliente | local da venda, data da venda, pedido de venda vinculado, campos personalizados, venda de reparo | BACKLOG (protótipo em #10207, #10215) |
 | Itens | "Consultar produto… F3": consulta em tabela com SKU, EAN, código de fábrica, categoria, tipo, unidade, tabela e estoque | DÍVIDA A FECHAR |
-| Entrega e frete | transportadora, veículo, volumes, remessa, entregador, previsão, rastreio e endereço de entrega | gravando, a tela avisa que não grava (UC-V405); gravar é BACKLOG (#10209) |
-| Fiscal do pedido | natureza da operação, esquema de numeração, nº da fatura, imposto do pedido, informações complementares da NF-e, venda para exportação | BACKLOG (#10207 e "Permissões e configurações") |
-| Observações e produção | "Abrir OS de produção" e "Documentos da venda · Anexar arquivo" | BACKLOG (#10209) |
-| Fechamento | cupom, resgatar pontos, despesas da venda, sinal %, + Maquininha, adiantamento | BACKLOG (#10209, #10213, #10214; pontos em "Configurações do business") |
+| Entrega e frete | transportadora, veículo, volumes, remessa, entregador, previsão, rastreio e endereço de entrega | gravando, a tela avisa que não grava (UC-V405); gravar é BACKLOG (protótipo em #10209) |
+| Fiscal do pedido | natureza da operação, esquema de numeração, nº da fatura, imposto do pedido, informações complementares da NF-e, venda para exportação | BACKLOG (protótipo em #10207 e "Permissões e configurações") |
+| Observações e produção | "Abrir OS de produção" e "Documentos da venda · Anexar arquivo" | BACKLOG (protótipo em #10209) |
+| Fechamento | cupom, resgatar pontos, despesas da venda, sinal %, + Maquininha, adiantamento | BACKLOG (protótipo em #10209, #10213, #10214; pontos em "Configurações do business") |
 | Pagamento | a nota sobre `payment_status=due` (no protótipo, só no modo de anotação) | FECHADO no #11402 |
 | Comissão · resumo | "Comissão da venda" com total e percentual, um selo por beneficiário, o gatilho e "Configurar comissão" | FECHADO no #11402 |
 | Comissão · gaveta | título "Comissão desta venda"; bruto, líquido e margem no topo; beneficiário por tipo em 4 botões; liberação por parcela recebida; ciclo de apuração (provisionada · aprovada · paga); nota de estorno; rodapé só com "Fechar" (a produção tem "Confirmar comissão") | DÍVIDA A FECHAR na forma; gravar o beneficiário é BACKLOG |
@@ -200,7 +200,7 @@ Gravando, a comissão também tem duas portas: o seletor "Comissionado" do rodap
 | Parcelas | "Tipo de pagamento" no gerador; valor e tipo editáveis na própria linha; "Soma das parcelas" com "Jogar o resto na última" | DÍVIDA A FECHAR |
 | Detalhe do item | 7 abas: Geral, Produção, Fluxo, Tributação, Preço, Anexos e Observação | gravando, não abre (UC-V407): o que as abas mostram ainda não é gravado |
 | Situação | gravando, a produção diz só "Não gravada"; o protótipo lista as 8 etapas do fluxo | DÍVIDA A FECHAR: mostrar as etapas do modelo de fluxo da empresa |
-| Rodapé | "Descartar", "Salvar rascunho", "Tipo de documento" (Venda · Cotação · Proforma), "Bonificação", "Finalizar venda", "A venda nasce em …" e "Rascunho salvo às …"; a produção tem "Salvar como orçamento", "Comissionado" e "Gravar venda" | rótulos: DÍVIDA A FECHAR; rascunho, proforma e bonificação: BACKLOG (#10206, #10213) |
+| Rodapé | "Descartar", "Salvar rascunho", "Tipo de documento" (Venda · Cotação · Proforma), "Bonificação", "Finalizar venda", "A venda nasce em …" e "Rascunho salvo às …"; a produção tem "Salvar como orçamento", "Comissionado" e "Gravar venda" | rótulos: DÍVIDA A FECHAR; rascunho, proforma e bonificação: BACKLOG (protótipo em #10206, #10213) |
 | Colunas do grid | o catálogo do protótipo tem 31 colunas (Seq., Cód. produto, Tipo, Qtd. peças, Comprimento, Fórmula, R$ tabela, R$ desconto, R$ outros, CEST, Em produção, Obs. da produção, Local de estoque…); a produção tem 30, com nomes e grupos diferentes, reordena por ‹ › e confirma por "Aplicar" | DÍVIDA A FECHAR |
 | Consulta de cliente | mesma estrutura; a produção pede 2 letras antes de listar | IGUAL na forma (a lista vem do cadastro) |
 
