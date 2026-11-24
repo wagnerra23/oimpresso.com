@@ -115,8 +115,10 @@ class RecurringHealthCommand extends Command
             return $this->makeCheck('credentials_per_business', 'WARN', null, '>=1', 'Tabela ausente', 'Rode migrate.');
         }
 
-        // Desde a onda 5a (2026-11-24) a credencial que cobra é a do PaymentGateway.
-        $query = DB::table('payment_gateway_credentials')
+        // Desde a onda 5a (2026-11-24) a credencial que cobra é a do PaymentGateway, lida pelo
+        // model do dono. SUPERADMIN: comando CLI sem sessão; o filtro por business é o --business.
+        $query = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
+            ->withoutGlobalScopes()
             ->where('ativo', true)
             ->whereIn('gateway_key', ['inter', 'c6', 'asaas']);
         if ($businessId !== null) {
