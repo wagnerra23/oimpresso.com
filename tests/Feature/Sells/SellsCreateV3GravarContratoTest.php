@@ -615,3 +615,47 @@ it('UC-V404 · gravando, o cliente padrão vem do cadastro desta empresa e as li
     expect((int) $props['gravacao']['contactId'])->toBe($padraoId);
     expect((int) DB::table('contacts')->where('id', $padraoId)->value('business_id'))->toBe($this->bizId);
 });
+
+it('UC-V414 · gravando, a Situação recebe as etapas do processo em que a venda vai entrar, só desta empresa', function () {
+    v3gravarLigar($this);
+    v3gravarPermitir($this->user, ['access_all_locations']);
+    (new \Database\Seeders\FsmProcessoVendaComProducaoSeeder())->runForBusiness($this->bizId);
+
+    $processoId = (int) DB::table('sale_processes')->where('business_id', $this->bizId)
+        ->where('key', \App\Services\Sells\IniciarPipelineVendaV3::PROCESSO)->value('id');
+    DB::table('sale_processes')->where('id', $processoId)->update(['active' => 1]);
+
+    // Caminho 1: o banco, na ordem do processo, sem o desvio (on_hold) e a saída (cancelled).
+    $esperado = DB::table('sale_process_stages')->where('process_id', $processoId)
+        ->whereNotIn('key', ['on_hold', 'cancelled'])->orderBy('sort_order')
+        ->pluck('name', 'key')->all();
+    expect($esperado)->not->toBeEmpty();
+
+    // Tier 0: uma etapa de OUTRA empresa com o mesmo processo não pode chegar.
+    $outra = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
+    if ($outra > 0) {
+        (new \Database\Seeders\FsmProcessoVendaComProducaoSeeder())->runForBusiness($outra);
+        $outroProcesso = (int) DB::table('sale_processes')->where('business_id', $outra)
+            ->where('key', \App\Services\Sells\IniciarPipelineVendaV3::PROCESSO)->value('id');
+        DB::table('sale_process_stages')->insert([
+            'process_id' => $outroProcesso, 'key' => 'etapa_de_outra_empresa', 'name' => 'Etapa de outra empresa',
+            'sort_order' => 1, 'is_initial' => 0, 'is_terminal' => 0, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    // Caminho 2: a prop que a tela recebe.
+    $props = $this->get('/sells/create-v3')->assertOk()->viewData('page')['props'];
+    $etapas = $props['gravacao']['etapas'];
+    expect(collect($etapas)->pluck('label', 'key')->all())->toBe($esperado);
+    // Um valor por asserção: `not->toContain` com vários valores passa sempre no Pest (LC-31).
+    foreach (['on_hold', 'cancelled', 'etapa_de_outra_empresa'] as $fora) {
+        expect(collect($etapas)->pluck('key')->all())->not->toContain($fora);
+    }
+
+    // Processo desativado pela empresa: a venda grava sem pipeline, então não há etapas a mostrar.
+    DB::table('sale_processes')->where('id', $processoId)->update(['active' => 0]);
+    $props = $this->get('/sells/create-v3')->assertOk()->viewData('page')['props'];
+    expect($props['gravacao']['etapas'])->toBe([]);
+
+    config(['feature-flags.forced_on' => '']);
+});
