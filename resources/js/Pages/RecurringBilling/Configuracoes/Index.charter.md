@@ -32,12 +32,12 @@ Centralizar tudo que afeta como o módulo Cobrança Recorrente cobra clientes do
 
 - **AppShellV2 sidebar** + header `Configurações · cobrança recorrente`
 - **4 seções verticalizadas (cards)** com Tailwind 4 puro:
-  - **a. Gateways de boleto/pix** — lista BoletoCredential do business (banco + ambiente + ativo + nome_display) + CTA stub "Adicionar gateway" linkando pra `/financeiro/contas-bancarias` existente (cadastro de credenciais ainda lá enquanto Onda futura não move pra aqui)
+  - **a. Gateways de boleto/pix** — lista as credenciais Inter/C6/Asaas do business em `payment_gateway_credentials` (banco + ambiente + ativo + nome_display; até 2026-11-24 a fonte era `rb_boleto_credentials`) + CTA stub "Adicionar gateway" linkando pra `/financeiro/contas-bancarias` existente (cadastro de credenciais ainda lá enquanto Onda futura não move pra aqui)
   - **b. Régua de dunning (cobrança)** — texto explicativo + tabela com 3 retentativas (+3d leve / +7d persistente / +15d final → a assinatura passa para “falhou”), copy em português sem identificador técnico desde 2026-11-23 (UC-RBCFG-12) · ícone-severidade colorido (info/warn/bad) · canais de aviso **E-mail** e **WhatsApp** marcados como "não disponível" (o módulo não envia nenhum dos dois — auditoria b7, 2026-11-23)
   - **c. NFe-de-boleto-pago automática** — toggle visual (disabled) explicando US-RB-044 (NfeBrasil listener) · estado lido do Controller
   - **d. Webhooks** — lista URLs canônicas por gateway com botão "Copiar" (clipboard.writeText) + link pra docs oficiais
 - **Inertia::defer em `gateways`** (toca DB) com fallback skeleton — skill `inertia-defer-default` Tier B
-- **Multi-tenant Tier 0:** `HasBusinessScope` automático em BoletoCredential + Controller scopa explícito via `session('user.business_id')` + Pest cross-tenant biz=1 vs biz=99
+- **Multi-tenant Tier 0:** `HasBusinessScope` automático em PaymentGatewayCredential + Controller scopa explícito via `session('user.business_id')` + Pest cross-tenant biz=1 vs biz=99
 - **Rota nomeada** `recurring-billing.configuracoes.index` (GET `/recurring-billing/configuracoes`) com stack canônico middleware UltimatePOS
 - **PT-BR** todos labels e copy
 - **Tailwind 4 puro** — zero CSS Cowork escopado (`.rec-*`); Index.tsx pai usa wrapper Cowork, esta tela é simpler e usa tokens Tailwind diretos (zinc/violet/emerald/amber/rose)
@@ -89,7 +89,7 @@ Centralizar tudo que afeta como o módulo Cobrança Recorrente cobra clientes do
 
 - [Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php](../../../../../Modules/RecurringBilling/Tests/Feature/Wave8ConfiguracoesIndexTest.php) — 4+ cenários:
   1. `/recurring-billing/configuracoes` retorna Inertia render correto biz=1 com props canônicas
-  2. Cross-tenant isolation: BoletoCredential biz=1 NÃO aparece quando user biz=99
+  2. Cross-tenant isolation: credencial do PaymentGateway biz=1 NÃO aparece quando user biz=99
   3. Webhooks URLs corretas e por business_id (Asaas + Inter PJ)
   4. Régua de dunning estrutura canônica (3 retentativas com dias corretos)
 

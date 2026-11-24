@@ -9,13 +9,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 /**
  * Controller — Page Configurações Cobrança Recorrente (Inertia React).
  *
  * Onda 8 v9,75 — primeira página de configurações read-only:
- *   - Gateways de boleto/pix cadastrados (BoletoCredential por business)
+ *   - Gateways de boleto/pix cadastrados (credenciais do PaymentGateway por business;
+ *     até a onda 3 de 2026-11-24 vinham de rb_boleto_credentials)
  *   - Régua de dunning (cobrança) hardcoded (1ª +3d / 2ª +7d / 3ª +15d)
  *   - NFe-de-boleto-pago automática (toggle stub — US-RB-044 dispara via listener)
  *   - Webhooks (URLs canônicas — botão copy clipboard)
@@ -35,7 +36,7 @@ class ConfiguracoesController extends Controller
      * GET /recurring-billing/configuracoes — Page Inertia Configurações.
      *
      * Props:
-     *   - gateways    (defer)  — lista BoletoCredential do business_id
+     *   - gateways    (defer)  — credenciais Inter/C6/Asaas do business em payment_gateway_credentials
      *   - regua_dunning (eager) — config hardcoded leitura-only
      *   - nfe_auto    (eager)  — boolean stub leitura-only
      *   - webhooks    (eager)  — URLs canônicas Asaas + Inter PJ PIX
@@ -132,27 +133,30 @@ class ConfiguracoesController extends Controller
             ],
 
             // Gateways de boleto/pix cadastrados — defer porque toca DB
-            // (skill inertia-defer-default Tier B). Scopo multi-tenant Tier 0
-            // via HasBusinessScope automático em BoletoCredential.
+            // (skill inertia-defer-default Tier B). Desde a onda 3 (2026-11-24) a fonte é a
+            // credencial do PaymentGateway, a mesma que cobra (CobrancaNoGateway). Só Inter, C6 e Asaas: são os bancos que o RB usa e que a tela sabe desenhar.
+            // Tier 0: global scope HasBusinessScope + where explícito. select() fechado: o
+            // config_json (segredos) nunca sai daqui.
             'gateways' => Inertia::defer(function () use ($businessId) {
-                return BoletoCredential::query()
+                return PaymentGatewayCredential::query()
                     ->where('business_id', $businessId)
+                    ->whereIn('gateway_key', ['inter', 'c6', 'asaas'])
                     ->orderByDesc('ativo')
-                    ->orderBy('banco')
-                    ->get(['id', 'banco', 'ambiente', 'ativo', 'nome_display', 'conta_bancaria_id', 'created_at'])
-                    ->map(fn (BoletoCredential $c) => [
+                    ->orderBy('gateway_key')
+                    ->get(['id', 'gateway_key', 'ambiente', 'ativo', 'nome_display', 'conta_bancaria_id', 'created_at'])
+                    ->map(fn (PaymentGatewayCredential $c) => [
                         'id'                => $c->id,
-                        'banco'             => $c->banco,
-                        'banco_label'       => match ($c->banco) {
+                        'banco'             => $c->gateway_key,
+                        'banco_label'       => match ($c->gateway_key) {
                             'inter' => 'Banco Inter PJ',
                             'c6'    => 'C6 Bank',
                             'asaas' => 'Asaas',
-                            default => ucfirst($c->banco),
                         },
                         'ambiente'          => $c->ambiente,
                         'ambiente_label'    => $c->ambiente === 'production' ? 'Produção' : 'Sandbox',
                         'ativo'             => (bool) $c->ativo,
                         'nome_display'      => $c->nome_display,
+                        // No PG a conta é accounts.id, não fin_contas_bancarias.id; a tela não usa o campo.
                         'conta_bancaria_id' => $c->conta_bancaria_id,
                         'criado_em'         => optional($c->created_at)->toIso8601String(),
                     ])
