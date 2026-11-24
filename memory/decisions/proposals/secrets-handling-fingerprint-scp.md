@@ -114,11 +114,7 @@ Exemplos:
 ## Implementação
 
 Status atual:
-- [`scripts/inter-credentials/install-biz.py`](../../../scripts/inter-credentials/install-biz.py) — orquestrador Python
-- [`scripts/inter-credentials/_remote_install.php`](../../../scripts/inter-credentials/_remote_install.php) — payload Laravel
-- [`scripts/inter-credentials/credentials.example.json`](../../../scripts/inter-credentials/credentials.example.json) — template
-- [`scripts/inter-credentials/.gitignore`](../../../scripts/inter-credentials/.gitignore) — bloqueia segredos
-- [`scripts/inter-credentials/README.md`](../../../scripts/inter-credentials/README.md) — docs
+- `scripts/inter-credentials/` (`install-biz.py`, `_remote_install.php`, `credentials.example.json`, `.gitignore`, `README.md`) — **removido em 2026-11-24** (onda 5b da saída de `rb_boleto_credentials`): gravava a credencial em `rb_boleto_credentials` pelo model `BoletoCredential`, que saiu junto. A credencial de gateway agora entra pelo wizard do PaymentGateway. Histórico: `git log --all -- scripts/inter-credentials`.
 - [`memory/reference/protocolo-secrets-fingerprint.md`](../../reference/protocolo-secrets-fingerprint.md) — referência canônica curta
 
 ### Pra Wagner aceitar como ADR
