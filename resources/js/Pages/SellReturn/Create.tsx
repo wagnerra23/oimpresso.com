@@ -193,7 +193,7 @@ export default function SellReturnCreate({ vendas, filtros }: SellReturnCreatePr
       const novas = linhasDaPagina.filter((v) => v.contato_id === base.contato_id && !escolhida(v));
       setEscolhidas((atual) => [...atual, ...novas]);
     },
-    rowLabel: (v) => `Escolher a venda ${v.numero}`,
+    rowLabel: (v) => `a venda ${v.numero}`, // o DataTable antepõe "Selecionar"
     allLabel: 'Escolher as vendas desta página do mesmo cliente',
   };
 
