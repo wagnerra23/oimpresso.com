@@ -26,7 +26,7 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 - Fatura paga **não** vira título no Financeiro: a ponte (consumidor de `InvoicePaid`) é do Financeiro (decisão b2). Hoje o efeito é crédito em `account_transactions`. Fluxo completo: SDD F13.
 - Acesso: pacote `recurringbilling_module` em todas as rotas web (#11205) e permissão própria por rota (#11247).
 - NFe automática após pagamento: listener `EmitirNFeAoReceberPagamento` (NfeBrasil) wired ao evento de fatura paga, atrás da flag `nfebrasil.auto_emission_on_invoice_paid` (default `false`) — ligar em prod é US-RB-044, SDD §10.
-- Sync bancário de saldos e extratos.
+- Sync bancário de saldos e extratos. Desde 2026-11-24 o saldo usa a credencial do PaymentGateway ([#11412](https://github.com/wagnerra23/oimpresso.com/pull/11412)); a conta ainda é escolhida pelo FK do Financeiro para `rb_boleto_credentials`.
 - Página Inertia de assinaturas, com drawer "Nova assinatura" (PR #2369).
 
 ## Gaps

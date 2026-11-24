@@ -44,6 +44,8 @@ Auditoria de 2026-11-19. Decisões b1–b8 registradas pelo coordenador em 2026-
 
 **Sem PR ainda:** cobrar com o cartão salvo; remover o `BoletoService` e os outros leitores de `rb_boleto_credentials`. **Do [W]:** `paymentgateway:migrate-credentials --apply` para consertar credencial já copiada com o segredo cifrado do RB.
 
+**Onda 1 da saída de `rb_boleto_credentials` (2026-11-24, depois do `--apply`):** reajuste de assinatura no Asaas e sync de saldo passam a ler a credencial do PaymentGateway; o reajuste deixa de mandar o `api_key` cifrado e o saldo Asaas sandbox deixa de ir para produção — [#11412](https://github.com/wagnerra23/oimpresso.com/pull/11412).
+
 ### Outubro 2026
 
 - Testes do módulo entram na matriz do `modules-pest` — [#9362](https://github.com/wagnerra23/oimpresso.com/pull/9362) (2026-10-14).

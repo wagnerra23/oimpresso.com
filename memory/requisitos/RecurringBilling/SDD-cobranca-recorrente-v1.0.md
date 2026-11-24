@@ -402,7 +402,8 @@ Idempotência por `transaction_id = invoice.id`. Flag `nfebrasil.auto_emission_o
 
 `SyncBankBalancesJob` / `SyncBankStatementsJob` (cron) → `Services/Banking/**` → Banking API v2 (OF
 direto, mTLS com certificado **separado** do certificado de NFe — [ADR tech/0005](adr/tech/0005-certificado-inter-separado-nfe-certificados.md))
-→ `saldo_cached` / extrato → tela `/financeiro/extrato`. Operação documentada no
+→ `saldo_cached` / extrato → tela `/financeiro/extrato`. Desde 2026-11-24 o saldo lê o segredo de
+`payment_gateway_credentials` ([#11412](https://github.com/wagnerra23/oimpresso.com/pull/11412)); a linha de `rb_boleto_credentials` só dá banco e ambiente. Operação documentada no
 [`RUNBOOK-inter-pj.md`](RUNBOOK-inter-pj.md).
 
 ---
