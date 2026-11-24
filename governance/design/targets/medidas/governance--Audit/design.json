@@ -1,21 +1,51 @@
 {
-  "url": "http://127.0.0.1:53594/oimpresso.com.html",
-  "theme": "dark",
-  "assinatura": "OI WR Governança — painel A raiz /governance redireciona para /ia · o painel vive em /governance/dashboard Base completa Fontes ausentes Sem permissão MCP superadmin · cross-tenant Painel Políticas Auditoria Drift Notas dos módulos Constituição Estado dos checks nas últimas 24 horas. As tabelas mcp_* são cross-tenant por design — exceção formal ao Tier 0, Art. 6 e 8. ADRs aguardando decisão 7 status proposto Políticas ativas 23 de 31 no catálogo Aprovações de skill 2 versões em revisão Atores registrados 14 sem revogação Ocorrências em 24 h 9 resultado diferente de concluído 80 % auto-declarado Conformidade com a Constituição O número é escrito à mão no controller — 7 ×10 + 2 ×5 + 0 —, não apurado por checagem. Enquanto for assim, a tela o rotula como declarado. Art. 1 Fonte única da verdade pleno Art. 2 Mexeu, registra pleno Art. 3 Decisão vira ADR pleno Art. 4 Skill versionada parcial Art. 5 Isolamento multi-tenant pleno Art. 6 Exceção formal declarada pleno Art. 7 Module Charter parcial Art. 8 Policy gating pendente Art. 9 Auditoria append-only pleno Art. 10 Ambiente reproduzível pleno 7 artigos plenos · 2 parciais · 1 pendente — o pendente é o gate de política, que segue em modo aviso. Scorecard SDD chega depois Carregando a seção … Saúde do ecossistema Três fontes das últimas 24 horas. Fonte não instalada nesta base aparece como travessão — nunca como zero. Jobs falhos em 24 h 3 fila do Horizon Custo de IA em 24 h R$ 41,80 tokens de entrada e saída Última narrativa 06:00 rotina diária 06:00 Três jobs de conciliação falharam de madrugada, todos no mesmo extrato do Sicredi. A fila drenou sozinha às 05:40. 05:12 Volume de chamadas ao MCP 22% acima da média para uma segunda-feira — origem é o balcão da ROTA LIVRE. 00:15 Fechamento do dia sem intercorrência: 41 vendas, 6 ordens de produção encerradas. Aguardando decisão ADRs em estado proposto, do mais recente ao mais antigo. Teto de dez — o painel é visão de topo. 0372 Fila de impressão como máquina de estados há 2 dias 0371 Retenção de anexos por módulo (LGPD Art. 16) há 3 dias 0369 Ledger de conformidade do design system há 5 dias 0368 Cotas por ator no servidor MCP há 6 dias 0367 Orçamento versionado sem clonar registro há 9 dias 0365 Catraca semântica: enum nunca aparece cru há 12 dias 0364 Escopo de anexo por negócio no DMS há 18 dias Ocorrências em 24 horas Chamadas ao servidor MCP com resultado diferente de concluído. Detalhe completo na vista de auditoria. 18:42 delphi-wr-comercial vendas.registrar Cota excedida 41 ms 17:05 jana-brain-b financeiro.conciliar Erro 2380 ms 16:58 jana-brain-b financeiro.conciliar Erro 2411 ms 15:30 app-tecnico os.anexo Negado 12 ms 14:12 claude-code memory.write Negado 8 ms 11:47 delphi-oficina — Erro 1902 ms 09:21 app-tecnico os.fechar Negado 15 ms 08:03 jana-brain-a bi.narrar Erro 3105 ms 07:14 delphi-wr-comercial estoque.baixar Cota excedida 37 ms Governança MCP Consumo cross-team do servidor MCP. A seção herda a permissão da tela de origem — jana.mcp.usage.all —, não a do painel. Hoje Ontem 7 dias 30 dias Mês anterior Carregando a seção …",
+  "url": "http://127.0.0.1:5571/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 86
+  },
+  "theme": "light",
+  "assinatura": "OI WR Governança — auditoria A raiz /governance redireciona para /ia · o painel vive em /governance/dashboard Estado da base Base completa Fontes ausentes Falha ao carregar Sem permissão superadmin · cross-tenant Painel Políticas Auditoria Drift Registro imutável O registro de auditoria é append-only por trigger no banco: nenhuma tela, rotina ou administrador altera uma linha. Alterar uma é incidente P0 — por isso aqui não existe editar, apagar nem corrigir. Período 1 h 24 h 7 dias 30 dias Ator Todos delphi-wr-comercial delphi-oficina jana-bi jana-copiloto claude-code app-tecnico Endpoint Todos tools/call tools/list resources/read resources/list prompts/get Resultado Todos Concluído Negado Erro Cota excedida Não existe janela maior que 30 dias — a consulta sem índice composto fica cara demais. Registros na janela 200 de 260 no período Com erro 4 resultado erro na amostra Atores distintos 6 na mesma amostra Quando Ator Endpoint Ferramenta / recurso Resultado Duração 23/08 18:57 claude-code resources/list memory.write Concluído 91 ms 23/08 18:55 delphi-oficina resources/read memory.search Concluído 66 ms 23/08 18:49 delphi-wr-comercial resources/read os.anexo Concluído 109 ms 23/08 18:44 jana-copiloto tools/call estoque.baixar Negado 294 ms 23/08 18:40 claude-code resources/list memory.search Concluído 153 ms 23/08 18:33 claude-code tools/call memory.search Concluído 72 ms 23/08 18:30 delphi-wr-comercial resources/list bi.narrar Concluído 222 ms 23/08 18:25 delphi-wr-comercial resources/read memory.write Concluído 25 ms 23/08 18:19 jana-bi resources/read clientes.buscar Concluído 242 ms 23/08 18:15 jana-bi tools/list os.abrir Concluído 237 ms 23/08 18:09 claude-code prompts/get bi.narrar Concluído 61 ms 23/08 18:04 claude-code resources/read vendas.registrar Concluído 58 ms 23/08 17:59 jana-bi tools/call clientes.buscar Concluído 275 ms 23/08 17:52 jana-copiloto tools/list clientes.buscar Concluído 201 ms 23/08 17:47 jana-copiloto resources/list estoque.baixar Negado 234 ms 23/08 17:43 delphi-wr-comercial resources/list bi.narrar Concluído 280 ms 23/08 17:40 app-tecnico resources/list memory.search Concluído 85 ms 23/08 17:34 jana-copiloto prompts/get bi.narrar Concluído 143 ms 23/08 17:29 jana-copiloto resources/read os.fechar Concluído 207 ms 23/08 17:24 delphi-wr-comercial tools/list os.abrir Concluído 190 ms 23/08 17:17 jana-bi resources/read memory.write Concluído 126 ms 23/08 17:15 jana-copiloto resources/list os.fechar Concluído 22 ms 23/08 17:08 jana-bi resources/list memory.search Cota excedida 81 ms 23/08 17:02 delphi-oficina tools/call vendas.registrar Concluído 277 ms 23/08 16:58 jana-copiloto tools/call vendas.registrar Concluído 94 ms 23/08 16:52 jana-copiloto resources/list estoque.baixar Concluído 216 ms 23/08 16:50 app-tecnico resources/read os.fechar Concluído 255 ms 23/08 16:44 jana-bi tools/list os.anexo Concluído 289 ms 23/08 16:39 delphi-wr-comercial tools/list os.anexo Erro 2617 ms 23/08 16:34 app-tecnico tools/call clientes.buscar Negado 112 ms 23/08 16:28 claude-code resources/list bi.narrar Concluído 8 ms 23/08 16:25 delphi-wr-comercial prompts/get bi.narrar Concluído 69 ms 23/08 16:17 jana-bi resources/read os.anexo Concluído 76 ms 23/08 16:12 delphi-oficina prompts/get memory.write Concluído 147 ms 23/08 16:07 delphi-oficina resources/read clientes.buscar Erro 2680 ms 23/08 16:04 jana-copiloto tools/list os.fechar Concluído 58 ms 23/08 15:59 jana-bi prompts/get financeiro.conciliar Concluído 50 ms 23/08 15:55 jana-copiloto tools/list vendas.registrar Concluído 154 ms 23/08 15:49 delphi-oficina tools/list clientes.buscar Concluído 284 ms 23/08 15:45 claude-code tools/list clientes.buscar Concluído 258 ms 23/08 15:39 delphi-wr-comercial tools/call memory.search Concluído 203 ms 23/08 15:35 jana-bi tools/list vendas.registrar Concluído 30 ms 23/08 15:27 jana-bi resources/read estoque.baixar Concluído 197 ms 23/08 15:25 delphi-wr-comercial tools/call estoque.baixar Concluído 81 ms 23/08 15:17 app-tecnico tools/list os.abrir Concluído 227 ms 23/08 15:14 jana-bi prompts/get estoque.baixar Concluído 137 ms 23/08 15:08 delphi-oficina resources/read memory.write Concluído 302 ms 23/08 15:02 jana-copiloto resources/list clientes.buscar Concluído 178 ms 23/08 15:00 delphi-wr-comercial resources/read memory.search Concluído 86 ms 23/08 14:55 jana-bi prompts/get os.anexo Concluído 294 ms 23/08 14:50 delphi-oficina resources/read memory.write Concluído 199 ms 23/08 14:44 claude-code tools/list os.anexo Concluído 42 ms 23/08 14:40 delphi-wr-comercial resources/list memory.search Concluído 34 ms 23/08 14:34 jana-bi resources/read memory.search Concluído 299 ms 23/08 14:30 app-tecnico tools/list financeiro.conciliar Concluído 274 ms 23/08 14:24 app-tecnico resources/list estoque.baixar Concluído 65 ms 23/08 14:17 delphi-oficina resources/read memory.search Concluído 206 ms 23/08 14:12 jana-copiloto resources/list estoque.baixar Negado 172 ms 23/08 14:10 claude-code tools/list memory.search Concluído 40 ms 23/08 14:03 app-tecnico resources/list os.abrir Concluído 238 ms 23/08 13:59 app-tecnico tools/list clientes.buscar Concluído 276 ms 23/08 13:54 jana-copiloto prompts/get os.abrir Concluído 51 ms 23/08 13:50 delphi-oficina resources/list os.fechar Concluído 203 ms 23/08 13:45 claude-code resources/read os.abrir Concluído 303 ms 23/08 13:37 jana-copiloto prompts/get vendas.registrar Concluído 11 ms 23/08 13:34 delphi-oficina resources/list financeiro.conciliar Concluído 199 ms 23/08 13:30 app-tecnico prompts/get estoque.baixar Concluído 180 ms 23/08 13:24 claude-code resources/list memory.write Concluído 198 ms 23/08 13:20 jana-copiloto resources/read os.fechar Concluído 150 ms 23/08 13:13 jana-bi tools/list memory.write Concluído 24 ms 23/08 13:10 jana-bi tools/call vendas.registrar Concluído 37 ms 23/08 13:02 jana-bi tools/list os.fechar Cota excedida 239 ms 23/08 12:58 delphi-wr-comercial resources/list memory.search Concluído 287 ms 23/08 12:52 jana-bi prompts/get clientes.buscar Concluído 249 ms 23/08 12:47 claude-code resources/read os.fechar Concluído 29 ms 23/08 12:43 app-tecnico prompts/get os.anexo Concluído 46 ms 23/08 12:40 delphi-wr-comercial tools/list os.anexo Concluído 291 ms 23/08 12:34 jana-bi resources/read estoque.baixar Concluído 84 ms 23/08 12:27 delphi-wr-comercial prompts/get os.abrir Concluído 307 ms 23/08 12:24 delphi-wr-comercial tools/call vendas.registrar Erro 2301 ms 23/08 12:17 delphi-wr-comercial tools/list os.anexo Concluído 199 ms 23/08 12:15 app-tecnico tools/call estoque.baixar Concluído 106 ms 23/08 12:09 jana-copiloto tools/list os.abrir Concluído 137 ms 23/08 12:05 jana-copiloto resources/list vendas.registrar Concluído 26 ms 23/08 11:57 delphi-wr-comercial prompts/get vendas.registrar Concluído 93 ms 23/08 11:54 delphi-oficina tools/call memory.write Concluído 168 ms 23/08 11:50 delphi-wr-comercial resources/read memory.write Concluído 53 ms 23/08 11:44 app-tecnico tools/call os.fechar Concluído 9 ms 23/08 11:39 jana-copiloto resources/list financeiro.conciliar Concluído 252 ms 23/08 11:32 jana-copiloto resources/list financeiro.conciliar Concluído 90 ms 23/08 11:27 app-tecnico resources/list os.fechar Concluído 24 ms 23/08 11:22 jana-copiloto tools/call os.abrir Concluído 221 ms 23/08 11:17 delphi-wr-comercial tools/list os.fechar Concluído 242 ms 23/08 11:15 app-tecnico resources/list financeiro.conciliar Concluído 296 ms 23/08 11:10 claude-code tools/list memory.write Concluído 302 ms 23/08 11:02 app-tecnico tools/call os.anexo Concluído 265 ms 23/08 10:59 delphi-oficina resources/list vendas.registrar Concluído 237 ms 23/08 10:54 delphi-oficina prompts/get memory.search Concluído 194 ms 23/08 10:49 claude-code tools/call memory.search Concluído 118 ms 23/08 10:45 delphi-wr-comercial resources/read memory.search Concluído 254 ms 23/08 10:37 delphi-oficina resources/list os.anexo Concluído 196 ms 23/08 10:34 jana-bi resources/read os.fechar Concluído 257 ms 23/08 10:27 app-tecnico tools/list clientes.buscar Concluído 233 ms 23/08 10:24 app-tecnico tools/list os.fechar Concluído 78 ms 23/08 10:18 jana-copiloto tools/call clientes.buscar Negado 66 ms 23/08 10:13 jana-bi tools/call os.anexo Concluído 111 ms 23/08 10:09 delphi-wr-comercial resources/read estoque.baixar Concluído 235 ms 23/08 10:05 claude-code tools/call clientes.buscar Concluído 300 ms 23/08 10:00 jana-bi resources/list os.fechar Concluído 195 ms 23/08 09:55 delphi-wr-comercial tools/list bi.narrar Concluído 283 ms 23/08 09:47 delphi-wr-comercial prompts/get vendas.registrar Concluído 237 ms 23/08 09:43 app-tecnico tools/call os.abrir Concluído 124 ms 23/08 09:37 app-tecnico resources/list financeiro.conciliar Concluído 252 ms 23/08 09:34 jana-copiloto prompts/get os.abrir Cota excedida 249 ms 23/08 09:29 app-tecnico tools/call estoque.baixar Concluído 25 ms 23/08 09:22 app-tecnico prompts/get bi.narrar Concluído 297 ms 23/08 09:18 jana-bi prompts/get bi.narrar Concluído 199 ms 23/08 09:12 delphi-wr-comercial tools/list clientes.buscar Concluído 106 ms 23/08 09:07 jana-copiloto tools/list estoque.baixar Concluído 113 ms 23/08 09:05 app-tecnico tools/list memory.write Concluído 105 ms 23/08 08:58 app-tecnico resources/list financeiro.conciliar Concluído 143 ms 23/08 08:55 delphi-wr-comercial resources/read os.anexo Concluído 206 ms 23/08 08:50 jana-copiloto resources/list os.anexo Concluído 159 ms 23/08 08:42 delphi-wr-comercial tools/call clientes.buscar Concluído 25 ms 23/08 08:38 jana-copiloto tools/call memory.write Concluído 13 ms 23/08 08:33 delphi-wr-comercial tools/call vendas.registrar Concluído 147 ms 23/08 08:29 app-tecnico prompts/get bi.narrar Concluído 122 ms 23/08 08:25 app-tecnico prompts/get estoque.baixar Negado 257 ms 23/08 08:20 delphi-oficina tools/list vendas.registrar Concluído 302 ms 23/08 08:15 app-tecnico resources/read os.anexo Concluído 272 ms 23/08 08:08 jana-copiloto prompts/get memory.write Concluído 157 ms 23/08 08:03 jana-copiloto prompts/get os.abrir Concluído 31 ms 23/08 07:57 jana-copiloto resources/list os.fechar Concluído 210 ms 23/08 07:52 claude-code tools/call vendas.registrar Concluído 37 ms 23/08 07:47 jana-bi resources/read os.anexo Concluído 55 ms 23/08 07:44 jana-copiloto tools/call vendas.registrar Concluído 272 ms 23/08 07:38 claude-code resources/list financeiro.conciliar Concluído 78 ms 23/08 07:34 jana-bi tools/list clientes.buscar Concluído 13 ms 23/08 07:27 app-tecnico resources/read memory.write Concluído 116 ms 23/08 07:25 delphi-wr-comercial resources/list os.fechar Concluído 70 ms 23/08 07:20 claude-code prompts/get memory.write Concluído 121 ms 23/08 07:13 app-tecnico tools/call financeiro.conciliar Concluído 32 ms 23/08 07:09 delphi-wr-comercial tools/list memory.search Concluído 236 ms 23/08 07:04 app-tecnico tools/call os.abrir Concluído 168 ms 23/08 06:58 delphi-oficina tools/call clientes.buscar Concluído 128 ms 23/08 06:55 app-tecnico tools/list os.abrir Concluído 134 ms 23/08 06:49 jana-bi tools/list vendas.registrar Concluído 192 ms 23/08 06:44 delphi-wr-comercial prompts/get vendas.registrar Cota excedida 97 ms 23/08 06:40 app-tecnico resources/read clientes.buscar Concluído 304 ms 23/08 06:33 delphi-oficina tools/call os.anexo Concluído 184 ms 23/08 06:29 claude-code tools/list memory.write Concluído 147 ms 23/08 06:25 jana-copiloto prompts/get os.fechar Concluído 35 ms 23/08 06:19 claude-code prompts/get os.anexo Concluído 87 ms 23/08 06:15 claude-code tools/call financeiro.conciliar Concluído 83 ms 23/08 06:08 app-tecnico resources/read bi.narrar Concluído 287 ms 23/08 06:04 app-tecnico resources/read os.abrir Concluído 138 ms 23/08 06:00 claude-code tools/call os.anexo Erro 3309 ms 23/08 05:53 jana-copiloto resources/read estoque.baixar Concluído 142 ms 23/08 05:48 jana-copiloto prompts/get financeiro.conciliar Concluído 268 ms 23/08 05:45 jana-bi resources/list os.anexo Cota excedida 59 ms 23/08 05:38 jana-bi resources/read vendas.registrar Concluído 199 ms 23/08 05:33 jana-copiloto tools/call financeiro.conciliar Concluído 48 ms 23/08 05:28 delphi-oficina prompts/get financeiro.conciliar Concluído 149 ms 23/08 05:22 delphi-oficina tools/call os.anexo Concluído 233 ms 23/08 05:18 jana-bi resources/read clientes.buscar Concluído 8 ms 23/08 05:14 app-tecnico resources/read memory.write Concluído 27 ms 23/08 05:08 claude-code tools/call os.abrir Concluído 203 ms 23/08 05:03 jana-copiloto resources/read bi.narrar Concluído 246 ms 23/08 05:00 delphi-wr-comercial tools/list os.fechar Concluído 255 ms 23/08 04:54 claude-code resources/read vendas.registrar Concluído 228 ms 23/08 04:49 delphi-oficina resources/list financeiro.conciliar Concluído 23 ms 23/08 04:43 delphi-oficina tools/call os.fechar Concluído 293 ms 23/08 04:38 jana-bi tools/call financeiro.conciliar Concluído 277 ms 23/08 04:34 claude-code resources/list os.fechar Concluído 188 ms 23/08 04:27 delphi-oficina resources/read estoque.baixar Concluído 285 ms 23/08 04:22 claude-code resources/read os.fechar Concluído 283 ms 23/08 04:20 app-tecnico resources/read clientes.buscar Concluído 128 ms 23/08 04:14 app-tecnico tools/call bi.narrar Concluído 13 ms 23/08 04:07 jana-bi tools/list financeiro.conciliar Concluído 175 ms 23/08 04:04 app-tecnico resources/read os.anexo Concluído 81 ms 23/08 03:58 delphi-oficina prompts/get os.abrir Concluído 22 ms 23/08 03:53 delphi-wr-comercial tools/list os.anexo Concluído 138 ms 23/08 03:50 claude-code resources/list memory.write Concluído 244 ms 23/08 03:45 app-tecnico prompts/get vendas.registrar Concluído 301 ms 23/08 03:39 jana-bi resources/read os.abrir Concluído 193 ms 23/08 03:35 delphi-wr-comercial prompts/get os.fechar Concluído 207 ms 23/08 03:29 jana-copiloto resources/read os.abrir Concluído 302 ms 23/08 03:24 jana-copiloto tools/list memory.write Concluído 83 ms 23/08 03:17 delphi-wr-comercial tools/call memory.write Cota excedida 94 ms 23/08 03:12 jana-copiloto prompts/get memory.write Concluído 44 ms 23/08 03:08 jana-bi resources/list clientes.buscar Concluído 280 ms 23/08 03:04 jana-copiloto tools/list os.anexo Concluído 66 ms 23/08 02:58 delphi-oficina tools/list os.anexo Concluído 62 ms 23/08 02:53 delphi-wr-comercial tools/call clientes.buscar Concluído 234 ms 23/08 02:49 delphi-wr-comercial resources/list estoque.baixar Concluído 160 ms 23/08 02:43 app-tecnico tools/call bi.narrar Concluído 208 ms 23/08 02:37 claude-code tools/list os.abrir Concluído 96 ms 23/08 02:35 jana-copiloto tools/call clientes.buscar Concluído 187 ms 23/08 02:30 claude-code prompts/get estoque.baixar Concluído 183 ms 23/08 02:24 claude-code resources/list estoque.baixar Concluído 113 ms Teto de 200 registros por consulta — o período tem 260 . Refine os filtros para ver mais: o que está fora da amostra não entra nos indicadores acima.",
   "roles": {
     "kpi": {
-      "count": 0,
-      "tag": null,
-      "overflowX": null,
-      "items": []
+      "count": 3,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Registros na j",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Com erro4resul",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Atores distint",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
     },
     "title": {
       "fontPx": 22,
-      "weight": "700",
-      "color": "oklch(0.94 0.005 90)"
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
     },
     "primary": null,
-    "filterRows": null,
+    "filterRows": 3,
     "contratos": [
       {
         "nome": "page-header",
@@ -45,7 +75,7 @@
         "exemplos": {}
       },
       {
-        "nome": "kpis-constituicao",
+        "nome": "auditoria-selo",
         "classes": {
           "dataIso": 0,
           "dataBr": 0,
@@ -54,7 +84,7 @@
         "exemplos": {}
       },
       {
-        "nome": "conformidade-regua",
+        "nome": "auditoria-filtros",
         "classes": {
           "dataIso": 0,
           "dataBr": 0,
@@ -63,7 +93,7 @@
         "exemplos": {}
       },
       {
-        "nome": "card-sdd",
+        "nome": "auditoria-kpis",
         "classes": {
           "dataIso": 0,
           "dataBr": 0,
@@ -72,7 +102,7 @@
         "exemplos": {}
       },
       {
-        "nome": "saude-ecossistema",
+        "nome": "auditoria-tabela",
         "classes": {
           "dataIso": 0,
           "dataBr": 0,
@@ -81,34 +111,7 @@
         "exemplos": {}
       },
       {
-        "nome": "aguardando-decisao",
-        "classes": {
-          "dataIso": 0,
-          "dataBr": 0,
-          "snakeCru": 0
-        },
-        "exemplos": {}
-      },
-      {
-        "nome": "ocorrencias-24h",
-        "classes": {
-          "dataIso": 0,
-          "dataBr": 0,
-          "snakeCru": 0
-        },
-        "exemplos": {}
-      },
-      {
-        "nome": "mcp-secao",
-        "classes": {
-          "dataIso": 0,
-          "dataBr": 0,
-          "snakeCru": 0
-        },
-        "exemplos": {}
-      },
-      {
-        "nome": "mcp-periodo",
+        "nome": "auditoria-teto",
         "classes": {
           "dataIso": 0,
           "dataBr": 0,
@@ -117,70 +120,105 @@
         "exemplos": {}
       }
     ],
-    "celulas": null,
-    "tabela": null,
-    "shell": {
-      "papeis": {
-        "atalhoTopo": {
-          "seletor": ".sb-menu > .sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "itemGrupo": {
-          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "grupoHeader": {
-          "seletor": ".sb-group-h",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "containerMenu": {
-          "seletor": ".sb-menu",
-          "n": 1,
-          "css": {
-            "height": "525px",
-            "minHeight": "0px",
-            "padding": "4px 0px",
-            "margin": "0px",
-            "gap": "2px",
-            "display": "flex",
-            "alignItems": "center",
-            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
-            "fontSize": "13.5px",
-            "fontWeight": "400",
-            "lineHeight": "19.575px",
-            "letterSpacing": "normal",
-            "textTransform": "none",
-            "color": "oklch(0.8 0.008 295)",
-            "backgroundColor": "rgba(0, 0, 0, 0)",
-            "borderRadius": "0px",
-            "borderWidth": "0px",
-            "borderColor": "oklch(0.8 0.008 295)",
-            "opacity": "1",
-            "width": "55px",
-            "boxShadow": "none",
-            "textDecorationLine": "none"
-          },
-          "caixa": {
-            "w": 55,
-            "h": 525
-          },
-          "icone": {
-            "w": 18,
-            "h": 18,
-            "strokeWidth": "1.6px"
-          }
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 27.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 34.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.55 0.17 150 / 0.08)",
+          "dot": false
         }
       },
-      "atalhos": []
-    }
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 7.4,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 200,
+      "linhasComEstado": 16
+    },
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "medidoEm": "2026-11-24",
+    "fonte": "prototipo-ui/cowork/Wagner/governance-page.jsx (+ governance-telas.jsx)",
+    "fonteSha256Prefixo": {
+      "governance-page.jsx": "3b1b79c13065",
+      "governance-telas.jsx": "c82e0d6bf8a3"
+    },
+    "ultimoCommitFonte": "34b12a7869 2026-11-19",
+    "rota": "oimpresso.route=gov-auditoria",
+    "viewport": "1280x900",
+    "tema": "claro (__setTweak theme light)"
   }
 }

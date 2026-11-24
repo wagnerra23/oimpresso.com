@@ -32,3 +32,19 @@ gerado_em: 2026-09-29
 - `grep -nEi 'yaml|ilegível|parse' resources/js/Pages/governance/DriftAlerts.tsx` → 0
 - `grep -nEi 'Suprimir|ignorar|snooze' resources/js/Pages/governance/DriftAlerts.tsx` → 0
 - `sed -n 155,216p prototipo-ui/cowork/Wagner/governance-telas.jsx ／ grep -cEi 'Abrir|github|href'` → 0 (ausência no mockup, sustenta o "vivo à frente" dos links; em 2026-09-06 a faixa da `DriftView` era 159-223 — o protótipo re-exportou e ela hoje é 155-216, re-medido em 2026-09-29)
+
+---
+
+## Medição design-diff 2026-11-24 (L6) — substitui a de 2026-09-18 [CC]
+
+Mede `governance/DriftAlerts` (/governance/drift) contra a vista `gov-drift` do protótipo (`prototipo-ui/cowork/Wagner/governance-page.jsx` sha256 `3b1b79c13065…` + `governance-telas.jsx` `c82e0d6bf8a3…`, último commit `34b12a7869` de 2026-11-19, a versão do L5). Tema claro, 1280×900, produção `biz=1`. Método e canário: [visual-comparison do Dashboard, seção "Medição 2026-11-24"](../Jana/governance-dashboard-extension-visual-comparison.md).
+
+A medida de 2026-09-18 não valia: os 4 `design.json` tinham o mesmo sha256 (`a87886…`) porque o lote abria a rota do grupo (`route=governance`, a vista painel) para as 4 telas; Audit, Policies e DriftAlerts nunca tinham sido medidas contra a vista delas. O override `governance/design/targets/roles/governance--DriftAlerts.json` fixa o token da vista.
+
+Reproduz: `node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/governance--DriftAlerts/prod.json governance/design/targets/medidas/governance--DriftAlerts/design.json --check`
+
+**Veredito: IGUAL nas dimensões medidas (D2, D4, D6, D8) — 0 DIVERGE(bug).** 4 KPIs dos dois lados, título 22px/600.
+
+Lido no DOM: título "Drift Alerts" × "Governança — drift de escopo"; o 4º KPI é "Total módulos" × "Módulos no total". Fora do lote L5 por decisão [W].
+
+Fora do veredito nas 4 telas: o shell (sidebar) não foi medido; o `IGUAL` de cor (D6) é fraco, porque os tokens de cor de produção não resolvem na raiz do documento (`--accent`, `--border`… vivem no `.cockpit`); e D9 sai SEM-DADO onde as regiões `data-contract` só existem de um lado.
