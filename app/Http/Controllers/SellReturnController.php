@@ -391,6 +391,7 @@ class SellReturnController extends Controller
             'transactions.invoice_no',
             'transactions.transaction_date',
             'transactions.final_total',
+            'transactions.contact_id',
             'contacts.name as contato_nome',
             'contacts.supplier_business_name as contato_empresa',
             'contacts.tax_number as contato_documento',
@@ -413,6 +414,8 @@ class SellReturnController extends Controller
                 'id' => (int) $r->getAttribute('id'),
                 'numero' => (string) $r->getAttribute('invoice_no'),
                 'data' => (string) $r->getAttribute('transaction_date'),
+                // A tela só junta numa mesma devolução vendas do MESMO cliente.
+                'contato_id' => $r->getAttribute('contact_id') === null ? null : (int) $r->getAttribute('contact_id'),
                 'cliente' => $r->getAttribute('contato_empresa') ?: $r->getAttribute('contato_nome'),
                 'documento' => $r->getAttribute('contato_documento') ?: null,
                 'uf' => $r->getAttribute('contato_uf') ?: null,

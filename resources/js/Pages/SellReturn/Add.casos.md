@@ -5,7 +5,7 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-11-23"
+last_run: "2026-11-24"
 last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40976713795 (634 passed · 5182 assertions)"
 ---
 
@@ -205,3 +205,4 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 - 2026-10-23 · [M+C] Backlog: devolver tudo e segunda devolução da mesma venda, sem id.
 - 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.
+- 2026-11-24 · [CC] Add.tsx lê a `?fila=` de SellReturn/Create (UC-SRCRE-09): salva a venda e abre a próxima escolhida; sem fila, volta à lista como antes. O post ao `store()` não mudou — UC-SRADD-* seguem valendo (revalidados pela leitura do diff; o veredito da lane é deste PR).
