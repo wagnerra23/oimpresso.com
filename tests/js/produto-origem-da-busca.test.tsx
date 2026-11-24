@@ -27,7 +27,7 @@ describe('UC-PIDX-53 · contrato de ida e volta', () => {
     const guardada = JSON.stringify({ de: '/producao/os/9', rotulo: 'OS 9', para: null });
     expect(lerOrigem('?q=lona', guardada)).toEqual({ de: '/producao/os/9', rotulo: 'OS 9', para: null, canal: null });
 
-    // Aba nova (UC-V410): o canal da aba de origem vem na URL; id estranho vira null.
+    // Aba nova (UC-V413): o canal da aba de origem vem na URL; id estranho vira null.
     expect(lerOrigem('?de=%2Fsells%2Fcreate-v3&canal=abc-123', null)?.canal).toBe('abc-123');
     expect(lerOrigem('?de=%2Fsells%2Fcreate-v3&canal=a%2Fb', null)?.canal).toBeNull();
     expect(lerOrigem('', JSON.stringify({ de: '/a', rotulo: 'A', canal: 'xyz-9' }))?.canal).toBe('xyz-9');

@@ -409,7 +409,7 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 
 Âncora: `ComissaoResumo` e o pagamento de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. Lá a nota sobre `payment_status=due` está dentro de `<Meta>`, que só aparece no modo de anotação do protótipo; a produção a mostrava a todo operador. Até 2026-11-24 o resumo mostrava só a "Base líquida" e um parágrafo dizendo que a comissão por beneficiário fazia "parte do porte da comissão — próximo passo", e a condição de pagamento aparecia só pelo código ("18").
 
-## UC-V410 · "Procurar na lista de produtos" abre a lista numa aba nova e devolve o produto para o lançamento
+## UC-V413 · "Procurar na lista de produtos" abre a lista numa aba nova e devolve o produto para o lançamento
 
 **Status:** 🧪 — `tests/js/sells-v3-procurar-na-lista.test.tsx`, sem veredito no manifesto ainda.
 

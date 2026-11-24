@@ -512,7 +512,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabelaId]);
 
-  /* UC-V410 — "Procurar na lista de produtos": a lista abre numa aba nova e devolve o produto
+  /* UC-V413 — "Procurar na lista de produtos": a lista abre numa aba nova e devolve o produto
      por mensagem. A venda põe o SKU na própria busca e só abre o lançamento com o resultado DELA
      (preço, unidade e estoque da busca de sempre — `procurar-na-lista.ts`). */
   const [canalDaVenda] = useState(novoCanal);

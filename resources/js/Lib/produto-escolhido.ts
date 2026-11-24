@@ -1,4 +1,4 @@
-// Produto escolhido na lista de produtos, entregue a OUTRA ABA (UC-PIDX-53 · UC-V410).
+// Produto escolhido na lista de produtos, entregue a OUTRA ABA (UC-PIDX-53 · UC-V413).
 //
 // Quem está montando um documento que não guarda rascunho (a Nova venda V3) não pode trocar de
 // página: perderia o que montou. Ele abre a lista de produtos numa aba nova com

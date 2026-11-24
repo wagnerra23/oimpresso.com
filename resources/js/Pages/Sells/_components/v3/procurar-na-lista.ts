@@ -1,4 +1,4 @@
-// "Procurar na lista de produtos" da Nova venda V3 (UC-V410 · UC-PIDX-53).
+// "Procurar na lista de produtos" da Nova venda V3 (UC-V413 · UC-PIDX-53).
 //
 // A venda não guarda rascunho: sair da página perde o que foi montado. Por isso a lista de
 // produtos abre numa ABA NOVA, e o produto escolhido lá volta por mensagem entre abas

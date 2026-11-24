@@ -1,5 +1,5 @@
 /**
- * Nova venda V3 — "Procurar na lista de produtos" (UC-V410 · UC-PIDX-53).
+ * Nova venda V3 — "Procurar na lista de produtos" (UC-V413 · UC-PIDX-53).
  *
  * A lista abre numa aba nova (a venda não guarda rascunho) e devolve o produto por mensagem entre
  * abas (`@/Lib/produto-escolhido`). REGRA MESTRE (valor): o produto volta SEM preço; a venda põe o
@@ -91,7 +91,7 @@ function abrirVenda(): string {
   return new URLSearchParams(url.split('?')[1]).get('canal') ?? '';
 }
 
-describe('UC-V410 · a lista abre numa aba nova com o caminho de volta e o canal', () => {
+describe('UC-V413 · a lista abre numa aba nova com o caminho de volta e o canal', () => {
   it('a URL leva de, de_rotulo, para e um canal válido', () => {
     expect(urlDaListaDeProdutos('/sells/create-v3?x=1', ' Banner ', 'abc-1')).toBe(
       '/products?de=%2Fsells%2Fcreate-v3%3Fx%3D1&de_rotulo=Nova+venda&canal=abc-1&para=Banner',
@@ -101,7 +101,7 @@ describe('UC-V410 · a lista abre numa aba nova com o caminho de volta e o canal
   });
 });
 
-describe('UC-V410 · dupla prova do valor: lista × clique na busca', () => {
+describe('UC-V413 · dupla prova do valor: lista × clique na busca', () => {
   it('o produto vindo da lista abre o mesmo lançamento que o clique no resultado', async () => {
     // Caminho 1 — o de sempre: digita o SKU e clica no resultado.
     render(<SellsCreateV3 cena={cena as never} gravacao={gravacao as never} />);
@@ -151,7 +151,7 @@ describe('UC-V410 · dupla prova do valor: lista × clique na busca', () => {
   });
 });
 
-describe('UC-V410 · peças puras', () => {
+describe('UC-V413 · peças puras', () => {
   it('o achado só sai quando há exatamente uma variação daquele produto', () => {
     const p = (sku: string) => ({ sku, nome: sku, un: 'un', preco: 1, estoque: 1, tipo: 'produto' as const, ean: null, fabrica: null, categoria: null });
     const dono: Record<string, number> = { A: 1, B: 2, C: 2 };
