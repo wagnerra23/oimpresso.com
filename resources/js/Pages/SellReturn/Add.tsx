@@ -55,6 +55,17 @@ interface VendaOrigem {
   desconto_tipo: string;
   desconto_valor_txt: string;
   linhas: LinhaVenda[];
+  // Onda 1 Devolução V3: null esconde a seção (flag desligada, sem permissão fiscal ou sem devolução salva).
+  nfe_devolucao: NfeDevolucao | null;
+}
+
+/** O servidor responde com a mesma checagem da rota de emissão: a tela não promete o que ela recusa. */
+interface NfeDevolucao {
+  devolucao_id: number;
+  disponivel: boolean;
+  motivo: string | null;
+  itens: number;
+  nota_origem: string | null;
 }
 
 /** POST /sell-return/previa-financeira/{venda} — conta do servidor (UC-SRADD-09). */
@@ -450,6 +461,44 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
 }
 
 // ──────────────────────────────────────────────────────────────
+// NF-E DE DEVOLUÇÃO (onda 1 do protótipo Devolução V3)
+// ──────────────────────────────────────────────────────────────
+// Fica fora do formulário: vale para a devolução JÁ SALVA, nunca para o que está sendo editado.
+// O servidor diz se dá para emitir e por quê não; o botão só chama a rota do Fiscal.
+function SecaoNfeDevolucao({ nfe }: { nfe: NfeDevolucao }) {
+  const [enviando, setEnviando] = useState(false);
+
+  function emitir() {
+    setEnviando(true);
+    router.post(`/fiscal/acoes/venda-devolucao/${nfe.devolucao_id}/nfe`, {}, {
+      preserveScroll: true,
+      onFinish: () => setEnviando(false),
+    });
+  }
+
+  return (
+    <div className="mt-4" data-contract="nfe-devolucao">
+      <FormSection title="NF-e de devolução">
+        {nfe.disponivel ? (
+          <Inline justify="between" gap={3} className="flex-wrap items-center">
+            <p className="text-sm">
+              Declara {nfe.itens} {nfe.itens === 1 ? 'item' : 'itens'} da devolução salva
+              {nfe.nota_origem ? `, referenciando a NF-e ${nfe.nota_origem}` : ''}. Base e alíquotas vêm da nota de
+              origem.
+            </p>
+            <Button type="button" onClick={emitir} disabled={enviando}>
+              {enviando ? 'Emitindo…' : 'Emitir NF-e de devolução'}
+            </Button>
+          </Inline>
+        ) : (
+          <p className="text-sm text-muted-foreground">{nfe.motivo}</p>
+        )}
+      </FormSection>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
 // PÁGINA
 // ──────────────────────────────────────────────────────────────
 export default function SellReturnAdd({ venda }: SellReturnAddProps) {
@@ -478,7 +527,14 @@ export default function SellReturnAdd({ venda }: SellReturnAddProps) {
       </Alert>
 
       <Deferred data="venda" fallback={<Skeleton className="mt-4 h-96 w-full" />}>
-        {venda ? <FormularioDevolucao venda={venda} /> : <></>}
+        {venda ? (
+          <>
+            <FormularioDevolucao venda={venda} />
+            {venda.nfe_devolucao && <SecaoNfeDevolucao nfe={venda.nfe_devolucao} />}
+          </>
+        ) : (
+          <></>
+        )}
       </Deferred>
     </AppShellV2>
   );

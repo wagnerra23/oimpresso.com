@@ -965,6 +965,17 @@ jobs:
         id: e2e-paymentgateway-cnab
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/PaymentGateway/CnabRetornoBrowserTest.php
+      # ── E2E DE COMPORTAMENTO + AXE — RecurringBilling, 6 telas (NASCE ADVISORY) ─────
+      # Assinaturas, Faturas, Configurações, Planos (lista, novo, editar) no Chromium real: cada
+      # tela cita um UC do casos.md, o dado do 99 não chega ao DOM do 98, axe CRITICAL.
+      # Auditoria RecurringBilling 2026-11-19, d13: `screen-coverage-map` dava e2e ✗ e axe 0.
+      # Tenant 98 / adversário 99 (ADR 0358); sem pixel (ADR 0445). Promover = remover o
+      # `continue-on-error` depois de 2 verdes que EXECUTARAM, lidos no log; é flip [W].
+      - name: E2E de comportamento + axe · RecurringBilling (6 telas) (ADVISORY)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
+        id: e2e-recurringbilling
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/RecurringBilling/TelasRecurringBillingBrowserTest.php
 
       # ── E2E DE COMPORTAMENTO + AXE — Fisio/Portal, portal do paciente (NASCE ADVISORY) ──
       # Auditoria do Fisio 2026-11-05, d18 / lote 9: nenhuma tela do Fisio abria num browser
@@ -1059,6 +1070,7 @@ jobs:
           A_FISIO_DEMAIS: ${{ steps.e2e-fisio-demais.outcome }}
           A_FISIO_CLINICA: ${{ steps.e2e-fisio-clinica.outcome }}
           A_FISIO_PORTAL: ${{ steps.e2e-fisio-portal.outcome }}
+          A_RB: ${{ steps.e2e-recurringbilling.outcome }}
         run: |
           resumo="$(mktemp)"
           {
@@ -1113,6 +1125,7 @@ jobs:
           registrar "E2E de comportamento + axe · Fisio/Demais telas" "$A_FISIO_DEMAIS"
           registrar "E2E de comportamento + axe · Fisio/Clínica" "$A_FISIO_CLINICA"
           registrar "E2E de comportamento + axe · Fisio/Portal" "$A_FISIO_PORTAL"
+          registrar "E2E de comportamento + axe · RecurringBilling (6 telas)" "$A_RB"
 
           {
             echo ""
