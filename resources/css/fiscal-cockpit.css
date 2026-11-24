@@ -1467,6 +1467,9 @@
 .fx-cockpit-notas .fx-sefaz.warn { color: var(--warn); border-color: color-mix(in oklch, var(--warn) 30%, transparent); background: color-mix(in oklch, var(--warn) 8%, transparent); }
 .fx-cockpit-notas .fx-sefaz.bad  { color: var(--bad);  border-color: color-mix(in oklch, var(--bad) 30%, transparent);  background: color-mix(in oklch, var(--bad) 8%, transparent); }
 .fx-cockpit-notas .fx-row-act { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: inherit; min-width: 24px; min-height: 24px; padding: 1px 5px; }
+.fx-cockpit-notas a.fx-row-act { display: inline-flex; align-items: center; text-decoration: none; }
+.fx-cockpit-notas tbody tr { cursor: pointer; }
+.fx-cockpit-notas tbody tr.sel td { background: var(--fis-soft); }
 
 /* ── DÉBITOS CONHECIDOS · forma do protótipo (fiscal-page.css L7, L216-223), medida em 2026-11-23. */
 .fx-page > .fx-debitos, .fx-debitos { margin-top: 8px; }
