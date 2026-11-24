@@ -8,6 +8,7 @@ use App\Scopes\ScopeByBusiness;
 use App\Services\Sells\IniciarPipelineVendaV3;
 use App\BusinessLocation;
 use App\SellingPriceGroup;
+use App\Transportadora;
 use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\BusinessUtil;
@@ -78,7 +79,8 @@ class SellsV3Controller extends Controller
                 'executantes' => [],
                 // A permissão de preço da cena (sempre true) dá lugar à do usuário (UC-V384).
                 'permissoes' => ['editarPrecoItem' => $gravacao['permissoes']['editarPreco']],
-                'transportadoras' => [],
+                // As transportadoras do cadastro DESTA empresa (UC-V409), não as da cena.
+                'transportadoras' => $this->transportadorasDaEmpresa((int) $businessId),
             ];
         }
 
@@ -284,6 +286,33 @@ class SellsV3Controller extends Controller
             // 1 = lançar o mesmo produto soma na linha; 0 = linha nova (pos.js, pos_product_row).
             'somaNaLinha' => (int) $business->item_addition_method === 1,
         ];
+    }
+
+    /**
+     * Transportadoras do cadastro (`/transportadoras`) desta empresa, no formato da consulta da
+     * tela. O código é o id, que vai em `transportadora_id` ao gravar. O cadastro não tem placa,
+     * ANTT nem modalidade: a placa se digita na venda e grava em `transactions.placa`.
+     *
+     * @return list<array{cod:string, nome:string, doc:string, uf:string, cidade:string, placa:string, antt:string, modal:string}>
+     */
+    private function transportadorasDaEmpresa(int $businessId): array
+    {
+        return Transportadora::with('cidade:id,nome,uf')
+            ->where('business_id', $businessId)
+            ->orderBy('razao_social')
+            ->get(['id', 'razao_social', 'cnpj_cpf', 'cidade_id'])
+            ->map(fn (Transportadora $t) => [
+                'cod' => (string) $t->id,
+                'nome' => (string) $t->razao_social,
+                'doc' => (string) $t->cnpj_cpf,
+                'uf' => (string) ($t->cidade->uf ?? ''),
+                'cidade' => (string) ($t->cidade->nome ?? ''),
+                'placa' => '',
+                'antt' => '',
+                'modal' => 'Rodoviário',
+            ])
+            ->values()
+            ->all();
     }
 
     /**
