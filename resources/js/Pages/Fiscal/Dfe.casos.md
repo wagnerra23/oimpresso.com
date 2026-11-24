@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
 last_run: "2026-11-24"
-last_run_ci: "5 UC executados nesta corrida, em duas lanes diferentes — UC-FDFE-06 (vitest/jsdom: 4 casos verdes + 3 mutações provando que morde), UC-FDFE-07/08 (Pest no CT 100/MySQL: 3 passed / 9 assertions) e UC-FDFE-09/10 (Pest no CT 100/MySQL: 5 passed / 27 assertions). Os três blocos têm bite-test: mutar 1 das 4 chamadas → 1 failed nos 07/08; no 10, derrubar AS DUAS camadas de isolamento (o `where` explícito E o global scope) → 1 failed, porque cada uma segura sozinha. Os UC-FDFE-01..05 NÃO foram re-executados: são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava."
+last_run_ci: "revalidado em 2026-11-24: título 'Manifesto DF-e', como no protótipo (era 'Manifestação do destinatário'). Nenhum UC cita o título; a âncora do visreg foi trocada junto. Anterior: 5 UC executados nesta corrida, em duas lanes diferentes — UC-FDFE-06 (vitest/jsdom: 4 casos verdes + 3 mutações provando que morde), UC-FDFE-07/08 (Pest no CT 100/MySQL: 3 passed / 9 assertions) e UC-FDFE-09/10 (Pest no CT 100/MySQL: 5 passed / 27 assertions). Os três blocos têm bite-test: mutar 1 das 4 chamadas → 1 failed nos 07/08; no 10, derrubar AS DUAS camadas de isolamento (o `where` explícito E o global scope) → 1 failed, porque cada uma segura sozinha. Os UC-FDFE-01..05 NÃO foram re-executados: são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava."
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 

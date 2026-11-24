@@ -14,7 +14,7 @@
     "nFolhas": 6
   },
   "theme": "light",
-  "assinatura": "Governança Governança MCP Custo Consumo 30 dias Políticas ativas Aprovações de skill Atores registrados Ocorrências em 24 h Conformidade Saúde do ecossistema Jobs falhos em 24 h Custo de IA em 24 h Última narrativa",
+  "assinatura": "Governança Governança MCP Chamadas Taxa de sucesso Latência p95 Custo Consumo Acesso e permissões Usuários e ferramentas Ontem 30 dias Políticas ativas Aprovações de skill Atores registrados Ocorrências em 24 h Conformidade Saúde do ecossistema Jobs falhos em 24 h Custo de IA em 24 h Última narrativa",
   "roles": {
     "kpi": {
       "count": 6,
@@ -127,13 +127,13 @@
       {
         "nome": "kpis-constituicao",
         "classes": {
-          "dataIso": 1,
-          "dataBr": 0,
+          "dataIso": 0,
+          "dataBr": 1,
           "snakeCru": 0
         },
         "exemplos": {
-          "dataIso": [
-            "2026-08-05"
+          "dataBr": [
+            "05/08/2026"
           ]
         }
       },
@@ -181,7 +181,7 @@
     "tema": "claro",
     "dialogsAbertos": [],
     "sobrepostosFixos": [],
-    "assinaturaRedigida": "sha256 prefixo 1e29a6d7cf83",
-    "assinaturaNota": "assinatura reduzida ao título e às cópias do contrato governance.contract.json presentes na página; o texto completo tem dado de produção e ficou fora"
+    "assinaturaRedigida": "sha256 prefixo 749ff40f118c",
+    "assinaturaNota": "assinatura reduzida ao título e às cópias do contrato governance.contract.json presentes na página, com o painel MCP carregado; o texto completo tem dado de produção e ficou fora. Sonda --probe 358fd0f0 com os ramos sem papel (linha de tabela, shell, gráfico, gaveta) fixados em null, como a sonda devolve quando o papel não é passado."
   }
 }

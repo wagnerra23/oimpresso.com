@@ -71,3 +71,18 @@ Reproduz: `node scripts/design/design-diff.mjs --compare governance/design/targe
 | D8 | alinhamento do KPI | igual | igual | IGUAL |
 
 Fora do veredito nas 4 telas: o shell (sidebar) não foi medido; o `IGUAL` de cor (D6) é fraco, porque os tokens de cor de produção não resolvem na raiz do documento (`--accent`, `--border`… vivem no `.cockpit`); e D9 sai SEM-DADO onde as regiões `data-contract` só existem de um lado.
+
+### Re-medição 2026-11-24, depois do #11407 [CC]
+
+Mesma sonda (`--probe` sha256 `358fd0f0…`), mesmo override, mesmo tema, viewport e tenant (`biz=1`), com o deploy de `bf48ea1678` no ar. Diferença de procedimento: a sonda só rodou depois que o painel MCP terminou de carregar (é um `<Deferred>`; a primeira medição leu antes). Os ramos que não recebem papel (linha de tabela, shell, gráfico, gaveta) foram fixados em `null`, que é o que a sonda devolve quando o papel não é passado. `prod.json` e `resultado.json` atualizados; o mesmo comando de reprodução acima.
+
+**Veredito: DIVERGE — 1 decidida, 0 reais.** D0 OK (19 de 22 cópias em produção × 22 de 22 no protótipo).
+
+| Item da medição anterior | Agora | Leitura |
+|---|---|---|
+| data em `kpis-constituicao` (ISO) | `05/08/2026` (dd/mm/aaaa), sem linha no D9 | **resolvido** pelo #11407 (`fmtDataBr`) |
+| `kpi.count` 6 × 5 | igual | **decidida**, sem mudança (régua por artigo rejeitada em 2026-09-09) |
+| seção MCP, 9 cópias ausentes | 6 voltaram: Chamadas, Taxa de sucesso, Latência p95, Acesso e permissões, Usuários e ferramentas, Ontem | **não era ausência** — o painel estava carregando na primeira medição |
+| períodos Hoje · 7 dias · Mês anterior | presentes só como opções do `Select` de período (`Hoje`, `Últimos 7 dias`, `Mês anterior`), fora do DOM com o menu fechado | **Decidir** — forma diferente: o protótipo mostra os períodos como segmento sempre visível; produção usa `Select`. Lido no DOM com o menu aberto em 2026-11-24 |
+
+Nota sobre "Ontem": com o menu fechado, a palavra casa por "Δ vs ontem" no card do SDD, não pelo período. O D0 compara sem diferenciar caixa, então ela conta como presente; a opção do `Select` é a mesma situação das outras três.

@@ -231,7 +231,7 @@ export default function Dfe({ activeTab, filters: initialFilters, counts, rows, 
 
       <FxShell
         route="dfe"
-        title="Manifestação do destinatário"
+        title="Manifesto DF-e"
         crumb={`${counts.pendentes} aguardando ciência · ${brl(counts.valorPendente)} · busca diária SEFAZ`}
         env={counts.pendentes > 0 ? `${counts.pendentes} aguardando` : 'tudo manifestado'}
         envTone={counts.pendentes > 10 ? 'warn' : counts.pendentes > 0 ? 'ok' : 'ok'}

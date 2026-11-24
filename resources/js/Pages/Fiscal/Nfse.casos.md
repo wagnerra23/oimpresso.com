@@ -5,8 +5,8 @@ irmaos: Nfse.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "0 UC executado nesta corrida — os 4 UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
+last_run: "2026-11-24"
+last_run_ci: "revalidado em 2026-11-24 ao levar a tela à forma do protótipo: primário 'Emitir' no topo (leva a /nfse/emitir) e a busca numa linha própria, com os chips numa linha só. Nenhum UC cita o arranjo nem o botão; os filtros e a busca seguem os mesmos (UC-FNFSE-13..15). Anterior: 0 UC executado nesta corrida — os 4 UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
 related_us: [US-FISCAL-005, US-NFE-069]
 ---
 
