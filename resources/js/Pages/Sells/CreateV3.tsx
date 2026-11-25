@@ -36,6 +36,8 @@ import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
+import { novoCanal, ouvirProdutoEscolhido } from '@/Lib/produto-escolhido';
+import { achadoDoProdutoEscolhido, urlDaListaDeProdutos } from './_components/v3/procurar-na-lista';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
@@ -531,6 +533,46 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabelaId]);
 
+  /* UC-V413 — "Procurar na lista de produtos": a lista abre numa aba nova e devolve o produto
+     por mensagem. A venda põe o SKU na própria busca e só abre o lançamento com o resultado DELA
+     (preço, unidade e estoque da busca de sempre — `procurar-na-lista.ts`). */
+  const [canalDaVenda] = useState(novoCanal);
+  const escolhidoNaLista = useRef<number | null>(null);
+  // A busca e os achados do momento, para a mensagem que chega com o MESMO termo já na busca: aí a
+  // busca não roda de novo, e o achado sai do que já está na tela.
+  const buscaAgora = useRef(busca);
+  buscaAgora.current = busca;
+  const achadosAgora = useRef(daBusca);
+  achadosAgora.current = daBusca;
+  useEffect(() => {
+    if (!gravacao) return;
+    return ouvirProdutoEscolhido(canalDaVenda, (msg) => {
+      const termo = msg.sku ?? msg.nome;
+      window.focus();
+      if (termo === buscaAgora.current) {
+        const achado = achadoDoProdutoEscolhido(achadosAgora.current, (sku) => idsPorSku.current.get(sku)?.productId, msg.produtoId);
+        if (achado) setLancando(achado);
+        return;
+      }
+      escolhidoNaLista.current = msg.produtoId;
+      setBusca(termo);
+    });
+  }, [gravacao, canalDaVenda]);
+  useEffect(() => {
+    const produtoId = escolhidoNaLista.current;
+    if (produtoId === null) return;
+    escolhidoNaLista.current = null;
+    const achado = achadoDoProdutoEscolhido(daBusca, (sku) => idsPorSku.current.get(sku)?.productId, produtoId);
+    if (achado) setLancando(achado);
+  }, [daBusca]);
+  const procurarNaLista = () => {
+    window.open(
+      urlDaListaDeProdutos(window.location.pathname + window.location.search, busca, canalDaVenda),
+      '_blank',
+      'noopener',
+    );
+  };
+
   const achados = gravacao
     ? daBusca
     : busca
@@ -797,11 +839,18 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
       >
         {!travada && !cancelada && (
           <div className="relative border-b border-border bg-muted/40 p-3">
-            <Input
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Buscar produto por nome, SKU, lote ou código de barras…"
-            />
+            <Inline gap={2} align="center">
+              <Input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar produto por nome, SKU, lote ou código de barras…"
+              />
+              {gravacao && (
+                <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={procurarNaLista}>
+                  Procurar na lista de produtos
+                </Button>
+              )}
+            </Inline>
             {achados.length > 0 && (
               <div className="absolute inset-x-3 z-10 mt-1 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
                 {achados.map((p) => (

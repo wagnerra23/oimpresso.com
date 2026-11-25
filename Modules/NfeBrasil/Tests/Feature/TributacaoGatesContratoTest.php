@@ -121,7 +121,7 @@ function nfgtLimpar(): void
     }
     DB::table('nfe_fiscal_rules')->whereIn('business_id', $bizs)->delete();
     DB::statement('SET FOREIGN_KEY_CHECKS=1');
-    session()->forget('nfe_import_csv_linhas');
+    session()->forget(['nfe_import_csv_conferencia', 'nfe_import_csv_business_id']);
 }
 
 /** Spatie cacheia o mapa de permissões — sem invalidar, o grant/revoke do teste não vale. */
@@ -321,7 +321,7 @@ it('UC-NFIM-01 · preview não grava regra nenhuma; aplicar depois grava', funct
                                       // passaria por o CSV nunca ter sido aceito.
 
     // Pré-condição anti-vácuo: o preview de fato parseou linhas.
-    expect(session('nfe_import_csv_linhas'))->not->toBeEmpty();
+    expect(session('nfe_import_csv_conferencia'))->not->toBeEmpty(); // UC-NFIM-15: a sessão guarda a referência, não as linhas
 
     // O passo de conferência só vale se for inócuo.
     expect(nfgtContar(nfgtBiz()))->toBe($antes);
@@ -343,7 +343,7 @@ it('UC-NFIM-02 · aplicar sem preview anterior é recusado e não grava', functi
     nfgtRegra(nfgtBiz());
     $antes = nfgtContar(nfgtBiz());
 
-    session()->forget('nfe_import_csv_linhas');
+    session()->forget(['nfe_import_csv_conferencia', 'nfe_import_csv_business_id']);
 
     $this->post('/nfe-brasil/tributacao/import/aplicar')
         ->assertRedirect()
@@ -362,7 +362,7 @@ it('UC-NFIM-03 · aplicar sem nfe.tributacao.manage dá 403 e não grava', funct
     $this->post('/nfe-brasil/tributacao/import/preview', ['arquivo' => nfgtArquivo()])
         ->assertRedirect()
         ->assertSessionHasNoErrors();
-    expect(session('nfe_import_csv_linhas'))->not->toBeEmpty();
+    expect(session('nfe_import_csv_conferencia'))->not->toBeEmpty(); // UC-NFIM-15: a sessão guarda a referência, não as linhas
 
     $antes = nfgtContar(nfgtBiz());
 
@@ -383,7 +383,7 @@ it('UC-NFIM-04 · linhas conferidas no business A não podem ser gravadas no bus
     $this->post('/nfe-brasil/tributacao/import/preview', ['arquivo' => nfgtArquivo()])
         ->assertRedirect()
         ->assertSessionHasNoErrors();
-    expect(session('nfe_import_csv_linhas'))->not->toBeEmpty();
+    expect(session('nfe_import_csv_conferencia'))->not->toBeEmpty(); // UC-NFIM-15: a sessão guarda a referência, não as linhas
 
     $antesB = nfgtContar(nfgtBizOutro());
 

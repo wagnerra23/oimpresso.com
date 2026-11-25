@@ -62,6 +62,10 @@ import { useTamanho } from './_components/lista/useTamanho';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import NcmEmLote from './_components/lista/NcmEmLote';
 import { MOLDURA_JANELA, TITULO_JANELA } from './_components/lista/moldura-janela';
+import PaletaProduto from './_components/lista/PaletaProduto';
+import AvisoDeOrigem from './_components/lista/AvisoDeOrigem';
+import { CHAVE_ORIGEM, lerOrigem, urlDeVolta, type OrigemDaBusca } from './_components/lista/origem-de-busca';
+import { enviarProdutoEscolhido } from '@/Lib/produto-escolhido';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
@@ -266,6 +270,53 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const pode = (p: keyof PermissoesLista) => permissions[p] === true;
   const linhas = lista?.data ?? [];
 
+  // UC-PIDX-53 — "Você veio de… / Voltar e usar": outra tela mandou procurar um produto. A origem fica
+  // guardada na aba porque cada filtro refaz a URL (contrato em `origem-de-busca.ts`).
+  const [origem, setOrigem] = useState<OrigemDaBusca | null>(() => {
+    let guardada: string | null = null;
+    try {
+      guardada = window.sessionStorage.getItem(CHAVE_ORIGEM);
+    } catch {
+      guardada = null;
+    }
+    const o = lerOrigem(window.location.search, guardada);
+    try {
+      if (o) window.sessionStorage.setItem(CHAVE_ORIGEM, JSON.stringify(o));
+    } catch {
+      /* sem armazenamento, o aviso vale só até o próximo filtro */
+    }
+    return o;
+  });
+  const esquecerOrigem = () => {
+    setOrigem(null);
+    try {
+      window.sessionStorage.removeItem(CHAVE_ORIGEM);
+    } catch {
+      /* nada guardado */
+    }
+  };
+  // O produto a levar de volta: o aberto no painel, senão o único marcado na lista.
+  const escolhidoParaOrigem: { id: number; nome: string; sku: string | null } | null = (() => {
+    if (verId != null && detalhe && detalhe.id === verId) return { id: detalhe.id, nome: detalhe.nome, sku: detalhe.sku || null };
+    if (selecionados.length !== 1) return null;
+    const l = linhas.find((x) => x.id === selecionados[0]);
+    return l ? { id: l.id, nome: l.nome, sku: l.sku || null } : null;
+  })();
+  // Aba aberta pela origem (com `canal`): depois de mandar o produto, esta aba só confirma.
+  const [entregue, setEntregue] = useState<string | null>(null);
+  const voltarComProduto = (o: OrigemDaBusca, p: { id: number; nome: string; sku: string | null }) => {
+    if (o.canal && enviarProdutoEscolhido({ canal: o.canal, produtoId: p.id, sku: p.sku, nome: p.nome })) {
+      esquecerOrigem();
+      setEntregue(`“${p.nome}” foi para ${o.rotulo}. Pode fechar esta aba.`);
+      // Só fecha aba aberta por script (a origem abriu com window.open); senão fica a confirmação.
+      window.close();
+      return;
+    }
+    const destino = urlDeVolta(o.de, p.id);
+    esquecerOrigem();
+    irPara(destino);
+  };
+
   const ir = (patch: Partial<FiltrosLista>) => {
     setSelecionados([]);
     const proximo: FiltrosLista = { ...filtros, page: 1, estoque_pagina: 1, ...patch };
@@ -332,6 +383,10 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         return;
       case 'historico':
         irPara(`/products/stock-history/${l.id}`);
+        return;
+      case 'transferir':
+        // UC-PIDX-52: a transferência de estoque, com o produto como botão "Adicionar" (UC-TRCRT-07).
+        irPara(`/stock-transfers/create?produto=${l.id}`);
         return;
       case 'duplicar':
         irPara(`/products/create?d=${l.id}`);
@@ -472,6 +527,19 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         />
 
         <div className="pb-body" ref={corpoRef}>
+          {origem && (
+            <AvisoDeOrigem
+              origem={origem}
+              escolhido={escolhidoParaOrigem}
+              aoVoltar={() => escolhidoParaOrigem && voltarComProduto(origem, escolhidoParaOrigem)}
+              aoDispensar={esquecerOrigem}
+            />
+          )}
+          {entregue && (
+            <div className="pb-volta" role="status" data-contract="produto-origem-entregue">
+              <span>{entregue}</span>
+            </div>
+          )}
           <div className="pb-kpis" data-contract="produto-kpis">
             <Deferred
               data="kpis"
@@ -773,6 +841,12 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           )}
         </div>
       </div>
+
+      {/* Ctrl+K / ⌘K: telas do módulo + ir direto a um produto (PaletaProduto do protótipo). */}
+      <PaletaProduto
+        irPara={irPara}
+        abrirProduto={(id) => (pode('update') ? irPara(`/products/${id}/edit`) : abrirDetalhe(id))}
+      />
 
       <AlertDialog open={confirmar !== null} onOpenChange={(o) => !o && setConfirmar(null)}>
         {confirmar && (

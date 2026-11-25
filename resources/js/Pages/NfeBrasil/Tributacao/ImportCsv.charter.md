@@ -50,7 +50,7 @@ Deixar o responsável fiscal cadastrar/atualizar muitas regras tributárias de u
 
 ## Automation hooks (faz)
 - `aplicar` grava `activity('nfe.tributacao')` (log de auditoria com business_id + resumo) via Spatie activitylog.
-- Linhas válidas do preview ficam em sessão (`nfe_import_csv_linhas`) e são consumidas + limpas no aplicar.
+- Linhas válidas do preview ficam num arquivo em `storage/app/nfe-import-csv/{business}/{usuário}/`; a sessão guarda só a referência (`nfe_import_csv_conferencia`) e o carimbo do business. O aplicar consome e apaga o arquivo; lote abandonado some em 24h (UC-NFIM-15, desde 2026-11-24 — até lá as linhas iam inteiras para a sessão).
 
 ---
 
