@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do vendedor + critério de aceite verificável (Dado/Quando/Então)
 por_que: o funil mostra valores de negócio e clientes. Errar o escopo vaza negócio de outra empresa; errar a etapa final deixa um ganho voltar a aberto e distorce a previsão.
 owner: wagner
-last_run: "2026-11-06"
+last_run: "2026-11-25"
+last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff."
 ---
 
 # Casos de Uso & Aceite — Crm · Funil de vendas (`/crm/funil`)

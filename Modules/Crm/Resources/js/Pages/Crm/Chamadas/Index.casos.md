@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro de chamadas guarda número de celular e nome de contato de clientes. Errar o escopo mostra a ligação de outro negócio ou de colega; deixar a flag furar a config liga uma tela que o produto mantém desligada.
 owner: wagner
-last_run: "2026-11-06"
-last_run_nota: "2026-10-13 thread Crm/12 F3: trio nasce; os testes moram em Modules/Crm/Tests/Feature/CrmChamadasContratoTest.php (lane verticais-pest)."
+last_run: "2026-11-25"
+last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff. Antes: 2026-10-13 thread Crm/12 F3: trio nasce; os testes moram em Modules/Crm/Tests/Feature/CrmChamadasContratoTest.php (lane verticais-pest)."
 last_run_ci: "_pendente_ — o veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
