@@ -12,7 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Plus, X } from 'lucide-react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -400,24 +400,31 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
                 <span className={ROTULO_CAMPO}>
                   Local
                 </span>
-                {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
-                <select
-                  id="mfg-op-local"
-                  className="h-[34px] w-[180px] rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] text-foreground"
-                  value={filters.location_id ?? ''}
-                  onChange={(e) =>
-                    applyFilter(filters, {
-                      location_id: e.target.value ? Number(e.target.value) : null,
-                    })
-                  }
-                >
-                  <option value="">Todos os locais</option>
-                  {locationEntries.map(([id, name]) => (
-                    <option key={id} value={id}>
-                      {String(name)}
-                    </option>
-                  ))}
-                </select>
+                {/* Seta própria e padding 7 28 7 10, como o `Select` do DS (Input.jsx L111-113). */}
+                <span className="relative">
+                  {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
+                  <select
+                    id="mfg-op-local"
+                    className="h-[34px] w-[180px] appearance-none rounded-[8px] border border-[var(--border)] bg-[var(--surface)] py-[7px] pr-7 pl-2.5 text-[13px] text-foreground"
+                    value={filters.location_id ?? ''}
+                    onChange={(e) =>
+                      applyFilter(filters, {
+                        location_id: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                  >
+                    <option value="">Todos</option>
+                    {locationEntries.map(([id, name]) => (
+                      <option key={id} value={id}>
+                        {String(name)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    aria-hidden
+                    className="pointer-events-none absolute top-1/2 right-2.5 h-3 w-3 -translate-y-1/2 text-[var(--text-mute)]"
+                  />
+                </span>
               </label>
             </Stack>
           )}
@@ -531,8 +538,8 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
             não o recalculado do Relatório (US-MANU-002) — ver RUNBOOK-producao.md §1. Fica dentro
             da área da lista, como o `.mfg-foot` das irmãs (margem de 10px acima). */}
         {productions.length > 0 && (
-          <p className="mt-2.5 text-xs text-muted-foreground tabular-nums">
-            {productions.length} ordens · custo do período{' '}
+          <p className="mt-2.5 pl-0.5 text-[11.5px] leading-[1.45] text-[var(--text-dim)] tabular-nums">
+            {productions.length} {productions.length === 1 ? 'ordem' : 'ordens'} · custo do período{' '}
             <span className="font-medium text-foreground">{formatCurrency(custoDoPeriodo)}</span> ·
             ordens finalizadas mostram o custo congelado na data
           </p>
