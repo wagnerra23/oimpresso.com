@@ -14,10 +14,11 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Icon } from '@/Components/Icon';
+import { toast } from 'sonner';
 import CrmCabecalho from '../_components/CrmCabecalho';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -43,39 +44,60 @@ interface Props { permissoes: Permissoes; pessoal?: Pessoal; negocio?: Negocio |
 
 const espera = <Skeleton className="h-32 w-full" />;
 
+// CRM-13 (medido em 2026-11-25): o cartão do protótipo é o `Widget` do PBUI (`.pb-widget`,
+// produto-blade.css): título em caixa alta 11px/700, espaçamento .07em, cor `--text-mute`, com
+// divisória (12×16px) e corpo 14×16px. O `Card` do DS soma 24px de padding próprio + `gap-6` e
+// deixava o cartão com 279px contra 201px.
 function Bloco({ 'data-contract': contrato, titulo, acao, children }: { 'data-contract': string; titulo: ReactNode; acao?: ReactNode; children: ReactNode }) {
   return (
-    <Card data-contract={contrato}>
-      <CardContent className="flex flex-col gap-3 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-medium">{titulo}</h3>
-          {acao}
-        </div>
-        {children}
-      </CardContent>
-    </Card>
+    <section data-contract={contrato} className="rounded-lg border bg-card shadow-sm">
+      <h3 className="m-0 flex items-center gap-2 border-b px-4 py-3 text-[11px] font-bold uppercase tracking-[0.07em]" style={{ color: 'var(--text-mute)', borderBottomColor: 'var(--border-2)' }}>
+        {titulo}
+        {acao && <span className="ml-auto normal-case tracking-normal">{acao}</span>}
+      </h3>
+      <div className="overflow-x-auto px-4 py-3.5">{children}</div>
+    </section>
   );
 }
 
-function Tabela({ cabecalho, linhas }: { cabecalho: string[]; linhas: (string | number)[][] }) {
+// CRM-14: a tabela do protótipo é a `Mini` (`.pb-tbl`): cabeçalho só quando o protótipo tem
+// (caixa alta 10,5px/700 sobre `--bg-2`), linha 12,5px com 7×10px e separador embaixo, número
+// mono à direita.
+function Tabela({ cabecalho, linhas }: { cabecalho?: string[]; linhas: (string | number)[][] }) {
+  const colunas = cabecalho?.length ?? (linhas[0]?.length || 2);
+  const borda = { borderBottomColor: 'var(--border-2)' };
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="text-left text-muted-foreground">
-          {cabecalho.map((c, i) => <th key={c} className={i ? 'text-right font-medium' : 'font-medium'}>{c}</th>)}
-        </tr>
-      </thead>
+    <table className="w-full border-separate border-spacing-0 text-[12.5px]">
+      {cabecalho && (
+        <thead>
+          <tr>
+            {cabecalho.map((c, i) => (
+              <th key={c} scope="col" className={`whitespace-nowrap border-b px-2.5 py-2 text-[10.5px] font-bold uppercase tracking-[0.06em] ${i ? 'text-right' : 'text-left'}`}
+                style={{ color: 'var(--text-mute)', background: 'var(--bg-2)', borderBottomColor: 'var(--border)' }}>{c}</th>
+            ))}
+          </tr>
+        </thead>
+      )}
       <tbody>
-        {linhas.length === 0 && <tr><td colSpan={cabecalho.length} className="py-2 text-center text-muted-foreground">Sem dados</td></tr>}
+        {linhas.length === 0 && <tr><td colSpan={colunas} className="border-b px-2.5 py-[7px] text-center" style={{ ...borda, color: 'var(--text-mute)' }}>Sem dados</td></tr>}
         {linhas.map((l, i) => (
-          <tr key={i} className="border-t">
-            {l.map((v, j) => <td key={j} className={j ? 'py-1 text-right tabular-nums' : 'py-1'}>{v}</td>)}
+          <tr key={i}>
+            {l.map((v, j) => (
+              <td key={j} className={j ? 'border-b px-2.5 py-[7px] text-right font-mono text-[12px] tabular-nums' : 'border-b px-2.5 py-[7px]'} style={borda}>{v}</td>
+            ))}
           </tr>
         ))}
       </tbody>
     </table>
   );
 }
+
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+/** "1990-08-27" → "27 de ago" — o protótipo não mostra o ano (CRM-15). */
+const diaDoAniversario = (dob?: string) => {
+  const [, m, d] = (dob ?? '').split('-').map(Number);
+  return m && d ? `${d} de ${MESES[m - 1]}` : null;
+};
 
 export default function PainelIndex({ permissoes, pessoal, negocio }: Props) {
   return (
@@ -99,7 +121,7 @@ function PainelPessoal({ permissoes, pessoal }: { permissoes: Permissoes; pessoa
   if (!pessoal) return null;
   return (
     <>
-      <KpiGrid cols={4}>
+      <KpiGrid cols={Math.max(2, [pessoal.hoje !== null, pessoal.meus_leads !== null, true, !!pessoal.chamadas].filter(Boolean).length) as 2 | 3 | 4}>
         {pessoal.hoje !== null && <KpiCard label="Acompanhamentos de hoje" value={pessoal.hoje} tone="info" />}
         {pessoal.meus_leads !== null && <KpiCard label="Meus leads" value={pessoal.meus_leads} tone="info" />}
         <KpiCard label="Meus leads convertidos" value={pessoal.convertidos} tone="success" />
@@ -108,12 +130,12 @@ function PainelPessoal({ permissoes, pessoal }: { permissoes: Permissoes; pessoa
       <div className="grid gap-4 md:grid-cols-2">
         {permissoes.acompanhamentos && pessoal.por_status && (
           <Bloco data-contract="crm-painel-meus" titulo="Meus acompanhamentos">
-            <Tabela cabecalho={['Status', 'Total']} linhas={pessoal.por_status.map((s) => [s.rotulo, s.total])} />
+            <Tabela linhas={pessoal.por_status.map((s) => [s.rotulo, s.total])} />
           </Bloco>
         )}
         {pessoal.chamadas && (
           <Bloco data-contract="crm-painel-chamadas" titulo="Meus registros de chamadas">
-            <Tabela cabecalho={['Período', 'Total']} linhas={[
+            <Tabela linhas={[
               ['Chamadas hoje', pessoal.chamadas.hoje],
               ['Chamadas ontem', pessoal.chamadas.ontem],
               ['Chamadas neste mês', pessoal.chamadas.mes],
@@ -137,7 +159,7 @@ function PainelNegocio({ negocio }: { negocio: Negocio }) {
         <label key={p.id} className="flex items-center gap-2 text-sm">
           <Checkbox checked={marcados.includes(p.id)} onCheckedChange={() => alternar(p.id)} />
           <span>{p.name}</span>
-          {p.dob && <small className="text-muted-foreground">{p.dob.split('-').reverse().join('/')}</small>}
+          {diaDoAniversario(p.dob) && <small className="text-muted-foreground">{diaDoAniversario(p.dob)}</small>}
         </label>
       ))}
     </div>
@@ -163,9 +185,10 @@ function PainelNegocio({ negocio }: { negocio: Negocio }) {
         data-contract="crm-painel-aniversarios"
         titulo="Aniversários"
         acao={marcados.length > 0
-          ? <Button asChild size="sm"><a href={desejos}>Enviar desejos</a></Button>
-          : <Button size="sm" disabled>Enviar desejos</Button>}
+          ? <Button asChild size="sm"><a href={desejos}><Icon name="send" size={12} /> Enviar desejos</a></Button>
+          : <Button size="sm" onClick={() => toast.warning('Selecione os contatos para enviar os desejos.')}><Icon name="send" size={12} /> Enviar desejos</Button>}
       >
+        <p className="mb-2.5 text-xs text-muted-foreground">Marque quem vai receber e mande os parabéns como campanha.</p>
         <div className="grid gap-4 md:grid-cols-2">
           {lista('Hoje', negocio.aniversarios.hoje)}
           {lista('Próximos', negocio.aniversarios.proximos)}
