@@ -102,7 +102,7 @@ export function lancamento(n: Natureza, d: Destino, regime: Regime, empresa: Emp
   L.push(n.ipi.on
     ? {
         cor: COR.ipi, rotulo: 'IPI', codigo: `CST ${n.ipi.cst}`, texto: `· enquadramento ${n.ipi.cEnq || '—'}`,
-        sub: n.ipi.origem === 'produto' ? 'Alíquota da TIPI pelo NCM do produto' : n.ipi.origem === 'origem' ? 'Alíquota da nota de origem' : `Alíquota fixa de ${pct(n.ipi.p)}`,
+        sub: n.ipi.origem === 'produto' ? 'Alíquota da regra do NCM do produto' : n.ipi.origem === 'origem' ? 'Alíquota da nota de origem' : `Alíquota fixa de ${pct(n.ipi.p)}`,
       }
     : { cor: COR.ipi, rotulo: 'IPI', texto: 'Não destaca' });
 
