@@ -11,15 +11,15 @@
 @import "./tokens/_generated-cockpit-light.css";
 @import "./tokens/_generated-cockpit-dark.css";
 
+/* No claro, o texto do shadcn (Card, Button outline, text-foreground) usa o texto do shell; o escuro
+   fica como está (UI-0027). Medição e motivo: ADR UI-0035. Nenhum token novo. */
+.cockpit:not([data-theme="dark"]) { --color-foreground: var(--text); --color-card-foreground: var(--text); --color-popover-foreground: var(--text); }
 .cockpit *,
 .cockpit *::before,
 .cockpit *::after { box-sizing: border-box; }
 
 .cockpit[data-density="compact"]{ --row-h: 26px; }
 .cockpit[data-density="comfy"]{   --row-h: 34px; }
-
-.cockpit *{ box-sizing: border-box; }
-
 
 /* ────────────────── App shell ────────────────── */.cockpit {
   display: grid;
