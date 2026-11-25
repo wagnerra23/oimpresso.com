@@ -19,7 +19,10 @@ $index = __DIR__ . '/../../../resources/js/Pages/Cliente/Index.tsx';
 test('subtítulo — suprime a fantasia quando == razão social (não duplica o nome)', function () use ($index) {
     $src = file_get_contents($index);
     expect($src)
-        ->toContain("f.toLowerCase() !== row.name.trim().toLowerCase()")
+        // Desde 2026-11-25 (A-12) o nome pode faltar: sem nome a fantasia sobe para a 1ª linha
+        // (`nomeDeExibicao`) e não se repete no subtítulo; com nome, a regra é a mesma de antes.
+        ->toContain("f.toLowerCase() !== (row.name ?? '').trim().toLowerCase()")
+        ->toContain('function nomeDeExibicao(')
         // fallback honesto: telefone ou nada (não renderiza o duplicado).
         ->toContain('if (!fant && !row.mobile) return null;');
 });

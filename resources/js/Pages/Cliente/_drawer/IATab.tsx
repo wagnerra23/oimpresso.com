@@ -199,7 +199,7 @@ export default function IATab({ contact, stats }: IATabProps) {
           </h3>
         </div>
         <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-          4 analises diferentes. A IA propoe, voce decide. Tudo e editavel antes
+          4 análises diferentes. A IA propõe, você decide. Tudo é editável antes
           de aplicar.
         </p>
       </div>
@@ -209,7 +209,7 @@ export default function IATab({ contact, stats }: IATabProps) {
         testid="ia-card-resumo"
         icon={<MessageSquare size={14} className="text-primary" />}
         title="Resumo do relacionamento"
-        description="A IA olha o historico (OSs, ticket, saldo, frescor) e propoe um sumario executivo em 3 frases."
+        description="A IA olha o histórico (OSs, ticket, saldo, frescor) e propõe um sumário executivo em 3 frases."
         buttonLabel="Gerar resumo"
         state={resumo}
         onGenerate={gerarResumo}
@@ -226,7 +226,7 @@ export default function IATab({ contact, stats }: IATabProps) {
         testid="ia-card-segmento"
         icon={<Tag size={14} className="text-violet-600" />}
         title="Reavaliar segmento & tags"
-        description="A IA olha o historico real (cidade, ticket, OSs) e propoe segmento + tags. Voce revisa antes de aplicar."
+        description="A IA olha o histórico real (cidade, ticket, OSs) e propõe segmento + tags. Você revisa antes de aplicar."
         buttonLabel="Analisar"
         state={segmento}
         onGenerate={gerarSegmento}
@@ -263,8 +263,8 @@ export default function IATab({ contact, stats }: IATabProps) {
       <IaCard
         testid="ia-card-proxima-acao"
         icon={<Target size={14} className="text-amber-600" />}
-        title="Proxima acao sugerida"
-        description="O que fazer com este cliente agora? A IA combina historico, saldo, frescor e tags."
+        title="Próxima ação sugerida"
+        description="O que fazer com este cliente agora? A IA combina histórico, saldo, frescor e tags."
         buttonLabel="Sugerir"
         state={proxima}
         onGenerate={gerarProxima}

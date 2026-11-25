@@ -5,8 +5,15 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-11-21"
+last_run: "2026-11-25"
 ---
+
+> ℹ️ **`last_run` 2026-11-21 → 2026-11-25 (G-6): pendências da medição de 2026-11-25, seção A (texto e forma).**
+> O que mudou em `Index.tsx`: o cabeçalho da gaveta lê o tipo PF/PJ do contato e acompanha a troca na aba Identificação
+> (A-01); "Novo cadastro" na aba Outros (A-05); "1 ativo" no singular (A-06); atalho "busca global do sistema" (A-07);
+> cabeçalhos ordenáveis em caixa alta e "Última OS" sem quebrar (A-08/A-09); contato sem nome mostra a fantasia ou "Sem nome"
+> (A-12). Nenhuma rota, prop, filtro nem gravação mudou. Conferido UC a UC: nenhum aceite cita esses textos ou o tipo
+> do cabeçalho. **Nenhum UC foi reexecutado**; o bump marca o trio reconciliado com a tela nesta data.
 
 > ℹ️ **`last_run` 2026-11-16 → 2026-11-21 (G-6): paridade de FORMA com o protótipo, onda 1 (linha, título e KPIs).**
 > O que mudou em `Index.tsx` e nos `_components`: título com peso 600; rótulo e valor dos KPIs em mono, valor em 21px;

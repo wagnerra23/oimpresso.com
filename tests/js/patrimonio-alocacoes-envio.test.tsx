@@ -140,6 +140,9 @@ describe('UC-ALOC-08 · drawer de devolver + Excluir devolução', () => {
     render(<DevolverDrawer formulario={{ ...devolver, alocacao: { ...devolver.alocacao, devolvido: 4, restante: 0 } }}
       formatoData="d/m/Y" hora12={false} onClose={() => {}} />);
     expect(screen.queryByRole('button', { name: 'Registrar devolução' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Fechar' })).toBeTruthy();
+    // Dois "Fechar": o × do canto do Sheet (nome acessível em português desde 2026-11-25, era
+    // "Close") e o botão do rodapé, que é o que este caso exige.
+    const fechar = screen.getAllByRole('button', { name: 'Fechar' });
+    expect(fechar.some((b) => b.textContent?.trim() === 'Fechar')).toBe(true);
   });
 });
