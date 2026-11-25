@@ -770,12 +770,25 @@ class LeadController extends Controller
             'ultimo' => $data($l->last_follow_up),
             'proximo' => $data($l->upcoming_follow_up),
             'adicionado_em' => $data($l->created_at),
+            // CRM-22/26: "Tipo" e os dois primeiros campos personalizados do contato — as
+            // colunas que a Blade já mostrava, com o rótulo que o negócio configurou.
+            'tipo' => match ($l->contact_type) { 'business' => 'PJ', 'individual' => 'PF', default => null },
+            'campo1' => $l->custom_field1,
+            'campo2' => $l->custom_field2,
         ];
 
+        // `contact_type` (PJ/PF) não está no select do `getLeadsListQuery`, que serve também a API
+        // do Connector; entra só aqui.
+        $leads->addSelect('contacts.contact_type');
         $leadId = (int) request()->input('lead');
+        $rotulosDoNegocio = (array) (json_decode((string) session('business.custom_labels'), true)['contact'] ?? []);
 
         return Inertia::render('Crm/Leads/Index', [
             'filtros' => request()->only(['source', 'life_stage', 'user_id', 'q']),
+            'rotulos' => [
+                'campo1' => $rotulosDoNegocio['custom_field_1'] ?? __('lang_v1.contact_custom_field1'),
+                'campo2' => $rotulosDoNegocio['custom_field_2'] ?? __('lang_v1.contact_custom_field2'),
+            ],
             'opcoes' => Inertia::defer(fn () => [
                 'fontes' => $lista(Category::forDropdown($business_id, 'source')),
                 'estagios' => $lista(Category::forDropdown($business_id, 'life_stage')),

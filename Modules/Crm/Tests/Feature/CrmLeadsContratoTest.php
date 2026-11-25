@@ -356,3 +356,26 @@ it('UC-CRMLD-13 · editar ou excluir pelo id não alcança cliente nem lead de o
     $this->assertSame(1, DB::table('contacts')->where('id', $cliente)->whereNull('deleted_at')->count(), 'excluiu um cliente pela rota de lead');
     $this->assertSame(1, DB::table('contacts')->where('id', $deFora)->whereNull('deleted_at')->count(), 'excluiu lead de outro negócio');
 });
+
+it('UC-CRMLD-14 · lista e gaveta trazem Tipo e os dois campos personalizados, com o rótulo do negócio', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $pj = leadContato(LEAD_BIZ, 'Lead PJ', $user);
+    $pf = leadContato(LEAD_BIZ, 'Lead PF', $user);
+    DB::table('contacts')->where('id', $pj)->update(['contact_type' => 'business', 'custom_field1' => 'Ana Compras', 'custom_field2' => 'Lona 440g']);
+    DB::table('contacts')->where('id', $pf)->update(['contact_type' => 'individual']);
+
+    $detalhe = leadParcial($user, 'lead', '?lead='.$pj)->json('props.lead');
+    expect($detalhe['tipo'] ?? null)->toBe('PJ');
+    expect($detalhe['campo1'] ?? null)->toBe('Ana Compras');
+    expect($detalhe['campo2'] ?? null)->toBe('Lona 440g');
+    expect(leadParcial($user, 'lead', '?lead='.$pf)->json('props.lead.tipo'))->toBe('PF');
+
+    $linha = collect((array) leadParcial($user, 'leads')->json('props.leads.data'))->firstWhere('id', $pj);
+    expect($linha['tipo'] ?? null)->toBe('PJ');
+    expect($linha['campo1'] ?? null)->toBe('Ana Compras');
+
+    $this->actingAs($user)->get(LEAD_ROTA)->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
+        ->component('Crm/Leads/Index', false)
+        ->where('rotulos.campo1', fn ($v) => is_string($v) && $v !== '')
+        ->where('rotulos.campo2', fn ($v) => is_string($v) && $v !== ''));
+});

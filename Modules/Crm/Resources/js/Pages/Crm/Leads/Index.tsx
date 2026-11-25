@@ -10,21 +10,28 @@
 //
 // "Adicionar" abre o formulário de lead (Cliente/Create parametrizado, thread Crm/06). A
 // conversão para cliente, o kanban e o "local" do contato seguem na Blade (`?classico=1`).
+//
+// Forma (pendências CRM-20/21/22/26, medido em produção em 2026-11-25): filtros recolhíveis,
+// cartão "Todos os leads" com contador, Confortável/Compacto e Lista/Kanban em seletores,
+// coluna Ação, estágio e último acompanhamento em selo colorido, os dois campos personalizados
+// com o rótulo do negócio, e a gaveta do protótipo (`CrmGaveta`, 480px) com o Tipo PJ/PF.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useState, type ReactNode } from 'react';
-import { Card, CardContent } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
+import { ChevronDown, Plus } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Segmented } from '@/Components/ui/segmented';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
 import CrmCabecalho from '../_components/CrmCabecalho';
-import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
+import { CrmCartao, CrmFiltros, CrmGaveta, CrmMini, CrmPilula, CrmSecao } from '../_components/CrmBlocos';
+import { frescor, tomDoEstagio } from '../_components/lead';
+import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/leads';
@@ -40,14 +47,19 @@ interface Lead {
   id: number; codigo: string | null; nome: string; celular: string | null; email: string | null;
   documento: string | null; fonte: string | null; estagio: string | null; atribuidos: string[];
   endereco: string; ultimo: string | null; proximo: string | null; adicionado_em: string | null;
+  tipo?: 'PJ' | 'PF' | null; campo1?: string | null; campo2?: string | null;
 }
+interface Rotulos { campo1: string; campo2: string }
 type Filtros = Record<string, string | undefined>;
 interface Props {
   filtros: Filtros;
+  rotulos?: Rotulos;
   opcoes?: Opcoes;
   leads?: PaginatorShape<Lead>;
   lead?: Lead | null;
 }
+
+const ROTULOS_PADRAO: Rotulos = { campo1: 'Campo personalizado 1', campo2: 'Campo personalizado 2' };
 
 function filtrar(filtros: Filtros, mudanca: Filtros) {
   router.get(ROTA, { ...filtros, ...mudanca }, { preserveState: true, preserveScroll: true, replace: true });
@@ -59,37 +71,48 @@ function verLead(filtros: Filtros, id: number | null) {
   });
 }
 
-export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
+export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, leads, lead }: Props) {
   const cockpit = useCockpit();
-  const [densidade, setDensidade] = useState<DensidadeDaTabela>('default');
+  const [compacta, setCompacta] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
       <CrmCabecalho aba="Leads" />
 
-      <Card data-contract="crm-filtros">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <h3 className="text-sm font-medium">Filtros</h3>
-          <Deferred data="opcoes" fallback={<Skeleton className="h-16 w-full" />}>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Filtro rotulo="Fonte" campo="source" lista={opcoes?.fontes} filtros={filtros} />
-              <Filtro rotulo="Estágio de vida" campo="life_stage" lista={opcoes?.estagios} filtros={filtros} />
-              <Filtro rotulo="Atribuído a" campo="user_id" lista={opcoes?.usuarios} filtros={filtros} />
-            </div>
-          </Deferred>
-        </CardContent>
-      </Card>
+      <CrmFiltros data-contract="crm-filtros">
+        <Deferred data="opcoes" fallback={<Skeleton className="h-16 w-full" />}>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Filtro rotulo="Fonte" campo="source" lista={opcoes?.fontes} filtros={filtros} />
+            <Filtro rotulo="Estágio de vida" campo="life_stage" lista={opcoes?.estagios} filtros={filtros} />
+            <Filtro rotulo="Atribuído a" campo="user_id" lista={opcoes?.usuarios} filtros={filtros} />
+          </div>
+        </Deferred>
+      </CrmFiltros>
 
-      <Card data-contract="crm-leads">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-medium">Todos os leads</h3>
-            <div className="ml-auto flex flex-wrap gap-2" data-contract="crm-toolbar">
-              <Button variant="secondary" size="sm" aria-pressed="true">Exibição de lista</Button>
-              <Button asChild variant="outline" size="sm"><a href={KANBAN}>Kanban</a></Button>
-              <Button variant={densidade === 'default' ? 'secondary' : 'outline'} size="sm" aria-pressed={densidade === 'default'} onClick={() => setDensidade('default')}>Confortável</Button>
-              <Button variant={densidade === 'dense' ? 'secondary' : 'outline'} size="sm" aria-pressed={densidade === 'dense'} onClick={() => setDensidade('dense')}>Compacto</Button>
-              <Button asChild size="sm"><a href={NOVO}>Adicionar</a></Button>
+      <CrmCartao
+        data-contract="crm-leads"
+        titulo="Todos os leads"
+        nota={leads ? `${leads.data.length} de ${leads.total}` : null}
+        semPadding
+      >
+        <div className="flex flex-col gap-3 p-3">
+          <div className="flex flex-wrap items-center gap-2" data-contract="crm-toolbar">
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {/* O contrato `crm-leads` lê "Confortável/Compacto" no arquivo da tela. */}
+              <Segmented
+                aria-label="Densidade da tabela"
+                value={compacta ? 'comp' : 'conf'}
+                onValueChange={(v) => v && setCompacta(v === 'comp')}
+                options={[{ value: 'conf', label: 'Confortável' }, { value: 'comp', label: 'Compacto' }]}
+              />
+              {/* O kanban segue na Blade (UC-CRMLD-07): escolher "Kanban" leva até lá. */}
+              <Segmented
+                aria-label="Modo de exibição"
+                value="lista"
+                onValueChange={(v) => { if (v === 'kanban') window.location.assign(KANBAN); }}
+                options={[{ value: 'lista', label: 'Exibição de lista' }, { value: 'kanban', label: 'Kanban' }]}
+              />
+              <Button asChild size="sm"><a href={NOVO}><Plus className="size-3" /> Adicionar</a></Button>
             </div>
           </div>
 
@@ -98,7 +121,7 @@ export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
               <>
                 <DataTable<Lead>
                   caption="Leads"
-                  columns={COLUNAS}
+                  columns={colunas(rotulos, filtros, cockpit)}
                   data={leads.data}
                   pagination={leads}
                   endpoint={ROTA}
@@ -108,7 +131,9 @@ export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
                   emptyMessage="Nada com esses filtros"
                   rowKey={(r) => r.id}
                   onRowClick={(r) => verLead(filtros, r.id)}
-                  density={densidade}
+                  density={compacta ? 'grid' : 'grid-relaxed'}
+                  zebra={false}
+                  tableWrapperClassName="overflow-hidden rounded-md border border-border"
                 />
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground" data-contract="crm-rodape">
                   <span>Total: {leads.total}</span>
@@ -120,50 +145,35 @@ export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
               </>
             ) : null}
           </Deferred>
-        </CardContent>
-      </Card>
+        </div>
+      </CrmCartao>
 
-      <Sheet open={!!lead} onOpenChange={(aberto) => { if (!aberto) verLead(filtros, null); }}>
-        {lead ? (
-          <SheetContent container={cockpit} side="right" className="w-full sm:max-w-[760px]">
-            <SheetHeader>
-              {lead.estagio ? <Badge variant="info" className="w-fit">{lead.estagio}</Badge> : null}
-              <SheetTitle>{lead.nome}</SheetTitle>
-              <SheetDescription>
-                {[lead.codigo, lead.fonte, lead.atribuidos.join(', ')].filter(Boolean).join(' · ') || '—'}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="flex flex-col gap-4 overflow-y-auto px-4">
-              <Secao titulo="Informação do lead" linhas={[
-                ['Celular', lead.celular], ['E-mail', lead.email], ['CNPJ / CPF', lead.documento],
-                ['Endereço', lead.endereco], ['Adicionado em', lead.adicionado_em],
-              ]} />
-              <Secao titulo="Acompanhamento" linhas={[['Último', lead.ultimo], ['Próximo', lead.proximo]]} />
-            </div>
-            <SheetFooter className="flex-row justify-end gap-2">
-              <Button asChild variant="outline"><a href={`${ROTA}/${lead.id}`}>Abrir ficha completa</a></Button>
-              <Button asChild><a href={CLASSICO}>Converter para cliente</a></Button>
-            </SheetFooter>
-          </SheetContent>
-        ) : null}
-      </Sheet>
+      {lead ? (
+        <CrmGaveta
+          onFechar={() => verLead(filtros, null)}
+          selo={lead.estagio ? <CrmPilula tom={tomDoEstagio(lead.estagio)}>{lead.estagio}</CrmPilula> : null}
+          titulo={lead.nome}
+          subtitulo={[lead.codigo, lead.fonte, lead.atribuidos.join(', ')].filter(Boolean).join(' · ') || '—'}
+          rodape={<>
+            <Button asChild variant="outline"><a href={`${ROTA}/${lead.id}`}>Abrir ficha completa</a></Button>
+            <Button asChild className="text-white"><a href={CLASSICO}>Converter para cliente</a></Button>
+          </>}
+        >
+          <CrmSecao titulo="Informação do lead">
+            <CrmMini linhas={[
+              ['Celular', lead.celular || '—'], ['E-mail', lead.email || '—'], ['CNPJ / CPF', lead.documento || '—'],
+              ['Tipo', lead.tipo || '—'], ['Endereço', lead.endereco || '—'], ['Adicionado em', lead.adicionado_em || '—'],
+            ]} />
+          </CrmSecao>
+          <CrmSecao titulo="Acompanhamento">
+            <CrmMini linhas={[
+              ['Último', lead.ultimo || '—'], ['Próximo', lead.proximo || '—'],
+              [rotulos.campo1, lead.campo1 || '—'], [rotulos.campo2, lead.campo2 || '—'],
+            ]} />
+          </CrmSecao>
+        </CrmGaveta>
+      ) : null}
     </div>
-  );
-}
-
-function Secao({ titulo, linhas }: { titulo: string; linhas: [string, string | null][] }) {
-  return (
-    <section className="flex flex-col gap-2">
-      <h4 className="text-sm font-medium">{titulo}</h4>
-      <dl className="grid grid-cols-[140px_1fr] gap-x-3 gap-y-1 text-sm">
-        {linhas.map(([rotulo, valor]) => (
-          <div key={rotulo} className="contents">
-            <dt className="text-muted-foreground">{rotulo}</dt>
-            <dd>{valor || '—'}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
   );
 }
 
@@ -183,23 +193,49 @@ function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo
   );
 }
 
-const texto = (header: string, acc: (r: Lead) => ReactNode, width = 150): ColumnDef<Lead> => ({
-  id: header, header, cell: ({ row }) => acc(row.original) || '—', meta: { width },
-});
+function colunas(rotulos: Rotulos, filtros: Filtros, cockpit: HTMLElement | null): ColumnDef<Lead>[] {
+  const texto = (header: string, acc: (r: Lead) => ReactNode, width = 150, mono = false): ColumnDef<Lead> => ({
+    id: header, header, cell: ({ row }) => acc(row.original) || '—', meta: { width, mono },
+  });
 
-const COLUNAS: ColumnDef<Lead>[] = [
-  texto('ID do contato', (r) => r.codigo, 118),
-  texto('Nome', (r) => r.nome, 210),
-  texto('Celular', (r) => r.celular, 138),
-  texto('E-mail', (r) => r.email, 226),
-  texto('Fonte', (r) => r.fonte, 126),
-  texto('Último acompanhamento', (r) => r.ultimo, 178),
-  texto('Próximo acompanhamento', (r) => r.proximo, 178),
-  texto('Estágio de vida', (r) => (r.estagio ? <Badge variant="neutral">{r.estagio}</Badge> : null), 150),
-  texto('Atribuído a', (r) => r.atribuidos.join(', '), 150),
-  texto('Endereço', (r) => r.endereco, 250),
-  texto('CNPJ / CPF', (r) => r.documento, 158),
-  texto('Adicionado em', (r) => r.adicionado_em, 128),
-];
+  const acao: ColumnDef<Lead> = {
+    id: 'Ação', header: 'Ação', meta: { width: 92 },
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          {/* A linha abre a gaveta; o menu não pode abrir os dois. */}
+          <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.nome}`}
+            onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>Ações <ChevronDown className="size-3" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent container={cockpit} align="start" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenuItem onSelect={() => verLead(filtros, row.original.id)}>Exibir lead</DropdownMenuItem>
+          {/* A conversão ainda mora na Blade (CRM-25). */}
+          <DropdownMenuItem asChild><a href={CLASSICO}>Converter para cliente</a></DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  };
+
+  return [
+    acao,
+    texto('ID do contato', (r) => r.codigo, 118, true),
+    texto('Nome', (r) => r.nome, 210),
+    texto('Celular', (r) => r.celular, 138, true),
+    texto('E-mail', (r) => r.email, 226),
+    texto('Fonte', (r) => r.fonte, 126),
+    texto('Último acompanhamento', (r) => {
+      const f = frescor(r.ultimo);
+      return f ? <span title={r.ultimo ?? undefined}><CrmPilula tom={f.tom}>{f.texto}</CrmPilula></span> : null;
+    }, 178),
+    texto('Próximo acompanhamento', (r) => r.proximo, 178, true),
+    texto('Estágio de vida', (r) => (r.estagio ? <CrmPilula tom={tomDoEstagio(r.estagio)}>{r.estagio}</CrmPilula> : null), 150),
+    texto('Atribuído a', (r) => r.atribuidos.join(', '), 150),
+    texto('Endereço', (r) => r.endereco, 250),
+    texto('CNPJ / CPF', (r) => r.documento, 158, true),
+    texto('Adicionado em', (r) => r.adicionado_em, 128, true),
+    texto(rotulos.campo1, (r) => r.campo1, 160),
+    texto(rotulos.campo2, (r) => r.campo2, 190),
+  ];
+}
 
 LeadsIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
