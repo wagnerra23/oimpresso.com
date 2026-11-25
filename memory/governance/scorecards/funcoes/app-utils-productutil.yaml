@@ -76,6 +76,14 @@
 #   linha 206; ProdutoEditVariacaoBladeTenantTest cobre e morde. As demais funções NÃO foram revistas.
 #   `totals` não muda (nenhum status mudou).
 #
+# Correção do hash 2026-11-25 [W+C]: o source_blob_sha gravado no #11473 (27aadba9…) é o do arquivo SEM as
+#   3 linhas que o #11461 acrescentou minutos antes (mesmo dia; o branch do #11473 partiu de antes dele).
+#   Prova: o arquivo de antes do #11461 com o diff do #11473 aplicado dá exatamente 27aadba9…. O #11461
+#   (`git diff --numstat` = 3/0) só acrescentou a chave `local_id` dentro de linhaDoRelatorioEstoque, uma
+#   das funções de outubro que NUNCA foram julgadas aqui; está depois de todas as funções julgadas, então
+#   nenhum `line`/`linhas` deslocou. Nenhum veredito revisto; só o source_blob_sha passa ao do main
+#   (44a0d87f…). `totals` não muda.
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -85,7 +93,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "27aadba935c4c9a0c4f037bbc21fb45b6afcfc22"
+source_blob_sha: "44a0d87fb31af6ea9ad048ff0cdda43bccdc0031"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21

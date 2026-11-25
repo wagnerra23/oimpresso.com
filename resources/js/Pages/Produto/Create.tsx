@@ -268,7 +268,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
           o tema. Até 2026-11-05 ela fixava bg-stone-50 e, no tema escuro, a página ficava clara com os
           cartões escuros. */}
       <div className="min-h-screen text-foreground">
-        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
+        <header className="sticky top-0 z-30 bg-page-cream/85 backdrop-blur border-b border-border">
           <div className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div>
               <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground">
