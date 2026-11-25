@@ -11,9 +11,9 @@
 @import "./tokens/_generated-cockpit-light.css";
 @import "./tokens/_generated-cockpit-dark.css";
 
-/* No claro, o texto do shadcn (Card, Button outline, text-foreground) usa o texto do shell; o escuro
-   fica como está (UI-0027). Medição e motivo: ADR UI-0035. Nenhum token novo. */
-.cockpit:not([data-theme="dark"]) { --color-foreground: var(--text); --color-card-foreground: var(--text); --color-popover-foreground: var(--text); }
+/* No claro, o texto do shadcn (Card, Button, hover, text-foreground) usa o texto do shell e o anel de foco usa o
+   roxo de marca, como o foco do DS; o escuro fica como está (UI-0027). Motivo e medição: ADR UI-0035. */
+.cockpit:not([data-theme="dark"]) { --color-foreground: var(--text); --color-card-foreground: var(--text); --color-popover-foreground: var(--text); --color-secondary-foreground: var(--text); --color-accent-foreground: var(--text); --color-ring: var(--color-primary); }
 .cockpit *,
 .cockpit *::before,
 .cockpit *::after { box-sizing: border-box; }
