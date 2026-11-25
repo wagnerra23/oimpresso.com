@@ -206,8 +206,12 @@ jobs:
         run: npx vitest run tests/js/nfe-natureza-lancamento.test.tsx
       - name: Importar nota de referência na natureza nova (vitest, UC-NFTR-73..77)
         run: npx vitest run tests/js/nfe-naturezas-importar-xml.test.tsx
+      - name: Naturezas — editor e prévia do lançamento (vitest, UC-NFTR-70..72, 79..82)
+        run: npx vitest run tests/js/nfe-naturezas-editor.test.tsx tests/js/nfe-naturezas-lancamento.test.tsx
       - name: Tributação — aplicar modelo pede confirmação (vitest, UC-NFTR-78)
         run: npx vitest run tests/js/nfe-tributacao-template-confirmacao.test.tsx
+      - name: Regra tributária — trocar o regime e o código do outro regime no envio (vitest, UC-NFRF-12)
+        run: npx vitest run tests/js/nfe-tributacao-regra-regime.test.tsx
 
       - name: Comportamento React — lista de vendas, Excluir avisa a recusa do servidor (UC-SIDX-08)
         run: npx vitest run tests/js/sells-index-excluir-recusa.test.tsx

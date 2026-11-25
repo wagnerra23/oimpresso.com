@@ -4,7 +4,7 @@
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { SecaoCadastro } from './SecaoCadastro';
 import {
   Select,
   SelectContent,
@@ -12,8 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import { Grid } from '@/Components/layout';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
+import { Grid, Inline } from '@/Components/layout';
 import { BlocoGrade } from './BlocoGrade';
+import { BlocoGradeEditar } from './BlocoGradeEditar';
+import type { GradeGravada, LinhaGradeEditada } from './gradeEditar';
 import { CamposPreco } from './CamposPreco';
 import type { Grade } from './grade';
 import { metodoDaEmpresa, opcoesDoMetodo } from './metodoCusto';
@@ -35,6 +38,8 @@ interface Props {
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
   /** UC-PCAD-32: a grade do produto variável no Novo. */
   grade?: { valor: Grade; mudar: (g: Grade) => void; aliquota: number; margemPadrao: number; erro?: string };
+  /** UC-PEDIT-32: a grade do produto variável no Editar (as variações gravadas). */
+  gradeGravada?: { gravada: GradeGravada; linhas: LinhaGradeEditada[]; mudar: (l: LinhaGradeEditada[]) => void; aliquota: number };
   /** Método de custo (US-COM-024): só quando o módulo Compras está no pacote da empresa. */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
   /** Política de preço (CU-PROD-21) e os erros do servidor para os dois campos. */
@@ -47,15 +52,29 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, metodoCusto, politica }: Props) {
+const reais = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * O exemplo embaixo da pergunta do imposto (protótipo): quanto o cliente paga numa venda de
+ * R$ 100,00. Só texto: a conta do preço que vai para o servidor segue em precos.ts.
+ */
+function exemploDoImposto(tipo: 'inclusive' | 'exclusive', aliquota: number, sigla: string): string {
+  if (tipo === 'exclusive') {
+    return `Exemplo: venda de R$ 100,00 → o cliente paga R$ ${reais(100 * (1 + aliquota / 100))}.`;
+  }
+  return `Exemplo: venda de R$ 100,00 → o cliente paga R$ 100,00, com R$ ${reais(100 - 100 / (1 + aliquota / 100))} de ${sigla} dentro.`;
+}
+
+export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, gradeGravada, metodoCusto, politica }: Props) {
   const novo = modo === 'novo';
+  const semImposto = data.tax === '' || data.tax == null;
+  const nomeImposto = semImposto ? '' : (opcoes.taxes?.[data.tax as number] ?? '');
+  const sigla = nomeImposto.split(' ')[0] || 'imposto';
+  // A alíquota vem do preço (simples) ou da grade (variável, no Novo ou no Editar); sem nenhum, sem exemplo.
+  const aliquota = preco?.aliquota ?? grade?.aliquota ?? gradeGravada?.aliquota;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Impostos e preços</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SecaoCadastro titulo="Impostos e preços" nota={nomeImposto ? `imposto ${nomeImposto}` : undefined}>
         <Grid cols={3} gap={4}>
         <div>
           <Label htmlFor="tax">Imposto aplicável</Label>
@@ -76,21 +95,40 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label htmlFor="tax_type">O preço de venda já tem o imposto?</Label>
-          <Select
-            value={data.tax_type}
-            onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
-          >
-            <SelectTrigger id="tax_type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="exclusive">Não, somar ao preço</SelectItem>
-              <SelectItem value="inclusive">Sim, já está no preço</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {semImposto ? (
+          <div>
+            <Label>O preço de venda já tem o imposto?</Label>
+            <p className="mt-1 text-[11px] text-muted-foreground">Sem imposto escolhido, não há o que perguntar aqui.</p>
+          </div>
+        ) : (
+          <div>
+            <Label id="tax_type_rotulo">O preço de venda já tem o {sigla}?</Label>
+            <RadioGroup
+              aria-labelledby="tax_type_rotulo"
+              value={data.tax_type}
+              onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
+              asChild
+            >
+              <Inline wrap gap={4} className="min-h-[30px]">
+                <Inline asChild gap={2}>
+                  <Label htmlFor="tax_type_exclusive" className="text-[12.5px] font-normal">
+                    <RadioGroupItem id="tax_type_exclusive" value="exclusive" /> Não, somar ao preço
+                  </Label>
+                </Inline>
+                <Inline asChild gap={2}>
+                  <Label htmlFor="tax_type_inclusive" className="text-[12.5px] font-normal">
+                    <RadioGroupItem id="tax_type_inclusive" value="inclusive" /> Sim, já está no preço
+                  </Label>
+                </Inline>
+              </Inline>
+            </RadioGroup>
+            {aliquota !== undefined && (
+              <p data-testid="exemplo-imposto" className="mt-1 text-[11px] text-muted-foreground">
+                {exemploDoImposto(data.tax_type, aliquota, sigla)}
+              </p>
+            )}
+          </div>
+        )}
         <div>
           <Label htmlFor="type">{novo ? 'Tipo de produto *' : 'Tipo de produto'}</Label>
           {novo ? (
@@ -211,8 +249,15 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             erro={grade.erro}
           />
         )}
+        {gradeGravada && (
+          <BlocoGradeEditar
+            gravada={gradeGravada.gravada}
+            linhas={gradeGravada.linhas}
+            mudar={gradeGravada.mudar}
+            aliquota={gradeGravada.aliquota}
+          />
+        )}
         </Grid>
-      </CardContent>
-    </Card>
+    </SecaoCadastro>
   );
 }

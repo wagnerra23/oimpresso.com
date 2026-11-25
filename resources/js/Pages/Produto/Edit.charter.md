@@ -32,13 +32,14 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 - Header "Editar produto · {nome} · SKU mono small"
 - Type select disabled
 - Defaults preenchidos com produto atual
-- Rodapé de ações: Cancelar · "Salvar e adicionar outro" · "Salvar alterações"; "Voltar à lista" no cabeçalho (desde 2026-11-04, forma do protótipo)
+- Rodapé de ações: Cancelar · "Salvar e adicionar preços por grupo" (com grupo de preço) · "Salvar e adicionar estoque inicial" (com `product.opening_stock`; desligado sem controle de estoque) · "Salvar e adicionar outro" · "Salvar alterações"; "Voltar à lista" no cabeçalho (desde 2026-11-04, forma do protótipo; os dois do meio desde 2026-11-25, UC-PEDIT-35)
 - Multi-tenant: produto cross-tenant retorna 404
 
 ## Non-Goals
 
 - ❌ Mudar `type` (Single/Variable/Combo) após criar
-- ❌ Editar variations dinamicamente (Wave 3)
+- ❌ Acrescentar, tirar ou renomear valor de variação no Editar (Wave 3)
+  - _Até 2026-11-24 esta linha era "Editar variations dinamicamente". Em 2026-11-25 (UC-PEDIT-32, pedido do [W] pelo item 3 das pendências de 24/11) o Editar passou a editar o sub-SKU e os cinco preços das variações já gravadas; o que segue fora é mudar o conjunto de valores._
 - ❌ Deletar produto inline
 
 ## UX Targets
@@ -51,6 +52,8 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 
 - ❌ NÃO mexer no método `update()` PHP (out of scope)
   - _Exceção datada (2026-10-15, UC-PEDIT-09): o `update()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem — o Blade não manda e não zera. Nada mais do método mudou._
+  - _Exceção datada (2026-11-25, UC-PEDIT-32): no ramo do produto variável o `update()` passou a ler `variacoes_editadas` (só as linhas mexidas, presas ao produto). O `product_variation_edit` do Blade não mudou._
+  - _Exceção datada (2026-11-25, UC-PEDIT-35): com `submit_type=update_n_edit_opening_stock` vindo da tela React (cabeçalho `X-Inertia`), o `update()` devolve `Inertia::location` para o estoque inicial em vez do 302, como o `store()` já faz no Novo (UC-PCAD-21). Pelo Blade, igual._
 - ❌ NÃO recriar SKU server-side no client
 
 ## Pest GUARD
@@ -74,3 +77,4 @@ it('Controller cross-tenant retorna 404')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
+| 2026-11-25 | [W+C] | Non-Goal de variações estreitado: sub-SKU e preço das variações gravadas entram no Editar (UC-PEDIT-32); acrescentar, tirar e renomear valor seguem fora. |

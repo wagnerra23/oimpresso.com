@@ -3,6 +3,7 @@
 // dele — Dados do produto, Configurações, Fiscal, Impostos e preços. O cabeçalho, o useForm, o envio
 // e o rodapé de ações (AcoesDoCadastro) continuam em cada tela.
 
+import '../../../../../css/cowork-produto-bundle.css';
 import type { FormEvent } from 'react';
 import { BlocoDados } from './BlocoDados';
 import { BlocoConfiguracoes } from './BlocoConfiguracoes';
@@ -11,6 +12,7 @@ import type { EnderecoNoEstoque, EstadoArmazenagem, SaldoPorLocal } from './arma
 import { BlocoFiscal } from './BlocoFiscal';
 import { BlocoImpostosPrecos } from './BlocoImpostosPrecos';
 import type { Grade } from './grade';
+import type { GradeGravada, LinhaGradeEditada } from './gradeEditar';
 import type { PrecoSimples } from './precos';
 import type { MetodoCustoDoFormulario } from './metodoCusto';
 import type { EstadoPolitica } from './politicaPreco';
@@ -51,6 +53,8 @@ interface Props {
   midia?: { produtoId: number; imagem: string | null; folheto: Folheto | null };
   /** UC-PCAD-32: Novo, produto variável — a grade, no card "Impostos e preços". */
   grade?: { valor: Grade; mudar: (g: Grade) => void; aliquota: number; margemPadrao: number; erro?: string };
+  /** UC-PEDIT-32: Editar, produto variável — as variações gravadas, no card "Impostos e preços". */
+  gradeGravada?: { gravada: GradeGravada; linhas: LinhaGradeEditada[]; mudar: (l: LinhaGradeEditada[]) => void; aliquota: number };
 }
 
 export function ProdutoFormulario({
@@ -70,9 +74,18 @@ export function ProdutoFormulario({
   politica,
   midia,
   grade,
+  gradeGravada,
 }: Props) {
   return (
-    <form id={id} onSubmit={onSubmit} className="space-y-6">
+    <form
+      id={id}
+      onSubmit={onSubmit}
+      // Forma do protótipo (produto-blade.css .pb-fld), só dentro deste formulário: rótulo 10,5 px · 700 ·
+      // maiúsculas, caixa com canto 6 px e recuo 9 px. O `!` vence as regras .cw-label/.cw-input do
+      // DS, que ficam fora de @layer. Rótulo ao lado de caixa de marcar e de opção (.font-normal) fica
+      // em letras normais, como no protótipo. Sem .css novo (MANUAL-CSS-JS: arquivo novo exige ADR).
+      className="space-y-6 [&_.cw-label:not(.font-normal)]:!text-[10.5px] [&_.cw-label:not(.font-normal)]:!font-[700] [&_.cw-label:not(.font-normal)]:!uppercase [&_.cw-label:not(.font-normal)]:!tracking-[0.06em] [&_.cw-input]:!rounded-[6px] [&_.cw-input]:!px-[9px]"
+    >
       <BlocoDados modo={modo} data={data} definir={definir} errors={errors} opcoes={opcoes} midia={midia} />
       <BlocoConfiguracoes
         modo={modo}
@@ -102,6 +115,7 @@ export function ProdutoFormulario({
         tipoAtual={tipoAtual}
         preco={preco}
         grade={grade}
+        gradeGravada={gradeGravada}
         metodoCusto={metodoCusto}
         politica={
           politica

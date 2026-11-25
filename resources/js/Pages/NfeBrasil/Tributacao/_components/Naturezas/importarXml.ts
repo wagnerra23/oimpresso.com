@@ -196,7 +196,7 @@ export function lerNotaReferencia(
     const tag = 'pIBSUF · pIBSMun · pCBS';
     if (anoIbs !== null && anoCbs !== null && u === anoIbs && (mu ?? 0) === 0 && cb === anoCbs) {
       N.ibs.origem = 'padrao';
-      add('ibs', 'Alíquotas', tag, `${pct(u)} · ${pct(0)} · ${pct(cb)}`, 'ok', `Iguais ao padrão de ${empresa?.ano}.`);
+      add('ibs', 'Alíquotas', tag, `${pct(u)} · ${pct(0)} · ${pct(cb)}`, 'ok', empresa?.ano === 2026 ? 'Iguais ao padrão do ano de teste.' : `Iguais ao padrão de ${empresa?.ano}.`);
     } else if (u !== null || cb !== null) {
       N.ibs.origem = 'fixa'; N.ibs.pUF = u ?? 0; N.ibs.pMun = mu ?? 0; N.ibs.pCBS = cb ?? 0;
       add('ibs', 'Alíquotas', tag, `${pct(u)} · ${pct(mu)} · ${pct(cb)}`, 'ok', 'Guardadas como fixas.');
