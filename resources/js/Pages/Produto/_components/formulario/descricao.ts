@@ -35,7 +35,7 @@ export function textoDaDescricao(gravada: string | null | undefined): string {
     .replace(/<[^>]*>/g, '');
   return decodificarEntidades(semTags)
     .split('\n')
-    .map((l) => l.replace(/[ \t ]+/g, ' ').trim())
+    .map((l) => l.replace(/[ \t\u00a0]+/g, ' ').trim())
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
