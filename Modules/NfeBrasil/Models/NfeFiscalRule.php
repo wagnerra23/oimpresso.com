@@ -32,6 +32,7 @@ use Modules\NfeBrasil\Services\Tributacao\RevisaoContadorService;
  * @property int|null $versao_origem_id
  * @property string|null $cst_pis    R-NFE-025b · CST de saída do PIS (nulo = a nota sai com 07)
  * @property string|null $cst_cofins R-NFE-025b · CST de saída da COFINS (nulo = a nota sai com 07)
+ * @property int|null $crt            P-155 · regra só do local com esse regime (migração 2026_10_29_000002)
  */
 class NfeFiscalRule extends Model
 {

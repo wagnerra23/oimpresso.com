@@ -203,7 +203,7 @@ it('UC-NFRF-01 · criar e editar regra exigem nfe.tributacao.manage', function (
     $existente = nfgtRegra(nfgtBiz());
 
     $this->post('/nfe-brasil/tributacao/regras', nfgtPayload())->assertForbidden();
-    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['aliquota_icms' => 0.25]))
+    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
         ->assertForbidden();
 
     // Nada gravado: a contagem só subiu pela regra que o próprio teste semeou…
@@ -219,7 +219,8 @@ it('UC-NFRF-01 · criar e editar regra exigem nfe.tributacao.manage', function (
     $this->post('/nfe-brasil/tributacao/regras', nfgtPayload())->assertRedirect();
     expect(nfgtContar(nfgtBiz()))->toBe($antes + 2);
 
-    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['aliquota_icms' => 0.25]))
+    // A edição mantém o NCM da regra: levá-la para o 49019900 recém-criado seria duplicata (UC-NFRF-10).
+    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
         ->assertRedirect();
     // Desde a thread 07 (R-NFE-019) editar gera versão nova: a alíquota nova está na versão
     // vigente da cadeia, e a antiga segue com 0.12 explicando as notas de antes.

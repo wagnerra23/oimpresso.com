@@ -888,6 +888,21 @@ last_run: "2026-11-23"
 - **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-77 …`.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-NFTR-78 · Aplicar modelo pede confirmação antes de mexer na configuração · `must` `[fiscal]`
+
+- **Persona:** quem já tem a tributação configurada e clica num modelo por engano.
+- **Aceite:** **Dado** uma empresa com configuração e regras NCM **Quando** clico em "Aplicar template" e cancelo
+  a confirmação **Então** nada é enviado ao servidor. **Quando** confirmo **Então** o aviso disse que a configuração
+  atual será SUBSTITUÍDA e que as regras NCM existentes (com a contagem) permanecem, e o pedido vai para a rota do
+  modelo escolhido. **Dado** uma empresa sem configuração **Então** o aviso fala em criar a configuração inicial,
+  sem "SUBSTITUIR".
+- **Teste:** [`nfe-tributacao-template-confirmacao.test.tsx`](../../../../../tests/js/nfe-tributacao-template-confirmacao.test.tsx)
+  — os três `UC-NFTR-78 …`. Controle por mutação em 2026-11-24: tirando o `return` do `if (!confirm(aviso))`, o
+  caso do cancelamento cai (o pedido sai sem o OK).
+- **Contrato:** charter §Goals (*"Confirmação destrutiva ao aplicar template se já existe config"*). O que o
+  servidor faz ao aplicar é o UC-NFTR-03.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Tributação — aplicar modelo pede confirmação").
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
@@ -910,10 +925,6 @@ last_run: "2026-11-23"
 - `[BACKLOG]` **AuditLog nas mutações de regra.** `store`/`update`/`destroy` e `toggleAutoEmission` já
   chamam `activity('nfe.tributacao')->log(...)`, mas nenhum teste prova. É o escopo declarado da
   **US-NFE-062** (P1), ainda aberta — deixo lá em vez de duplicar aqui.
-- `[BACKLOG]` **Confirmação destrutiva ao aplicar template sobre config existente.** O charter §Goals
-  pede `window.confirm` explícito e o `.tsx` implementa. É comportamento de **cliente** — precisaria de
-  e2e Playwright, não de Pest; a tela não tem spec e2e hoje (`screen:files` → *"nenhum teste Browser cita
-  o path"*).
 
 ---
 
