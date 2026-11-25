@@ -203,7 +203,7 @@ class ProductUtil extends Util
         foreach ($input_variations_edit as $key => $value) {
             $product_variation_ids[] = $key;
 
-            $product_variation = ProductVariation::find($key);
+            $product_variation = ProductVariation::where('product_id', $product_id)->findOrFail($key); // [T0] ADR 0093: grupo DESTE produto; id alheio aborta o update (ProdutoEditVariacaoBladeTenantTest)
             $product_variation->name = $value['name'];
             $product_variation->save();
 
