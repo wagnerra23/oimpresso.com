@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: a lista de leads mostra contatos em prospecção com celular, e-mail e documento. Errar o escopo vaza contato de outro negócio ou de colega que não devia ver; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
 last_run: "2026-11-25"
-last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff. Antes: 2026-10-06 thread Crm/09: UC-CRMLD-11..13 novos; LeadController (edit/update/destroy) mudou. Lane verticais-pest no branch do #8756 (run 37451383426): UC-CRMLD-11, 12 e 13 ✓, 268 passed · 1620 assertions; as 2 falhas (UC-CRMACO-20, UC-SANEG-14) já falham no push de main 211b51697c (run 37382355413)."
+last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff. Também 2026-11-25 CRM-03: portais no .cockpit, nenhum UC muda. Antes: 2026-10-06 thread Crm/09: UC-CRMLD-11..13 novos; LeadController (edit/update/destroy) mudou. Lane verticais-pest no branch do #8756 (run 37451383426): UC-CRMLD-11, 12 e 13 ✓, 268 passed · 1620 assertions; as 2 falhas (UC-CRMACO-20, UC-SANEG-14) já falham no push de main 211b51697c (run 37382355413)."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/02. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
