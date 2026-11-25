@@ -293,10 +293,15 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
         <div className="os-page-h-l">
           <h1>Produção</h1>
           <p>
-            {recipes_count === undefined
-              ? 'Ordens de produção do módulo de Fabricação.'
-              : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
-                `${summary?.total_count ?? 0} ordens de produção`}
+            {recipes_count === undefined ? (
+              'Ordens de produção do módulo de Fabricação.'
+            ) : (
+              <>
+                <strong>{recipes_count}</strong> receita{recipes_count === 1 ? '' : 's'} ·{' '}
+                <strong>{summary?.total_count ?? 0}</strong>{' '}
+                {(summary?.total_count ?? 0) === 1 ? 'ordem' : 'ordens'} de produção
+              </>
+            )}
           </p>
         </div>
         <div className="os-page-h-r">

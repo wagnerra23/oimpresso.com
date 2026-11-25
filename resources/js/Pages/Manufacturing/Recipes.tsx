@@ -235,8 +235,8 @@ export default function Recipes({
         <div className="os-page-h-l">
           <h1>Fabricação</h1>
           <p>
-            {kpis.total} receita{kpis.total === 1 ? '' : 's'} · {producao.total} ordem
-            {producao.total === 1 ? '' : 's'} de produção · custo recalculado pelo preço atual dos
+            <strong>{kpis.total}</strong> receita{kpis.total === 1 ? '' : 's'} ·{' '}
+            <strong>{producao.total}</strong> {producao.total === 1 ? 'ordem' : 'ordens'} de produção · custo recalculado pelo preço atual dos
             ingredientes
           </p>
         </div>

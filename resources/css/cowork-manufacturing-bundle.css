@@ -25,7 +25,9 @@
    `--accent` a partir do seletor de matiz do localStorage, e a tela ficava azul no
    navegador de quem tem outro hue salvo. Detalhe e medição: Recipes.charter.md. */
 .mfg-root{display:flex;flex-direction:column;min-height:0;flex:1}
-.mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface)}
+/* Sem fundo próprio: no protótipo o `TabBar` do DS não pinta o <nav>, a faixa é o fundo da página
+   (C-04 das Pendências da Fabricação, 2026-11-25). */
+.mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:transparent}
 
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
 
@@ -259,10 +261,12 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
    L2261-2284, L3018-3020), escopados em `.mfg-root` para não vazar pro resto do app.
    Valores verbatim — só o seletor ganhou o prefixo. ══ */
 .mfg-root .os-page-h{
-  padding: 12px 24px 12px;
+  /* C-01: as medidas do `PageHeader` do DS (PageHeader.jsx L27-28) com o recuo de 20px que o
+     manufacturing-page.css do protótipo dá ao header. */
+  padding: 14px 20px;
   min-height: 44px;
   flex-shrink: 0;
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: flex-start; gap: 12px;
   flex-wrap: wrap;
   border-bottom: 1px solid var(--border);
 }
@@ -271,24 +275,27 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
   margin: 0;
   font-size: var(--fs-7);
   font-weight: 600; /* 600 = o PageHeader do protótipo, medido 2026-09-30 (era 700) */
-  letter-spacing: -0.025em;
-  line-height: 1.2;
+  letter-spacing: -0.015em; /* C-02: PageHeader.jsx L40, e o canônico (D-PH-0923) */
+  line-height: 1.3;
   text-wrap: balance;
   color: var(--text);
 }
 .mfg-root .os-page-h-l p{
-  margin: 2px 0 0;
-  font-size: var(--fs-3);
+  margin: 4px 0 0; /* C-03: PageHeader.jsx L61 */
+  font-size: 13px;
   /* Sem teto de 60ch. Com ele, o subtítulo da aba Receitas ("… · custo recalculado pelo preço
      atual dos ingredientes") quebrava em 2 linhas e as outras abas ficavam com 1: o cabeçalho
      crescia só ali e a barra de abas descia ao trocar de aba ([M] 2026-10-06, medido em produção).
      O protótipo já tira o teto: `manufacturing-page.css` `.mfg-root>header p{max-width:none}`
      (D-RET-01 do [W]: a frase aparece INTEIRA — quebra em vez de cortar, nunca reticências). */
   max-width: none; text-wrap: pretty;
-  color: var(--text-mute);
+  /* --text-dim, não --text-mute: o mute reprova AA em texto pequeno (ADR 0410), e o protótipo
+     também usa o dim aqui. */
+  color: var(--text-dim);
   font-variant-numeric: tabular-nums;
-  line-height: 1.4;
+  line-height: 1.45;
 }
+.mfg-root .os-page-h-l p strong{ color: var(--text); font-weight: 600; }
 .mfg-root .os-page-h-r{
   display: flex; align-items: center; gap: 6px; flex: 0 0 auto;
   justify-content: flex-end; margin-left: auto;
