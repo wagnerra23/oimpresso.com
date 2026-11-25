@@ -382,22 +382,30 @@ class ContactController extends Controller
         $business_id = request()->session()->get('user.business_id');
         $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
 
-        return response()->json(
-            User::where('business_id', $business_id)
-                ->where('crm_contact_id', $id)
-                ->orderBy('first_name')
-                ->limit(200)
-                ->get(['id', 'username', 'email', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation'])
-                ->map(fn ($u) => [
-                    'id' => (int) $u->id,
-                    'username' => (string) ($u->username ?? ''),
-                    'email' => $u->email,
-                    'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
-                    'department' => $u->crm_department,
-                    'designation' => $u->crm_designation,
-                ])
-                ->all()
-        );
+        return response()->json($this->pessoasDeContato((int) $business_id, (int) $id));
+    }
+
+    /**
+     * Pessoas de contato (usuários CRM com `crm_contact_id`) de um contato, só da empresa.
+     * Uma fonte para a ficha cheia (`show()`, defer `contact_persons`) e para a gaveta
+     * (`pessoasJson`). Multi-tenant Tier 0: `business_id` explícito.
+     */
+    private function pessoasDeContato(int $businessId, int $contactId): array
+    {
+        return User::where('business_id', $businessId)
+            ->where('crm_contact_id', $contactId)
+            ->orderBy('first_name')
+            ->limit(200)
+            ->get(['id', 'username', 'email', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation'])
+            ->map(fn ($u) => [
+                'id' => (int) $u->id,
+                'username' => (string) ($u->username ?? ''),
+                'email' => $u->email,
+                'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
+                'department' => $u->crm_department,
+                'designation' => $u->crm_designation,
+            ])
+            ->all();
     }
 
     /**
@@ -2356,20 +2364,7 @@ class ContactController extends Controller
                     ->all()),
                 // Onda Final.C — Tab Pessoas de contato: usuários CRM com crm_contact_id = $contact->id.
                 // Feature do Modules/Crm — fica vazio se CRM module não habilitado pra biz. Multi-tenant Tier 0.
-                'contact_persons' => Inertia::defer(fn () => User::where('business_id', $business_id)
-                    ->where('crm_contact_id', $contact->id)
-                    ->orderBy('first_name')
-                    ->limit(200)
-                    ->get(['id', 'username', 'email', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation'])
-                    ->map(fn ($u) => [
-                        'id' => (int) $u->id,
-                        'username' => (string) ($u->username ?? ''),
-                        'email' => $u->email,
-                        'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
-                        'department' => $u->crm_department,
-                        'designation' => $u->crm_designation,
-                    ])
-                    ->all()),
+                'contact_persons' => Inertia::defer(fn () => $this->pessoasDeContato((int) $business_id, (int) $contact->id)),
                 // Onda Final.E — Tab Reward Points: pontos fidelidade do contact.
                 // Condicional business.enable_rp (passa null se desligado).
                 'reward_points' => Inertia::defer(fn () => ($req->session()->get('business.enable_rp') == 1 && in_array($contact->type, ['customer', 'both'], true))
