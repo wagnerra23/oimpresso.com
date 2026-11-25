@@ -413,7 +413,7 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
                       })
                     }
                   >
-                    <option value="">Todos</option>
+                    <option value="">Todos os locais</option>
                     {locationEntries.map(([id, name]) => (
                       <option key={id} value={id}>
                         {String(name)}
