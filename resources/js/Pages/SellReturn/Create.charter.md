@@ -35,6 +35,10 @@ Escolher a venda finalizada que está voltando, sem sair da área de devoluçõe
 - G3 Busca por cliente, número da venda ou número da nota.
 - G4 "Usar esta venda" abre o registro `/sell-return/add/{venda}` por visita Inertia; venda que já
   tem devolução mostra "Abrir devolução".
+- G5 Um clique na linha escolhe a venda e soma o valor dela no totalizador "Fechamento fiscal"; dá
+  para escolher várias vendas do MESMO cliente (pedido [W] 2026-11-24). Cada venda vira uma
+  devolução própria: o registro abre uma de cada vez, pela `?fila=`. O total mostrado é a soma das
+  vendas (o teto); o valor final sai dos itens no registro.
 - PT-BR em todo label/placeholder/mensagem
 
 ## Non-Goals — Features (NÃO faz)

@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 202 arquivos em 20 papéis.
+**Total mapeado:** 199 arquivos em 20 papéis.
 
 ## Controllers — 12
 
@@ -45,7 +45,7 @@ module: RecurringBilling
 
 - [RecurringBillingLiberado.php](../../../Modules/RecurringBilling/Http/Middleware/RecurringBillingLiberado.php)
 
-## Services — 15
+## Services — 14
 
 - [AssinaturaCobrancaService.php](../../../Modules/RecurringBilling/Services/AssinaturaCobrancaService.php)
 - [AssinaturaService.php](../../../Modules/RecurringBilling/Services/AssinaturaService.php)
@@ -54,7 +54,6 @@ module: RecurringBilling
 - [OfxStatementDriver.php](../../../Modules/RecurringBilling/Services/Banking/Drivers/OfxStatementDriver.php)
 - [InterBankingClient.php](../../../Modules/RecurringBilling/Services/Banking/InterBankingClient.php)
 - [StatementPersister.php](../../../Modules/RecurringBilling/Services/Banking/StatementPersister.php)
-- [BoletoCredentialResolver.php](../../../Modules/RecurringBilling/Services/Boleto/BoletoCredentialResolver.php)
 - [CartaoSalvoService.php](../../../Modules/RecurringBilling/Services/CartaoSalvoService.php)
 - [Centavos.php](../../../Modules/RecurringBilling/Services/Centavos.php)
 - [CobradorPixAutomatico.php](../../../Modules/RecurringBilling/Services/CobradorPixAutomatico.php)
@@ -63,9 +62,8 @@ module: RecurringBilling
 - [InvoiceGeneratorService.php](../../../Modules/RecurringBilling/Services/InvoiceGeneratorService.php)
 - [MandatoPixAutomatico.php](../../../Modules/RecurringBilling/Services/MandatoPixAutomatico.php)
 
-## Models / Entities — 9
+## Models / Entities — 8
 
-- [BoletoCredential.php](../../../Modules/RecurringBilling/Models/BoletoCredential.php)
 - [CartaoSalvo.php](../../../Modules/RecurringBilling/Models/CartaoSalvo.php)
 - [ChargeAttempt.php](../../../Modules/RecurringBilling/Models/ChargeAttempt.php)
 - [Invoice.php](../../../Modules/RecurringBilling/Models/Invoice.php)
@@ -115,7 +113,7 @@ module: RecurringBilling
 - [api.php](../../../Modules/RecurringBilling/Routes/api.php)
 - [web.php](../../../Modules/RecurringBilling/Routes/web.php)
 
-## Migrations (schema) — 14
+## Migrations (schema) — 15
 
 - [2026_05_06_000001_create_rb_boleto_credentials_table.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000001_create_rb_boleto_credentials_table.php)
 - [2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_05_06_000002_add_conta_bancaria_fk_to_rb_boleto_credentials.php)
@@ -131,6 +129,7 @@ module: RecurringBilling
 - [2026_11_19_110000_add_business_fk_rb_tables.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110000_add_business_fk_rb_tables.php)
 - [2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_19_110100_pg_webhook_events_idempotencia_por_empresa.php)
 - [2026_11_23_100000_rb_contact_plan_fk_restrict.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_23_100000_rb_contact_plan_fk_restrict.php)
+- [2026_11_24_120000_drop_rb_boleto_credentials.php](../../../Modules/RecurringBilling/Database/Migrations/2026_11_24_120000_drop_rb_boleto_credentials.php)
 
 ## Seeders — 2
 
@@ -183,17 +182,16 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 55
+## Testes (Pest) — 54
 
-- 55 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 54 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 34
+## Demais arquivos (manifestos, docs, assets e misc) — 33
 
 - [.gitkeep](../../../Modules/RecurringBilling/Config/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Console/.gitkeep)
 - [BankStatementDriverContract.php](../../../Modules/RecurringBilling/Contracts/BankStatementDriverContract.php)
-- [BoletoCredentialResolverInterface.php](../../../Modules/RecurringBilling/Contracts/BoletoCredentialResolverInterface.php)
 - [.gitkeep](../../../Modules/RecurringBilling/Database/Migrations/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Database/Seeders/.gitkeep)
 - [.gitkeep](../../../Modules/RecurringBilling/Database/factories/.gitkeep)

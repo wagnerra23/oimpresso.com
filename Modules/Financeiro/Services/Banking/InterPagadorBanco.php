@@ -5,13 +5,13 @@ namespace Modules\Financeiro\Services\Banking;
 use Modules\Financeiro\Contracts\PagadorBanco;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\PagamentoBanco;
-use Modules\RecurringBilling\Contracts\BoletoCredentialResolverInterface;
 use Modules\RecurringBilling\Services\Banking\InterBankingClient;
 
 /**
  * Pagamento de título a pagar pelo Banco Inter — boleto e Pix (US-FIN-079).
  *
- * Usa a mesma credencial mTLS que o extrato já usa (`fin_contas_bancarias.rb_gateway_credential_id`).
+ * Usa a mesma credencial mTLS que o extrato: a credencial Inter do PaymentGateway ligada à conta
+ * (`ContaBancaria::credencialGateway`; até 2026-11-24 vinha de `rb_boleto_credentials`).
  * Conservador de propósito: o ENVIO nunca responde `pago`, mesmo que o banco diga "realizado" —
  * a baixa vem da CONSULTA seguinte. Status que este mapa não conhece ficam aguardando, nunca pagos.
  */
@@ -19,8 +19,6 @@ class InterPagadorBanco implements PagadorBanco
 {
     private const PAGO = ['PAGO', 'REALIZADO', 'EFETIVADO', 'LIQUIDADO'];
     private const RECUSADO = ['CANCELADO', 'REJEITADO', 'RECUSADO', 'FALHA', 'ERRO', 'DEVOLVIDO', 'EXPIRADO'];
-
-    public function __construct(private readonly BoletoCredentialResolverInterface $credenciais) {}
 
     public function enviar(PagamentoBanco $pagamento, ContaBancaria $conta): array
     {
@@ -83,11 +81,11 @@ class InterPagadorBanco implements PagadorBanco
 
     private function cliente(ContaBancaria $conta): InterBankingClient
     {
-        $cred = $conta->gatewayCredential;
-        if (! $cred || $cred->getAttribute('banco') !== 'inter' || ! $cred->getAttribute('ativo')) {
+        $cred = $conta->credencialGateway('inter');
+        if ($cred === null) {
             throw new \DomainException('Conta sem credencial Inter ativa para pagamento.');
         }
 
-        return new InterBankingClient($this->credenciais->decryptConfig($cred->config_json ?? []), (int) $conta->business_id);
+        return new InterBankingClient($cred->config_json ?? [], (int) $conta->business_id);
     }
 }

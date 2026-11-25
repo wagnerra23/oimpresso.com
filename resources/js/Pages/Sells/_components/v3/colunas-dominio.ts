@@ -50,24 +50,31 @@ export const GRUPOS: { k: GrupoDeColuna; label: string }[] = [
  * punha antes desta onda. `fixa`/`padrao` seguem marcadas no próprio item — o papel de
  * cada coluna não depende de onde ela está na lista.
  */
+/*
+ * Rótulos e grupos alinhados à âncora `COLUNAS` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`
+ * (UC-V415, 2026-11-24) SÓ onde a coluna é a mesma: a chave `k` não muda, então a escolha que o
+ * operador salvou (CHAVE_LOCALSTORAGE) continua valendo. "Comprimento (m)" mantém a unidade que
+ * a produção já mostrava. As colunas que só existem de um dos lados ficam como estão: tirar
+ * apagaria escolha salva, e "R$ desconto"/"R$ outros"/"R$ tabela" calculam dinheiro (REGRA MESTRE).
+ */
 export const COLUNAS: DefinicaoDeColuna[] = [
   // ── as 6 do padrão, na ordem em que o operador lê a linha ──
   { k: 'produto', label: 'Produto / serviço', grupo: 'ident', fixa: true, largura: 260 },
   { k: 'qtd', label: 'Quant.', grupo: 'valor', fixa: true, largura: 90 },
-  { k: 'preco', label: 'R$ Valor', grupo: 'valor', fixa: true, largura: 110 },
+  { k: 'preco', label: 'R$ valor', grupo: 'valor', fixa: true, largura: 110 },
   { k: 'desc', label: 'Desc. %', grupo: 'valor', padrao: true, largura: 90 },
   { k: 'acr', label: 'Acrésc. %', grupo: 'valor', padrao: true, largura: 90 },
-  { k: 'total', label: 'R$ Total', grupo: 'valor', fixa: true, largura: 110 },
+  { k: 'total', label: 'R$ total', grupo: 'valor', fixa: true, largura: 110 },
 
   // identificação
-  { k: 'sku', label: 'SKU', grupo: 'ident', largura: 120 },
+  { k: 'sku', label: 'Cód. produto', grupo: 'ident', largura: 120 },
   { k: 'ean', label: 'Código de barras', grupo: 'ident', largura: 140 },
   { k: 'fabrica', label: 'Cód. de fábrica', grupo: 'ident', largura: 130 },
   { k: 'categoria', label: 'Categoria', grupo: 'ident', largura: 140 },
 
   // medidas
-  { k: 'un', label: 'Unidade', grupo: 'medida', largura: 80 },
-  { k: 'altura', label: 'Altura (m)', grupo: 'medida', largura: 100 },
+  { k: 'un', label: 'Unidade', grupo: 'ident', largura: 80 },
+  { k: 'altura', label: 'Comprimento (m)', grupo: 'medida', largura: 100 },
   { k: 'largura', label: 'Largura (m)', grupo: 'medida', largura: 100 },
   { k: 'esp', label: 'Espessura (m)', grupo: 'medida', largura: 110 },
   { k: 'area', label: 'Área un.', grupo: 'medida', largura: 100 },
@@ -83,12 +90,12 @@ export const COLUNAS: DefinicaoDeColuna[] = [
   // produção
   { k: 'acabamento', label: 'Acabamento', grupo: 'producao', largura: 150 },
   { k: 'aplicacao', label: 'Aplicação', grupo: 'producao', largura: 130 },
-  { k: 'impressao', label: 'Impressão', grupo: 'producao', largura: 150 },
-  { k: 'executante', label: 'Executante', grupo: 'producao', largura: 150 },
-  { k: 'prazo', label: 'Prazo', grupo: 'producao', largura: 110 },
+  { k: 'impressao', label: 'Tipo de impressão', grupo: 'producao', largura: 150 },
+  { k: 'executante', label: 'Funcionário', grupo: 'producao', largura: 150 },
+  { k: 'prazo', label: 'Prazo da etapa', grupo: 'producao', largura: 110 },
 
   // estoque
-  { k: 'estoque', label: 'Saldo', grupo: 'estoque', largura: 100 },
+  { k: 'estoque', label: 'Estoque', grupo: 'estoque', largura: 100 },
   { k: 'saldoApos', label: 'Saldo após', grupo: 'estoque', largura: 110 },
   { k: 'lote', label: 'Lote', grupo: 'estoque', largura: 110 },
   { k: 'deposito', label: 'Depósito', grupo: 'estoque', largura: 130 },

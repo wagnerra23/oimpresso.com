@@ -26,7 +26,7 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  *   → linha em plain JSON → re-grava via `$model->config_json = $array` que
  *   dispara o cast `encrypted:array` no save().
  *
- * **DEFAULT É --dry-run** (consistente com migrate-credentials). Use --apply
+ * **DEFAULT É --dry-run**. Use --apply
  * pra persistir. Idempotente — N execuções com --apply NÃO re-cifram rows
  * já cifradas (skip por heurística).
  *

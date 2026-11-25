@@ -13,7 +13,8 @@
  * As três causas-raiz suspeitas daquele incidente, e por que nenhuma alcança este arquivo:
  *   1. `ContactController@getCustomers` passou a fazer `->with(['addresses'])` num endpoint
  *      COMPARTILHADO com o Blade → aqui não há backend nem fetch: a cena vem estática.
- *   2. `shipping_address` não persistia → aqui não há persistência (Non-Goal do charter).
+ *   2. `shipping_address` não persistia → com a gravação ligada, o transporte vai no payload do
+ *      `/pos` e o store grava nas colunas que `transactions` já tinha (UC-V413).
  *   3. O cliente não achava o frete na tela viva → esta NÃO é a tela viva.
  * A lição registrada foi "refazer só após smoke real"; um preview que não grava é
  * exatamente onde esse ensaio acontece sem risco ao cliente.
@@ -25,7 +26,7 @@
  * `Sells/Create` nem de `Sells/_components` — é o que `UC-V303` prova a cada PR.
  */
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
@@ -42,18 +43,24 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 import {
+  ENDERECO_VAZIO,
   ESPECIES,
   FRETE_CIF,
   FRETE_POR_CONTA,
   MODALIDADES,
   STATUS_REMESSA,
+  STATUS_REMESSA_GRAVADO,
   UFS,
+  codigoModFrete,
   filtrarTransportadoras,
   pesoBrutoDosItens,
   pesoLiquidoEstimado,
   semOcorrenciaDeTransporte,
+  textoDoEnderecoEntrega,
+  type EnderecoEntrega,
   type ItemPesavel,
   type Transportadora,
+  type TransporteDaVenda,
 } from './entrega-dominio';
 import { num, parseBR } from './numeros';
 import { Lbl, MoneyInput, Pill } from './primitivos';
@@ -161,6 +168,7 @@ export default function EntregaFrete({
   onFreteChange,
   transportadoras,
   gravando = false,
+  onTransporteChange,
 }: {
   itens: ItemPesavel[];
   clienteNome: string;
@@ -168,8 +176,10 @@ export default function EntregaFrete({
   frete: string;
   onFreteChange: (v: string) => void;
   transportadoras: Transportadora[];
-  /** Gravação ligada (UC-V405): a venda grava só o valor do frete; o resto da entrega não aparece. */
+  /** Gravação ligada: a tela mostra só o que a venda grava do transporte (UC-V409). */
   gravando?: boolean;
+  /** Gravando, recebe o transporte a cada mudança, para ir no payload do `/pos` (UC-V409). */
+  onTransporteChange?: (t: TransporteDaVenda) => void;
 }) {
   const cockpit = useCockpit();
   const [porConta, setPorConta] = useState(FRETE_CIF);
@@ -182,20 +192,58 @@ export default function EntregaFrete({
   const [pesoBrutoDigitado, setPesoBrutoDigitado] = useState('0,000');
   const [pesoLiqDigitado, setPesoLiqDigitado] = useState('0,000');
   const [outroEndereco, setOutroEndereco] = useState(false);
+  const [placa, setPlaca] = useState('');
+  const [qtdVolumes, setQtdVolumes] = useState('1');
+  const [especie, setEspecie] = useState(ESPECIES[0] ?? 'Caixa');
+  const [numeracao, setNumeracao] = useState('1');
+  const [statusRemessa, setStatusRemessa] = useState(
+    gravando ? (STATUS_REMESSA_GRAVADO[0]?.[0] ?? 'Pedido') : (STATUS_REMESSA[0] ?? 'Pendente'),
+  );
+  const [rastreio, setRastreio] = useState('');
+  const [endereco, setEndereco] = useState<EnderecoEntrega>({ ...ENDERECO_VAZIO, uf: UFS[0] ?? 'SC' });
+  const campoEndereco = (k: keyof EnderecoEntrega) => (v: string) => setEndereco((e) => ({ ...e, [k]: v }));
 
   const semTransporte = semOcorrenciaDeTransporte(porConta);
 
   /* derivados — nunca em estado */
-  const pesoSomado = useMemo(() => pesoBrutoDosItens(itens), [itens]);
+  /* Gravando, item sem peso cadastrado conta zero: o peso vai para a venda, e massa presumida
+     por unidade (o padrão da cena) seria dado inventado gravado. */
+  const pesoSomado = useMemo(
+    () => pesoBrutoDosItens(gravando ? itens.map((l) => ({ ...l, peso: l.peso ?? '0' })) : itens),
+    [itens, gravando],
+  );
   const pesoBruto = pesoManual ? parseBR(pesoBrutoDigitado) : pesoSomado;
   const pesoLiquido = pesoManual ? parseBR(pesoLiqDigitado) : pesoLiquidoEstimado(pesoSomado);
   const encontradas = useMemo(() => filtrarTransportadoras(transportadoras, busca), [transportadoras, busca]);
+
+  /* Gravando, o transporte sobe para a Page a cada mudança e vai no payload (UC-V409). */
+  useEffect(() => {
+    if (!gravando || !onTransporteChange) return;
+    const chaveStatus = STATUS_REMESSA_GRAVADO.find(([r]) => r === statusRemessa)?.[1] ?? '';
+    onTransporteChange({
+      modFrete: codigoModFrete(porConta),
+      transportadoraId: transp && /^\d+$/.test(transp.cod) ? Number(transp.cod) : null,
+      placa: placa.trim().toUpperCase(),
+      uf: ufVeiculo,
+      qtdVolumes: Math.max(0, Math.trunc(parseBR(qtdVolumes))),
+      numeracao: numeracao.trim(),
+      especie,
+      pesoBruto,
+      pesoLiquido,
+      statusRemessa: chaveStatus,
+      rastreio: rastreio.trim(),
+      enderecoEntrega: outroEndereco ? textoDoEnderecoEntrega(endereco) : '',
+      recebedor: outroEndereco ? endereco.recebedor.trim() : '',
+    });
+  }, [gravando, onTransporteChange, porConta, transp, placa, ufVeiculo, qtdVolumes, numeracao, especie,
+    pesoBruto, pesoLiquido, statusRemessa, rastreio, outroEndereco, endereco]);
 
   const trazer = (t: Transportadora | null) => {
     setTransp(t);
     if (t) {
       setUfVeiculo(t.uf);
       setModalidade(t.modal);
+      if (t.placa) setPlaca(t.placa);
     }
   };
 
@@ -217,24 +265,11 @@ export default function EntregaFrete({
         </Inline>
 
         <Grid gap={3} className="sm:grid-cols-2">
-          {!gravando && (
-            <Escolha label="Frete por conta" value={porConta} onChange={setPorConta} options={FRETE_POR_CONTA} />
-          )}
+          <Escolha label="Frete por conta" value={porConta} onChange={setPorConta} options={FRETE_POR_CONTA} />
           <MoneyInput label="Valor do frete (entra no total)" value={frete} onChange={onFreteChange} />
         </Grid>
 
-        {/* Gravando (UC-V405): o store grava o valor do frete e nada mais da entrega. As
-            transportadoras da lista eram de demonstração, e o resto (veículo, volumes, remessa,
-            endereço de entrega) sumiria ao gravar — então não aparece, e a tela diz por quê. */}
-        {gravando ? (
-          <div className="mt-3 rounded-lg border border-info/30 bg-info-soft px-3 py-2">
-            <b className="block text-[12.5px] leading-tight text-info-fg">A venda grava só o valor do frete</b>
-            <span className="block text-[11.5px] leading-snug text-muted-foreground">
-              Transportadora, veículo, volumes, remessa e endereço de entrega ainda não são gravados pela nova
-              venda — por isso não aparecem aqui.
-            </span>
-          </div>
-        ) : semTransporte ? (
+        {semTransporte ? (
           <div className="mt-3 rounded-lg border border-info/30 bg-info-soft px-3 py-2">
             <b className="block text-[12.5px] leading-tight text-info-fg">Sem ocorrência de transporte</b>
             <span className="block text-[11.5px] leading-snug text-muted-foreground">
@@ -283,12 +318,16 @@ export default function EntregaFrete({
 
             {/* veículo */}
             <Grid gap={3} className="sm:grid-cols-3 lg:grid-cols-4">
-              <Texto label="Placa do veículo" value={transp?.placa ?? ''} placeholder="ABC1D23" readOnly />
+              <Texto label="Placa do veículo" value={placa} onChange={setPlaca} placeholder="ABC1D23" />
               <Escolha label="UF do veículo" value={ufVeiculo} onChange={setUfVeiculo} options={UFS} />
-              <Texto label="Renavam" placeholder="00000000000" />
-              <Texto label="ANTT / RNTRC" value={transp?.antt ?? ''} placeholder="sem registro" readOnly />
-              <Escolha label="Modalidade" value={modalidade} onChange={setModalidade} options={MODALIDADES} />
-              <Escolha label="UF de destino do transporte" options={UFS} />
+              {!gravando && (
+                <>
+                  <Texto label="Renavam" placeholder="00000000000" />
+                  <Texto label="ANTT / RNTRC" value={transp?.antt ?? ''} placeholder="sem registro" readOnly />
+                  <Escolha label="Modalidade" value={modalidade} onChange={setModalidade} options={MODALIDADES} />
+                  <Escolha label="UF de destino do transporte" options={UFS} />
+                </>
+              )}
             </Grid>
 
             {/* volumes */}
@@ -306,10 +345,10 @@ export default function EntregaFrete({
                 </span>
               </Inline>
               <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
-                <Texto label="Quantidade de volumes" value="1" />
-                <Escolha label="Espécie" options={ESPECIES} />
-                <Texto label="Marca" placeholder="Sem marca" />
-                <Texto label="Numeração dos volumes" value="1" />
+                <Texto label="Quantidade de volumes" value={qtdVolumes} onChange={setQtdVolumes} />
+                <Escolha label="Espécie" value={especie} onChange={setEspecie} options={ESPECIES} />
+                {!gravando && <Texto label="Marca" placeholder="Sem marca" />}
+                <Texto label="Numeração dos volumes" value={numeracao} onChange={setNumeracao} />
                 <Texto
                   label="Peso bruto (kg)"
                   value={pesoManual ? pesoBrutoDigitado : num(pesoBruto, 3)}
@@ -322,8 +361,12 @@ export default function EntregaFrete({
                   onChange={pesoManual ? setPesoLiqDigitado : undefined}
                   readOnly={!pesoManual}
                 />
-                <Texto label="Código de coleta" placeholder="—" />
-                <Texto label="Data da coleta" placeholder="dd/mm/aaaa" />
+                {!gravando && (
+                  <>
+                    <Texto label="Código de coleta" placeholder="—" />
+                    <Texto label="Data da coleta" placeholder="dd/mm/aaaa" />
+                  </>
+                )}
               </Grid>
               <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
                 {pesoManual
@@ -334,16 +377,33 @@ export default function EntregaFrete({
 
             {/* remessa */}
             <Grid gap={3} className="sm:grid-cols-3">
-              <Escolha label="Status da remessa" options={STATUS_REMESSA} />
-              <Texto label="Previsão de entrega" placeholder="dd/mm/aaaa" />
-              <Texto label="Rastreio / conhecimento" placeholder="CT-e ou código de rastreio" />
+              <Escolha
+                label="Status da remessa"
+                value={statusRemessa}
+                onChange={setStatusRemessa}
+                options={gravando ? STATUS_REMESSA_GRAVADO.map(([r]) => r) : STATUS_REMESSA}
+              />
+              {!gravando && <Texto label="Previsão de entrega" placeholder="dd/mm/aaaa" />}
+              <Texto
+                label="Rastreio / conhecimento"
+                value={rastreio}
+                onChange={setRastreio}
+                placeholder="CT-e ou código de rastreio"
+              />
             </Grid>
+
+            {/* Gravando, só fica o que a venda grava; o resto da cena ainda não tem onde morar. */}
+            {gravando && (
+              <p className="text-[11px] leading-snug text-muted-foreground">
+                Renavam, ANTT, modalidade, UF de destino, marca, coleta e previsão de entrega ainda não são
+                gravados pela nova venda.
+              </p>
+            )}
           </Stack>
         )}
       </div>
 
       {/* ─── Endereço de entrega ────────────────────────────────────────── */}
-      {!gravando && (
         <div className="border-t border-border pt-4">
           <Inline gap={3} align="center" className="mb-3 flex-wrap">
             <Lbl className="mb-0">Endereço de entrega</Lbl>
@@ -368,22 +428,21 @@ export default function EntregaFrete({
             </Inline>
           ) : (
             <Grid gap={3} className="sm:grid-cols-2 lg:grid-cols-4">
-              <Texto label="Cód. cidade (IBGE)" placeholder="4209102" />
-              <Texto label="Cidade" placeholder="Joinville" />
-              <Escolha label="UF" options={UFS} />
-              <Texto label="CEP" placeholder="89201-601" />
-              <Texto label="Logradouro" placeholder="Rua, avenida, rodovia…" />
-              <Texto label="Número" placeholder="1400" />
-              <Texto label="Bairro" placeholder="Centro" />
-              <Texto label="Complemento" placeholder="Galpão 2, fundos" />
-              <Texto label="Nome do recebedor" placeholder="Quem recebe na obra" />
-              <Texto label="Telefone" placeholder="(47) 9…" />
-              <Texto label="E-mail" placeholder="obra@cliente.com.br" />
-              <Texto label="Inscrição estadual" placeholder="Isento" />
+              <Texto label="Cód. cidade (IBGE)" value={endereco.ibge} onChange={campoEndereco('ibge')} placeholder="4209102" />
+              <Texto label="Cidade" value={endereco.cidade} onChange={campoEndereco('cidade')} placeholder="Joinville" />
+              <Escolha label="UF" value={endereco.uf} onChange={campoEndereco('uf')} options={UFS} />
+              <Texto label="CEP" value={endereco.cep} onChange={campoEndereco('cep')} placeholder="89201-601" />
+              <Texto label="Logradouro" value={endereco.logradouro} onChange={campoEndereco('logradouro')} placeholder="Rua, avenida, rodovia…" />
+              <Texto label="Número" value={endereco.numero} onChange={campoEndereco('numero')} placeholder="1400" />
+              <Texto label="Bairro" value={endereco.bairro} onChange={campoEndereco('bairro')} placeholder="Centro" />
+              <Texto label="Complemento" value={endereco.complemento} onChange={campoEndereco('complemento')} placeholder="Galpão 2, fundos" />
+              <Texto label="Nome do recebedor" value={endereco.recebedor} onChange={campoEndereco('recebedor')} placeholder="Quem recebe na obra" />
+              <Texto label="Telefone" value={endereco.telefone} onChange={campoEndereco('telefone')} placeholder="(47) 9…" />
+              <Texto label="E-mail" value={endereco.email} onChange={campoEndereco('email')} placeholder="obra@cliente.com.br" />
+              <Texto label="Inscrição estadual" value={endereco.ie} onChange={campoEndereco('ie')} placeholder="Isento" />
             </Grid>
           )}
         </div>
-      )}
 
       {/* ─── consulta de transportadoras ────────────────────────────────── */}
       <Dialog open={consultaAberta} onOpenChange={setConsultaAberta}>

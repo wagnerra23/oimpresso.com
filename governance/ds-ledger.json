@@ -178,7 +178,7 @@
     },
     {
       "screen": "Fiscal",
-      "note": "36 arquivo(s)",
+      "note": "37 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -189,7 +189,7 @@
     },
     {
       "screen": "Fisio",
-      "note": "55 arquivo(s)",
+      "note": "56 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -365,7 +365,7 @@
     },
     {
       "screen": "RecurringBilling",
-      "note": "17 arquivo(s)",
+      "note": "20 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -431,7 +431,7 @@
     },
     {
       "screen": "SellReturn",
-      "note": "3 arquivo(s)",
+      "note": "5 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -442,7 +442,7 @@
     },
     {
       "screen": "Sells",
-      "note": "85 arquivo(s)",
+      "note": "88 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -730,8 +730,8 @@
   "progressPct": 64,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "7a1e51857d",
-  "generatedAt": "2026-11-23T22:04:34.531Z",
+  "measuredAgainstSha": "87d9c3ca7e",
+  "generatedAt": "2026-11-24T20:18:15.180Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
