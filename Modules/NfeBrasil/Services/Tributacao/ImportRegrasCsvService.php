@@ -78,6 +78,15 @@ class ImportRegrasCsvService
             ? (string) file_get_contents($arquivoOuConteudo->getRealPath())
             : (string) $arquivoOuConteudo;
 
+        // UC-NFIM-11 · o "Texto Unicode" do Excel é UTF-16 (com BOM) e o "CSV" antigo do Excel no
+        // Windows é Windows-1252. Os dois viram UTF-8 aqui: os campos da regra são códigos e números
+        // (a conversão não muda nenhum deles), e texto fora de UTF-8 quebraria o JSON do resumo.
+        if (str_starts_with($conteudo, "\xFF\xFE") || str_starts_with($conteudo, "\xFE\xFF")) {
+            $conteudo = (string) mb_convert_encoding(substr($conteudo, 2), 'UTF-8', str_starts_with($conteudo, "\xFF\xFE") ? 'UTF-16LE' : 'UTF-16BE');
+        } elseif (! mb_check_encoding($conteudo, 'UTF-8')) {
+            $conteudo = (string) mb_convert_encoding($conteudo, 'UTF-8', 'Windows-1252');
+        }
+
         // Suporta CR/LF + LF; remove BOM se UTF-8
         $conteudo = preg_replace('/^\xEF\xBB\xBF/', '', $conteudo) ?? '';
         $conteudo = str_replace(["\r\n", "\r"], "\n", $conteudo);
@@ -90,7 +99,22 @@ class ImportRegrasCsvService
             ];
         }
 
-        $header = array_map('trim', str_getcsv((string) array_shift($rows)));
+        $primeira = (string) array_shift($rows);
+        $header = array_map('trim', str_getcsv($primeira));
+
+        // UC-NFIM-11 · o Excel em português salva "CSV" separado por ponto e vírgula, com vírgula
+        // decimal ("0,18"). Não é aceito aqui: ler número com vírgula é decisão de valor à parte.
+        if (count($header) === 1 && str_contains($primeira, ';')) {
+            return [
+                'linhas' => [],
+                'erros' => [[
+                    'linha' => 1,
+                    'motivo' => 'O arquivo está separado por ponto e vírgula. Salve o CSV separado por vírgula, com ponto como separador decimal (0.18 = 18%).',
+                    'raw' => [],
+                ]],
+            ];
+        }
+
         $missing = array_diff(self::COLUNAS_OBRIGATORIAS, $header);
         if (! empty($missing)) {
             return [

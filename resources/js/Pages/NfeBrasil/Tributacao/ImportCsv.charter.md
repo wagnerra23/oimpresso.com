@@ -64,4 +64,4 @@ Deixar o responsável fiscal cadastrar/atualizar muitas regras tributárias de u
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot) — validar preview com erros e com >10 linhas
-- [ ] Confirmar limite de 5 MB e comportamento com CSV malformado (encoding/separador)
+- [x] Confirmar limite de 5 MB e comportamento com CSV malformado (encoding/separador) — feito em 2026-11-24 (UC-NFIM-10/11)

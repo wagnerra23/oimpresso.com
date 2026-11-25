@@ -41,6 +41,9 @@ class ImportRegrasController extends Controller
     {
         return Inertia::render('NfeBrasil/Tributacao/ImportCsv', [
             'colunas_obrigatorias' => ImportRegrasCsvService::COLUNAS_OBRIGATORIAS,
+            // UC-NFIM-12 · o resumo da conferência vem do flash do `preview()`. O middleware do
+            // Inertia não compartilha a chave `preview`, então ela vai como prop da página.
+            'preview' => session('preview'),
         ]);
     }
 

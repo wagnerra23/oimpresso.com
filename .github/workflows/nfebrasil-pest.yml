@@ -271,6 +271,8 @@ jobs:
         # + ImportRegrasCsvReimportTest (2026-11-24): reimportar o mesmo CSV atualiza, nao duplica
         #   (UC-NFIM-08). + ImportRegrasCsvVersaoVigenteTest (UC-NFIM-09): a reimportacao muda a
         #   versao vigente e nao reescreve a encerrada (R-NFE-019).
+        # + ImportRegrasCsvArquivoTest (2026-11-24): limite de 5 MB, codificacao e separador do CSV,
+        #   e o resumo da conferencia chegando a tela (UC-NFIM-10/11/12).
         # + ImportRegrasCsvSessaoTest (2026-11-24, UC-NFIM-15): o lote do Import CSV sai da sessao
         #   (5 MB de CSV levavam a sessao a 31,5 MB). CT 100: 7 passed / 53 assertions; com o
         #   controller do main, 5 failed. Tenant 98/99 + usuario novo so com nfe.tributacao.manage.
@@ -391,6 +393,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/HasArquivosTraitTest.php \
             Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvReimportTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvSessaoTest.php \

@@ -43,6 +43,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
 | UC-NFIM-08 | Reimportar o mesmo CSV atualiza as regras pela chave, não duplica | must `[V0]` | charter (idempotente pela chave) · SDD `CU-NFE-07` | `ImportRegrasCsvReimportTest` | 🧪 |
 | UC-NFIM-09 | Depois de editar a regra pela tela, a reimportação muda a versão vigente e não reescreve a encerrada | must `[V0]` `[fiscal]` | SPEC NfeBrasil R-NFE-019 · charter (idempotente pela chave) | `ImportRegrasCsvVersaoVigenteTest` | 🧪 |
+| UC-NFIM-10 | Arquivo acima de 5 MB é recusado antes de ser lido | must `[V0]` | charter §Goals (máx 5 MB) · §Pendências | `ImportRegrasCsvArquivoTest` | 🧪 |
+| UC-NFIM-11 | CSV em Latin-1 ou UTF-16 é lido; separado por ponto e vírgula é recusado com aviso próprio | must `[V0]` | charter §Pendências (encoding/separador) · SDD `CU-NFE-07` | `ImportRegrasCsvArquivoTest` | 🧪 |
+| UC-NFIM-12 | O resumo da conferência aparece na tela | must `[V0]` | charter §Goals (preview com amostras e erros) · SDD `CU-NFE-07` item 2 | `ImportRegrasCsvArquivoTest` · vitest `nfe-import-csv-confirmacao` | 🧪 |
+| UC-NFIM-13 | Aplicar pede confirmação; cancelar não envia nada | must `[V0]` | charter §Goals (aplicação sob `confirm()`) · §Anti-hooks | vitest `nfe-import-csv-confirmacao` | 🧪 |
 | UC-NFIM-15 | A sessão do usuário não cresce com o tamanho do CSV conferido | must `[T0]` | charter §UX (5 MB) · ADR 0093 · medição 2026-11-24 | `ImportRegrasCsvSessaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
@@ -228,6 +232,62 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   versão encerrada e nenhuma importação por CSV registrada, então nenhum valor gravado muda.
 - **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
 
+## UC-NFIM-10 · Arquivo acima de 5 MB é recusado antes de ser lido · `must` `[V0]`
+
+- **Persona:** quem tenta subir uma planilha exportada inteira, com milhares de linhas.
+- **Aceite:** Dado um CSV de mais de 5 MB · Quando confiro · Então aparece "Arquivo muito grande (máx 5 MB)."
+  e nada vai para a conferência. Controle positivo: o mesmo conteúdo, pequeno, é conferido.
+- **Teste:** [`ImportRegrasCsvArquivoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php)
+  — `UC-NFIM-10 · …`.
+- **Contrato:** charter §Goals (*"máx 5 MB, `.csv`/`.txt`"*) e §Pendências. A regra é o `max:5120` do
+  `ImportRegrasCsvRequest`, que já existia; este caso só a prova.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-11 · Codificação e separador do CSV · `must` `[V0]`
+
+- **Persona:** quem salva a planilha pelo Excel em português, que pode gerar ponto e vírgula, Windows-1252
+  ou "Texto Unicode" (UTF-16).
+- **Aceite:** Dado um CSV em Windows-1252 com acento numa coluna extra · Quando confiro · Então as linhas
+  são lidas e o texto chega ao resumo sem corromper ("Peça"). Dado um CSV em UTF-16 com BOM · Então ele é
+  lido como o UTF-8. Dado um CSV separado por ponto e vírgula · Então nenhuma linha é aceita e o aviso diz
+  que o arquivo está separado por ponto e vírgula e deve ser salvo separado por vírgula, com ponto decimal.
+  Nada é gravado em nenhum dos casos.
+- **Teste:** [`ImportRegrasCsvArquivoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php)
+  — os três `UC-NFIM-11 · …`.
+- **Contrato:** charter §Pendências (*"comportamento com CSV malformado (encoding/separador)"*).
+- **Por que ponto e vírgula segue recusado:** nesse formato o Excel grava o decimal com vírgula ("0,18").
+  Aceitar exigiria ler número com vírgula, que é decisão de valor à parte (regra mestre de valor). A
+  conversão de codificação não toca número: os campos da regra são códigos e alíquotas em ASCII.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-12 · O resumo da conferência aparece na tela · `must` `[V0]`
+
+- **Persona:** quem clicou em "Conferir" e espera ver quantas linhas valem, as amostras e os erros, para
+  então aplicar.
+- **Aceite:** Dado um CSV conferido · Quando a tela recarrega · Então ela recebe o resumo (total de
+  válidas, total de erros, amostras). Controle: sem conferência, a página abre sem resumo.
+- **Teste:** [`ImportRegrasCsvArquivoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php)
+  — `UC-NFIM-12 · …` (a página recebe o resumo) e [`nfe-import-csv-confirmacao.test.tsx`](../../../../../tests/js/nfe-import-csv-confirmacao.test.tsx)
+  — `UC-NFIM-12 · …` (a tela mostra o resumo e o botão de aplicar). Com o `ImportCsv.tsx` do `main`, o render cai.
+- **Contrato:** charter §Goals (preview com amostras e erros antes do aplicar) + SDD `CU-NFE-07` item 2.
+- **Achado de 2026-11-24:** o `ImportCsv.tsx` lia `props.flash.preview`, mas o middleware do Inertia
+  compartilha só `success`, `error`, `info` e `slash` (medido no CT 100). Desde a criação da tela (#131,
+  2026-05-06) o resumo não aparecia e o botão Aplicar não tinha efeito, porque só age com resumo. O
+  `show()` passou a enviar o resumo como prop `preview`. Produção, lida no mesmo dia: nenhuma importação
+  por CSV registrada.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-13 · Aplicar pede confirmação; cancelar não envia nada · `must` `[V0]`
+
+- **Persona:** quem conferiu o arquivo e clicou em "Aplicar" sem querer.
+- **Aceite:** Dado um resumo com regras válidas · Quando clico em "Aplicar N regra(s)" e cancelo a confirmação ·
+  Então nada é enviado ao servidor. Quando confirmo · Então o pedido vai para `/nfe-brasil/tributacao/import/aplicar`.
+- **Teste:** [`nfe-import-csv-confirmacao.test.tsx`](../../../../../tests/js/nfe-import-csv-confirmacao.test.tsx)
+  — os dois `UC-NFIM-13 …`. Controle por mutação em 2026-11-24: sem o `return` do `confirm`, o caso do cancelamento cai.
+- **Contrato:** charter §Goals (*"Aplicação idempotente sob `confirm()`"*) e §Anti-hooks (*"Não aplica o import sem
+  `confirm()` explícito do usuário"*).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Importar regras por CSV — resumo na tela e confirmação ao aplicar").
+
 ---
 
 ## UC-NFIM-15 · A sessão do usuário não cresce com o tamanho do CSV · `must` `[T0]`
@@ -263,8 +323,6 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   as duas mutações checam. Ele entrega apenas a constante `COLUNAS_OBRIGATORIAS`, então não há
   vazamento de dado; o que existe é uma tela de escrita fiscal visível a qualquer usuário do tenant.
   Gatear ou não é decisão.
-- `[BACKLOG]` **`confirm()` antes de aplicar.** Charter §Anti-hooks pede confirmação explícita e o
-  `.tsx` implementa. Comportamento de **cliente** — precisaria de e2e; a tela não tem spec.
 
 ---
 
@@ -274,6 +332,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
 | 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado do branch (`627553bf6`) com `vendor/composer` próprio · `ImportRegrasCsvReimportTest` + `ImportRegrasCsvVersaoVigenteTest` | UC-NFIM-08: **2 passed**. UC-NFIM-09: **1 failed** — *"Failed asserting that 0.17 is identical to 0.18"*: a versão encerrada recebeu o valor do CSV. Antes, sem esse assert, o mesmo caso falhava com *"0.25 is identical to 0.17"*: a vigente não mudou. Versões lidas do banco depois da reimportação: encerrada `0.1700` (`valida_ate` 2026-11-23), vigente `0.2500`. 36 asserções. Com a correção (`f164c68a1`): UC-NFIM-09 **1 passed · 14 assertions**, motor incluído (ICMS 170,00); com o `ImportRegrasCsvService` do `main` no mesmo worktree, **1 failed** (*"0.17 is identical to 0.18"*). Testes vizinhos da importação, do aceite do contador e do motor: 65 passed; os 3 do UC-NFIM-05/06 caem igual com o serviço do `main` (o staging não tem `cst_pis`). |
+| 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado (`596110b9e`) com `vendor/composer` próprio · `ImportRegrasCsvArquivoTest` + `ImportRegrasCsvServiceTest` + `TributacaoGatesContratoTest` | **25 passed · 116 assertions** (UC-NFIM-10/11/12 e os vizinhos). Com o controller e o parser do `main` no mesmo worktree: UC-NFIM-11 (3) e UC-NFIM-12 **4 failed**; UC-NFIM-10 passa nos dois (o limite já existia). |
 | 2026-11-24 | CT 100, cópia isolada da branch e do `main` (DB `oimpresso_fullsuite_test`) | `ImportRegrasCsvSessaoTest` 7 passed / 53 assertions; com o controller do `main`, 5 failed. `TributacaoGatesContratoTest` igual nos dois lados: UC-NFIM-01/02/04 verdes, UC-NFRF-01/03/04 e UC-NFIM-03 vermelhos no `main` e na branch (usuário do biz 1 nesse DB libera tudo; o edit dá 500) — é ambiente, não esta mudança |
 | 2026-10-06 | CT 100 `oimpresso-staging`, cópia isolada da branch da thread 19, `--filter=UC-NFIM` | controller anterior: UC-NFIM-04 **vermelho** (302, regra gravada no biz 2) · controller novo: UC-NFIM-04 **verde**; UC-NFIM-01/02 verdes nos dois. UC-NFIM-03 **vermelho nos dois**: o usuário semeado do biz 1 no staging tem o papel `Admin#1`, que concede todas as permissões, então revogar a permissão direta não muda nada. É ambiente, não a mudança — 17 asserções |
 
