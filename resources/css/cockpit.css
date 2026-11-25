@@ -11,6 +11,22 @@
 @import "./tokens/_generated-cockpit-light.css";
 @import "./tokens/_generated-cockpit-dark.css";
 
+/* TEXTO DO SHADCN NO SHELL CLARO = TEXTO DO SHELL (2026-11-25).
+   Os componentes shadcn (Card, Button outline/ghost, h1 com text-foreground) pintam com
+   --color-foreground / --color-card-foreground / --color-popover-foreground. No claro esses três
+   ficaram no default do shadcn, oklch(0.137 0.036 258.5) — azul-escuro que, segundo a UI-0027,
+   "nunca foi decisão de ninguém" —, enquanto o shell e o protótipo escrevem com --text
+   (oklch(0.22 0.01 80)). Medido em produção em 25/11/2026: na Novo produto, 17 dos 43 blocos de
+   texto (título da página, títulos dos blocos, Cancelar, botões secundários) saíam no azul.
+   Aqui eles passam a apontar para --text. Nenhum token novo e nenhum $value muda.
+   Só no claro: o escuro já foi alinhado ao shell pela UI-0027 em outro valor
+   (--color-foreground 0.965/240 × --text 0.94/90) e não se mexe — por isso o :not(). */
+.cockpit:not([data-theme="dark"]) {
+  --color-foreground: var(--text);
+  --color-card-foreground: var(--text);
+  --color-popover-foreground: var(--text);
+}
+
 .cockpit *,
 .cockpit *::before,
 .cockpit *::after { box-sizing: border-box; }
