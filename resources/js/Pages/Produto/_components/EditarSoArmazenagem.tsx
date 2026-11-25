@@ -14,7 +14,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Inline } from '@/Components/layout';
 import { BlocoArmazenagem } from './formulario/BlocoArmazenagem';
-import { armazenagemInicial, camposDaArmazenagem } from './formulario/armazenagem';
+import { armazenagemInicial, camposDaArmazenagem, comLocaisDoEstoque } from './formulario/armazenagem';
 import type { EnderecoNoEstoque, SaldoPorLocal } from './formulario/armazenagem';
 import type { OptionMap } from './formulario/tipos';
 
@@ -37,7 +37,7 @@ const SEM_ENDERECO: EnderecoNoEstoque = { prateleira: false, fileira: false, pos
 
 export function EditarSoArmazenagem({ product: p, rackDetails, businessLocations, enderecoNoEstoque, saldoPorLocal }: Props) {
   const [armazenagem, setArmazenagem] = useState(() =>
-    armazenagemInicial(rackDetails as never, { salvo: true, padrao: p.localPadraoId ?? null }),
+    comLocaisDoEstoque(armazenagemInicial(rackDetails as never, { salvo: true, padrao: p.localPadraoId ?? null }), saldoPorLocal ?? {}),
   );
   const { patch, transform, processing, errors } = useForm({});
   const erros = errors as Record<string, string | undefined>;

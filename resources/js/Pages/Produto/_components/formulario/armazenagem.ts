@@ -23,6 +23,11 @@ export interface LinhaArmazenagem {
   posicao: string;
   /** A linha já está gravada: no envio vai em `product_racks_update`, e não sai pela tela. */
   salvo: boolean;
+  /**
+   * Editar (UC-PEDIT-34): o produto tem saldo neste local, mas nenhum endereço gravado. A linha aparece
+   * para mostrar onde o produto está; só vai no envio se ganhar endereço ou virar o padrão.
+   */
+  doEstoque?: boolean;
 }
 
 export interface EstadoArmazenagem {
@@ -42,7 +47,7 @@ export function saldoNoLocal(saldos: SaldoPorLocal, local: number): number {
 
 /** Linha gravada só sai pela tela com o saldo conhecido e zerado (no Novo nenhuma linha é gravada). */
 export function podeTirar(linha: LinhaArmazenagem, saldos?: SaldoPorLocal): boolean {
-  if (!linha.salvo) return true;
+  if (!linha.salvo && !linha.doEstoque) return true;
   return saldos !== undefined && Math.abs(saldoNoLocal(saldos, linha.local)) < 0.00001;
 }
 
@@ -75,6 +80,20 @@ export function armazenagemInicial(
 }
 
 /**
+ * Editar (UC-PEDIT-34): acrescenta uma linha para cada local em que o produto tem saldo e nenhum endereço
+ * gravado. Sem isso o bloco abria vazio num produto com estoque, porque as linhas só vinham do endereço.
+ */
+export function comLocaisDoEstoque(e: EstadoArmazenagem, saldos: SaldoPorLocal): EstadoArmazenagem {
+  const jaListados = e.linhas.map((l) => l.local);
+  const extras = Object.keys(saldos)
+    .map(Number)
+    .filter((local) => !jaListados.includes(local) && Math.abs(saldoNoLocal(saldos, local)) >= 0.00001)
+    .sort((a, b) => a - b)
+    .map((local): LinhaArmazenagem => ({ local, prateleira: '', fileira: '', posicao: '', salvo: false, doEstoque: true }));
+  return extras.length ? { ...e, linhas: [...e.linhas, ...extras] } : e;
+}
+
+/**
  * Tira uma linha. A não gravada sai sempre; a gravada só sem saldo, e entra em `removidos`. Se era o
  * padrão, o padrão passa para a primeira que sobrar.
  */
@@ -94,7 +113,12 @@ export function camposDaArmazenagem(e: EstadoArmazenagem): Record<string, unknow
   // Local tirado e posto de volta na mesma edição ainda tem a linha gravada: vai como mudança, não
   // como criação, e não é apagado.
   const jaGravado = (l: LinhaArmazenagem) => l.salvo || removidos.includes(l.local);
-  const novos = Object.fromEntries(e.linhas.filter((l) => !jaGravado(l)).map((l) => [l.local, endereco(l)]));
+  // Linha que só mostra o saldo (UC-PEDIT-34) não grava nada enquanto continua sem endereço e não é o padrão.
+  const soMostra = (l: LinhaArmazenagem) =>
+    !!l.doEstoque && !l.prateleira && !l.fileira && !l.posicao && e.padrao !== l.local;
+  const novos = Object.fromEntries(
+    e.linhas.filter((l) => !jaGravado(l) && !soMostra(l)).map((l) => [l.local, endereco(l)]),
+  );
   const gravados = Object.fromEntries(e.linhas.filter(jaGravado).map((l) => [l.local, endereco(l)]));
   const remover = removidos.filter((local) => !e.linhas.some((l) => l.local === local));
   return {
