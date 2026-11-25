@@ -3167,7 +3167,7 @@ class ProductController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response
      */
     public function update(Request $request, $id)
     {
@@ -3479,7 +3479,7 @@ class ProductController extends Controller
             // o 302 traria o HTML dela para dentro da página; Inertia::location abre a página inteira,
             // como o store() já faz no Novo (UC-PCAD-21). O envio pelo Blade segue com o redirect de sempre.
             if ($request->header('X-Inertia')) {
-                return Inertia::location(action([\App\Http\Controllers\OpeningStockController::class, 'add'], ['product_id' => $product->id]));
+                return Inertia::location(action([\App\Http\Controllers\OpeningStockController::class, 'add'], ['product_id' => (int) $id]));
             }
 
             return redirect()->action([\App\Http\Controllers\OpeningStockController::class, 'add'],
