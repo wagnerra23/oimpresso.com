@@ -15,7 +15,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { CircleAlert, Plus, TriangleAlert } from 'lucide-react';
+import { Banknote, CircleAlert, Plus, TriangleAlert } from 'lucide-react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -61,7 +61,8 @@ interface Props {
 // `filtro`: query do índice de produtos (subcategoria abre pela categoria pai — R3/R7). Vazio = o índice não
 // filtra por aquilo (variação: `/products` não tem filtro por modelo) e o número não vira link.
 // `filhas`: subcategorias vivas — junto com `em_uso`, é o que faz o servidor recusar a exclusão.
-type Linha = { id: number; nome: string; busca: string; em_uso: number; filhas: number; filtro: string; celulas: ReactNode[] };
+// `inativo`: linha esmaecida (`state: "archived"` do DataGrid, opacidade .55) — grupo de preço desativado.
+type Linha = { id: number; nome: string; busca: string; em_uso: number; filhas: number; filtro: string; inativo?: boolean; celulas: ReactNode[] };
 
 // Copy de cada aba, tirada de produto-cadastros.jsx (AbaVariacoes :214 · AbaGrupos :264 · AbaUnidades :310 ·
 // AbaCategorias :374 · AbaMarcas :425 · AbaGarantias :463). `rota` recebe o DELETE (JSON do legado);
@@ -151,8 +152,8 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
         <Inline wrap gap={1}>{v.valores.map((x, i) => <span key={i} className={CHIP}>{x}</span>)}</Inline>,
       ] })) ?? null
     : aba === 'grupos'
-      ? grupos?.map((g) => ({ id: g.id, nome: g.nome, busca: `${g.nome} ${g.descricao}`, em_uso: 0, filhas: 0, filtro: '', celulas: [
-        <b className={cn(PRIMARIO, !g.ativo && 'text-[var(--text-dim)]')}>{g.nome}</b>, g.descricao || '—', g.ativo ? 'Ativo' : 'Inativo',
+      ? grupos?.map((g) => ({ id: g.id, nome: g.nome, busca: `${g.nome} ${g.descricao}`, em_uso: 0, filhas: 0, filtro: '', inativo: !g.ativo, celulas: [
+        <><b className={PRIMARIO}>{g.nome}</b><span className={SUB}>{g.ativo ? 'ativo' : 'inativo'}</span></>, g.descricao || '—', g.ativo ? 'Ativo' : 'Inativo',
       ] })) ?? null
     : aba === 'garantias'
       ? garantias?.map((w) => ({ id: w.id, nome: w.nome, busca: `${w.nome} ${w.descricao}`, em_uso: 0, filhas: 0, filtro: '', celulas: [
@@ -161,7 +162,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
       ] })) ?? null
     : aba === 'unidades'
     ? unidades?.map((u) => ({ id: u.id, nome: u.nome, busca: u.nome, em_uso: u.em_uso, filhas: 0, filtro: `unit_id=${u.id}`, celulas: [
-      <><b className={PRIMARIO}>{u.nome} <span className="font-normal text-[var(--text-dim)]">({u.simbolo})</span></b></>,
+      <><b className={PRIMARIO}>{u.nome}</b><span className={SUB}>{u.simbolo}</span></>,
       u.decimal ? 'Sim' : 'Não',
       <span className={MONO}>{u.base ?? '—'}</span>,
     ] })) ?? null
@@ -177,7 +178,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
           <span className={MONO}>{c.codigo || '—'}</span>,
           c.descricao || '—',
         ] })) ?? null
-      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `brand_id=${m.id}`, celulas: [<b className={PRIMARIO}>{m.nome}</b>, m.descricao || '—'] })) ?? null;
+      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `brand_id=${m.id}`, celulas: [<><b className={PRIMARIO}>{m.nome}</b><span className={SUB}>{m.oficina ? 'também na Oficina' : 'catálogo'}</span></>, m.descricao || '—'] })) ?? null;
 
   // Drawer (thread 10). Base válida = unidade que não é múltiplo de outra (protótipo :332); pai válido =
   // categoria principal (o mesmo filtro da lista de pais do modal clássico).
@@ -272,6 +273,12 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
                 <Input ref={buscaRef} className={cn(CAMPO, 'max-w-[300px] flex-[1_1_260px]')} value={busca} placeholder={cfg.busca} aria-label={cfg.busca}
                   onChange={(e) => setBusca(e.target.value)} />
                 <span className={cn(AJUDA, 'pb-2 whitespace-nowrap')}><kbd>/</kbd> foca · <kbd>⌘K</kbd> troca de tela</span>
+                {/* `extra` da AbaGrupos do protótipo: a tela de Atualizar preço (exporta/importa a planilha por grupo). */}
+                {aba === 'grupos' && pode.update && (
+                  <Button asChild variant="outline" className={cn(SM, GHOST)}>
+                    <Link href="/update-product-price"><Banknote className="size-[13px]" aria-hidden />Atualizar preços em planilha</Link>
+                  </Button>
+                )}
                 {pode.create ? (
                   botaoEscrita(novo, undefined, cn(SM, PRIMARIO_BTN, 'ml-auto'), 'default')
                 ) : (
@@ -301,7 +308,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
                       <tbody>
                         {filtradas.map((l) => (
                           <tr key={l.id} className="hover:[&>td]:bg-[var(--bg-2)]">
-                            {l.celulas.map((c, i) => <td key={i} className={TD}>{c}</td>)}
+                            {l.celulas.map((c, i) => <td key={i} className={cn(TD, l.inativo && 'opacity-55')}>{c}</td>)}
                             {cfg.uso && (
                               <td className={cn(TD, 'text-right tabular-nums')}>
                                 {l.em_uso > 0 && l.filtro
