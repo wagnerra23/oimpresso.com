@@ -113,7 +113,11 @@ describe('UC-V409 · o fechamento fala a língua do operador', () => {
     expect(gaveta).toMatch(/R\$0,30/);
     expect(gaveta).toContain('3,00%davenda');
 
-    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Fechar' }));
+    // Dois "Fechar" na janela: o × do canto (nome acessível em português desde 2026-11-25, era
+    // "Close") e o botão do rodapé, que é o que este caso clica.
+    const fechar = within(screen.getByRole('dialog')).getAllByRole('button', { name: 'Fechar' })
+      .find((b) => b.textContent?.trim() === 'Fechar');
+    fireEvent.click(fechar!);
 
     const r = semEspaco(resumo().textContent);
     expect(r).toMatch(/Funcionário\(vendedorinterno\)·R\$0,30/);
