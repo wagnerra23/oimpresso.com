@@ -129,7 +129,7 @@ function FilterChip({ label, value, onRemove }: Chip) {
         type="button"
         onClick={onRemove}
         aria-label={`Remover filtro: ${nomeAcessivel}`}
-        className="ml-px grid h-[18px] w-[18px] cursor-pointer place-items-center rounded-full opacity-70 transition-[background-color,opacity] hover:bg-[color-mix(in_oklch,var(--accent,var(--color-primary))_18%,transparent)] hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1"
+        className="grid place-items-center ml-px h-[18px] w-[18px] cursor-pointer rounded-full opacity-70 transition-[background-color,opacity] hover:bg-[color-mix(in_oklch,var(--accent,var(--color-primary))_18%,transparent)] hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1"
         style={{ color: 'currentColor' }}
       >
         <X size={11} aria-hidden />
