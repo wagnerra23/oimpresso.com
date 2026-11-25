@@ -5,6 +5,9 @@
  * escuro: 16×16, canto 6px, borda 1,5px `--border` sobre `--surface` desmarcada, `--accent` marcada,
  * ✓ de 11px com traço 3,5, opacidade .55 desabilitada — iguais. Antes a borda era roxa até desmarcada.
  *
+ * 2026-11-25: no escuro a borda da desmarcada passou a `--text-mute` — a do DS (`--border`) dá 1,16:1
+ * sobre o fundo da caixinha e ela sumia na tabela. Decisão [F]; o DS ainda não tem essa troca.
+ *
  * O vitest roda em jsdom, sem CSS: aqui se prova a CLASSE que produz cada medida e o desenho do ✓.
  */
 import { describe, expect, it } from 'vitest';
@@ -24,6 +27,15 @@ describe('Checkbox do app = Checkbox do DS', () => {
     ]));
     expect(t).not.toContain('border-primary');
     expect(t).not.toContain('shadow-sm');
+  });
+
+  it('desmarcada no escuro: borda --text-mute (4,55:1 sobre --surface), não --border (1,16:1)', () => {
+    // Decisão [F] 2026-11-25. A classe gera `.x:where([data-theme="dark"] *)[data-state="unchecked"]`:
+    // vence a borda padrão e não alcança a marcada nem a parcial, que seguem --accent.
+    render(<Checkbox aria-label="x" />);
+    const t = tokens(screen.getByRole('checkbox', { name: 'x' }));
+    expect(t).toContain('dark:data-[state=unchecked]:border-[var(--text-mute,var(--color-muted-foreground))]');
+    expect(t.filter((c) => c.startsWith('dark:') && c.includes('border-') && !c.includes('state=unchecked'))).toEqual([]);
   });
 
   it('marcada: fundo e borda --accent e o ✓ do DS (11px, traço 3,5) na cor --accent-fg', () => {
