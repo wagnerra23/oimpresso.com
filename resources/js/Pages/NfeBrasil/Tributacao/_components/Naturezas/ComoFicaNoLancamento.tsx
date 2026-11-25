@@ -113,7 +113,7 @@ export default function ComoFicaNoLancamento({
             </Grid>
             <p className="mt-2.5 text-[11.5px] leading-[1.45] text-[var(--text-dim)]">
               Sem valores aqui: base, imposto e totais são calculados no lançamento. O produto completa o que é dele (NCM,
-              origem, alíquota da regra do NCM, MVA).
+              origem, MVA); a alíquota do IPI vem da regra do NCM do produto.
             </p>
           </>
         )}
