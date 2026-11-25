@@ -26,6 +26,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { PageHeader } from '@/Components/PageHeader';
 import ModuleTabs from '@/Components/shared/ModuleTabs';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/leads';
 const CLASSICO = `${ROTA}?classico=1`;
@@ -60,6 +61,7 @@ function verLead(filtros: Filtros, id: number | null) {
 }
 
 export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
+  const cockpit = useCockpit();
   const [densidade, setDensidade] = useState<DensidadeDaTabela>('default');
 
   return (
@@ -124,7 +126,7 @@ export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
 
       <Sheet open={!!lead} onOpenChange={(aberto) => { if (!aberto) verLead(filtros, null); }}>
         {lead ? (
-          <SheetContent side="right" className="w-full sm:max-w-[760px]">
+          <SheetContent container={cockpit} side="right" className="w-full sm:max-w-[760px]">
             <SheetHeader>
               {lead.estagio ? <Badge variant="info" className="w-fit">{lead.estagio}</Badge> : null}
               <SheetTitle>{lead.nome}</SheetTitle>
@@ -167,12 +169,13 @@ function Secao({ titulo, linhas }: { titulo: string; linhas: [string, string | n
 }
 
 function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo: string; lista?: Opcao[]; filtros: Filtros }) {
+  const cockpit = useCockpit();
   return (
     <div className="flex flex-col gap-1">
       <Label>{nome}</Label>
       <Select value={filtros[campo] || TODOS} onValueChange={(v) => filtrar(filtros, { [campo]: v === TODOS ? undefined : v })}>
         <SelectTrigger aria-label={nome}><SelectValue /></SelectTrigger>
-        <SelectContent>
+        <SelectContent container={cockpit}>
           <SelectItem value={TODOS}>Todos</SelectItem>
           {(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}
         </SelectContent>

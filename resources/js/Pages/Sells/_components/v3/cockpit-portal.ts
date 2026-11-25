@@ -11,10 +11,6 @@
 // `ui/dialog` e do `ui/sheet` (o mesmo caminho do Produto e da Fabricação), sem regra de token nova
 // (ADR UI-0013). Layout effect, e não effect: a janela de lançar item já nasce aberta, e o portal
 // precisa nascer no `.cockpit` em vez de montar no <body> e mudar de lugar depois.
-import { useLayoutEffect, useState } from 'react';
-
-export function useCockpit(): HTMLElement | null {
-  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
-  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
-  return cockpit;
-}
+//
+// O hook subiu para `@/Hooks/useCockpit` em 2026-11-25, quando o CRM precisou do mesmo (CRM-03).
+export { useCockpit } from '@/Hooks/useCockpit';

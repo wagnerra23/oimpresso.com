@@ -25,6 +25,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { PageHeader } from '@/Components/PageHeader';
 import ModuleTabs from '@/Components/shared/ModuleTabs';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/campaigns';
 const CLASSICO = `${ROTA}?classico=1`;
@@ -54,6 +55,7 @@ function verCampanha(filtros: Filtros, id: number | null) {
 }
 
 export default function CampanhasIndex({ filtros, campanhas, campanha }: Props) {
+  const cockpit = useCockpit();
   const [densidade, setDensidade] = useState<DensidadeDaTabela>('default');
 
   return (
@@ -71,7 +73,7 @@ export default function CampanhasIndex({ filtros, campanhas, campanha }: Props) 
                 onValueChange={(v) => filtrar(filtros, { campaign_type: v === TODOS ? undefined : v })}
               >
                 <SelectTrigger aria-label="Tipo de campanha"><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectContent container={cockpit}>
                   <SelectItem value={TODOS}>Todos</SelectItem>
                   <SelectItem value="sms">SMS</SelectItem>
                   <SelectItem value="email">E-mail</SelectItem>
@@ -116,7 +118,7 @@ export default function CampanhasIndex({ filtros, campanhas, campanha }: Props) 
 
       <Sheet open={!!campanha} onOpenChange={(aberto) => { if (!aberto) verCampanha(filtros, null); }}>
         {campanha ? (
-          <SheetContent side="right" className="w-full sm:max-w-[760px]">
+          <SheetContent container={cockpit} side="right" className="w-full sm:max-w-[760px]">
             <SheetHeader>
               <Badge variant={campanha.tipo === 'sms' ? 'warning' : 'info'} className="w-fit">{rotuloTipo(campanha.tipo)}</Badge>
               <SheetTitle>{campanha.nome}</SheetTitle>

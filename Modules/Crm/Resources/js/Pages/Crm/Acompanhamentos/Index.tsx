@@ -41,6 +41,7 @@ import FormRegistro from './_components/FormRegistro';
 import FormAntecipado from './_components/FormAntecipado';
 import DrawerAcompanhamento from './_components/DrawerAcompanhamento';
 import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/follow-ups';
 const TODOS = '__todos';
@@ -79,6 +80,7 @@ function filtrar(filtros: Filtros, mudanca: Filtros) {
 }
 
 export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos, contagem }: Props) {
+  const cockpit = useCockpit();
   const recorrente = filtros.is_recursive === '1';
   const [form, setForm] = useState<{ id: number | null; inicial: Valores } | null>(null);
   const [excluir, setExcluir] = useState<Acompanhamento | null>(null);
@@ -161,7 +163,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
               <>
                 <DataTable<Acompanhamento>
                   caption={recorrente ? 'Acompanhamentos recorrentes' : 'Acompanhamentos'}
-                  columns={colunas(opcoes, recorrente, acoes)}
+                  columns={colunas(opcoes, recorrente, acoes, cockpit)}
                   data={acompanhamentos.data}
                   pagination={acompanhamentos}
                   endpoint={ROTA}
@@ -212,7 +214,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
       ) : null}
 
       <AlertDialog open={!!excluir} onOpenChange={(aberto) => { if (!aberto) setExcluir(null); }}>
-        <AlertDialogContent>
+        <AlertDialogContent container={cockpit}>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir acompanhamento?</AlertDialogTitle>
             <AlertDialogDescription>{excluir?.titulo} — esta ação não pode ser desfeita.</AlertDialogDescription>
@@ -228,12 +230,13 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
 }
 
 function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo: string; lista?: Opcao[]; filtros: Filtros }) {
+  const cockpit = useCockpit();
   return (
     <div className="flex flex-col gap-1">
       <Label>{nome}</Label>
       <Select value={filtros[campo] || TODOS} onValueChange={(v) => filtrar(filtros, { [campo]: v === TODOS ? undefined : v })}>
         <SelectTrigger aria-label={nome}><SelectValue /></SelectTrigger>
-        <SelectContent>
+        <SelectContent container={cockpit}>
           <SelectItem value={TODOS}>Todos</SelectItem>
           {(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}
         </SelectContent>
@@ -247,7 +250,7 @@ interface Acoes {
   registrar: (r: Acompanhamento) => void; excluir: (r: Acompanhamento) => void;
 }
 
-function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes): ColumnDef<Acompanhamento>[] {
+function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes, cockpit: HTMLElement | null): ColumnDef<Acompanhamento>[] {
   const texto = (header: string, acc: (r: Acompanhamento) => ReactNode, width = 150): ColumnDef<Acompanhamento> => ({
     id: header, header, cell: ({ row }) => acc(row.original) ?? '—', meta: { width },
   });
@@ -261,7 +264,7 @@ function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes):
           <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.titulo}`}
             onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}><MoreHorizontal className="size-4" /></Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuContent container={cockpit} align="start" onClick={(e) => e.stopPropagation()}>
           {/* Recorrente tem modal próprio; o registro (log) só existe no avulso, como na Blade. */}
           {recorrente
             ? <DropdownMenuItem onSelect={() => acoes.editarRecorrente(row.original)}>Editar</DropdownMenuItem>

@@ -10,6 +10,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { enviar, type Listas, type Opcao, type Valores } from './acompanhamento';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 export interface Detalhe {
   id: number; titulo: string; contato: string; inicio: string | null; fim: string | null; status: string | null;
@@ -32,6 +33,7 @@ function Linha({ rotulo: r, valor }: { rotulo: string; valor: React.ReactNode })
 export default function DrawerAcompanhamento({ item, opcoes, onFechar, onRegistrar, onConcluido }: {
   item: Detalhe; opcoes?: Listas; onFechar: () => void; onRegistrar: () => void; onConcluido: () => void;
 }) {
+  const cockpit = useCockpit();
   const [registros, setRegistros] = useState<Registro[] | null>(null);
   const [concluindo, setConcluindo] = useState(false);
 
@@ -61,7 +63,7 @@ export default function DrawerAcompanhamento({ item, opcoes, onFechar, onRegistr
 
   return (
     <Sheet open onOpenChange={(aberto) => { if (!aberto) onFechar(); }}>
-      <SheetContent className="flex w-full flex-col sm:max-w-lg" data-contract="crm-acompanhamento-drawer">
+      <SheetContent container={cockpit} className="flex w-full flex-col sm:max-w-lg" data-contract="crm-acompanhamento-drawer">
         <SheetHeader>
           <Badge variant="neutral" className="w-fit">{rotulo(opcoes?.status, item.status)}</Badge>
           <SheetTitle>{item.titulo}</SheetTitle>

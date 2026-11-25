@@ -26,6 +26,7 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { PageHeader } from '@/Components/PageHeader';
 import ModuleTabs from '@/Components/shared/ModuleTabs';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/call-log';
 const EXCLUIR = '/crm/mass-delete-call-log';
@@ -138,12 +139,13 @@ export default function ChamadasIndex({ filtros, pode_excluir, opcoes, chamadas 
 }
 
 function Filtro({ rotulo, campo, lista, filtros }: { rotulo: string; campo: string; lista?: Opcao[]; filtros: Filtros }) {
+  const cockpit = useCockpit();
   return (
     <div className="flex flex-col gap-1">
       <Label>{rotulo}</Label>
       <Select value={filtros[campo] || TODOS} onValueChange={(v) => filtrar(filtros, { [campo]: v === TODOS ? undefined : v })}>
         <SelectTrigger aria-label={rotulo}><SelectValue /></SelectTrigger>
-        <SelectContent>
+        <SelectContent container={cockpit}>
           <SelectItem value={TODOS}>Todos</SelectItem>
           {(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}
         </SelectContent>

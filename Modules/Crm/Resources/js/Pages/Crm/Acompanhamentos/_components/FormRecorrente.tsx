@@ -15,10 +15,12 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { enviar, type Listas, type Opcao, type Recorrente } from './acompanhamento';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 export default function FormRecorrente({ id, inicial, opcoes, onFechar, onSalvo }: {
   id: number | null; inicial: Recorrente; opcoes?: Listas; onFechar: () => void; onSalvo: () => void;
 }) {
+  const cockpit = useCockpit();
   const [v, setV] = useState<Recorrente>(inicial);
   const [erros, setErros] = useState<Record<string, string[]>>({});
   const [salvando, setSalvando] = useState(false);
@@ -57,7 +59,7 @@ export default function FormRecorrente({ id, inicial, opcoes, onFechar, onSalvo 
   const sel = (nome: keyof Recorrente, lista: Opcao[] | undefined, aoMudar?: (x: string) => void) => (
     <Select value={(v[nome] as string) || undefined} onValueChange={(x) => (aoMudar ? aoMudar(x) : muda({ [nome]: x } as Partial<Recorrente>))}>
       <SelectTrigger id={`rec-${nome}`}><SelectValue placeholder="Selecione" /></SelectTrigger>
-      <SelectContent>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
+      <SelectContent container={cockpit}>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
     </Select>
   );
   // `follow_up_by` é o grupo da opção escolhida — a Blade o derivava do optgroup.
@@ -65,7 +67,7 @@ export default function FormRecorrente({ id, inicial, opcoes, onFechar, onSalvo 
 
   return (
     <Dialog open onOpenChange={(aberto) => { if (!aberto) onFechar(); }}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent container={cockpit} className="sm:max-w-3xl">
         <DialogHeader><DialogTitle>{id ? 'Editar acompanhamento recorrente' : 'Adicionar acompanhamento recorrente'}</DialogTitle></DialogHeader>
         <Grid cols={3} gap={3}>
           {campo('Categoria *', 'followup_category_id', sel('followup_category_id', opcoes?.categorias))}
