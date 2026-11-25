@@ -631,6 +631,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   <FilterChip
                     key={c.chave}
                     label={c.rotulo}
+                    value={c.valor}
                     onRemove={() => {
                       if (c.chave === 'q') setBusca('');
                       const vazio =

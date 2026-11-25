@@ -24,7 +24,7 @@ export function CampoNcm({
         id="ncm"
         inputMode="numeric"
         autoComplete="off"
-        placeholder="8 dígitos, ex. 49111090"
+        placeholder="0000.00.00"
         value={value}
         onChange={(e) => onChange(ncmDoCadastro(e.target.value))}
         aria-invalid={error ? true : undefined}

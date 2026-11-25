@@ -997,14 +997,17 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
 
             <SheetFooter className="mt-0 flex-row flex-wrap justify-end gap-2 border-t border-[var(--border)] px-[18px] py-3 [&_button]:h-[30px] [&_button]:px-3 [&_button]:text-[12.5px]">
               {/* UC-PIDX-45: excluído não se edita aqui — restaura primeiro (decisão [F] 2026-11-11). */}
+              {/* Ícones 13px como no protótipo (`<Ic size={13}>`). Só o `size={13}` do lucide não basta:
+                  ele vira atributo `width`, e a regra `[&_svg:not([class*='size-'])]:size-4` do `Button`
+                  vence o atributo e desenhava 16px. A classe `size-[13px]` tira o ícone daquela regra. */}
               {podeEditar && !d.excluido && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
-                  <Pencil size={13} aria-hidden /> Editar produto
+                  <Pencil size={13} className="size-[13px]" aria-hidden /> Editar produto
                 </Button>
               )}
               {!podeEditar && podeArmazenagem && !d.excluido && d.dados.controla_estoque && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
-                  <Pencil size={13} aria-hidden /> Locais de armazenagem
+                  <Pencil size={13} className="size-[13px]" aria-hidden /> Locais de armazenagem
                 </Button>
               )}
               {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}
@@ -1014,7 +1017,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                 </Button>
               )}
               <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => window.print()}>
-                <Printer size={13} aria-hidden /> Imprimir
+                <Printer size={13} className="size-[13px]" aria-hidden /> Imprimir
               </Button>
               <Button variant="ghost" size="sm" className={BOTAO_FECHAR} onClick={aoFechar}>
                 Fechar
