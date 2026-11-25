@@ -498,6 +498,24 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 - **[BACKLOG]** "R$ tabela", "R$ desconto" e "R$ outros" calculam dinheiro na linha (quantidade × preço × percentual): entram com dupla prova, antes→depois e aprovação [W] (REGRA MESTRE).
 - **[BACKLOG]** Colunas que só a produção tem (Código de barras, Cód. de fábrica, Categoria, Área un., Alíquota, Origem, Acabamento, Aplicação, Saldo após, Lote, Depósito): tirá-las apagaria a escolha salva de quem as usa; é decisão de produto, não de forma.
 
+## UC-V413 · "Procurar na lista de produtos" abre a lista numa aba nova e devolve o produto para o lançamento
+
+**Status:** 🧪 — `tests/js/sells-v3-procurar-na-lista.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a venda gravando, aberta, e o operador sem achar o produto na busca,
+- **Quando** clica em "Procurar na lista de produtos",
+- **Então** a lista de produtos abre numa aba nova, com o aviso "Você veio de Nova venda" (UC-PIDX-53) e o termo da busca como o item procurado; a aba da venda fica como estava, porque a venda não guarda rascunho.
+- **Quando** o operador abre o painel de um produto (ou marca um só) e clica em "Voltar e usar",
+- **Então** a aba da lista confirma e se fecha, a venda volta ao foco, põe o SKU do produto na própria busca e, se sobrar uma variação dele, abre o "Lançar item" com ela — idêntico ao clique no resultado da busca: mesmo nome, SKU, preço, unidade e estoque.
+- **Quando** o produto tem mais de uma variação,
+- **Então** o lançamento não abre sozinho: as variações ficam nos resultados da busca para escolher.
+- **Quando** há duas vendas abertas, cada uma em sua aba,
+- **Então** o produto vai só para a venda que abriu aquela lista (canal próprio por venda).
+
+Valor (REGRA MESTRE): a mensagem entre abas leva só id, SKU e nome. O preço sai da busca da venda (`/products/list`, com o local e a tabela dela), pelo mesmo objeto que o clique abriria. A dupla prova está no teste: o lançamento aberto pela lista é comparado campo a campo com o aberto pelo clique no resultado (`37,50` nos dois), e nenhum cálculo novo existe. Mutações conferidas em 2026-11-24: abrir pelo primeiro resultado sem conferir o produto derruba o caso das variações, e ouvir qualquer canal derruba o caso das duas vendas.
+
+Âncora: pedido do [W] em 2026-11-24 ("Sim, em outra aba"), sobre o aviso `.pb-volta` do protótipo `cowork/Felipe/produto-blade.jsx`. Contrato entre abas em `resources/js/Lib/produto-escolhido.ts`; regra da venda em `_components/v3/procurar-na-lista.ts`.
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,

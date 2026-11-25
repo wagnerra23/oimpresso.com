@@ -9,8 +9,14 @@
 // `de` só vale como caminho do próprio sistema ("/…", nunca "//…" nem URL com esquema): sem essa
 // trava, um link montado por fora levaria o "Voltar e usar" para outro site com o id do produto.
 //
+// Aba nova (quem chama não guarda rascunho, ex.: Nova venda V3): a ida leva também `canal=<id>`, e o
+// "Voltar e usar" manda o produto por `BroadcastChannel` (`@/Lib/produto-escolhido`) e fecha a aba,
+// em vez de navegar. Sem `canal`, a volta é a navegação acima.
+//
 // A origem fica guardada na aba (sessionStorage), porque a lista refaz a URL a cada filtro e a
 // recarga da página perderia `de`. Sai quando o usuário volta ou dispensa o aviso.
+
+import { canalValido } from '@/Lib/produto-escolhido';
 
 export interface OrigemDaBusca {
   /** Caminho de volta, sempre começando com uma barra só. */
@@ -19,6 +25,8 @@ export interface OrigemDaBusca {
   rotulo: string;
   /** O item para o qual procura um produto (opcional). */
   para: string | null;
+  /** Canal da aba de origem: com ele, a volta é por mensagem entre abas, não por navegação. */
+  canal: string | null;
 }
 
 export const CHAVE_ORIGEM = 'oi.produto.origem-da-busca';
@@ -38,14 +46,19 @@ export function lerOrigem(search: string, guardada: string | null): OrigemDaBusc
   const q = new URLSearchParams(search);
   const de = caminhoInterno(q.get('de'));
   if (de) {
-    return { de, rotulo: (q.get('de_rotulo') ?? '').trim() || 'outra tela', para: (q.get('para') ?? '').trim() || null };
+    return {
+      de,
+      rotulo: (q.get('de_rotulo') ?? '').trim() || 'outra tela',
+      para: (q.get('para') ?? '').trim() || null,
+      canal: canalValido(q.get('canal')),
+    };
   }
   if (!guardada) return null;
   try {
     const o = JSON.parse(guardada) as Partial<OrigemDaBusca>;
     const deGuardado = caminhoInterno(o.de);
     if (!deGuardado) return null;
-    return { de: deGuardado, rotulo: o.rotulo || 'outra tela', para: o.para ?? null };
+    return { de: deGuardado, rotulo: o.rotulo || 'outra tela', para: o.para ?? null, canal: canalValido(o.canal) };
   } catch {
     return null;
   }

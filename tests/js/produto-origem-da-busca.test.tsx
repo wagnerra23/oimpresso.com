@@ -22,10 +22,15 @@ describe('UC-PIDX-53 · contrato de ida e volta', () => {
 
   it('lê a origem da URL, e sem ela a guardada na aba', () => {
     const daUrl = lerOrigem('?de=%2Fsells%2Fcreate-v3&de_rotulo=Nova%20venda&para=Banner%201x2', null);
-    expect(daUrl).toEqual({ de: '/sells/create-v3', rotulo: 'Nova venda', para: 'Banner 1x2' });
+    expect(daUrl).toEqual({ de: '/sells/create-v3', rotulo: 'Nova venda', para: 'Banner 1x2', canal: null });
 
     const guardada = JSON.stringify({ de: '/producao/os/9', rotulo: 'OS 9', para: null });
-    expect(lerOrigem('?q=lona', guardada)).toEqual({ de: '/producao/os/9', rotulo: 'OS 9', para: null });
+    expect(lerOrigem('?q=lona', guardada)).toEqual({ de: '/producao/os/9', rotulo: 'OS 9', para: null, canal: null });
+
+    // Aba nova (UC-V413): o canal da aba de origem vem na URL; id estranho vira null.
+    expect(lerOrigem('?de=%2Fsells%2Fcreate-v3&canal=abc-123', null)?.canal).toBe('abc-123');
+    expect(lerOrigem('?de=%2Fsells%2Fcreate-v3&canal=a%2Fb', null)?.canal).toBeNull();
+    expect(lerOrigem('', JSON.stringify({ de: '/a', rotulo: 'A', canal: 'xyz-9' }))?.canal).toBe('xyz-9');
 
     // A URL vence a guardada; volta de fora do sistema é ignorada nas duas.
     expect(lerOrigem('?de=%2Fa', guardada)?.de).toBe('/a');
@@ -43,7 +48,7 @@ describe('UC-PIDX-53 · contrato de ida e volta', () => {
 });
 
 describe('UC-PIDX-53 · o aviso', () => {
-  const ORIGEM = { de: '/sells/create-v3', rotulo: 'Nova venda', para: 'Banner 1x2' };
+  const ORIGEM = { de: '/sells/create-v3', rotulo: 'Nova venda', para: 'Banner 1x2', canal: null };
 
   it('diz de onde veio e, sem produto escolhido, desliga o "Voltar e usar" dizendo o que fazer', () => {
     render(<AvisoDeOrigem origem={ORIGEM} escolhido={null} aoVoltar={vi.fn()} aoDispensar={vi.fn()} />);
@@ -56,7 +61,7 @@ describe('UC-PIDX-53 · o aviso', () => {
   it('com o produto escolhido, volta com o id dele; e o X dispensa', () => {
     const aoVoltar = vi.fn();
     const aoDispensar = vi.fn();
-    render(<AvisoDeOrigem origem={{ ...ORIGEM, para: null }} escolhido={{ id: 42, nome: 'Lona 440g' }} aoVoltar={aoVoltar} aoDispensar={aoDispensar} />);
+    render(<AvisoDeOrigem origem={{ ...ORIGEM, para: null }} escolhido={{ id: 42, nome: 'Lona 440g', sku: 'LON-7' }} aoVoltar={aoVoltar} aoDispensar={aoDispensar} />);
     expect(screen.getByRole('status').textContent).toContain('Você veio de Nova venda.');
     fireEvent.click(screen.getByRole('button', { name: 'Voltar e usar “Lona 440g”' }));
     expect(aoVoltar).toHaveBeenCalledWith(42);

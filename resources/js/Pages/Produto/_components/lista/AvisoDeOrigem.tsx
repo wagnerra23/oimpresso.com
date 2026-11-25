@@ -11,7 +11,7 @@ import type { OrigemDaBusca } from './origem-de-busca';
 interface Props {
   origem: OrigemDaBusca;
   /** Produto escolhido (marcado sozinho ou aberto no painel), com o nome para o botão. */
-  escolhido: { id: number; nome: string } | null;
+  escolhido: { id: number; nome: string; sku: string | null } | null;
   aoVoltar: (produtoId: number) => void;
   aoDispensar: () => void;
 }
