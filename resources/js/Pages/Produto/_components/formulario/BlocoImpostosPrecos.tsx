@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
-import { Grid } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import { BlocoGrade } from './BlocoGrade';
 import { CamposPreco } from './CamposPreco';
 import type { Grade } from './grade';
@@ -114,14 +114,20 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
               aria-labelledby="tax_type_rotulo"
               value={data.tax_type}
               onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
-              className="flex min-h-[30px] flex-wrap items-center gap-4"
+              asChild
             >
-              <Label htmlFor="tax_type_exclusive" className="flex items-center gap-1.5 text-[12.5px] font-normal">
-                <RadioGroupItem id="tax_type_exclusive" value="exclusive" /> Não, somar ao preço
-              </Label>
-              <Label htmlFor="tax_type_inclusive" className="flex items-center gap-1.5 text-[12.5px] font-normal">
-                <RadioGroupItem id="tax_type_inclusive" value="inclusive" /> Sim, já está no preço
-              </Label>
+              <Inline wrap gap={4} className="min-h-[30px]">
+                <Inline asChild gap={2}>
+                  <Label htmlFor="tax_type_exclusive" className="text-[12.5px] font-normal">
+                    <RadioGroupItem id="tax_type_exclusive" value="exclusive" /> Não, somar ao preço
+                  </Label>
+                </Inline>
+                <Inline asChild gap={2}>
+                  <Label htmlFor="tax_type_inclusive" className="text-[12.5px] font-normal">
+                    <RadioGroupItem id="tax_type_inclusive" value="inclusive" /> Sim, já está no preço
+                  </Label>
+                </Inline>
+              </Inline>
             </RadioGroup>
             {aliquota !== undefined && (
               <p data-testid="exemplo-imposto" className="mt-1 text-[11px] text-muted-foreground">
