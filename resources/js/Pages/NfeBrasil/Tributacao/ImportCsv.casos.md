@@ -41,6 +41,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | 🧪 |
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | 🧪 |
+| UC-NFIM-15 | A sessão do usuário não cresce com o tamanho do CSV conferido | must `[T0]` | charter §UX (5 MB) · ADR 0093 · medição 2026-11-24 | `ImportRegrasCsvSessaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
@@ -191,16 +192,39 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
+## UC-NFIM-15 · A sessão do usuário não cresce com o tamanho do CSV · `must` `[T0]`
+
+- **Persona:** responsável fiscal que confere o CSV do contador, de até 5 MB (o teto do upload no
+  charter), e só aplica depois de ler o resumo — às vezes navegando por outras telas no meio.
+- **Aceite:** Dado um CSV de 3000 linhas válidas · Quando faço o **preview** · Então a sessão fica
+  do mesmo tamanho que com um CSV de 10 linhas, e as linhas ficam num arquivo do meu usuário na minha
+  empresa. Quando aplico, as regras gravadas são as do CSV (mesmas alíquotas) e o arquivo some. Lote
+  conferido noutra empresa não é gravado nem com o carimbo da sessão trocado, e lote abandonado some
+  no preview seguinte depois de 24h.
+- **Teste:** [`ImportRegrasCsvSessaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvSessaoTest.php)
+  — os sete casos, tenant 98 e 99.
+- **Contrato:** charter §UX (upload até 5 MB) + [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+  (o lote é por empresa e usuário). O limite não é um número declarado em fonte: é a sessão não
+  depender do tamanho do arquivo, que é o que o backlog anterior pedia como condição.
+- **Por que existe (medido no CT 100, 2026-11-24):** o `preview` guardava todas as linhas válidas
+  na sessão. Um CSV de 5 MB (124.827 linhas) deixava a sessão com **31.470.343 bytes**; produção usa
+  `SESSION_DRIVER=file`, então esse arquivo era lido e regravado a cada request do usuário enquanto a
+  conferência estivesse pendente. Depois da mudança, o mesmo CSV deixa **260 bytes** (2.922 contando
+  o resumo do flash, que vive um request).
+- **Prova de que o teste morde:** com o controller do `main` e a classe nova presente, 5 dos 7 casos
+  reprovam — o de tamanho por *"749414 is less than 200"*, o do carimbo trocado porque o lote de A é
+  gravado em B. Os dois que passam nos dois lados são a ida-e-volta do JSON (da classe) e a recusa de
+  referência forjada (o `main` também recusa, por outro caminho).
+- **Status: 🧪** — verde no CT 100 (7 passed, 53 assertions); veredito da lane `nfebrasil-pest`.
+
+---
+
 ## Backlog — sem UC até ganhar teste ou contrato
 
 - `[BACKLOG]` **O GET da tela é ungated.** `ImportRegrasController@show` não checa permissão — só
   as duas mutações checam. Ele entrega apenas a constante `COLUNAS_OBRIGATORIAS`, então não há
   vazamento de dado; o que existe é uma tela de escrita fiscal visível a qualquer usuário do tenant.
   Gatear ou não é decisão.
-- `[BACKLOG]` **Linhas parseadas vão inteiras para a sessão, sem limite.** `session()->put('nfe_import_csv_linhas', $resultado['linhas'])`
-  guarda todas as linhas válidas — um CSV de 5 MB (o teto do upload declarado no charter) vira um
-  payload de sessão proporcional. Não há cap. Vira UC quando houver um limite declarado em alguma
-  fonte; hoje seria caso derivado da implementação.
 - `[BACKLOG]` **Idempotência do import pela chave natural.** O charter promete *"idempotente pela
   chave (NCM + UF origem + UF destino)"* e o Service implementa por `first()` + `update()`/`create()`.
   `ImportRegrasCsvServiceTest` cobre o Service; falta o caso ponta-a-ponta que reimporta o mesmo CSV
@@ -215,6 +239,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-11-24 | CT 100, cópia isolada da branch e do `main` (DB `oimpresso_fullsuite_test`) | `ImportRegrasCsvSessaoTest` 7 passed / 53 assertions; com o controller do `main`, 5 failed. `TributacaoGatesContratoTest` igual nos dois lados: UC-NFIM-01/02/04 verdes, UC-NFRF-01/03/04 e UC-NFIM-03 vermelhos no `main` e na branch (usuário do biz 1 nesse DB libera tudo; o edit dá 500) — é ambiente, não esta mudança |
 | 2026-10-06 | CT 100 `oimpresso-staging`, cópia isolada da branch da thread 19, `--filter=UC-NFIM` | controller anterior: UC-NFIM-04 **vermelho** (302, regra gravada no biz 2) · controller novo: UC-NFIM-04 **verde**; UC-NFIM-01/02 verdes nos dois. UC-NFIM-03 **vermelho nos dois**: o usuário semeado do biz 1 no staging tem o papel `Admin#1`, que concede todas as permissões, então revogar a permissão direta não muda nada. É ambiente, não a mudança — 17 asserções |
 
 > ⚠️ **Este arquivo de teste NÃO foi adicionado à allowlist da lane** — pelas mesmas duas razões do

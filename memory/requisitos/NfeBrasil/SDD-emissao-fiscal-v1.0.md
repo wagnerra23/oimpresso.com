@@ -350,6 +350,12 @@ linhas da sessão, chama `aplicar($businessId, $linhas)`, `forget` da sessão, `
 > **Fechado em 2026-10-06** (playbook Fiscal thread 19): o `@preview` carimba o business em
 > `nfe_import_csv_business_id`, e o `@aplicar` recusa e descarta o lote quando o carimbo falta ou
 > diverge do business corrente. O parágrafo acima segue como o retrato de antes.
+>
+> **2026-11-24 (UC-NFIM-15):** as linhas saíram da sessão. O `@preview` grava o lote num arquivo
+> JSON em `storage/app/nfe-import-csv/{business}/{usuário}/` (`ImportRegrasCsvConferencia`) e a
+> sessão guarda só a referência e o carimbo. O `@aplicar` monta o caminho com o business e o usuário
+> de quem aplica, então lote de outra empresa não é achado mesmo sem o carimbo. Medido no CT 100: um
+> CSV de 5 MB levava a sessão a 31,5 MB; agora a 260 bytes. A descrição de F8 acima é o retrato de antes.
 
 **F9 · Manifestação do destinatário (`GET /nfe-brasil/manifestacao`)** —
 `ManifestacaoController@index` (gate `nfe.manifestacao.view` **ou** `manage` **ou** `superadmin`)
