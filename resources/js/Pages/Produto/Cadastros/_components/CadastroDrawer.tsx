@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
-import { GHOST, MD, PRIMARIO_BTN, ROTULO, SM, SUB } from './estilo';
+import { GHOST, MD, PRIMARIO_BTN, ROTULO_CAIXA_ALTA, SM, SUB } from './estilo';
 
 // Moldura do `Drawer` do DS (PT-02, 760px), medida no protótipo servido em 2026-11-25: o × numa faixa
 // própria de 14×18 com borda embaixo; título 600 17px/1.3 e subtítulo 12,5px em --text-dim num bloco
@@ -63,7 +63,7 @@ const META = {
 function Campo({ id, label, ajuda, children }: { id: string; label?: string; ajuda?: string; children: ReactNode }) {
   return (
     <Stack gap={1}>
-      {label && <Label htmlFor={id} className={ROTULO}>{label}</Label>}
+      {label && <Label htmlFor={id} className={ROTULO_CAIXA_ALTA}>{label}</Label>}
       {children}
       {ajuda && <p className={SUB}>{ajuda}</p>}
     </Stack>
@@ -210,7 +210,7 @@ export default function CadastroDrawer({ pedido, container, onClose, onSalvo }: 
       <>
         <Campo id="dr-nome" label="Nome da variação *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Cor, Acabamento, Gramatura…" onChange={(e) => set({ nome: e.target.value })} /></Campo>
         <Stack gap={1} className="mt-3 gap-1.5">
-          <Label className={ROTULO}>Valores da variação *</Label>
+          <Label className={ROTULO_CAIXA_ALTA}>Valores da variação *</Label>
           {valores.map((x, i) => (
             <Inline key={i} gap={2} align="end" className="gap-1.5">
               <Input aria-label={`Valor ${i + 1}`} value={x.nome} placeholder={`Valor ${i + 1}`}

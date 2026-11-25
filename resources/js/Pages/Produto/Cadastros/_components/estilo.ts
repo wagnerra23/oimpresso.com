@@ -50,4 +50,4 @@ export const AJUDA = 'text-[11px] text-[var(--text-dim)]';
 // do rótulo pegavam (o `.cw-label` não declara esses dois), e eles ficam.
 // O protótipo desenha o Input do DS v4 (34px, 13px, canto 8, rótulo 10,5px 600); igualar é mudança no
 // `.cw-input`/`.cw-label` do app inteiro, decisão [W] — não exceção nesta tela (UI-0029 §41).
-export const ROTULO = 'uppercase tracking-[.04em]';
+export const ROTULO_CAIXA_ALTA = 'uppercase tracking-[.04em]';
