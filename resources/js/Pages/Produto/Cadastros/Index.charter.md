@@ -31,7 +31,11 @@ deixa quebrar o catálogo por engano. D3 [W] 2026-10-01: Page parametrizada, uma
 - **R1** Uma tela, 6 abas (Variações · Grupos de preço · Unidades · Categorias · Marcas · Garantias),
   contador de cada aba vindo do estado do servidor. `/units`, `/variation-templates`, `/selling-price-group` e
   `/warranties` abrem a mesma tela, cada uma na sua aba.
+- **R9** (2026-11-25, pedido [W]) Grupo de preço liga e desliga na própria linha, pela chave da coluna Situação
+  (rota da tela clássica `activate-deactivate`, `product.create`, só grupo do meu negócio — UC-PCADAP-24).
 - **R3** Coluna "Produtos" clicável: abre o índice de produtos filtrado por aquele valor. Zero não é clicável.
+  Na aba Variações a coluna se chama "Em uso" (rótulo do protótipo) e abre `/products?type=variable` — o
+  índice não filtra por modelo de variação, então leva aos produtos variáveis, como o protótipo (`filtro: { type: "variable" }`).
 - **R4** Registro em uso não é excluído: a confirmação diz quantos produtos usam e não oferece o botão
   destrutivo. A recusa é do servidor (`UnitController@destroy` já recusava; `BrandController@destroy` e
   `VariationTemplateController@destroy` passam a recusar). Garantia não tem excluir: o `destroy` nunca foi implementado.
@@ -54,7 +58,6 @@ deixa quebrar o catálogo por engano. D3 [W] 2026-10-01: Page parametrizada, uma
 
 - ❌ Drawer de criar/editar em Grupos de preço: fora da ficha da thread 10, segue no modal da Blade (`?classico=1`).
 - ❌ Remover valor já gravado de um modelo de variação pelo drawer (o servidor só renomeia).
-- ❌ Ativar/desativar grupo de preço na linha (UC-CAD-09): a linha mostra a situação; a troca segue na tela clássica.
 - ❌ Cadastro de imposto, de local, taxonomia de despesa ou de Oficina; merge de duplicata.
 
 ## Anti-hooks

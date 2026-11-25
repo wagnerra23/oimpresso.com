@@ -549,6 +549,11 @@ class SellingPriceGroupController extends Controller
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
             $spg = SellingPriceGroup::where('business_id', $business_id)->find($id);
+            // Grupo de outro negócio (ou inexistente): recusa sem tocar em nada. Antes caía em erro 500
+            // ao ler `is_active` de null. Mesma resposta do `update` para id alheio (UC-PCADAP-24).
+            if (! $spg) {
+                return ['success' => false, 'msg' => __('messages.something_went_wrong')];
+            }
             $spg->is_active = $spg->is_active == 1 ? 0 : 1;
             $spg->save();
 
