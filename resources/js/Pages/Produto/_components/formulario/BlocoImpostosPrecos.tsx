@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Grid } from '@/Components/layout';
 import { BlocoGrade } from './BlocoGrade';
 import { CamposPreco } from './CamposPreco';
@@ -47,13 +48,38 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
+const reais = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * O exemplo embaixo da pergunta do imposto (protótipo): quanto o cliente paga numa venda de
+ * R$ 100,00. Só texto: a conta do preço que vai para o servidor segue em precos.ts.
+ */
+export function exemploDoImposto(tipo: 'inclusive' | 'exclusive', aliquota: number, sigla: string): string {
+  if (tipo === 'exclusive') {
+    return `Exemplo: venda de R$ 100,00 → o cliente paga R$ ${reais(100 * (1 + aliquota / 100))}.`;
+  }
+  return `Exemplo: venda de R$ 100,00 → o cliente paga R$ 100,00, com R$ ${reais(100 - 100 / (1 + aliquota / 100))} de ${sigla} dentro.`;
+}
+
 export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, metodoCusto, politica }: Props) {
   const novo = modo === 'novo';
+  const semImposto = data.tax === '' || data.tax == null;
+  const nomeImposto = semImposto ? '' : (opcoes.taxes?.[data.tax as number] ?? '');
+  const sigla = nomeImposto.split(' ')[0] || 'imposto';
+  // A alíquota vem do preço (simples) ou da grade (variável); sem nenhum dos dois, sem exemplo.
+  const aliquota = preco?.aliquota ?? grade?.aliquota;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Impostos e preços</CardTitle>
+        <CardTitle>
+          Impostos e preços
+          {nomeImposto && (
+            <span className="ml-2 font-mono text-[11px] font-normal uppercase text-muted-foreground">
+              imposto {nomeImposto}
+            </span>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <Grid cols={3} gap={4}>
@@ -76,21 +102,34 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label htmlFor="tax_type">O preço de venda já tem o imposto?</Label>
-          <Select
-            value={data.tax_type}
-            onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
-          >
-            <SelectTrigger id="tax_type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="exclusive">Não, somar ao preço</SelectItem>
-              <SelectItem value="inclusive">Sim, já está no preço</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {semImposto ? (
+          <div>
+            <Label>O preço de venda já tem o imposto?</Label>
+            <p className="mt-1 text-[11px] text-muted-foreground">Sem imposto escolhido, não há o que perguntar aqui.</p>
+          </div>
+        ) : (
+          <div>
+            <Label id="tax_type_rotulo">O preço de venda já tem o {sigla}?</Label>
+            <RadioGroup
+              aria-labelledby="tax_type_rotulo"
+              value={data.tax_type}
+              onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
+              className="flex min-h-[30px] flex-wrap items-center gap-4"
+            >
+              <Label htmlFor="tax_type_exclusive" className="flex items-center gap-1.5 text-[12.5px] font-normal">
+                <RadioGroupItem id="tax_type_exclusive" value="exclusive" /> Não, somar ao preço
+              </Label>
+              <Label htmlFor="tax_type_inclusive" className="flex items-center gap-1.5 text-[12.5px] font-normal">
+                <RadioGroupItem id="tax_type_inclusive" value="inclusive" /> Sim, já está no preço
+              </Label>
+            </RadioGroup>
+            {aliquota !== undefined && (
+              <p data-testid="exemplo-imposto" className="mt-1 text-[11px] text-muted-foreground">
+                {exemploDoImposto(data.tax_type, aliquota, sigla)}
+              </p>
+            )}
+          </div>
+        )}
         <div>
           <Label htmlFor="type">{novo ? 'Tipo de produto *' : 'Tipo de produto'}</Label>
           {novo ? (
