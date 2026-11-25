@@ -15,6 +15,8 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Grid, Inline } from '@/Components/layout';
 import { BlocoGrade } from './BlocoGrade';
+import { BlocoGradeEditar } from './BlocoGradeEditar';
+import type { GradeGravada, LinhaGradeEditada } from './gradeEditar';
 import { CamposPreco } from './CamposPreco';
 import type { Grade } from './grade';
 import { metodoDaEmpresa, opcoesDoMetodo } from './metodoCusto';
@@ -36,6 +38,8 @@ interface Props {
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
   /** UC-PCAD-32: a grade do produto variável no Novo. */
   grade?: { valor: Grade; mudar: (g: Grade) => void; aliquota: number; margemPadrao: number; erro?: string };
+  /** UC-PEDIT-32: a grade do produto variável no Editar (as variações gravadas). */
+  gradeGravada?: { gravada: GradeGravada; linhas: LinhaGradeEditada[]; mudar: (l: LinhaGradeEditada[]) => void; aliquota: number };
   /** Método de custo (US-COM-024): só quando o módulo Compras está no pacote da empresa. */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
   /** Política de preço (CU-PROD-21) e os erros do servidor para os dois campos. */
@@ -61,13 +65,13 @@ function exemploDoImposto(tipo: 'inclusive' | 'exclusive', aliquota: number, sig
   return `Exemplo: venda de R$ 100,00 → o cliente paga R$ 100,00, com R$ ${reais(100 - 100 / (1 + aliquota / 100))} de ${sigla} dentro.`;
 }
 
-export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, metodoCusto, politica }: Props) {
+export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, gradeGravada, metodoCusto, politica }: Props) {
   const novo = modo === 'novo';
   const semImposto = data.tax === '' || data.tax == null;
   const nomeImposto = semImposto ? '' : (opcoes.taxes?.[data.tax as number] ?? '');
   const sigla = nomeImposto.split(' ')[0] || 'imposto';
-  // A alíquota vem do preço (simples) ou da grade (variável); sem nenhum dos dois, sem exemplo.
-  const aliquota = preco?.aliquota ?? grade?.aliquota;
+  // A alíquota vem do preço (simples) ou da grade (variável, no Novo ou no Editar); sem nenhum, sem exemplo.
+  const aliquota = preco?.aliquota ?? grade?.aliquota ?? gradeGravada?.aliquota;
 
   return (
     <Card>
@@ -254,6 +258,14 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             sku={data.sku}
             tipoCodigo={String(data.barcode_type ?? '')}
             erro={grade.erro}
+          />
+        )}
+        {gradeGravada && (
+          <BlocoGradeEditar
+            gravada={gradeGravada.gravada}
+            linhas={gradeGravada.linhas}
+            mudar={gradeGravada.mudar}
+            aliquota={gradeGravada.aliquota}
           />
         )}
         </Grid>

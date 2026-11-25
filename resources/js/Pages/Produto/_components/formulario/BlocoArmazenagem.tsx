@@ -87,7 +87,7 @@ export function BlocoArmazenagem({ valor, mudar, locais, endereco, saldos }: Pro
                   <RadioGroupItem value={String(l.local)} aria-label={`Local padrão: ${nomeDe(l.local)}`} />
                 </td>
                 <td className="py-1 pr-2">
-                  {l.salvo ? (
+                  {l.salvo || l.doEstoque ? (
                     <span>{nomeDe(l.local)}</span>
                   ) : (
                     <Select value={String(l.local)} onValueChange={(v) => mudarLinha(i, { local: Number(v) })}>

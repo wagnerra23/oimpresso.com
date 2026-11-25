@@ -122,6 +122,11 @@ cadastraria tributos de uma nota de demonstração.
 7. **Desligar** (se precisar): `flag-set` com `remove=true` — a empresa volta ao padrão (desligada) e as naturezas
    cadastradas ficam guardadas.
 
+**Empresas da onda 6 (decisão [W] em 2026-11-25):** biz=1 e biz=199. A flag `useV2NfeNaturezas` já estava ligada
+nas duas (`flag-get` em produção, 2026-11-25: regras `biz-1` e `biz-199`, `force true`; padrão `false`), então a
+decisão não mudou a flag, só registra a escolha do item 2. Itens 3 (aceite do contador) e 6 (primeira nota em
+homologação) seguem sem registro no repositório para as duas empresas.
+
 ### Revisão fiscal — NÃO feita (verificado 2026-11-15)
 
 O guia de revisão (Claude Docs, 2026-11-13) tem 0 comentários; o Artefato do protótipo tem 0; nenhum PR, handoff

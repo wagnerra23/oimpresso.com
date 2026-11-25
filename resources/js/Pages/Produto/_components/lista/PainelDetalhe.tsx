@@ -447,12 +447,14 @@ interface Props {
   /** UC-PIDX-47 (#10765): só `product.armazenagem`: o rodapé leva ao Editar só com os locais. */
   podeArmazenagem?: boolean;
   podePrecos: boolean;
+  /** UC-PIDX-54: a permissão da transferência de estoque (`purchase.create`). */
+  podeTransferir?: boolean;
   /** A empresa emite nota (módulo Fiscal no pacote): só então a aba Fiscal existe. */
   emiteNota: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podeArmazenagem, podePrecos, emiteNota, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podeArmazenagem, podePrecos, podeTransferir = false, emiteNota, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -468,6 +470,9 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
   // "com imposto" quando os dois valores diferem.
   const variacoesComImposto = temImposto(d?.variacoes ?? []);
   const itensComImposto = temImposto(d?.composicao ?? []);
+  // UC-PIDX-54: "Transferir" por local na aba Estoque — mesmas regras do item do menu da linha
+  // (UC-PIDX-52): a permissão, estoque controlado, não é kit (D-30) nem excluído.
+  const transfere = !!d && podeTransferir && !d.excluido && d.dados.controla_estoque && !combo;
 
   const abas = d
     ? [
@@ -806,6 +811,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <th className="r">Alerta</th>
                         <th className="r">Vendido</th>
                         <th>Situação</th>
+                        {transfere && <th><span className="sr-only">Ação</span></th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -823,6 +829,22 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                               menos devoluções), que o servidor já manda na linha — nenhuma conta aqui. */}
                           <td className="r"><span className="pb-stock">{qtdComUnidade(e.vendido, e.unidade)}</span></td>
                           <td>{e.alerta ? <span className="pb-pill off">Repor</span> : <span className="pb-pill combo">Suficiente</span>}</td>
+                          {transfere && (
+                            <td>
+                              {/* UC-PIDX-54: só de um local com saldo — sem saldo a transferência não aceita a linha. */}
+                              {e.local_id && (e.estoque ?? 0) > 0 && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className={BOTAO_PEQUENO}
+                                  aria-label={`Transferir de ${e.local}`}
+                                  onClick={() => irPara(`/stock-transfers/create?produto=${d.id}&origem=${e.local_id}`)}
+                                >
+                                  Transferir
+                                </Button>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -975,14 +997,17 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
 
             <SheetFooter className="mt-0 flex-row flex-wrap justify-end gap-2 border-t border-[var(--border)] px-[18px] py-3 [&_button]:h-[30px] [&_button]:px-3 [&_button]:text-[12.5px]">
               {/* UC-PIDX-45: excluído não se edita aqui — restaura primeiro (decisão [F] 2026-11-11). */}
+              {/* Ícones 13px como no protótipo (`<Ic size={13}>`). Só o `size={13}` do lucide não basta:
+                  ele vira atributo `width`, e a regra `[&_svg:not([class*='size-'])]:size-4` do `Button`
+                  vence o atributo e desenhava 16px. A classe `size-[13px]` tira o ícone daquela regra. */}
               {podeEditar && !d.excluido && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
-                  <Pencil size={13} aria-hidden /> Editar produto
+                  <Pencil size={13} className="size-[13px]" aria-hidden /> Editar produto
                 </Button>
               )}
               {!podeEditar && podeArmazenagem && !d.excluido && d.dados.controla_estoque && (
                 <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
-                  <Pencil size={13} aria-hidden /> Locais de armazenagem
+                  <Pencil size={13} className="size-[13px]" aria-hidden /> Locais de armazenagem
                 </Button>
               )}
               {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}
@@ -992,7 +1017,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                 </Button>
               )}
               <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => window.print()}>
-                <Printer size={13} aria-hidden /> Imprimir
+                <Printer size={13} className="size-[13px]" aria-hidden /> Imprimir
               </Button>
               <Button variant="ghost" size="sm" className={BOTAO_FECHAR} onClick={aoFechar}>
                 Fechar

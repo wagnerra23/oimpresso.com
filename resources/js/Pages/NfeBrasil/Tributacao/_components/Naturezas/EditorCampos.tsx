@@ -12,6 +12,7 @@ import {
   ORIG_IBS, ORIG_ICMS, ORIG_IPI, ORIG_MVA, ORIG_PC, PC_PADRAO, REGIME_NOME, TIPOS_NOTA,
   type Natureza, type Opcao, type Regime,
 } from './natureza';
+import { SEM_ICMS_PROPRIO } from './lancamento';
 
 export type Passo = 'nat' | 'cfop' | 'icms' | 'ipi' | 'pc' | 'ibs' | 'rev';
 
@@ -198,7 +199,8 @@ export function CamposDoPasso({ passo, n, muda, regime, ro, uf }: {
               ajuda="Vazio = usa o do cadastro da empresa." onChange={(v) => muda((x) => { x.icms.pCredSN = v; return x; })} />}
           </Grid>
         </Grupo>
-        <Grupo titulo="Entra na base do ICMS">
+        {/* Sem ICMS próprio (CSOSN 102 do Simples, CST 40, 60…) não há base de ICMS a montar — protótipo `semIcmsProprio()`. */}
+        {!SEM_ICMS_PROPRIO.includes(cst) && <Grupo titulo="Entra na base do ICMS">
           <Grid gap={2} className="gap-x-4" style={CHKS}>
             <Marca id="icms-frete" rotulo="Frete, seguro e outras despesas" valor={n.icms.bFrete} disabled={ro}
               onChange={(v) => muda((x) => { x.icms.bFrete = v; return x; })} />
@@ -207,7 +209,7 @@ export function CamposDoPasso({ passo, n, muda, regime, ro, uf }: {
             <Marca id="icms-desc" rotulo="Desconto reduz a base" valor={n.icms.bDesc} disabled={ro}
               onChange={(v) => muda((x) => { x.icms.bDesc = v; return x; })} />
           </Grid>
-        </Grupo>
+        </Grupo>}
         {CST_COM_ST.includes(cst) && (
           <Grupo titulo="Substituição tributária">
             <Grid gap={3} style={FGRID}>
