@@ -13,6 +13,8 @@ import { useState, type ReactNode } from 'react';
 import { Icon } from '@/Components/Icon';
 import { Button } from '@/Components/ui/button';
 import { Segmented } from '@/Components/ui/segmented';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 export function CrmCartao({ 'data-contract': contrato, titulo, nota, acao, semPadding, children }: {
   'data-contract'?: string;
@@ -92,5 +94,77 @@ export function CrmPilula({ tom = 'mute', children }: { tom?: TomPilula; childre
     >
       {children}
     </span>
+  );
+}
+
+/**
+ * A `Mini` do protótipo (`.pb-tbl`): cabeçalho só quando há (caixa alta 10,5px/700 sobre `--bg-2`),
+ * linha 12,5px com 7×10px e separador embaixo; da 2ª coluna em diante, mono à direita.
+ */
+export function CrmMini({ cabecalho, linhas, vazio = 'Sem dados' }: { cabecalho?: string[]; linhas: ReactNode[][]; vazio?: string }) {
+  const colunas = cabecalho?.length ?? (linhas[0]?.length || 2);
+  const borda = { borderBottomColor: 'var(--border-2)' };
+  return (
+    <table className="w-full border-separate border-spacing-0 text-[12.5px]">
+      {cabecalho && (
+        <thead>
+          <tr>
+            {cabecalho.map((c, i) => (
+              <th key={c} scope="col" className={`whitespace-nowrap border-b px-2.5 py-2 text-[10.5px] font-bold uppercase tracking-[0.06em] ${i ? 'text-right' : 'text-left'}`}
+                style={{ color: 'var(--text-mute)', background: 'var(--bg-2)', borderBottomColor: 'var(--border)' }}>{c}</th>
+            ))}
+          </tr>
+        </thead>
+      )}
+      <tbody>
+        {linhas.length === 0 && <tr><td colSpan={colunas} className="border-b px-2.5 py-[7px] text-center" style={{ ...borda, color: 'var(--text-mute)' }}>{vazio}</td></tr>}
+        {linhas.map((l, i) => (
+          <tr key={i}>
+            {l.map((v, j) => (
+              <td key={j} className={j ? 'border-b px-2.5 py-[7px] text-right font-mono text-[12px] tabular-nums' : 'border-b px-2.5 py-[7px]'} style={borda}>{v}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/**
+ * A gaveta do protótipo (`Drawer` do DS, `prototipo-ui/design-system/components/Drawer`): 480px,
+ * fundo `--surface` com sombra à esquerda, selo no topo, título 17px/600, subtítulo 12,5px,
+ * seções separadas por linha e rodapé com botões de 30px. Medido em produção em 2026-11-25
+ * (CRM-26, CRM-33): 512px, fundo da página, título 16px, seções em texto corrido e botões de 36px.
+ */
+export function CrmGaveta({ 'data-contract': contrato, selo, titulo, subtitulo, rodape, onFechar, children }: {
+  'data-contract'?: string; selo?: ReactNode; titulo: string; subtitulo?: ReactNode;
+  rodape?: ReactNode; onFechar: () => void; children: ReactNode;
+}) {
+  const cockpit = useCockpit();
+  return (
+    <Sheet open onOpenChange={(aberto) => { if (!aberto) onFechar(); }}>
+      <SheetContent container={cockpit} data-contract={contrato} className="w-full gap-0 shadow-[-16px_0_40px_-12px_rgb(0_0_0/0.3)] sm:max-w-[480px]"
+        style={{ background: 'var(--surface)', borderLeftColor: 'var(--border)' }}>
+        <div className="flex min-h-[57px] items-center gap-2.5 border-b px-[18px] py-3.5 pr-14" style={{ borderBottomColor: 'var(--border)' }}>{selo}</div>
+        <div className="px-[18px] py-4">
+          <SheetTitle className="m-0 text-[17px] font-semibold leading-[1.3] tracking-[-0.01em]" style={{ color: 'var(--text)' }}>{titulo}</SheetTitle>
+          {subtitulo ? <SheetDescription className="mt-1 text-[12.5px]" style={{ color: 'var(--text-dim)' }}>{subtitulo}</SheetDescription> : null}
+        </div>
+        <div className="flex-1 overflow-y-auto">{children}</div>
+        {rodape ? (
+          <div className="mt-auto flex justify-end gap-2 border-t px-[18px] py-3 [&_button]:h-[30px] [&_button]:px-3 [&_button]:text-[12.5px]" style={{ borderTopColor: 'var(--border)' }}>{rodape}</div>
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/** A `DrawerSection` do protótipo: título em caixa alta 10,5px/600 e corpo 13px, com linha em cima. */
+export function CrmSecao({ 'data-contract': contrato, titulo, children }: { 'data-contract'?: string; titulo: ReactNode; children: ReactNode }) {
+  return (
+    <section data-contract={contrato} className="border-t px-[18px] py-3.5" style={{ borderTopColor: 'var(--border-2)' }}>
+      <h4 className="m-0 mb-2 text-[10.5px] font-semibold uppercase leading-[1.4] tracking-[0.05em]" style={{ color: 'var(--text-mute)' }}>{titulo}</h4>
+      <div className="text-[13px] leading-normal" style={{ color: 'var(--text)' }}>{children}</div>
+    </section>
   );
 }

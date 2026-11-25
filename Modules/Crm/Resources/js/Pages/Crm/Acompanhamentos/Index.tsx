@@ -25,7 +25,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import CrmCabecalho from '../_components/CrmCabecalho';
-import { CrmCartao, CrmDensidade, CrmFiltros, CrmPilula, type TomPilula } from '../_components/CrmBlocos';
+import { CrmCartao, CrmDensidade, CrmFiltros, CrmPilula } from '../_components/CrmBlocos';
 import SubNav from '@/Components/shared/SubNav';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
@@ -38,7 +38,7 @@ import FormRecorrente from './_components/FormRecorrente';
 import FormRegistro from './_components/FormRegistro';
 import FormAntecipado from './_components/FormAntecipado';
 import DrawerAcompanhamento from './_components/DrawerAcompanhamento';
-import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
+import { NOVO, NOVO_RECORRENTE, TOM, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
 import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/follow-ups';
@@ -64,10 +64,6 @@ interface Props {
   contagem?: { total: number; status: Record<string, number>; tipo: Record<string, number> };
 }
 
-// Tons do protótipo (`TOM` do crm-blade.jsx): agendado = destaque (roxo), aberto = aviso, concluído = ok.
-const TOM: Record<string, TomPilula> = {
-  scheduled: 'info', open: 'warn', completed: 'ok', cancelled: 'mute', canceled: 'mute',
-};
 
 const rotulo = (lista: Opcao[] | undefined, v: string | null) => lista?.find((o) => o.value === v)?.label ?? v ?? '—';
 /** "Agendado: 3 · Concluído: 1" — só os valores que aparecem na consulta. */
