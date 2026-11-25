@@ -366,16 +366,16 @@ function Aviso({ tom, titulo, children }: { tom: 'atencao' | 'perigo'; titulo: s
   const mistura = (p: number) => `color-mix(in oklab, ${cor} ${p}%, transparent)`;
   const Icone = tom === 'perigo' ? CircleAlert : TriangleAlert;
   return (
-    <div className="flex items-start gap-[11px] rounded-[8px] border px-3.5 py-3 text-left"
+    <Inline align="start" className="gap-[11px] rounded-[8px] border px-3.5 py-3 text-left"
       style={{ background: mistura(6), borderColor: mistura(22) }}>
-      <span className="mt-px grid size-[22px] flex-none place-items-center rounded-[6px]" style={{ background: mistura(14), color: cor }}>
-        <Icone className="size-3.5" aria-hidden />
-      </span>
+      <Inline asChild align="center" justify="center" className="mt-px size-[22px] flex-none rounded-[6px]">
+        <span style={{ background: mistura(14), color: cor }}><Icone className="size-3.5" aria-hidden /></span>
+      </Inline>
       <div className="min-w-0 flex-1 pt-px">
         <div className="text-[13px] leading-[1.3] font-semibold text-[var(--text)]">{titulo}</div>
         <div className="mt-0.5 text-[12.5px] leading-[1.45] text-[var(--text-dim)]">{children}</div>
       </div>
-    </div>
+    </Inline>
   );
 }
 
