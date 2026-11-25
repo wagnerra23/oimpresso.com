@@ -27,7 +27,6 @@ beforeEach(function () {
             $t->bigIncrements('id');
             $t->unsignedInteger('business_id');
             $t->unsignedInteger('account_id')->nullable();
-            $t->unsignedBigInteger('rb_gateway_credential_id')->nullable();
             $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
             $t->decimal('saldo_cached', 22, 4)->nullable();
             $t->timestamp('saldo_atualizado_em')->nullable();

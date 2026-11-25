@@ -4,7 +4,7 @@ irmaos: Subscriptions.charter.md (lei) · Subscriptions.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela de listagem de Vendas que ESCREVE — pausar uma assinatura é deixar de cobrar um cliente. Quem vê qual assinatura, quem pode pausar e de qual empresa não pode mudar num refactor visual.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -77,3 +77,4 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Trilha do tempo
 - 2026-10-14 · [CL] trio completado (E1 do regime de evolução, agente `sdd-from-source`). Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358 · US-SELL-062.
+- 2026-11-24 · [CL] revalidação G-6: a tela ganhou a barra de abas do módulo Vendas (`Pages/Sells/_components/AbasVendas.tsx`, slot `below` do `PageHeader`) e o cabeçalho passou a ser o `PageHeader` padrão (selo no subtítulo; a seta de voltar saiu, o `Esc` continua). Nenhum UC desta tela descreve o cabeçalho nem a navegação entre telas, então nenhum muda. Prova da barra: `tests/js/sells-abas-modulo.test.tsx`.

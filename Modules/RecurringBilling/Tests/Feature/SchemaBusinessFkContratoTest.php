@@ -22,8 +22,9 @@ beforeEach(function () {
     }
 });
 
-it('d5 · as 8 tabelas do módulo têm FK de business_id para business', function () {
-    $tabelas = ['rb_plans', 'rb_subscriptions', 'rb_invoices', 'rb_charge_attempts', 'rb_boleto_credentials',
+it('d5 · as 7 tabelas do módulo têm FK de business_id para business', function () {
+    // rb_boleto_credentials saiu em 2026-11-24 (migration drop_rb_boleto_credentials).
+    $tabelas = ['rb_plans', 'rb_subscriptions', 'rb_invoices', 'rb_charge_attempts',
         'rb_subscription_events', 'rb_subscription_favorites', 'rb_subscription_notes'];
 
     foreach ($tabelas as $tabela) {

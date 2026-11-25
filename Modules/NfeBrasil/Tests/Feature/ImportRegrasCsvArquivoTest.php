@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
+use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvConferencia;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 
 uses(Tests\TestCase::class);
@@ -84,7 +85,7 @@ afterEach(function () {
         return;
     }
     arqLimpar();
-    session()->forget('nfe_import_csv_linhas');
+    session()->forget([ImportRegrasCsvConferencia::SESSAO_REF, ImportRegrasCsvConferencia::SESSAO_BUSINESS]);
 });
 
 // ---------------------------------------------------------------------------------------
@@ -98,11 +99,12 @@ it('UC-NFIM-10 · CSV de mais de 5 MB é recusado com aviso e nada vai para a co
     expect(strlen($grande))->toBeGreaterThan(5 * 1024 * 1024);
 
     arqPreview($grande)->assertSessionHasErrors(['arquivo' => 'Arquivo muito grande (máx 5 MB).']);
-    expect(session('nfe_import_csv_linhas'))->toBeNull();
+    expect(session()->has(ImportRegrasCsvConferencia::SESSAO_REF))->toBeFalse();
 
     // CONTROLE POSITIVO — o mesmo conteúdo, pequeno, passa na conferência.
     arqPreview(arqCabecalho() . "\n" . $linha)->assertSessionHasNoErrors();
-    expect(session('nfe_import_csv_linhas'))->toHaveCount(1);
+    expect(session('preview.total_validas'))->toBe(1);
+    expect(session(ImportRegrasCsvConferencia::SESSAO_REF))->toBeString();
     expect(arqContar())->toBe(0);
 });
 
@@ -119,7 +121,6 @@ it('UC-NFIM-11 · separador ponto e vírgula não passa da conferência e o avis
     $preview = $res->getSession()->get('preview');
     expect($preview['total_validas'])->toBe(0);
     expect($preview['erros'][0]['motivo'])->toContain('ponto e vírgula');
-    expect(session('nfe_import_csv_linhas'))->toBe([]);
 
     // Aplicar depois não grava nada.
     $this->post('/nfe-brasil/tributacao/import/aplicar')->assertSessionHasErrors('arquivo');

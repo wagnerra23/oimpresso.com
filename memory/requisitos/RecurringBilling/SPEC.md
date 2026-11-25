@@ -155,7 +155,7 @@ status: ativo
 > **Rota:** `POST /payment-gateway/credentials`
 > **Permissão Spatie:** `payment-gateway.credentials.manage`
 
-**Implementado em:** _parcial_ · `Modules/RecurringBilling/Models/BoletoCredential.php` · `Modules/RecurringBilling/Database/Migrations/2026_05_06_000001_create_rb_boleto_credentials_table.php` · `Modules/RecurringBilling/Http/Controllers/ConfiguracoesController.php` · `Modules/RecurringBilling/Tests/Feature/BoletoCredentialResolverTest.php` · verificado@176f9bc (2026-07-01) — credencial por tenant (banco inter/c6/asaas) com `config_json` cifrado (token + webhook_secret) e UI de configuração; falta: nomenclatura `pg_credentials` genérica e N credenciais por provider (UNIQUE atual é 1 por banco/business)
+**Implementado em:** _parcial_ · `Modules/PaymentGateway/Models/PaymentGatewayCredential.php` · `Modules/PaymentGateway/Database/Migrations/2026_05_19_120000_create_payment_gateway_credentials_table.php` · `Modules/RecurringBilling/Http/Controllers/ConfiguracoesController.php` · `Modules/PaymentGateway/Tests/Feature/EncryptedCredentialCastTest.php` · verificado@8e16a88 (2026-11-24; até a onda 5b a credencial era `rb_boleto_credentials` via `BoletoCredential`, removido) — credencial por tenant (banco inter/c6/asaas) com `config_json` cifrado (token + webhook_secret) e UI de configuração; falta: nomenclatura `pg_credentials` genérica e N credenciais por provider (UNIQUE atual é 1 por banco/business)
 
 **Como** Gestor (tenant)
 **Quero** colocar API key + webhook secret de gateway escolhido (Asaas/Iugu/etc.)
@@ -749,7 +749,7 @@ Então NÃO cria revenue_event (sem take rate)
 > owner: wagner · priority: p0 · estimate: 16h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/PaymentGateway/Services/Drivers/AsaasDriver.php` · `Modules/RecurringBilling/Http/Controllers/AsaasWebhookController.php` · `Modules/RecurringBilling/Models/BoletoCredential.php` · `Modules/RecurringBilling/Database/Migrations/2026_05_06_000003_create_pg_webhook_events_table.php` · `Modules/PaymentGateway/Tests/Feature/AsaasDriverTest.php` · verificado@8e16a88 (2026-11-24) — adapter Asaas (credencial cifrada por tenant + cobrança + webhook idempotente `pg_webhook_events`); duplicata do range US-RB-ESC0/040 Em 2026-11-24 a pilha de boleto do RB (o BoletoService e os drivers Asaas, C6 e Inter da pasta Boleto, com seus testes) foi removida por não ter chamador de produção; os paths acima passaram a ser os do PaymentGateway, dono dos drivers (ADR 0456, decisão b1).
+**Implementado em:** `Modules/PaymentGateway/Services/Drivers/AsaasDriver.php` · `Modules/RecurringBilling/Http/Controllers/AsaasWebhookController.php` · `Modules/PaymentGateway/Models/PaymentGatewayCredential.php` · `Modules/RecurringBilling/Database/Migrations/2026_05_06_000003_create_pg_webhook_events_table.php` · `Modules/PaymentGateway/Tests/Feature/AsaasDriverTest.php` · verificado@8e16a88 (2026-11-24) — adapter Asaas (credencial cifrada por tenant + cobrança + webhook idempotente `pg_webhook_events`); duplicata do range US-RB-ESC0/040 Em 2026-11-24 a pilha de boleto do RB (o BoletoService e os drivers Asaas, C6 e Inter da pasta Boleto, com seus testes) foi removida por não ter chamador de produção; os paths acima passaram a ser os do PaymentGateway, dono dos drivers (ADR 0456, decisão b1).
 
 - Módulo PaymentGateway scaffold (tabelas `pg_credentials`, `pg_charge_attempts`, `pg_webhook_events`)
 - Adapter Asaas: credencial por tenant (api_key encrypted), cobrança avulsa, webhook `payment.confirmed` / `payment.overdue`

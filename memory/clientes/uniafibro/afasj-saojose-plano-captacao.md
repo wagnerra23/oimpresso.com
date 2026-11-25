@@ -30,10 +30,10 @@ related:
 
 | Item | Achado | Status |
 |---|---|---|
-| Fundação | 10/2025 (cartão CNPJ, segundo `eventos-e-acoes-consolidado.md`) | 🟢 (fonte local) |
-| CNPJ | Aparece em diretório empresarial (Econodata), sede no bairro **Praia Comprida**. Número não versionado aqui; conferir na Receita | 🟡 |
-| Liderança | Não achei | 🔴 |
-| Instagram | @associacaofibromialgiaamigossj (1.560 seguidores). Existe também **@fibromialgicossjsc** (6.502); não se sabe se é o mesmo grupo | 🟡 |
+| Fundação | 14/10/2025 (Receita Federal, consulta de 24/11/2026) | 🟢 |
+| CNPJ | **Ativo** na Receita Federal (matriz), associação privada, sede no bairro **Praia Comprida**. Número fora do git | 🟢 |
+| Liderança | Presidente: **Indianara Rodrigues dos Santos** (Receita Federal) | 🟢 |
+| Instagram | **@fibromialgicossjsc** (Fibromiálgicos SJ, 6.502 seguidores) — confirmado por [W] em 24/11/2026. Também @associacaofibromialgiaamigossj (1.560) | 🟢 |
 | Ações recentes | Visitas às UBS Ceniro Martins e Zanellato e reunião de associadas (10–20/11/2026) | 🟢 (fonte local) |
 | Região | Grande Florianópolis. Única associação da rede Uniafibro na região; não há associação com CNPJ confirmado em Florianópolis, Palhoça ou Biguaçu | 🟡 |
 
@@ -153,4 +153,4 @@ associação local formalizada (o perfil @fibrofloripa não tem CNPJ confirmado)
 
 ---
 
-**Última atualização:** 2026-11-23 (revisão com a Grande Florianópolis). Validar com a liderança da AFASJ e com o [W].
+**Última atualização:** 2026-11-24 (Instagram, presidência e situação na Receita confirmados). Validar com a liderança da AFASJ e com o [W].

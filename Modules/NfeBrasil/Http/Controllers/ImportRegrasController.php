@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\NfeBrasil\Http\Requests\ImportRegrasCsvRequest;
+use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvConferencia;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 
 /**
@@ -25,9 +26,15 @@ use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 class ImportRegrasController extends Controller
 {
     /** Chave de sessão com o business em que o preview foi conferido (UC-NFIM-04). */
-    private const SESSAO_BUSINESS = 'nfe_import_csv_business_id';
+    private const SESSAO_BUSINESS = ImportRegrasCsvConferencia::SESSAO_BUSINESS;
 
-    public function __construct(private readonly ImportRegrasCsvService $service) {}
+    /** Chave de sessão com a referência do lote conferido — as linhas ficam em arquivo (UC-NFIM-15). */
+    private const SESSAO_REF = ImportRegrasCsvConferencia::SESSAO_REF;
+
+    public function __construct(
+        private readonly ImportRegrasCsvService $service,
+        private readonly ImportRegrasCsvConferencia $conferencia,
+    ) {}
 
     /** GET /nfe-brasil/tributacao/import */
     public function show(): Response
@@ -44,11 +51,14 @@ class ImportRegrasController extends Controller
     public function preview(ImportRegrasCsvRequest $request): RedirectResponse
     {
         $resultado = $this->service->parse($request->file('arquivo'));
+        $businessId = (int) $request->session()->get('business.id');
 
-        // Salva validadas em session pra apply chamar sem re-upload, carimbadas com o business do
-        // preview: o aplicar acontece noutro request e confere o carimbo (UC-NFIM-04 · ADR 0093).
-        session()->put('nfe_import_csv_linhas', $resultado['linhas']);
-        session()->put(self::SESSAO_BUSINESS, (int) $request->session()->get('business.id'));
+        // As validadas vão para um arquivo e a sessão guarda só a referência (UC-NFIM-15): um CSV de
+        // 5 MB virava 30,9 MB de sessão, lida e regravada a cada request. O carimbo do business
+        // segue na sessão porque o aplicar acontece noutro request e o confere (UC-NFIM-04).
+        $ref = $this->conferencia->guardar($businessId, (int) $request->user()->id, $resultado['linhas']);
+        session()->put(self::SESSAO_REF, $ref);
+        session()->put(self::SESSAO_BUSINESS, $businessId);
 
         return redirect()
             ->route('nfe-brasil.tributacao.import.show')
@@ -68,9 +78,10 @@ class ImportRegrasController extends Controller
         }
 
         $businessId = (int) $request->session()->get('business.id');
-        $linhas = (array) session('nfe_import_csv_linhas', []);
+        $userId = (int) $request->user()->id;
+        $ref = session(self::SESSAO_REF);
 
-        if (empty($linhas)) {
+        if (! is_string($ref) || $ref === '') {
             return redirect()
                 ->route('nfe-brasil.tributacao.import.show')
                 ->withErrors(['arquivo' => 'Nenhuma linha válida — faça upload e preview primeiro.']);
@@ -80,16 +91,32 @@ class ImportRegrasController extends Controller
         // entre o preview e o aplicar (ou carimbo ausente) = recusa e descarta o lote.
         $businessDoPreview = (int) session(self::SESSAO_BUSINESS, 0);
         if ($businessDoPreview <= 0 || $businessDoPreview !== $businessId) {
-            session()->forget(['nfe_import_csv_linhas', self::SESSAO_BUSINESS]);
+            if ($businessDoPreview > 0) {
+                $this->conferencia->descartar($businessDoPreview, $userId, $ref);
+            }
+            session()->forget([self::SESSAO_REF, self::SESSAO_BUSINESS]);
 
             return redirect()
                 ->route('nfe-brasil.tributacao.import.show')
                 ->withErrors(['arquivo' => 'O arquivo foi conferido em outra empresa. Confira de novo nesta empresa antes de aplicar.']);
         }
 
+        // O caminho do lote é montado com o business e o usuário de quem aplica: lote conferido
+        // noutra empresa não é achado aqui, mesmo que o carimbo acima falhasse.
+        $linhas = $this->conferencia->ler($businessId, $userId, $ref);
+
+        if (empty($linhas)) {
+            session()->forget([self::SESSAO_REF, self::SESSAO_BUSINESS]);
+
+            return redirect()
+                ->route('nfe-brasil.tributacao.import.show')
+                ->withErrors(['arquivo' => 'A conferência expirou ou já foi aplicada — faça upload e preview de novo.']);
+        }
+
         $resumo = $this->service->aplicar($businessId, $linhas);
 
-        session()->forget(['nfe_import_csv_linhas', self::SESSAO_BUSINESS]);
+        $this->conferencia->descartar($businessId, $userId, $ref);
+        session()->forget([self::SESSAO_REF, self::SESSAO_BUSINESS]);
 
         activity('nfe.tributacao')
             ->causedBy($request->user())

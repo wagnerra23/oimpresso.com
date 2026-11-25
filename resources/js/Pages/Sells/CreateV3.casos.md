@@ -124,7 +124,7 @@ editar um arquivo dela volta a vazar pra ROTA LIVRE — que é o que este UC exi
 **Status:** 🧪 — testes escritos, sem veredito no manifesto do G-7 ainda.
 
 - **Dado** a flag `useV3SellsGravar` ligada e uma venda nova, final, com 3 × 19,90 (10% de desconto na linha) + 2 × 50,00, desconto de 5,00, frete de 7,50 e 156,23 em dinheiro (vetor de teste sintético),
-- **Quando** o operador clica em **Gravar venda**,
+- **Quando** o operador clica em **Finalizar venda**,
 - **Então** a tela posta em `/pos` o payload no formato do `transform()` do `Sells/Create.tsx`, e o store grava `final_total` 156,23, frete 7,50, desconto 5,00, pagamento 156,23 (`paid`) e baixa 3 e 2 do estoque — **igual**, campo a campo, à mesma venda feita pelo payload do Create.
 
 Prova em duas metades que dividem uma fixture (`tests/fixtures/sells-v3/venda-simples.json`):
@@ -158,7 +158,7 @@ recebe. Por isso o total da V3, gravando, segue a fórmula do Create e não tem 
 
 - **Dado** a gravação ligada e um usuário com `max_sales_discount_percent` preenchido,
 - **Quando** o desconto da venda passa do teto (em %, direto; em R$, contra o teto % do subtotal — a regra do `validateDiscount` do Create),
-- **Então** a tela avisa no lugar da "alçada de 10%" de cena e **Gravar venda** recusa com o motivo. Teto vazio ou 0 não limita, como no Create.
+- **Então** a tela avisa no lugar da "alçada de 10%" de cena e **Finalizar venda** recusa com o motivo. Teto vazio ou 0 não limita, como no Create.
 
 ## UC-V384 · Preço e desconto da linha só se editam com a permissão do usuário
 
@@ -277,7 +277,7 @@ Até o grupo 3, gravando, a consulta de clientes ficava escondida (a lista era d
 **Status:** 🧪 — mesmos arquivos de teste, sem veredito no manifesto ainda.
 
 - **Quando** a tabela muda (no cartão, no "Voltar" ou pelo cliente), **então** cada linha é buscada de novo em `/products/list` com a tabela nova e ganha o preço dela (`handlePriceGroupChange` do Create). A linha que a busca não devolve fica com o preço que tinha, e a tela avisa quantas ficaram.
-- Enquanto reprecifica, **Gravar venda** fica desabilitado ("Aplicando a tabela…").
+- Enquanto reprecifica, **Finalizar venda** fica desabilitado ("Aplicando a tabela…").
 - Prova por dois caminhos, na venda da fixture do UC-V380 com uma tabela que dá 15,00 ao Produto A e nada ao B: à mão, 3 × 15,00 − 10% = 40,50 · 2 × 50,00 = 100,00 · 140,50 − 5,00 + frete 7,50 = **143,00** (sem tabela, 156,23). O vitest chega a 143 pela regra da tela; o Pest busca no `filterProduct` real (15,00 e 50,00) e grava 143,00 no store, com o grupo em `selling_price_group_id` e o estoque igual ao do UC-V380.
 
 ## UC-V399 · Cliente com tabela aplica a dele; sem tabela mantém a atual `[V0]`
@@ -353,7 +353,8 @@ Até 2026-11-23, gravando, só o nome do cliente vinha do cadastro: o endereço 
 
 - **Dado** a gravação ligada,
 - **Quando** o operador abre "Entrega e frete",
-- **Então** aparece só o **Valor do frete**, que entra no total e é gravado (UC-V380), com o aviso *"A venda grava só o valor do frete"*. Transportadora, veículo, volumes, remessa e endereço de entrega não aparecem: a lista de transportadoras era de demonstração e o resto sumiria ao gravar.
+- **Então** a entrega segue o UC-V413: o que a venda grava do transporte aparece, e a lista de transportadoras é a do cadastro desta empresa, nunca a de demonstração.
+- _(Até 2026-11-24 aqui aparecia só o **Valor do frete**, com o aviso "A venda grava só o valor do frete": transportadora, veículo, volumes, remessa e endereço não eram gravados.)_
 - **Quando** lança um serviço,
 - **Então** o lançamento diz que *"o funcionário vinculado e a data prevista ainda não são gravados"*, em vez de oferecer os funcionários da demonstração.
 - Sem a gravação, a entrega e o lançamento seguem como antes.
@@ -408,6 +409,112 @@ Até 2026-11-23 a margem da comissão era 30% fixos da base, as parcelas vinham 
 - **Então** cada condição de pagamento aparece com código e nome ("18 — PIX", "02 — Boleto 30/60").
 
 Âncora: `ComissaoResumo` e o pagamento de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. Lá a nota sobre `payment_status=due` está dentro de `<Meta>`, que só aparece no modo de anotação do protótipo; a produção a mostrava a todo operador. Até 2026-11-24 o resumo mostrava só a "Base líquida" e um parágrafo dizendo que a comissão por beneficiário fazia "parte do porte da comissão — próximo passo", e a condição de pagamento aparecia só pelo código ("18").
+
+## UC-V410 · O topo e os passos são os da âncora
+
+**Status:** 🧪 — `tests/js/sells-v3-topo-passos.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a tela aberta, com ou sem a gravação,
+- **Então** o topo é o cabeçalho padrão da página (`PageHeader`): "Nova venda" e "Cliente, itens, pagamento. O resto tem valor padrão.", sem selo "V3" e sem botão de voltar.
+- **E** os passos numerados são três: 1 Cliente · 2 Itens · 3 Fechamento. "Entrega e frete" e "Observações e produção" são gavetas, sem número.
+- **Quando** a gravação está ligada,
+- **Então** o botão que grava a venda final se chama "Finalizar venda" (grava com `status: 'final'`, como antes).
+
+Âncora: `VendaV3Create` e `Create` de `prototipo-ui/cowork/Wagner/venda-v3.jsx` (`<Passo n="1" />Cliente`, `<Passo n="2" />Itens`, `<Passo n="3" />Fechamento`; as gavetas sem `Passo`). O botão "Voltar para Vendas" do protótipo só existe quando a V3 é aberta por "Adicionar venda" (rota `venda-nova`, que passa `onVoltar`); esta Page é a rota `venda-v3`, onde o protótipo não passa `onVoltar`. Até 2026-11-24 a produção tinha um `h1` escrito à mão com selo "V3", numerava as gavetas como 3 e 4, deixava o Fechamento sem número e chamava o botão de "Gravar venda".
+
+## UC-V411 · A gaveta de comissão tem a forma da âncora
+
+**Status:** 🧪 — `tests/js/sells-v3-comissao-gaveta-forma.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gaveta de comissão aberta,
+- **Então** o título é "Comissão desta venda" e o topo mostra Bruto, Líquido de desconto e Margem estimada da venda, com o "Quando a comissão passa a ser devida" ao lado. Sem o custo dos produtos (gravando), a margem aparece como travessão, não como zero.
+- **E** há um botão por tipo de beneficiário ("+ Funcionário", "+ Representante", "+ Agência / parceiro", "+ Técnico / instalador"), e cada um adiciona o seu tipo, com base líquida e 3%, como antes.
+- **E** o rodapé mostra o total de comissão e só o botão "Fechar".
+- Os números da faixa e do total são os do domínio (`comissaoTotal`), conferidos por dois caminhos no teste: a função e a conta à mão (3% de 90,00 = 2,70).
+
+Âncora: `ComissaoModal` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. Até 2026-11-24 a gaveta se chamava "Modelo de comissão da venda", escolhia o tipo num seletor com "Adicionar", não mostrava as bases da venda e tinha "Fechar" e "Confirmar comissão" com a mesma ação. Ficam de fora, porque mexem em valor (REGRA MESTRE): o rateio "Liberação por parcela recebida", o ciclo provisionada · aprovada · paga, a nota de estorno e os padrões do protótipo para agência (margem a 5%).
+
+## UC-V412 · "Consultar produto… F3" mostra a busca em tabela e lança o item escolhido
+
+**Status:** 🧪 — `tests/js/sells-v3-consulta-produto.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a venda aberta e não travada,
+- **Quando** o operador clica em "Consultar produto… F3" (no cabeçalho do passo Itens) ou aperta F3 sem outra janela aberta,
+- **Então** abre "Consulta de produtos e serviços", com as colunas SKU · Produto / serviço · Cód. EAN · Cód. fábrica · Categoria · Tipo · Unid. · Tabela · Estoque. O F3 deixa de abrir a busca do navegador só quando a consulta abre.
+- **E** a lista é a mesma busca do passo 2: sem gravar, o catálogo da cena (todo, enquanto não se digita); gravando, o `/products/list` a partir de 2 letras, com aviso enquanto faltam.
+- **Quando** o operador clica no SKU de uma linha,
+- **Então** a consulta fecha e abre o mesmo lançamento da busca do passo 2 ("Lançar <produto>").
+
+Âncora: `ConsultaProduto` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`.
+
+- **[BACKLOG]** Gravando, EAN, código de fábrica e categoria saem com travessão: `ProductUtil::filterProduct` não os devolve (medido em 2026-11-24: seleciona id, nome, tipo, variação, estoque, preço, `sub_sku` e unidade). O cadastro não tem coluna própria para EAN nem para código de fábrica (ficam em campos personalizados configurados por empresa); qual campo é qual é decisão de cadastro, não da venda. Categoria exige `category_id` + `categories` na busca, que a POS e o Create também usam.
+- **[BACKLOG]** "Novo cadastro" no rodapé da consulta, como no protótipo: a nova venda não cadastra produto.
+
+## UC-V413 · Gravando, a entrega grava o transporte da venda
+
+**Status:** 🧪 — `SellsCreateV3GravarContratoTest.php`, `tests/js/gravacao-dominio.test.ts` e `tests/js/sells-v3-gravando-sem-cena.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada,
+- **Quando** o operador abre "Entrega e frete",
+- **Então** aparecem **Frete por conta**, a **transportadora** (código, nome e "Consultar cadastro… F2"), **placa** e **UF do veículo**, **volumes** (quantidade, espécie, numeração, peso bruto e líquido), **status da remessa**, **rastreio** e o **endereço de entrega** ("Entregar em outro endereço").
+- **E** a consulta lista as transportadoras do cadastro (`/transportadoras`) **desta empresa** (filtro por `business_id`); o código é o id do cadastro.
+- **Quando** grava a venda ou o orçamento,
+- **Então** o store grava em `transactions`: `mod_frete` (o código do frete por conta, 0 a 4 ou 9), `transportadora_id`, `placa`, `uf`, `qtd_volumes`, `numeracao_volumes`, `especie`, `peso_bruto`, `peso_liquido`, `shipping_status` (Pedido, Embalado, Enviado, Entregue ou Cancelado), `shipping_details` (rastreio), `shipping_address` (o endereço digitado numa linha; vazio = o do cadastro do cliente) e `delivered_to` (o recebedor).
+- **E** transportadora de outra empresa não entra: o store grava `transportadora_id` nulo.
+- **E** com "9 — Sem ocorrência de transporte" o grupo de transporte vai zerado; o endereço de entrega continua.
+- Total e estoque não mudam por causa do transporte: o frete segue em `shipping_charges` (UC-V380).
+- Gravando, item sem peso cadastrado entra como zero no peso somado (sem a massa presumida por unidade da cena).
+- Renavam, ANTT, modalidade, UF de destino, marca, coleta e previsão de entrega não têm coluna na venda e não aparecem gravando; a tela diz quais são.
+
+- **[BACKLOG]** A NF-e (`Modules/NfeBrasil`) ainda monta o transporte com `modFrete = 9` e sem transportadora (medido em 2026-11-24, `NfeService.php`): ler os dados gravados aqui é trabalho fiscal à parte.
+- O "F2" de "Consultar cadastro… F2" do passo 1 continua só no rótulo: nenhum atalho de teclado abre a consulta de cliente.
+
+## UC-V414 · Gravando, a Situação mostra as etapas do processo em que a venda vai entrar
+
+**Status:** 🧪 — `tests/js/sells-v3-situacao-etapas.test.tsx` e `tests/Feature/Sells/SellsCreateV3GravarContratoTest.php` (UC-V414), sem veredito no manifesto ainda.
+
+- **Dado** a gravação ligada e o processo `venda_com_producao` ativo nesta empresa,
+- **Quando** o operador abre a Situação,
+- **Então** ela lista as etapas desse processo, na ordem dele, sem "Em espera" (desvio da produção) e sem "Cancelada" (saída de qualquer etapa), e nenhuma fica marcada: a venda ainda não existe, e a etapa de entrada sai do que for gravado.
+- **E** só aparecem etapas desta empresa (Tier 0, `business_id` na query).
+- **Quando** o processo está desativado, ou o servidor não manda etapas,
+- **Então** fica só o texto, como antes.
+
+Âncora: `SituacaoVenda` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`. As etapas vêm de `SellsV3Controller::etapasDaVenda`, que lê o mesmo processo de `IniciarPipelineVendaV3` — é nele que a venda da V3 entra ao gravar. **Não** é o modelo de fluxo escolhido em `/fluxos` (ADR 0435): o inventário de 2026-11-24 falava em "etapas do modelo de fluxo da empresa", mas a V3 grava sempre em `venda_com_producao`. Mostrar o modelo seria mostrar um caminho que a venda não segue.
+
+- **[BACKLOG]** A V3 entrar no processo do modelo de fluxo da empresa, em vez de sempre em `venda_com_producao`, é decisão de produto e muda `IniciarPipelineVendaV3`; a Situação acompanha porque lê o mesmo processo.
+
+## UC-V415 · As colunas que existem nos dois catálogos têm o nome e o grupo da âncora
+
+**Status:** 🧪 — `tests/js/sells-v3-colunas-rotulos.test.ts`, sem veredito no manifesto ainda.
+
+- **Dado** o catálogo de colunas do grid de itens,
+- **Então** as colunas que mostram o mesmo dado nos dois catálogos têm o rótulo e o grupo do protótipo: "Cód. produto" (era SKU), "Comprimento (m)" (era Altura (m); a unidade fica), "Estoque" (era Saldo), "Funcionário" (era Executante), "Tipo de impressão" (era Impressão), "Prazo da etapa" (era Prazo), "R$ valor" e "R$ total", e "Unidade" no grupo Identificação (era Medidas).
+- **E** a chave de cada coluna não muda: a escolha que o operador salvou continua carregando igual.
+
+Âncora: `COLUNAS` de `prototipo-ui/cowork/Wagner/venda-v3.jsx`; o teste lê o protótipo, não repete os rótulos.
+
+- **[BACKLOG]** Colunas que só o protótipo tem e não fazem conta de dinheiro: Seq., Tipo, Medidas, Fórmula, CEST, Em produção, Local da aplicação, Obs. da produção, Local de estoque.
+- **[BACKLOG]** "R$ tabela", "R$ desconto" e "R$ outros" calculam dinheiro na linha (quantidade × preço × percentual): entram com dupla prova, antes→depois e aprovação [W] (REGRA MESTRE).
+- **[BACKLOG]** Colunas que só a produção tem (Código de barras, Cód. de fábrica, Categoria, Área un., Alíquota, Origem, Acabamento, Aplicação, Saldo após, Lote, Depósito): tirá-las apagaria a escolha salva de quem as usa; é decisão de produto, não de forma.
+
+## UC-V413 · "Procurar na lista de produtos" abre a lista numa aba nova e devolve o produto para o lançamento
+
+**Status:** 🧪 — `tests/js/sells-v3-procurar-na-lista.test.tsx`, sem veredito no manifesto ainda.
+
+- **Dado** a venda gravando, aberta, e o operador sem achar o produto na busca,
+- **Quando** clica em "Procurar na lista de produtos",
+- **Então** a lista de produtos abre numa aba nova, com o aviso "Você veio de Nova venda" (UC-PIDX-53) e o termo da busca como o item procurado; a aba da venda fica como estava, porque a venda não guarda rascunho.
+- **Quando** o operador abre o painel de um produto (ou marca um só) e clica em "Voltar e usar",
+- **Então** a aba da lista confirma e se fecha, a venda volta ao foco, põe o SKU do produto na própria busca e, se sobrar uma variação dele, abre o "Lançar item" com ela — idêntico ao clique no resultado da busca: mesmo nome, SKU, preço, unidade e estoque.
+- **Quando** o produto tem mais de uma variação,
+- **Então** o lançamento não abre sozinho: as variações ficam nos resultados da busca para escolher.
+- **Quando** há duas vendas abertas, cada uma em sua aba,
+- **Então** o produto vai só para a venda que abriu aquela lista (canal próprio por venda).
+
+Valor (REGRA MESTRE): a mensagem entre abas leva só id, SKU e nome. O preço sai da busca da venda (`/products/list`, com o local e a tabela dela), pelo mesmo objeto que o clique abriria. A dupla prova está no teste: o lançamento aberto pela lista é comparado campo a campo com o aberto pelo clique no resultado (`37,50` nos dois), e nenhum cálculo novo existe. Mutações conferidas em 2026-11-24: abrir pelo primeiro resultado sem conferir o produto derruba o caso das variações, e ouvir qualquer canal derruba o caso das duas vendas.
+
+Âncora: pedido do [W] em 2026-11-24 ("Sim, em outra aba"), sobre o aviso `.pb-volta` do protótipo `cowork/Felipe/produto-blade.jsx`. Contrato entre abas em `resources/js/Lib/produto-escolhido.ts`; regra da venda em `_components/v3/procurar-na-lista.ts`.
 
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
@@ -1357,6 +1464,11 @@ pertence a `Sells/Create`, não aqui:
 - **Revalidação de 2026-11-23 (G-6):** com `gravacao`, a tela deixou de mostrar dados de demonstração (UC-V404 a UC-V407, novos): o cliente padrão vem do cadastro, a entrega mostra só o valor do frete, a situação diz "Não gravada" e o detalhe do item não traz tributação fixa. O botão "Salvar como orçamento" passou a gravar sem conferir o papel de demonstração (UC-V401 segue igual: o payload e o estágio não mudam). Sem `gravacao` nada muda, e os controles de cada caso novo provam isso.
 - **Revalidação de 2026-11-23, segunda (G-6):** com `gravacao`, a comissão deixou de usar a margem de 30% fixos, as parcelas deixaram de vir numeradas como "VD-2026" e o lançamento do item deixou de oferecer as informações adicionais de demonstração (UC-V408, novo). A gaveta de parcelas também deixou de mostrar conta de destino e plano de contas, que eram de demonstração (`CONTAS`, `PLANOS` em `parcelas-dominio.ts`) e que nenhum cadastro da empresa alimenta. Sem `gravacao` nada muda, e os controles provam isso.
 - **Revalidação de 2026-11-24 (G-6):** o fechamento deixou de mostrar a nota de bastidor do pagamento (`payment_status=due`) e o parágrafo sobre o "porte da comissão"; o resumo da comissão passou a ser o da âncora, com as mesmas funções e bases da gaveta (`totaisComissao` é a mesma conta que a gaveta já recebia), e a condição de pagamento passou a mostrar código e nome (UC-V409, novo). Nenhum valor mudou: a gravação, o total e o payload são os mesmos, e o botão do resumo passou de "Configurar…" para "Configurar comissão" (o teste do UC-V408 acompanha).
+- **Revalidação de 2026-11-24, segunda (G-6):** o topo passou a ser o `PageHeader` da âncora (sem o selo "V3"), os passos numerados passaram a ser 1 Cliente · 2 Itens · 3 Fechamento, com as gavetas sem número, e "Gravar venda" passou a se chamar "Finalizar venda" (UC-V410, novo). Só forma: a ação do botão, o payload e o total são os mesmos.
+- **Revalidação de 2026-11-24, terceira (G-6):** a gaveta de comissão ganhou a forma da âncora: título "Comissão desta venda", faixa Bruto · Líquido · Margem no topo, um botão por tipo de beneficiário e rodapé só com "Fechar" (UC-V411, novo). Os testes do UC-V408 e do UC-V409 acompanham o título e o botão novos. Nenhum valor muda: as contas são as mesmas funções do domínio.
+- **Revalidação de 2026-11-24, quarta (G-6):** o passo Itens ganhou "Consultar produto… F3" e o atalho F3, que abrem a busca do passo 2 em tabela e lançam o item escolhido pelo mesmo lançamento (UC-V412, novo). Nenhum valor muda: o preço exibido é o que a busca já trazia e o lançamento calcula como antes.
+- **Revalidação de 2026-11-24, quinta (G-6):** gravando, a Situação passou a listar as etapas do processo `venda_com_producao` desta empresa, que o servidor manda em `gravacao.etapas` (UC-V414, novo). Antes mostrava só o texto. Nenhum valor muda.
+- **Revalidação de 2026-11-24, sexta (G-6):** as colunas que existem nos dois catálogos ganharam o nome e o grupo da âncora, com as chaves mantidas (UC-V415, novo). O teste do UC-V367 acompanha "R$ valor" e "R$ total". Nenhum valor muda.
 
 - Testes: **5 arquivos**, em **duas lanes**.
   - `tests/Feature/Sells/SellsCreateV3ContratoTest.php` (UC-V301/302/303), na allowlist da lane `Pest (Sells · MySQL)`. **Executado e verde** no [run 31203571574](https://github.com/wagnerra23/oimpresso.com/actions/runs/31203571574) (CI; a lane nunca roda local · [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)), com veredito no manifesto do G-7.

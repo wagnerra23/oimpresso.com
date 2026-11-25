@@ -403,7 +403,10 @@ export default function AppShellV2({
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       // Cmd+K (Mac) ou Ctrl+K (Windows/Linux) — Command Palette
+      // Uma tela com paleta própria toma o atalho com `preventDefault()` numa escuta de captura
+      // (roda antes desta, que é de bolha); aqui o evento já tratado não abre a busca geral.
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        if (e.defaultPrevented) return;
         e.preventDefault();
         setPaletteOpen((v) => !v);
         return;

@@ -14,6 +14,12 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { montarPayloadVenda, totalParaGravar, type VendaParaGravar } from '@/Pages/Sells/_components/v3/gravacao-dominio';
+import {
+  ENDERECO_VAZIO,
+  codigoModFrete,
+  textoDoEnderecoEntrega,
+  type TransporteDaVenda,
+} from '@/Pages/Sells/_components/v3/entrega-dominio';
 
 const fixture = JSON.parse(readFileSync('tests/fixtures/sells-v3/venda-simples.json', 'utf8')) as {
   entrada: VendaParaGravar;
@@ -188,5 +194,76 @@ describe('UC-V400 / UC-V401 · a V3 marca a origem e grava orçamento', () => {
     const pix = { ...fixture.entrada, pagamentos: [{ m: 'PIX', v: '1,00' }] };
     expect(montarPayloadVenda(pix).ok).toBe(false);
     expect(montarPayloadVenda({ ...pix, orcamento: true }).ok).toBe(true);
+  });
+});
+
+describe('UC-V413 · o transporte da entrega vai na gravação', () => {
+  const transporte: TransporteDaVenda = {
+    modFrete: 0,
+    transportadoraId: 7,
+    placa: 'ABC1D23',
+    uf: 'SC',
+    qtdVolumes: 2,
+    numeracao: '1-2',
+    especie: 'Caixa',
+    pesoBruto: 12.5,
+    pesoLiquido: 11.75,
+    statusRemessa: 'shipped',
+    rastreio: 'CT-e 123',
+    enderecoEntrega: 'Rua da Obra, 10 · Joinville/SC',
+    recebedor: 'Quem recebe',
+  };
+
+  it('UC-V413 · com transporte, o payload leva as chaves que o store grava, e o total não muda', () => {
+    const r = montarPayloadVenda({ ...fixture.entrada, transporte });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.payload).toMatchObject({
+      mod_frete: 0,
+      transportadora_id: 7,
+      placa: 'ABC1D23',
+      uf: 'SC',
+      qtd_volumes: 2,
+      numeracao_volumes: '1-2',
+      especie: 'Caixa',
+      peso_bruto: 12.5,
+      peso_liquido: 11.75,
+      shipping_status: 'shipped',
+      shipping_details: 'CT-e 123',
+      shipping_address: 'Rua da Obra, 10 · Joinville/SC',
+      delivered_to: 'Quem recebe',
+    });
+    expect(r.total).toBe(156.23);
+    expect(r.payload.final_total).toBe(fixture.payload.final_total);
+    expect(r.payload.shipping_charges).toBe(fixture.payload.shipping_charges);
+  });
+
+  it('UC-V413 · "9 — Sem ocorrência de transporte" zera o grupo de transporte, mas guarda o endereço', () => {
+    const r = montarPayloadVenda({ ...fixture.entrada, transporte: { ...transporte, modFrete: 9 } });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.payload).toMatchObject({
+      mod_frete: 9, transportadora_id: null, placa: '', uf: '', qtd_volumes: 0, especie: '',
+      peso_bruto: 0, peso_liquido: 0, shipping_details: '',
+      shipping_address: 'Rua da Obra, 10 · Joinville/SC',
+    });
+  });
+
+  it('UC-V413 · controle: sem transporte, o payload é o da fixture, sem nenhuma chave nova', () => {
+    const r = montarPayloadVenda(fixture.entrada);
+    expect(r.ok && r.payload).toEqual(fixture.payload);
+    expect(r.ok && 'mod_frete' in r.payload).toBe(false);
+  });
+
+  it('UC-V413 · o código do frete por conta é o modFrete da NF-e, e o endereço vira uma linha', () => {
+    expect(codigoModFrete('1 — Contratação por conta do Destinatário (FOB)')).toBe(1);
+    expect(codigoModFrete('9 — Sem ocorrência de transporte')).toBe(9);
+    expect(
+      textoDoEnderecoEntrega({
+        ...ENDERECO_VAZIO, logradouro: 'Rua da Obra', numero: '10', complemento: 'Galpão 2',
+        bairro: 'Centro', cidade: 'Joinville', uf: 'SC', cep: '89201-601',
+      }),
+    ).toBe('Rua da Obra, 10 - Galpão 2 · Centro · Joinville/SC · CEP 89201-601');
+    expect(textoDoEnderecoEntrega(ENDERECO_VAZIO)).toBe('');
   });
 });

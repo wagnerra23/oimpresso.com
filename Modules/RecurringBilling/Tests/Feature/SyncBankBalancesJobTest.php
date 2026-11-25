@@ -23,8 +23,7 @@ uses(Tests\TestCase::class);
  *
  * Foco da suite: **o segredo vem do PaymentGateway** (decisão b1; onda 1 da saída de
  * `rb_boleto_credentials`, 2026-11-24). Desde a onda 4 a conta liga à credencial do PG pelo
- * `account_id` (`ContaBancaria::credencialGateway`); a linha do RB que a conta ainda aponta fica só
- * de isca. O `config_json` usado é o do PG, decifrado pelo cast `encrypted:array`. Se o PEM
+ * `account_id` (`ContaBancaria::credencialGateway`); `rb_boleto_credentials` saiu na onda 5c. O `config_json` usado é o do PG, decifrado pelo cast `encrypted:array`. Se o PEM
  * chegasse cifrado, a mTLS receberia ciphertext.
  */
 const FAKE_INTER_PEM = "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----\n";
@@ -36,23 +35,13 @@ beforeEach(function () {
 
     Cache::flush();
 
-    foreach (['fin_contas_bancarias', 'rb_boleto_credentials', 'payment_gateway_credentials', 'business'] as $tbl) {
+    foreach (['fin_contas_bancarias', 'payment_gateway_credentials', 'business'] as $tbl) {
         Schema::dropIfExists($tbl);
     }
 
     Schema::create('business', function ($t) {
         $t->id();
         $t->string('name')->nullable();
-        $t->timestamps();
-    });
-
-    Schema::create('rb_boleto_credentials', function ($t) {
-        $t->id();
-        $t->unsignedInteger('business_id')->index();
-        $t->string('banco', 10);
-        $t->string('ambiente', 20)->default('production');
-        $t->boolean('ativo')->default(true);
-        $t->json('config_json');
         $t->timestamps();
     });
 
@@ -77,7 +66,6 @@ beforeEach(function () {
         $t->unsignedInteger('account_id')->nullable();
         $t->char('banco_codigo', 3)->nullable();
         $t->boolean('ativo_para_boleto')->default(true);
-        $t->unsignedBigInteger('rb_gateway_credential_id')->nullable();
         $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
         $t->decimal('saldo_cached', 15, 2)->nullable();
         $t->timestamp('saldo_atualizado_em')->nullable();
@@ -87,11 +75,11 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    // business/rb_boleto_credentials/fin_contas_bancarias são reais-migradas; o afterEach
+    // business/payment_gateway_credentials/fin_contas_bancarias são reais-migradas; o afterEach
     // roda mesmo em teste pulado (PHPUnit 12: tearDown gated só por hasMetRequirements),
     // então dropá-las no MySQL persistente corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
-        foreach (['fin_contas_bancarias', 'rb_boleto_credentials', 'payment_gateway_credentials', 'business'] as $tbl) {
+        foreach (['fin_contas_bancarias', 'payment_gateway_credentials', 'business'] as $tbl) {
             Schema::dropIfExists($tbl);
         }
     }
@@ -107,18 +95,7 @@ function fakeInterBalanceCredential(int $businessId, bool $comCredencialPg = tru
 {
     DB::table('business')->insert(['id' => $businessId, 'name' => "Biz {$businessId}"]);
 
-    // Isca: a conta ainda aponta para esta linha do RB, com config inútil. Se o job voltasse a
-    // ler daqui, a mTLS e o OAuth quebrariam.
     $accountId = 900 + $businessId;
-    $credId = DB::table('rb_boleto_credentials')->insertGetId([
-        'business_id' => $businessId,
-        'banco'       => 'inter',
-        'ambiente'    => 'production',
-        'ativo'       => true,
-        'config_json' => json_encode(['client_id' => 'nao-usar-rb']),
-        'created_at'  => now(),
-        'updated_at'  => now(),
-    ]);
 
     if ($comCredencialPg) {
         // Insert cru: o model do PG tem LogsActivity (activity_log fora deste schema sintético).
@@ -147,7 +124,6 @@ function fakeInterBalanceCredential(int $businessId, bool $comCredencialPg = tru
         'account_id'               => $accountId,
         'banco_codigo'             => '077',
         'ativo_para_boleto'        => true,
-        'rb_gateway_credential_id' => $credId,
         'created_at'               => now(),
         'updated_at'               => now(),
     ]);

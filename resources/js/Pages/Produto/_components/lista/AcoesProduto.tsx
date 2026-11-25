@@ -5,8 +5,8 @@
 // Sem "Comprar este produto": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11).
 // Quem compra parte do módulo Compras.
 //
-// Fora por enquanto: "Transferir entre locais" e "Usar em uma OS" (a tela de destino ainda não
-// recebe o produto) e "Dados fiscais" (já é uma aba do painel de detalhe).
+// "Transferir entre locais" (UC-PIDX-52) abre a transferência de estoque com o produto indicado.
+// Fora: "Usar em uma OS" (saiu por decisão [F] 2026-10-11).
 
 import { Fragment } from 'react';
 import { ChevronDown } from 'lucide-react';
@@ -30,6 +30,7 @@ export type AcaoProduto =
   | 'rotulos'
   | 'precos'
   | 'fiscal'
+  | 'transferir'
   | 'anexo'
   | 'ativar'
   | 'desativar'
@@ -87,6 +88,10 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, emiteNo
     linha.anexo && item('anexo', 'Baixar anexo do produto'),
   ].filter(Boolean);
   const grupoFiscal = [
+    // UC-PIDX-52: no grupo de "Dados fiscais", como no protótipo. Só o que tem saldo próprio para
+    // transferir: estoque controlado e não é kit (D-30). A tela de transferência pede `purchase.create`.
+    !linha.excluido && linha.controla_estoque && linha.tipo !== 'combo' && pode('transferir') &&
+      item('transferir', 'Transferir entre locais'),
     // Protótipo: "Dados fiscais (NCM/CFOP)" abre o painel de detalhe. Aqui ele abre direto na aba
     // Fiscal — no protótipo o painel não tem como nascer noutra aba e o item cai em "Dados", igual ao "Ver".
     // Só em empresa que emite nota, como a aba (decisão [F] 2026-10-26).

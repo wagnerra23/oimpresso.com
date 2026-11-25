@@ -45,6 +45,11 @@ export interface StockTransferCreatePageProps {
   statuses: Record<string, string>;
   default_datetime: string;
   permissions: Permissions;
+  /**
+   * O produto que a lista de produtos mandou transferir (`?produto={id}`, UC-TRCRT-07): vira um
+   * botão "Adicionar" por variação. `null` sem o parâmetro, ou se o produto não é da empresa.
+   */
+  produto_sugerido?: { id: number; nome: string; variacoes: { variation_id: number; nome: string }[] } | null;
 }
 
 // ---------- Helpers ----------
@@ -59,6 +64,7 @@ function StockTransferCreate({
   statuses,
   default_datetime,
   permissions,
+  produto_sugerido = null,
 }: StockTransferCreatePageProps) {
   const [linhas, setLinhas] = useState<LinhaEstoque[]>([]);
   const [tentou, setTentou] = useState(false);
@@ -234,6 +240,7 @@ function StockTransferCreate({
             verCusto={permissions.view_purchase_price}
             editarCusto={permissions.edit_price}
             comUnidade
+            sugeridas={produto_sugerido?.variacoes}
           />
           {tentou && linhas.length === 0 && (
             <p className="mt-2 text-[12px] text-destructive-fg">Adicione ao menos um produto.</p>

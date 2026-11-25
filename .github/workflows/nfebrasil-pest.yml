@@ -270,6 +270,9 @@ jobs:
         #   vermelhos por desenho; o NFRF-04 fecha na thread 18 e o NFIM-04 na thread 19 (#8827).
         # + ImportRegrasCsvArquivoTest (2026-11-24): limite de 5 MB, codificacao e separador do CSV,
         #   e o resumo da conferencia chegando a tela (UC-NFIM-10/11/12).
+        # + ImportRegrasCsvSessaoTest (2026-11-24, UC-NFIM-15): o lote do Import CSV sai da sessao
+        #   (5 MB de CSV levavam a sessao a 31,5 MB). CT 100: 7 passed / 53 assertions; com o
+        #   controller do main, 5 failed. Tenant 98/99 + usuario novo so com nfe.tributacao.manage.
         # + RegraTributariaIbsCbsValidacaoTest (2026-10-07, playbook Fiscal thread 04): a regra
         #   grava os 5 campos IBS/CBS (UC-NFRF-05/06/07). CT 100: 3 passed / 30 assertions; com o
         #   FormRequest do main, 3 failed. Tenant 98 + usuario novo so com nfe.tributacao.manage.
@@ -387,6 +390,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvArquivoTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvSessaoTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php \
             Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
             Modules/NfeBrasil/Tests/Feature/InutilizacaoFaixaContratoTest.php \

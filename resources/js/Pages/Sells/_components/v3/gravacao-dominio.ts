@@ -24,6 +24,7 @@ import {
   type ConfigVenda,
 } from './config-business-dominio';
 import { parseBR, submitSafe } from './numeros';
+import { camposDoTransporte, type TransporteDaVenda } from './entrega-dominio';
 
 export type ItemParaGravar = {
   productId: number | null;
@@ -78,6 +79,8 @@ export type VendaParaGravar = {
   parcelas?: number;
   /** Beneficiários da comissão dividida. O store só grava um comissionado: com algum, recusa (UC-V381). */
   beneficiarios?: number;
+  /** Transporte da gaveta "Entrega e frete" (UC-V409). Ausente = só o valor do frete, como antes. */
+  transporte?: TransporteDaVenda;
 };
 
 /**
@@ -238,6 +241,7 @@ export function montarPayloadVenda(v: VendaParaGravar): ResultadoGravacao {
       shipping_charges: frete,
       shipping_status: '',
       delivered_to: '',
+      ...(v.transporte ? camposDoTransporte(v.transporte) : {}),
       is_direct_sale: 1,
       is_save_and_print: 0,
       final_total: total,
