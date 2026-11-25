@@ -20,6 +20,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Switch } from '@/Components/ui/switch';
 import {
   AlertDialog, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -128,6 +129,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
   const [excluir, setExcluir] = useState<Linha | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [drawer, setDrawer] = useState<Pedido | null>(null);
+  const [alternando, setAlternando] = useState<number | null>(null);
   const buscaRef = useRef<HTMLInputElement>(null);
   const cfg = ABA[aba];
   const pode = can[aba];
@@ -153,7 +155,14 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
       ] })) ?? null
     : aba === 'grupos'
       ? grupos?.map((g) => ({ id: g.id, nome: g.nome, busca: `${g.nome} ${g.descricao}`, em_uso: 0, filhas: 0, filtro: '', inativo: !g.ativo, celulas: [
-        <><b className={PRIMARIO}>{g.nome}</b><span className={SUB}>{g.ativo ? 'ativo' : 'inativo'}</span></>, g.descricao || '—', g.ativo ? 'Ativo' : 'Inativo',
+        <><b className={PRIMARIO}>{g.nome}</b><span className={SUB}>{g.ativo ? 'ativo' : 'inativo'}</span></>, g.descricao || '—',
+        // Switch da AbaGrupos do protótipo: liga/desliga na própria linha (UC-PCADAP-24). A rota da tela
+        // clássica alterna o estado; o servidor só aceita grupo do meu negócio e exige product.create.
+        <Inline gap={2} align="center">
+          <Switch id={`grupo-ativo-${g.id}`} variant="cowork" checked={g.ativo} disabled={!pode.create || alternando === g.id}
+            aria-label={`${g.ativo ? 'Desativar' : 'Ativar'} o grupo ${g.nome}`} onCheckedChange={() => alternar(g.id)} />
+          <label htmlFor={`grupo-ativo-${g.id}`} className="text-[12.5px] text-[var(--text)]">{g.ativo ? 'Ativo' : 'Inativo'}</label>
+        </Inline>,
       ] })) ?? null
     : aba === 'garantias'
       ? garantias?.map((w) => ({ id: w.id, nome: w.nome, busca: `${w.nome} ${w.descricao}`, em_uso: 0, filhas: 0, filtro: '', celulas: [
@@ -230,6 +239,18 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
     l.em_uso > 0 ? `${l.em_uso} produto(s) usam este registro` : null,
     l.filhas > 0 ? `${l.filhas} subcategoria(s) estão dentro dela` : null,
   ].filter(Boolean).join(' e ');
+
+  // Ativa/desativa grupo de preço (rota JSON da tela clássica, que só responde a XHR).
+  const alternar = async (id: number) => {
+    setAlternando(id);
+    setErro(null);
+    const resposta = await fetch(`/selling-price-group/activate-deactivate/${id}`, {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    }).then((r) => (r.ok ? (r.json() as Promise<{ success?: boolean; msg?: string }>) : null)).catch(() => null);
+    setAlternando(null);
+    if (resposta?.success) router.reload({ only: ['grupos'] });
+    else setErro(resposta?.msg ?? 'Não foi possível mudar a situação do grupo. Nada foi alterado.');
+  };
 
   const confirmar = async () => {
     if (!excluir) return;

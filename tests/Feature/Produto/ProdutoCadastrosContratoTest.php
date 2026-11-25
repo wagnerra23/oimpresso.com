@@ -14,7 +14,7 @@ use Tests\Support\EstoqueFixture;
  * Contrato da tela Produto/Cadastros (`/units` e as rotas das outras abas) — playbook Produto · threads 02 e 03.
  *
  * Os UCs vêm do contrato, não do código:
- *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..23)
+ *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..24)
  *
  * ⛔ Tenant 98 (ADR 0358) contra o cliente fictício 99. NUNCA biz=4.
  * ⚠️ SKIP sem schema MySQL: leia assertions, não "0 failed" (LC-13).
@@ -598,4 +598,33 @@ it('UC-PCADAP-23 · drawer de grupo de preço cria e edita só no meu negócio [
     pcadapLogin($this, $user)->putJson("/selling-price-group/{$vizinho}", ['name' => 'Tomado', 'description' => ''], $ajax)
         ->assertOk()->assertJson(['success' => false]);
     expect(DB::table('selling_price_groups')->where('id', $vizinho)->value('name'))->toBe('Vizinho ' . PCADAP_TAG);
+});
+
+it('UC-PCADAP-24 · ativa e desativa grupo de preço na linha, só no meu negócio [T0]', function () {
+    $user = pcadapUsuario($this->biz->id, ['product.create']);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+    $meu = (int) DB::table('selling_price_groups')->insertGetId(['business_id' => $this->biz->id,
+        'name' => 'Atacado ' . PCADAP_TAG, 'description' => '', 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+    $vizinho = (int) DB::table('selling_price_groups')->insertGetId(['business_id' => $this->vizinho->id,
+        'name' => 'Vizinho ' . PCADAP_TAG, 'description' => '', 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+
+    pcadapLogin($this, $user)->get("/selling-price-group/activate-deactivate/{$meu}", $ajax)
+        ->assertOk()->assertJson(['success' => true]);
+    expect((int) DB::table('selling_price_groups')->where('id', $meu)->value('is_active'))->toBe(0);
+    $linha = collect(pcadapProps($this, $user, 'grupos', '?aba=grupos')['grupos'] ?? [])->firstWhere('id', $meu);
+    expect($linha['ativo'])->toBeFalse();
+
+    pcadapLogin($this, $user)->get("/selling-price-group/activate-deactivate/{$meu}", $ajax)
+        ->assertOk()->assertJson(['success' => true]);
+    expect((int) DB::table('selling_price_groups')->where('id', $meu)->value('is_active'))->toBe(1);
+
+    // O do vizinho: recusa sem erro 500 e fica como estava.
+    pcadapLogin($this, $user)->get("/selling-price-group/activate-deactivate/{$vizinho}", $ajax)
+        ->assertOk()->assertJson(['success' => false]);
+    expect((int) DB::table('selling_price_groups')->where('id', $vizinho)->value('is_active'))->toBe(1);
+
+    // Sem product.create o servidor recusa e nada muda.
+    $semPermissao = pcadapUsuario($this->biz->id, []);
+    pcadapLogin($this, $semPermissao)->get("/selling-price-group/activate-deactivate/{$meu}", $ajax)->assertForbidden();
+    expect((int) DB::table('selling_price_groups')->where('id', $meu)->value('is_active'))->toBe(1);
 });
