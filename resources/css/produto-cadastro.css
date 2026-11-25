@@ -1,0 +1,23 @@
+/* produto-cadastro.css — formulário de produto (Novo e Editar), na forma do protótipo
+   (prototipo-ui/cowork/Wagner/produto-blade.css: .pb-widget e .pb-fld), medida a 1280 px no
+   relatório de pendências de 2026-11-24. Escopado em .produto-cadastro: nada aqui sai do
+   formulário. Só tokens do DS; nenhuma cor nova.
+
+   Fica num arquivo próprio, e não no cowork-produto-bundle.css, porque o bundle é cópia na
+   íntegra do protótipo da LISTA (que tem sombra no .pb-widget) e não se edita. */
+
+/* Blocos sem sombra (o protótipo do cadastro não tem). */
+.produto-cadastro .pb-widget { box-shadow: none; }
+
+/* Rótulos dos campos: 10,5 px · 700 · maiúsculas · espaço 0,06em (= .pb-fld > span).
+   Não pega o texto ao lado de caixa de marcar e de opção, que no protótipo é texto normal
+   (esses rótulos levam .font-normal). */
+.produto-cadastro .cw-label:not(.font-normal) {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Caixas de texto: canto 6 px e recuo 9 px (altura e fonte já eram as do protótipo). */
+.produto-cadastro .cw-input { border-radius: 6px; padding-left: 9px; padding-right: 9px; }

@@ -3,6 +3,8 @@
 // dele — Dados do produto, Configurações, Fiscal, Impostos e preços. O cabeçalho, o useForm, o envio
 // e o rodapé de ações (AcoesDoCadastro) continuam em cada tela.
 
+import '../../../../../css/cowork-produto-bundle.css';
+import '../../../../../css/produto-cadastro.css';
 import type { FormEvent } from 'react';
 import { BlocoDados } from './BlocoDados';
 import { BlocoConfiguracoes } from './BlocoConfiguracoes';
@@ -72,7 +74,7 @@ export function ProdutoFormulario({
   grade,
 }: Props) {
   return (
-    <form id={id} onSubmit={onSubmit} className="space-y-6">
+    <form id={id} onSubmit={onSubmit} className="produto-cadastro space-y-6">
       <BlocoDados modo={modo} data={data} definir={definir} errors={errors} opcoes={opcoes} midia={midia} />
       <BlocoConfiguracoes
         modo={modo}

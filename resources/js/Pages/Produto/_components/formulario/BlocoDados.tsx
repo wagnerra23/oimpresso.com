@@ -10,7 +10,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Textarea } from '@/Components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { SecaoCadastro } from './SecaoCadastro';
 import {
   Select,
   SelectContent,
@@ -66,11 +66,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Dados do produto</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SecaoCadastro titulo="Dados do produto">
         <Grid cols={3} gap={4}>
         <div>
           <Label htmlFor="name">{novo ? 'Nome do produto *' : 'Nome *'}</Label>
@@ -304,7 +300,6 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
         />
         </Grid>
         <CadastroAuxiliar tipo={auxiliar} aoFechar={() => setAuxiliar(null)} aoCriar={criado} container={cockpit} />
-      </CardContent>
-    </Card>
+    </SecaoCadastro>
   );
 }

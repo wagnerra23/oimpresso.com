@@ -4,7 +4,7 @@
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { SecaoCadastro } from './SecaoCadastro';
 import {
   Select,
   SelectContent,
@@ -51,11 +51,7 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
   const novo = modo === 'novo';
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Impostos e preços</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SecaoCadastro titulo="Impostos e preços">
         <Grid cols={3} gap={4}>
         <div>
           <Label htmlFor="tax">Imposto aplicável</Label>
@@ -212,7 +208,6 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
           />
         )}
         </Grid>
-      </CardContent>
-    </Card>
+    </SecaoCadastro>
   );
 }
