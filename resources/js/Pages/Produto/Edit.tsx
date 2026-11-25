@@ -27,6 +27,7 @@ import { armazenagemInicial, camposDaArmazenagem } from './_components/formulari
 import type { EnderecoNoEstoque, SaldoPorLocal } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 import { semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
+import { descricaoParaEnvio, textoDaDescricao } from './_components/formulario/descricao';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
 import type { Folheto } from './_components/formulario/envioMidia';
@@ -152,6 +153,9 @@ function EditarCompleto(props: ProdutoEditPageProps) {
   const ncmGravado = ncmDoCadastro(p.ncm);
   // UC-PEDIT-12: o CEST segue a mesma regra do NCM.
   const cestGravado = cestDoCadastro(p.cest);
+  // UC-PEDIT-33: a descrição gravada pela tela antiga vem com HTML (editor rico). A caixa mostra o
+  // texto; sem mexer, o envio devolve a gravada igual.
+  const descricaoInicial = textoDaDescricao(p.productDescription);
   // UC-PEDIT-16: o preço do produto simples. Só vai no envio se a pessoa mexeu: devolver o gravado
   // arredondado a 2 casas reescreveria custo/venda de 4 casas sem ninguém pedir (REGRA MESTRE de valor).
   const precoGravado = p.precoSimples ?? null;
@@ -193,7 +197,7 @@ function EditarCompleto(props: ProdutoEditPageProps) {
     largura_cm: p.larguraCm ?? '',
     altura_cm: p.alturaCm ?? '',
     comprimento_cm: p.comprimentoCm ?? '',
-    product_description: p.productDescription ?? '',
+    product_description: descricaoInicial,
     product_locations: p.productLocations,
     warranty_id: p.warrantyId ?? '',
     // UC-PEDIT-10: o update() apaga o campo personalizado que não vem no envio e, com a empresa
@@ -217,6 +221,7 @@ function EditarCompleto(props: ProdutoEditPageProps) {
       const { ncm, cest, ...resto } = d;
       return {
         ...resto,
+        product_description: descricaoParaEnvio(p.productDescription, descricaoInicial, String(d.product_description ?? '')),
         ...(envio ? { submit_type: envio } : {}),
         ...(ncm !== ncmGravado ? { ncm } : {}),
         ...(cest !== cestGravado ? { cest } : {}),
