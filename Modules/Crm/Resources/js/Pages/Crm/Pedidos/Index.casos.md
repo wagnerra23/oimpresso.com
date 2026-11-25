@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela mostra pedidos e valores de clientes. Errar o escopo expõe pedido de outro negócio ou de colega; errar a soma mostra um total de pedidos que não existe.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-11-25"
+last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/17. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
