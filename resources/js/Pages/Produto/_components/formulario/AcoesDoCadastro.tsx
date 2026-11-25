@@ -40,17 +40,18 @@ export function AcoesDoCadastro({
 
   return (
     <Inline wrap justify="end" gap={2} className="mt-6" data-testid="acoes-cadastro">
-      <Button variant="ghost" asChild>
+      <Button variant="ghost" size="cowork" asChild>
         <Link href={cancelarHref}>Cancelar</Link>
       </Button>
       {comGruposDePreco && (
-        <Button variant="outline" type="submit" form={form} name="submit_type" value="submit_n_add_selling_prices" disabled={desabilitado}>
+        <Button variant="outline" size="cowork" type="submit" form={form} name="submit_type" value="submit_n_add_selling_prices" disabled={desabilitado}>
           Salvar e adicionar preços por grupo
         </Button>
       )}
       {novo && podeEstoqueInicial && (
         <Button
           variant="outline"
+          size="cowork"
           type="submit"
           form={form}
           name="submit_type"
@@ -60,10 +61,10 @@ export function AcoesDoCadastro({
           Salvar e adicionar estoque inicial
         </Button>
       )}
-      <Button variant="outline" type="submit" form={form} name="submit_type" value="save_n_add_another" disabled={desabilitado}>
+      <Button variant="outline" size="cowork" type="submit" form={form} name="submit_type" value="save_n_add_another" disabled={desabilitado}>
         Salvar e adicionar outro
       </Button>
-      <Button type="submit" form={form} disabled={desabilitado}>
+      <Button size="cowork" type="submit" form={form} disabled={desabilitado}>
         {novo ? 'Salvar' : 'Salvar alterações'}
       </Button>
     </Inline>

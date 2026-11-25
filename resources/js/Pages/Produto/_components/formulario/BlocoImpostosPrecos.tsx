@@ -4,7 +4,7 @@
 
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { SecaoCadastro } from './SecaoCadastro';
 import {
   Select,
   SelectContent,
@@ -74,18 +74,7 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
   const aliquota = preco?.aliquota ?? grade?.aliquota ?? gradeGravada?.aliquota;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          Impostos e preços
-          {nomeImposto && (
-            <span className="ml-2 font-mono text-[11px] font-normal uppercase text-muted-foreground">
-              imposto {nomeImposto}
-            </span>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SecaoCadastro titulo="Impostos e preços" nota={nomeImposto ? `imposto ${nomeImposto}` : undefined}>
         <Grid cols={3} gap={4}>
         <div>
           <Label htmlFor="tax">Imposto aplicável</Label>
@@ -269,7 +258,6 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
           />
         )}
         </Grid>
-      </CardContent>
-    </Card>
+    </SecaoCadastro>
   );
 }
