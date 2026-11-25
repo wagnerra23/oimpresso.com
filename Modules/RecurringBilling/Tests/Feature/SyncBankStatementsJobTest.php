@@ -60,7 +60,6 @@ beforeEach(function () {
         $t->unsignedInteger('account_id')->nullable();
         $t->char('banco_codigo', 3)->nullable();
         $t->boolean('ativo_para_boleto')->default(true);
-        $t->unsignedBigInteger('rb_gateway_credential_id')->nullable();
         $t->unsignedBigInteger('payment_gateway_credential_id')->nullable();
         $t->decimal('saldo_cached', 15, 2)->nullable();
         $t->timestamp('saldo_atualizado_em')->nullable();

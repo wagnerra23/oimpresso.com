@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transportadora extends Model
 {
@@ -10,7 +11,9 @@ class Transportadora extends Model
 		'razao_social', 'cnpj_cpf', 'logradouro', 'cidade_id', 'business_id'
 	];
 
-	public function cidade(){
+	/** @return BelongsTo<City, $this> */
+	public function cidade(): BelongsTo
+	{
 		return $this->belongsTo(City::class, 'cidade_id');
 	}
 }

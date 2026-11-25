@@ -95,7 +95,9 @@ função da lista Blade que roda hoje em produção.
 - Menu **Ações** por produto — união do protótipo com a lista Blade, com as MESMAS permissões:
   Ver, Editar, Estoque inicial, Histórico de estoque, Duplicar, Gerar código de barras, Preços por
   grupo, Baixar anexo, Ativar/Desativar, Excluir; e Dados fiscais (abre o painel na aba Fiscal).
-  Transferir entra com a requisição de transferência; "Usar em OS" saiu por decisão [F] de
+  Transferir entre locais (UC-PIDX-52, 2026-11-24) abre a transferência de estoque com o produto
+  como botão "Adicionar"; quando a requisição de transferência (US-ESTOQUE-001) existir, o mesmo
+  atalho passa a gerar a requisição pendente. "Usar em OS" saiu por decisão [F] de
   2026-10-11; "Comprar" saiu por decisão [F] de 2026-10-26 (a consulta não é a tela de compras,
   UC-PIDX-11).
 - Seleção em massa: Edição em massa, Adicionar/Remover do local, Etiquetas, Desativar, Excluir e

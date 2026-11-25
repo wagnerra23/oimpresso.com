@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Business;
+use App\Domain\Fsm\Models\SaleProcess;
+use App\Scopes\ScopeByBusiness;
+use App\Services\Sells\IniciarPipelineVendaV3;
 use App\BusinessLocation;
 use App\SellingPriceGroup;
+use App\Transportadora;
 use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\BusinessUtil;
@@ -75,7 +79,8 @@ class SellsV3Controller extends Controller
                 'executantes' => [],
                 // A permissão de preço da cena (sempre true) dá lugar à do usuário (UC-V384).
                 'permissoes' => ['editarPrecoItem' => $gravacao['permissoes']['editarPreco']],
-                'transportadoras' => [],
+                // As transportadoras do cadastro DESTA empresa (UC-V409), não as da cena.
+                'transportadoras' => $this->transportadorasDaEmpresa((int) $businessId),
             ];
         }
 
@@ -97,6 +102,44 @@ class SellsV3Controller extends Controller
      *
      * @return array{locationId:int, contactId:int, clienteNome:string, cliente:array<string, mixed>, permissoes:array{editarPreco:bool, editarDesconto:bool, descontoMaximo:float|null, criarCliente:bool, registrarPagamento:bool}, prazo:array{numero:mixed, tipo:mixed}, config:array<string, mixed>, comissionados:list<array{id:int, nome:string}>, tabelas:list<array{id:int, nome:string}>, tabelaPadraoId:int|null}|null
      */
+    /**
+     * Etapas do processo em que a venda da V3 entra ao gravar (UC-V414).
+     *
+     * O processo é o de `IniciarPipelineVendaV3` (`venda_com_producao`), não o modelo de fluxo
+     * escolhido em /fluxos: é ali que a venda gravada pela V3 de fato entra. Sem o processo ativo,
+     * a lista vem vazia e a tela mantém o texto (a empresa sem o processo ganha o processo ao
+     * gravar, e quem o desativou grava sem pipeline).
+     *
+     * "Em espera" (`on_hold`) é desvio da produção e "Cancelada" (`cancelled`) é saída de qualquer
+     * etapa: o protótipo (`CAMINHO` em venda-v3.jsx) não as mostra como passos do caminho.
+     *
+     * Tier 0: o escopo é declarado na query (`business_id`), porque o global scope do modelo lê a
+     * sessão; o mesmo padrão do `IniciarPipelineVendaV3::processo`.
+     *
+     * @return list<array{key: string, label: string}>
+     */
+    private static function etapasDaVenda(int $businessId): array
+    {
+        $processo = SaleProcess::withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->where('key', IniciarPipelineVendaV3::PROCESSO)
+            ->where('active', true)
+            ->first();
+        if (! $processo) {
+            return [];
+        }
+
+        // `toBase()`: só duas colunas, sem hidratar o modelo. A relação já filtra pelo processo,
+        // que acima foi achado com o business_id desta empresa.
+        return $processo->stages()->toBase()
+            ->whereNotIn('key', ['on_hold', 'cancelled'])
+            ->orderBy('sort_order')
+            ->get(['key', 'name'])
+            ->map(fn (object $e) => ['key' => (string) $e->key, 'label' => (string) $e->name])
+            ->values()
+            ->all();
+    }
+
     private function dadosDeGravacao(int $businessId): ?array
     {
         $user = auth()->user();
@@ -128,6 +171,8 @@ class SellsV3Controller extends Controller
             'config' => self::configDaVenda($business = Business::findOrFail($businessId)),
             'comissionados' => self::comissionados($businessId, $business->sales_cmsn_agnt),
             ...self::tabelasDePreco($businessId, (int) $locationId),
+            // Situação (UC-V414): as etapas do processo em que a venda vai entrar ao gravar.
+            'etapas' => self::etapasDaVenda($businessId),
         ];
     }
 
@@ -241,6 +286,33 @@ class SellsV3Controller extends Controller
             // 1 = lançar o mesmo produto soma na linha; 0 = linha nova (pos.js, pos_product_row).
             'somaNaLinha' => (int) $business->item_addition_method === 1,
         ];
+    }
+
+    /**
+     * Transportadoras do cadastro (`/transportadoras`) desta empresa, no formato da consulta da
+     * tela. O código é o id, que vai em `transportadora_id` ao gravar. O cadastro não tem placa,
+     * ANTT nem modalidade: a placa se digita na venda e grava em `transactions.placa`.
+     *
+     * @return list<array{cod:string, nome:string, doc:string, uf:string, cidade:string, placa:string, antt:string, modal:string}>
+     */
+    private function transportadorasDaEmpresa(int $businessId): array
+    {
+        return Transportadora::with('cidade:id,nome,uf')
+            ->where('business_id', $businessId)
+            ->orderBy('razao_social')
+            ->get(['id', 'razao_social', 'cnpj_cpf', 'cidade_id'])
+            ->map(fn (Transportadora $t) => [
+                'cod' => (string) $t->id,
+                'nome' => (string) $t->razao_social,
+                'doc' => (string) $t->cnpj_cpf,
+                'uf' => (string) ($t->cidade->uf ?? ''),
+                'cidade' => (string) ($t->cidade->nome ?? ''),
+                'placa' => '',
+                'antt' => '',
+                'modal' => 'Rodoviário',
+            ])
+            ->values()
+            ->all();
     }
 
     /**

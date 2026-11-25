@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { MOLDURA_JANELA, TITULO_JANELA } from './moldura-janela';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
@@ -95,9 +96,9 @@ export default function CadastroRapidoProduto({ aberto, aoFechar, unidades, cate
 
   return (
     <Dialog open={aberto} onOpenChange={(o) => !o && !salvando && aoFechar()}>
-      <DialogContent className="sm:max-w-[720px]" container={container}>
+      <DialogContent className={`${MOLDURA_JANELA} sm:max-w-[720px]`} container={container}>
         <DialogHeader>
-          <DialogTitle>Cadastro rápido de produto</DialogTitle>
+          <DialogTitle className={TITULO_JANELA}>Cadastro rápido de produto</DialogTitle>
           <DialogDescription>O mínimo para vender agora; o resto do cadastro se completa depois, em Editar.</DialogDescription>
         </DialogHeader>
 

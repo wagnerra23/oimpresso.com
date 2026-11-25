@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
+use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvConferencia;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 
 uses(Tests\TestCase::class);
@@ -62,7 +63,8 @@ function rimImportar(string $csv): string
     ])->assertSessionHasNoErrors();
 
     // Pré-condição anti-vácuo: o preview leu as duas linhas.
-    expect(session('nfe_import_csv_linhas'))->toHaveCount(2);
+    expect(session('preview.total_validas'))->toBe(2);
+    expect(session(ImportRegrasCsvConferencia::SESSAO_REF))->toBeString();
 
     $res = test()->post('/nfe-brasil/tributacao/import/aplicar')->assertRedirect();
 
@@ -112,7 +114,7 @@ afterEach(function () {
         return;
     }
     rimLimpar();
-    session()->forget('nfe_import_csv_linhas');
+    session()->forget([ImportRegrasCsvConferencia::SESSAO_REF, ImportRegrasCsvConferencia::SESSAO_BUSINESS]);
 });
 
 // ---------------------------------------------------------------------------------------

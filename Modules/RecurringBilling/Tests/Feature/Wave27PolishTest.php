@@ -179,11 +179,5 @@ describe('Wave 27 RecurringBilling POLISH FINAL', function () {
         expect($src)->toContain("Log::info('rb.subscription.atualizada'");
     });
 
-    it('D2: BoletoCredentialResolverInterface preservado (reuse cross-module)', function () {
-        expect(interface_exists(\Modules\RecurringBilling\Contracts\BoletoCredentialResolverInterface::class))
-            ->toBeTrue();
-
-        $resolved = app(\Modules\RecurringBilling\Contracts\BoletoCredentialResolverInterface::class);
-        expect($resolved)->toBeInstanceOf(\Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver::class);
-    });
+    // D2 (BoletoCredentialResolverInterface) saiu em 2026-11-24 com o resolver (onda 5b).
 });

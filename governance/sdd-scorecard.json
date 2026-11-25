@@ -36,7 +36,7 @@
         },
         "fields_total": 1190,
         "fields_placeholder": 6,
-        "fields_grammar_ok": 959,
+        "fields_grammar_ok": 958,
         "orphan_fields": 7,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -141,8 +141,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 286,
-        "effectively_guarded": 286
+        "with_manual_ddl": 285,
+        "effectively_guarded": 285
       },
       "stream": "FV"
     },

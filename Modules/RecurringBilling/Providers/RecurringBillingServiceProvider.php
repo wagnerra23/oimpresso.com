@@ -110,13 +110,9 @@ class RecurringBillingServiceProvider extends ServiceProvider
 
         // Wave 18 RETRY D4 saturação granular — Services extraídos de Controllers/inline
         $this->app->singleton(\Modules\RecurringBilling\Services\AssinaturaService::class);
-        $this->app->singleton(\Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver::class);
-
-        // Wave 23 D2 — bind interface => concrete (reuse cross-module Financeiro/NfeBrasil)
-        $this->app->bind(
-            \Modules\RecurringBilling\Contracts\BoletoCredentialResolverInterface::class,
-            \Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver::class,
-        );
+        // BoletoCredentialResolver e a interface dele saíram em 2026-11-24 (onda 5b): a
+        // credencial de gateway é a do PaymentGateway (ContaBancaria::credencialGateway,
+        // CobrancaNoGateway::credencial).
     }
 
     /**
@@ -126,8 +122,8 @@ class RecurringBillingServiceProvider extends ServiceProvider
      *
      * Implementação física do service vem em PRs paralelos (M1+M2). Wiring aqui
      * registra o binding pra Laravel resolver via container. Multi-tenant Tier 0
-     * IRREVOGÁVEL (ADR 0093): credenciais lidas SEMPRE de `rb_boleto_credentials`
-     * por `business_id`, NUNCA de `config('services.inter')`. Config aqui é só
+     * IRREVOGÁVEL (ADR 0093): credenciais lidas SEMPRE de `payment_gateway_credentials`
+     * (até 2026-11-24, `rb_boleto_credentials`) por `business_id`, NUNCA de `config('services.inter')`. Config aqui é só
      * shared infra (api_base_url, paths default).
      */
     protected function registerInterPixServices(): void

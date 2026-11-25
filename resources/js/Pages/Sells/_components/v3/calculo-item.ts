@@ -15,6 +15,23 @@
 import { submitSafe } from './numeros';
 
 /**
+ * Unidade do cadastro na forma que o cálculo entende.
+ *
+ * O catálogo real manda a sigla como foi cadastrada (`M2`, `m2`, `M²`, `M3`,
+ * `M`), enquanto as regras daqui comparam com `m²`/`m³`/`m`. Sem normalizar,
+ * um produto em `M2` era tratado como quantidade digitada: o lançamento
+ * escondia peças × altura × largura e faturava 1 m² fixo.
+ * Qualquer outra sigla volta como veio.
+ */
+export function unidadeDeMedida(un: string): string {
+  const u = un.trim().toLowerCase().replace('²', '2').replace('³', '3');
+  if (u === 'm2') return 'm²';
+  if (u === 'm3') return 'm³';
+  if (u === 'm') return 'm';
+  return un;
+}
+
+/**
  * Área de UMA peça, decidida pela UNIDADE do cadastro.
  *
  * A unidade é o que define se a quantidade é derivada ou digitada — não um
@@ -37,6 +54,7 @@ import { submitSafe } from './numeros';
  * faturada, que é o número que vira valor.
  */
 export function areaUnitaria(un: string, altura: number, largura: number, esp: number): number {
+  un = unidadeDeMedida(un);
   if (un === 'm²') return altura * largura;
   if (un === 'm³') return altura * largura * esp;
   if (un === 'm') return largura;
