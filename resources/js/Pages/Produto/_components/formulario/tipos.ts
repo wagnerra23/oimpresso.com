@@ -112,6 +112,8 @@ export interface NaturezaFiscalProduto {
   natureza: 'mercadoria' | 'servico' | 'pendente' | string;
   codigoServico: string | null;
   link: string | null;
+  /** UC-PEDIT-14: o contador não decidiu e vale o padrão (mercadoria), como na emissão e na lista. */
+  padrao?: boolean;
 }
 
 /** Os erros de validação que os blocos exibem. */
