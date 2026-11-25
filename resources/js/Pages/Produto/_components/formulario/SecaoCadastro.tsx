@@ -1,7 +1,8 @@
 // Bloco do formulário de produto (Novo e Editar) na forma do Widget do protótipo
 // (prototipo-ui/cowork/Wagner/produto-blade.jsx `Widget`): título em maiúsculas, nota em mono ao
 // lado, linha embaixo do título. As classes .pb-widget vêm do bundle do Produto, que a lista já usa;
-// o que o cadastro tem de diferente da lista (sem sombra) está em produto-cadastro.css.
+// o cadastro não tem a sombra da lista (protótipo do cadastro), por isso o boxShadow inline: a regra
+// do bundle fica fora de @layer e venceria uma classe utilitária.
 import type { ReactNode } from 'react';
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 
 export function SecaoCadastro({ titulo, nota, children, 'data-testid': testId }: Props) {
   return (
-    <section className="pb-widget" data-testid={testId}>
+    <section className="pb-widget" style={{ boxShadow: 'none' }} data-testid={testId}>
       <h3>
         <span>{titulo}</span>
         {nota && <span className="n">{nota}</span>}

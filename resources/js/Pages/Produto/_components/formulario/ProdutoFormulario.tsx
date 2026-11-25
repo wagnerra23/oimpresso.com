@@ -4,7 +4,6 @@
 // e o rodapé de ações (AcoesDoCadastro) continuam em cada tela.
 
 import '../../../../../css/cowork-produto-bundle.css';
-import '../../../../../css/produto-cadastro.css';
 import type { FormEvent } from 'react';
 import { BlocoDados } from './BlocoDados';
 import { BlocoConfiguracoes } from './BlocoConfiguracoes';
@@ -74,7 +73,15 @@ export function ProdutoFormulario({
   grade,
 }: Props) {
   return (
-    <form id={id} onSubmit={onSubmit} className="produto-cadastro space-y-6">
+    <form
+      id={id}
+      onSubmit={onSubmit}
+      // Forma do protótipo (produto-blade.css .pb-fld), só dentro deste formulário: rótulo 10,5 px · 700 ·
+      // maiúsculas, caixa com canto 6 px e recuo 9 px. O `!` vence as regras .cw-label/.cw-input do
+      // DS, que ficam fora de @layer. Rótulo ao lado de caixa de marcar e de opção (.font-normal) fica
+      // em letras normais, como no protótipo. Sem .css novo (MANUAL-CSS-JS: arquivo novo exige ADR).
+      className="space-y-6 [&_.cw-label:not(.font-normal)]:!text-[10.5px] [&_.cw-label:not(.font-normal)]:!font-[700] [&_.cw-label:not(.font-normal)]:!uppercase [&_.cw-label:not(.font-normal)]:!tracking-[0.06em] [&_.cw-input]:!rounded-[6px] [&_.cw-input]:!px-[9px]"
+    >
       <BlocoDados modo={modo} data={data} definir={definir} errors={errors} opcoes={opcoes} midia={midia} />
       <BlocoConfiguracoes
         modo={modo}
