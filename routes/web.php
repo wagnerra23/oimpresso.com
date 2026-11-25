@@ -785,6 +785,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         ->name('cliente.rewards.json')->whereNumber('id');
     Route::get('/cliente/{id}/subscriptions-json', [ContactController::class, 'subscriptionsJson'])
         ->name('cliente.subscriptions.json')->whereNumber('id');
+    // Pessoas de contato da gaveta (Operações › Pessoas) — antes presa em "Carregando…" (A-02).
+    Route::get('/cliente/{id}/pessoas-json', [ContactController::class, 'pessoasJson'])
+        ->name('cliente.pessoas.json')->whereNumber('id');
 
     Route::get('taxonomies-ajax-index-page', [TaxonomyController::class, 'getTaxonomyIndexPage']);
     Route::resource('taxonomies', TaxonomyController::class);

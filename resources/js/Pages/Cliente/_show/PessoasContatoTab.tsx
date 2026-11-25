@@ -2,6 +2,7 @@
 // Usuários CRM associados ao contact (Modules/Crm contact_login feature).
 // Paridade com Blade crm::contact_login.index.
 
+import { useEffect, useState } from 'react';
 import { UserPlus, Users } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 
@@ -19,7 +20,46 @@ export interface PessoasContatoTabProps {
   contact_persons?: ContactPerson[];
 }
 
-export default function PessoasContatoTab({ contactId, contact_persons }: PessoasContatoTabProps) {
+export default function PessoasContatoTab({ contactId, contact_persons: personsProp }: PessoasContatoTabProps) {
+  // Modo Inertia (Show.tsx): a lista vem por prop. Modo gaveta (OssTab): sem prop, busca o
+  // endpoint JSON — antes ficava em "Carregando…" para sempre, sem requisição nenhuma (A-02).
+  const [fetched, setFetched] = useState<ContactPerson[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (personsProp !== undefined || !contactId) return;
+    let cancelled = false;
+    setFetched(null);
+    setError(null);
+    fetch(`/cliente/${contactId}/pessoas-json`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+      credentials: 'same-origin',
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((j: ContactPerson[]) => {
+        if (!cancelled) setFetched(Array.isArray(j) ? j : []);
+      })
+      .catch(() => {
+        if (!cancelled) setError('Não foi possível carregar as pessoas de contato.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [contactId, personsProp]);
+
+  const contact_persons = personsProp ?? fetched;
+
+  if (error) {
+    return (
+      <div className="p-8 text-center text-xs text-muted-foreground" data-testid="persons-tab-error">
+        {error}
+      </div>
+    );
+  }
+
   if (!contact_persons) {
     return (
       <div className="p-8 text-center text-xs text-muted-foreground" data-testid="persons-tab-skeleton">

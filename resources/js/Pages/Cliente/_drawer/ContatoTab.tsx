@@ -83,6 +83,14 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
 
   const debounceTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const previousValuesRef = useRef<Record<string, unknown>>({});
+  // Campos de e-mail em que a pessoa já digitou neste contato. O aviso "Formato de e-mail
+  // inválido" só aparece depois disso: há cadastros migrados com dois endereços separados por
+  // "; " e a aba abria acusando erro sem ninguém ter digitado (medição 2026-11-25, A-14). O valor
+  // inválido continua sem ser gravado (o `handleBlur` segue barrando).
+  const [tocados, setTocados] = useState<Set<string>>(() => new Set());
+  const tocar = useCallback((campo: string) => {
+    setTocados((prev) => (prev.has(campo) ? prev : new Set(prev).add(campo)));
+  }, []);
 
   useEffect(() => {
     const t = contact.tel ?? contact.mobile ?? contact.landline ?? '';
@@ -96,6 +104,7 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
     setCanal((contact.canal as CanalValue) ?? '');
     setErrorField(null);
     setSavedField(null);
+    setTocados(new Set());
   }, [contact.id]);
 
   // ── Validação inline ─────────────────────────────────────────────────
@@ -216,6 +225,10 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
     [canal, performSave]
   );
 
+  const emailErrorVisivel = tocados.has('email') ? emailError : null;
+  const emailBillingErrorVisivel = tocados.has('email_billing') ? emailBillingError : null;
+  const emailNfeErrorVisivel = tocados.has('email_nfe') ? emailNfeError : null;
+
   return (
     <div className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
@@ -309,19 +322,20 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
             value={email}
             placeholder="contato@exemplo.com.br"
             disabled={disabled}
-            aria-invalid={!!emailError}
-            aria-describedby={emailError ? 'ct-email-error' : undefined}
+            aria-invalid={!!emailErrorVisivel}
+            aria-describedby={emailErrorVisivel ? 'ct-email-error' : undefined}
             onChange={(e) => {
               const prev = email;
               const v = e.target.value;
               setEmail(v);
+              tocar('email');
               scheduleAutosave('email', v, prev);
             }}
             onBlur={(e) => handleBlur('email', e.target.value)}
-            className={emailError ? INVALID_INPUT_CLASS : ''}
+            className={emailErrorVisivel ? INVALID_INPUT_CLASS : ''}
           />
           <FieldStatus
-            error={emailError}
+            error={emailErrorVisivel}
             errorId="ct-email-error"
             saving={savingField === 'email'}
             saved={savedField === 'email'}
@@ -342,19 +356,20 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
             value={emailBilling}
             placeholder="comercial@exemplo.com.br"
             disabled={disabled}
-            aria-invalid={!!emailBillingError}
-            aria-describedby={emailBillingError ? 'ct-email-billing-error' : undefined}
+            aria-invalid={!!emailBillingErrorVisivel}
+            aria-describedby={emailBillingErrorVisivel ? 'ct-email-billing-error' : undefined}
             onChange={(e) => {
               const prev = emailBilling;
               const v = e.target.value;
               setEmailBilling(v);
+              tocar('email_billing');
               scheduleAutosave('email_billing', v, prev);
             }}
             onBlur={(e) => handleBlur('email_billing', e.target.value)}
-            className={emailBillingError ? INVALID_INPUT_CLASS : ''}
+            className={emailBillingErrorVisivel ? INVALID_INPUT_CLASS : ''}
           />
           <FieldStatus
-            error={emailBillingError}
+            error={emailBillingErrorVisivel}
             errorId="ct-email-billing-error"
             saving={savingField === 'email_billing'}
             saved={savedField === 'email_billing'}
@@ -373,19 +388,20 @@ export default function ContatoTab({ contact, onSaved, disabled = false }: Conta
             value={emailNfe}
             placeholder="contador@exemplo.com.br"
             disabled={disabled}
-            aria-invalid={!!emailNfeError}
-            aria-describedby={emailNfeError ? 'ct-email-nfe-error' : undefined}
+            aria-invalid={!!emailNfeErrorVisivel}
+            aria-describedby={emailNfeErrorVisivel ? 'ct-email-nfe-error' : undefined}
             onChange={(e) => {
               const prev = emailNfe;
               const v = e.target.value;
               setEmailNfe(v);
+              tocar('email_nfe');
               scheduleAutosave('email_nfe', v, prev);
             }}
             onBlur={(e) => handleBlur('email_nfe', e.target.value)}
-            className={emailNfeError ? INVALID_INPUT_CLASS : ''}
+            className={emailNfeErrorVisivel ? INVALID_INPUT_CLASS : ''}
           />
           <FieldStatus
-            error={emailNfeError}
+            error={emailNfeErrorVisivel}
             errorId="ct-email-nfe-error"
             saving={savingField === 'email_nfe'}
             saved={savedField === 'email_nfe'}

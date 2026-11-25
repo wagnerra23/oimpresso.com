@@ -195,7 +195,7 @@ export default function OssTab({
         {/* Wagner 2026-05-27 iteracao 2: `placas` virou tab principal acessada
             via botao header; `activities` consolidada com tab principal `Auditoria`. */}
         {active === 'persons' && (
-          <PessoasContatoTab contactId={contact.id} contact_persons={undefined} />
+          <PessoasContatoTab contactId={contact.id} />
         )}
         {/* Fix 2026-06-08: passa contactId pro self-fetch (sem prop = busca o endpoint JSON,
             em vez de ficar preso no skeleton "Carregando…"). */}
