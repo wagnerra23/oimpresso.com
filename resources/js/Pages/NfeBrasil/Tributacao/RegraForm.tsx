@@ -78,9 +78,11 @@ function RegraForm({ regra }: Props) {
     const url = editing ? `/nfe-brasil/tributacao/regras/${regra!.id}` : '/nfe-brasil/tributacao/regras';
     const method = editing ? 'put' : 'post';
 
-    // Limpa o campo não usado dependendo do regime
-    if (tipoCodigoTributario === 'csosn') form.setData('cst', '');
-    else form.setData('csosn', '');
+    // Limpa o campo do regime que não vale. Pelo transform, e não por setData: o setData só
+    // chega ao que o post/put lê depois do próximo render, e o 1º envio saía com CST e CSOSN
+    // juntos, que o servidor recusa (UC-NFRF-12).
+    const limpo = tipoCodigoTributario === 'csosn' ? 'cst' : 'csosn';
+    form.transform((data) => ({ ...data, [limpo]: '' }));
 
     form[method](url, {
       preserveScroll: true,
