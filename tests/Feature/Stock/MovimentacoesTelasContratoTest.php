@@ -196,6 +196,31 @@ it('UC-TRCRT-07 [T0] ?produto= oferece as variações do produto da empresa, e d
     expect(movtPagina($this, '/stock-transfers/create', 'StockTransfer/Create', true)['produto_sugerido'])->toBeNull();
 });
 
+it('UC-TRCRT-08 [T0] ?origem= escolhe a filial da empresa, e a de outra empresa fica de fora', function () {
+    movtLogin($this, $this->biz, ['purchase.create', 'access_all_locations']);
+
+    $props = movtPagina($this, '/stock-transfers/create?origem=' . $this->locBiz, 'StockTransfer/Create', true);
+    expect($props['origem_sugerida'])->toBe((string) $this->locBiz);
+    expect(array_key_exists((string) $this->locBiz, $props['business_locations']))->toBeTrue();
+
+    // Tier 0: local de outra empresa não vira origem (nem aparece na lista de filiais).
+    $alheio = movtPagina($this, '/stock-transfers/create?origem=' . $this->locOutro, 'StockTransfer/Create', true);
+    expect($alheio['origem_sugerida'])->toBeNull();
+    expect(array_key_exists((string) $this->locOutro, $alheio['business_locations']))->toBeFalse();
+    // Sem o parâmetro, a origem segue em branco.
+    expect(movtPagina($this, '/stock-transfers/create', 'StockTransfer/Create', true)['origem_sugerida'])->toBeNull();
+});
+
+it('UC-TRCRT-08 [T0] ?origem= de um local que o usuário não pode usar fica de fora', function () {
+    $outroLocal = EstoqueFixture::locationId($this->biz, '-MOVT-B');
+    movtLogin($this, $this->biz, ['purchase.create', 'location.' . $this->locBiz]);
+
+    $props = movtPagina($this, '/stock-transfers/create?origem=' . $outroLocal, 'StockTransfer/Create', true);
+    expect($props['origem_sugerida'])->toBeNull();
+    expect(movtPagina($this, '/stock-transfers/create?origem=' . $this->locBiz, 'StockTransfer/Create', true)['origem_sugerida'])
+        ->toBe((string) $this->locBiz);
+});
+
 it('UC-TRCRT-07 sem saldo próprio para transferir, ?produto= não sugere nada', function () {
     $semEstoque = EstoqueFixture::singleProduct($this->biz, false);
     $kit = EstoqueFixture::singleProduct($this->biz);

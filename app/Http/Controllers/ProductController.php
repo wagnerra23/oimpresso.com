@@ -1399,9 +1399,21 @@ class ProductController extends Controller
     private function naturezaFiscalDoProduto(int $business_id, int $id): ?array
     {
         $respostas = $this->moduleUtil->getModuleData('produto_natureza_fiscal', ['business_id' => $business_id, 'product_id' => $id]);
-        $dado = is_array($respostas) ? ($respostas['NfeBrasil'] ?? null) : null;
-        if (! is_array($dado) || empty($dado['natureza'])) {
+        // Sem o módulo Fiscal instalado, o gancho nem responde: a natureza não aparece.
+        if (! is_array($respostas) || ! array_key_exists('NfeBrasil', $respostas)) {
             return null;
+        }
+        $dado = $respostas['NfeBrasil'];
+        if (! is_array($dado) || empty($dado['natureza'])) {
+            // UC-PEDIT-14 (decisão [W] 2026-11-25, "Mercadoria · padrão"): sem decisão do contador o produto
+            // é mercadoria, como a emissão faz e a lista mostra (NaturezaFiscalService::naturezas, "sem linha
+            // = mercadoria"). O Editar mostra isso marcado como padrão, em vez de não mostrar nada.
+            return [
+                'natureza' => 'mercadoria',
+                'codigoServico' => null,
+                'padrao' => true,
+                'link' => $this->linkTributacaoDoProduto($business_id, $id),
+            ];
         }
 
         return [

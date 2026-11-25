@@ -5,7 +5,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: a transferência tira de uma filial e põe em outra; as duas pontas têm de ser da mesma empresa.
 owner: wagner
 last_run: "2026-11-24"
-last_run_ci: "2026-11-24, UC-TRCRT-07 (produto vindo da lista de produtos): os casos Vitest passaram local; os Pest rodam na lane PHP / Pest (Estoque · MySQL) deste PR. Antes: 0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
+last_run_ci: "2026-11-25, UC-TRCRT-08 (?origem= do painel do produto): os Pest rodam na lane PHP / Pest (Estoque · MySQL) deste PR; os UCs anteriores não mudam. Antes: 2026-11-24, UC-TRCRT-07 (produto vindo da lista de produtos): os casos Vitest passaram local; os Pest rodam na lane PHP / Pest (Estoque · MySQL) deste PR. Antes: 0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
 > ℹ️ **`last_run` 2026-10-11 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: só COR.**
@@ -67,6 +67,14 @@ last_run_ci: "2026-11-24, UC-TRCRT-07 (produto vindo da lista de produtos): os c
 - **Gates:** `purchase.create` (a do formulário). Tier 0: o produto é lido no servidor com o `business_id` da sessão.
 - **Status: ⬜** — nasce neste PR.
 
+## UC-TRCRT-08 · O local que o painel do produto mandou já vem como origem `[T0]` `[should]`
+- **Persona:** quem cuida do estoque e chegou aqui pelo "Transferir" de um local na aba Estoque do painel do produto (UC-PIDX-54).
+- **Aceite:** Dado `?origem={id}` de uma filial da empresa que o usuário pode usar · Quando abro o formulário · Então "Filial origem" já vem com ela, e o botão "Adicionar" do produto (UC-TRCRT-07) já fica ligado · Filial de outra empresa, ou que o usuário não pode usar, fica de fora e a origem segue em branco · Sem o parâmetro nada muda · Trocar a origem segue limpando as linhas (UC-TRCRT-06).
+- **Teste:** `MovimentacoesTelasContratoTest` — `UC-TRCRT-08 [T0] ?origem= escolhe a filial da empresa, e a de outra empresa fica de fora` e `UC-TRCRT-08 [T0] ?origem= de um local que o usuário não pode usar fica de fora` (lane PHP / Pest (Estoque · MySQL)).
+- **Contrato:** US-ESTOQUE-001 ("o Transferir do produto (painel e menu da linha) abre esta tela com produto e local de origem preenchidos"). Só preenche o campo: situação, saldo, lote e gravação seguem os do formulário; nada é gravado ao abrir.
+- **Gates:** `purchase.create` (a do formulário). Tier 0: o id só vale se está nas filiais que a tela já oferece (`BusinessLocation::forDropdown`, da empresa da sessão e dos locais permitidos).
+- **Status: ⬜** — nasce neste PR.
+
 ## Backlog
 - [BACKLOG] R-XFER-004 (origem ≠ destino) só é conferida no cliente (botão desabilitado). `store()` não compara `location_id` com `transfer_location_id`, nem confere se as duas filiais são do business da sessão. Grava quantidade: decisão [W].
 - [BACKLOG] **Toda transferência cai pendente na requisição (US-ESTOQUE-001) — decisões de [F] em 2026-10-15; a tela da requisição fica com o [W].** Hoje quem preenche escolhe a situação (pendente, em trânsito ou concluída) num campo do formulário, e a concluída já move o saldo (UC-TRCRT-03). Vai mudar:
@@ -75,6 +83,7 @@ last_run_ci: "2026-11-24, UC-TRCRT-07 (produto vindo da lista de produtos): os c
   - O campo situação sai deste formulário.
   - **Depende da tela do [W]:** o "Transferir" do produto (painel e menu da linha da lista de produtos) abre esta tela com produto e local de origem preenchidos.
     _Em 2026-11-24 o "Transferir entre locais" do menu da linha entrou antes da requisição (UC-PIDX-52 · UC-TRCRT-07): abre esta tela com o produto como botão "Adicionar", sem local de origem. Quando a requisição existir, a transferência aberta por ele nasce pendente como as outras._
+    _Em 2026-11-25 entrou também o "Transferir" por local da aba Estoque do painel (UC-PIDX-54 · UC-TRCRT-08), com produto e origem preenchidos. A situação segue a do formulário (começa em "Pendente"); a requisição continua não existindo._
   - Mexe em movimentação de estoque: antes de mergear, dupla confirmação do saldo (muda só na aprovação, nunca duas vezes) e o antes → depois apresentado ([`proibicoes.md`](../../../../memory/proibicoes.md) §CÁLCULO DE VALOR ou ESTOQUE).
 - [BACKLOG] **Nota fiscal da transferência entre matriz e filial** (pedido de 2026-10-23) — Dado uma
   transferência de estoque entre duas filiais da empresa com CNPJ diferentes, Quando ela é concluída,
