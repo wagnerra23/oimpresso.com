@@ -41,7 +41,7 @@ const CFOP_NOME: Record<string, string> = {
   '1949': 'Outra entrada não especificada', '2949': 'Outra entrada não especificada',
 };
 
-const SEM_ICMS_PROPRIO = ['30', '40', '41', '50', '60', '102', '103', '202', '203', '300', '400', '500'];
+export const SEM_ICMS_PROPRIO = ['30', '40', '41', '50', '60', '102', '103', '202', '203', '300', '400', '500'];
 
 const COR = {
   natureza: 'var(--accent)',
