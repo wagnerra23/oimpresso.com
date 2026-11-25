@@ -50,6 +50,11 @@ export interface StockTransferCreatePageProps {
    * botão "Adicionar" por variação. `null` sem o parâmetro, ou se o produto não é da empresa.
    */
   produto_sugerido?: { id: number; nome: string; variacoes: { variation_id: number; nome: string }[] } | null;
+  /**
+   * A filial de origem que o painel do produto mandou (`?origem={id}`, UC-TRCRT-08): já vem
+   * escolhida. `null` sem o parâmetro, ou se o local não está entre as filiais da tela.
+   */
+  origem_sugerida?: string | null;
 }
 
 // ---------- Helpers ----------
@@ -65,6 +70,7 @@ function StockTransferCreate({
   default_datetime,
   permissions,
   produto_sugerido = null,
+  origem_sugerida = null,
 }: StockTransferCreatePageProps) {
   const [linhas, setLinhas] = useState<LinhaEstoque[]>([]);
   const [tentou, setTentou] = useState(false);
@@ -73,7 +79,7 @@ function StockTransferCreate({
     transaction_date: default_datetime,
     ref_no: '',
     status: 'pending',
-    location_id: '',
+    location_id: origem_sugerida ?? '',
     transfer_location_id: '',
     additional_notes: '',
     shipping_charges: 0,

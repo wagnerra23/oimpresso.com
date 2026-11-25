@@ -2,6 +2,7 @@
 //
 // Quem decide se o produto é mercadoria (ICMS, nota de mercadoria) ou serviço (ISS, nota de
 // serviço) é o contador, na tela de Tributação. O cadastro só mostra a decisão e leva até lá.
+// Sem decisão, o produto é mercadoria (é o que a emissão faz) e a tela diz que é o padrão.
 import type { NaturezaFiscalProduto } from './tipos';
 
 type Natureza = 'servico' | 'mercadoria' | 'pendente';
@@ -25,7 +26,14 @@ export function NaturezaFiscal({ natureza }: { natureza: NaturezaFiscalProduto }
   // Valor fora das três naturezas conhecidas é mostrado como "a decidir".
   const chave: Natureza =
     natureza.natureza === 'servico' || natureza.natureza === 'mercadoria' ? natureza.natureza : 'pendente';
-  const texto = TEXTOS[chave];
+  // UC-PEDIT-14 (decisão [W] 2026-11-25): sem decisão do contador vale o padrão, mercadoria.
+  const texto =
+    natureza.padrao && chave === 'mercadoria'
+      ? {
+          titulo: 'Mercadoria · padrão',
+          detalhe: 'O contador ainda não decidiu. Até ele decidir, a nota deste produto é de mercadoria e precisa do NCM.',
+        }
+      : TEXTOS[chave];
 
   return (
     <div className="col-span-2" data-testid="natureza-fiscal">
