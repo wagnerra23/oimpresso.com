@@ -62,6 +62,8 @@ interface Props {
   permissions: Permissoes;
   producao: ContadoresProducao;
   settings: { enable_updating_product_price: boolean };
+  /** UC-RECIPE-27: a receita de `?receita=ID`, mesmo fora da página atual. Null se não for da empresa. */
+  receita_aberta?: Receita | null;
 }
 
 const ROTA = '/manufacturing/recipe';
@@ -158,10 +160,11 @@ export default function Recipes({
   permissions,
   producao,
   settings,
+  receita_aberta = null,
 }: Props) {
   const [q, setQ] = useState(filtros.q ?? '');
   const [sel, setSel] = useState<number[]>([]);
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<number | null>(receita_aberta?.id ?? null);
   const [imprimir, setImprimir] = useState<{ itens: Receita[]; semCusto: boolean } | null>(null);
   const [novaAberta, setNovaAberta] = useState(false);
   const buscaRef = useRef<HTMLInputElement>(null);
@@ -214,7 +217,8 @@ export default function Recipes({
       : marcadasNoFiltro > 0
         ? 'some'
         : 'none';
-  const aberta = recipes.data.find((r) => r.id === openId) ?? null;
+  const aberta =
+    recipes.data.find((r) => r.id === openId) ?? (receita_aberta?.id === openId ? receita_aberta : null);
 
   // As marcadas podem estar em OUTRAS páginas — a ficha delas vem num reload parcial que só
   // calcula `fichas`. `preserveUrl` não deixa o `?fichas=` sujar o endereço da tela.

@@ -6,8 +6,11 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 related_us: [US-MANU-001, US-MANU-008]
 owner: wagner
-last_run: "2026-11-17"
+last_run: "2026-11-25"
 ---
+
+> ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): um comportamento novo.** UC-RECIPE-27: a aba abre uma receita
+> pelo endereço (`?receita=ID`), mesmo fora da página atual (Pendências da Fabricação I-05). Os demais UC não mudaram.
 
 > ℹ️ **`last_run` 2026-10-19 → 2026-10-27 (G-6): cutover da Blade.** Pedido [W] 2026-10-27, *"1 PR por tela,
 > com cutover apagando a Blade"*. Saíram `?legacy=1`, o ramo DataTables, `recipe/create`, `recipe/{id}`,
@@ -395,6 +398,19 @@ last_run: "2026-11-17"
   UC-RECIPE-04 · auditoria do Manufacturing, lote 2.3.
 - **Teste:** `FormaCustoExtraTest.php` — a conta à mão e a fórmula que o rótulo anuncia.
 - **Regressão que defende:** o painel dizer "Custo extra (2,5%)" ao lado de um custo que somou 2,5 inteiro.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-27 · A receita abre pelo endereço
+- **Persona:** quem vem da gaveta de um insumo e clica no nome de uma receita afetada.
+- **Aceite:** Dado uma receita da minha empresa · Quando abro `/manufacturing/recipe?receita=ID`, mesmo com uma
+  busca que a tira da lista · Então a gaveta dela abre · Dado uma receita de outra empresa · Então nada abre (a
+  dona dela abre) · Dado um usuário sem `view_purchase_price` · Então a receita abre sem custo.
+- **Fonte:** protótipo (o nome da receita, na gaveta do Insumo, abre a receita) · Pendências da Fabricação I-05,
+  medição de 2026-11-25 · aprovação [W] em 2026-11-25 · ADR 0093 (empresa) · UC-RECIPE-26 (custo).
+- **Teste:** `ReceitaPorEnderecoTest.php`
+- **Regressão que defende:** o link do Insumo cair numa lista sem a receita aberta, ou abrir receita de outra empresa.
 - **Status: 🧪**
 
 ---
