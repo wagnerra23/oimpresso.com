@@ -594,8 +594,8 @@ E o tax_rate vinculado passa para a versão nova (o cadastro de impostos não ga
 ```
 
 **Contrato:** ADR 0093 G8 (append-only) · D-OPERACAO · ADR ARQ-0005 (vínculo com `tax_rates`).
-**Implementação:** `Modules/NfeBrasil/Models/NfeFiscalRule.php` (`novaVersao`) · `Modules/NfeBrasil/Http/Controllers/TributacaoController.php` (`update`, `regraEditavel`) · `Modules/NfeBrasil/Services/MotorTributarioService.php` (Nível 1 segue a cadeia).
-**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php` (lane `nfebrasil-pest`).
+**Implementação:** `Modules/NfeBrasil/Models/NfeFiscalRule.php` (`novaVersao`) · `Modules/NfeBrasil/Http/Controllers/TributacaoController.php` (`update`, `regraEditavel`) · `Modules/NfeBrasil/Services/MotorTributarioService.php` (Nível 1 segue a cadeia) · `Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvService.php` (`aplicar`: a reimportação por CSV também gera versão nova, desde 2026-11-24 · UC-NFIM-09).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php` · `Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvVersaoVigenteTest.php` (lane `nfebrasil-pest`).
 
 ### R-NFE-020 · O padrão atual vira a regra geral da operação Venda sem perda
 
