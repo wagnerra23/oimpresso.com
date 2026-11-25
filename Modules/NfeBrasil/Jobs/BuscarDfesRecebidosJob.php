@@ -61,7 +61,7 @@ class BuscarDfesRecebidosJob implements ShouldQueue
             $dados = [
                 'severidade' => 'high',
                 'titulo'     => 'A busca das notas recebidas na SEFAZ falhou',
-                'descricao'  => mb_substr($exception->getMessage(), 0, 1000),
+                'descricao'  => mb_substr(self::mensagemParaTela($exception->getMessage()), 0, 1000),
                 'metadata'   => json_encode(['origem' => self::class, 'tentativas' => $this->tries], JSON_UNESCAPED_UNICODE),
                 'updated_at' => $agora,
             ];
@@ -76,6 +76,19 @@ class BuscarDfesRecebidosJob implements ShouldQueue
         } catch (\Throwable $t) {
             Log::error('BuscarDfesRecebidosJob: alerta não gravado', ['business_id' => $this->businessId, 'erro' => $t->getMessage()]);
         }
+    }
+
+    /**
+     * O erro como a tela pode mostrar: sem o caminho do servidor. O TypeError do PHP traz
+     * "called in /home/<conta>/domains/... on line N", e o cockpit exibia isso a quem abrisse
+     * a tela (UC-FCKP-25). O log continua com a mensagem inteira.
+     */
+    public static function mensagemParaTela(string $mensagem): string
+    {
+        $limpa = preg_replace('/,?\s*called in \S+ on line \d+/', '', $mensagem) ?? $mensagem;
+        $limpa = preg_replace('#(?:[A-Za-z]:)?[\\\\/](?:[\w.\-]+[\\\\/])+[\w.\-]+\.php(?::\d+)?#', '[arquivo]', $limpa) ?? $limpa;
+
+        return trim($limpa);
     }
 
     /** Tipo do alerta da falha da busca de DF-e (lido pelo cockpit Fiscal). */

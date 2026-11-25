@@ -60,11 +60,11 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Ordenar clicando no cabeçalho | cabeçalho era texto puro; o clique não fazia nada | **defeito — corrigido** (UC-PIDX-13) |
 > | Arrastar a borda da coluna para redimensionar | não existia em 2026-10-12 (larguras fixas); **feito em 2026-10-13** (UC-PIDX-16), com a regra do `DataGrid` do DS (alça 7px, piso 48px, Ação e Imagem fixas, sem alça na última) | feito |
 > | Botão "Cadastro rápido" | não existia em 2026-10-12; **entrou em 2026-10-12** (UC-PIDX-14), com "Gerenciar estoque" e locais (2+) a mais que o protótipo, por decisão [F] | feito |
-> | Menu da linha: 13 ações | 10 presentes em 2026-10-12; **11 em 2026-10-13**, com "Dados fiscais (NCM/CFOP)" (UC-PIDX-17, abre o painel na aba Fiscal) | falta "Transferir entre locais" (vira requisição de transferência); "Usar em uma OS" saiu por decisão [F] 2026-10-11 |
+> | Menu da linha: 13 ações | 10 presentes em 2026-10-12; **11 em 2026-10-13**, com "Dados fiscais (NCM/CFOP)" (UC-PIDX-17, abre o painel na aba Fiscal) | "Transferir entre locais" **entrou em 2026-11-24** (UC-PIDX-52): abre a transferência de estoque com o produto como "Adicionar", antes da requisição (US-ESTOQUE-001); "Usar em uma OS" saiu por decisão [F] 2026-10-11 |
 > | Estoque inicial em janela | abria a página de estoque inicial em 2026-10-12; **virou janela em 2026-10-13** (UC-PIDX-15), com tudo o que a tela Blade tem (variações, várias linhas, data, observação, segunda unidade) | feito |
 > | Barra de seleção (6 ações + limpar), com confirmação | presente (+ WooCommerce Sync) | IGUAL |
 > | Lista vazia, destaque de inativo e de estoque baixo, "Exportar filtrados" | presentes | IGUAL |
-> | `Ctrl+K` com as telas do módulo e ir a um produto | `Ctrl+K` abre a busca geral de tarefas | FALTA |
+> | `Ctrl+K` com as telas do módulo e ir a um produto | `Ctrl+K` abria a busca geral de tarefas até 2026-11-24; **feito em 2026-11-24** (UC-PIDX-51): telas do grupo Produtos do menu lateral (com a permissão de cada uma) e busca de produto por nome/SKU | feito; Vitest com o `AppShellV2` real, não medido na tela |
 > | Indicadores "Abaixo do alerta" e "Inativos" clicáveis (item 2.1, no protótipo desde 2026-11-03) | eram leitura até 2026-11-03; **feito em 2026-11-03** (UC-PIDX-35), com o tile de filtro do DS nos dois e as outras duas placas de leitura | feito, lido no código, não medido na tela |
 > | Saldo de cada cor e tamanho na lista (D7, no protótipo desde 2026-11-04) | só "N variações" na célula Produto até 2026-11-04; **feito em 2026-11-04** (UC-PIDX-37): "N variações" sob o saldo abre o painel com cada variação, SKU, saldo e total, no gesto do saldo por local do catálogo | feito; protótipo conferido no navegador, tela lida no código e no Vitest |
 > | Separado para vendas e livre na coluna Estoque (D5 · CV4, no protótipo desde 2026-11-04) | não existia até 2026-11-04; **feito em 2026-11-04** (UC-PIDX-38): duas linhas curtas abaixo do saldo, "N separados" e "N livres", porque a frase inteira não cabe na coluna; a frase vai no title | feito; protótipo conferido no navegador, tela lida no código e no Vitest |
@@ -75,7 +75,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | "Informar NCM" na barra de selecionados (no protótipo desde 2026-11-06) | não existia até 2026-11-06; **feito em 2026-11-06** (UC-PIDX-43): diálogo com o NCM, confirmar só com 8 dígitos | feito; tela lida no código e no Vitest |
 > | Filtro "Uso" (Para vender, Material, Serviço) (no protótipo desde 2026-11-06) | não existia até 2026-11-06; **feito em 2026-11-06** (UC-PIDX-44): campo "Uso" nos filtros e chip "Uso: …" | feito; tela lida no código e no Vitest |
 > | "Excluídos" na Situação e "Restaurar" no menu da linha (no protótipo desde 2026-11-06) | não existia até 2026-11-06; **feito em 2026-11-06** (UC-PIDX-45): excluir guarda o produto, "Restaurar" o devolve | feito; tela lida no código e no Vitest |
-> | Aviso "Você veio de… / Voltar e usar" | não existe | FALTA |
+> | Aviso "Você veio de… / Voltar e usar" | não existia até 2026-11-24; **feito em 2026-11-24** (UC-PIDX-53): aviso na lista, com volta levando o produto escolhido (painel aberto ou um marcado). Nenhuma tela manda para cá ainda — Nova venda, Orçamento e OS entram cada uma no seu PR | feito na lista; sem origem ligada, não aparece |
 > | Aba Relatório: linhas por página (10/25/50/100) | fixo em 25 até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18) com as opções da lista Blade (25 … 1000, Todos), mantendo Anterior/Próxima | feito, com opções diferentes de propósito |
 > | Aba Relatório: lucro potencial em verde | cor comum do texto até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18): verde se positivo, vermelho se negativo, total sem cor | feito |
 > | Aba Relatório: a busca da lista filtra o relatório | não filtra | de propósito — a aba Blade também não usava a busca (UC-PIDX-08) |
@@ -321,10 +321,36 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > nas cinco janelas da lista; igualar só a do cadastro rápido a deixaria diferente das irmãs. Os
 > campos da janela seguem o `ui/input` do DS.
 >
+> **Corrigido em 2026-11-24, ainda não medido em produção:** a moldura veio do `Modal` do DS
+> (`prototipo-ui/design-system/components/Modal/Modal.jsx`), que é o que o protótipo usa. As janelas
+> da lista passaram a usar `_components/lista/moldura-janela.ts`: fundo `--surface`, cantos
+> `--radius-lg`, 20px de respiro, título `600 17px/1.3` com `-.01em`. Valem para Cadastro rápido,
+> Estoque inicial, Informar NCM, Confirmar, Adicionar/Remover do local e WooCommerce Sync.
+> O `ui/dialog` ficou como estava: ele serve outras 31 telas, e os tokens só existem dentro do
+> `.cockpit`, onde só parte delas monta. "Etiquetas" não é janela em produção (abre
+> `/labels/show`), então não entra. A sombra do `Modal` do DS (`0 24px 60px -12px`) não foi medida
+> contra a produção e ficou de fora. **Medir depois do deploy.**
+>
 > **PROTÓTIPO ATRASADO** (a produção tem, o protótipo não): "Garantia" na aba Dados; o selo "Para
 > vender · com 4 variações" (UC-PIDX-46) no lugar de "Variável"; as abas Lotes, Receita e Roteiro; o
 > filtro Natureza fiscal; o texto da busca. E o protótipo ainda tem "Usar em uma OS" no menu Ações,
 > que saiu da produção por decisão [F] em 2026-10-11.
+>
+> **Errata, no mesmo dia:** "o texto da busca" não era diferença. O placeholder é o mesmo nos dois lados
+> ("Buscar nome ou SKU…"); a sonda leu o `aria-label` da produção ("Buscar produtos por nome, SKU ou
+> código"), que o protótipo não tem e que não aparece na tela.
+>
+> **Protótipo atualizado em 2026-11-23** ([F] pediu "atualizar o protótipo"), em `produto-blade.jsx`:
+> Garantia na aba Dados (e Tempo de preparo só quando cadastrado, como na produção); o selo do painel
+> com o "O que é" (UC-PIDX-46), mantendo o tipo do cadastro no `title`; as abas Lotes (UC-PIDX-49),
+> Receita (UC-PIDX-48) e Roteiro (UC-PIDX-29), na ordem e com os textos da produção; a natureza fiscal
+> (UC-PIDX-31) no filtro, no selo ao lado do nome ("Serviço" e "Fiscal a decidir"), na aba Fiscal e no
+> aviso do pendente; e "Usar em uma OS" saiu do menu. O "Uso" do protótipo passou a ler a natureza
+> fiscal, como manda o UC-PIDX-44 — antes, o filtro "Uso: Serviço" não achava nenhum produto. Nos
+> dados de exemplo, os lotes somam o saldo do produto e o custo da receita sai dos insumos.
+> Conferido no protótipo renderizado (pelo DOM, 1440px, escuro): cada item acima aparece, os filtros
+> "Natureza fiscal" e "Uso" filtram, "Abrir receita" leva à Fabricação, e nenhum erro de console vem do
+> `produto-blade.jsx` (os 404 de `patrimonio-*` já existiam).
 >
 > **Observado, sem veredito:** no protótipo as abas da gaveta rolam junto com o corpo (a `nav` está
 > dentro da área rolável); na produção ficam paradas acima dele.

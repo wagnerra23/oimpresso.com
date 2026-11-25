@@ -43,7 +43,8 @@ A tela viva é `Sells/Create.tsx` (`/pos/create`), e quem a usa é a **ROTA LIVR
 
 - `AppShellV2` como layout persistente (mesma convenção de `Sells/Create.tsx`).
 - Faixa âmbar permanente no topo: quem abrir por engano sabe em 1 segundo que não é produção.
-- **4 passos numerados na coluna esquerda** — 1 Cliente · 2 Itens · 3 Entrega e frete · 4 Observações e produção — espelhando a âncora de design.
+- **Topo = `PageHeader`** ("Nova venda" + subtítulo), sem selo "V3" e sem botão de voltar nesta rota (`/sells/create-v3` = rota `venda-v3` do protótipo, que não passa `onVoltar`) — UC-V410.
+- **3 passos numerados, como a âncora:** 1 Cliente · 2 Itens · 3 Fechamento. "Entrega e frete" e "Observações e produção" são gavetas, sem número — UC-V410. _(Até 2026-11-24 esta linha dizia "4 passos numerados — 1 Cliente · 2 Itens · 3 Entrega e frete · 4 Observações e produção — espelhando a âncora"; a âncora `venda-v3.jsx` nunca numerou as gavetas.)_
 - **Coluna direita de fechamento**: Tabela de preço · Fechamento (plate escuro com o total, único bloco de peso visual) · Pagamento · Comissão · Situação (FSM) · finalizador *sticky*.
 - Grid de itens **editável** (quantidade, valor, desconto %, acréscimo %) com alerta de linha inválida e coluna de Ações fixa.
 - **Colunas do grid configuráveis** (`_components/v3/ColunasModal.tsx` + `colunas-dominio.ts`, onda 6): o operador escolhe quais das 30 colunas do catálogo aparecem e em que ordem, e a preferência **chega no cabeçalho e nas células** — provado por render em `tests/js/colunas-grid.test.tsx` (UC-V367). Coluna cujo dado a linha ainda não carrega mostra travessão (UC-V368); são **18 das 30** hoje, e a dívida está declarada no `casos.md`. Colunas fixas (`produto`/`qtd`/`preco`/`total`) não desligam nem saem de lugar.

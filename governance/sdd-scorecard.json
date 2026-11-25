@@ -23,18 +23,18 @@
       "detail": {
         "coverage_pct": 92.9,
         "specs_total": 59,
-        "us_total": 1261,
+        "us_total": 1262,
         "anchor_coverage_pct": 92.9,
         "by_state": {
-          "sem_campo": 80,
+          "sem_campo": 79,
           "placeholder": 6,
-          "pendente": 540,
-          "parcial": 158,
-          "anchored_ok": 473,
+          "pendente": 534,
+          "parcial": 160,
+          "anchored_ok": 479,
           "anchored_dead": 4,
           "anchored_zombie": 0
         },
-        "fields_total": 1188,
+        "fields_total": 1190,
         "fields_placeholder": 6,
         "fields_grammar_ok": 958,
         "orphan_fields": 7,
@@ -45,8 +45,8 @@
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 14,
         "behavior_known": false,
-        "servido_total": 26,
-        "nao_servido_total": 100,
+        "servido_total": 32,
+        "nao_servido_total": 94,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -108,13 +108,13 @@
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 251,
+      "value": 250,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 251
+        "quarantined_files": 250
       },
       "stream": "FV"
     },
@@ -141,8 +141,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 286,
-        "effectively_guarded": 286
+        "with_manual_ddl": 285,
+        "effectively_guarded": 285
       },
       "stream": "FV"
     },

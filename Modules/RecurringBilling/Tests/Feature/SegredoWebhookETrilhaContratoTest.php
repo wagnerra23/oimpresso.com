@@ -5,9 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Models\Subscription;
-use Modules\RecurringBilling\Services\Boleto\BoletoCredentialResolver;
 
 uses(Tests\TestCase::class);
 
@@ -81,16 +79,8 @@ it('d4 · a migration cifra o webhook_secret em claro, não cifra duas vezes e o
     expect(($this->config)($emClaro)['webhook_secret'])->toBe('segredo-legado-98');
 });
 
-it('d4 · o model e o resolver leem o segredo decifrado; valor em claro não é aceito como segredo', function () {
-    $cifrado = ($this->credencial)(['webhook_secret' => Crypt::encryptString('tok-98')]);
-    expect(BoletoCredential::query()->findOrFail($cifrado)->webhookSecret())->toBe('tok-98')
-        ->and((new BoletoCredentialResolver())->decryptConfig(['webhook_secret' => Crypt::encryptString('tok-98')])['webhook_secret'])
-        ->toBe('tok-98');
-
-    // Linha que escapou da migration (gravada em claro): não vira segredo válido.
-    $emClaro = ($this->credencial)(['webhook_secret' => 'tok-em-claro']);
-    expect(BoletoCredential::query()->findOrFail($emClaro)->webhookSecret())->toBeNull();
-});
+// O caso 'o model e o resolver leem o segredo decifrado' saiu em 2026-11-24 com o BoletoCredential e o
+// BoletoCredentialResolver (onda 5b). O webhook confere o segredo do PaymentGateway (AsaasWebhookAuthTest).
 
 it('d4 · mudar valor ou ciclo da assinatura entra no activity log, sem o resto da metadata', function () {
     $sub = Subscription::create(['business_id' => 98, 'contact_id' => 501, 'status' => 'active',

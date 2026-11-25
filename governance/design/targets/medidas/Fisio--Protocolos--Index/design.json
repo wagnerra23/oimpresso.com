@@ -1,0 +1,53 @@
+{
+  "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Protocolos.dc.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 4
+  },
+  "theme": "light",
+  "assinatura": "CN Clínica [NOME] IA Visão geral Atendimento 3 Cadastro 2 Clientes Produtos Comercial 2 Vendas Fisio 8 Agenda Pacientes Prescrever Biblioteca Protocolos ⋯ mais 3 Finanças 2 Caixa Financeiro Fiscal 1 Notas Fiscais DR Dra. Dejeane Fisioterapeuta · CREFITO [Nº] Fisio · Protocolos Protocolos-modelo Modelos de referência com a diretriz citada e a lógica à mostra. A passagem de fase é sempre sua. Novo protocolo da clínica 11 protocolos aprovados pelo produto 1 · Dor lombar inespecífica JOSPT/AOPT 2021 aguardando revisão da Dra. Dejeane 2 · Cervicalgia JOSPT 2017 aguardando revisão da Dra. Dejeane 3 · Osteoartrite de joelho AAOS 3ª ed. aguardando revisão da Dra. Dejeane 4 · Osteoartrite de quadril JOSPT 2025 aguardando revisão da Dra. Dejeane 5 · Dor patelofemoral JOSPT 2019 aguardando revisão da Dra. Dejeane 6 · Manguito rotador / dor no ombro JOSPT 2025 aguardando revisão da Dra. Dejeane 7 · Entorse de tornozelo JOSPT 2021 aguardando revisão da Dra. Dejeane 8 · Tendinopatia de Aquiles JOSPT 2024 aguardando revisão da Dra. Dejeane 9 · Fasciopatia plantar JOSPT 2023 aguardando revisão da Dra. Dejeane 10 · Epicondilalgia lateral JOSPT 2022 aguardando revisão da Dra. Dejeane 11 · Fibromialgia EULAR 2017 · SBR 2026 aguardando revisão da Dra. Dejeane Protocolo 11 Fibromialgia Aplicar a um paciente Modelo de referência. A decisão clínica é do fisioterapeuta. EULAR 2017 forte Exercício é a única terapia com recomendação forte a favor. SBR 2026 atual Aeróbico de baixo impacto como pilar; fortalecimento e alongamento ajudam. Cochrane 2017 · aeróbico moderada Melhora qualidade de vida; dor e função com certeza baixa. 2–3×/sem, 20–60 min. Cochrane 2013 · resistido baixa Benefício em função, dor e força comparado ao controle. SEM 1–4 Adaptação Caminhada leve 8–10 min · 3×/sem Respiração diafragmática 2×10 · diário Gato-camelo 2×8 Rotação de tronco 2×8 Passa quando: ≥ 80% das sessões por 2 semanas e nenhuma crise > 48 h ligada ao exercício. SEM 5–12 Construção Caminhada ou bicicleta +2–5 min/sem até 20–30 Sentar e levantar 1–2×8–10 Ponte de glúteo 1–2×8–10 Remada com elástico 1–2×10 Passa quando: sustenta 20 min de aeróbico 2×/sem e o fortalecimento 2×/sem por 2 semanas. SEM 13+ Manutenção Aeróbico 25–30 min · 2–3×/sem Fortalecimento 2×10–12 · 2×/sem Tai chi básico opcional Passa quando: mantém a rotina com autonomia; jogo em modo manutenção. Versão de crise · escrita por você Respiração diafragmática 5 min · gato-camelo 1×8 · rotação de tronco 1×8 O paciente escolhe \"hoje estou em crise\". Conta como dia cumprido; mais de 3 dias seguidos avisa você. Alerta de dor neste protocolo Sobre a dor basal do paciente: +2 pontos por mais de 24 h Fibromialgia tem dor diária; um limite fixo de 7 dispararia todo dia. Ajustável no programa.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.55 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Protocolos/Index",
+    "lado": "design",
+    "url": "http://127.0.0.1:63712/cowork/Wagner/prototipos/fisio/Protocolos.dc.html",
+    "componente": "Protocolos.dc.html",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:51.364Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

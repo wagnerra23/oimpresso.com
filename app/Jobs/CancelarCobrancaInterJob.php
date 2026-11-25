@@ -12,7 +12,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use App\Scopes\ScopeByBusiness;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 use RuntimeException;
 use Throwable;
 
@@ -27,7 +27,9 @@ use Throwable;
  *   2. Valida doc_type = boleto_inter
  *   3. Resolve charge real via doc_class+doc_id (MorphTo poly)
  *   4. Idempotência: charge já cancelado → log + return (sem chamar Inter)
- *   5. Chama Inter via BoletoService::cancelar() — usa InterDriver mTLS + OAuth2
+ *   5. Chama Inter pelo `InterDriver` do PaymentGateway via `CobrancaNoGateway` (credencial em
+ *      `payment_gateway_credentials`; até 2026-11-23 era a cópia do RB, `BoletoService` —
+ *      decisão b1, ADR 0170) — mTLS + OAuth2
  *      (motivo Inter PJ: APEDIDODOCLIENTE — cancelamento solicitado pelo cliente)
  *   6. Sucesso → marca charge.status='cancelled' + cancelled_at + cancellation_reason
  *   7. Falha Inter → log error + re-throw (Job retry tries=3 backoff=120s)
@@ -62,8 +64,12 @@ class CancelarCobrancaInterJob implements ShouldQueue
     /** Segundos entre retries (Inter PJ pode oscilar). */
     public int $backoff = 120;
 
-    /** Motivo Inter PJ default — cancelamento a pedido do cliente. */
-    private const MOTIVO_INTER_DEFAULT = 'APEDIDODOCLIENTE';
+    /**
+     * Motivo default — cancelamento a pedido do cliente. É o APELIDO que o `InterDriver` do
+     * PaymentGateway traduz para `APEDIDODOCLIENTE` (`mapMotivoCancelar`); o código cru do Inter
+     * cairia no `default` dele e iria como `ACERTOS`.
+     */
+    private const MOTIVO_INTER_DEFAULT = 'pedido_cliente';
 
     public function __construct(
         public readonly int $businessId,
@@ -71,7 +77,7 @@ class CancelarCobrancaInterJob implements ShouldQueue
         public readonly string $motivo,
     ) {}
 
-    public function handle(?BoletoService $boletoService = null): void
+    public function handle(?CobrancaNoGateway $gateway = null): void
     {
         // 1) Carrega documento ignorando global scope (Job sem session auth)
         $document = TransactionDocument::withoutGlobalScope(ScopeByBusiness::class)
@@ -124,7 +130,8 @@ class CancelarCobrancaInterJob implements ShouldQueue
 
         // 6) Resolve identificador Inter (nossoNumero / codigoSolicitacao).
         //    Convenção Inter PJ: campo gravado no momento da emissão pela
-        //    InterDriver::emitir() → BoletoResult.nossoNumero. O charge model
+        //    driver de emissão (hoje InterDriver::emitirBoleto() do PaymentGateway;
+        //    antes o InterDriver do RB, via BoletoResult.nossoNumero). O charge model
         //    real (a ser landed em US futura) deve expor um desses campos.
         $nossoNumero = $charge->nosso_numero
             ?? $charge->codigo_solicitacao
@@ -138,29 +145,15 @@ class CancelarCobrancaInterJob implements ShouldQueue
             );
         }
 
-        // 7) Resolve service Inter (existente) — se infra ainda não landed,
-        //    loga TODO gracioso (Agent BOLETO-003 stub pattern) e retorna.
-        $service = $boletoService ?? $this->resolverService();
+        // 7) Driver do PaymentGateway (credencial inter ativa da empresa; sem ela, lança e re-tenta).
+        $gateway ??= app(CobrancaNoGateway::class);
 
-        if ($service === null) {
-            Log::warning('CancelarCobrancaInterJob: BoletoService ausente — TODO stub', [
-                'business_id' => $this->businessId,
-                'document_id' => $document->id,
-                'nosso_numero' => $nossoNumero,
-                'motivo' => $this->motivo,
-                'todo' => 'US-CASCADE-BOLETO-004b: implementar quando InterService landed',
-            ]);
-
-            return;
-        }
-
-        // 8) Chama Inter PJ via service canônico (mTLS + OAuth2 + Bearer).
-        //    BoletoService.cancelar() → InterDriver.cancelar() → InterApi.cancelNossoNumero()
-        //    Motivo Inter PJ: APEDIDODOCLIENTE (cancelamento via FSM cancelar_venda
-        //    é a pedido cliente — ADR 0129 §FSM transitions).
+        // 8) POST /cobranca/v3/cobrancas/{nossoNumero}/cancelar, motivo APEDIDODOCLIENTE
+        //    (cancelamento via FSM cancelar_venda é a pedido cliente — ADR 0129 §FSM transitions).
         try {
-            $service->cancelar(
+            $gateway->cancelar(
                 $this->businessId,
+                'inter',
                 (string) $nossoNumero,
                 self::MOTIVO_INTER_DEFAULT,
             );
@@ -219,19 +212,6 @@ class CancelarCobrancaInterJob implements ShouldQueue
         }
     }
 
-    /**
-     * Resolve BoletoService via container; retorna null se classe ausente
-     * (stub gracioso até infra Inter Service estar landed em prod — pattern
-     * Agent BOLETO-003 do EstornarBoletoJob hub).
-     */
-    private function resolverService(): ?BoletoService
-    {
-        if (! class_exists(BoletoService::class)) {
-            return null;
-        }
-
-        return app(BoletoService::class);
-    }
 
     /**
      * Verifica se charge tem o atributo nomeado (sem disparar exception

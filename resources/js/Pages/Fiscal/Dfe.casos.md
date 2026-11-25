@@ -5,13 +5,15 @@ irmaos: Dfe.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-26"
-last_run_ci: "5 UC executados nesta corrida, em duas lanes diferentes — UC-FDFE-06 (vitest/jsdom: 4 casos verdes + 3 mutações provando que morde), UC-FDFE-07/08 (Pest no CT 100/MySQL: 3 passed / 9 assertions) e UC-FDFE-09/10 (Pest no CT 100/MySQL: 5 passed / 27 assertions). Os três blocos têm bite-test: mutar 1 das 4 chamadas → 1 failed nos 07/08; no 10, derrubar AS DUAS camadas de isolamento (o `where` explícito E o global scope) → 1 failed, porque cada uma segura sozinha. Os UC-FDFE-01..05 NÃO foram re-executados: são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava."
+last_run: "2026-11-24"
+last_run_ci: "revalidado em 2026-11-24: título 'Manifesto DF-e', como no protótipo (era 'Manifestação do destinatário'). Nenhum UC cita o título; a âncora do visreg foi trocada junto. Anterior: 5 UC executados nesta corrida, em duas lanes diferentes — UC-FDFE-06 (vitest/jsdom: 4 casos verdes + 3 mutações provando que morde), UC-FDFE-07/08 (Pest no CT 100/MySQL: 3 passed / 9 assertions) e UC-FDFE-09/10 (Pest no CT 100/MySQL: 5 passed / 27 assertions). Os três blocos têm bite-test: mutar 1 das 4 chamadas → 1 failed nos 07/08; no 10, derrubar AS DUAS camadas de isolamento (o `where` explícito E o global scope) → 1 failed, porque cada uma segura sozinha. Os UC-FDFE-01..05 NÃO foram re-executados: são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava."
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
 # Casos de Uso & Aceite — Manifesto DF-e
 
+> **Revalidação `last_run` 2026-11-24 (G-6):** depois de 2026-10-26 o `Dfe.tsx` teve um commit só, o #11197 (aba Histórico com as manifestações reais), que entrou junto com o UC-FDFE-17 e o teste dele. Nenhum outro caso desta tela mudou de comportamento; o UC-FDFE-18 entra agora e é do backend (montagem do Tools do NFePHP), não da tela.
+>
 > **Revalidação `last_run` 2026-10-26 (G-6):** depois de 2026-09-04 o `Dfe.tsx` teve um commit só,
 > o #7224 (2026-09-11), que troca um caminho dentro de comentário (`prototipo-ui/cowork/fiscal-subpages.jsx`
 > → `prototipo-ui/cowork/Wagner/fiscal-subpages.jsx`). Nenhum comportamento mudou, e os UCs seguem valendo.
@@ -295,6 +297,16 @@ corresponde — buscar pelo nome de um emitente não traz a nota do outro.
 - **Por que existe:** decisão [W] pendente desde a Onda 2, tomada em 2026-11-19 (lote 2 dos débitos do Fiscal): leitura real, mesma decisão das séries de Configurações.
 - **Sem "quem manifestou":** `nfe_dfe_eventos` não guarda o usuário; a coluna "Por" saiu em vez de mostrar autor inventado.
 - **Teste:** `DfeControllerTest` — `UC-FDFE-17 · a aba Histórico mostra as manifestações reais, com a justificativa do evento`.
+- **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FDFE-18 — A busca e a manifestação chegam a montar a conexão com a SEFAZ `[must]` `[T0]`
+
+**Dado** uma empresa com CNPJ e certificado A1
+**Quando** a busca diária de notas recebidas ou uma manifestação monta a conexão do NFePHP
+**Então** a conexão sai com o modelo 55 e segue para a SEFAZ, sem erro de tipo.
+
+- **Por que existe:** em 2026-11-24 o cockpit do biz=1 mostrava "A busca das notas recebidas na SEFAZ falhou" com `Tools::model(): Argument #1 ($model) must be of type ?int, string given`. Os dois services são `strict_types` e passavam `'55'`; os testes existentes injetavam um `toolsFactory` e nunca montavam o Tools real.
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-18 · a busca e a manifestação montam o Tools do NFePHP com o modelo 55, sem TypeError` (os dois services, Tools real, certificado autoassinado gerado no teste).
 - **Status:** 🧪 — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ---

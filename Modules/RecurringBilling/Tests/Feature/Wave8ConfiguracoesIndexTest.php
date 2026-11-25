@@ -11,6 +11,7 @@ declare(strict_types=1);
  *   UC-RBCFG-03 — gateway de um business não aparece pro outro [T0]
  *   UC-RBCFG-04 — a URL de webhook reflete o business da sessão [T0][V0]
  *   UC-RBCFG-09 — URL e header exibidos são os que o webhook de fato atende [V0]
+ *   UC-RBCFG-12 — a copy da régua e da NFe está em português, sem identificador técnico
  */
 
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +19,7 @@ use Inertia\Testing\AssertableInertia;
 use Modules\RecurringBilling\Http\Controllers\AsaasWebhookController;
 use Modules\RecurringBilling\Http\Controllers\ConfiguracoesController;
 use Modules\RecurringBilling\Http\Controllers\InterWebhookController;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 uses(Tests\TestCase::class);
 
@@ -46,20 +47,23 @@ beforeEach(function () {
         $this->markTestSkipped('Wave 8 — Pest rodado apenas em SQLite in-memory.');
     }
 
-    Schema::dropIfExists('rb_boleto_credentials');
-    Schema::create('rb_boleto_credentials', function ($table) {
+    // Desde a onda 3 (2026-11-24) a lista vem de payment_gateway_credentials.
+    Schema::dropIfExists('payment_gateway_credentials');
+    Schema::create('payment_gateway_credentials', function ($table) {
         $table->id();
         $table->unsignedInteger('business_id')->index();
-        $table->unsignedBigInteger('conta_bancaria_id')->nullable();
-        $table->string('banco', 20);
+        $table->string('gateway_key', 30);
         $table->string('ambiente', 20)->default('production');
         $table->boolean('ativo')->default(true);
-        $table->json('config_json')->nullable();
         $table->string('nome_display')->nullable();
+        $table->longText('config_json')->nullable();
+        $table->unsignedInteger('conta_bancaria_id')->nullable();
+        $table->string('health_status', 20)->nullable();
+        $table->timestamp('health_checked_at')->nullable();
         $table->timestamps();
     });
 
-    // BoletoCredential usa LogsActivity (Spatie) — requer tabela activity_log
+    // PaymentGatewayCredential usa LogsActivity (Spatie) — requer tabela activity_log
     // pra LGPD audit trail (D7). Stub mínimo schema-compatível.
     Schema::dropIfExists('activity_log');
     Schema::create('activity_log', function ($table) {
@@ -85,12 +89,12 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    // rb_boleto_credentials é real-migrada; o afterEach roda mesmo em teste pulado
+    // payment_gateway_credentials é real-migrada; o afterEach roda mesmo em teste pulado
     // (PHPUnit 12: tearDown gated só por hasMetRequirements), então dropá-la no MySQL
     // persistente corromperia testes irmãos do módulo. DDL só em sqlite :memory:.
     if (config('database.default') === 'sqlite'
         && str_contains((string) config('database.connections.sqlite.database'), ':memory:')) {
-        Schema::dropIfExists('rb_boleto_credentials');
+        Schema::dropIfExists('payment_gateway_credentials');
     }
 });
 
@@ -168,6 +172,56 @@ it('UC-RBCFG-02 · expõe régua de dunning canônica com 3 retentativas estrutu
 });
 
 /**
+ * Auditoria RB b7: o módulo não envia e-mail nem WhatsApp de cobrança. A régua não promete esses
+ * canais: eles vêm marcados como não disponíveis, e nenhum texto da régua diz que são enviados.
+ */
+it('UC-RBCFG-02 · a régua marca e-mail e WhatsApp como não disponíveis e não promete envio', function () {
+    $response   = app(ConfiguracoesController::class)->index(request());
+    $propsProp  = (new ReflectionClass($response))->getProperty('props');
+    $propsProp->setAccessible(true);
+    $regua = $propsProp->getValue($response)['regua_dunning'];
+
+    expect($regua['canais_aviso'])->toBe([
+        ['canal' => 'E-mail', 'disponivel' => false],
+        ['canal' => 'WhatsApp', 'disponivel' => false],
+    ]);
+
+    $textos = mb_strtolower($regua['descricao'].' '.implode(' ', array_column($regua['retentativas'], 'descricao')));
+    expect(str_contains($textos, 'whatsapp'))->toBeFalse()
+        ->and(str_contains($textos, 'email'))->toBeFalse()
+        ->and(str_contains($textos, 'e-mail'))->toBeFalse();
+});
+
+/**
+ * Forma do protótipo rb-config (medição 2026-11-23, divergência 8): a régua e a NFe automática
+ * falam a língua do operador. Identificador de código (status, coluna, nome de componente) na
+ * copy é o que a sonda acusou (`past_due → fail`, "detail drawer", `fiscal_type`).
+ */
+it('UC-RBCFG-12 · a copy da régua e da NFe está em português, sem identificador técnico', function () {
+    $response  = app(ConfiguracoesController::class)->index(request());
+    $propsProp = (new ReflectionClass($response))->getProperty('props');
+    $propsProp->setAccessible(true);
+    $props = $propsProp->getValue($response);
+
+    $regua = $props['regua_dunning'];
+    $textos = [$regua['descricao'], $props['nfe_auto']['descricao']];
+    foreach ($regua['retentativas'] as $r) {
+        $textos[] = $r['descricao'];
+    }
+
+    foreach ($textos as $t) {
+        // snake_case (past_due, fiscal_type), seta de transição de status e jargão de UI em inglês.
+        expect(preg_match('/\b[a-z]+_[a-z_]+\b/', $t))->toBe(0)
+            ->and(str_contains($t, '→'))->toBeFalse()
+            ->and(preg_match('/\b(fail|drawer|soft decline|webhook)\b/i', $t))->toBe(0);
+    }
+
+    // A frase final da régua é a do protótipo.
+    expect($regua['retentativas'][2]['descricao'])
+        ->toBe('Falha definitiva — a assinatura passa para “falhou” e pede ação manual no detalhe da assinatura.');
+});
+
+/**
  * Cenário 3 — Webhooks URLs canônicas com business_id correto na URL.
  */
 it('UC-RBCFG-04 · expõe webhooks Asaas e Inter PJ com URL scopada por business_id', function () {
@@ -201,29 +255,38 @@ it('UC-RBCFG-04 · expõe webhooks Asaas e Inter PJ com URL scopada por business
 
 /**
  * Cenário 4 — Multi-tenant Tier 0: gateways biz=1 NÃO vazam pra biz=99.
- * Cross-tenant isolation via HasBusinessScope automático em BoletoCredential.
+ * Cross-tenant isolation via HasBusinessScope + where explícito em PaymentGatewayCredential.
  */
 it('UC-RBCFG-03 · aplica multi-tenant Tier 0 — gateways biz=1 não aparecem pra biz=99', function () {
-    // Cria 3 credenciais: 2 biz=1, 1 biz=99 (vazamento se scope falhar).
-    BoletoCredential::create([
+    // 4 credenciais: 2 biz=1 de banco que o RB usa, 1 biz=1 de outro gateway (fora da tela)
+    // e 1 biz=99 (vazamento se o scope falhar).
+    PaymentGatewayCredential::create([
         'business_id'  => 1,
-        'banco'        => 'inter',
+        'gateway_key'  => 'inter',
         'ambiente'     => 'production',
         'ativo'        => true,
-        'config_json'  => ['client_secret' => 'enc'],
+        'config_json'  => ['client_secret' => 'segredo-inter'],
         'nome_display' => 'Inter PJ biz1',
     ]);
-    BoletoCredential::create([
+    PaymentGatewayCredential::create([
         'business_id'  => 1,
-        'banco'        => 'asaas',
+        'gateway_key'  => 'asaas',
         'ambiente'     => 'sandbox',
         'ativo'        => true,
-        'config_json'  => ['api_key' => 'enc'],
+        'config_json'  => ['api_key' => 'segredo-asaas'],
         'nome_display' => 'Asaas biz1 sandbox',
     ]);
-    BoletoCredential::create([
+    PaymentGatewayCredential::create([
+        'business_id'  => 1,
+        'gateway_key'  => 'pagarme',
+        'ambiente'     => 'production',
+        'ativo'        => true,
+        'config_json'  => ['secret_key' => 'segredo-pagarme'],
+        'nome_display' => 'Pagarme biz1 (fora da tela do RB)',
+    ]);
+    PaymentGatewayCredential::create([
         'business_id'  => 99,
-        'banco'        => 'c6',
+        'gateway_key'  => 'c6',
         'ambiente'     => 'production',
         'ativo'        => true,
         'config_json'  => ['api_key' => 'enc'],
@@ -250,6 +313,9 @@ it('UC-RBCFG-03 · aplica multi-tenant Tier 0 — gateways biz=1 não aparecem p
     expect($bancos)->toContain('inter');
     expect($bancos)->toContain('asaas');
     expect($bancos)->not->toContain('c6'); // vazamento bloqueado
+    expect($bancos)->not->toContain('pagarme'); // gateway que o RB não usa fica fora
+    // UC-RBCFG-01: nenhum segredo do config_json chega ao payload.
+    expect(json_encode($gateways))->not->toContain('segredo-');
 
     foreach ($gateways as $g) {
         expect($g)->toHaveKeys([

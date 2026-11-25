@@ -121,7 +121,7 @@ function nfgtLimpar(): void
     }
     DB::table('nfe_fiscal_rules')->whereIn('business_id', $bizs)->delete();
     DB::statement('SET FOREIGN_KEY_CHECKS=1');
-    session()->forget('nfe_import_csv_linhas');
+    session()->forget(['nfe_import_csv_conferencia', 'nfe_import_csv_business_id']);
 }
 
 /** Spatie cacheia o mapa de permissões — sem invalidar, o grant/revoke do teste não vale. */
@@ -203,7 +203,7 @@ it('UC-NFRF-01 · criar e editar regra exigem nfe.tributacao.manage', function (
     $existente = nfgtRegra(nfgtBiz());
 
     $this->post('/nfe-brasil/tributacao/regras', nfgtPayload())->assertForbidden();
-    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['aliquota_icms' => 0.25]))
+    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
         ->assertForbidden();
 
     // Nada gravado: a contagem só subiu pela regra que o próprio teste semeou…
@@ -219,7 +219,8 @@ it('UC-NFRF-01 · criar e editar regra exigem nfe.tributacao.manage', function (
     $this->post('/nfe-brasil/tributacao/regras', nfgtPayload())->assertRedirect();
     expect(nfgtContar(nfgtBiz()))->toBe($antes + 2);
 
-    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['aliquota_icms' => 0.25]))
+    // A edição mantém o NCM da regra: levá-la para o 49019900 recém-criado seria duplicata (UC-NFRF-10).
+    $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
         ->assertRedirect();
     // Desde a thread 07 (R-NFE-019) editar gera versão nova: a alíquota nova está na versão
     // vigente da cadeia, e a antiga segue com 0.12 explicando as notas de antes.
@@ -321,7 +322,7 @@ it('UC-NFIM-01 · preview não grava regra nenhuma; aplicar depois grava', funct
                                       // passaria por o CSV nunca ter sido aceito.
 
     // Pré-condição anti-vácuo: o preview de fato parseou linhas.
-    expect(session('nfe_import_csv_linhas'))->not->toBeEmpty();
+    expect(session('nfe_import_csv_conferencia'))->not->toBeEmpty(); // UC-NFIM-15: a sessão guarda a referência, não as linhas
 
     // O passo de conferência só vale se for inócuo.
     expect(nfgtContar(nfgtBiz()))->toBe($antes);
@@ -343,7 +344,7 @@ it('UC-NFIM-02 · aplicar sem preview anterior é recusado e não grava', functi
     nfgtRegra(nfgtBiz());
     $antes = nfgtContar(nfgtBiz());
 
-    session()->forget('nfe_import_csv_linhas');
+    session()->forget(['nfe_import_csv_conferencia', 'nfe_import_csv_business_id']);
 
     $this->post('/nfe-brasil/tributacao/import/aplicar')
         ->assertRedirect()
@@ -362,7 +363,7 @@ it('UC-NFIM-03 · aplicar sem nfe.tributacao.manage dá 403 e não grava', funct
     $this->post('/nfe-brasil/tributacao/import/preview', ['arquivo' => nfgtArquivo()])
         ->assertRedirect()
         ->assertSessionHasNoErrors();
-    expect(session('nfe_import_csv_linhas'))->not->toBeEmpty();
+    expect(session('nfe_import_csv_conferencia'))->not->toBeEmpty(); // UC-NFIM-15: a sessão guarda a referência, não as linhas
 
     $antes = nfgtContar(nfgtBiz());
 
@@ -383,7 +384,7 @@ it('UC-NFIM-04 · linhas conferidas no business A não podem ser gravadas no bus
     $this->post('/nfe-brasil/tributacao/import/preview', ['arquivo' => nfgtArquivo()])
         ->assertRedirect()
         ->assertSessionHasNoErrors();
-    expect(session('nfe_import_csv_linhas'))->not->toBeEmpty();
+    expect(session('nfe_import_csv_conferencia'))->not->toBeEmpty(); // UC-NFIM-15: a sessão guarda a referência, não as linhas
 
     $antesB = nfgtContar(nfgtBizOutro());
 

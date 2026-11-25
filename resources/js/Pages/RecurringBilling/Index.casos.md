@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento de cobrar é durável — a assinatura que fatura hoje tem que faturar depois do refactor.
 owner: wagner
-last_run: "2026-10-27"
-last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloco Pix Automatico no drawer (PixAutomaticoBloco, so com o recurso ligado), coberto pelo UC-RBPA-14 deste arquivo; MandatoPixAutomaticoContratoTest rodou no CT 100 MySQL no head combinado da pilha (29 passed, 104 assertions, com os testes de webhook, cobranca e driver) e o vitest do bloco deu 6 passed. Os demais UCs nao tocam o drawer de mandato. ---- REGISTRO ANTERIOR: last_run 2026-10-13. 2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (ancoras do contrato de tela), sem dado, handler, copy nem classe; nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-09-11. 2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: 2026-08-28 (PR desta sessão) — REVALIDAÇÃO ANALÍTICA, suíte NÃO executada. Por quê: Pest só roda no CT 100 (proibição Ti..."
+last_run: "2026-11-23"
+last_run_ci: "2026-11-23 (PR forma do protótipo, auditoria RecurringBilling) — REVALIDACAO ANALITICA, suite NAO executada (Pest só no CT 100). O que a mudanca E: as abas com contador a direita do titulo sairam; a navegacao entre as 4 vistas vira a faixa RecurringBillingSubNav abaixo do titulo, derivada dos ghosts do sidebar (mesmos destinos /recurring-billing, /planos, /faturas, /configuracoes). Zero linha de controller, presenter ou query. Nenhum UC asserta as abas; os de status, tenant, drawer, cartao e Pix leem o mesmo payload. Status segue do manifesto G-7. ---- REGISTRO ANTERIOR: last_run 2026-11-23. 2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloco Pix Automatico no drawer (PixAutomaticoBloco, so com o recurso ligado), coberto pelo UC-RBPA-14 deste arquivo; MandatoPixAutomaticoContratoTest rodou no CT 100 MySQL no head combinado da pilha (29 passed, 104 assertions, com os testes de webhook, cobranca e driver) e o vitest do bloco deu 6 passed. Os demais UCs nao tocam o drawer de mandato. ---- REGISTRO ANTERIOR: last_run 2026-10-13. 2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (ancoras do contrato de tela), sem dado, handler, copy nem classe; nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-09-11. 2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: 2026-08-28 (PR desta sessão) — REVALIDAÇÃO ANALÍTICA, suíte NÃO executada. Por quê: Pest só roda no CT 100 (proibição Ti..."
 ---
 
 > ℹ️ **`last_run` 2026-09-08 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -316,8 +316,20 @@ sem mandato → status nulo e o botão "Pedir autorização"; `CRIADA` → o QR 
 Teste: `MandatoPixAutomaticoContratoTest`.
 Status: 🧪
 
+## UC-RBPA-15 · O txid da cobrança do ciclo vai para a fatura, e o Pix do Inter com ele quita a fatura certa · `must` `[V0]`
+Fonte: auditoria RecurringBilling 2026-11-19, achado a4 (nenhum código de produção gravava `rb_invoices.gateway_ref`).
+Teste: `CobrarPixAutomaticoContratoTest`.
+**Dado** uma assinatura com recorrência aprovada vencendo em 5 dias **Quando** o motor emite a cobrança do ciclo **Então** a
+fatura guarda o `txid` da cobrança em `gateway_ref` (o mesmo `gateway_external_id` da cobrança) e o `gateway` fica nulo; e o
+Pix do Inter com esse `txid` deixa só aquela fatura `paid` e dispara 1 `InvoicePaid` com o `numero_documento` dela.
+Status: 🧪
+
 ## Cartão recorrente — cartão salvo como token (US-RB-011 · reaberta por [W] 2026-10-27)
 
+> **Tela (2026-11-23, b5 [W] 2026-11-19 "Entra"):** o drawer ganhou o bloco *Cartão recorrente*
+> (`CartaoRecorrenteBloco`, forma do `CartaoRecorrenteCard` do protótipo), coberto pelos UC-RBCC-05/06.
+> A lista de tentativas que o protótipo desenha fica fora: a régua de cartão (US-RB-013) não tem motor.
+>
 > Motor sem tela nesta fatia: quando a fatura de uma assinatura é paga no cartão pela página hospedada
 > do Asaas, o listener `SalvarCartaoDaCobrancaPaga` (só com `RB_SALVAR_CARTAO=true`) guarda o token do
 > cartão e o liga à assinatura, para as próximas faturas serem cobradas nele. Fonte: SPEC US-RB-011
@@ -351,6 +363,20 @@ Status: 🧪
 - **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-04 · evento com business errado não salva o cartão da cobrança do outro`.
 - **Regressão que defende:** ADR 0093 (`business_id` em toda leitura e escrita) e ADR 0358 (98 grava, 99 fica intacto).
 - **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 3 assertions; ✅ quando `casos:results` regravar o manifesto.
+
+## UC-RBCC-05 · O drawer mostra bandeira e final do cartão salvo, nunca o token · `must` `[T0]`
+- **Persona:** gestor da carteira que abre a assinatura no cartão e quer saber em qual cartão a próxima fatura vai cair, sem pedir ao cliente.
+- **Aceite:** Dado `RB_SALVAR_CARTAO` ligada e uma assinatura no cartão com cartão salvo · Quando a tela monta a lista de assinaturas · Então o drawer recebe só a bandeira e os últimos 4 (`cartao_recorrente`), e o JSON não leva o token, nem cifrado nem o hash; Dado a assinatura sem cartão · Então os dois campos vêm vazios e o bloco explica que o cartão fica salvo no 1º pagamento no cartão; Dado a flag desligada · Então `cartao_recorrente = null` e o bloco não aparece.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoRecorrenteDrawerContratoTest.php` — `UC-RBCC-05 · o drawer mostra bandeira e últimos 4 do cartão salvo, e o token nunca vai nas props` (lane `recurringbilling-pest`, MySQL) · render dos estados em `tests/cartao-recorrente-bloco.test.tsx` (vitest).
+- **Regressão que defende:** SPEC US-RB-011 (o oimpresso guarda só o token do gateway e mostra só bandeira e final; PCI) e o charter (recurso atrás da flag, como o Pix Automático).
+- **Status: 🧪** — nasce neste PR; ✅ quando `casos:results` regravar o manifesto com a lane verde.
+
+## UC-RBCC-06 · A empresa 99 não vê o cartão da 98 · `must` `[T0]`
+- **Persona:** dono de outra empresa no mesmo servidor (isolamento Tier 0, ADR 0093).
+- **Aceite:** Dado um cartão salvo do tenant 98 · Quando uma assinatura do 99 aponta para ele em `cartao_salvo_id` · Então o drawer do 99 recebe `cartao_recorrente` vazio e nada do cartão do 98, e a lista do 99 não traz assinatura do 98; Dado um cartão `removido` · Então ele também não aparece.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoRecorrenteDrawerContratoTest.php` — `UC-RBCC-06 · a empresa 99 não vê o cartão da 98, nem apontando para ele`.
+- **Regressão que defende:** ADR 0093 (`business_id` em toda leitura) e ADR 0358 (98 × 99).
+- **Status: 🧪** — nasce neste PR.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 

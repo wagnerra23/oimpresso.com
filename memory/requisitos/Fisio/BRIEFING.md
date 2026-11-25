@@ -2,8 +2,8 @@
 id: requisitos-fisio-briefing
 module: Fisio
 status: em-construcao
-status_nota: "ADR 0437 aceita em 2026-10-18; esqueleto de Modules/Fisio no PR #9536 (US-FISIO-002), sem schema nem telas"
-updated_at: "2026-10-18"
+status_nota: "F1, agenda, pacote, fila fiscal e laudo em produção; falta conteúdo clínico revisado, decisões de valor e as etapas F2, F4 e lançamento"
+updated_at: "2026-11-23"
 owner: W
 related_adrs: ["0437-modulo-fisio-vertical-fisioterapia"]
 ---
@@ -19,13 +19,23 @@ Vertical de fisioterapia dentro do oimpresso: o profissional monta o programa de
 
 ## Estado atual
 
-Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md), 2026-10-18). O esqueleto de `Modules/Fisio` (pacote, permissões, menu condicionado, instalação) está no PR #9536 (US-FISIO-002), junto com a suíte de testes da F1, escrita antes do código. Responsável técnica do conteúdo clínico: Dra. Dejeane.
+Medido em 2026-11-23 sobre `main` `ed8598c` (SPEC, telas e lane `Pest (Verticais · MySQL)`, run 44962970620). Decisão: [ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md). Responsável técnica do conteúdo clínico: Dra. Dejeane.
 
-Em 2026-10-18 entraram, depois do esqueleto: schema (US-003), biblioteca (US-004, parcial), pacientes e prontuário (US-005), questionários (US-011, parcial), o núcleo de cálculo (#9547) e o painel do profissional com a aba Evolução (US-010; o caso de nível e sequência na tabela depende do portal, US-007). O portal do paciente ainda não existe, então o painel abre sem check-ins e mostra estado vazio.
+O que está no ar, por bloco (detalhe e âncoras no [`SPEC.md`](SPEC.md)):
 
-Em 2026-10-18 a ficha do paciente ganhou a exportação do prontuário em PDF (UC-FPS-19..20, [`Show.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.casos.md)); cada exportação fica no `activity_log`.
+- **F1 · programa e constância:** esqueleto, schema, biblioteca, pacientes e prontuário, editor de programa e protocolos, portal do paciente (link + PIN, consentimentos, check-in), jogo de constância, envio e lembrete por WhatsApp, painel e evolução (US-FISIO-002 a 010).
+- **Primeira configuração e pré-anamnese:** onboarding de 5 passos e pré-anamnese no portal (US-FISIO-050, 051).
+- **Agenda:** schema, regras (conflito, encaixe, bloqueio, falta, cancelamento tardio, lista de espera), tela da clínica, configuração do agendamento pelo app e agenda no portal do paciente com marcar, confirmar, remarcar e "Cheguei" (US-FISIO-013 a 016).
+- **Pacote e fiscal:** pacote de sessões com saldo vindo de ledger sem valor em dinheiro, aba "Pacote e cobrança" com comprovante em PDF, ligar a venda do núcleo ao pacote e estorno quando a venda é cancelada, fila fiscal do dia com NFS-e e Receita Saúde (US-FISIO-020, 021, 023; 022 parcial).
+- **Fibromialgia e associação:** dados sociais opcionais, relatório agregado para a associação, laudo biopsicossocial no modelo SES-SC, exames e receitas por foto com transcrição conferida, medicamentos em uso, atestado e estudo com consentimento (US-FISIO-060 a 063, 060 e 063 em construção).
 
-Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhido por busca no servidor (nome ou celular, até 20, só da empresa e sem ficha) ou criado na hora como cliente pelo cadastro de contatos do sistema, sem duplicar celular na empresa; contato apagado não vira paciente — casos UC-FPI-05..07 em [`Pacientes/Index.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.casos.md).
+O que falta:
+
+- **Fechar com a Dra. Dejeane:** textos dos questionários (US-FISIO-011), posição e equipamento dos exercícios globais da biblioteca, e o fechamento da F1 (US-FISIO-012).
+- **Terminar:** laudo biopsicossocial (US-FISIO-060) e exames por foto (US-FISIO-063); na agenda do portal, a nota 1–5 e o confirmar pelo link da mensagem não têm caso próprio.
+- **Decisão de [W]:** renovar pacote pela venda do núcleo (US-FISIO-022, mexe em valor), planos do Fisio no Superadmin (US-FISIO-025).
+- **Bloqueado fora do Fisio:** lote do Receita Saúde sem o layout oficial (US-FISIO-024); NFS-e sem IBS/CBS, tela de venda sem contato e produto pré-preenchidos, e mensalidade do RecurringBilling que não vira título no Financeiro (lacunas do núcleo no SPEC).
+- **Etapas não iniciadas:** câmera no aparelho ([F2](etapas/03-f2-camera.md)), IA de documentação e mais questionários ([F4](etapas/05-f4-ia-questionarios.md)) e lançamento com piloto ([etapa 06](etapas/06-lancamento.md)).
 
 ## Portas canônicas
 
@@ -34,7 +44,7 @@ Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhi
 - **Requisitos:** [`SPEC.md`](SPEC.md)
 - **Execução da F1:** [`HANDOFF-F1.md`](HANDOFF-F1.md)
 - **Especificações por etapa:** [`etapas/`](etapas/)
-- **Telas:** `Modules/Fisio/Resources/js/Pages/Fisio/` + charters/casos ao lado das Pages (a criar)
+- **Telas:** `Modules/Fisio/Resources/js/Pages/Fisio/` + charters/casos ao lado das Pages
 
 - **Biblioteca — mídia do exercício próprio (2026-10-18):** a clínica anexa foto ou vídeo MP4 curto ao exercício dela, pelo backbone `Modules/Arquivos`, visível só para a empresa (UC-FBI-05..07, `FisioBibliotecaMidiaTest`).
 
@@ -49,7 +59,7 @@ Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhi
 
 ## Próxima ação verificável
 
-- US-FISIO-001 (trio SDD) e US-FISIO-002 (esqueleto) — dono: [W]/Claude Code — evidência: `feature-lint --check` verde e testes de visibilidade passando.
+- US-FISIO-011 (textos dos questionários) e seed da biblioteca revisados pela Dra. Dejeane — dono: [W] — evidência: PR com a revisão anotada e `FisioQuestionarioTest` verde; depois fecha a US-FISIO-012.
 
 ## Regra de manutenção
 

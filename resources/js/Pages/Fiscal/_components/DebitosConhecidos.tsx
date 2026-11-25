@@ -9,30 +9,15 @@
 // registra a medição que motivou derivar: a constante escrita à mão do protótipo já
 // afirmava duas coisas falsas sobre o sistema, porque o repo andou e ela não.
 //
-// DELTA CONSCIENTE vs o protótipo, e o motivo: a moldura ali é a classe `.fx-debito`, com
-// `border-left` tonal própria. Aqui a moldura é o `Alert` do Design System e o tom vira
-// `Badge` nas variantes de ESTADO já tokenizadas (`danger`/`warning`/`info`) — classe
-// `fx-*` nova é proibida, e a variante de estado do Badge é exatamente o par
-// `-soft`/`-fg` que o AP7 do PRE-MERGE-UI pede (dot + texto colorido, sem fill sólido).
-// A borda esquerda tonal sobrevive por token (`border-l-warning` etc.), não por hex.
-//
-// `Badge` e não `StatusBadge`: o `StatusBadge` é status-de-DOMÍNIO, resolvido por
-// `kind` + `value` num mapping interno. Severidade de débito não é valor de domínio, e
-// abrir um `kind` para ela editaria um arquivo que 14 telas importam — alcance que este
-// bloco não precisa. As variantes de estado do `Badge` são o mesmo DS, sem esse raio.
+// FORMA = A DO PROTÓTIPO (2026-11-23). Até aqui o item era o `Alert` do DS com um `Badge` de
+// rótulo, declarado como "delta consciente". Medido produção × protótipo no escuro, o Alert
+// saía com padding 12/16, raio 12px, título e texto em 14px e um selo que o protótipo não tem;
+// a regra `.fx-debito` do `fiscal-page.css` (L216-223) é padding 10/14, raio 8px, fundo
+// `--bg-2`, título `--fs-3` e texto `--fs-2`. No eixo forma o protótipo manda (UI-0029), então
+// o markup e a regra agora são os dele. O RÓTULO do marcador (`sem teste`, `source-grep`…) não
+// aparece no protótipo; ele segue no dado como `data-rotulo`, para o teste e para quem inspeciona.
 
-import { Stack } from '@/Components/layout';
-import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
-import { Badge } from '@/Components/ui/badge';
-
-import { DEBITOS_CONHECIDOS, type TomDebito } from '../_lib/debitos-conhecidos';
-
-/** Borda esquerda tonal — o equivalente do `.fx-debito[data-tom]` do protótipo, por token. */
-const BORDA_POR_TOM: Record<TomDebito, string> = {
-  danger: 'border-l-destructive',
-  warning: 'border-l-warning',
-  info: 'border-l-info',
-};
+import { DEBITOS_CONHECIDOS } from '../_lib/debitos-conhecidos';
 
 interface DebitosConhecidosProps {
   /** A `route` da tela (o mesmo id de `_lib/paginas-fiscais`). */
@@ -50,35 +35,20 @@ export default function DebitosConhecidos({ route }: DebitosConhecidosProps) {
   if (itens.length === 0) return null;
 
   return (
-    // `Stack asChild` e não `flex flex-col` solto: ADR 0253 (o `layout:check` é ratchet e
-    // mordeu este arquivo). `gap={2}` (8px) porque o Stack enumera o espaço em token — o
-    // `gap-1.5` (6px) que estava aqui era px literal, que é justamente o que a ADR remove.
-    <Stack gap={2} asChild className="mt-4">
-      <section data-contract="debitos-conhecidos">
-        <h3 className="m-0 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">
-          Débitos conhecidos desta tela
-        </h3>
-
-        {itens.map(d => (
-          <Alert
-            key={`${d.ancora}::${d.titulo}`}
-            data-tom={d.tom}
-            data-ancora={d.ancora}
-            className={`border-l-2 ${BORDA_POR_TOM[d.tom]}`}
-          >
-            {/* `line-clamp-none` desfaz o `line-clamp-1` que o AlertTitle traz por padrão:
-                o título aqui é o contrato do débito, e truncar contrato é esconder a
-                violação em vez de acomodá-la. */}
-            <AlertTitle className="line-clamp-none text-pretty">{d.titulo}</AlertTitle>
-            <AlertDescription>
-              <p className="max-w-[92ch] text-pretty">{d.texto}</p>
-              <Badge variant={d.tom} dot>
-                {d.rotulo}
-              </Badge>
-            </AlertDescription>
-          </Alert>
-        ))}
-      </section>
-    </Stack>
+    <section className="fx-debitos" data-contract="debitos-conhecidos">
+      <h3>Débitos conhecidos desta tela</h3>
+      {itens.map(d => (
+        <div
+          key={`${d.ancora}::${d.titulo}`}
+          className="fx-debito"
+          data-tom={d.tom}
+          data-ancora={d.ancora}
+          data-rotulo={d.rotulo}
+        >
+          <b>{d.titulo}</b>
+          <small>{d.texto}</small>
+        </div>
+      ))}
+    </section>
   );
 }

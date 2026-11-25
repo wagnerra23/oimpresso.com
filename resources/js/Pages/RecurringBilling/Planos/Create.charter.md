@@ -8,8 +8,9 @@ parent_module: RecurringBilling
 related_adrs: [93, 94, 101, 104, 107, 110]
 tier: A
 charter_version: 1
+runbook: memory/requisitos/RecurringBilling/RUNBOOK-recurring-billing-index.md
 sidebar_group: fin (FINANCEIRO)
-related_prototype: n/a (herda PT-02 Form/Drawer; segue o Padrao de Tela)  # 2026-11-19 [CC]: o motivo de 2026-09-09 caducou — a aba "planos" do `cobranca-recorrente-page.jsx` deixou de ser `<Placeholder>` (commit 75e44b87d8, 2026-10-28) e hoje mapeia `rb-planos` com drawers `novo`→Planos/Create e `editar`→Planos/Edit (`:1059`). O n/a fica porque o arquivo segue porte REVERSO (`:2` "Reescreve a RecurringBilling do git"): promover ancoraria a tela nela mesma (§5 2026-06-05); promover é decisão [W]. Registro de 2026-09-09 preservado: 2026-09-09 [C]: declaração de PT herdado. A aba "planos" do `cobranca-recorrente-page.jsx:369` é um `<Placeholder>` de 3 elementos e o arquivo é porte REVERSO (`:2` "Reescreve a RecurringBilling do git") — mesmo veredito dos 3 charters irmãos anotados no #7099; e Create/Edit nem são abas daquele hub, então há menos ainda. Promover ancoraria a tela nela mesma (§5 2026-06-05). ⚠️ PT-02 sem template renderizado — decisão [W] em §5.7. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.
+related_prototype: prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx  # 2026-11-23: decisão b4 de [W] (2026-11-19). Histórico em "## Âncora de design".
 related_us: [US-RB-001]
 ---
 
@@ -22,12 +23,12 @@ Formulário pra cadastrar novo plano de assinatura (nome / slug / valor / ciclo 
 ## Goals — Features (faz)
 
 - AppShellV2 layout
-- Header `Novo plano · cobrança recorrente` + breadcrumb Voltar
+- Desde 2026-11-23: drawer de 560px sobre a lista de planos (`../_components/PlanoFormDrawer.tsx`), forma do protótipo `rb-planos` — título 14px, rótulo de seção 10.5px/500 em caixa alta, seção com borda de 1px, campo 32px raio 6, botões 32px sem ícone, rodapé com borda superior. Esta URL é a lista com o drawer aberto; fechar volta para `/recurring-billing/planos`
 - Form com campos: name (required), slug (auto-derivado de name se vazio), descricao_curta (opcional), description (textarea), valor (BRL input), ciclo (select com 5 opções), ciclo_dias (input só quando ciclo=custom), trial_days (0-90), ativo (checkbox default true), fiscal_type (select 3 opções), fiscal_cfop (só quando NFe), fiscal_servico (só quando NFS-e)
 - `useForm()` Inertia (`router.post` via `form.post`)
 - Validation errors inline por campo (vermelho com mensagem)
 - Submit redirect `Planos.index` com flash success
-- Botões: Salvar (primary violet) + Cancelar (volta pra Index)
+- Botões: Salvar plano (primary, sem ícone) + Cancelar (fecha o drawer)
 
 ## Non-Goals — Features (NÃO faz)
 
@@ -45,7 +46,7 @@ Formulário pra cadastrar novo plano de assinatura (nome / slug / valor / ciclo 
 
 ## UX Anti-patterns
 
-- ❌ Modal — canon = página dedicada
+- ❌ Página dedicada com formulário inteiro — até 2026-11-23 era o canon; o protótipo `rb-planos` desenha drawer e vale acima do charter na forma (ADR UI-0029)
 - ❌ JS validation client-side custom (duplicaria FormRequest) — só required HTML5 mínimo, server fala palavra final
 - ❌ Auto-submit ao mudar campo — sempre clique explícito
 
@@ -53,5 +54,9 @@ Formulário pra cadastrar novo plano de assinatura (nome / slug / valor / ciclo 
 
 | Método | Rota | Retorna |
 |---|---|---|
-| GET | `/recurring-billing/planos/novo` | Inertia render `Planos/Create` props `{defaults}` |
+| GET | `/recurring-billing/planos/novo` | Inertia render `Planos/Create` props `{filters, plans (defer), kpis (defer), defaults}` — a lista com o drawer aberto |
 | POST | `/recurring-billing/planos` | redirect Index + flash success ou 422 com erros |
+
+## Âncora de design
+
+2026-11-23: promovido pela decisão b4 de [W] (2026-11-19, "o protótipo é fonte de design"), que é a decisão que a nota de 2026-11-19 abaixo deixava em aberto. O protótipo desenha esta URL como o drawer `novo` da vista rb-planos (ROTAS["rb-planos"].drawers.novo); desde o PR #11368 a tela é a lista com esse drawer aberto, e o `.tsx` não tem mais formulário próprio, então a declaração de PT de formulário deixou de ser verdade (pt-conformance acusou). Registro anterior preservado: n/a (PT de formulário herdado, Form/Drawer) — 2026-11-19 [CC]: o motivo de 2026-09-09 caducou — a aba "planos" do `cobranca-recorrente-page.jsx` deixou de ser `<Placeholder>` (commit 75e44b87d8, 2026-10-28) e hoje mapeia `rb-planos` com drawers `novo`→Planos/Create e `editar`→Planos/Edit (`:1059`). O n/a fica porque o arquivo segue porte REVERSO (`:2` "Reescreve a RecurringBilling do git"): promover ancoraria a tela nela mesma (§5 2026-06-05); promover é decisão [W]. Registro de 2026-09-09 preservado: 2026-09-09 [C]: declaração de PT herdado. A aba "planos" do `cobranca-recorrente-page.jsx:369` é um `<Placeholder>` de 3 elementos e o arquivo é porte REVERSO (`:2` "Reescreve a RecurringBilling do git") — mesmo veredito dos 3 charters irmãos anotados no #7099; e Create/Edit nem são abas daquele hub, então há menos ainda. Promover ancoraria a tela nela mesma (§5 2026-06-05). ⚠️ PT-02 sem template renderizado — decisão [W] em §5.7. medido 2026-09-09 pelas 3 pernas (repo inteiro com --hidden, projeto Cowork por ID via DesignSync.list_files, espelho). Ver memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md §5.3 + §5.7.

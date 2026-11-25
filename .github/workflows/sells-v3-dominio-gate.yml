@@ -68,14 +68,19 @@ on:
       - 'tests/js/colunas-grid.test.tsx'
       - 'tests/js/resumo-parcelas.test.tsx'
       - 'tests/js/item-tributacao.test.tsx'
+      - 'tests/js/sells-v3-item-abas.test.tsx'
+      - 'tests/js/sells-v3-fechamento-prototipo.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ResumoComissao.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
       # UC-V404..V407 (2026-11-23): gravando, nada da cena aparece — render da Page e dos dois
       # componentes que mudaram por isso (entrega e lançamento do item).
       - 'tests/js/sells-v3-gravando-sem-cena.test.tsx'
       - 'resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx'
       - 'resources/js/Pages/Sells/_components/v3/LancarItem.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ComissaoDrawer.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ParcelasDrawer.tsx'
       # Onda VALOR (2026-09-03): 3 specs que existiam e rodavam em ZERO lanes — medido
       # contra origin/main casando o basename de cada um dos 46 specs do include do
       # vitest contra os 128 workflows E os alias npm de fato invocados por workflow:
@@ -120,14 +125,19 @@ on:
       - 'tests/js/colunas-grid.test.tsx'
       - 'tests/js/resumo-parcelas.test.tsx'
       - 'tests/js/item-tributacao.test.tsx'
+      - 'tests/js/sells-v3-item-abas.test.tsx'
+      - 'tests/js/sells-v3-fechamento-prototipo.test.tsx'
       - 'resources/js/Pages/Sells/CreateV3.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ResumoParcelas.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ResumoComissao.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ItemDetalhe.tsx'
       # UC-V404..V407 (2026-11-23): gravando, nada da cena aparece — render da Page e dos dois
       # componentes que mudaram por isso (entrega e lançamento do item).
       - 'tests/js/sells-v3-gravando-sem-cena.test.tsx'
       - 'resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx'
       - 'resources/js/Pages/Sells/_components/v3/LancarItem.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ComissaoDrawer.tsx'
+      - 'resources/js/Pages/Sells/_components/v3/ParcelasDrawer.tsx'
       # Onda VALOR (2026-09-03): 3 specs que existiam e rodavam em ZERO lanes — medido
       # contra origin/main casando o basename de cada um dos 46 specs do include do
       # vitest contra os 128 workflows E os alias npm de fato invocados por workflow:
@@ -229,6 +239,8 @@ jobs:
             tests/js/resumo-parcelas.test.tsx \
             tests/js/item-fiscal-calculo.test.ts \
             tests/js/item-tributacao.test.tsx \
+            tests/js/sells-v3-item-abas.test.tsx \
+            tests/js/sells-v3-fechamento-prototipo.test.tsx \
             tests/js/sells-v3-gravando-sem-cena.test.tsx \
             tests/numberPtBR.test.ts \
             tests/br-inputs.test.tsx \

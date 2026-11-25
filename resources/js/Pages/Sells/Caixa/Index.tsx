@@ -12,6 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { usePage, router, Deferred } from '@inertiajs/react';
+import AbasVendas from '../_components/AbasVendas';
 import { parseDecimalPtBR, formatDecimalPtBR } from '@/Lib/numberPtBR';
 import {
   Printer, CheckCircle2,
@@ -227,6 +228,7 @@ export default function SellsCaixaIndex() {
             )}
           </div>
         </header>
+        <AbasVendas ativa="caixa" />
 
         {/* KPIs hero */}
         <div className="os-kpis">

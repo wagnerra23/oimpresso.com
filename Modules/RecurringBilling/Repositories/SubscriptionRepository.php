@@ -135,6 +135,8 @@ class SubscriptionRepository
                     'contact:id,business_id,name,mobile,landline,email,tax_number',
                     'lastInvoice',
                     'pinnedNote',
+                    // US-RB-011 — só bandeira e últimos 4; o token não é selecionado.
+                    'cartaoSalvo:id,business_id,ultimos_4,bandeira,status',
                 ]);
 
             if (! empty($filtros['status_visual']) && $filtros['status_visual'] !== 'all') {

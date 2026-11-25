@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\Schema;
  *
  * Dashboard de saúde do módulo de assinaturas / cobrança recorrente:
  *
- *   1. credentials_table       — rb_boleto_credentials presente
+ *   1. credentials_table       — payment_gateway_credentials presente (até 2026-11-24: rb_boleto_credentials)
  *   2. invoices_table          — rb_invoices presente
  *   3. subscriptions_table     — rb_subscriptions presente
- *   4. credentials_per_business — quantos businesses têm credencial ativa
+ *   4. credentials_per_business — quantos businesses têm credencial Inter/C6/Asaas ativa no PaymentGateway
  *   5. saldo_cached_freshness  — última sync saldo bancário (alerta se > 24h)
  *
  * Multi-tenant Tier 0 (ADR 0093): command CLI sem session.
@@ -84,10 +84,10 @@ class RecurringHealthCommand extends Command
 
     private function checkCredentialsTable(): array
     {
-        if (! Schema::hasTable('rb_boleto_credentials')) {
-            return $this->makeCheck('credentials_table', 'FAIL', 0, '1', 'rb_boleto_credentials ausente', 'Rode `module:migrate RecurringBilling`.');
+        if (! Schema::hasTable('payment_gateway_credentials')) {
+            return $this->makeCheck('credentials_table', 'FAIL', 0, '1', 'payment_gateway_credentials ausente', 'Rode `module:migrate PaymentGateway`.');
         }
-        return $this->makeCheck('credentials_table', 'OK', 1, '1', 'rb_boleto_credentials presente', 'Schema OK.');
+        return $this->makeCheck('credentials_table', 'OK', 1, '1', 'payment_gateway_credentials presente', 'Schema OK.');
     }
 
     private function checkInvoicesTable(): array
@@ -111,11 +111,16 @@ class RecurringHealthCommand extends Command
      */
     private function checkCredentialsPerBusiness(?int $businessId): array
     {
-        if (! Schema::hasTable('rb_boleto_credentials')) {
+        if (! Schema::hasTable('payment_gateway_credentials')) {
             return $this->makeCheck('credentials_per_business', 'WARN', null, '>=1', 'Tabela ausente', 'Rode migrate.');
         }
 
-        $query = DB::table('rb_boleto_credentials')->where('ativo', true);
+        // Desde a onda 5a (2026-11-24) a credencial que cobra é a do PaymentGateway, lida pelo
+        // model do dono. SUPERADMIN: comando CLI sem sessão; o filtro por business é o --business.
+        $query = \Modules\PaymentGateway\Models\PaymentGatewayCredential::query()
+            ->withoutGlobalScopes()
+            ->where('ativo', true)
+            ->whereIn('gateway_key', ['inter', 'c6', 'asaas']);
         if ($businessId !== null) {
             $query->where('business_id', $businessId);
         }
@@ -173,8 +178,8 @@ class RecurringHealthCommand extends Command
             );
         }
 
+        // Só o sync de saldo grava saldo_atualizado_em; não precisa mais do vínculo com rb_boleto_credentials.
         $query = DB::table('fin_contas_bancarias')
-            ->whereNotNull('rb_gateway_credential_id')
             ->whereNotNull('saldo_atualizado_em');
 
         if ($businessId !== null) {

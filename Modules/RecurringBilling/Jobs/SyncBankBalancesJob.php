@@ -7,12 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Models\ContaBancaria;
-use Modules\RecurringBilling\Models\BoletoCredential;
 use Modules\RecurringBilling\Services\Banking\InterBankingClient;
 
 /**
@@ -48,8 +46,8 @@ class SyncBankBalancesJob implements ShouldQueue
         // `Modules/RecurringBilling/Console/Commands/SyncBankBalancesCommand.php`.
         $query = ContaBancaria::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
-            ->whereNotNull('rb_gateway_credential_id')
-            ->with('gatewayCredential');
+            // Credencial Asaas ou Inter ativa do PaymentGateway ligada à conta (onda 4, 2026-11-24).
+            ->comCredencialGateway(['asaas', 'inter']);
 
         if ($this->contaBancariaId) {
             $query->where('id', $this->contaBancariaId);
@@ -74,28 +72,26 @@ class SyncBankBalancesJob implements ShouldQueue
 
     private function fetchSaldo(ContaBancaria $conta): ?float
     {
-        $credential = $conta->gatewayCredential;
-        if (! $credential) {
+        // Credencial do PaymentGateway ligada à própria conta, com o `config_json` decifrado pelo
+        // cast (decisão b1; ondas 1 e 4 da saída de `rb_boleto_credentials`, 2026-11-24).
+        $credencial = $conta->credencialGateway(['asaas', 'inter']);
+        if ($credencial === null) {
             return null;
         }
+        $config = $credencial->config_json ?? [];
 
-        $config = $credential->config_json ?? [];
-        foreach (['client_secret', 'api_key', 'certificado_senha', 'certificado_key_b64'] as $field) {
-            if (isset($config[$field])) {
-                $config[$field] = Crypt::decryptString($config[$field]);
-            }
-        }
-
-        return match ($credential->banco) {
-            'asaas' => $this->fetchAsaasSaldo($config),
+        return match ((string) $credencial->gateway_key) {
+            'asaas' => $this->fetchAsaasSaldo($config, (string) $credencial->ambiente),
             'inter' => $this->fetchInterSaldo($conta, $config),
             default => null,
         };
     }
 
-    private function fetchAsaasSaldo(array $config): float
+    private function fetchAsaasSaldo(array $config, string $ambiente): float
     {
-        $baseUrl = ($config['ambiente'] ?? 'production') === 'sandbox'
+        // `ambiente` é coluna da credencial, não chave do config_json (antes lia do config e
+        // caía sempre em produção).
+        $baseUrl = $ambiente === 'sandbox'
             ? 'https://sandbox.asaas.com/api/v3'
             : 'https://api.asaas.com/v3';
 
@@ -108,6 +104,22 @@ class SyncBankBalancesJob implements ShouldQueue
 
     private function fetchInterSaldo(ContaBancaria $conta, array $config): float
     {
+        // O InterBankingClient só fala mTLS com o certificado em base64 (formato copiado do RB).
+        // Credencial criada direto no PaymentGateway guarda caminho de arquivo; aí a conta é
+        // pulada com motivo no log, em vez de cair num índice indefinido.
+        // Um nome por linha: a lista numa linha só casa a regra generic-api-key do gitleaks.
+        $obrigatorios = [
+            'client_id',
+            'client_secret',
+            'certificado_crt_b64',
+            'certificado_key_b64',
+        ];
+        foreach ($obrigatorios as $campo) {
+            if (empty($config[$campo])) {
+                throw new \RuntimeException("Credencial Inter do PaymentGateway sem '{$campo}' (o sync de saldo exige o certificado em base64).");
+            }
+        }
+
         $client = new InterBankingClient($config, $conta->business_id);
 
         return $client->getSaldo()['disponivel'];

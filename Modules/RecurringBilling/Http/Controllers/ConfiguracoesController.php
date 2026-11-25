@@ -9,13 +9,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 /**
  * Controller — Page Configurações Cobrança Recorrente (Inertia React).
  *
  * Onda 8 v9,75 — primeira página de configurações read-only:
- *   - Gateways de boleto/pix cadastrados (BoletoCredential por business)
+ *   - Gateways de boleto/pix cadastrados (credenciais do PaymentGateway por business;
+ *     até a onda 3 de 2026-11-24 vinham de rb_boleto_credentials)
  *   - Régua de dunning (cobrança) hardcoded (1ª +3d / 2ª +7d / 3ª +15d)
  *   - NFe-de-boleto-pago automática (toggle stub — US-RB-044 dispara via listener)
  *   - Webhooks (URLs canônicas — botão copy clipboard)
@@ -35,7 +36,7 @@ class ConfiguracoesController extends Controller
      * GET /recurring-billing/configuracoes — Page Inertia Configurações.
      *
      * Props:
-     *   - gateways    (defer)  — lista BoletoCredential do business_id
+     *   - gateways    (defer)  — credenciais Inter/C6/Asaas do business em payment_gateway_credentials
      *   - regua_dunning (eager) — config hardcoded leitura-only
      *   - nfe_auto    (eager)  — boolean stub leitura-only
      *   - webhooks    (eager)  — URLs canônicas Asaas + Inter PJ PIX
@@ -51,29 +52,36 @@ class ConfiguracoesController extends Controller
             // rb_dunning_rules table per-business). Espelha pattern catalogado
             // em CAPTERRA-FICHA.md (Stripe Smart Retries / Asaas reenvios).
             'regua_dunning' => [
+                // Copy em português, sem identificador técnico (protótipo rb-config; UC-RBCFG-12).
                 'descricao' => 'Régua padrão de cobrança em caso de falha de pagamento. '
-                    . 'Cada retentativa dispara dunning (boleto novo, novo email, novo WhatsApp). '
-                    . 'Após a 3ª retentativa, a assinatura entra em past_due → fail e exige ação manual.',
+                    . 'Após a 3ª retentativa, a assinatura passa para “falhou” e pede ação manual.',
+                // Auditoria RB b7 (2026-11-23): o módulo não envia e-mail nem WhatsApp de cobrança
+                // (nenhum Mail/Notification/Whatsapp em Modules/RecurringBilling). A tela dizia que
+                // cada retentativa mandava os dois; agora diz que os canais não estão disponíveis.
+                'canais_aviso' => [
+                    ['canal' => 'E-mail', 'disponivel' => false],
+                    ['canal' => 'WhatsApp', 'disponivel' => false],
+                ],
                 'retentativas' => [
                     [
                         'ordem'      => 1,
                         'dias'       => 3,
                         'rotulo'     => '1ª retentativa',
-                        'descricao'  => 'Soft decline — provavelmente saldo insuficiente ou intermitência gateway.',
+                        'descricao'  => 'Falha leve — provavelmente saldo insuficiente ou instabilidade do banco.',
                         'severidade' => 'info',
                     ],
                     [
                         'ordem'      => 2,
                         'dias'       => 7,
                         'rotulo'     => '2ª retentativa',
-                        'descricao'  => 'Cobrança persistente — emite dunning escalado (email + WhatsApp).',
+                        'descricao'  => 'Cobrança persistente — nova tentativa no gateway.',
                         'severidade' => 'warn',
                     ],
                     [
                         'ordem'      => 3,
                         'dias'       => 15,
                         'rotulo'     => '3ª retentativa (final)',
-                        'descricao'  => 'Falha definitiva — assinatura vira past_due → fail, requer ação manual no detail drawer.',
+                        'descricao'  => 'Falha definitiva — a assinatura passa para “falhou” e pede ação manual no detalhe da assinatura.',
                         'severidade' => 'bad',
                     ],
                 ],
@@ -86,9 +94,9 @@ class ConfiguracoesController extends Controller
             // listener real estar em produção biz=1).
             'nfe_auto' => [
                 'ativo'      => false,
-                'descricao'  => 'Quando uma fatura é paga (Asaas/Inter PJ webhook), '
-                    . 'o sistema dispara automaticamente a emissão de NFe via Módulo NfeBrasil. '
-                    . 'Requer plano com fiscal_type = nfe ou nfse cadastrado.',
+                'descricao'  => 'Quando uma fatura é paga (aviso do Asaas ou do Banco Inter), '
+                    . 'o sistema emite a nota fiscal automaticamente. '
+                    . 'Vale para planos com emissão NFe ou NFS-e.',
                 'us_ref'      => 'US-RB-044',
                 'editavel_em' => 'Em breve (Onda futura — toggle por business + per-plan override).',
             ],
@@ -125,27 +133,31 @@ class ConfiguracoesController extends Controller
             ],
 
             // Gateways de boleto/pix cadastrados — defer porque toca DB
-            // (skill inertia-defer-default Tier B). Scopo multi-tenant Tier 0
-            // via HasBusinessScope automático em BoletoCredential.
+            // (skill inertia-defer-default Tier B). Desde a onda 3 (2026-11-24) a fonte é a
+            // credencial do PaymentGateway, a mesma que cobra (CobrancaNoGateway). Só Inter, C6 e Asaas: são os bancos que o RB usa e que a tela sabe desenhar.
+            // Tier 0: global scope HasBusinessScope + where explícito. select() fechado: o
+            // config_json (segredos) nunca sai daqui.
             'gateways' => Inertia::defer(function () use ($businessId) {
-                return BoletoCredential::query()
+                return PaymentGatewayCredential::query()
                     ->where('business_id', $businessId)
+                    ->whereIn('gateway_key', ['inter', 'c6', 'asaas'])
                     ->orderByDesc('ativo')
-                    ->orderBy('banco')
-                    ->get(['id', 'banco', 'ambiente', 'ativo', 'nome_display', 'conta_bancaria_id', 'created_at'])
-                    ->map(fn (BoletoCredential $c) => [
+                    ->orderBy('gateway_key')
+                    ->get(['id', 'gateway_key', 'ambiente', 'ativo', 'nome_display', 'conta_bancaria_id', 'created_at'])
+                    ->map(fn (PaymentGatewayCredential $c) => [
                         'id'                => $c->id,
-                        'banco'             => $c->banco,
-                        'banco_label'       => match ($c->banco) {
+                        'banco'             => $c->gateway_key,
+                        'banco_label'       => match ($c->gateway_key) {
                             'inter' => 'Banco Inter PJ',
                             'c6'    => 'C6 Bank',
                             'asaas' => 'Asaas',
-                            default => ucfirst($c->banco),
+                            default => ucfirst((string) $c->gateway_key),
                         },
                         'ambiente'          => $c->ambiente,
                         'ambiente_label'    => $c->ambiente === 'production' ? 'Produção' : 'Sandbox',
                         'ativo'             => (bool) $c->ativo,
                         'nome_display'      => $c->nome_display,
+                        // No PG a conta é accounts.id, não fin_contas_bancarias.id; a tela não usa o campo.
                         'conta_bancaria_id' => $c->conta_bancaria_id,
                         'criado_em'         => optional($c->created_at)->toIso8601String(),
                     ])

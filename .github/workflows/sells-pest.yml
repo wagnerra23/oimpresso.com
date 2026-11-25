@@ -634,7 +634,9 @@ jobs:
             tests/Feature/Sells/BuscaProdutoVariasPalavrasTest.php \
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
+            tests/Feature/Sells/SellReturnCreateContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
+            tests/Feature/Sells/SellReturnAddNfeDevolucaoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
             tests/Feature/Sells/ComissaoPorRegraContratoTest.php \
             tests/Feature/Sells/ComissaoPorClienteContratoTest.php \

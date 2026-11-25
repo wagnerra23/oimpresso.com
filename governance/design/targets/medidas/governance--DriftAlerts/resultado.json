@@ -1,55 +1,21 @@
 {
   "id": "governance/DriftAlerts",
   "source": "governance-page.jsx",
-  "target": "resources/js/Pages/governance/DriftAlerts.tsx",
-  "token": "governance",
-  "frescor": "verificado 2026-09-17",
+  "prototipo_sha256": {
+    "governance-page.jsx": "3b1b79c13065",
+    "governance-telas.jsx": "c82e0d6bf8a3"
+  },
+  "rota_prototipo": "gov-drift",
+  "rota_viva": "/governance/drift",
+  "tenant": "biz=1",
+  "tema": "light (nos dois lados)",
+  "viewport": "1280x900",
+  "medidoEm": "2026-11-24",
+  "como": "sonda `design-diff.mjs --probe` injetada nos dois lados: protótipo servido por http local (servidor do design-diff-lote, _ds/ pelo ds-runtime-path) em iframe 1280x900 com oimpresso.route do override; produção em iframe da mesma origem a 1280x900, Chrome logado, sonda carregada por upload de arquivo e conferida por sha256. Método e canário em memory/requisitos/Jana/governance-dashboard-extension-visual-comparison.md (seção \"Medição 2026-11-24\").",
+  "reproduz": "node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/governance--DriftAlerts/prod.json governance/design/targets/medidas/governance--DriftAlerts/design.json --check",
   "contrato": null,
+  "d0": null,
   "compare": {
-    "rc": 1,
-    "veredito": "DIVERGE (bug)",
-    "motivo": "",
-    "bugs": 1,
-    "shell": 0,
-    "sameTheme": false,
-    "porDim": {
-      "D2": {
-        "diverge": 0,
-        "bug": 0,
-        "semDado": 0,
-        "igual": 1
-      },
-      "D4": {
-        "diverge": 1,
-        "bug": 1,
-        "semDado": 1,
-        "igual": 0
-      },
-      "D6": {
-        "diverge": 0,
-        "bug": 0,
-        "semDado": 0,
-        "igual": 1
-      },
-      "D8": {
-        "diverge": 0,
-        "bug": 0,
-        "semDado": 0,
-        "igual": 1
-      },
-      "D9": {
-        "diverge": 0,
-        "bug": 0,
-        "semDado": 11,
-        "igual": 0
-      },
-      "SHELL": {
-        "diverge": 0,
-        "bug": 0,
-        "semDado": 4,
-        "igual": 0
-      }
-    },
     "rows": [
       {
         "dim": "D2",
@@ -60,11 +26,10 @@
       },
       {
         "dim": "D4",
-        "campo": "título font-size",
-        "prod": "24px",
-        "design": "22px",
-        "veredito": "DIVERGE (bug)",
-        "detalhe": "Δ 2px · banda tituloPx ±1px"
+        "campo": "tipografia",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
       },
       {
         "dim": "D6",
@@ -82,14 +47,6 @@
       },
       {
         "dim": "D9",
-        "campo": "aguardando-decisao",
-        "prod": "ausente",
-        "design": "presente",
-        "veredito": "SEM-DADO",
-        "detalhe": "região só existe de um lado"
-      },
-      {
-        "dim": "D9",
         "campo": "aviso-rota",
         "prod": "ausente",
         "design": "presente",
@@ -98,7 +55,7 @@
       },
       {
         "dim": "D9",
-        "campo": "card-sdd",
+        "campo": "drift-historico",
         "prod": "ausente",
         "design": "presente",
         "veredito": "SEM-DADO",
@@ -106,7 +63,7 @@
       },
       {
         "dim": "D9",
-        "campo": "conformidade-regua",
+        "campo": "drift-kpis",
         "prod": "ausente",
         "design": "presente",
         "veredito": "SEM-DADO",
@@ -114,7 +71,7 @@
       },
       {
         "dim": "D9",
-        "campo": "kpis-constituicao",
+        "campo": "drift-lista",
         "prod": "ausente",
         "design": "presente",
         "veredito": "SEM-DADO",
@@ -122,23 +79,7 @@
       },
       {
         "dim": "D9",
-        "campo": "mcp-periodo",
-        "prod": "ausente",
-        "design": "presente",
-        "veredito": "SEM-DADO",
-        "detalhe": "região só existe de um lado"
-      },
-      {
-        "dim": "D9",
-        "campo": "mcp-secao",
-        "prod": "ausente",
-        "design": "presente",
-        "veredito": "SEM-DADO",
-        "detalhe": "região só existe de um lado"
-      },
-      {
-        "dim": "D9",
-        "campo": "ocorrencias-24h",
+        "campo": "drift-sem-scope",
         "prod": "ausente",
         "design": "presente",
         "veredito": "SEM-DADO",
@@ -154,9 +95,41 @@
       },
       {
         "dim": "D9",
-        "campo": "saude-ecossistema",
-        "prod": "ausente",
-        "design": "presente",
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
         "veredito": "SEM-DADO",
         "detalhe": "região só existe de um lado"
       },
@@ -178,45 +151,27 @@
       },
       {
         "dim": "SHELL",
-        "campo": "shell.atalhoTopo.presenca",
-        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
-        "design": "0 el (.sb-menu > .sb-item)",
+        "campo": "shell",
+        "prod": "não medido",
+        "design": "não medido",
         "veredito": "SEM-DADO",
-        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+        "detalhe": "declare window.__SB_ROLES nos DOIS lados — node scripts/design/design-diff.mjs --shell-roles imprime o mapa"
       },
       {
-        "dim": "SHELL",
-        "campo": "shell.containerMenu.presenca",
-        "prod": "0 el (.sb-menu-grouped)",
-        "design": "1 el (.sb-menu)",
-        "veredito": "SEM-DADO",
-        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.grupoHeader.presenca",
-        "prod": "0 el (.sb-group-h)",
-        "design": "0 el (.sb-group-h)",
-        "veredito": "SEM-DADO",
-        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
-      },
-      {
-        "dim": "SHELL",
-        "campo": "shell.itemGrupo.presenca",
-        "prod": "0 el (.sb-item)",
-        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
-        "veredito": "SEM-DADO",
-        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
       }
-    ]
-  },
-  "veredito": null,
-  "motivo": "",
-  "meta": {
-    "urlFinal": "https://staging.oimpresso.com/governance/drift",
-    "componenteInertia": null
-  },
-  "medidoEm": "2026-09-18T12:39:02.466Z",
-  "baseUrl": "https://staging.oimpresso.com",
-  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+    ],
+    "bugs": 0,
+    "shell": 0,
+    "drawer": 0,
+    "declaradas": 0,
+    "porDeclaracao": [],
+    "declaracoesSemEfeito": [],
+    "sameTheme": true
+  }
 }

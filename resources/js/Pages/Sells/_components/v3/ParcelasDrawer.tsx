@@ -93,8 +93,10 @@ function Escolha({
   label: string;
   value: string;
   onChange: (v: string) => void;
-  options: string[];
+  /** Texto puro, ou `{ value, label }` quando o que se mostra não é o que se guarda. */
+  options: (string | { value: string; label: string })[];
 }) {
+  const opcoes = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o));
   return (
     <Campo label={label}>
       <Select value={value} onValueChange={onChange}>
@@ -102,9 +104,9 @@ function Escolha({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {options.map((o) => (
-            <SafeSelectItem key={o} value={o} className="text-[12.5px]">
-              {o}
+          {opcoes.map((o) => (
+            <SafeSelectItem key={o.value} value={o.value} className="text-[12.5px]">
+              {o.label}
             </SafeSelectItem>
           ))}
         </SelectContent>
@@ -120,6 +122,7 @@ export default function ParcelasDrawer({
   parcelas,
   onParcelasChange,
   documentoBase,
+  gravando = false,
 }: {
   aberto: boolean;
   onFechar: () => void;
@@ -127,6 +130,10 @@ export default function ParcelasDrawer({
   parcelas: Parcela[];
   onParcelasChange: (p: Parcela[]) => void;
   documentoBase: string;
+  /** Gravação ligada (UC-V408): `CONTAS` e `PLANOS` são de demonstração e nenhum cadastro da
+   *  empresa os alimenta, então conta de destino e plano de contas não aparecem nem entram na
+   *  parcela. O plano de parcelas inteiro segue recusado na gravação (UC-V381). */
+  gravando?: boolean;
 }) {
   const cockpit = useCockpit();
   const [condicao, setCondicao] = useState('18');
@@ -168,9 +175,11 @@ export default function ParcelasDrawer({
         pgto: null,
         tipo: cond.tipo,
         lanc: LANCAMENTOS[0]!,
-        plano: PLANOS[0]!,
-        conta,
-        doc: `${documentoBase} ${i + 1}/${qtd}`,
+        plano: gravando ? '' : PLANOS[0]!,
+        conta: gravando ? '' : conta,
+        /* Gravando (UC-V408) não há número de documento antes de a venda existir: a parcela
+           fica só "1/3". O "VD-2026" da cena não era o número de venda nenhuma. */
+        doc: documentoBase ? `${documentoBase} ${i + 1}/${qtd}` : `${i + 1}/${qtd}`,
         resp: '',
         hist: '',
       })),
@@ -254,7 +263,8 @@ export default function ParcelasDrawer({
               label="Condição"
               value={condicao}
               onChange={aplicarCondicao}
-              options={CONDICOES.map((c) => c.id)}
+              /* "18 — PIX", como na âncora: só o código ("18") não diz qual condição é. */
+              options={CONDICOES.map((c) => ({ value: c.id, label: `${c.id} — ${c.nome}` }))}
             />
             <Campo label="Parcelas">
               <Input
@@ -290,9 +300,15 @@ export default function ParcelasDrawer({
                 </span>
               </label>
             </Inline>
-            <div className="min-w-[220px] flex-1">
-              <Escolha label="Caixa / conta de destino" value={conta} onChange={setConta} options={CONTAS} />
-            </div>
+            {gravando ? (
+              <span className="min-w-[220px] flex-1 text-[11.5px] leading-snug text-muted-foreground">
+                Conta de destino e plano de contas ainda não são gravados pela nova venda.
+              </span>
+            ) : (
+              <div className="min-w-[220px] flex-1">
+                <Escolha label="Caixa / conta de destino" value={conta} onChange={setConta} options={CONTAS} />
+              </div>
+            )}
             <Button type="button" onClick={gerar} className="mt-4">
               Gerar parcelas
             </Button>
@@ -314,7 +330,11 @@ export default function ParcelasDrawer({
             <EmptyState
               icon="inbox"
               title="Nenhuma parcela gerada"
-              description="Escolha a condição, o número de parcelas e o 1º vencimento e clique em Gerar parcelas. Depois você pode editar valor, data e conta de cada uma."
+              description={
+                gravando
+                  ? 'Escolha a condição, o número de parcelas e o 1º vencimento e clique em Gerar parcelas. Depois você pode editar valor e data de cada uma.'
+                  : 'Escolha a condição, o número de parcelas e o 1º vencimento e clique em Gerar parcelas. Depois você pode editar valor, data e conta de cada uma.'
+              }
             />
           )}
 
@@ -330,7 +350,7 @@ export default function ParcelasDrawer({
                     <th className="px-3 py-2 font-medium">Valor</th>
                     <th className="px-3 py-2 font-medium">Vencimento</th>
                     <th className="px-3 py-2 font-medium">Tipo</th>
-                    <th className="px-3 py-2 font-medium">Conta</th>
+                    {!gravando && <th className="px-3 py-2 font-medium">Conta</th>}
                     <th className="px-3 py-2 font-medium">Documento</th>
                     <th className="px-3 py-2 font-medium">Situação</th>
                     <th className="w-10 px-3 py-2" />
@@ -362,7 +382,7 @@ export default function ParcelasDrawer({
                         </Inline>
                       </td>
                       <td className="px-3 py-1.5">{p.tipo}</td>
-                        <td className="px-3 py-1.5 text-[11.5px] text-muted-foreground">{p.conta}</td>
+                        {!gravando && <td className="px-3 py-1.5 text-[11.5px] text-muted-foreground">{p.conta}</td>}
                       <td className="px-3 py-1.5 font-mono">{p.doc}</td>
                       <td className="px-3 py-1.5">
                         {/* "recebida 12/08" > "RECEBIDA": a data é o que responde "isso já
@@ -556,20 +576,22 @@ export default function ParcelasDrawer({
               </div>
             </Stack>
 
-            <Stack gap={3}>
-              <Escolha
-                label="Plano de contas"
-                value={emEdicao.plano}
-                onChange={(v) => setEmEdicao({ ...emEdicao, plano: v })}
-                options={PLANOS}
-              />
-              <Escolha
-                label="Conta"
-                value={emEdicao.conta}
-                onChange={(v) => setEmEdicao({ ...emEdicao, conta: v })}
-                options={CONTAS}
-              />
-            </Stack>
+            {!gravando && (
+              <Stack gap={3}>
+                <Escolha
+                  label="Plano de contas"
+                  value={emEdicao.plano}
+                  onChange={(v) => setEmEdicao({ ...emEdicao, plano: v })}
+                  options={PLANOS}
+                />
+                <Escolha
+                  label="Conta"
+                  value={emEdicao.conta}
+                  onChange={(v) => setEmEdicao({ ...emEdicao, conta: v })}
+                  options={CONTAS}
+                />
+              </Stack>
+            )}
 
             <div>
               <Lbl>Histórico</Lbl>

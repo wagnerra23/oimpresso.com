@@ -1,0 +1,116 @@
+{
+  "url": "https://staging.oimpresso.com/fisio/protocolos",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CB MF Protocolos-modelo Modelos de referência com a lógica à mostra. A passagem de fase é sempre sua. 1 protocolos Lombar LOTE7 da clínica lombar Protocolo da clínica · lombar Lombar LOTE7 Editar Aplicar a um paciente Modelo de referência. A decisão clínica é do fisioterapeuta. Exercícios ( 0 ) Nenhum exercício deste protocolo está disponível na sua clínica. Para usar, abra o paciente, crie o programa e aplique o protocolo no editor. A passagem de fase é sempre sua. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.55 0.15 295)",
+      "color": "oklch(0.984 0.003 247.9)",
+      "border": "oklch(0.92 0.006 90)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "fisio-protocolos-lista",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "fisio-protocolo-detalhe",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "tela": "Protocolos/Index",
+    "lado": "prod",
+    "url": "https://staging.oimpresso.com/fisio/protocolos",
+    "http": 200,
+    "medido_em": "2026-11-23T19:11:51.687Z",
+    "viewport": "1280x900",
+    "tema": "light"
+  }
+}

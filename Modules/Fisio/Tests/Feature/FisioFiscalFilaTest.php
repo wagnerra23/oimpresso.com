@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-023
-// Cobre UC-FFI-01..05 (Fisio/Fiscal/Index.casos.md).
+// Cobre UC-FFI-01..06 (Fisio/Fiscal/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -129,4 +129,60 @@ it('UC-FFI-05 · 98 contra 99: pagamento da 99 não entra na fila da 98 nem acei
     // SUPERADMIN: confere as duas empresas no banco, por fora do escopo.
     expect(ReciboSaude::withoutGlobalScopes()->where('payment_id', $pg99)->get(['business_id', 'receipt_number'])->map(fn ($r) => [(int) $r->business_id, $r->receipt_number])->all())
         ->toBe([[$this->b99, 'RS-99']]);
+});
+
+it('UC-FFI-06 · marcar "retificar" num recibo enviado: uma marca só, mantém o número, sem copiar valor', function () {
+    $pac = F::paciente($this->b98, $this->u98->id);
+    $pg = fffPagamento($this->b98, $pac->contact_id, $this->u98->id, '130.00');
+    F::como($this, $this->u98);
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['receipt_number' => 'RS-7'])->assertRedirect();
+
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['marca' => 'retificar'])->assertRedirect()->assertSessionHasNoErrors();
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['marca' => 'retificar'])->assertRedirect()->assertSessionHasNoErrors();
+
+    $marcas = ReciboSaude::query()->where('payment_id', $pg)->get();
+    expect($marcas)->toHaveCount(1)
+        ->and($marcas[0]->marca)->toBe(ReciboSaude::RETIFICAR)
+        ->and($marcas[0]->receipt_number)->toBe('RS-7');
+    $linha = fffRecibos($this, $this->u98)[0];
+    expect($linha['status'])->toBe('retificar')->and($linha['numero'])->toBe('RS-7');
+
+    // Retificado no Receita Saúde: marcar enviado de novo volta a "enviado" com o número novo.
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['receipt_number' => 'RS-8'])->assertRedirect();
+    expect(ReciboSaude::query()->where('payment_id', $pg)->value('marca'))->toBe(ReciboSaude::ENVIADO);
+});
+
+it('UC-FFI-06 · recibo pendente não vira "retificar", e marca desconhecida é recusada', function () {
+    $pac = F::paciente($this->b98, $this->u98->id);
+    $pg = fffPagamento($this->b98, $pac->contact_id, $this->u98->id, '45.00');
+    F::como($this, $this->u98);
+
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['marca' => 'retificar'])->assertSessionHasErrors('marca');
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['marca' => 'cancelado'])->assertSessionHasErrors('marca');
+    expect(ReciboSaude::query()->where('payment_id', $pg)->count())->toBe(0);
+});
+
+it('UC-FFI-06 · sem fisio.editar não marca "retificar" (403) e a marca não muda', function () {
+    $pac = F::paciente($this->b98, $this->u98->id);
+    $pg = fffPagamento($this->b98, $pac->contact_id, $this->u98->id, '55.00');
+    F::como($this, $this->u98);
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['receipt_number' => 'RS-1'])->assertRedirect();
+
+    F::como($this, $this->leitor98);
+    $this->post("/fisio/fiscal/recibos/{$pg}/enviado", ['marca' => 'retificar'])->assertForbidden();
+    expect(ReciboSaude::query()->where('payment_id', $pg)->value('marca'))->toBe(ReciboSaude::ENVIADO);
+});
+
+it('UC-FFI-06 · 98 contra 99: a 98 não marca "retificar" no recibo da 99 (404) e a marca da 99 não muda', function () {
+    $pac99 = F::paciente($this->b99, $this->u99->id);
+    $pg99 = fffPagamento($this->b99, $pac99->contact_id, $this->u99->id, '210.00');
+    F::como($this, $this->u99);
+    $this->post("/fisio/fiscal/recibos/{$pg99}/enviado", ['receipt_number' => 'RS-99'])->assertRedirect();
+
+    F::como($this, $this->u98);
+    $this->post("/fisio/fiscal/recibos/{$pg99}/enviado", ['marca' => 'retificar'])->assertNotFound();
+
+    // SUPERADMIN: confere a marca da 99 no banco, por fora do escopo.
+    expect(ReciboSaude::withoutGlobalScopes()->where('payment_id', $pg99)->get(['business_id', 'marca'])->map(fn ($r) => [(int) $r->business_id, $r->marca])->all())
+        ->toBe([[$this->b99, ReciboSaude::ENVIADO]]);
 });

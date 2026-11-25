@@ -5,8 +5,8 @@ irmaos: Cockpit.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-11-16"
-last_run_ci: "revalidado em 2026-11-16 ao pôr o atalho Naturezas de operação no topo (UC-FCKP-17, teste próprio sem banco). UC-FCKP-01..16 não citam os botões do topo; o atalho só aparece com flag + permissão, então nenhum muda. Veredito da lane PHP / Pest (NfeBrasil · MySQL) pendente do CI deste PR. Anterior: revalidado em 2026-11-06 ao tirar o card de baixa por incobrabilidade (decisão [W] B10, PR #10571): nenhum UC cita o card. UC-FCKP-13 (procedência) segue válido com uma superfície de demonstração a menos — método mock, declaração e chave da tela saíram juntos, e o ProcedenciaCockpitTest seguiu verde. Lanes verdes neste PR: PHP / Pest (NfeBrasil · MySQL), PHP / Pest (Unit) e as 4 lanes vitest do Fiscal. Anterior: revalidado em 2026-09-04 ao paginar a lista (Onda 3): UC-FCKP-01..06 relidos um a um — nenhum toca a fonte nem o recorte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos. UC-FCKP-07 (dado real) segue válido: a paginação recorta a MESMA lista, não muda a fonte. UC-FCKP-08 (fila de alertas) segue válido: o rodapé entra depois da tabela e não encosta na seção de alertas. UC-FCKP-09 nasce aqui, com lane e teste próprios, verde local 4/4 e mordida provada em 2 mutações. Veredito das lanes pendente do CI deste PR"
+last_run: "2026-11-24"
+last_run_ci: "revalidado em 2026-11-23 ao levar a tabela e o bloco de débitos para a forma do protótipo (medição produção × espelho no escuro): nenhum UC cita classe ou tamanho de célula; o UC-FCKP-20 (seleção em lote) segue nos mesmos seletores de linha e checkbox, e as 4 lanes vitest do Fiscal ficaram verdes (63/63). Anterior: revalidado em 2026-11-16 ao pôr o atalho Naturezas de operação no topo (UC-FCKP-17, teste próprio sem banco). UC-FCKP-01..16 não citam os botões do topo; o atalho só aparece com flag + permissão, então nenhum muda. Veredito da lane PHP / Pest (NfeBrasil · MySQL) pendente do CI deste PR. Anterior: revalidado em 2026-11-06 ao tirar o card de baixa por incobrabilidade (decisão [W] B10, PR #10571): nenhum UC cita o card. UC-FCKP-13 (procedência) segue válido com uma superfície de demonstração a menos — método mock, declaração e chave da tela saíram juntos, e o ProcedenciaCockpitTest seguiu verde. Lanes verdes neste PR: PHP / Pest (NfeBrasil · MySQL), PHP / Pest (Unit) e as 4 lanes vitest do Fiscal. Anterior: revalidado em 2026-09-04 ao paginar a lista (Onda 3): UC-FCKP-01..06 relidos um a um — nenhum toca a fonte nem o recorte da lista (são gate, agregação, ribbon, alertas, escopo e cache), logo seguem válidos. UC-FCKP-07 (dado real) segue válido: a paginação recorta a MESMA lista, não muda a fonte. UC-FCKP-08 (fila de alertas) segue válido: o rodapé entra depois da tabela e não encosta na seção de alertas. UC-FCKP-09 nasce aqui, com lane e teste próprios, verde local 4/4 e mordida provada em 2 mutações. Veredito das lanes pendente do CI deste PR"
 related_us: [US-FISCAL-002, US-FISCAL-019]
 ---
 
@@ -64,6 +64,9 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 | UC-FCKP-19 | visões salvas e busca filtram a lista | `[must]` | CU-FISC-01 | `fiscal-cockpit-filtros.test.tsx` | 🧪 |
 | UC-FCKP-20 | seleção em lote conta e limpa ao filtrar | `[should]` | CU-FISC-01 | `fiscal-cockpit-filtros.test.tsx` | 🧪 |
 | UC-FCKP-21 | a série de 14 dias sai de uma consulta só, por empresa | `[must]` `[T0]` | CU-FISC-12 | `CockpitControllerTest` | 🧪 |
+| UC-FCKP-22 | o ZIP de XMLs leva só as notas autorizadas da empresa | `[must]` `[T0]` | CU-FISC-12 | `NfeLoteControllerTest` | 🧪 |
+| UC-FCKP-23 | as DANFEs do lote saem num PDF só, sem nota alheia | `[must]` `[T0]` | CU-FISC-12 | `NfeLoteControllerTest` | 🧪 |
+| UC-FCKP-24 | o reenvio por e-mail em lote não toca nota de outra empresa | `[must]` `[T0]` | CU-FISC-12 | `NfeLoteControllerTest` | 🧪 |
 
 ---
 
@@ -335,7 +338,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 **Quando** o operador marca notas, usa "Selecionar todas" ou troca o filtro
 **Então** a barra de lote aparece com a contagem certa, "Selecionar todas" pega a página e desmarca no segundo clique, e trocar o filtro limpa a seleção.
 
-- **Fora deste caso:** os botões da barra (XMLs, DANFEs, reenvio) não têm ação; estão no backlog abaixo.
+- **Fora deste caso:** o que cada botão da barra faz — `UC-FCKP-22..24`.
 - **Teste:** `tests/js/fiscal-cockpit-filtros.test.tsx` — os dois casos `UC-FCKP-20 · …`.
 - **Status:** 🧪 veredito da lane `Fiscal · paginação da lista do cockpit (vitest/jsdom)`.
 
@@ -348,6 +351,45 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - **Teste:** `Modules/Fiscal/Tests/Feature/CockpitControllerTest.php` — `UC-FCKP-21 · …`. Mede pela diferença antes/depois de semear, porque a lane compartilha o banco.
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-FCKP-22 — O ZIP de XMLs leva só as notas autorizadas da empresa `[must]` `[T0]`
+
+**Dado** três notas marcadas: uma autorizada da empresa, uma rejeitada da empresa e uma autorizada de outra empresa
+**Quando** o operador confirma "Baixar XMLs (ZIP)"
+**Então** o ZIP tem um arquivo só, o XML da nota autorizada da empresa, e a resposta conta 2 notas fora; marcadas só notas de outra empresa, nenhum arquivo é gerado (422). Mais de 200 ids no lote são recusados antes de ler o banco.
+
+- **Âncora de contrato:** protótipo `fiscal-page.jsx` (`confirmaSaida`, linhas 487-498): confirmação com o que vai junto e o aviso de LGPD antes de o arquivo sair. Isolamento: R-FISCAL Tier 0 (ADR 0093) — o id vem do navegador.
+- **Teste:** `Modules/NfeBrasil/Tests/Feature/NfeLoteControllerTest.php` — `UC-FCKP-22 · …`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FCKP-23 — As DANFEs do lote saem num PDF só, sem nota alheia `[must]` `[T0]`
+
+**Dado** uma nota autorizada da empresa e uma de outra empresa marcadas
+**Quando** o operador confirma "Baixar DANFEs (PDF)"
+**Então** sai um PDF único com a DANFE da nota da empresa, e a resposta conta 1 nota fora.
+
+- **Teste:** `Modules/NfeBrasil/Tests/Feature/NfeLoteControllerTest.php` — `UC-FCKP-23 · …`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-FCKP-24 — O reenvio por e-mail em lote não toca nota de outra empresa `[must]` `[T0]`
+
+**Dado** uma nota de outra empresa e uma rejeitada da empresa marcadas
+**Quando** o operador confirma "Reenviar por e-mail"
+**Então** nenhum e-mail sai e a resposta conta as 2 como fora. Cada nota autorizada vai só ao e-mail cadastrado do próprio destinatário (o mesmo listener do reenvio de uma nota).
+
+- **Teste:** `Modules/NfeBrasil/Tests/Feature/NfeLoteControllerTest.php` — `UC-FCKP-24 · …`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Fora destes três casos:** NFS-e marcada fica fora do lote e a confirmação diz quantas; o PDF/XML de NFS-e é de outro módulo.
+
+## UC-FCKP-25 — O alerta de falha da busca não mostra o caminho do servidor `[must]`
+
+**Dado** a busca de notas recebidas falhando com um erro do PHP que cita o arquivo (`called in /home/... on line N`)
+**Quando** o alerta é gravado, ou um alerta antigo com o caminho inteiro aparece no cockpit
+**Então** o texto mostrado traz o erro sem o caminho do servidor; o log continua com a mensagem inteira.
+
+- **Por que existe:** em 2026-11-24 o alerta do cockpit exibia o caminho da conta de hospedagem a quem abrisse a tela.
+- **Teste:** `Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php` — `UC-FCKP-25 · …`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
@@ -356,7 +398,7 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCKP-21] ~~A série de 14 dias sai de uma consulta agrupada, sem repetição por dia~~ — Dado emissões nas últimas duas semanas · Quando a série é montada · Então há um ponto por dia por status, calculado de uma vez só. _Anti-hook do charter; sem teste dedicado._
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCKP-18] ~~O faturamento aparece formatado em moeda brasileira~~ — comportamento só de frontend, sem cobertura de Feature.
 - [~~BACKLOG~~ · feito em 2026-11-19 → UC-FCKP-19 e UC-FCKP-20] ~~Filtros, visões salvas, densidade e seleção em lote da tabela unificada~~
-- **[BACKLOG · ⬜ sem ação] Os botões da barra de lote não fazem nada** — "Baixar XMLs (ZIP)", "Baixar DANFEs (PDF)" e "Reenviar por e-mail" aparecem ao marcar notas, mas não têm ação: clicar não faz nada. Achado em 2026-11-19 ao escrever o UC-FCKP-20. Ou ganham ação, ou saem da barra.
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FCKP-22..24] ~~Os botões da barra de lote não fazem nada~~ — "Baixar XMLs (ZIP)", "Baixar DANFEs (PDF)" e "Reenviar por e-mail" aparecem ao marcar notas, mas não têm ação: clicar não faz nada. Achado em 2026-11-19 ao escrever o UC-FCKP-20. Ou ganham ação, ou saem da barra.
 
 ## Como rodar a suíte
 

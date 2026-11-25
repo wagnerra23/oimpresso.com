@@ -5,8 +5,8 @@ irmaos: Nfse.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "0 UC executado nesta corrida — os 4 UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
+last_run: "2026-11-24"
+last_run_ci: "revalidado em 2026-11-24 ao levar a tela à forma do protótipo: primário 'Emitir' no topo (leva a /nfse/emitir) e a busca numa linha própria, com os chips numa linha só. Nenhum UC cita o arranjo nem o botão; os filtros e a busca seguem os mesmos (UC-FNFSE-13..15). Anterior: 0 UC executado nesta corrida — os 4 UC herdam testes que JÁ existem; veredito pendente das lanes PHP / Pest (NfeBrasil · MySQL) e Pest Fiscal"
 related_us: [US-FISCAL-005, US-NFE-069]
 ---
 
@@ -239,13 +239,41 @@ e 404 para venda de outra empresa (a dona enxerga a própria).
   `it('UC-FNFSE-12 · a prévia das duas partes exige permissão de NFS-e e não lê venda de outra empresa')`.
 - **Status:** 🧪 veredito pendente da lane (pula fora do MySQL — leia assertions).
 
+## UC-FNFSE-13 — Os chips filtram pela situação da nota de serviço `[must]` `[T0]`
+
+**Dado** notas de serviço da empresa emitida, com erro, em rascunho, processando e cancelada, e uma da vizinha
+**Quando** o operador escolhe um chip
+**Então** "autorizadas" traz a emitida, "rejeitadas" a com erro, "em processamento" o rascunho e a que está
+processando, e "canceladas" a cancelada; sem chip vêm as cinco, da mais nova para a mais antiga, e nunca a da vizinha.
+
+- **Teste:** `it('UC-FNFSE-13 · os chips filtram pela situação da nota de serviço, só da empresa')`.
+- **Status:** 🧪 veredito pendente da lane.
+
+## UC-FNFSE-14 — A busca acha por número, código de verificação, nome e documento do tomador `[must]` `[T0]`
+
+**Dado** as mesmas notas, e a vizinha com um tomador de mesmo nome
+**Quando** o operador busca
+**Então** acha pela parte do número, do código de verificação, do nome, do CNPJ e do CPF do tomador, e a nota da vizinha não entra.
+
+- **Teste:** `it('UC-FNFSE-14 · a busca acha por número, código de verificação, nome e documento do tomador')`.
+- **Status:** 🧪 veredito pendente da lane.
+
+## UC-FNFSE-15 — A competência restringe as linhas ao mês `[must]`
+
+**Dado** notas de setembro e de outubro
+**Quando** o operador escolhe a competência
+**Então** só aparecem as notas criadas naquele mês.
+
+- **Teste:** `it('UC-FNFSE-15 · a competência escolhida restringe as linhas ao mês')`. O mês inválido segue no `UC-FNFSE-03`.
+- **Status:** 🧪 veredito pendente da lane.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
-- **[BACKLOG · ⬜ sem teste] Os chips filtram por estado da nota de serviço** — autorizadas, rejeitadas, em processamento (rascunho + processando), canceladas. _Existe no Controller; sem teste do resultado filtrado._
-- **[BACKLOG · ⬜ sem teste] A busca aceita número, código de verificação, nome e documento do tomador** — sem teste do resultado.
-- **[BACKLOG · ⬜ sem teste] O filtro de competência restringe as linhas ao mês escolhido** — só o caminho de mês **inválido** tem teste; o caminho feliz não.
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FNFSE-13] ~~Os chips filtram por estado da nota de serviço~~ — autorizadas, rejeitadas, em processamento (rascunho + processando), canceladas. _Existe no Controller; sem teste do resultado filtrado._
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FNFSE-14] ~~A busca aceita número, código de verificação, nome e documento do tomador~~ — sem teste do resultado.
+- [~~BACKLOG~~ · feito em 2026-11-23 → UC-FNFSE-15] ~~O filtro de competência restringe as linhas ao mês escolhido~~ — só o caminho de mês **inválido** tem teste; o caminho feliz não.
 - **[BACKLOG · ⬜ sem teste · débito de schema] O município da prestação aparece na linha** — a coluna **não existe** no schema em produção (duelo de duas migrations para a mesma tabela, resolvido revertendo o Controller para o schema antigo e traduzindo os estados). Hoje o campo volta vazio por desenho. Ver SDD §5.2.
 - **[BACKLOG · ⬜ sem teste] Venda lançada com produto, mas o cliente pede nota de serviço** — pedido
   da Fixar, 2026-10-28. Dado uma venda de placas sob encomenda lançada com itens de natureza mercadoria,

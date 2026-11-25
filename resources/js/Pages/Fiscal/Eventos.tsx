@@ -10,11 +10,10 @@
 // Origem: design Cowork fiscal-page.jsx §11 FiscalEventosPage. Timeline append-only.
 
 import { Inline } from '@/Components/layout';
-import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { Activity, Download, Info } from 'lucide-react';
+import { Activity, Download } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
@@ -126,22 +125,6 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
           </>
         }
       >
-        {/* Callout — janelas legais (port fiscal-page.jsx §9 EventosTab) */}
-        {/* `role="region"` + `aria-label` MANTIDOS: o <Alert> traz `role="alert"`
-            embutido (live-region assertiva), errado pra banner informativo estático.
-            O `{...props}` dele vem depois do padrão, então o override pega. */}
-        <Alert className="mb-3" role="region" aria-label="Janelas legais">
-          <Info size={16} />
-          <AlertTitle>Janelas legais que o sistema valida</AlertTitle>
-          <AlertDescription>
-            <span>
-              <b>CC-e:</b> até 30 dias · máx 20 por nota · não corrige valor/CFOP/qtd.
-              {' '}<b>Cancelamento:</b> até 24h (NFC-e) / 168h (NF-e se UF permitir).
-              {' '}<b>Inutilização:</b> faixas de numeração não usadas.
-            </span>
-          </AlertDescription>
-        </Alert>
-
         {/* Filtros por tipo */}
         <Inline gap={2} align="center" wrap className="mb-3">
           <Button
@@ -158,7 +141,7 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
             aria-pressed={filters.kind === 'cce'}
             onClick={() => apply({ kind: 'cce' })}
           >
-            CC-e <span className={chipCount(filters.kind === 'cce')}>{counts.cce}</span>
+            CC-e (110110) <span className={chipCount(filters.kind === 'cce')}>{counts.cce}</span>
           </Button>
           <Button
             type="button"
@@ -166,7 +149,7 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
             aria-pressed={filters.kind === 'cancel'}
             onClick={() => apply({ kind: 'cancel' })}
           >
-            Cancelamento <span className={chipCount(filters.kind === 'cancel')}>{counts.cancel}</span>
+            Cancelamento (110111) <span className={chipCount(filters.kind === 'cancel')}>{counts.cancel}</span>
           </Button>
           <Button
             type="button"
@@ -174,7 +157,7 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
             aria-pressed={filters.kind === 'epec'}
             onClick={() => apply({ kind: 'epec' })}
           >
-            EPEC <span className={chipCount(filters.kind === 'epec')}>{counts.epec}</span>
+            EPEC (110140) <span className={chipCount(filters.kind === 'epec')}>{counts.epec}</span>
           </Button>
           <Button
             type="button"
@@ -182,7 +165,7 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
             aria-pressed={filters.kind === 'manifest'}
             onClick={() => apply({ kind: 'manifest' })}
           >
-            Manifesto <span className={chipCount(filters.kind === 'manifest')}>{counts.manifest}</span>
+            Manifesto destinatário <span className={chipCount(filters.kind === 'manifest')}>{counts.manifest}</span>
           </Button>
         </Inline>
 
@@ -200,29 +183,48 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
               <small>Eventos aparecem após cancelamento, CC-e, EPEC ou manifestação.</small>
             </div>
           ) : (
-            <div className="fx-timeline" data-contract="fiscal-eventos-timeline">
-              {dataRows.map((ev) => (
-                <div key={ev.id} className={`fx-tl-item ${ev.kind}`}>
-                  <div className="fx-tl-h">
-                    <span className={`fx-tl-badge ${ev.kind}`}>{ev.label}</span>
-                    {ev.emissao && (
-                      <a
-                        className="fx-link"
-                        href={`/fiscal/nfe?focus=${ev.emissao.id}`}
-                        onClick={(e) => { e.preventDefault(); router.visit(`/fiscal/nfe?focus=${ev.emissao!.id}`); }}
-                      >
-                        {ev.emissao.modelo === 65 ? 'NFC-e' : 'NF-e'} {ev.emissao.numero}
-                      </a>
-                    )}
-                    <b>cstat {ev.cstatEvento}</b>
-                    <span className="when">{ev.when ?? '—'}</span>
+            // Forma do protótipo (FxEventosPage, fiscal-subpages.jsx, medida em 2026-11-24): cartão
+            // "Eventos aplicados" com quando · ponto · descrição · cStat. Os rótulos dos chips levam o
+            // código do evento; o EPEC fica no lugar da Inutilização do protótipo (decisão registrada
+            // no Eventos.casos.md — FK emissao_id NOT NULL).
+            <div className="fx-card" data-contract="fiscal-eventos-timeline">
+              <div className="fx-card-h"><span>Eventos aplicados</span><span>{dataRows.length}</span></div>
+              <div className="fx-tl">
+                {dataRows.map((ev) => (
+                  <div key={ev.id} className="fx-tl-i" data-kind={ev.kind}>
+                    <span className="fx-tl-when">{ev.when ?? '—'}</span>
+                    <span className="fx-tl-dot"><i /></span>
+                    <span className="fx-tl-b">
+                      <b>
+                        {ev.label}
+                        {ev.emissao && (
+                          <>
+                            {' · '}
+                            <a
+                              className="fx-link"
+                              href={`/fiscal/nfe?focus=${ev.emissao.id}`}
+                              onClick={(e) => { e.preventDefault(); router.visit(`/fiscal/nfe?focus=${ev.emissao!.id}`); }}
+                            >
+                              {ev.emissao.modelo === 65 ? 'NFC-e' : 'NF-e'} {ev.emissao.numero}
+                            </a>
+                          </>
+                        )}
+                      </b>
+                      {ev.justificativa && <small>{ev.justificativa}</small>}
+                    </span>
+                    <span className={`fx-sefaz ${[100, 101, 102, 135, 136].includes(ev.cstatEvento) ? 'ok' : 'warn'}`}>
+                      cstat {ev.cstatEvento}
+                    </span>
                   </div>
-                  {ev.justificativa && <div className="fx-tl-desc">{ev.justificativa}</div>}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </Deferred>
+        <p className="fx-nota-rodape">
+          Eventos são append-only — a tela não permite edição. Emissão de CC-e, cancelamento e
+          inutilização acontece nas telas de notas.
+        </p>
       </FxShell>
     </AppShellV2>
   );

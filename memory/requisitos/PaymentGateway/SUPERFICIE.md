@@ -33,7 +33,7 @@ module: PaymentGateway
 - [SicoobApiWebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php)
 - [WebhookProcessor.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php)
 
-## Services — 30
+## Services — 31
 
 - [BaixaDeBoletoMigrado.php](../../../Modules/PaymentGateway/Services/BaixaDeBoletoMigrado.php)
 - [CnabBoletoAdapter.php](../../../Modules/PaymentGateway/Services/Cnab/CnabBoletoAdapter.php)
@@ -49,6 +49,7 @@ module: PaymentGateway
 - [SicoobCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/SicoobCnabDriver.php)
 - [SicrediCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/SicrediCnabDriver.php)
 - [CobrancaDoAppGateway.php](../../../Modules/PaymentGateway/Services/CobrancaDoAppGateway.php)
+- [CopiaCredencialLegadaRb.php](../../../Modules/PaymentGateway/Services/CopiaCredencialLegadaRb.php)
 - [DescontoPontualidade.php](../../../Modules/PaymentGateway/Services/DescontoPontualidade.php)
 - [AsaasDriver.php](../../../Modules/PaymentGateway/Services/Drivers/AsaasDriver.php)
 - [BcbPixDriver.php](../../../Modules/PaymentGateway/Services/Drivers/BcbPixDriver.php)
@@ -93,12 +94,11 @@ module: PaymentGateway
 - [RecorrenciaPixAtualizada.php](../../../Modules/PaymentGateway/Events/RecorrenciaPixAtualizada.php)
 - [LancarPagamentoDaCobrancaNaVenda.php](../../../Modules/PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda.php)
 
-## Console / Commands — 8
+## Console / Commands — 7
 
 - [EmitTrialExpiredCobrancasCommand.php](../../../Modules/PaymentGateway/Console/Commands/EmitTrialExpiredCobrancasCommand.php)
 - [InterImportarRecebimentosCommand.php](../../../Modules/PaymentGateway/Console/Commands/InterImportarRecebimentosCommand.php)
 - [InterReconcilePixCommand.php](../../../Modules/PaymentGateway/Console/Commands/InterReconcilePixCommand.php)
-- [MigrateCredentialsCommand.php](../../../Modules/PaymentGateway/Console/Commands/MigrateCredentialsCommand.php)
 - [RegisterInterWebhookCommand.php](../../../Modules/PaymentGateway/Console/Commands/RegisterInterWebhookCommand.php)
 - [RegisterPermissionsCommand.php](../../../Modules/PaymentGateway/Console/Commands/RegisterPermissionsCommand.php)
 - [RetryOrphanWebhookCommand.php](../../../Modules/PaymentGateway/Console/Commands/RetryOrphanWebhookCommand.php)
@@ -113,7 +113,7 @@ module: PaymentGateway
 
 - [web.php](../../../Modules/PaymentGateway/Routes/web.php)
 
-## Migrations (schema) — 13
+## Migrations (schema) — 14
 
 - [2026_05_19_120000_create_payment_gateway_credentials_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120000_create_payment_gateway_credentials_table.php)
 - [2026_05_19_120001_create_cobrancas_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120001_create_cobrancas_table.php)
@@ -128,6 +128,7 @@ module: PaymentGateway
 - [2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php](../../../Modules/PaymentGateway/Database/Migrations/2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php)
 - [2026_10_27_150000_create_tef_transacoes_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_10_27_150000_create_tef_transacoes_table.php)
 - [2026_10_30_120000_add_cnab_ultimo_numero_to_payment_gateway_credentials.php](../../../Modules/PaymentGateway/Database/Migrations/2026_10_30_120000_add_cnab_ultimo_numero_to_payment_gateway_credentials.php)
+- [2026_11_23_120000_copia_credenciais_rb_para_payment_gateway.php](../../../Modules/PaymentGateway/Database/Migrations/2026_11_23_120000_copia_credenciais_rb_para_payment_gateway.php)
 
 ## Config — 1
 
@@ -156,9 +157,9 @@ module: PaymentGateway
 - [CnabRetorno.casos.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.casos.md)
 - [Index.casos.md](../../../Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.casos.md)
 
-## Testes (Pest) — 57
+## Testes (Pest) — 56
 
-- 50 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
+- 49 em [Modules/PaymentGateway/Tests/Feature/](../../../Modules/PaymentGateway/Tests/Feature)
 - 1 em [Modules/PaymentGateway/Tests/Feature/Cnab/Drivers/](../../../Modules/PaymentGateway/Tests/Feature/Cnab/Drivers)
 - 6 em [Modules/PaymentGateway/Tests/Feature/Settings/](../../../Modules/PaymentGateway/Tests/Feature/Settings)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

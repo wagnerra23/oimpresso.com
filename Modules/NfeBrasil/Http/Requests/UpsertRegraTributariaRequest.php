@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 
 class UpsertRegraTributariaRequest extends FormRequest
@@ -100,6 +101,61 @@ class UpsertRegraTributariaRequest extends FormRequest
                     'CSOSN e CST não podem ser preenchidos juntos — escolha um conforme o regime.'
                 );
             }
+
+            if ($v->errors()->isEmpty() && ($existente = $this->regraConcorrente()) !== null) {
+                $destino = $existente->uf_destino ?? 'todas as UFs';
+                $v->errors()->add(
+                    'ncm',
+                    "Já existe uma regra para o NCM {$existente->ncm} de {$existente->uf_origem} para {$destino}. "
+                    . 'Edite a regra existente em vez de criar outra: duas regras com a mesma chave competem na emissão.'
+                );
+            }
         });
+    }
+
+    /**
+     * UC-NFRF-10 · outra regra vigente com a mesma chave do motor (NCM + UF origem + UF destino,
+     * no mesmo regime e na mesma operação). Com duas, o `MotorTributarioService::buscarRegra`
+     * pega a primeira pelo `id`, e a que vale dependeria da ordem de cadastro.
+     *
+     * Na edição, regime e operação são os da regra editada (o form não muda os dois). Regra que
+     * não é do tenant devolve nulo aqui, e o controller responde 404 como antes.
+     */
+    private function regraConcorrente(): ?NfeFiscalRule
+    {
+        $businessId = (int) $this->session()->get('business.id');
+        $editandoId = $this->route('id') !== null ? (int) $this->route('id') : null;
+        $versionado = NfeFiscalRule::temVersionamento();
+        $porRegime = NfeFiscalRule::temRegraPorRegime();
+
+        $crt = null;
+        $operacaoId = null;
+        if ($editandoId !== null) {
+            $editada = NfeFiscalRule::where('business_id', $businessId)->where('id', $editandoId)->first();
+            if ($editada === null) {
+                return null;
+            }
+            $crt = $porRegime ? $editada->crt : null;
+            $operacaoId = $versionado ? $editada->operacao_id : null;
+        }
+
+        $ufDestino = $this->input('uf_destino') ?: null;
+        $hoje = now()->toDateString();
+
+        return NfeFiscalRule::where('business_id', $businessId)
+            ->where('ncm', (string) $this->input('ncm'))
+            ->where('uf_origem', (string) $this->input('uf_origem'))
+            ->when(
+                $ufDestino === null,
+                fn ($q) => $q->whereNull('uf_destino'),
+                fn ($q) => $q->where('uf_destino', $ufDestino),
+            )
+            ->when($editandoId !== null, fn ($q) => $q->where('id', '!=', $editandoId))
+            ->when($porRegime, fn ($q) => $crt === null ? $q->whereNull('crt') : $q->where('crt', $crt))
+            ->when($versionado, fn ($q) => $q
+                ->where(fn ($w) => $operacaoId === null ? $w->whereNull('operacao_id') : $w->where('operacao_id', $operacaoId))
+                ->where(fn ($w) => $w->whereNull('valida_ate')->orWhere('valida_ate', '>=', $hoje)))
+            ->orderBy('id')
+            ->first();
     }
 }

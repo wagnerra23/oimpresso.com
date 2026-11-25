@@ -34,3 +34,46 @@ gerado_em: 2026-09-29
 - `grep -nEi 'denied|quota' resources/js/Pages/governance/Audit.tsx` → 0
 - `grep -nEi 'Limpar|limpar|reset|clear' resources/js/Pages/governance/Audit.tsx` → 0 (fato de 2026-09-06; em 2026-09-29 → 5 linhas — o botão foi construído no #7089, não é mais recibo de ausência)
 - `grep -nE 'period_total|total_period|uncapped' resources/js/Pages/governance/Audit.tsx` → 0
+
+---
+
+## Medição design-diff 2026-11-24 (L6) — substitui a de 2026-09-18 [CC]
+
+Mede `governance/Audit` (/governance/audit) contra a vista `gov-auditoria` do protótipo (`prototipo-ui/cowork/Wagner/governance-page.jsx` sha256 `3b1b79c13065…` + `governance-telas.jsx` `c82e0d6bf8a3…`, último commit `34b12a7869` de 2026-11-19, a versão do L5). Tema claro, 1280×900, produção `biz=1`. Método e canário: [visual-comparison do Dashboard, seção "Medição 2026-11-24"](../Jana/governance-dashboard-extension-visual-comparison.md).
+
+A medida de 2026-09-18 não valia: os 4 `design.json` tinham o mesmo sha256 (`a87886…`) porque o lote abria a rota do grupo (`route=governance`, a vista painel) para as 4 telas; Audit, Policies e DriftAlerts nunca tinham sido medidas contra a vista delas. O override `governance/design/targets/roles/governance--Audit.json` fixa o token da vista.
+
+Reproduz: `node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/governance--Audit/prod.json governance/design/targets/medidas/governance--Audit/design.json --check`
+
+**Veredito: DIVERGE — 5 reais, 1 não conclusivo.** Mesmas 6 colunas na mesma ordem (Quando · User/Ator · Endpoint · Tool/Ferramenta · Status/Resultado · Duração), então a comparação por índice de coluna vale.
+
+| Dim | Campo | Produção | Protótipo | Leitura |
+|---|---|---|---|---|
+| D6 | estado de linha | 0 de 200 linhas marcadas | 16 de 200 (`alerta` na linha não-ok) | **real** — a amostra de produção tinha erros (KPI Errors 20), então não é falta de dado: produção não marca a linha com erro |
+| D6 | cor da coluna User/Ator | herda a da linha | cor própria | **real** |
+| D6 | cor da coluna Endpoint | herda a da linha | cor própria | **real** |
+| D4 | coluna Tool/Ferramenta | sem mono | mono | **real** |
+| D4 | coluna Duração | sem mono | mono | **real** |
+| D2 | linhas do filtro | 1 | 3 | não conclusivo — o papel do protótipo conta 5 blocos (segmento de período, 3 selects, dica e botão) e o de produção 4 selects numa grade |
+| D4/D8 | título, KPI | igual | igual | IGUAL |
+
+Lido no DOM: título "Audit Log" e KPIs "Entries no período" / "Errors" / "Users distintos" em inglês × "Governança — auditoria" / "Registros…" / "Com erro" / "Atores distintos". Fora do lote L5 por decisão [W].
+
+Fora do veredito nas 4 telas: o shell (sidebar) não foi medido; o `IGUAL` de cor (D6) é fraco, porque os tokens de cor de produção não resolvem na raiz do documento (`--accent`, `--border`… vivem no `.cockpit`); e D9 sai SEM-DADO onde as regiões `data-contract` só existem de um lado.
+
+### Re-medição 2026-11-24, depois do #11405 [CC]
+
+O [#11405](https://github.com/wagnerra23/oimpresso.com/pull/11405) (merge `8e16a88869`, deploy concluído) corrigiu as 5 divergências reais acima em `Audit.tsx`: a 1ª célula da linha não-ok ganha `inset 2px 0 0 var(--warn)` (o `.gov-table tr.alerta` do protótipo), User e Endpoint passam a `text-muted-foreground`, e Tool/Resource e Duração passam a `font-mono`. Re-medido em produção `biz=1` com a mesma sonda (sha256 `358fd0f0…`), o mesmo override de papéis, tema claro e 1280×900; o `prod.json` foi conferido browser × disco por sha256 antes de gravar. O `design.json` não mudou.
+
+**Veredito: as 5 sumiram. Resta 1 não conclusivo (D2).** O `--check` continua saindo 1 por causa dele.
+
+| Dim | Campo | Antes (L6) | Depois | Protótipo |
+|---|---|---|---|---|
+| D6 | estado de linha | 0 de 200 | 22 de 200 | 16 de 200 |
+| D6 | cor da coluna User | herda a da linha | cor própria | cor própria |
+| D6 | cor da coluna Endpoint | herda a da linha | cor própria | cor própria |
+| D4 | coluna Tool/Resource | sem mono | mono | mono |
+| D4 | coluna Duração | sem mono | mono | mono |
+| D2 | linhas do filtro | 1 × 3 | 1 × 3 | não conclusivo, fora deste lote |
+
+A contagem de linhas marcadas depende do dado (22 erros na amostra de produção, 16 no mock), então o que se compara é "marca ou não marca", não o número. Seguem fora: a copy em inglês (decisão [W]) e "Limpar filtros"/contagem além do teto (item Decidir).

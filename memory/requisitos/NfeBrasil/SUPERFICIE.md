@@ -14,9 +14,9 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 388 arquivos em 20 papéis.
+**Total mapeado:** 393 arquivos em 20 papéis.
 
-## Controllers — 17
+## Controllers — 18
 
 - [CertificadoController.php](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php)
 - [ConfigDefaultController.php](../../../Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php)
@@ -30,6 +30,7 @@ module: NfeBrasil
 - [NaturezaOperacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NaturezaOperacaoController.php)
 - [NfeEmissaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php)
 - [NfeInutilizacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeInutilizacaoController.php)
+- [NfeLoteController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeLoteController.php)
 - [NfeStatusController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeStatusController.php)
 - [RevisaoContadorController.php](../../../Modules/NfeBrasil/Http/Controllers/RevisaoContadorController.php)
 - [RevisaoContadorLinkController.php](../../../Modules/NfeBrasil/Http/Controllers/RevisaoContadorLinkController.php)
@@ -55,7 +56,7 @@ module: NfeBrasil
 
 - [PermissaoNfe.php](../../../Modules/NfeBrasil/Http/Middleware/PermissaoNfe.php)
 
-## Services — 43
+## Services — 44
 
 - [CancelamentoFiscalNfeBrasil.php](../../../Modules/NfeBrasil/Services/CancelamentoFiscalNfeBrasil.php)
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
@@ -91,6 +92,7 @@ module: NfeBrasil
 - [ContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/ContadorService.php)
 - [FechamentoContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/FechamentoContadorService.php)
 - [GtinCest.php](../../../Modules/NfeBrasil/Services/Tributacao/GtinCest.php)
+- [ImportRegrasCsvConferencia.php](../../../Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvConferencia.php)
 - [ImportRegrasCsvService.php](../../../Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvService.php)
 - [NaturezaDoProdutoConsulta.php](../../../Modules/NfeBrasil/Services/Tributacao/NaturezaDoProdutoConsulta.php)
 - [NaturezaFiscalService.php](../../../Modules/NfeBrasil/Services/Tributacao/NaturezaFiscalService.php)
@@ -272,9 +274,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 128
+## Testes (Pest) — 131
 
-- 128 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 131 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 58

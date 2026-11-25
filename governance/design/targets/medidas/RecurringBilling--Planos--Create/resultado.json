@@ -1,0 +1,838 @@
+{
+  "id": "RecurringBilling/Planos/Create",
+  "source": "cobranca-recorrente-page.jsx",
+  "prototipo_sha256": "49104ea2d640",
+  "rota_prototipo": "rb-planos + drawer \"Novo plano\"",
+  "rota_viva": "/recurring-billing/planos/novo",
+  "tenant": "biz=1",
+  "tema": "light (nos dois lados)",
+  "viewport": "1280x900",
+  "medidoEm": "2026-11-23",
+  "como": "sonda `design-diff.mjs --probe` injetada à mão nos dois lados (protótipo no navegador embutido servido por http local com _ds/ resolvido pelo ds-runtime-path; produção em iframe da mesma origem a 1280px, Chrome logado). Método e canário em `memory/requisitos/RecurringBilling/Index-visual-comparison.md` (seção \"Medição 2026-11-23\").",
+  "reproduz": "node scripts/design/design-diff.mjs --compare governance/design/targets/medidas/RecurringBilling--Planos--Create/prod.json governance/design/targets/medidas/RecurringBilling--Planos--Create/design.json --check-drawer",
+  "contrato": null,
+  "d0": null,
+  "compare": {
+    "rc": 1,
+    "bugs": 2,
+    "shell": 14,
+    "drawer": 55,
+    "porDim": {
+      "D2": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D4": {
+        "diverge": 2,
+        "bug": 2,
+        "semDado": 1,
+        "igual": 0
+      },
+      "D6": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D8": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D9": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 5,
+        "igual": 0
+      },
+      "SHELL": {
+        "diverge": 14,
+        "bug": 0,
+        "semDado": 3,
+        "igual": 0
+      },
+      "DRAWER": {
+        "diverge": 66,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "SAÚDE": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 0
+      }
+    },
+    "rows": [
+      {
+        "dim": "D2",
+        "campo": "layout",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D4",
+        "campo": "título font-size",
+        "prod": "24px",
+        "design": "22px",
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "Δ 2px · banda tituloPx ±1px"
+      },
+      {
+        "dim": "D4",
+        "campo": "título font-weight",
+        "prod": 600,
+        "design": 700,
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "Δ 100 · sem banda (peso declarado)"
+      },
+      {
+        "dim": "D6",
+        "campo": "cor",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D8",
+        "campo": "kpi align",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D4",
+        "campo": "linha da tabela",
+        "prod": "não medido",
+        "design": "não medido",
+        "veredito": "SEM-DADO",
+        "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.presenca",
+        "prod": "3 el (.sb-shortcuts .sb-shortcut)",
+        "design": "0 el (.sb-menu > .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.height",
+        "prod": "1911.75px",
+        "design": "525px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "height: 1911.75px → 525px   [Δ 1386.75 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.padding",
+        "prod": "8px",
+        "design": "4px 0px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "padding: 8px → 4px 0px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.gap",
+        "prod": "0px",
+        "design": "2px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "gap: 0px → 2px   [Δ 2 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.alignItems",
+        "prod": "normal",
+        "design": "center",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "alignItems: normal → center"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.fontFamily",
+        "prod": "IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif",
+        "design": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "fontFamily: IBM Plex Sans,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif → IBM Plex Sans,ui-sans-serif,system-ui,sans-serif"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.lineHeight",
+        "prod": "20.25px",
+        "design": "19.575px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "lineHeight: 20.25px → 19.575px   [Δ 0.675 px · banda tipografia ±0]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.borderColor",
+        "prod": "oklch(0.92 0.006 90)",
+        "design": "oklch(0.8 0.008 295)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderColor: oklch(0.92 0.006 90) → oklch(0.8 0.008 295)   [ΔEOK 0.12078 · banda cor ±0.0005]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.width",
+        "prod": "249px",
+        "design": "55px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "width: 249px → 55px   [Δ 194 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.caixa.w",
+        "prod": 249,
+        "design": 55,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.w: 249 → 55   [Δ 194 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.caixa.h",
+        "prod": 1911.8,
+        "design": 525,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.h: 1911.8 → 525   [Δ 1386.8 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.icone.w",
+        "prod": 16,
+        "design": 18,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "icone.w: 16 → 18   [Δ 2 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.icone.h",
+        "prod": 16,
+        "design": 18,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "icone.h: 16 → 18   [Δ 2 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.grupoHeader.presenca",
+        "prod": "9 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.itemGrupo.presenca",
+        "prod": "42 el (.sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.sequencia",
+        "prod": "[IA, Visão geral, Atendimento15406]",
+        "design": "[]",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "ordem de navegação é contrato — classifique (DECIDIDA/DERIVA/DESIGN-ANDOU) antes de mexer"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.so-na-prod",
+        "prod": "IA, Visão geral, Atendimento15406",
+        "design": "—",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "candidato típico a DECIDIDA — se for, declare em --declarado"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.height",
+        "prod": "36px",
+        "design": "32px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "height: 36px → 32px   [Δ 4 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.padding",
+        "prod": "8px 16px",
+        "design": "8px 12px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "padding: 8px 16px → 8px 12px   [Δ 4 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.fontFamily",
+        "prod": "IBM Plex Sans",
+        "design": "Arial",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "fontFamily: IBM Plex Sans → Arial"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.fontSize",
+        "prod": "14px",
+        "design": "12.5px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "fontSize: 14px → 12.5px   [Δ 1.5 px · banda tipografia ±0]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.lineHeight",
+        "prod": "20px",
+        "design": "normal",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "lineHeight: 20px → normal   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.borderRadius",
+        "prod": "12px",
+        "design": "7px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderRadius: 12px → 7px   [Δ 5 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.borderWidth",
+        "prod": "0px",
+        "design": "1px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderWidth: 0px → 1px   [Δ 1 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.width",
+        "prod": "165.922px",
+        "design": "118.125px",
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — width: 165.922px → 118.125px   [Δ 47.797 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.boxShadow",
+        "prod": "rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+        "design": "none",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "boxShadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px → none"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.caixa.w",
+        "prod": 165.9,
+        "design": 118.1,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — caixa.w: 165.9 → 118.1   [Δ 47.8 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.caixa.h",
+        "prod": 36,
+        "design": 32,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.h: 36 → 32   [Δ 4 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.botao.icone",
+        "prod": "com svg",
+        "design": "sem svg",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "presença do ícone"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.height",
+        "prod": "38px",
+        "design": "32px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "height: 38px → 32px   [Δ 6 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.padding",
+        "prod": "8px 12px",
+        "design": "0px 10px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "padding: 8px 12px → 0px 10px   [Δ 8 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.backgroundColor",
+        "prod": "rgba(0, 0, 0, 0)",
+        "design": "rgb(255, 255, 255)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "backgroundColor: rgba(0, 0, 0, 0) → rgb(255, 255, 255)   [ΔEOK 1 · banda cor ±0.0005 · Δalfa 1 · banda corAlfa ±0.005]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.borderRadius",
+        "prod": "12px",
+        "design": "6px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderRadius: 12px → 6px   [Δ 6 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.borderColor",
+        "prod": "oklch(0.92 0.006 90)",
+        "design": "oklch(0.9 0.004 90)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderColor: oklch(0.92 0.006 90) → oklch(0.9 0.004 90)   [ΔEOK 0.0201 · banda cor ±0.0005]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.width",
+        "prod": "458px",
+        "design": "493px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "width: 458px → 493px   [Δ 35 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.caixa.w",
+        "prod": 458,
+        "design": 493,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.w: 458 → 493   [Δ 35 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.campo.caixa.h",
+        "prod": 38,
+        "design": 32,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.h: 38 → 32   [Δ 6 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.minHeight",
+        "prod": "900px",
+        "design": "0px",
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (38 × 32 blocos de texto) — minHeight: 900px → 0px   [Δ 900 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.padding",
+        "prod": "24px",
+        "design": "0px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "padding: 24px → 0px   [Δ 24 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.display",
+        "prod": "block",
+        "design": "flex",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "display: block → flex"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.backgroundColor",
+        "prod": "oklch(0.97 0.004 90)",
+        "design": "rgb(255, 255, 255)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "backgroundColor: oklch(0.97 0.004 90) → rgb(255, 255, 255)   [ΔEOK 0.03027 · banda cor ±0.0005]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.borderWidth",
+        "prod": "0px",
+        "design": "0px 0px 0px 1px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderWidth: 0px → 0px 0px 0px 1px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.width",
+        "prod": "1020px",
+        "design": "560px",
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — width: 1020px → 560px   [Δ 460 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.boxShadow",
+        "prod": "none",
+        "design": "rgba(40, 30, 20, 0.13) -10px 0px 34px 0px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "boxShadow: none → rgba(40, 30, 20, 0.13) -10px 0px 34px 0px"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.raiz.caixa.w",
+        "prod": 1020,
+        "design": 560,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — caixa.w: 1020 → 560   [Δ 460 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rodape.height",
+        "prod": "44px",
+        "design": "60px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "height: 44px → 60px   [Δ 16 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rodape.padding",
+        "prod": "8px 0px 0px",
+        "design": "0px 18px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "padding: 8px 0px 0px → 0px 18px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rodape.borderWidth",
+        "prod": "0px",
+        "design": "1px 0px 0px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderWidth: 0px → 1px 0px 0px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rodape.width",
+        "prod": "972px",
+        "design": "559px",
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — width: 972px → 559px   [Δ 413 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rodape.caixa.w",
+        "prod": 972,
+        "design": 559,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — caixa.w: 972 → 559   [Δ 413 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rodape.caixa.h",
+        "prod": 44,
+        "design": 60,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.h: 44 → 60   [Δ 16 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.height",
+        "prod": "20px",
+        "design": "15.2188px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "height: 20px → 15.2188px   [Δ 4.7812 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.margin",
+        "prod": "0px 0px 12px",
+        "design": "0px 0px 8px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "margin: 0px 0px 12px → 0px 0px 8px   [Δ 4 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.fontSize",
+        "prod": "14px",
+        "design": "10.5px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "fontSize: 14px → 10.5px   [Δ 3.5 px · banda tipografia ±0]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.fontWeight",
+        "prod": "600",
+        "design": "500",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "fontWeight: 600 → 500"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.lineHeight",
+        "prod": "20px",
+        "design": "15.225px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "lineHeight: 20px → 15.225px   [Δ 4.775 px · banda tipografia ±0]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.letterSpacing",
+        "prod": "normal",
+        "design": "0.84px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "letterSpacing: normal → 0.84px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.textTransform",
+        "prod": "none",
+        "design": "uppercase",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "textTransform: none → uppercase"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.color",
+        "prod": "oklch(0.137 0.036 258.5)",
+        "design": "oklch(0.555 0.01 80)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "color: oklch(0.137 0.036 258.5) → oklch(0.555 0.01 80)   [ΔEOK 0.42052 · banda cor ±0.0005]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.width",
+        "prod": "932px",
+        "design": "493px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "width: 932px → 493px   [Δ 439 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.caixa.w",
+        "prod": 932,
+        "design": 493,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.w: 932 → 493   [Δ 439 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.rotulo.caixa.h",
+        "prod": 20,
+        "design": 15.2,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.h: 20 → 15.2   [Δ 4.8 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.height",
+        "prod": "270.25px",
+        "design": "364.406px",
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (10 × 7 blocos de texto) — height: 270.25px → 364.406px   [Δ 94.156 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.padding",
+        "prod": "20px",
+        "design": "12px 14px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "padding: 20px → 12px 14px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.margin",
+        "prod": "0px 0px 16px",
+        "design": "0px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "margin: 0px 0px 16px → 0px   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.gap",
+        "prod": "0px",
+        "design": "12px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "gap: 0px → 12px   [Δ 12 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.display",
+        "prod": "block",
+        "design": "grid",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "display: block → grid"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.backgroundColor",
+        "prod": "oklch(1 0 0)",
+        "design": "rgba(0, 0, 0, 0)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "backgroundColor: oklch(1 0 0) → rgba(0, 0, 0, 0)   [ΔEOK 1 · banda cor ±0.0005 · Δalfa 1 · banda corAlfa ±0.005]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.borderRadius",
+        "prod": "12px",
+        "design": "9px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderRadius: 12px → 9px   [Δ 3 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.borderWidth",
+        "prod": "0px",
+        "design": "1px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "borderWidth: 0px → 1px   [Δ 1 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.width",
+        "prod": "972px",
+        "design": "523px",
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — width: 972px → 523px   [Δ 449 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.boxShadow",
+        "prod": "oklch(0.92 0.006 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+        "design": "none",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "boxShadow: oklch(0.92 0.006 90) 0px 0px 0px 1px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px → none"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.caixa.w",
+        "prod": 972,
+        "design": 523,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (texto diferente nos dois lados) — caixa.w: 972 → 523   [Δ 449 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.secao.caixa.h",
+        "prod": 270.3,
+        "design": 364.4,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "acompanha o conteúdo (10 × 7 blocos de texto) — caixa.h: 270.3 → 364.4   [Δ 94.1 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.height",
+        "prod": "32px",
+        "design": "16.7969px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "height: 32px → 16.7969px   [Δ 15.2031 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.margin",
+        "prod": "4px 0px 0px",
+        "design": "1px 0px 0px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "margin: 4px 0px 0px → 1px 0px 0px   [Δ 3 px · banda espacamento ±0.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.fontSize",
+        "prod": "24px",
+        "design": "14px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "fontSize: 24px → 14px   [Δ 10 px · banda tipografia ±0]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.lineHeight",
+        "prod": "32px",
+        "design": "16.8px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "lineHeight: 32px → 16.8px   [Δ 15.2 px · banda tipografia ±0]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.letterSpacing",
+        "prod": "-0.6px",
+        "design": "normal",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "letterSpacing: -0.6px → normal   [não-mensurável · comparado como texto]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.color",
+        "prod": "oklch(0.137 0.036 258.5)",
+        "design": "oklch(0.22 0.01 80)",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "color: oklch(0.137 0.036 258.5) → oklch(0.22 0.01 80)   [ΔEOK 0.09489 · banda cor ±0.0005]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.width",
+        "prod": "221.656px",
+        "design": "479px",
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "width: 221.656px → 479px   [Δ 257.344 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.caixa.w",
+        "prod": 221.7,
+        "design": 479,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.w: 221.7 → 479   [Δ 257.3 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.titulo.caixa.h",
+        "prod": 32,
+        "design": 16.8,
+        "veredito": "DIVERGE (a classificar)",
+        "detalhe": "caixa.h: 32 → 16.8   [Δ 15.2 px · banda caixa ±1.5]"
+      },
+      {
+        "dim": "DRAWER",
+        "campo": "drawer.iguais",
+        "prod": "69 de 135",
+        "design": "69 de 135",
+        "veredito": "IGUAL",
+        "detalhe": "propriedades comparadas que bateram (as linhas acima são as que não bateram)"
+      },
+      {
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
+      }
+    ]
+  }
+}

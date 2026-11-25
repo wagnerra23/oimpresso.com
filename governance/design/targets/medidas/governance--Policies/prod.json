@@ -1,56 +1,131 @@
 {
-  "url": "https://staging.oimpresso.com/governance/policies",
-  "theme": "auto",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Policies (Governança) mcp_governance_rules — runtime gates enforçados pelo ActionGate (Constituição Art. 8). Toggle ativa/desativa rule. Edição inline + create vão pra próxima iteração. Rules total 0 Ativas 0 Triggered total 0 Soma de hits desde criação Categorias 0 Sem rules ainda Quando o decision flow ADS criar rules, elas aparecem aqui pra Wagner habilitar/desabilitar. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "url": "https://oimpresso.com/governance/policies",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "light",
+  "assinatura": "Policies (Governança)",
   "roles": {
     "kpi": {
-      "count": 0,
-      "tag": null,
-      "overflowX": null,
-      "items": []
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Rules total4",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Ativas4",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Triggered tota",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Categorias4",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
     },
     "title": {
-      "fontPx": 24,
+      "fontPx": 22,
       "weight": "600",
-      "color": "oklch(0.137 0.036 258.5)"
+      "color": "oklch(0.22 0.01 80)"
     },
     "primary": null,
     "filterRows": null,
-    "contratos": [],
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
     "celulas": null,
     "tabela": null,
-    "shell": {
-      "papeis": {
-        "atalhoTopo": {
-          "seletor": ".sb-shortcuts .sb-shortcut",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "itemGrupo": {
-          "seletor": ".sb-item",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "grupoHeader": {
-          "seletor": ".sb-group-h",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        },
-        "containerMenu": {
-          "seletor": ".sb-menu-grouped",
-          "n": 0,
-          "css": null,
-          "caixa": null,
-          "icone": null
-        }
-      },
-      "atalhos": []
-    }
+    "shell": null,
+    "chart": null,
+    "drawer": null
+  },
+  "__meta": {
+    "medidoEm": "2026-11-24",
+    "host": "oimpresso.com",
+    "path": "/governance/policies",
+    "componente": "governance / Policies",
+    "businessId": 1,
+    "viewport": "1280x900",
+    "tema": "claro",
+    "dialogsAbertos": [],
+    "sobrepostosFixos": [],
+    "assinaturaRedigida": "sha256 prefixo 61575f749ad6",
+    "assinaturaNota": "assinatura reduzida ao texto de UI (título, rótulos, cabeçalhos de card); o texto completo tem dado de produção e ficou fora"
   }
 }

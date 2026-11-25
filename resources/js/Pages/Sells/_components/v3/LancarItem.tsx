@@ -36,7 +36,14 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { Textarea } from '@/Components/ui/textarea';
 import { Aviso, Lbl, MoneyInput, Pill } from './primitivos';
 import { useCockpit } from './cockpit-portal';
-import { abaixoDoPiso as ehAbaixoDoPiso, areaUnitaria, quantidadeFaturada, totalDoItem, unitarioLiquido } from './calculo-item';
+import {
+  abaixoDoPiso as ehAbaixoDoPiso,
+  areaUnitaria,
+  quantidadeFaturada,
+  totalDoItem,
+  unidadeDeMedida,
+  unitarioLiquido,
+} from './calculo-item';
 import { brl, fmtBR, fmtQtd, num, parseBR } from './numeros';
 
 export type ProdutoCatalogo = {
@@ -101,6 +108,7 @@ export function LancarItem({
   podeEditarPreco,
   piso,
   estoqueBloqueia = false,
+  gravando = false,
   onFechar,
   onConfirmar,
 }: {
@@ -111,11 +119,16 @@ export function LancarItem({
   piso?: number | null;
   /** Gravando sem `allow_overselling`: acima do estoque a venda não grava. */
   estoqueBloqueia?: boolean;
+  /** Gravação ligada (UC-V408): as informações adicionais não chegam à gravação, e as listas de
+   *  local e de impressão eram de demonstração. A dobra dá lugar a um aviso. */
+  gravando?: boolean;
   onFechar: () => void;
   onConfirmar: (item: ItemLancado) => void;
 }) {
   const cockpit = useCockpit();
-  const dims = produto ? DIMENSIONAL[produto.un] : undefined;
+  /* Sigla do cadastro normalizada (`M2` → `m²`): é ela que decide se há medidas. */
+  const unMedida = produto ? unidadeDeMedida(produto.un) : '';
+  const dims = produto ? DIMENSIONAL[unMedida] : undefined;
   const servico = produto?.tipo === 'servico';
 
   const [pecas, setPecas] = useState('1');
@@ -142,8 +155,9 @@ export function LancarItem({
     setQtdDireta('1');
     setDesc('0');
     setAcr('0');
-    setAltura(produto.un === 'm²' || produto.un === 'm³' ? '0,50' : '0,00');
-    setLargura(produto.un === 'm²' || produto.un === 'm³' || produto.un === 'm' ? '0,10' : '0,00');
+    const u = unidadeDeMedida(produto.un);
+    setAltura(u === 'm²' || u === 'm³' ? '0,50' : '0,00');
+    setLargura(u === 'm²' || u === 'm³' || u === 'm' ? '0,10' : '0,00');
     setEsp('0,00');
     setExecutante(executantes[0]?.id ?? '');
     setObsInterna('');
@@ -170,7 +184,7 @@ export function LancarItem({
   if (!produto) return null;
 
   const medidasResumo = dims
-    ? `${num(nPecas, 0)}× ${num(parseBR(altura), 2)}×${num(parseBR(largura), 2)}${produto.un === 'm³' ? `×${num(parseBR(esp), 2)}` : ''}m`
+    ? `${num(nPecas, 0)}× ${num(parseBR(altura), 2)}×${num(parseBR(largura), 2)}${unMedida === 'm³' ? `×${num(parseBR(esp), 2)}` : ''}m`
     : null;
 
   const confirmar = () =>
@@ -193,7 +207,14 @@ export function LancarItem({
 
   return (
     <Dialog open onOpenChange={(aberto) => !aberto && onFechar()}>
-      <DialogContent container={cockpit} className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
+      {/* `minHeight: 0` em `style`, não em classe: o bundle declara `.sells-cowork { min-height: 100% }`
+          fora de `@layer`, e no conteúdo `fixed` do diálogo isso é 100% da tela — o grid esticava as
+          linhas e abria vãos entre os blocos. Utilitário do Tailwind perde pro bundle (§5 2026-10-14). */}
+      <DialogContent
+        container={cockpit}
+        className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]"
+        style={{ minHeight: 0 }}
+      >
         <DialogHeader>
           <DialogTitle className="text-[15px] leading-[1.3]">Lançar {produto.nome}</DialogTitle>
           <DialogDescription className="text-[11.5px] leading-[1.35]">
@@ -225,7 +246,7 @@ export function LancarItem({
                 <MoneyInput label="Peças" prefix="qt" value={pecas} onChange={setPecas} />
                 <MoneyInput label="Altura" prefix="m" value={altura} onChange={setAltura} />
                 <MoneyInput label="Largura" prefix="m" value={largura} onChange={setLargura} />
-                {produto.un === 'm³' ? (
+                {unMedida === 'm³' ? (
                   <MoneyInput label="Espessura" prefix="m" value={esp} onChange={setEsp} />
                 ) : (
                   <div>
@@ -386,95 +407,103 @@ export function LancarItem({
           )}
 
           {/* ─── informações adicionais (dobra) ───────────────────────────── */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setAdicionaisAbertas((v) => !v)}
-              aria-expanded={adicionaisAbertas}
-              className="inline-flex items-center gap-1.5 border-0 bg-transparent py-1 text-[11px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground"
-            >
-              <span aria-hidden className={adicionaisAbertas ? 'rotate-180 transition-transform' : 'transition-transform'}>
-                ▾
-              </span>
-              Informações adicionais do item
-              {!adicionaisAbertas && preenchidas > 0 && (
-                <Pill tom="primary">
-                  {preenchidas} preenchida{preenchidas > 1 ? 's' : ''}
-                </Pill>
-              )}
-            </button>
-
-            {adicionaisAbertas && (
-              <Stack gap={3} className="mt-2">
-                <Grid gap={3} className="sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="v3-obs-int" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Observação (uso interno)
-                    </Label>
-                    <Textarea
-                      id="v3-obs-int"
-                      rows={2}
-                      value={obsInterna}
-                      onChange={(e) => setObsInterna(e.target.value)}
-                      placeholder="Cliente aprovou arte por e-mail em 27/07"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="v3-obs-prod" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Observação para a produção
-                    </Label>
-                    <Textarea
-                      id="v3-obs-prod"
-                      rows={2}
-                      value={obsProducao}
-                      onChange={(e) => setObsProducao(e.target.value)}
-                      placeholder="Sangria de 5cm, ilhós a cada 50cm"
-                    />
-                  </div>
-                </Grid>
-                <Grid gap={3} className="sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="v3-local" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Local da aplicação
-                    </Label>
-                    <Select value={local} onValueChange={setLocal}>
-                      <SelectTrigger id="v3-local" className="h-9 w-full text-[13px]">
-                        <SelectValue placeholder="—" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LOCAIS.map((l) => (
-                          <SafeSelectItem key={l} value={l}>
-                            {l}
-                          </SafeSelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="v3-impr" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
-                      Tipo de impressão
-                    </Label>
-                    <Select value={impressao} onValueChange={setImpressao}>
-                      <SelectTrigger id="v3-impr" className="h-9 w-full text-[13px]">
-                        <SelectValue placeholder="—" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {IMPRESSOES.map((i) => (
-                          <SafeSelectItem key={i} value={i}>
-                            {i}
-                          </SafeSelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </Grid>
-                <span className="text-[11.5px] leading-[1.4] text-muted-foreground">
-                  A observação de uso interno e a de produção <b>não saem</b> no documento do cliente — a de produção vai
-                  na ordem de produção.
+          {gravando && (
+            <span className="text-[11.5px] leading-[1.4] text-muted-foreground">
+              As informações adicionais do item (observações, local da aplicação e tipo de impressão) ainda não são
+              gravadas pela nova venda.
+            </span>
+          )}
+          {!gravando && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setAdicionaisAbertas((v) => !v)}
+                aria-expanded={adicionaisAbertas}
+                className="inline-flex items-center gap-1.5 border-0 bg-transparent py-1 text-[11px] font-semibold uppercase leading-none tracking-[.05em] text-muted-foreground"
+              >
+                <span aria-hidden className={adicionaisAbertas ? 'rotate-180 transition-transform' : 'transition-transform'}>
+                  ▾
                 </span>
-              </Stack>
-            )}
-          </div>
+                Informações adicionais do item
+                {!adicionaisAbertas && preenchidas > 0 && (
+                  <Pill tom="primary">
+                    {preenchidas} preenchida{preenchidas > 1 ? 's' : ''}
+                  </Pill>
+                )}
+              </button>
+
+              {adicionaisAbertas && (
+                <Stack gap={3} className="mt-2">
+                  <Grid gap={3} className="sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="v3-obs-int" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Observação (uso interno)
+                      </Label>
+                      <Textarea
+                        id="v3-obs-int"
+                        rows={2}
+                        value={obsInterna}
+                        onChange={(e) => setObsInterna(e.target.value)}
+                        placeholder="Cliente aprovou arte por e-mail em 27/07"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="v3-obs-prod" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Observação para a produção
+                      </Label>
+                      <Textarea
+                        id="v3-obs-prod"
+                        rows={2}
+                        value={obsProducao}
+                        onChange={(e) => setObsProducao(e.target.value)}
+                        placeholder="Sangria de 5cm, ilhós a cada 50cm"
+                      />
+                    </div>
+                  </Grid>
+                  <Grid gap={3} className="sm:grid-cols-2">
+                    <div>
+                      <Label htmlFor="v3-local" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Local da aplicação
+                      </Label>
+                      <Select value={local} onValueChange={setLocal}>
+                        <SelectTrigger id="v3-local" className="h-9 w-full text-[13px]">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LOCAIS.map((l) => (
+                            <SafeSelectItem key={l} value={l}>
+                              {l}
+                            </SafeSelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="v3-impr" className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                        Tipo de impressão
+                      </Label>
+                      <Select value={impressao} onValueChange={setImpressao}>
+                        <SelectTrigger id="v3-impr" className="h-9 w-full text-[13px]">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {IMPRESSOES.map((i) => (
+                            <SafeSelectItem key={i} value={i}>
+                              {i}
+                            </SafeSelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </Grid>
+                  <span className="text-[11.5px] leading-[1.4] text-muted-foreground">
+                    A observação de uso interno e a de produção <b>não saem</b> no documento do cliente — a de produção vai
+                    na ordem de produção.
+                  </span>
+                </Stack>
+              )}
+            </div>
+          )}
         </Stack>
 
         <DialogFooter className="sm:justify-between">

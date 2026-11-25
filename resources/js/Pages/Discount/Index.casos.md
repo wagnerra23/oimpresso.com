@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: desconto é valor que o PDV aplica sozinho — o que a tela garante é QUEM grava e O QUE é gravado, e isso não muda num refactor visual.
 owner: wagner
-last_run: "2026-10-02"
+last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce na thread 04; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -82,3 +82,6 @@ last_run_ci: "0 UC executado — trio nasce na thread 04; veredito pendente da l
 - **Teste:** `DescontosContratoTest` — `UC-DSC-08 a tela React renderiza ...`.
 - **Regressão que defende:** o ramo ajax engolir a visita Inertia (devolver JSON do DataTable).
 - **Status: 🧪**
+
+## Trilha do tempo
+- 2026-11-24 · [CL] revalidação G-6: a tela ganhou a barra de abas do módulo Vendas (`Pages/Sells/_components/AbasVendas.tsx`, slot `below` do `PageHeader`). Nenhum UC desta tela descreve o cabeçalho nem a navegação entre telas, então nenhum muda. Prova da barra: `tests/js/sells-abas-modulo.test.tsx`.

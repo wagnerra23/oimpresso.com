@@ -3,13 +3,13 @@
 <!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
 ## Status da fila — placar de execução (auto)
 
-> Gerado por `npm run ds:report -- --write` · 2026-11-22 17:19 UTC · **total `ds/*` = 1123** · fila 2/10 ✅.
+> Gerado por `npm run ds:report -- --write` · 2026-11-24 20:18 UTC · **total `ds/*` = 1119** · fila 2/10 ✅.
 > Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
 
 | # | Módulo (fila) | `ds/*` | Status |
 |---|---|---:|---|
 | 1 | Sells | 54 | ☐ pendente |
-| 2 | RecurringBilling | 42 | ☐ pendente |
+| 2 | RecurringBilling | 39 | ☐ pendente |
 | 3 | OficinaAuto | 11 | ☐ pendente |
 | 4 | Repair | 52 | ☐ pendente |
 | 5 | Purchase | 109 | ☐ pendente |
@@ -19,7 +19,7 @@
 | 9 | Financeiro | 314 | ☐ pendente |
 | 10 | Cliente | 26 | ☐ pendente |
 
-**Fora da fila (pendentes · ordem por contagem):** PaymentGateway (178) · Produto (52) · StockTransfer (38) · StockAdjustment (31) · governance (29) · Forja (21) · Fiscal (19) · Ponto (16) · Compras (10) · NfeBrasil (10) · kb (9) · Modules (2) · Superadmin (1) · ConsultaOs (1) · Home (1) · Jana (1) · Nfse (1) · Site (1)
+**Fora da fila (pendentes · ordem por contagem):** PaymentGateway (178) · Produto (52) · StockTransfer (38) · StockAdjustment (31) · governance (28) · Forja (21) · Fiscal (19) · Ponto (16) · Compras (10) · NfeBrasil (10) · kb (9) · Modules (2) · Superadmin (1) · ConsultaOs (1) · Home (1) · Jana (1) · Nfse (1) · Site (1)
 
 **Próximo da fila:** Sells (54)
 <!-- ds:worklist:end -->

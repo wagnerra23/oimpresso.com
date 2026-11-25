@@ -14,10 +14,11 @@ name: RecurringBilling · Pest (MySQL)
 # (DomainModelsTest, "era-sqlite"). O CartaoSalvoContratoTest continua na
 # paymentgateway-pest.yml, que já o executa.
 #
-# Também roda 2 testes da raiz que usam o RB e estavam fora de lane (2026-11-19):
-# CalculoRecurringBillingTest (fidelidade de valor plano→fatura, precisa do tenant
-# semeado) e tests/Feature/Modules/RecurringBilling/BoletoServiceTest (emissão pelo
-# serviço real). O CancelarCobrancaInterJobTest, que só roda em sqlite, foi para a
+# Também roda o teste da raiz CalculoRecurringBillingTest (fidelidade de valor
+# plano→fatura, precisa do tenant semeado), fora de lane até 2026-11-19. O
+# tests/Feature/Modules/RecurringBilling/BoletoServiceTest entrou junto e saiu em
+# 2026-11-24 com o BoletoService que ele testava (a emissão sai pelo PaymentGateway,
+# ADR 0170 b1). O CancelarCobrancaInterJobTest, que só roda em sqlite, foi para a
 # ci-sqlite-pest.list.
 #
 # Estrutura copiada de paymentgateway-pest.yml (setup MySQL, skip-as-pass, JUnit).
@@ -129,12 +130,14 @@ jobs:
           vendor/bin/pest --no-coverage \
             --log-junit test-results/pest-recurringbilling-junit.xml \
             Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/CartaoRecorrenteDrawerContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/ContatoNaoApagaFaturaContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php \
             Modules/RecurringBilling/Tests/Feature/MandatoPixAutomaticoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/RecurringBillingTenantIsolationTest.php \
             Modules/RecurringBilling/Tests/Feature/WebhookPixAutomaticoContratoTest.php \
             tests/Feature/Calculo/CalculoRecurringBillingTest.php \
-            tests/Feature/Modules/RecurringBilling/BoletoServiceTest.php \
             --colors=always
 
       # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).

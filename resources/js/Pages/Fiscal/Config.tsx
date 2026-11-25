@@ -428,7 +428,7 @@ export default function Config({
 
       <FxShell
         route="fiscal_config"
-        title="Certificado & configuração"
+        title="Certificado e configuração fiscal"
         crumb={crumb}
         env={certificado ? `A1 ${certExpirado ? 'expirado' : 'ativo'} · ${painel.ambiente === 1 ? 'prod' : 'homolog'}` : 'sem cert ativo'}
         envTone={certTone === 'bad' ? 'bad' : certTone === 'warn' ? 'warn' : 'ok'}

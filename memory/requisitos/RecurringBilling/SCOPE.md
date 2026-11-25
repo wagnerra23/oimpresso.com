@@ -1,6 +1,6 @@
 ---
 module: RecurringBilling
-purpose: "Assinaturas, planos e faturas recorrentes (schema rb_*) com pilha própria de boleto e PIX (Inter, C6, Asaas) e webhooks. Gera faturas por schedule diário em live; a régua de dunning é declarativa e a cobrança automática (ChargeAttempt) ainda não é criada por código de produção."
+purpose: "Assinaturas, planos e faturas recorrentes (schema rb_*) com boleto e PIX (Inter, C6, Asaas) pelos drivers do Modules/PaymentGateway e webhooks. Gera faturas por schedule diário em live; a régua de dunning é declarativa e a cobrança automática (ChargeAttempt) ainda não é criada por código de produção."
 migracao_ui: "concluido — 0 Blade servido (medido 2026-11-19: module-surface --migracao = servido 0, estado migrado); as 6 telas sao Inertia e /recurringbilling redireciona com 301"
 contains:
   - "DataController"
@@ -40,7 +40,7 @@ drift_alerts: []
 
 ## Missão
 
-Cobrança recorrente BR: planos, assinaturas e faturas (`rb_*`), com geração diária de fatura (`rb:generate-invoices`), boleto/Pix pelos drivers próprios (Inter, C6, Asaas) e webhooks. Pix Automático (US-RB-020/021) e cartão salvo (US-RB-011) existem em código atrás de flag, apoiados no `Modules/PaymentGateway`. NFe da fatura paga vai pelo NfeBrasil (ARQ-0006), não NFSe. Não há smart retry.
+Cobrança recorrente BR: planos, assinaturas e faturas (`rb_*`), com geração diária de fatura (`rb:generate-invoices`), boleto/Pix pelos drivers do `Modules/PaymentGateway` (Inter, C6, Asaas; a pilha própria do RB, `BoletoService` + drivers, foi removida em 2026-11-24 — ADR 0456, decisão b1) e webhooks. Pix Automático (US-RB-020/021) e cartão salvo (US-RB-011) existem em código atrás de flag, apoiados no `Modules/PaymentGateway`. NFe da fatura paga vai pelo NfeBrasil (ARQ-0006), não NFSe. Não há smart retry.
 
 > Texto da v1.0.0 (2026-05-05), preservado: *"Cobrança recorrente BR — Pix Automático, smart retries, NFSe automática. Spec-ready."* Foi a intenção da época; a frase acima é o construído medido em 2026-11-19.
 

@@ -310,29 +310,123 @@ class SellReturnController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * "+ Nova devolução" (`GET /sell-return/create` → `SellReturn/Create`): a etapa 1 do
+     * protótipo Devolução V3 — "Origem da devolução", escolher a venda finalizada que volta.
+     * Só LEITURA: lista vendas e manda para o registro que já existe (`/sell-return/add/{id}`).
+     * Não grava, não calcula valor, não mexe em estoque.
      *
-     * @return \Illuminate\Http\Response
+     * Escopo (o mesmo de validateInvoiceToReturn, que é quem acha a venda pelo número no
+     * caminho Blade): business da sessão, venda final, locais permitidos e "só as minhas" para
+     * quem não tem direct_sell.access mas tem view_own_sell_only (ADR 0093).
+     * Casos: resources/js/Pages/SellReturn/Create.casos.md (UC-SRCRE-*).
      */
-    // public function create()
-    // {
-    //     if (!auth()->user()->can('sell.create')) {
-    //         abort(403, 'Unauthorized action.');
-    //     }
+    public function create()
+    {
+        if (! auth()->user()->can('access_sell_return') && ! auth()->user()->can('access_own_sell_return')) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    //     $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
+        if (! $this->moduleUtil->isSubscribed($business_id)) {
+            return $this->moduleUtil->expiredResponse();
+        }
 
-    //     //Check if subscribed or not
-    //     if (!$this->moduleUtil->isSubscribed($business_id)) {
-    //         return $this->moduleUtil->expiredResponse(action([\App\Http\Controllers\SellReturnController::class, 'index']));
-    //     }
+        $nota = (string) request()->query('nota', 'todas');
+        if (! in_array($nota, ['todas', 'nfe', 'sem'], true)) {
+            $nota = 'todas';
+        }
+        $q = trim((string) request()->query('q', ''));
 
-    //     $business_locations = BusinessLocation::forDropdown($business_id);
-    //     //$walk_in_customer = $this->contactUtil->getWalkInCustomer($business_id);
+        return Inertia::render('SellReturn/Create', [
+            'vendas' => Inertia::defer(fn () => $this->origemVendas($business_id, $nota, $q), 'origem'),
+            'filtros' => ['nota' => $nota, 'q' => $q],
+        ]);
+    }
 
-    //     return view('sell_return.create')
-    //         ->with(compact('business_locations'));
-    // }
+    /** Vendas finalizadas que podem originar a devolução, a mais recente primeiro. */
+    private function origemVendas(int $business_id, string $nota, string $q)
+    {
+        $temNfe = \Illuminate\Support\Facades\Schema::hasTable('nfe_emissoes');
+        // A nota da venda: emissão autorizada ligada à venda, da MESMA empresa.
+        $nfeDaVenda = fn ($sub) => $sub->from('nfe_emissoes as ne')
+            ->whereColumn('ne.transaction_id', 'transactions.id')
+            ->where('ne.business_id', $business_id)
+            ->where('ne.status', 'autorizada');
+
+        $query = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->where('transactions.status', 'final');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('transactions.location_id', $permitted_locations);
+        }
+        if (! auth()->user()->can('direct_sell.access') && auth()->user()->can('view_own_sell_only')) {
+            $query->where('transactions.created_by', auth()->user()->id);
+        }
+
+        if ($temNfe && $nota === 'nfe') {
+            $query->whereExists(fn ($sub) => $nfeDaVenda($sub->select(DB::raw(1))));
+        } elseif ($temNfe && $nota === 'sem') {
+            $query->whereNotExists(fn ($sub) => $nfeDaVenda($sub->select(DB::raw(1))));
+        } elseif (! $temNfe && $nota === 'nfe') {
+            $query->whereRaw('1 = 0');
+        }
+
+        if ($q !== '') {
+            $like = '%'.$q.'%';
+            $query->where(function ($w) use ($like, $q, $temNfe, $nfeDaVenda) {
+                $w->where('transactions.invoice_no', 'like', $like)
+                    ->orWhere('contacts.name', 'like', $like)
+                    ->orWhere('contacts.supplier_business_name', 'like', $like);
+                if ($temNfe && ctype_digit($q)) {
+                    $w->orWhereExists(fn ($sub) => $nfeDaVenda($sub->select(DB::raw(1)))->where('ne.numero', (int) $q));
+                }
+            });
+        }
+
+        $colunas = [
+            'transactions.id',
+            'transactions.invoice_no',
+            'transactions.transaction_date',
+            'transactions.final_total',
+            'transactions.contact_id',
+            'contacts.name as contato_nome',
+            'contacts.supplier_business_name as contato_empresa',
+            'contacts.tax_number as contato_documento',
+            'contacts.state as contato_uf',
+            DB::raw("(SELECT R.invoice_no FROM transactions R WHERE R.return_parent_id = transactions.id AND R.type = 'sell_return' AND R.business_id = {$business_id} ORDER BY R.id DESC LIMIT 1) as devolucao_numero"),
+        ];
+        if ($temNfe) {
+            $colunas[] = DB::raw("(SELECT ne.numero FROM nfe_emissoes ne WHERE ne.transaction_id = transactions.id AND ne.business_id = {$business_id} AND ne.status = 'autorizada' ORDER BY ne.id DESC LIMIT 1) as nfe_numero");
+            $colunas[] = DB::raw("(SELECT ne.modelo FROM nfe_emissoes ne WHERE ne.transaction_id = transactions.id AND ne.business_id = {$business_id} AND ne.status = 'autorizada' ORDER BY ne.id DESC LIMIT 1) as nfe_modelo");
+        }
+
+        return $query->select($colunas)
+            ->orderByDesc('transactions.transaction_date')
+            ->orderByDesc('transactions.id')
+            ->paginate(self::INERTIA_POR_PAGINA)
+            ->withQueryString()
+            // As colunas vêm de join/subselect e não são atributos declarados do Model:
+            // lidas por getAttribute() para o larastan enxergar o tipo.
+            ->through(fn (Transaction $r) => [
+                'id' => (int) $r->getAttribute('id'),
+                'numero' => (string) $r->getAttribute('invoice_no'),
+                'data' => (string) $r->getAttribute('transaction_date'),
+                // A tela só junta numa mesma devolução vendas do MESMO cliente.
+                'contato_id' => $r->getAttribute('contact_id') === null ? null : (int) $r->getAttribute('contact_id'),
+                'cliente' => $r->getAttribute('contato_empresa') ?: $r->getAttribute('contato_nome'),
+                'documento' => $r->getAttribute('contato_documento') ?: null,
+                'uf' => $r->getAttribute('contato_uf') ?: null,
+                'nota' => empty($r->getAttribute('nfe_numero')) ? null : [
+                    'numero' => (string) $r->getAttribute('nfe_numero'),
+                    'tipo' => ((string) ($r->getAttribute('nfe_modelo') ?? '55')) === '65' ? 'NFC-e' : 'NF-e',
+                ],
+                'devolucao_numero' => $r->getAttribute('devolucao_numero') ?: null,
+                'total' => (float) $r->getAttribute('final_total'),
+            ]);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -465,6 +559,73 @@ class SellReturnController extends Controller
             'desconto_tipo' => (string) (! empty($devolucao->discount_type) ? $devolucao->discount_type : $sell->discount_type),
             'desconto_valor_txt' => $num(! empty($devolucao->discount_amount) ? $devolucao->discount_amount : $sell->discount_amount),
             'linhas' => $linhas,
+            'nota' => $this->inertiaNotaDaVenda($business_id, (int) $sell->id),
+            'nfe_devolucao' => $this->inertiaNfeDevolucao($business_id, $devolucao),
+        ];
+    }
+
+    /**
+     * A nota fiscal da venda (emissão autorizada, da MESMA empresa) — mesma regra do filtro
+     * "Com NF-e / Sem nota" de /sell-return/create (origemVendas). Null = venda sem nota: a tela
+     * mostra o retorno ao estoque sem documento fiscal (protótipo Devolução V3, venda sem nota).
+     *
+     * @return array{numero:string, tipo:string}|null
+     */
+    private function inertiaNotaDaVenda(int $business_id, int $vendaId): ?array
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('nfe_emissoes')) {
+            return null;
+        }
+        $nota = DB::table('nfe_emissoes')
+            ->where('business_id', $business_id)
+            ->where('transaction_id', $vendaId)
+            ->where('status', 'autorizada')
+            ->orderByDesc('id')
+            ->first(['numero', 'modelo']);
+
+        return $nota === null ? null : [
+            'numero' => (string) $nota->numero,
+            'tipo' => ((string) ($nota->modelo ?? '55')) === '65' ? 'NFC-e' : 'NF-e',
+        ];
+    }
+
+    /**
+     * Onda 1 do protótipo Devolução V3 (RUNBOOK-sell-return-add §6.2): se a devolução salva pode
+     * virar NF-e de devolução. Null esconde a seção na tela: flag desligada, sem permissão fiscal
+     * ou devolução ainda não salva. A resposta usa a MESMA checagem da rota de emissão
+     * (DevolucaoService::planoDaDevolucaoDeVenda), então a tela nunca promete o que a rota recusa.
+     *
+     * @return array{disponivel:bool, motivo:?string, itens:int, nota_origem:?string, devolucao_id:int}|null
+     */
+    private function inertiaNfeDevolucao(int $business_id, $devolucao): ?array
+    {
+        if (empty($devolucao)
+            || ! class_exists(\Modules\NfeBrasil\Services\DevolucaoService::class)
+            || ! \Modules\NfeBrasil\Services\DevolucaoService::ligadaPara($business_id)) {
+            return null;
+        }
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            return null;
+        }
+
+        $base = ['devolucao_id' => (int) $devolucao->id, 'itens' => 0, 'nota_origem' => null];
+        try {
+            $plano = app(\Modules\NfeBrasil\Services\DevolucaoService::class)
+                ->planoDaDevolucaoDeVenda($business_id, (int) $devolucao->id);
+        } catch (\RuntimeException $e) {
+            return $base + ['disponivel' => false, 'motivo' => $e->getMessage()];
+        }
+
+        $origem = \Modules\NfeBrasil\Models\NfeEmissao::where('business_id', $business_id)
+            ->where('id', $plano['origem_id'])
+            ->first(['numero', 'serie']);
+
+        return [
+            'devolucao_id' => (int) $devolucao->id,
+            'itens' => count($plano['itens']),
+            'nota_origem' => $origem === null ? null : "{$origem->numero} série {$origem->serie}",
+            'disponivel' => true,
+            'motivo' => null,
         ];
     }
 

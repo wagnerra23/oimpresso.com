@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Util\OtelHelper;
 use Modules\RecurringBilling\Services\AssinaturaService;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
 
 uses(Tests\TestCase::class);
 
@@ -14,7 +13,7 @@ uses(Tests\TestCase::class);
  *
  * Reforça eixos:
  *   - D2 (+10): contratos canon AssinaturaService + AssinaturaCobrancaService
- *               + BoletoService + CustomerJourney sem hit DB (source-grep)
+ *               + CustomerJourney sem hit DB (source-grep)
  *   - D5 (+8): README expandido (gateways + lifecycle + smoke + RBAC)
  *   - D9 (+4): spans canônicos rb.* em 3 services + zero-cost path
  *
@@ -51,15 +50,6 @@ it('AssinaturaCobrancaService tem 2 métodos canon (cancelInvoice + atualizarCob
     expect(method_exists(AssinaturaCobrancaService::class, 'cancelInvoice'))->toBeTrue();
 });
 
-it('BoletoService tem 4 métodos canon (emitir/cancelar/pdf/refundAsaas)', function () {
-    $methods = ['emitir', 'cancelar', 'pdf'];
-    foreach ($methods as $m) {
-        expect(method_exists(BoletoService::class, $m))->toBeTrue(
-            "BoletoService::{$m}() obrigatório"
-        );
-    }
-});
-
 it('AssinaturaService::calcularProximoVencimento cobre 5 ciclos (smoke pura)', function () {
     $svc = new AssinaturaService(
         new \Modules\RecurringBilling\Repositories\SubscriptionRepository()
@@ -88,15 +78,6 @@ it('AssinaturaCobrancaService usa OtelHelper::spanBiz em invoice.cancel + subscr
 
     expect($src)->toContain("OtelHelper::spanBiz('rb.invoice.cancel'");
     expect($src)->toContain("OtelHelper::spanBiz('rb.subscription.update'");
-});
-
-it('BoletoService usa OtelHelper::spanBiz em 4 ops (emitir/cancelar/pdf/refund_asaas)', function () {
-    $src = file_get_contents(base_path('Modules/RecurringBilling/Services/Boleto/BoletoService.php'));
-
-    expect($src)->toContain("OtelHelper::spanBiz('rb.boleto.emitir'");
-    expect($src)->toContain("OtelHelper::spanBiz('rb.boleto.cancelar'");
-    expect($src)->toContain("OtelHelper::spanBiz('rb.boleto.pdf'");
-    expect($src)->toContain("OtelHelper::spanBiz('rb.boleto.refund_asaas'");
 });
 
 it('AssinaturaService::cancelar marca canceled_at + churn_reason (audit MRR baseline)', function () {
@@ -178,7 +159,7 @@ it('D5 — README cita 4 anti-patterns proibidos Tier 0', function () {
     expect($readme)->toContain('US-RB-044');  // NFe-de-boleto-pago canônico irrevogável
     expect($readme)->toContain('Crypt::encryptString');  // credenciais
     expect($readme)->toContain('forceDelete');  // append-only canon
-    expect($readme)->toContain('BoletoCredentialResolver');  // bypass guard
+    expect($readme)->toContain('ContaBancaria::credencialGateway');  // credencial só pelo PaymentGateway (desde 2026-11-24)
 });
 
 // ---------- D9 (+4): zero-cost OTel canon ----------

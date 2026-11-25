@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { MOLDURA_JANELA, TITULO_JANELA } from './moldura-janela';
 import { ncmDigitado } from './tipos';
 
 interface Props {
@@ -31,9 +32,9 @@ export default function NcmEmLote({ aberto, quantidade, container, aoFechar, aoC
         }
       }}
     >
-      <DialogContent container={container}>
+      <DialogContent className={MOLDURA_JANELA} container={container}>
         <DialogHeader>
-          <DialogTitle>Informar NCM</DialogTitle>
+          <DialogTitle className={TITULO_JANELA}>Informar NCM</DialogTitle>
           <DialogDescription>
             {quantidade} produto(s) selecionado(s). Todos passam a ter este NCM; o que tinham antes é trocado.
           </DialogDescription>

@@ -3,13 +3,14 @@
 namespace Modules\Financeiro\Models;
 
 use App\Account;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -37,7 +38,7 @@ class ContaBancaria extends Model
         'beneficiario_cidade', 'beneficiario_uf', 'beneficiario_cep',
         'certificado_path', 'certificado_password_encrypted',
         'ativo_para_boleto', 'metadata',
-        'rb_gateway_credential_id', 'saldo_cached', 'saldo_atualizado_em', 'tipo_conta',
+        'saldo_cached', 'saldo_atualizado_em', 'tipo_conta',
         // Legacy migration (ADR 0118) — preenchidos pelo importer Python /
         // Modules/MigrationFactory futuro. Null em contas cadastradas nativas.
         'legacy_source', 'legacy_id', 'legacy_imported_at',
@@ -94,9 +95,60 @@ class ContaBancaria extends Model
             ->first();
     }
 
-    public function gatewayCredential(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    /**
+     * Credencial do PaymentGateway ligada a esta conta (onda 4 da saída de
+     * `rb_boleto_credentials`, 2026-11-24). Mesma regra do `OnCobrancaPagaCreateFinanceiroTitulo`:
+     *   1. `payment_gateway_credentials.conta_bancaria_id` = `account_id` (wizard do PG);
+     *   2. `fin_contas_bancarias.payment_gateway_credential_id` (vínculo antigo, no sentido inverso).
+     * Só credencial ativa e sempre no business_id da conta. O `config_json` sai decifrado pelo cast.
+     *
+     * @param  string|list<string>|null  $gatewayKeys
+     */
+    public function credencialGateway(string|array|null $gatewayKeys = null): ?PaymentGatewayCredential
     {
-        return $this->belongsTo(BoletoCredential::class, 'rb_gateway_credential_id');
+        $keys = $gatewayKeys === null ? null : (array) $gatewayKeys;
+        // SUPERADMIN: roda em job sem sessão; o business_id da própria conta filtra a busca.
+        $base = fn () => PaymentGatewayCredential::query()
+            ->withoutGlobalScopes()
+            ->where('business_id', $this->business_id)
+            ->where('ativo', true)
+            ->when($keys !== null, fn ($q) => $q->whereIn('gateway_key', $keys));
+
+        if ($this->account_id) {
+            $credencial = $base()
+                ->where('conta_bancaria_id', $this->account_id)
+                ->orderByRaw("CASE WHEN ambiente = 'production' THEN 0 ELSE 1 END")
+                ->orderByDesc('id')
+                ->first();
+            if ($credencial !== null) {
+                return $credencial;
+            }
+        }
+
+        $legado = $this->getAttribute('payment_gateway_credential_id');
+
+        return $legado ? $base()->where('id', $legado)->first() : null;
+    }
+
+    /**
+     * Contas com credencial ativa do PaymentGateway, pela mesma regra de `credencialGateway()`.
+     *
+     * @param  list<string>  $gatewayKeys
+     */
+    public function scopeComCredencialGateway(Builder $query, array $gatewayKeys): Builder
+    {
+        $credencial = fn (string $ligacao) => function ($sub) use ($gatewayKeys, $ligacao) {
+            $sub->selectRaw('1')
+                ->from('payment_gateway_credentials as pgc')
+                ->whereColumn('pgc.business_id', 'fin_contas_bancarias.business_id')
+                ->whereColumn(...($ligacao === 'conta'
+                    ? ['pgc.conta_bancaria_id', 'fin_contas_bancarias.account_id']
+                    : ['pgc.id', 'fin_contas_bancarias.payment_gateway_credential_id']))
+                ->whereIn('pgc.gateway_key', $gatewayKeys)
+                ->where('pgc.ativo', true);
+        };
+
+        return $query->where(fn ($w) => $w->whereExists($credencial('conta'))->orWhereExists($credencial('legado')));
     }
 
     public function getBancoNomeAttribute(): string

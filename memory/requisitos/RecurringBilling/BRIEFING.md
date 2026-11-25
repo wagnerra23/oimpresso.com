@@ -2,7 +2,7 @@
 id: requisitos-recurring-billing-briefing
 module: RecurringBilling
 status: producao
-updated_at: "2026-09-06"
+updated_at: "2026-11-24"
 distilled_at: "2026-09-06"
 distilled_by: jana:distill-module-truth
 ---
@@ -15,18 +15,31 @@ Assinaturas e faturas recorrentes com múltiplos gateways, em produção (uso me
 ## Capacidades
 - Planos: CRUD de `rb_plans` com ciclo e trial.
 - Contratos: estados de `rb_subscriptions`.
-- Cobrança via `BoletoService` com driver por gateway (Inter, Asaas, C6).
-- Cancelamento: `POST /financeiro/rb-invoices/{invoice}/cancelar` (UI `Faturas/Index.tsx`) — Inter e Asaas por API; C6 exige cancelamento manual no portal (driver lança `BadMethodCallException`, US-RB-042 `_parcial_`).
-- Webhooks idempotentes por `(provider, event_id)` em `pg_webhook_events`.
+- Cobrança pelos drivers do `Modules/PaymentGateway` (Inter, Asaas, C6), dono dos drivers e das credenciais (ADR 0456, [#11347](https://github.com/wagnerra23/oimpresso.com/pull/11347), proposta mergeada em 2026-11-23; decisão b1). Cancelar e estornar passam pelo `CobrancaNoGateway` desde 2026-11-24, com a credencial copiada para `payment_gateway_credentials` ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356); [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)). A pilha própria do RB (`BoletoService` + drivers Asaas, C6 e Inter) saiu em [#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409), sem chamador de produção. Ainda leem `rb_boleto_credentials`: o `BoletoCredentialResolver` (usado pelo Financeiro), Configurações e o wizard.
+- Assinatura sem plano: fatura pelo valor negociado (`metadata.valor`/`metadata.ciclo`) desde 2026-10-19 (#9606); `plan_id` é nulável (migration `2026_10_26_130000`).
+- Geração de faturas: `rb:generate-invoices`.
+- Pix Automático (US-RB-020/021, #9870): mandato na **Jornada 2** do BCB (ADR 0455, mesmo PR), cobrado por `rb:cobrar-pix-automatico`, driver e credencial no PaymentGateway. Atrás de `RB_COBRAR_PIX_AUTOMATICO` (padrão `false`).
+- Cartão salvo (US-RB-011, #9951): o token do cartão pago na página do Asaas fica ligado à assinatura; número de cartão nunca é gravado. Atrás de `RB_SALVAR_CARTAO` (padrão `false`). Cartão na tela (b5): bloco "Cartão recorrente" no drawer da assinatura, mergeado em 2026-11-23 ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355)), atrás da mesma flag; não conferido em produção porque a flag está desligada. Cobrar com o token: sem PR.
+- Cobrança paga no PaymentGateway → fatura paga (US-RB-057, #9844). Atrás de `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` (padrão `false`).
+- Cancelamento: `POST /financeiro/rb-invoices/{invoice}/cancelar` (UI `Faturas/Index.tsx`) — Inter e Asaas pelo driver do gateway da fatura no PaymentGateway ([#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359)); C6 responde 501 de cancelamento manual sem chamar API (US-RB-042 `_parcial_`).
+- Webhook Asaas em `POST /api/webhooks/asaas/{businessId}`: autenticado por segredo cifrado (#11227), idempotente por `(business_id, provider, event_id)` em `pg_webhook_events` (#11242), processado pela fila `rb_webhooks` (worker no `Kernel` desde #11230). Credita uma vez e só na quitação, e dispara `InvoicePaid` só na transição (#11223). O Inter (`/webhooks/inter/pix/{id}`) segue o mesmo contrato desde [#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352): fatura achada pelo `txid` gravado em `gateway_ref`, crédito só na quitação; Pix que não é de fatura do RB deixa de lançar crédito.
+- Fatura paga **não** vira título no Financeiro: a ponte (consumidor de `InvoicePaid`) é do Financeiro (decisão b2). Hoje o efeito é crédito em `account_transactions`. Fluxo completo: SDD F13.
+- Acesso: pacote `recurringbilling_module` em todas as rotas web (#11205) e permissão própria por rota (#11247).
 - NFe automática após pagamento: listener `EmitirNFeAoReceberPagamento` (NfeBrasil) wired ao evento de fatura paga, atrás da flag `nfebrasil.auto_emission_on_invoice_paid` (default `false`) — ligar em prod é US-RB-044, SDD §10.
-- Sync bancário de saldos e extratos.
+- Sync bancário de saldos e extratos. Desde 2026-11-24 o saldo usa a credencial do PaymentGateway ([#11412](https://github.com/wagnerra23/oimpresso.com/pull/11412)); a conta ainda é escolhida pelo FK do Financeiro para `rb_boleto_credentials`.
 - Página Inertia de assinaturas, com drawer "Nova assinatura" (PR #2369).
 
 ## Gaps
-- 🔴 Assinatura com valor negociado sem plano: `plan_id` null → `InvoiceGeneratorService` descarta com `Log::error`, sem alarme (`PlanoSemFaturaContratoTest`, `UC-RBSUB-05`, failing-first; contradiz a DoD do override de plano da US-RB-002 — correção pendente de decisão [W], SDD §9.1).
-- Dunning/retry é régua hardcoded, não motor; PIX Automático, cartão tokenizado e proração ausentes.
+- ~~🔴 Assinatura com valor negociado sem plano descartada pelo gerador~~ — resolvido em 2026-10-19 (#9606, remédio "a" de [W]; SDD §9.1 Desfecho).
+- ~~O `BoletoService` e os drivers de boleto do RB seguem no código sem chamador de produção~~ — removidos em 2026-11-24 ([#11409](https://github.com/wagnerra23/oimpresso.com/pull/11409)). Resta a tabela `rb_boleto_credentials` e os leitores dela (SDD D9).
+- Fatura paga não gera título/baixa no Financeiro; a ponte é do Financeiro (SDD D10).
+- Dunning/retry é régua hardcoded, não motor; proração ausente. A tela da régua mostra e-mail e WhatsApp como não disponíveis (decisão b7, [#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), 2026-11-23).
+- Flags desligadas em produção: `RB_COBRAR_PIX_AUTOMATICO`, `RB_SALVAR_CARTAO`, `RB_MARCAR_FATURA_PAGA_POR_COBRANCA`, `nfebrasil.auto_emission_on_invoice_paid`. Ligar é do [W] (US-RB-044 e US-RB-057 ficam "parcial (flag desligada)", decisão b8).
 
 ## Última mudança
+2026-11-19 a 2026-11-23 — auditoria do módulo (lotes L0/L1): contato só da empresa da sessão (#11196), pacote (#11205) e permissão por rota (#11247), worker `rb_webhooks` (#11230), crédito único do Asaas (#11223), idempotência e FK por empresa (#11242), segredo do webhook cifrado (#11227), timeline imutável (#11233), reenviar NF-e só pela nota vinculada (#11209). Decisões b1–b8 registradas pelo coordenador em 2026-11-23 a pedido do [W]. Em 2026-11-23/24: apagar contato ou plano não leva assinaturas e faturas ([#11346](https://github.com/wagnerra23/oimpresso.com/pull/11346), b6), cartão recorrente no drawer ([#11355](https://github.com/wagnerra23/oimpresso.com/pull/11355), b5), Faturas na forma do protótipo ([#11366](https://github.com/wagnerra23/oimpresso.com/pull/11366)), régua sem promessa de e-mail/WhatsApp ([#11350](https://github.com/wagnerra23/oimpresso.com/pull/11350), b7), navegador + axe nas 6 telas ([#11353](https://github.com/wagnerra23/oimpresso.com/pull/11353)), webhook Inter pelo `txid` ([#11352](https://github.com/wagnerra23/oimpresso.com/pull/11352)) e cancelar/estornar pelo PaymentGateway ([#11356](https://github.com/wagnerra23/oimpresso.com/pull/11356), [#11358](https://github.com/wagnerra23/oimpresso.com/pull/11358), [#11359](https://github.com/wagnerra23/oimpresso.com/pull/11359), b1). Em outubro: assinatura sem plano faturando (#9606), Pix Automático (#9870), US-RB-057 (#9844), cartão salvo (#9951).
+
+Antes disso:
 2026-08-31 — a tela passou a usar Input/Chart do DS (#6464). Antes: i18n `pt` (#6307, 2026-08-26), bypass de scope declarado no sync bancário (#5711, 2026-08-12), gates com permissão inexistente em assinatura e fatura (#5369, 2026-08-07), `CU-RB-15` fixando no SDD o contrato da US-RB-052 (2026-08-05) e, em 2026-08-03, os UC alcançáveis pelo manifesto G-7 com nove arquivos de teste entrando na lane sqlite do `ci.yml` (#5194; os outros três vieram no #5222); `PlanoSemFaturaContratoTest` segue fora por ser failing-first; `Wave21NewSubscriptionTest` e `Wave23EditarAssinaturaTest` ficaram de fora do #5194 por `AuthorizationException` e entraram na lane no mesmo dia, pelo #5222. Ligar a lane revelou dívida pré-existente, corrigida no teste, não no produto (o `skipped` denunciava um `UPDATE` no-op sobre instância stale; corrigido, o teste passou a provar idempotência com pré-condição anti-vácuo). A lista viva é `.github/ci-sqlite-pest.list`.
 
 ## Proveniência (destilado de)

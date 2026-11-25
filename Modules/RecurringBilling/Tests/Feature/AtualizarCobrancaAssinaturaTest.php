@@ -7,10 +7,11 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Modules\RecurringBilling\Events\AssinaturaAtualizada;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Exceptions\CredentialMisconfiguredException;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 
 uses(Tests\TestCase::class);
 
@@ -47,19 +48,6 @@ beforeEach(function () {
         $table->softDeletes();
     });
 
-    Schema::dropIfExists('rb_boleto_credentials');
-    Schema::create('rb_boleto_credentials', function ($table) {
-        $table->id();
-        $table->unsignedInteger('business_id')->index();
-        $table->unsignedBigInteger('conta_bancaria_id')->nullable();
-        $table->string('banco', 20);
-        $table->string('ambiente', 20)->default('production');
-        $table->boolean('ativo')->default(true);
-        $table->json('config_json')->nullable();
-        $table->string('nome_display')->nullable();
-        $table->timestamps();
-    });
-
     Event::fake([AssinaturaAtualizada::class]);
 });
 
@@ -69,7 +57,6 @@ afterEach(function () {
     // corromperia testes irmãos do módulo. DDL só em sqlite.
     if (DB::connection()->getDriverName() === 'sqlite') {
         Schema::dropIfExists('rb_subscriptions');
-        Schema::dropIfExists('rb_boleto_credentials');
     }
 });
 
@@ -81,13 +68,6 @@ it('atualiza valor e ciclo, reflete no Asaas mock e dispara evento AssinaturaAtu
         '*/subscriptions/sub_abc*' => Http::response(['id' => 'sub_abc', 'value' => 350.00, 'cycle' => 'MONTHLY'], 200),
     ]);
 
-    BoletoCredential::create([
-        'business_id' => 1,
-        'banco' => 'asaas',
-        'ambiente' => 'sandbox',
-        'ativo' => true,
-        'config_json' => ['api_key' => 'test_fake_key'],
-    ]);
 
     $subscription = Subscription::create([
         'business_id' => 1,
@@ -106,7 +86,19 @@ it('atualiza valor e ciclo, reflete no Asaas mock e dispara evento AssinaturaAtu
         ],
     ]);
 
-    $boletos = Mockery::mock(BoletoService::class);
+    // Credencial do PaymentGateway (onda 1 da saída de rb_boleto_credentials, 2026-11-24).
+    // O cast `encrypted:array` entrega o api_key em claro; é ele que vai no header.
+    $cred = new PaymentGatewayCredential();
+    $cred->forceFill([
+        'business_id' => 1,
+        'gateway_key' => 'asaas',
+        'ambiente' => 'sandbox',
+        'ativo' => true,
+        'config_json' => ['api_key' => 'test_fake_key'],
+    ]);
+
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
+    $boletos->shouldReceive('credencial')->once()->with(1, 'asaas')->andReturn($cred);
     $service = new AssinaturaCobrancaService($boletos);
 
     $result = $service->atualizarCobrancaAssinatura(1, $subscription->id, [
@@ -127,7 +119,8 @@ it('atualiza valor e ciclo, reflete no Asaas mock e dispara evento AssinaturaAtu
             && $e->gatewayCall === true;
     });
 
-    Http::assertSent(fn ($req) => str_contains($req->url(), '/subscriptions/sub_abc'));
+    Http::assertSent(fn ($req) => str_starts_with($req->url(), 'https://sandbox.asaas.com/api/v3/subscriptions/sub_abc')
+        && $req->header('access_token') === ['test_fake_key']);
 });
 
 /**
@@ -145,7 +138,7 @@ it('retorna 404 quando assinatura nao pertence ao business solicitado', function
         'metadata' => ['valor' => 100.00, 'ciclo' => 'mensal', 'forma_pagamento' => 'boleto'],
     ]);
 
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $service = new AssinaturaCobrancaService($boletos);
 
     // Tenta acessar a assinatura de biz=2 passando biz=1
@@ -186,7 +179,7 @@ it('retorna idempotente quando nada muda e nao chama gateway', function () {
         ],
     ]);
 
-    $boletos = Mockery::mock(BoletoService::class);
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
     $service = new AssinaturaCobrancaService($boletos);
 
     $result = $service->atualizarCobrancaAssinatura(1, $subscription->id, [
@@ -201,4 +194,40 @@ it('retorna idempotente quando nada muda e nao chama gateway', function () {
 
     Http::assertNothingSent();
     Event::assertNotDispatched(AssinaturaAtualizada::class);
+});
+
+/**
+ * Cenario 4: sem credencial Asaas no PaymentGateway — nenhuma chamada sai e o motivo volta
+ * como aviso. Antes o reajuste lia rb_boleto_credentials (onda 1, 2026-11-24).
+ */
+it('sem credencial Asaas no PaymentGateway nao chama o gateway e devolve o aviso', function () {
+    Http::fake();
+
+    $subscription = Subscription::create([
+        'business_id' => 1,
+        'plan_id' => null,
+        'contact_id' => 11,
+        'status' => 'active',
+        'start_date' => '2026-01-01',
+        'next_due_date' => '2026-06-01',
+        'billing_anchor_date' => '2026-01-01',
+        'metadata' => [
+            'valor' => 200.00,
+            'ciclo' => 'mensal',
+            'forma_pagamento' => 'boleto',
+            'gateway' => 'asaas',
+            'gateway_subscription_ref' => 'sub_sem_cred',
+        ],
+    ]);
+
+    $boletos = Mockery::mock(CobrancaNoGateway::class);
+    $boletos->shouldReceive('credencial')->once()->with(1, 'asaas')
+        ->andThrow(new CredentialMisconfiguredException('sem credencial'));
+    $service = new AssinaturaCobrancaService($boletos);
+
+    $result = $service->atualizarCobrancaAssinatura(1, $subscription->id, ['valor' => 260.00]);
+
+    expect($result['gateway_call'])->toBeFalse()
+        ->and($result['gateway_warning'] ?? null)->toBe('Sem credencial Asaas configurada para o business.');
+    Http::assertNothingSent();
 });

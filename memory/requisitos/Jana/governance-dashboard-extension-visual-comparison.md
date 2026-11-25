@@ -101,3 +101,40 @@ Nenhuma. Wagner aprovou layout em chat 2026-05-09 ("sim" pós proposta de 2 file
 ## Status
 
 `approved` (Wagner aprovou em chat 2026-05-09). Liberado pra implementação F2-F3.
+
+---
+
+## Medição 2026-11-24 (L6) — substitui a de 2026-09-18 [CC]
+
+Mede as **4 telas** com fonte no `governance-page.jsx` (Dashboard, Policies, Audit, DriftAlerts), cada uma contra a sua vista. Esta seção traz o método e o canário, que valem para as quatro; o veredito de cada tela está no GAP-SPEC dela:
+
+| Tela | Dono do veredito | Veredito |
+|---|---|---|
+| `governance/Dashboard` | [`governance-dashboard-gap.md`](../Governance/governance-dashboard-gap.md) | DIVERGE — 2 reais, 1 decidida; re-medido após o #11407: 1 decidida, 0 reais (período em `Select` fica para decidir) |
+| `governance/Policies` | [`governance-policies-gap.md`](../Governance/governance-policies-gap.md) | IGUAL nas dimensões medidas |
+| `governance/Audit` | [`governance-audit-gap.md`](../Governance/governance-audit-gap.md) | DIVERGE — 5 reais, 1 não conclusivo |
+| `governance/DriftAlerts` | [`governance-drift-alerts-gap.md`](../Governance/governance-drift-alerts-gap.md) | IGUAL nas dimensões medidas |
+
+Custos, QualidadeIa e DsRollout: **não medidos** — não têm âncora de protótipo (`ancora.mjs` não resolve fonte para elas).
+
+### Método
+
+- **Pré-requisitos.** L3 (PageHeader nas telas: #11217, #11228) e L5 (protótipo: #11194, #11226, #11244) mergeados antes da medição.
+- **Fonte.** `prototipo-ui/cowork/Wagner/governance-page.jsx` sha256 `3b1b79c13065…` e `governance-telas.jsx` `c82e0d6bf8a3…`, último commit `34b12a7869` (2026-11-19). Âncora: `node scripts/design/ancora.mjs governance/<Tela>` resolve as 4 pelo `bundle_source`.
+- **Vista certa.** O `app.jsx` abre cada vista por um token próprio (`governance`, `gov-politicas`, `gov-auditoria`, `gov-drift`). Sem token por tela o lote caía na rota do grupo e media a vista painel para as quatro — foi o erro da medida de 2026-09-18 (4 `design.json` com o mesmo sha). O token e os papéis por lado ficaram em `governance/design/targets/roles/governance--*.json`; com eles, `design-diff-lote.mjs --dry` passa a aceitar as 4 telas (antes: "rota do GRUPO"). Identidade da vista: D0 pelo `governance.contract.json` no Dashboard (OK); nas outras três, pelo `h1` e pelo `data-screen-label` gravados no `design.json`. Os 4 `design.json` têm sha distintos.
+- **Mesma sonda.** `node scripts/design/design-diff.mjs --probe`, sha256 `358fd0f0…`. No protótipo, lida do arquivo por http local; em produção, carregada por upload de arquivo e conferida por sha256 antes de rodar.
+- **Mesmo tema e viewport.** Claro nos dois (protótipo com `__setTweak('theme','light')`; produção sem classe `dark`). 1280×900 nos dois, em iframe.
+- **Produção.** `oimpresso.com`, `business_id=1` (lido dos props da página), sem diálogo aberto nem sobreposição fixa (`__meta`).
+- **Texto de produção redigido.** O `assinatura` do `prod.json` guarda só texto de UI (título, rótulos, cabeçalhos, e no Dashboard as cópias do contrato presentes); a tabela de auditoria tem dado de produção e ficou fora. O sha do texto original vai em `__meta.assinaturaRedigida`. Cada `prod.json` foi conferido por sha256 contra o snapshot da página antes de gravar.
+
+### Canário
+
+Na vista auditoria do protótipo, forcei o `h1` a 30px/700, removi o último KPI e tirei a fonte mono da coluna Ferramenta, e comparei contra o `design.json` sem alteração. Esperado e obtido: `kpi.count 2 × 3`, `título 30px × 22px`, `título 700 × 600` e `col3.mono` — as quatro, e nada além. Controle (o mesmo `design.json` contra ele mesmo): 0 DIVERGE. A sonda discrimina.
+
+### Divergências reais (não consertadas aqui)
+
+1. Dashboard — data da próxima revisão sai em ISO (`2026-08-05`) no card de KPI; o protótipo usa dd/mm/aaaa.
+2. Dashboard — seção MCP sem 9 das 22 cópias do contrato (a confirmar: parte pode ser o `Select` de período).
+3. Audit — produção não marca a linha com erro (0 de 200; o protótipo marca 16 de 200).
+4. Audit — colunas User e Endpoint sem cor própria.
+5. Audit — colunas Tool/Resource e Duração sem fonte mono.

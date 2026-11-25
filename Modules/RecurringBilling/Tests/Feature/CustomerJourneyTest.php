@@ -21,7 +21,7 @@ use Modules\RecurringBilling\Repositories\InvoiceRepository;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
 use Modules\RecurringBilling\Services\AssinaturaCobrancaService;
 use Modules\RecurringBilling\Services\AssinaturaService;
-use Modules\RecurringBilling\Services\Boleto\BoletoService;
+use Modules\RecurringBilling\Services\CobrancaNoGateway;
 
 uses(Tests\TestCase::class);
 
@@ -40,7 +40,7 @@ uses(Tests\TestCase::class);
  *   9. MRR baseline reflete cancelamento
  *
  * Smoke test cobre os 9 passos como **um fluxo só** sem mockar Service interno.
- * Mockerias só gateways externos (BoletoService::cancelar / driver HTTP).
+ * Mockerias só gateways externos (CobrancaNoGateway::cancelar / driver HTTP).
  *
  * Multi-tenant Tier 0 (ADR 0093) + biz=1 (ADR 0101).
  *
@@ -59,7 +59,6 @@ beforeEach(function () {
     Schema::dropIfExists('rb_invoices');
     Schema::dropIfExists('rb_subscriptions');
     Schema::dropIfExists('rb_plans');
-    Schema::dropIfExists('rb_boleto_credentials');
 
     Schema::create('rb_plans', function ($t) {
         $t->id();
@@ -167,8 +166,8 @@ it('UC-RBSUB-08 · D5 — Customer Journey completo (9 passos)', function () {
     $subRepo = new SubscriptionRepository();
     $invRepo = new InvoiceRepository();
     $service = new AssinaturaService($subRepo);
-    $boletosMock = Mockery::mock(BoletoService::class);
-    $boletosMock->shouldReceive('cancelar')->andReturn(true);
+    $boletosMock = Mockery::mock(CobrancaNoGateway::class);
+    $boletosMock->shouldReceive('cancelar')->andReturnNull();
     $cobranca = new AssinaturaCobrancaService($boletosMock);
 
     $plan = Plan::where('business_id', 1)->first();
