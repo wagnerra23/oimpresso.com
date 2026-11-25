@@ -18,8 +18,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { PageHeader } from '@/Components/PageHeader';
-import ModuleTabs from '@/Components/shared/ModuleTabs';
+import CrmCabecalho from '../_components/CrmCabecalho';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 
@@ -81,7 +80,7 @@ function Tabela({ cabecalho, linhas }: { cabecalho: string[]; linhas: (string | 
 export default function PainelIndex({ permissoes, pessoal, negocio }: Props) {
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Painel do CRM" subtitle="Seus acompanhamentos, leads e chamadas — e, para Admin, o quadro do negócio." />
+      <CrmCabecalho aba="Painel" />
 
       <Deferred data="pessoal" fallback={espera}>
         <PainelPessoal permissoes={permissoes} pessoal={pessoal} />

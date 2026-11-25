@@ -19,8 +19,7 @@ import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { PageHeader } from '@/Components/PageHeader';
-import ModuleTabs from '@/Components/shared/ModuleTabs';
+import CrmCabecalho from '../_components/CrmCabecalho';
 
 const GRAVAR = '/crm/update-settings';
 
@@ -43,7 +42,7 @@ export default function ConfiguracoesIndex({ configuracoes }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Configurações" subtitle="Opções do CRM deste negócio." />
+      <CrmCabecalho aba="Configurações" />
 
       <Card data-contract="crm-config">
         <CardContent className="p-4">

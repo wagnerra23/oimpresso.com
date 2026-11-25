@@ -21,8 +21,7 @@ import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { PageHeader } from '@/Components/PageHeader';
-import ModuleTabs from '@/Components/shared/ModuleTabs';
+import CrmCabecalho from '../_components/CrmCabecalho';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 
 const ROTA = '/crm/all-contacts-login';
@@ -62,7 +61,7 @@ const COLUNAS: ColumnDef<Login>[] = [
 export default function LoginsIndex({ filtros, opcoes, logins }: Props) {
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Login de contatos" subtitle="Acessos do portal do contato: quem do cliente entra e com qual usuário." />
+      <CrmCabecalho aba="Login de contatos" />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">

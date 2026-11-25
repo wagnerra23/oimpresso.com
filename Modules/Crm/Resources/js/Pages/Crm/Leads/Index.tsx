@@ -23,8 +23,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
-import { PageHeader } from '@/Components/PageHeader';
-import ModuleTabs from '@/Components/shared/ModuleTabs';
+import CrmCabecalho from '../_components/CrmCabecalho';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
 
 const ROTA = '/crm/leads';
@@ -64,7 +63,7 @@ export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Leads" subtitle="Contatos em prospecção: fonte, estágio de vida e quem acompanha." />
+      <CrmCabecalho aba="Leads" />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">
