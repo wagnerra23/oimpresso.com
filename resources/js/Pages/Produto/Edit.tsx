@@ -107,6 +107,8 @@ export interface ProdutoEditPageProps {
     opening_stock: boolean;
     delete: boolean;
   };
+  /** UC-PEDIT-35: quantos grupos de preço a empresa tem; com algum, aparece "Salvar e adicionar preços por grupo". */
+  sellingPriceGroupCount?: number;
   /** Método de custo (US-COM-024): null quando o módulo Compras não está no pacote. */
   metodoCusto?: MetodoCustoDoFormulario | null;
   /** Margem mínima da empresa em % (UC-FLX-35): null quando a regra está desligada. */
@@ -289,12 +291,15 @@ function EditarCompleto(props: ProdutoEditPageProps) {
           <Deferred data="producao" fallback={null}>
             <ProducaoDoEditar producao={props.producao} />
           </Deferred>
-          {/* "Salvar e adicionar preços por grupo" fica fora: o Editar não recebe a contagem de grupos. */}
+          {/* UC-PEDIT-35: os dois "Salvar e adicionar …" nas mesmas condições do edit.blade.php. */}
           <AcoesDoCadastro
             form="produto-edit-form"
             modo="editar"
             cancelarHref={`/products/${p.id}`}
             desabilitado={processing}
+            comGruposDePreco={(props.sellingPriceGroupCount ?? 0) > 0}
+            podeEstoqueInicial={props.permissions.opening_stock}
+            controlaEstoque={p.enableStock}
           />
         </div>
       </div>

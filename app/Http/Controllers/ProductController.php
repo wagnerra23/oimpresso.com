@@ -3149,6 +3149,8 @@ class ProductController extends Controller
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'delete' => auth()->user()->can('product.delete'),
                 ],
+                // UC-PEDIT-35: "Salvar e adicionar preços por grupo" só aparece com grupo cadastrado, como no Blade.
+                'sellingPriceGroupCount' => (int) $selling_price_group_count,
                 'metodoCusto' => $this->metodoCustoDoFormulario($module_form_parts),
                 'margemMinima' => $this->margemMinimaDaEmpresa((int) $business_id),
                 // CU-PROD-22 (opção A): card "Produção", só leitura. Lê o banco, então vem depois.
@@ -3473,6 +3475,13 @@ class ProductController extends Controller
         }
 
         if ($request->input('submit_type') == 'update_n_edit_opening_stock') {
+            // UC-PEDIT-35: a tela de estoque inicial é Blade. Num envio pelo Editar React (visita Inertia),
+            // o 302 traria o HTML dela para dentro da página; Inertia::location abre a página inteira,
+            // como o store() já faz no Novo (UC-PCAD-21). O envio pelo Blade segue com o redirect de sempre.
+            if ($request->header('X-Inertia')) {
+                return Inertia::location(action([\App\Http\Controllers\OpeningStockController::class, 'add'], ['product_id' => $product->id]));
+            }
+
             return redirect()->action([\App\Http\Controllers\OpeningStockController::class, 'add'],
                 ['product_id' => $product->id]
             );

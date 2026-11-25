@@ -32,7 +32,7 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 - Header "Editar produto · {nome} · SKU mono small"
 - Type select disabled
 - Defaults preenchidos com produto atual
-- Rodapé de ações: Cancelar · "Salvar e adicionar outro" · "Salvar alterações"; "Voltar à lista" no cabeçalho (desde 2026-11-04, forma do protótipo)
+- Rodapé de ações: Cancelar · "Salvar e adicionar preços por grupo" (com grupo de preço) · "Salvar e adicionar estoque inicial" (com `product.opening_stock`; desligado sem controle de estoque) · "Salvar e adicionar outro" · "Salvar alterações"; "Voltar à lista" no cabeçalho (desde 2026-11-04, forma do protótipo; os dois do meio desde 2026-11-25, UC-PEDIT-35)
 - Multi-tenant: produto cross-tenant retorna 404
 
 ## Non-Goals
@@ -51,6 +51,7 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 
 - ❌ NÃO mexer no método `update()` PHP (out of scope)
   - _Exceção datada (2026-10-15, UC-PEDIT-09): o `update()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem — o Blade não manda e não zera. Nada mais do método mudou._
+  - _Exceção datada (2026-11-25, UC-PEDIT-35): com `submit_type=update_n_edit_opening_stock` vindo da tela React (cabeçalho `X-Inertia`), o `update()` devolve `Inertia::location` para o estoque inicial em vez do 302, como o `store()` já faz no Novo (UC-PCAD-21). Pelo Blade, igual._
 - ❌ NÃO recriar SKU server-side no client
 
 ## Pest GUARD
