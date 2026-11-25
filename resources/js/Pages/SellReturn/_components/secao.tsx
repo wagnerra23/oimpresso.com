@@ -26,6 +26,16 @@ const HUE: Record<Tom, string> = {
 /** Texto no tom: 62% do matiz sobre o texto, como o protótipo — legível nos dois temas. */
 const tomTexto = (t: Tom) => `color-mix(in oklch, ${HUE[t]} 62%, var(--color-foreground))`;
 
+// Ícone do cabeçalho. O amarelo a 62% sobre o texto claro do tema escuro virava pastel
+// (Maiara, 2026-11-25: "ficou meio apagado" num bloco que pede atenção). Só o `warning` sobe
+// para 85% de matiz e 22% de fundo: mais saturado sem sair do token, e no tema claro a mistura
+// com o texto escuro mantém o contraste. Os outros tons seguem a proporção do protótipo.
+const ICONE: Partial<Record<Tom, { matiz: number; fundo: number }>> = {
+  warning: { matiz: 85, fundo: 22 },
+};
+const iconeCor = (t: Tom) => `color-mix(in oklch, ${HUE[t]} ${ICONE[t]?.matiz ?? 62}%, var(--color-foreground))`;
+const iconeFundo = (t: Tom) => `color-mix(in oklch, ${HUE[t]} ${ICONE[t]?.fundo ?? 14}%, transparent)`;
+
 export function Selo({ tom, children }: { tom: Tom; children: ReactNode }) {
   return (
     <span
@@ -70,7 +80,7 @@ export function SecaoDevolucao({
           <span
             aria-hidden
             className="inline-flex size-[30px] flex-none items-center justify-center rounded-lg [&_svg]:size-[15px]"
-            style={{ background: `color-mix(in oklch, ${HUE[tom]} 14%, transparent)`, color: tomTexto(tom) }}
+            style={{ background: iconeFundo(tom), color: iconeCor(tom) }}
           >
             {icone}
           </span>
