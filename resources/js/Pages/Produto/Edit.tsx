@@ -23,7 +23,7 @@ import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
 import { camposDoMetodoCusto, valorInicialDoMetodo } from './_components/formulario/metodoCusto';
 import type { MetodoCustoDoFormulario } from './_components/formulario/metodoCusto';
-import { armazenagemInicial, camposDaArmazenagem } from './_components/formulario/armazenagem';
+import { armazenagemInicial, camposDaArmazenagem, comLocaisDoEstoque } from './_components/formulario/armazenagem';
 import type { EnderecoNoEstoque, SaldoPorLocal } from './_components/formulario/armazenagem';
 import { camposDaPolitica, politicaInicial } from './_components/formulario/politicaPreco';
 import { semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
@@ -165,8 +165,12 @@ function EditarCompleto(props: ProdutoEditPageProps) {
   );
   const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
   // CU-PROD-20: os locais de armazenagem gravados e o padrão. Só com o estoque controlado.
+  // UC-PEDIT-34: mais os locais com saldo e sem endereço, para o bloco mostrar onde o produto está.
   const [armazenagem, setArmazenagem] = useState(() =>
-    armazenagemInicial(props.rackDetails as never, { salvo: true, padrao: p.localPadraoId ?? null }),
+    comLocaisDoEstoque(
+      armazenagemInicial(props.rackDetails as never, { salvo: true, padrao: p.localPadraoId ?? null }),
+      props.saldoPorLocal ?? {},
+    ),
   );
   // CU-PROD-21: a política de preço gravada. Só vai no envio quando muda.
   const [politicaGravada] = useState(() => politicaInicial({ politica: p.politicaPreco, margemAlvoPct: p.margemAlvoPct }));
