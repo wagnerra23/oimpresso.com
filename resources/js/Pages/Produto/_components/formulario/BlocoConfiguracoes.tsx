@@ -9,7 +9,7 @@
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Checkbox } from '@/Components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { SecaoCadastro } from './SecaoCadastro';
 import {
   Select,
   SelectContent,
@@ -46,11 +46,7 @@ interface Props {
 
 export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarValidade, armazenagem, campos = [] }: Props) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Configurações</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <SecaoCadastro titulo="Configurações" nota="validade, série, prateleira, campos personalizados">
         <Stack gap={4}>
         <Grid cols={4} gap={4}>
         {mostrarValidade && (
@@ -176,8 +172,7 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
           </Grid>
         )}
         </Stack>
-      </CardContent>
-    </Card>
+    </SecaoCadastro>
   );
 }
 

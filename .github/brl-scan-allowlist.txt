@@ -269,3 +269,9 @@ valor R$ 1.000,00 → R$ 1.200,00
 A venda tem R$ 60,00 recebidos (1 pagamento(s))
 recusa "R$ 60,00 recebidos", saldo segue 7
 VendaNaoCancelavelException::class, 'R$ 60,00 recebidos'
+# ── Produto · exemplo da pergunta do imposto (2026-11-25, PR #11463) ──────────
+# Texto de tela do cadastro (protótipo produto-blade-forms.jsx): "venda de R$ 100,00 →
+# o cliente paga …". Valor fictício e fixo, igual para toda empresa; não é dado de
+# cliente. As mesmas frases são o vetor de asserção de produto-imposto-pergunta.test.tsx.
+Exemplo: venda de R$ 100,00 → o cliente paga R$
+R$ 100,00. Só texto: a conta do preço que vai para o servidor segue em precos.ts.
