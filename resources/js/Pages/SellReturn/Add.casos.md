@@ -5,9 +5,15 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-11-24"
+last_run: "2026-11-25"
 last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40976713795 (634 passed · 5182 assertions)"
 ---
+
+<!-- REVALIDAÇÃO 2026-11-25 (G-6: o .tsx mudou depois do last_run de 24/11).
+     A mudança no Add.tsx é só de forma (cores do protótipo Devolução V3): os Card viraram
+     SecaoDevolucao, os avisos ganharam ícone e cor. Estados, calcularTotais, o post ao store()
+     e as âncoras data-contract são os mesmos; nenhum UC-SRADD/UC-SRADDV muda. Revalidado pela
+     leitura do diff; os testes não foram reexecutados para esta edição (o veredito é da lane do PR). -->
 
 <!-- REVALIDAÇÃO 2026-10-29 (G-6: o .tsx mudou depois do last_run de 27/10).
      A mudança no Add.tsx é a do P-038: botão "Devolver tudo", coluna "Já devolvida" e
