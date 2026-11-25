@@ -14,9 +14,7 @@ import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/Components/PageHeader';
 import { FormSection } from '@/Components/ui/form-section';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { Badge } from '@/Components/ui/badge';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -26,7 +24,8 @@ import { Grid, Inline, Stack } from '@/Components/layout';
 import { acumuladoTxt, calcularTotais, numUf, podeVoltar } from './_components/devolucaoCalculo';
 import { lerFila, urlDoRegistro } from './_components/devolucaoFila';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
-import { TriangleAlert } from 'lucide-react';
+import { CircleCheck, FileText, Info, Landmark, Package, PackageOpen, TriangleAlert, Wallet } from 'lucide-react';
+import { Aviso, SecaoDevolucao, Selo } from './_components/secao';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade SellReturnController@inertiaAddVenda
@@ -321,8 +320,8 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
       texto: 'Não há nota de devolução: o retorno ajusta a venda, o estoque e o financeiro.',
     });
   }
-  const corAviso = { neg: 'border-destructive/20 bg-destructive-soft', pos: 'border-success/20 bg-success-soft', info: 'border-info/20 bg-info-soft' } as const;
-  const corTitulo = { neg: 'text-destructive-fg', pos: 'text-success-fg', info: 'text-info-fg' } as const;
+  const tomAviso = { neg: 'destructive', pos: 'success', info: 'info' } as const;
+  const iconeAviso = { neg: <TriangleAlert />, pos: <CircleCheck />, info: <Info /> } as const;
 
   // Layout do protótipo Devolução V3 (prototipo-ui/cowork/Wagner/devolucao-v3.html, venda sem
   // nota — blocoSn/renderSnItens): origem, itens que voltam, conferência; à direita o retorno ao
@@ -331,12 +330,13 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
     <form onSubmit={salvar} data-contract="formulario">
       <Grid gap={4} className="mt-4 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Stack gap={4} className="min-w-0">
-          <Card data-contract="venda-origem">
-            <CardHeader>
-              <CardTitle>1 · Origem da devolução</CardTitle>
-              <CardDescription>{semNota ? 'Venda sem nota que está voltando.' : 'A venda finalizada que está voltando.'}</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <SecaoDevolucao
+            data-contract="venda-origem"
+            passo={1}
+            icone={<FileText />}
+            titulo="Origem da devolução"
+            sub={semNota ? 'Venda sem nota que está voltando.' : 'A venda finalizada que está voltando.'}
+          >
               <Stack gap={4}>
                 <Grid min="sm" gap={4} className="text-sm">
                   <Stack gap={0}>
@@ -376,37 +376,37 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   </Button>
                 </Inline>
               </Stack>
-            </CardContent>
-          </Card>
+          </SecaoDevolucao>
 
-          <Card data-contract="itens">
-            <CardHeader>
-              <Inline justify="between" gap={3} className="flex-wrap items-start">
-                <Stack gap={1}>
-                  <CardTitle>2 · Itens que voltam ao estoque</CardTitle>
-                  <CardDescription>Limitado ao que foi vendido menos o que já voltou.</CardDescription>
-                </Stack>
-                <Inline gap={2}>
-                  <Button type="button" variant="outline" size="sm" onClick={devolverTodoSaldo} disabled={saldoTotal <= 0} data-contract="devolver-tudo">
-                    Devolver todo o saldo
-                  </Button>
-                  <Button type="button" variant="ghost" size="sm" onClick={limpar} disabled={!algoVolta}>
-                    Limpar
-                  </Button>
-                </Inline>
-              </Inline>
-            </CardHeader>
-            <CardContent>
+          <SecaoDevolucao
+            data-contract="itens"
+            passo={2}
+            icone={<Package />}
+            tom="success"
+            titulo="Itens que voltam ao estoque"
+            sub="Limitado ao que foi vendido menos o que já voltou."
+            semPadding
+            direita={
+              <>
+                <Button type="button" variant="outline" size="sm" onClick={devolverTodoSaldo} disabled={saldoTotal <= 0} data-contract="devolver-tudo">
+                  Devolver todo o saldo
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={limpar} disabled={!algoVolta}>
+                  Limpar
+                </Button>
+              </>
+            }
+          >
               <div className="overflow-x-auto">
-                <table className="w-full text-sm" aria-label="Itens da venda e quantidade que volta agora">
+                <table className="w-full text-[12.5px]" aria-label="Itens da venda e quantidade que volta agora">
                   <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                      <th className="py-2 pr-2">Produto</th>
-                      <th className="py-2 pr-2 text-right">Vendido</th>
-                      <th className="py-2 pr-2 text-right">Já voltou</th>
-                      <th className="py-2 pr-2 text-right">Pode voltar</th>
-                      <th className="py-2 pr-2 text-right">Volta agora</th>
-                      <th className="py-2 text-right">Valor</th>
+                    <tr className="border-b border-border bg-muted text-left text-[10.5px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
+                      <th className="px-2.5 py-2">Produto</th>
+                      <th className="px-2.5 py-2 text-right">Vendido</th>
+                      <th className="px-2.5 py-2 text-right">Já voltou</th>
+                      <th className="px-2.5 py-2 text-right">Pode voltar</th>
+                      <th className="px-2.5 py-2 text-right">Volta agora</th>
+                      <th className="px-2.5 py-2 text-right">Valor</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -416,15 +416,15 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                       const qAgora = numUf(voltaAgora[i] ?? '');
                       const preco = numUf(l.preco_unitario_txt);
                       return (
-                        <tr key={l.sell_line_id} className="border-b border-border align-top">
-                          <td className="py-2 pr-2">
+                        <tr key={l.sell_line_id} className="border-b border-border align-top hover:bg-[color-mix(in_oklch,var(--color-primary)_4%,var(--color-card))]">
+                          <td className="px-2.5 py-2">
                             <strong>{l.produto}</strong>
                             {l.sku && <div className="font-mono text-xs text-muted-foreground">{l.sku}</div>}
                           </td>
-                          <td className="py-2 pr-2 text-right font-mono tabular-nums">{l.quantidade_vendida_txt}</td>
-                          <td className="py-2 pr-2 text-right font-mono tabular-nums">{ja > 0 ? l.quantidade_devolvida_txt : '—'}</td>
-                          <td className="py-2 pr-2 text-right font-mono font-semibold tabular-nums">{fmtQtd(saldo)}</td>
-                          <td className="w-32 py-2 pr-2 text-right">
+                          <td className="px-2.5 py-2 text-right font-mono tabular-nums">{l.quantidade_vendida_txt}</td>
+                          <td className="px-2.5 py-2 text-right font-mono tabular-nums">{ja > 0 ? l.quantidade_devolvida_txt : '—'}</td>
+                          <td className="px-2.5 py-2 text-right font-mono font-semibold tabular-nums">{fmtQtd(saldo)}</td>
+                          <td className="w-32 px-2.5 py-2 text-right">
                             <Input
                               className="text-right"
                               inputMode="decimal"
@@ -437,7 +437,7 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                             />
                             {erros[i] && <p className="mt-1 text-xs text-destructive">{erros[i]}</p>}
                           </td>
-                          <td className="py-2 text-right font-mono tabular-nums">
+                          <td className="px-2.5 py-2 text-right font-mono tabular-nums">
                             {qAgora > 0 ? fmtBRL(qAgora * preco) : '—'}
                             <small className="block text-xs text-muted-foreground">{fmtBRL(preco)} /{l.unidade || 'un'}</small>
                           </td>
@@ -446,16 +446,16 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                     })}
                   </tbody>
                   <tfoot>
-                    <tr className="font-semibold">
-                      <td className="py-2 pr-2">{itensAgora} {itensAgora === 1 ? 'item voltando' : 'itens voltando'}</td>
+                    <tr className="bg-muted font-semibold">
+                      <td className="px-2.5 py-2">{itensAgora} {itensAgora === 1 ? 'item voltando' : 'itens voltando'}</td>
                       <td /><td /><td />
-                      <td className="py-2 pr-2 text-right font-mono tabular-nums">{fmtQtd(unidadesAgora)}</td>
-                      <td className="py-2 text-right font-mono tabular-nums">{fmtBRL(algoVolta ? valorAgora : 0)}</td>
+                      <td className="px-2.5 py-2 text-right font-mono tabular-nums">{fmtQtd(unidadesAgora)}</td>
+                      <td className="px-2.5 py-2 text-right font-mono tabular-nums">{fmtBRL(algoVolta ? valorAgora : 0)}</td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
-              <div className="mt-4" data-contract="desconto">
+              <div className="border-t border-border p-4" data-contract="desconto">
                 <Grid min="sm" gap={4}>
                   <Stack gap={1}>
                     <Label htmlFor="devolucao-desconto-tipo" className="text-xs text-muted-foreground">Tipo de desconto</Label>
@@ -474,31 +474,33 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   </Stack>
                 </Grid>
               </div>
-            </CardContent>
-          </Card>
+          </SecaoDevolucao>
 
-          <Card data-contract="conferencia">
-            <CardHeader>
-              <CardTitle>3 · Conferência</CardTitle>
-              <CardDescription>{semNota ? 'Antes de devolver ao estoque.' : 'Antes de salvar a devolução.'}</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <SecaoDevolucao
+            data-contract="conferencia"
+            passo={3}
+            icone={<TriangleAlert />}
+            tom="warning"
+            titulo="Conferência"
+            sub={semNota ? 'Antes de devolver ao estoque.' : 'Antes de salvar a devolução.'}
+          >
               <Stack gap={2} aria-live="polite">
                 {avisos.map((a) => (
-                  <div key={a.titulo} className={`rounded-md border px-3 py-2 text-sm ${corAviso[a.tom]}`}>
-                    <strong className={corTitulo[a.tom]}>{a.titulo}</strong> <span className="text-foreground">{a.texto}</span>
-                  </div>
+                  <Aviso key={a.titulo} tom={tomAviso[a.tom]} icone={iconeAviso[a.tom]} titulo={a.titulo}>
+                    {a.texto}
+                  </Aviso>
                 ))}
               </Stack>
-            </CardContent>
-          </Card>
+          </SecaoDevolucao>
 
-          <Card data-contract="pagamento-cliente">
-            <CardHeader>
-              <CardTitle>4 · Pagamento ao cliente</CardTitle>
-              <CardDescription>Como o cliente recebe o que a devolução deixa a favor dele.</CardDescription>
-            </CardHeader>
-            <CardContent>
+          <SecaoDevolucao
+            data-contract="pagamento-cliente"
+            passo={4}
+            icone={<Wallet />}
+            tom="info"
+            titulo="Pagamento ao cliente"
+            sub="Como o cliente recebe o que a devolução deixa a favor dele."
+          >
               <RadioGroup value={pagamento} onValueChange={(v) => setPagamento(v as 'depois' | 'vale')} className="gap-3">
                 <Inline gap={2} className="items-start">
                   <RadioGroupItem id="pagar-depois" value="depois" />
@@ -518,29 +520,27 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   </Label>
                 </Inline>
               </RadioGroup>
-            </CardContent>
-          </Card>
+          </SecaoDevolucao>
         </Stack>
 
         <Stack gap={4} className="h-fit lg:sticky lg:top-4">
-          <Card data-contract="totais">
-            <CardHeader>
-              <Inline justify="between" gap={2} className="items-start">
-                <Stack gap={1}>
-                  <CardTitle>Retorno ao estoque</CardTitle>
-                  <CardDescription>{semNota ? 'Venda sem nota' : `Venda com ${documento}`}</CardDescription>
-                </Stack>
-                {semNota && !venda.imposto && (
-                  <Badge variant="warning">Sem tributos</Badge>
-                )}
-              </Inline>
-            </CardHeader>
-            <CardContent>
+          <SecaoDevolucao
+            data-contract="totais"
+            icone={<PackageOpen />}
+            tom="warning"
+            titulo="Retorno ao estoque"
+            sub={semNota ? 'Venda sem nota' : `Venda com ${documento}`}
+            direita={semNota && !venda.imposto ? <Selo tom="warning">Sem tributos</Selo> : undefined}
+          >
               <Stack gap={3}>
-                <div className="rounded-md border border-border bg-muted/40 p-3" data-contract="volta-agora">
-                  <span className={rotulo}>Unidades que voltam</span>
-                  <b className="block font-mono text-2xl tabular-nums">{fmtQtd(unidadesAgora)} un</b>
-                  <small className="text-muted-foreground">
+                {/* `.plate` do protótipo: no claro, placa invertida; no escuro, tinta do primary (14%/35%). */}
+                <div
+                  className="rounded-lg bg-foreground px-4 py-3.5 text-background dark:border dark:border-[color-mix(in_oklch,var(--color-primary)_35%,var(--color-border))] dark:bg-[color-mix(in_oklch,var(--color-primary)_14%,var(--color-card))] dark:text-foreground"
+                  data-contract="volta-agora"
+                >
+                  <span className="mb-2 block text-[10.5px] font-semibold uppercase leading-none tracking-[.06em] opacity-70">Unidades que voltam</span>
+                  <b className="block font-mono text-[28px] leading-none tabular-nums">{fmtQtd(unidadesAgora)} un</b>
+                  <small className="mt-2 block text-[11.5px] opacity-70">
                     {fmtBRL(algoVolta ? valorAgora : 0)} · {venda.local ?? '—'}
                   </small>
                 </div>
@@ -566,16 +566,10 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   )}
                 </Stack>
               </Stack>
-            </CardContent>
-          </Card>
+          </SecaoDevolucao>
 
           {algoVolta && (
-            <Card data-contract="previa-financeira">
-              <CardHeader>
-                <CardTitle>Financeiro</CardTitle>
-                <CardDescription>Conta a receber da venda</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <SecaoDevolucao data-contract="previa-financeira" icone={<Landmark />} tom="info" titulo="Financeiro" sub="Conta a receber da venda">
                 {previaErro && !previa && (
                   <p className="text-sm text-muted-foreground">Não foi possível calcular o efeito no Financeiro agora. A devolução pode ser salva normalmente.</p>
                 )}
@@ -622,16 +616,18 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                     )}
                   </Stack>
                 )}
-              </CardContent>
-            </Card>
+              </SecaoDevolucao>
           )}
 
-          <Card data-contract="acao">
-            <CardContent className="pt-6">
+          {/* `.fin` do protótipo: borda com 22% do primary e sombra de painel que flutua. */}
+          <div
+            data-contract="acao"
+            className="rounded-lg border border-[color-mix(in_oklch,var(--color-primary)_22%,var(--color-border))] bg-card p-3 shadow-[0_-2px_10px_color-mix(in_oklch,var(--color-foreground)_7%,transparent),0_10px_28px_color-mix(in_oklch,var(--color-foreground)_12%,transparent)]"
+          >
               <Stack gap={3}>
                 <Inline justify="between" className="items-baseline text-sm">
                   <span className={rotulo}>Volta ao estoque</span>
-                  <b className="font-mono tabular-nums">{fmtQtd(unidadesAgora)} un</b>
+                  <b className="font-mono text-xl tabular-nums">{fmtQtd(unidadesAgora)} un</b>
                   <span className="font-mono tabular-nums text-muted-foreground">{fmtBRL(algoVolta ? valorAgora : 0)}</span>
                 </Inline>
                 <Button type="submit" disabled={!podeSalvar}>
@@ -644,8 +640,7 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
                   <Link href="/sell-return">Cancelar</Link>
                 </Button>
               </Stack>
-            </CardContent>
-          </Card>
+            </div>
         </Stack>
       </Grid>
     </form>
