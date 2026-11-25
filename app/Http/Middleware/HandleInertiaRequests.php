@@ -305,6 +305,12 @@ class HandleInertiaRequests extends Middleware
             'ponto.aprovacoes.manage',
             'ponto.relatorios.view',
             'ponto.configuracoes.manage',
+            // Aba "Caixa do dia" da barra de Vendas (Pages/Sells/_components/AbasVendas.tsx):
+            // /vendas/caixa não tem item na sidebar, então a aba não pode herdar o filtro
+            // dela. São as três permissões que SellController::inertiaCaixa aceita.
+            'direct_sell.view',
+            'view_own_sell_only',
+            'view_commission_agent_sell',
         ];
 
         $can = [];

@@ -10,7 +10,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Models\ContaBancaria;
@@ -57,12 +56,8 @@ class SyncBankStatementsJob implements ShouldQueue
         // `SyncBankStatementsJobTest` ("multi-tenant: ...").
         $query = ContaBancaria::query()
             ->withoutGlobalScope(BusinessScopeImpl::class)
-            ->whereNotNull('rb_gateway_credential_id')
-            ->whereHas('gatewayCredential', fn ($q) => $q
-                ->where('banco', 'inter')
-                ->where('ativo', true)
-            )
-            ->with('gatewayCredential');
+            // Credencial Inter ativa do PaymentGateway ligada à conta (onda 4, 2026-11-24).
+            ->comCredencialGateway(['inter']);
 
         if ($this->contaBancariaId) {
             $query->where('id', $this->contaBancariaId);
@@ -86,24 +81,16 @@ class SyncBankStatementsJob implements ShouldQueue
 
     private function syncConta(ContaBancaria $conta, Carbon $from, Carbon $to): void
     {
-        $config = $this->decryptConfig($conta->gatewayCredential->config_json ?? []);
-        $client = new InterBankingClient($config, $conta->business_id);
+        $credencial = $conta->credencialGateway('inter');
+        if ($credencial === null) {
+            return;
+        }
+        $client = new InterBankingClient($credencial->config_json ?? [], $conta->business_id);
         $driver = new InterStatementDriver($client);
 
         $linhas = $driver->fetchStatement($from, $to);
 
         // Gravação comum a todos os drivers (Inter, OFX, próximos bancos) — US-FIN-084.
         (new StatementPersister())->gravar($conta, $linhas, 'api');
-    }
-
-    private function decryptConfig(array $config): array
-    {
-        foreach (['client_secret', 'api_key', 'certificado_senha', 'certificado_key_b64'] as $field) {
-            if (isset($config[$field])) {
-                $config[$field] = Crypt::decryptString($config[$field]);
-            }
-        }
-
-        return $config;
     }
 }

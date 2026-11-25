@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · tests/Feature/Sells/SellsPosIndexContratoTest.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-11-03"
+last_run: "2026-11-24"
 ---
 
 <!-- REVALIDAÇÃO 2026-11-03 (G-6): o .tsx mudou só no item "Devolver venda" do menu da linha, de <a> para <Link>
@@ -94,3 +94,4 @@ last_run: "2026-11-03"
 
 ## Trilha do tempo
 - 2026-10-01 · [CL] trio trazido do cowork-inbox para o lado do `.tsx` (thread 01 do playbook venda-menu).
+- 2026-11-24 · [CL] revalidação G-6: a tela ganhou a barra de abas do módulo Vendas (`Pages/Sells/_components/AbasVendas.tsx`, slot `below` do `PageHeader`); a lista local de 6 abas saiu, e a aba Assinaturas deixou de apontar para `/subscriptions` (404). Nenhum UC desta tela descreve o cabeçalho nem a navegação entre telas, então nenhum muda. Prova da barra: `tests/js/sells-abas-modulo.test.tsx`.

@@ -39,6 +39,11 @@ interface Props {
   editarCusto: boolean;
   /** Mostra a escolha de unidade (a transferência tem; o ajuste não tinha na Blade). */
   comUnidade?: boolean;
+  /**
+   * Variações que quem abriu a tela já escolheu (o "Transferir entre locais" da lista de produtos):
+   * um botão "Adicionar" para cada, que segue o mesmo caminho da busca. Some quando a linha entra.
+   */
+  sugeridas?: { variation_id: number; nome: string }[];
 }
 
 export default function LinhasDeEstoque({
@@ -48,6 +53,7 @@ export default function LinhasDeEstoque({
   verCusto,
   editarCusto,
   comUnidade = false,
+  sugeridas = [],
 }: Props) {
   const [aviso, setAviso] = useState<string | null>(null);
   const [buscando, setBuscando] = useState(false);
@@ -76,6 +82,8 @@ export default function LinhasDeEstoque({
   const alterar = (idx: number, nova: LinhaEstoque) => onChange(linhas.map((l, i) => (i === idx ? nova : l)));
   const remover = (idx: number) => onChange(linhas.filter((_, i) => i !== idx));
 
+  const pendentes = sugeridas.filter((v) => !jaTem(linhas, v.variation_id));
+
   const th = 'px-2 py-2 font-medium text-[11px] uppercase tracking-wide text-muted-foreground';
 
   return (
@@ -86,6 +94,23 @@ export default function LinhasDeEstoque({
         onSelect={(p) => void adicionar(p.variation_id)}
         placeholder={localId ? 'Buscar produto por nome, SKU ou código de barras…' : 'Escolha primeiro o local de origem'}
       />
+      {pendentes.length > 0 && (
+        <Inline gap={2} wrap className="mt-2">
+          {pendentes.map((v) => (
+            <Button
+              key={v.variation_id}
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!localId || buscando}
+              title={localId ? undefined : 'Escolha primeiro o local de origem'}
+              onClick={() => void adicionar(v.variation_id)}
+            >
+              Adicionar {v.nome}
+            </Button>
+          ))}
+        </Inline>
+      )}
       {aviso && (
         <Inline gap={1} role="status" className="mt-2 text-[12px] text-warning-fg">
           <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" /> {aviso}

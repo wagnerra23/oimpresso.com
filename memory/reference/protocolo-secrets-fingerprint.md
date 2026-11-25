@@ -33,7 +33,7 @@ preenche JSON gitignored  →  Python valida + SHA-256 → SCP JSON + PHP    →
                                                                            DELETE /tmp/json
 ```
 
-Detalhes em [`scripts/inter-credentials/README.md`](../../scripts/inter-credentials/README.md).
+Detalhes estavam em `scripts/inter-credentials/README.md`, removido em 2026-11-24 (ver "Implementação atual").
 
 ## Conformidade LGPD
 
@@ -59,9 +59,7 @@ Exemplo no projeto:
 
 ## Implementação atual
 
-- [`scripts/inter-credentials/install-biz.py`](../../scripts/inter-credentials/install-biz.py) — orquestrador genérico (atualmente specific Inter, mas pattern reusável)
-- [`scripts/inter-credentials/_remote_install.php`](../../scripts/inter-credentials/_remote_install.php) — payload Laravel bootstrap + encrypt + insert
-- [`scripts/inter-credentials/.gitignore`](../../scripts/inter-credentials/.gitignore) — bloqueia `.local.json`, `*.crt`, `*.key`, `*.pem`
+> **Removida em 2026-11-24** (onda 5b da saída de `rb_boleto_credentials`, decisão b1 / ADR 0456). A única implementação era `scripts/inter-credentials/` (`install-biz.py`, `_remote_install.php`, `.gitignore`), que gravava a credencial em `rb_boleto_credentials` pelo model `BoletoCredential`; os dois saíram juntos. A credencial de gateway agora entra pelo wizard do PaymentGateway (`payment_gateway_credentials`). O fluxo acima continua valendo como padrão de transporte de segredo; para ver o script, `git log --all -- scripts/inter-credentials`.
 
 Pra próximos bancos (Bradesco, Itaú, Santander) ou outros provedores que usam `BoletoCredential` ou modelo similar, o pattern é o mesmo — só muda o `_remote_install.php` (campos do `config_json`).
 

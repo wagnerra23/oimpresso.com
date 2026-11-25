@@ -559,8 +559,8 @@ class InterDriver implements PaymentDriverContract
      *      formulário alimenta, e apontaria para o cert de outra empresa ou para
      *      qualquer arquivo do servidor (auditoria PaymentGateway 2026-11-19, A5).
      *   2. **Base64 inline** (`certificado_crt_b64` / `certificado_key_b64`) —
-     *      formato gravado pelo `scripts/inter-credentials/install-biz.py` em
-     *      `rb_boleto_credentials` e migrado pra cá. Pode vir Crypt-encriptado
+     *      formato que o antigo `scripts/inter-credentials/install-biz.py` (removido em
+     *      2026-11-24) gravava em `rb_boleto_credentials` e que foi copiado pra cá. Pode vir Crypt-encriptado
      *      por-campo (a key vem). Materializa em arquivo temp na hora da chamada.
      *
      * Em test (Http::fake) o mTLS é bypass — os arquivos só importam pro Guzzle real.

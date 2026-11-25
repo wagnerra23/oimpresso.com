@@ -84,3 +84,101 @@ export function filtrarTransportadoras(lista: Transportadora[], termo: string): 
   if (!q) return lista;
   return lista.filter((t) => `${t.cod}${t.nome}${t.doc}${t.cidade}`.toLowerCase().includes(q));
 }
+
+/* ─── gravação do transporte (UC-V409) ──────────────────────────────────── */
+
+/**
+ * Status da remessa como o store grava (`transactions.shipping_status`): as cinco chaves de
+ * `Util::shipping_statuses`. Gravando, a tela oferece estas, não as da cena.
+ */
+export const STATUS_REMESSA_GRAVADO: Array<[rotulo: string, chave: string]> = [
+  ['Pedido', 'ordered'],
+  ['Embalado', 'packed'],
+  ['Enviado', 'shipped'],
+  ['Entregue', 'delivered'],
+  ['Cancelado', 'cancelled'],
+];
+
+export type EnderecoEntrega = {
+  ibge: string;
+  cidade: string;
+  uf: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  bairro: string;
+  complemento: string;
+  recebedor: string;
+  telefone: string;
+  email: string;
+  ie: string;
+};
+
+export const ENDERECO_VAZIO: EnderecoEntrega = {
+  ibge: '', cidade: '', uf: '', cep: '', logradouro: '', numero: '',
+  bairro: '', complemento: '', recebedor: '', telefone: '', email: '', ie: '',
+};
+
+/**
+ * O endereço de entrega vira o texto de `transactions.shipping_address` (o store não tem colunas
+ * separadas). O recebedor vai à parte, em `delivered_to`. Vazio = usa o do cadastro do cliente.
+ */
+export function textoDoEnderecoEntrega(e: EnderecoEntrega): string {
+  const rua = [e.logradouro, e.numero].filter((s) => s.trim()).join(', ');
+  const linha1 = [rua, e.complemento].filter((s) => s.trim()).join(' - ');
+  const cidade = [e.cidade, e.uf].filter((s) => s.trim()).join('/');
+  const partes = [
+    linha1,
+    e.bairro,
+    cidade,
+    e.cep && `CEP ${e.cep}`,
+    e.ibge && `IBGE ${e.ibge}`,
+    e.telefone && `Tel. ${e.telefone}`,
+    e.email,
+    e.ie && `IE ${e.ie}`,
+  ];
+  return partes.filter((s) => s && s.trim()).join(' · ');
+}
+
+/** O que a venda grava do transporte. Nada aqui é valor: o frete segue no fechamento. */
+export type TransporteDaVenda = {
+  modFrete: number;
+  transportadoraId: number | null;
+  placa: string;
+  uf: string;
+  qtdVolumes: number;
+  numeracao: string;
+  especie: string;
+  pesoBruto: number;
+  pesoLiquido: number;
+  statusRemessa: string;
+  rastreio: string;
+  enderecoEntrega: string;
+  recebedor: string;
+};
+
+/** `0 — …` → 0. O código é o `modFrete` da NF-e. */
+export function codigoModFrete(fretePorConta: string): number {
+  const n = Number.parseInt(fretePorConta, 10);
+  return Number.isNaN(n) ? 9 : n;
+}
+
+/** Campos do payload do `/pos`. Com `9` (sem transporte) o grupo de transporte vai zerado. */
+export function camposDoTransporte(t: TransporteDaVenda): Record<string, unknown> {
+  const sem = t.modFrete === 9;
+  return {
+    mod_frete: t.modFrete,
+    transportadora_id: sem ? null : t.transportadoraId,
+    placa: sem ? '' : t.placa,
+    uf: sem ? '' : t.uf,
+    qtd_volumes: sem ? 0 : t.qtdVolumes,
+    numeracao_volumes: sem ? '' : t.numeracao,
+    especie: sem ? '' : t.especie,
+    peso_bruto: sem ? 0 : t.pesoBruto,
+    peso_liquido: sem ? 0 : t.pesoLiquido,
+    shipping_status: t.statusRemessa,
+    shipping_details: sem ? '' : t.rastreio,
+    shipping_address: t.enderecoEntrega,
+    delivered_to: t.recebedor,
+  };
+}

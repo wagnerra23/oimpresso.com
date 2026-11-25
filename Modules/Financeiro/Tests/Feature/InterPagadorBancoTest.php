@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\PagamentoBanco;
 use Modules\Financeiro\Services\Banking\InterPagadorBanco;
-use Modules\RecurringBilling\Contracts\BoletoCredentialResolverInterface;
-use Modules\RecurringBilling\Models\BoletoCredential;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 uses(Tests\TestCase::class);
 
@@ -20,15 +19,17 @@ uses(Tests\TestCase::class);
  */
 beforeEach(function () {
     Cache::flush();
-    $resolver = Mockery::mock(BoletoCredentialResolverInterface::class);
-    $resolver->shouldReceive('decryptConfig')->andReturn([
+    $this->pagador = new InterPagadorBanco();
+
+    // Desde a onda 4 (2026-11-24) a credencial vem do PaymentGateway, por ContaBancaria::credencialGateway.
+    $credencial = (new PaymentGatewayCredential())->forceFill(['business_id' => 98, 'gateway_key' => 'inter', 'ativo' => true]);
+    $credencial->config_json = [
         'client_id' => 'id', 'client_secret' => 'segredo', 'conta_corrente' => '123',
         'certificado_crt_b64' => base64_encode('crt-teste'), 'certificado_key_b64' => base64_encode('key-teste'),
-    ]);
-    $this->pagador = new InterPagadorBanco($resolver);
-
-    $this->conta = new ContaBancaria(['business_id' => 98]);
-    $this->conta->setRelation('gatewayCredential', new BoletoCredential(['banco' => 'inter', 'ativo' => true, 'config_json' => []]));
+    ];
+    $this->conta = Mockery::mock(ContaBancaria::class)->makePartial();
+    $this->conta->business_id = 98;
+    $this->conta->shouldReceive('credencialGateway')->with('inter')->andReturn($credencial)->byDefault();
 });
 
 function pagbanInterPedido(string $meio, ?string $codigo = null): PagamentoBanco
@@ -72,7 +73,8 @@ it('UC-PAGBAN-10 · na consulta, só status conhecido de débito vira pago; desc
 
 it('UC-PAGBAN-10 · conta sem credencial Inter ativa não chama o banco', function () {
     Http::fake();
-    $this->conta->setRelation('gatewayCredential', new BoletoCredential(['banco' => 'inter', 'ativo' => false]));
+    // credencialGateway() só devolve credencial ativa; inativa ou ausente chega como null.
+    $this->conta->shouldReceive('credencialGateway')->with('inter')->andReturn(null);
 
     expect(fn () => $this->pagador->enviar(pagbanInterPedido('pix'), $this->conta))->toThrow(DomainException::class);
     Http::assertNothingSent();

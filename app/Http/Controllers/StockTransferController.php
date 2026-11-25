@@ -320,6 +320,9 @@ class StockTransferController extends Controller
             'business_locations' => $business_locations,
             'statuses' => $statuses,
             'default_datetime' => now()->format('Y-m-d H:i:s'),
+            // "Transferir entre locais" da lista de produtos (UC-TRCRT-07): `?produto={id}` vira os
+            // botões "Adicionar" das variações dele. Só oferece; a linha vem pelo mesmo caminho da busca.
+            'produto_sugerido' => $this->produtoSugerido($business_id, (int) request()->query('produto')),
             'permissions' => [
                 'view_purchase_price' => $user->can('view_purchase_price'),
                 // UI-only: decide apenas o `readonly` do campo na tela — o servidor não re-checa
@@ -327,6 +330,50 @@ class StockTransferController extends Controller
                 'edit_price' => $user->can('edit_purchase_price'),
             ],
         ]);
+    }
+
+    /**
+     * O produto que a lista de produtos mandou transferir (`?produto={id}`), com as variações que
+     * podem virar linha. Só leitura: a tela mostra um botão "Adicionar" por variação, e a linha vem
+     * de `linhaDoProduto` como na busca (saldo no local de origem, custo, unidades e lotes).
+     *
+     * Tier 0 (ADR 0093): o produto tem de ser do negócio da sessão; de outro negócio, `null`.
+     * Fica de fora o que não tem saldo próprio para transferir: estoque não controlado, kit
+     * (`combo`, D-30: o kit não tem estoque próprio) e modificador.
+     *
+     * @return array{id: int, nome: string, variacoes: list<array{variation_id: int, nome: string}>}|null
+     */
+    private function produtoSugerido(int $business_id, int $product_id): ?array
+    {
+        if ($product_id <= 0) {
+            return null;
+        }
+
+        $linhas = DB::table('products as p')
+            ->join('variations as v', 'v.product_id', '=', 'p.id')
+            ->where('p.business_id', $business_id)
+            ->where('p.id', $product_id)
+            ->where('p.enable_stock', 1)
+            ->whereNotIn('p.type', ['combo', 'modifier'])
+            ->whereNull('p.deleted_at')
+            ->whereNull('v.deleted_at')
+            ->orderBy('v.id')
+            ->get(['p.id', 'p.name', 'p.type', 'v.id as variation_id', 'v.name as variacao']);
+
+        if ($linhas->isEmpty()) {
+            return null;
+        }
+
+        $primeira = $linhas->first();
+
+        return [
+            'id' => (int) $primeira->id,
+            'nome' => (string) $primeira->name,
+            'variacoes' => $linhas->map(fn ($l) => [
+                'variation_id' => (int) $l->variation_id,
+                'nome' => $l->type === 'variable' ? $l->name.' · '.$l->variacao : (string) $l->name,
+            ])->values()->all(),
+        ];
     }
 
     /**
