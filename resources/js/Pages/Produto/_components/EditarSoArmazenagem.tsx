@@ -53,7 +53,7 @@ export function EditarSoArmazenagem({ product: p, rackDetails, businessLocations
     <>
       <Head title={`Locais de armazenagem · ${p.name}`} />
       <div className="min-h-screen text-foreground">
-        <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
+        <header className="sticky top-0 z-30 bg-page-cream/85 backdrop-blur border-b border-border">
           <Inline justify="between" gap={4} className="px-6 pt-4 pb-3">
             <div className="min-w-0">
               <Inline gap={1} className="text-[12px] text-muted-foreground">
