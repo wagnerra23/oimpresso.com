@@ -5,6 +5,12 @@
       "razao": "A run agendada de 2026-11-16 falhou no push (bot sem permissão de workflow, base defasada na fila). Conserto mergeado em 2026-11-19 no #11184; a próxima run agendada é 2026-11-23 e é ela que prova o conserto. O silêncio acaba antes dela.",
       "expira_em": "2026-11-22",
       "declarado_por": "F"
+    },
+    {
+      "workflow": "devcontainer-firewall.yml",
+      "razao": "A run agendada de 2026-11-23 falhou no passo 2: init-firewall.sh saía com exit 1 quando o /meta do GitHub não entregava as faixas (última linha do log: 'faixas do GitHub (api.github.com/meta)…' e depois exit 1). Conserto mergeado em 2026-11-25 no #11375; a run manual no main com o conserto (45617746769, sha c768995) passou nos 4 passos. A próxima run agendada é 2026-11-30 e é ela que prova o conserto. O silêncio acaba antes dela.",
+      "expira_em": "2026-11-29",
+      "declarado_por": "W+C"
     }
   ]
 }
