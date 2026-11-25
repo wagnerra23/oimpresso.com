@@ -22,7 +22,7 @@ import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Switch } from '@/Components/ui/switch';
 import {
-  AlertDialog, AlertDialogCancel, AlertDialogContent,
+  AlertDialog, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { PageHeader } from '@/Components/PageHeader';
@@ -30,7 +30,7 @@ import SubNav, { type SubNavItem } from '@/Components/shared/SubNav';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Inline, Stack } from '@/Components/layout';
 import CadastroDrawer, { type Pedido } from './_components/CadastroDrawer';
-import { AJUDA, CAMPO, CHIP, DANGER, GHOST, MD, MONO, PRIMARIO, PRIMARIO_BTN, SM, SUB, TD, TH } from './_components/estilo';
+import { AJUDA, CHIP, DANGER, GHOST, MD, MONO, PRIMARIO, PRIMARIO_BTN, SM, SUB, TD, TH } from './_components/estilo';
 import { MOLDURA_JANELA, TITULO_JANELA } from '../_components/lista/moldura-janela';
 import { cn } from '@/Lib/utils';
 
@@ -291,7 +291,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
           ) : (
             <>
               <Inline wrap gap={2} align="end" className="gap-[10px]" data-contract="produto-cadastros-barra">
-                <Input ref={buscaRef} className={cn(CAMPO, 'max-w-[300px] flex-[1_1_260px]')} value={busca} placeholder={cfg.busca} aria-label={cfg.busca}
+                <Input ref={buscaRef} className="max-w-[300px] flex-[1_1_260px]" value={busca} placeholder={cfg.busca} aria-label={cfg.busca}
                   onChange={(e) => setBusca(e.target.value)} />
                 <span className={cn(AJUDA, 'pb-2 whitespace-nowrap')}><kbd>/</kbd> foca · <kbd>⌘K</kbd> troca de tela</span>
                 {/* `extra` da AbaGrupos do protótipo: a tela de Atualizar preço (exporta/importa a planilha por grupo). */}
@@ -364,7 +364,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
       {/* `Modal` do DS (520px) com o `Alert` dentro: aviso "Ação sem volta" quando sai limpo,
           recusa do servidor quando há uso (produto-cadastros.jsx `Confirmar`). */}
       <AlertDialog open={!!excluir} onOpenChange={(o) => !o && setExcluir(null)}>
-        <AlertDialogContent className={cn(MOLDURA_JANELA, 'sm:max-w-[520px]')} container={cockpit}>
+        <AlertDialogContent className={cn(MOLDURA_JANELA, 'data-[size=default]:sm:max-w-[520px]')} container={cockpit}>
           <AlertDialogHeader>
             <AlertDialogTitle className={TITULO_JANELA}>{`Excluir “${excluir?.nome ?? ''}”`}</AlertDialogTitle>
             <AlertDialogDescription asChild>
@@ -379,7 +379,9 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className={cn(MD, GHOST)}>{excluir && recusa(excluir) ? 'Fechar' : 'Cancelar'}</AlertDialogCancel>
+            {/* Button próprio, não o Cancel do ui/alert-dialog: ele repassa a classe por Slot sem resolver conflito e o
+                canto/respiro do shadcn venciam (medido em produção 2026-11-25: 6px e 8×16 no lugar de 8px e 0×12). */}
+            <Button variant="outline" className={cn(MD, GHOST)} onClick={() => setExcluir(null)}>{excluir && recusa(excluir) ? 'Fechar' : 'Cancelar'}</Button>
             {excluir && !recusa(excluir) && <Button variant="outline" className={cn(MD, DANGER)} onClick={confirmar}>Excluir</Button>}
           </AlertDialogFooter>
         </AlertDialogContent>

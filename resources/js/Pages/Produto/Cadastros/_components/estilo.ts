@@ -27,7 +27,7 @@ export const MONO = 'font-mono text-[12px] tracking-[-0.01em]';
 
 const BOTAO_BASE = 'rounded-[8px] border shadow-none font-medium';
 /** Button `sm` do DS: 26px. */
-export const SM = `${BOTAO_BASE} h-[26px] gap-1.5 px-2.5 py-0 text-[12px]`;
+export const SM = `${BOTAO_BASE} h-[26px] gap-1.5 px-2.5 py-0 text-[12px] has-[>svg]:px-2.5`;
 /** Button `default` do DS: 30px. */
 export const MD = `${BOTAO_BASE} h-[30px] gap-1.5 px-3 py-0 text-[12.5px]`;
 export const GHOST =
@@ -43,7 +43,11 @@ export const CHIP =
 /** Texto de apoio (`.pb-help`): 11px. */
 export const AJUDA = 'text-[11px] text-[var(--text-dim)]';
 
-/** Rótulo de campo do Input do DS: 10,5px 600 caixa alta .04em. */
-export const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[.04em] text-[var(--text-dim)]';
-/** Input do DS: 34px, 13px, raio 8, fundo --surface. */
-export const CAMPO = 'h-[34px] rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] shadow-none dark:bg-[var(--surface)]';
+// Tamanho de campo e de rótulo NÃO se estiliza aqui. O `Input` e o `Label` do app aplicam `.cw-input`/`.cw-label`
+// (cowork-fields.css, fora de @layer, padrão do app inteiro desde 2026-05-27: campo 30px, 12,5px, canto 5px;
+// rótulo 11px 500), e esse CSS vence o utilitário de altura, letra, canto e respiro. Medido em produção em
+// 2026-11-25: 34px/13px/8px e rótulo 10,5px 600 não pegavam; só a caixa alta e o espaçamento entre letras
+// do rótulo pegavam (o `.cw-label` não declara esses dois), e eles ficam.
+// O protótipo desenha o Input do DS v4 (34px, 13px, canto 8, rótulo 10,5px 600); igualar é mudança no
+// `.cw-input`/`.cw-label` do app inteiro, decisão [W] — não exceção nesta tela (UI-0029 §41).
+export const ROTULO_CAIXA_ALTA = 'uppercase tracking-[.04em]';
