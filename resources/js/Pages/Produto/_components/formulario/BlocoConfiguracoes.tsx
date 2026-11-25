@@ -105,13 +105,16 @@ export function BlocoConfiguracoes({ modo, data, definir, errors = {}, mostrarVa
             <Label aria-hidden className="invisible">
               Venda
             </Label>
-            <Inline gap={2} className="h-[30px]">
+            <Inline gap={2} className="min-h-[30px]">
               <Checkbox
                 id="not_for_selling"
                 checked={data.not_for_selling === 1}
                 onCheckedChange={(v) => definir('not_for_selling', v === true ? 1 : 0)}
               />
-              <Label htmlFor="not_for_selling" className="text-[13px] font-normal">Não está à venda (apenas insumo)</Label>
+              <div>
+                <Label htmlFor="not_for_selling" className="text-[13px] font-normal">Não para venda</Label>
+                <p className="text-[11px] text-muted-foreground">Insumo: entra em compra e produção, não no balcão.</p>
+              </div>
             </Inline>
           </div>
         )}

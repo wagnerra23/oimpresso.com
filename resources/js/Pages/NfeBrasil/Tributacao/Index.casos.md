@@ -528,7 +528,7 @@ last_run: "2026-11-23"
   `DetalheDrawer`: botão "Abrir no módulo Fiscal", destino `fiscal-modulo` com o produto) + UC-PIDX-25 do
   [`Produto/Index.casos.md`](../../Produto/Index.casos.md). O simulador é o mesmo do UC-NFTR-08: nada é
   gravado, e o valor não é preenchido de antemão (quem simula digita).
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-22 a partir do JUnit), 1 teste. Até 2026-11-24 esta linha dizia ⬜ "nasce neste PR", texto do PR que criou o caso (#9450).
 
 ---
 
@@ -853,14 +853,14 @@ last_run: "2026-11-23"
   para conferir; o ICMS fica "pela UF"; PIS e COFINS ficam no padrão do regime; o passo IPI fica desligado; e cada campo
   aparece como Copiado, Ajustado ou Não encontrado. Item com CFOP ou CST diferente do 1º vira aviso.
 - **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-73 …`.
-- **Status: ⬜** — nasce neste PR; o veredito é do passo Vitest do `ci.yml`.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Importar nota de referência na natureza nova"). Até 2026-11-23 o arquivo não estava em nenhum passo do `ci.yml`, então o teste só tinha rodado na máquina de quem o escreveu.
 
 ## UC-NFTR-74 · Arquivo que não é o XML de uma NF-e é recusado e a natureza fica como estava · `must`
 
 - **Aceite:** **Dado** um arquivo que não é XML (o PDF do DANFE, por exemplo) ou um XML sem `ide` e `det` **Quando** importo
   **Então** a tela diz o motivo e nenhum campo da natureza muda.
 - **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-74 …`.
-- **Status: ⬜** — nasce neste PR.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Importar nota de referência na natureza nova"). Até 2026-11-23 o arquivo não estava em nenhum passo do `ci.yml`, então o teste só tinha rodado na máquina de quem o escreveu.
 
 ## UC-NFTR-75 · Devolução escolhida antes mantém a finalidade e converte o CFOP da nota original · `must` `[fiscal]`
 
@@ -870,7 +870,7 @@ last_run: "2026-11-23"
   _O protótipo só convertia a entrada; a saída (devolução de compra) ficava com o CFOP de entrada da nota lida, que a
   conferência recusa. A conversão vale para os dois sentidos._
 - **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-75 …`.
-- **Status: ⬜** — nasce neste PR.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Importar nota de referência na natureza nova"). Até 2026-11-23 o arquivo não estava em nenhum passo do `ci.yml`, então o teste só tinha rodado na máquina de quem o escreveu.
 
 ## UC-NFTR-76 · O XML importado não sai do navegador · `must` `[T0]`
 
@@ -878,7 +878,7 @@ last_run: "2026-11-23"
   nenhuma requisição leva o XML nem o nome do destinatário — o servidor recebe só a natureza; e nenhum valor da nota
   (`vProd`, `vBC`, `vICMS`, totais) é guardado nela. Contrato: LGPD art. 6º III (minimização).
 - **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-76 …`.
-- **Status: ⬜** — nasce neste PR.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Importar nota de referência na natureza nova"). Até 2026-11-23 o arquivo não estava em nenhum passo do `ci.yml`, então o teste só tinha rodado na máquina de quem o escreveu.
 
 ## UC-NFTR-77 · "Iniciar em branco ou importar" só aparece em natureza nova · `must`
 
@@ -886,7 +886,7 @@ last_run: "2026-11-23"
   "Iniciar em branco" (vai ao passo CFOP) e "Importar nota de referência"; depois de importar, os passos preenchidos e ainda
   não abertos mostram "do XML, revisar". **Dado** uma natureza já salva **Então** a pergunta não aparece.
 - **Teste:** [`nfe-naturezas-importar-xml.test.tsx`](../../../../../tests/js/nfe-naturezas-importar-xml.test.tsx) — `UC-NFTR-77 …`.
-- **Status: ⬜** — nasce neste PR.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Importar nota de referência na natureza nova"). Até 2026-11-23 o arquivo não estava em nenhum passo do `ci.yml`, então o teste só tinha rodado na máquina de quem o escreveu.
 
 ## UC-NFTR-78 · Aplicar modelo pede confirmação antes de mexer na configuração · `must` `[fiscal]`
 

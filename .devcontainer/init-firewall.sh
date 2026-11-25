@@ -102,14 +102,26 @@ for ip in "${ALLOWED_IPS[@]}"; do ipset add allowed-egress "$ip" 2>/dev/null || 
 for cidr in "${ALLOWED_CIDRS[@]}"; do ipset add allowed-egress "$cidr" 2>/dev/null || true; log "  + $cidr (cidr)"; done
 
 # GitHub publica as faixas dele; sem isto, git/gh quebram quando o IP roda.
+# Se o /meta falhar, o script segue com os A records da allowlist. Isso inclui o caso em
+# que o GitHub RESPONDE com erro (limite de requisições, 5xx): o `-f` faz o curl sair com
+# erro em HTTP >= 400, e o `|| true` impede que um corpo sem nenhuma faixa derrube o
+# script pelo pipefail. Sem os dois, a run agendada de 2026-11-23 morreu neste passo,
+# antes de aplicar as regras. Teste: scripts/tests/devcontainer-firewall-meta.test.sh.
 log "faixas do GitHub (api.github.com/meta)…"
-if meta=$(curl -sS --max-time 10 https://api.github.com/meta 2>/dev/null); then
-  echo "$meta" | grep -oE '"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+"' | tr -d '"' | sort -u | while read -r cidr; do
+gh_cidrs=""
+if meta=$(curl -fsS --max-time 10 https://api.github.com/meta 2>/dev/null); then
+  gh_cidrs=$(printf '%s' "$meta" | grep -oE '"[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+"' | tr -d '"' | sort -u || true)
+fi
+if [ -n "$gh_cidrs" ]; then
+  n=0
+  while read -r cidr; do
+    [ -n "$cidr" ] || continue
     ipset add allowed-egress "$cidr" 2>/dev/null || true
-  done
-  log "  + faixas do GitHub"
+    n=$((n + 1))
+  done <<< "$gh_cidrs"
+  log "  + faixas do GitHub ($n)"
 else
-  log "  aviso: /meta indisponivel — segue com os A records"
+  log "  aviso: /meta indisponivel ou sem faixas — segue com os A records"
 fi
 
 log "aplicando regras…"

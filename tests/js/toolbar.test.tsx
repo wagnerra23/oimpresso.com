@@ -150,3 +150,14 @@ describe('guarda: PageFilters segue intacto (D-4)', () => {
     expect(screen.queryByRole('toolbar')).toBeNull();
   });
 });
+
+describe('FilterChip do DS: rótulo e valor separados', () => {
+  it('mostra o rótulo em negrito e o valor à parte; o ✕ nomeia os dois', () => {
+    render(<FilterChip label="Tipo" value="Variável" onRemove={() => {}} />);
+    const rotulo = screen.getByText('Tipo');
+    expect(rotulo.style.fontWeight).toBe('600');
+    expect(screen.getByText('Variável').style.fontWeight).toBe('400');
+    expect(screen.getByRole('button', { name: 'Remover filtro: Tipo: Variável' })).toBeTruthy();
+  });
+});
+
