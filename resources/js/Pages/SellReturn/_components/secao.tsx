@@ -28,12 +28,17 @@ const tomTexto = (t: Tom) => `color-mix(in oklch, ${HUE[t]} 62%, var(--color-for
 
 // Ícone do cabeçalho. O amarelo a 62% sobre o texto claro do tema escuro virava pastel
 // (Maiara, 2026-11-25: "ficou meio apagado" num bloco que pede atenção). Só o `warning` sobe
-// para 85% de matiz e 22% de fundo: mais saturado sem sair do token, e no tema claro a mistura
-// com o texto escuro mantém o contraste. Os outros tons seguem a proporção do protótipo.
+// para 85% de matiz e 22% de fundo, e mistura em OKLAB: em oklch o matiz do amarelo (75°) é
+// interpolado na direção do matiz do texto (240°), e o ícone saía oliva — medido em produção,
+// tema escuro: oklch 85% = matiz 99,75° · oklab 85% = matiz 75°, croma 0,110. Os outros tons
+// seguem a proporção e o espaço do protótipo.
 const ICONE: Partial<Record<Tom, { matiz: number; fundo: number }>> = {
   warning: { matiz: 85, fundo: 22 },
 };
-const iconeCor = (t: Tom) => `color-mix(in oklch, ${HUE[t]} ${ICONE[t]?.matiz ?? 62}%, var(--color-foreground))`;
+const iconeCor = (t: Tom) =>
+  ICONE[t]
+    ? `color-mix(in oklab, ${HUE[t]} ${ICONE[t].matiz}%, var(--color-foreground))`
+    : tomTexto(t);
 const iconeFundo = (t: Tom) => `color-mix(in oklch, ${HUE[t]} ${ICONE[t]?.fundo ?? 14}%, transparent)`;
 
 export function Selo({ tom, children }: { tom: Tom; children: ReactNode }) {
