@@ -1100,7 +1100,7 @@ var CST_PC_E = [['50', '50 · Com direito a crédito'], ['70', '70 · Aquisiçã
 var CST_IBS = [['000', '000 · Tributação integral'], ['200', '200 · Alíquota reduzida'], ['410', '410 · Imunidade e não incidência']];
 var ORIG_ICMS = [['uf', 'Pela UF (interna ou interestadual)'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
 var ORIG_MVA = [['produto', 'Do cadastro do produto (NCM/CEST)'], ['fixa', 'Fixa nesta natureza']];
-var ORIG_IPI = [['produto', 'Da TIPI, pelo NCM do produto'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
+var ORIG_IPI = [['produto', 'Da regra do NCM (Tributação › Regras NCM)'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
 var ORIG_PC = [['regime', 'Padrão do regime da empresa'], ['fixa', 'Fixa nesta natureza'], ['origem', 'Da nota de origem']];
 var ORIG_IBS = [['padrao', 'Padrão do ano (teste em 2026)'], ['fixa', 'Fixa nesta natureza']];
 var CFOP_NOME = {
@@ -1184,7 +1184,7 @@ function lancamento(N, d) {
   add('var(--tx-icms)', 'ICMS', (sn ? 'CSOSN ' : 'CST ') + '<code>' + esc(cst || '—') + '</code> · ' + esc(optL(MODBC, N.icms.modbc).replace(/^\d · /, 'base: ').toLowerCase()), aliq);
   if (temST(N)) add('var(--tx-icms)', 'ICMS-ST', esc(optL(MODBCST, N.icms.st.modbcst)), (N.icms.st.mvaOrig === 'fixa' ? 'MVA fixa de ' + pc(N.icms.st.mva) : 'MVA do cadastro do produto') + ' · alíquota interna da UF de destino');
   if (N.tipo === 'S' && N.fin !== '4' && d === 'out' && (N.icms.difal || N.icms.fcp)) add('var(--tx-icms)', 'DIFAL e FCP', 'Calcula se o cliente for consumidor final não contribuinte', [N.icms.difal ? 'DIFAL para a UF do cliente' : '', N.icms.fcp ? 'FCP quando a UF cobrar' : ''].filter(Boolean).join(' · '));
-  if (N.ipi.on) add('var(--tx-ipi)', 'IPI', 'CST <code>' + esc(N.ipi.cst) + '</code> · enquadramento ' + esc(N.ipi.cEnq || '—'), N.ipi.origem === 'produto' ? 'Alíquota da TIPI pelo NCM do produto' : N.ipi.origem === 'origem' ? 'Alíquota da nota de origem' : 'Alíquota fixa de ' + pc(N.ipi.p));
+  if (N.ipi.on) add('var(--tx-ipi)', 'IPI', 'CST <code>' + esc(N.ipi.cst) + '</code> · enquadramento ' + esc(N.ipi.cEnq || '—'), N.ipi.origem === 'produto' ? 'Alíquota da regra do NCM do produto' : N.ipi.origem === 'origem' ? 'Alíquota da nota de origem' : 'Alíquota fixa de ' + pc(N.ipi.p));
   else add('var(--tx-ipi)', 'IPI', 'Não destaca', '');
   ['pis', 'cofins'].forEach(function (k) {
     var x = N[k], t;
@@ -1334,7 +1334,7 @@ function lerXml(txt, N) {
     var ic = v(ipi, 'CST'); if (ic) N.ipi.cst = ic;
     rep('ipi', 'IPI', 'IPI/CST', ic + (ce ? ' · cEnq ' + ce : ''), 'ok');
     var pIp = num(v(ipi, 'pIPI'));
-    if (pIp != null) { N.ipi.origem = N.fin === '4' ? 'origem' : 'produto'; rep('ipi', 'Alíquota do IPI', 'pIPI', pc(pIp), 'ajuste', N.fin === '4' ? 'Guardado como “da nota de origem”.' : 'Guardado como “da TIPI”: muda com o NCM do produto.'); }
+    if (pIp != null) { N.ipi.origem = N.fin === '4' ? 'origem' : 'produto'; rep('ipi', 'Alíquota do IPI', 'pIPI', pc(pIp), 'ajuste', N.fin === '4' ? 'Guardado como “da nota de origem”.' : 'Guardado como “da regra do NCM”: alíquota da regra do NCM do produto.'); }
   } else { N.ipi.on = false; rep('ipi', 'IPI', 'IPI', '', 'nao', 'A nota não tem IPI; o passo fica desligado.'); }
 
   ['PIS', 'COFINS'].forEach(function (T) {
@@ -1423,7 +1423,7 @@ function renderLista() {
     '<div class="bd"><div class="lanc-h">' + (P ? fSel('prev', 'id', 'Natureza da operação', ativas.map(function (N) { return [String(N.id), N.nome]; }), '', { id: String(S.prev) }) : '') +
     '<div class="fld"><span class="lbl">Cliente</span>' + segDest() + '</div></div>' +
     (P ? lancHtml(P, 'lanc') : '<div class="vazio">Nenhuma natureza ativa.</div>') +
-    '<p class="pe">Sem valores aqui: base, imposto e totais são calculados no lançamento. O produto completa o que é dele (NCM, origem, alíquota da TIPI, MVA).</p></div></section>';
+    '<p class="pe">Sem valores aqui: base, imposto e totais são calculados no lançamento. O produto completa o que é dele (NCM, origem, MVA); a alíquota do IPI vem da regra do NCM do produto.</p></div></section>';
   h += '<section class="sec"><div class="areas" role="tablist" style="padding: 0 16px; flex: none">' + AREAS.map(function (a) {
     return '<button role="tab" data-area="' + a.v + '" aria-selected="' + (a.v === S.area) + '"><span>' + a.l + '</span><span class="cnt">' + NATS.filter(a.f).length + '</span></button>';
   }).join('') + '</div>' +
