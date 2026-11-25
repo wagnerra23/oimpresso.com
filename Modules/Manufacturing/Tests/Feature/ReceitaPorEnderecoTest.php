@@ -72,10 +72,14 @@ describe('UC-RECIPE-27 — a receita abre pelo endereço', function () {
         // Outra empresa: null para quem não é dona; a dona recebe a mesma receita.
         $alheia = mfgEnderecoProps($this->actingAs($usuario)->get('/manufacturing/recipe?receita='.$deOutra));
         expect($alheia['receita_aberta'])->toBeNull();
+        // Troca de usuário entre empresas: o SetSessionData só reconstrói a sessão quando ela não tem
+        // `user`, então sem limpar a empresa 98 da requisição anterior continuaria valendo.
+        $this->flushSession();
         $daDona = mfgEnderecoProps($this->actingAs(mfgEnderecoUsuario($this, MFG_EMP_OUTRO, true))->get('/manufacturing/recipe?receita='.$deOutra));
         expect($daDona['receita_aberta']['id'] ?? null)->toBe($deOutra);
 
-        // Sem o parâmetro, nada aberto.
+        // Sem o parâmetro, nada aberto (de volta à 98).
+        $this->flushSession();
         expect(mfgEnderecoProps($this->actingAs($usuario)->get('/manufacturing/recipe'))['receita_aberta'])->toBeNull();
     });
 
