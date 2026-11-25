@@ -1,6 +1,7 @@
 // "Como fica no lançamento" — prévia por destino (protótipo `Configuracao de Tributos.html`, seção
 // azul acima da lista). Só mostra naturezas criadas pela tela: a Venda padrão e as do CSV não têm os
-// campos da tela, e mostrar os padrões vazios seria afirmar uma regra que a nota não segue.
+// campos da tela, e mostrar os padrões vazios seria afirmar uma regra que a nota não segue (UC-NFTR-70).
+// Quando só elas estão ativas, o vazio não diz "cadastre uma natureza ativa": há uma ativa na tabela.
 import { useMemo, useState } from 'react';
 import { MousePointerClick } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -15,6 +16,7 @@ export default function ComoFicaNoLancamento({
   linhas, regime, empresa,
 }: { linhas: LinhaNatureza[]; regime: Regime; empresa: EmpresaResumo | null }) {
   const opcoes = useMemo(() => linhas.filter((l) => l.editavel && l.natureza.ativo), [linhas]);
+  const doSistema = useMemo(() => linhas.filter((l) => !l.editavel && l.natureza.ativo), [linhas]);
   const [escolhida, setEscolhida] = useState<string>('');
   const [destino, setDestino] = useState<Destino>('in');
 
@@ -56,7 +58,9 @@ export default function ComoFicaNoLancamento({
       <div className="p-4">
         {!atual ? (
           <p className="py-4 text-center text-[12.5px] text-[var(--text-dim)]">
-            Cadastre uma natureza ativa para ver como ela fica no lançamento.
+            {doSistema.length
+              ? `${doSistema.map((l) => l.natureza.nome).join(', ')} já ${doSistema.length > 1 ? 'são usadas' : 'é usada'} pelo cálculo da nota e não ${doSistema.length > 1 ? 'são montadas' : 'é montada'} nesta tela. Crie uma natureza aqui para ver como ela fica no lançamento.`
+              : 'Cadastre uma natureza ativa para ver como ela fica no lançamento.'}
           </p>
         ) : (
           <>

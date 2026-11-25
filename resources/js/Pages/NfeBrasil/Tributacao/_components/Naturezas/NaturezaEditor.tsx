@@ -36,6 +36,7 @@ const PASSOS: { k: Passo; l: string; ico: typeof Tag; cor?: string; sub: (n: Nat
 type DefPasso = (typeof PASSOS)[number];
 /** Passo pelo índice, sempre dentro da lista (o índice vem só de 0..6, mas o tipo não sabe). */
 const passoEm = (i: number): DefPasso => PASSOS[Math.min(Math.max(i, 0), PASSOS.length - 1)] as DefPasso;
+const st0 = (i: number): Passo => passoEm(i).k;
 
 const COR_NIVEL: Record<Alerta['nivel'], string> = { erro: 'var(--neg)', aviso: 'var(--warn)', info: 'var(--accent)' };
 const SUPERFICIE = 'min-w-0 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-soft)]';
@@ -89,6 +90,10 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
   const ro = !editavel;
   const novo = !n.id;
   const alterada = JSON.stringify(n) !== base;
+  // Natureza nova sem escolher "em branco" ou "importar": os passos 2 a 7 e o salvar ficam travados (protótipo `travado()`).
+  const travado = novo && !ro && modo === null;
+  // Com "importar", só segue depois de ler um XML (protótipo `podeProx`).
+  const podeProx = !(st0(passo) === 'nat' && (travado || (modo === 'importar' && !importacao)));
 
   useEffect(() => {
     if (ro) return;
@@ -198,7 +203,8 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
           </p>
         )}
 
-        <Grid cols={1} gap={4} className="items-start lg:grid-cols-[minmax(0,1fr)_336px]">
+        {/* Lateral abaixo do passo até 1080px, como o protótipo (`@media (max-width: 1080px)`); a 1024px fica embaixo. */}
+        <Grid cols={1} gap={4} className="items-start min-[1081px]:grid-cols-[minmax(0,1fr)_336px]">
           <section className={SUPERFICIE} aria-labelledby="passo-titulo">
             <Inline asChild gap={0} align="stretch" className="m-0 list-none overflow-x-auto bg-[var(--surface)] px-2">
             <ol aria-label="Passos">
@@ -218,7 +224,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
                 return (
                   <Inline asChild key={p.k} gap={0} align="stretch" className="flex-[1_0_auto]">
                   <li>
-                    <button type="button" onClick={() => ir(i)} aria-current={atual ? 'step' : undefined}
+                    <button type="button" onClick={() => ir(i)} aria-current={atual ? 'step' : undefined} disabled={travado && i > 0}
                       className={`flex w-full items-center gap-2 border-b-2 px-2.5 py-3 text-left ${atual ? 'border-[var(--accent)]' : 'border-transparent'}`}>
                       <span className="inline-flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-2)] font-mono text-[11.5px] font-semibold text-[var(--text-dim)]"
                         style={estilo}>
@@ -302,9 +308,15 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
                   <ArrowLeft className="mr-1.5 h-4 w-4" />{passoEm(passo - 1).l}
                 </Button>
               )}
-              {passo < PASSOS.length - 1 && (
-                <Button size="sm" className="ml-auto" onClick={() => ir(passo + 1)}>
-                  Próximo: {passoEm(passo + 1).l}<ArrowRight className="ml-1.5 h-4 w-4" />
+              {passo < PASSOS.length - 1 ? (
+                <Button size="sm" className="ml-auto" disabled={!podeProx} onClick={() => ir(passo + 1)}>
+                  {st.k === 'nat' && modo === 'importar' ? 'Revisar passo a passo' : `Próximo: ${passoEm(passo + 1).l}`}
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </Button>
+              ) : !ro && (
+                // Revisão: o salvar também no rodapé do passo (protótipo `renderEditor()`, `nav` sem próximo).
+                <Button size="sm" className="ml-auto" onClick={gravar} disabled={salvando || erros.length > 0 || alertas === null}>
+                  {novo ? 'Criar natureza' : 'Salvar natureza'}
                 </Button>
               )}
             </Inline>
@@ -352,7 +364,7 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
               {!ro && (
                 <Stack gap={2} className="sticky bottom-3 z-30 rounded-lg border bg-[var(--surface)] p-3"
                   style={{ borderColor: mistura('var(--accent)', 22, 'var(--border)') }}>
-                  <Button size="lg" onClick={gravar} disabled={salvando || erros.length > 0 || alertas === null}>
+                  <Button size="lg" onClick={gravar} disabled={travado || salvando || erros.length > 0 || alertas === null}>
                     {novo ? 'Criar natureza' : 'Salvar natureza'}
                   </Button>
                   <Grid cols={2} gap={2}>
@@ -362,8 +374,8 @@ export default function NaturezaEditor({ inicial, editavel, regime, empresa, onF
                     <Button variant="outline" onClick={() => onFechar(false)}>Cancelar</Button>
                   </Grid>
                   <p className="m-0 text-center text-[11.5px] leading-snug"
-                    style={{ color: erros.length ? mistura('var(--neg)', 62, 'var(--text)') : 'var(--text-dim)' }}>
-                    {erros.length
+                    style={{ color: erros.length && !travado ? mistura('var(--neg)', 62, 'var(--text)') : 'var(--text-dim)' }}>
+                    {travado ? 'Escolha começar em branco ou importar uma nota.' : erros.length
                       ? `${erros.length} ${erros.length === 1 ? 'pendência' : 'pendências'} nos passos marcados em vermelho.`
                       : 'Vale para as próximas notas lançadas com esta natureza.'}
                   </p>
