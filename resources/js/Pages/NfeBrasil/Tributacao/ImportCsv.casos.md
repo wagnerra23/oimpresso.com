@@ -41,6 +41,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-05 | Mesmo NCM, uma regra por regime (coluna `crt`) com redução de base | must `[V0]` | P-155 · R-NFE-030 · SDD `CU-NFE-07` | `ImportRegrasLegadoSaborBrasilTest` | ✅ |
 | UC-NFIM-06 | Carga do legado por arquivo: confere sem gravar, grava só com `--apply`, não duplica | must `[V0]` | SDD `CU-NFE-07` item 1-2 · migração Sabor Brasil (P-155) | `ImportRegrasLegadoSaborBrasilTest` | ✅ |
 | UC-NFIM-07 | `--criar-operacoes` cria a operação do CSV que a empresa não tem, uma vez, só nela | must `[T0]` `[V0]` | migração Sabor Brasil (bonificação, P-154) · ADR 0093 | `ImportRegrasCriarOperacoesTest` | ✅ |
+| UC-NFIM-08 | Reimportar o mesmo CSV atualiza as regras pela chave, não duplica | must `[V0]` | charter (idempotente pela chave) · SDD `CU-NFE-07` | `ImportRegrasCsvReimportTest` | 🧪 |
+| UC-NFIM-09 | Depois de editar a regra pela tela, a reimportação muda a versão vigente e não reescreve a encerrada | must `[V0]` `[fiscal]` | SPEC NfeBrasil R-NFE-019 · charter (idempotente pela chave) | `ImportRegrasCsvVersaoVigenteTest` | 🧪 |
 | UC-NFIM-10 | Arquivo acima de 5 MB é recusado antes de ser lido | must `[V0]` | charter §Goals (máx 5 MB) · §Pendências | `ImportRegrasCsvArquivoTest` | 🧪 |
 | UC-NFIM-11 | CSV em Latin-1 ou UTF-16 é lido; separado por ponto e vírgula é recusado com aviso próprio | must `[V0]` | charter §Pendências (encoding/separador) · SDD `CU-NFE-07` | `ImportRegrasCsvArquivoTest` | 🧪 |
 | UC-NFIM-12 | O resumo da conferência aparece na tela | must `[V0]` | charter §Goals (preview com amostras e erros) · SDD `CU-NFE-07` item 2 | `ImportRegrasCsvArquivoTest` · vitest `nfe-import-csv-confirmacao` | 🧪 |
@@ -194,6 +196,42 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   — os três `UC-NFIM-07 · …`.
 - **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 3 testes. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; veredito da lane `nfebrasil-pest`.").
 
+## UC-NFIM-08 · Reimportar o mesmo CSV atualiza as regras pela chave, não duplica · `must` `[V0]`
+
+- **Persona:** quem importa a planilha do contador, corrige uma alíquota nela e importa de novo.
+- **Aceite:** Dado um CSV com uma regra para todas as UFs e uma para SP → RJ, já importado ·
+  Quando importo o mesmo arquivo de novo pela tela (conferir e aplicar) · Então continuam **duas**
+  regras e o resumo diz "0 criadas, 2 atualizadas, 0 falharam". Se a segunda versão do arquivo traz
+  alíquotas novas, as duas regras passam a ter os valores novos, lidos do banco, sem regra a mais.
+  Controle positivo: a primeira importação diz "2 criadas" e grava as duas.
+- **Teste:** [`ImportRegrasCsvReimportTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvReimportTest.php)
+  — os dois `UC-NFIM-08 · …`.
+- **Contrato:** o charter promete o import *"idempotente pela chave (NCM + UF origem + UF destino)"*
+  + SDD `CU-NFE-07`. O `ImportRegrasCsvServiceTest` já cobria o Service; este caso passa pela rota,
+  como a tela faz.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
+## UC-NFIM-09 · Depois de editar a regra pela tela, a reimportação muda a versão vigente · `must` `[V0]` `[fiscal]`
+
+- **Persona:** quem ajustou uma alíquota pela tela e depois reimporta a planilha do contador.
+- **Aceite:** Dado uma regra importada (ICMS 18%) e depois editada pela tela (25%), o que gera uma
+  versão nova e encerra a antiga · Quando reimporto o CSV com 17% · Então a versão **vigente** passa a
+  17% e a versão **encerrada** continua com 18%. Segundo caminho: o motor tributário calcula ICMS de
+  170,00 num item de 1.000,00 de SP para MG.
+- **Teste:** [`ImportRegrasCsvVersaoVigenteTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvVersaoVigenteTest.php)
+  — `UC-NFIM-09 · …`.
+- **Contrato:** SPEC NfeBrasil R-NFE-019 (editar gera versão nova; a antiga só ganha `valida_ate`,
+  nenhuma outra coluna muda, e continua explicando as notas emitidas com ela) + a idempotência pela
+  chave do charter.
+- **Nasceu ❌ em 2026-11-24, corrigido no mesmo PR.** Medido no CT 100: `ImportRegrasCsvService::aplicar`
+  procurava a regra pela chave com `first()` sem filtrar a vigência, achava a versão **encerrada** (menor
+  `id`) e fazia `update` nela. A encerrada passava de 18% para 17% e a vigente ficava em 25%, embora o
+  resumo dissesse "1 atualizada". A correção olha só a versão vigente e, quando a linha muda um valor,
+  gera versão nova como a tela (R-NFE-019); linha igual não grava. Aprovada por [W] em 2026-11-24 depois
+  do antes → depois (regra mestre de valor). Produção, lida no mesmo dia: 12 regras de 1 empresa, nenhuma
+  versão encerrada e nenhuma importação por CSV registrada, então nenhum valor gravado muda.
+- **Status: 🧪** — o teste cita o UC; veredito da lane `nfebrasil-pest`.
+
 ## UC-NFIM-10 · Arquivo acima de 5 MB é recusado antes de ser lido · `must` `[V0]`
 
 - **Persona:** quem tenta subir uma planilha exportada inteira, com milhares de linhas.
@@ -285,10 +323,6 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   as duas mutações checam. Ele entrega apenas a constante `COLUNAS_OBRIGATORIAS`, então não há
   vazamento de dado; o que existe é uma tela de escrita fiscal visível a qualquer usuário do tenant.
   Gatear ou não é decisão.
-- `[BACKLOG]` **Idempotência do import pela chave natural.** O charter promete *"idempotente pela
-  chave (NCM + UF origem + UF destino)"* e o Service implementa por `first()` + `update()`/`create()`.
-  `ImportRegrasCsvServiceTest` cobre o Service; falta o caso ponta-a-ponta que reimporta o mesmo CSV
-  e prova que a contagem não dobra.
 
 ---
 
@@ -297,6 +331,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado do branch (`627553bf6`) com `vendor/composer` próprio · `ImportRegrasCsvReimportTest` + `ImportRegrasCsvVersaoVigenteTest` | UC-NFIM-08: **2 passed**. UC-NFIM-09: **1 failed** — *"Failed asserting that 0.17 is identical to 0.18"*: a versão encerrada recebeu o valor do CSV. Antes, sem esse assert, o mesmo caso falhava com *"0.25 is identical to 0.17"*: a vigente não mudou. Versões lidas do banco depois da reimportação: encerrada `0.1700` (`valida_ate` 2026-11-23), vigente `0.2500`. 36 asserções. Com a correção (`f164c68a1`): UC-NFIM-09 **1 passed · 14 assertions**, motor incluído (ICMS 170,00); com o `ImportRegrasCsvService` do `main` no mesmo worktree, **1 failed** (*"0.17 is identical to 0.18"*). Testes vizinhos da importação, do aceite do contador e do motor: 65 passed; os 3 do UC-NFIM-05/06 caem igual com o serviço do `main` (o staging não tem `cst_pis`). |
 | 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado (`596110b9e`) com `vendor/composer` próprio · `ImportRegrasCsvArquivoTest` + `ImportRegrasCsvServiceTest` + `TributacaoGatesContratoTest` | **25 passed · 116 assertions** (UC-NFIM-10/11/12 e os vizinhos). Com o controller e o parser do `main` no mesmo worktree: UC-NFIM-11 (3) e UC-NFIM-12 **4 failed**; UC-NFIM-10 passa nos dois (o limite já existia). |
 | 2026-11-24 | CT 100, cópia isolada da branch e do `main` (DB `oimpresso_fullsuite_test`) | `ImportRegrasCsvSessaoTest` 7 passed / 53 assertions; com o controller do `main`, 5 failed. `TributacaoGatesContratoTest` igual nos dois lados: UC-NFIM-01/02/04 verdes, UC-NFRF-01/03/04 e UC-NFIM-03 vermelhos no `main` e na branch (usuário do biz 1 nesse DB libera tudo; o edit dá 500) — é ambiente, não esta mudança |
 | 2026-10-06 | CT 100 `oimpresso-staging`, cópia isolada da branch da thread 19, `--filter=UC-NFIM` | controller anterior: UC-NFIM-04 **vermelho** (302, regra gravada no biz 2) · controller novo: UC-NFIM-04 **verde**; UC-NFIM-01/02 verdes nos dois. UC-NFIM-03 **vermelho nos dois**: o usuário semeado do biz 1 no staging tem o papel `Admin#1`, que concede todas as permissões, então revogar a permissão direta não muda nada. É ambiente, não a mudança — 17 asserções |
