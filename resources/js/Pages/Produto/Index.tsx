@@ -995,6 +995,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         podeEditar={pode('update')}
         podeArmazenagem={!pode('update') && pode('armazenagem')}
         podePrecos={pode('create') && contexto.grupos_de_preco > 0}
+        podeTransferir={pode('transferir')}
         emiteNota={contexto.emite_nota}
         irPara={irPara}
       />

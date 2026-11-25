@@ -447,12 +447,14 @@ interface Props {
   /** UC-PIDX-47 (#10765): só `product.armazenagem`: o rodapé leva ao Editar só com os locais. */
   podeArmazenagem?: boolean;
   podePrecos: boolean;
+  /** UC-PIDX-54: a permissão da transferência de estoque (`purchase.create`). */
+  podeTransferir?: boolean;
   /** A empresa emite nota (módulo Fiscal no pacote): só então a aba Fiscal existe. */
   emiteNota: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podeArmazenagem, podePrecos, emiteNota, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podeArmazenagem, podePrecos, podeTransferir = false, emiteNota, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -468,6 +470,9 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
   // "com imposto" quando os dois valores diferem.
   const variacoesComImposto = temImposto(d?.variacoes ?? []);
   const itensComImposto = temImposto(d?.composicao ?? []);
+  // UC-PIDX-54: "Transferir" por local na aba Estoque — mesmas regras do item do menu da linha
+  // (UC-PIDX-52): a permissão, estoque controlado, não é kit (D-30) nem excluído.
+  const transfere = !!d && podeTransferir && !d.excluido && d.dados.controla_estoque && !combo;
 
   const abas = d
     ? [
@@ -806,6 +811,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <th className="r">Alerta</th>
                         <th className="r">Vendido</th>
                         <th>Situação</th>
+                        {transfere && <th><span className="sr-only">Ação</span></th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -823,6 +829,22 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                               menos devoluções), que o servidor já manda na linha — nenhuma conta aqui. */}
                           <td className="r"><span className="pb-stock">{qtdComUnidade(e.vendido, e.unidade)}</span></td>
                           <td>{e.alerta ? <span className="pb-pill off">Repor</span> : <span className="pb-pill combo">Suficiente</span>}</td>
+                          {transfere && (
+                            <td>
+                              {/* UC-PIDX-54: só de um local com saldo — sem saldo a transferência não aceita a linha. */}
+                              {e.local_id && (e.estoque ?? 0) > 0 && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className={BOTAO_PEQUENO}
+                                  aria-label={`Transferir de ${e.local}`}
+                                  onClick={() => irPara(`/stock-transfers/create?produto=${d.id}&origem=${e.local_id}`)}
+                                >
+                                  Transferir
+                                </Button>
+                              )}
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>

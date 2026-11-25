@@ -144,6 +144,8 @@ export interface LinhaRelatorioEstoque {
   variacao: string;
   categoria: string;
   local: string;
+  /** Id do local (o "Transferir" da aba Estoque do painel abre a transferência com ele de origem). */
+  local_id?: number | null;
   /** null = sem `access_default_selling_price`. */
   preco: number | null;
   /** null = produto sem controle de estoque (a Blade mostra "--"). */
