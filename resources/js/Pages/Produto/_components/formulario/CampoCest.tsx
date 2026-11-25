@@ -21,7 +21,7 @@ export function CampoCest({
         id="cest"
         inputMode="numeric"
         autoComplete="off"
-        placeholder="7 dígitos, ex. 2803800"
+        placeholder="0000000"
         value={value}
         onChange={(e) => onChange(cestDoCadastro(e.target.value))}
         aria-invalid={error ? true : undefined}
