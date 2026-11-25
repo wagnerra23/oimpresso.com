@@ -39,6 +39,7 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 
 - ❌ Mudar `type` (Single/Variable/Combo) após criar
 - ❌ Editar variations dinamicamente (Wave 3)
+  - _Nota datada (2026-11-25, UC-PEDIT-32, pedido do [W] pelo item 3 das pendências de 24/11): o Editar passou a editar o sub-SKU e os cinco preços das variações já gravadas. Acrescentar, tirar e renomear valor continua fora._
 - ❌ Deletar produto inline
 
 ## UX Targets
@@ -51,6 +52,7 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 
 - ❌ NÃO mexer no método `update()` PHP (out of scope)
   - _Exceção datada (2026-10-15, UC-PEDIT-09): o `update()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem — o Blade não manda e não zera. Nada mais do método mudou._
+  - _Exceção datada (2026-11-25, UC-PEDIT-32): no ramo do produto variável o `update()` passou a ler `variacoes_editadas` (só as linhas mexidas, presas ao produto). O `product_variation_edit` do Blade não mudou._
 - ❌ NÃO recriar SKU server-side no client
 
 ## Pest GUARD

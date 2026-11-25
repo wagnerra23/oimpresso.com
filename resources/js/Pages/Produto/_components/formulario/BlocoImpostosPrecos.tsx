@@ -14,6 +14,8 @@ import {
 } from '@/Components/ui/select';
 import { Grid } from '@/Components/layout';
 import { BlocoGrade } from './BlocoGrade';
+import { BlocoGradeEditar } from './BlocoGradeEditar';
+import type { GradeGravada, LinhaGradeEditada } from './gradeEditar';
 import { CamposPreco } from './CamposPreco';
 import type { Grade } from './grade';
 import { metodoDaEmpresa, opcoesDoMetodo } from './metodoCusto';
@@ -35,6 +37,8 @@ interface Props {
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number; margemMinima?: number | null };
   /** UC-PCAD-32: a grade do produto variável no Novo. */
   grade?: { valor: Grade; mudar: (g: Grade) => void; aliquota: number; margemPadrao: number; erro?: string };
+  /** UC-PEDIT-32: a grade do produto variável no Editar (as variações gravadas). */
+  gradeGravada?: { gravada: GradeGravada; linhas: LinhaGradeEditada[]; mudar: (l: LinhaGradeEditada[]) => void; aliquota: number };
   /** Método de custo (US-COM-024): só quando o módulo Compras está no pacote da empresa. */
   metodoCusto?: { dados: MetodoCustoDoFormulario; valor: string; mudar: (v: string) => void };
   /** Política de preço (CU-PROD-21) e os erros do servidor para os dois campos. */
@@ -47,7 +51,7 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, metodoCusto, politica }: Props) {
+export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, preco, grade, gradeGravada, metodoCusto, politica }: Props) {
   const novo = modo === 'novo';
 
   return (
@@ -209,6 +213,14 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
             sku={data.sku}
             tipoCodigo={String(data.barcode_type ?? '')}
             erro={grade.erro}
+          />
+        )}
+        {gradeGravada && (
+          <BlocoGradeEditar
+            gravada={gradeGravada.gravada}
+            linhas={gradeGravada.linhas}
+            mudar={gradeGravada.mudar}
+            aliquota={gradeGravada.aliquota}
           />
         )}
         </Grid>

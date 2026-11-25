@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PEDIT-31 (resources/js/Pages/Produto/Edit.casos.md) — G-2 rastreabilidade caso↔teste (ADR 0264).
+// Cobre UC-PEDIT-32 (resources/js/Pages/Produto/Edit.casos.md) — G-2 rastreabilidade caso↔teste (ADR 0264).
 
 use App\Product;
 use App\Variation;
@@ -80,7 +80,7 @@ beforeEach(function () {
     $this->user->givePermissionTo(['product.update']);
 });
 
-it('UC-PEDIT-31 · a tela Editar recebe a grade do variável, uma linha por variação, com o preço gravado', function () {
+it('UC-PEDIT-32 · a tela Editar recebe a grade do variável, uma linha por variação, com o preço gravado', function () {
     $p = EstoqueFixture::variableProduct($this->business->id, 2);
     [$v1, $v2] = [$p->variations[0]['variation_id'], $p->variations[1]['variation_id']];
     pedit31Preco($v1, 10.1234, 25, 12.6543);
@@ -99,7 +99,7 @@ it('UC-PEDIT-31 · a tela Editar recebe a grade do variável, uma linha por vari
     expect($linhas[0]['subSku'])->toEndWith('-1');
 });
 
-it('UC-PEDIT-31 · a tela Editar de produto simples não recebe grade', function () {
+it('UC-PEDIT-32 · a tela Editar de produto simples não recebe grade', function () {
     $p = EstoqueFixture::singleProduct($this->business->id);
     $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
     $resp = $this->get("/products/{$p->productId}/edit", [
@@ -109,7 +109,7 @@ it('UC-PEDIT-31 · a tela Editar de produto simples não recebe grade', function
     expect($resp->json('props.product.gradeVariavel'))->toBeNull();
 });
 
-it('UC-PEDIT-31 · a linha mexida grava os cinco preços e o sub-SKU, e a outra fica como estava', function () {
+it('UC-PEDIT-32 · a linha mexida grava os cinco preços e o sub-SKU, e a outra fica como estava', function () {
     $p = EstoqueFixture::variableProduct($this->business->id, 2);
     [$v1, $v2] = [$p->variations[0]['variation_id'], $p->variations[1]['variation_id']];
     pedit31Preco($v1, 10, 25, 12.5);
@@ -142,7 +142,7 @@ it('UC-PEDIT-31 · a linha mexida grava os cinco preços e o sub-SKU, e a outra 
     expect(Variation::where('product_id', $p->productId)->count())->toBe($variaveisAntes);
 });
 
-it('UC-PEDIT-31 · sem grade no envio, os preços das variações ficam como estão', function () {
+it('UC-PEDIT-32 · sem grade no envio, os preços das variações ficam como estão', function () {
     $p = EstoqueFixture::variableProduct($this->business->id, 2);
     $v1 = $p->variations[0]['variation_id'];
     pedit31Preco($v1, 10.1234, 25, 12.6543);
@@ -156,7 +156,7 @@ it('UC-PEDIT-31 · sem grade no envio, os preços das variações ficam como est
     expect(Variation::where('product_id', $p->productId)->count())->toBe(2);
 });
 
-it('UC-PEDIT-31 · variação de produto de outra empresa não tem o preço regravado [T0]', function () {
+it('UC-PEDIT-32 · variação de produto de outra empresa não tem o preço regravado [T0]', function () {
     $meu = EstoqueFixture::variableProduct($this->business->id, 1);
     $alheio = EstoqueFixture::variableProduct($this->vizinho->id, 1);
     $minha = $meu->variations[0]['variation_id'];

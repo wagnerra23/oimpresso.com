@@ -3010,7 +3010,7 @@ class ProductController extends Controller
     }
 
     /**
-     * UC-PEDIT-31: a grade do produto variável para a tela Editar React. Uma linha por variação, na
+     * UC-PEDIT-32: a grade do produto variável para a tela Editar React. Uma linha por variação, na
      * ordem de cadastro, com os três valores sem imposto (os "com imposto" a tela deriva da alíquota,
      * como no produto simples). Produto simples e composição: null.
      *
@@ -3038,7 +3038,7 @@ class ProductController extends Controller
     }
 
     /**
-     * UC-PEDIT-31: grava as linhas da grade que a tela Editar React mandou (`variacoes_editadas`,
+     * UC-PEDIT-32: grava as linhas da grade que a tela Editar React mandou (`variacoes_editadas`,
      * chave = id da variação). Só vêm as linhas mexidas: a que não vem fica como está, nada é apagado
      * e o nome do valor não muda. O caminho do Blade (`product_variation_edit`) é outro: reescreve a
      * grade inteira e apaga a variação que falta. A variação tem que ser DESTE produto [T0]: id alheio
@@ -3186,7 +3186,7 @@ class ProductController extends Controller
                     // UC-PEDIT-16: o preço gravado do produto simples (a variação única), como o
                     // edit_single_product_form_part.blade.php mostra. Variável e composto: null.
                     'precoSimples' => $this->precoSimplesDoProduto($product),
-                    // UC-PEDIT-31: a grade do produto variável (uma linha por variação, preço sem imposto).
+                    // UC-PEDIT-32: a grade do produto variável (uma linha por variação, preço sem imposto).
                     'gradeVariavel' => $this->gradeDoProdutoVariavel($product),
                 ],
                 // UC-PEDIT-24: os campos personalizados com o nome que a empresa deu.
@@ -3476,7 +3476,7 @@ class ProductController extends Controller
                     Media::uploadMedia($product->business_id, $variation, $request, 'variation_images');
                 }
             } elseif ($product->type == 'variable') {
-                // UC-PEDIT-31: as linhas que a tela Editar React mexeu.
+                // UC-PEDIT-32: as linhas que a tela Editar React mexeu.
                 $this->gravarGradeEditada($product, $request->input('variacoes_editadas'));
 
                 //Update existing variations
