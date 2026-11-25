@@ -22,7 +22,9 @@ import { DESTINOS, lancamento, type Destino } from './lancamento';
 import { REGIME_NOME, conferir, salvar, type Alerta, type EmpresaResumo, type Natureza, type Regime } from './natureza';
 
 const PASSOS: { k: Passo; l: string; ico: typeof Tag; cor?: string; sub: (n: Natureza, sn: boolean, novo: boolean) => string }[] = [
-  { k: 'nat', l: 'Natureza', ico: Tag, sub: () => 'Nome, tipo e finalidade da natureza.' },
+  { k: 'nat', l: 'Natureza', ico: Tag, sub: (_n, _sn, novo) => novo
+    ? 'Nome, tipo e finalidade. Depois escolha começar em branco ou importar uma nota de referência.'
+    : 'Nome, tipo e finalidade da natureza.' },
   { k: 'cfop', l: 'CFOP', ico: Route, sub: (n) => `O lançamento escolhe o CFOP pela UF do ${n.tipo === 'E' ? 'remetente' : 'cliente'}.` },
   { k: 'icms', l: 'ICMS', ico: Layers, cor: 'var(--origin-CRM-fg)', sub: (_n, sn) => `${sn ? 'CSOSN' : 'CST'}, base, origem da alíquota, ST e DIFAL.` },
   { k: 'ipi', l: 'IPI', ico: Layers, cor: 'var(--origin-MFG-fg)', sub: () => 'Só para quem destaca IPI.' },
