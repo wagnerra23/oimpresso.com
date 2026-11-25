@@ -54,7 +54,7 @@ const reais = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 
  * O exemplo embaixo da pergunta do imposto (protótipo): quanto o cliente paga numa venda de
  * R$ 100,00. Só texto: a conta do preço que vai para o servidor segue em precos.ts.
  */
-export function exemploDoImposto(tipo: 'inclusive' | 'exclusive', aliquota: number, sigla: string): string {
+function exemploDoImposto(tipo: 'inclusive' | 'exclusive', aliquota: number, sigla: string): string {
   if (tipo === 'exclusive') {
     return `Exemplo: venda de R$ 100,00 → o cliente paga R$ ${reais(100 * (1 + aliquota / 100))}.`;
   }
