@@ -5,9 +5,15 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-11-24"
+last_run: "2026-11-25"
 last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40976713795 (634 passed · 5182 assertions)"
 ---
+
+<!-- REVALIDAÇÃO 2026-11-25 (G-6: o .tsx mudou depois do last_run de 24/11).
+     A mudança no Add.tsx é só de forma (cores do protótipo Devolução V3): os Card viraram
+     SecaoDevolucao, os avisos ganharam ícone e cor. Estados, calcularTotais, o post ao store()
+     e as âncoras data-contract são os mesmos; nenhum UC-SRADD/UC-SRADDV muda. Revalidado pela
+     leitura do diff; os testes não foram reexecutados para esta edição (o veredito é da lane do PR). -->
 
 <!-- REVALIDAÇÃO 2026-10-29 (G-6: o .tsx mudou depois do last_run de 27/10).
      A mudança no Add.tsx é a do P-038: botão "Devolver tudo", coluna "Já devolvida" e
@@ -208,6 +214,7 @@ last_run_ci: "UC-SRADD-01..08 verdes na lane PHP / Pest (Sells · MySQL), run 40
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.
 - 2026-11-24 · [CC] Add.tsx lê a `?fila=` de SellReturn/Create (UC-SRCRE-09): salva a venda e abre a próxima escolhida; sem fila, volta à lista como antes. O post ao `store()` não mudou — UC-SRADD-* seguem valendo (revalidados pela leitura do diff; o veredito da lane é deste PR).
 - 2026-11-24 · [CC] pedido [W] por print: o registro abre no layout do protótipo Devolução V3 — cartões 1 Origem (com "Trocar venda") · 2 Itens · 3 Pagamento, e o fechamento com o total e "Salvar devolução" fixo à direita. Mesmos estados, mesma conta (`calcularTotais`), mesmo post ao `store()` e as mesmas âncoras `data-contract`; nenhum UC mudou.
+- 2026-11-25 · [CC] pedido [W] por print: volta a cor do protótipo — cabeçalho de cada bloco tingido no matiz dele (Origem roxo, Itens verde, Conferência e Retorno âmbar, Pagamento e Financeiro azul), ícone em quadrado colorido, número do passo, avisos coloridos por tom, placa "Unidades que voltam" e painel de ação com borda do primary. Só forma: estados, conta, post e âncoras `data-contract` iguais; nenhum UC mudou.
 
 ---
 
