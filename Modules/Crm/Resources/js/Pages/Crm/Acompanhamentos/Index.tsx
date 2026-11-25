@@ -115,7 +115,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
     <div className="flex flex-col gap-4">
       <CrmCabecalho aba="Acompanhamentos" />
 
-      <CrmFiltros>
+      <CrmFiltros data-contract="crm-filtros">
           <Deferred data="opcoes" fallback={<Skeleton className="h-16 w-full" />}>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Filtro rotulo="Contato" campo="contact_id" lista={opcoes?.contatos} filtros={filtros} />

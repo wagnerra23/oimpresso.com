@@ -38,11 +38,12 @@ export function CrmCartao({ 'data-contract': contrato, titulo, nota, acao, semPa
   );
 }
 
-export function CrmFiltros({ children }: { children: ReactNode }) {
+/** A âncora vem da tela: o gate `contrato-de-tela` lê o `data-contract` no arquivo da Page. */
+export function CrmFiltros({ 'data-contract': contrato, children }: { 'data-contract': string; children: ReactNode }) {
   const [aberto, setAberto] = useState(true);
   return (
     <CrmCartao
-      data-contract="crm-filtros"
+      data-contract={contrato}
       titulo={<><Icon name="search" size={13} aria-hidden /> Filtros</>}
       nota={aberto ? null : 'recolhidos'}
       acao={
