@@ -25,7 +25,7 @@ import { acumuladoTxt, calcularTotais, numUf, podeVoltar } from './_components/d
 import { lerFila, urlDoRegistro } from './_components/devolucaoFila';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { CircleCheck, FileText, Info, Landmark, Package, PackageOpen, TriangleAlert, Wallet } from 'lucide-react';
-import { Aviso, SecaoDevolucao, Selo } from './_components/secao';
+import { AvisoConferencia, SecaoDevolucao, Selo } from './_components/secao';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade SellReturnController@inertiaAddVenda
@@ -486,9 +486,9 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
           >
               <Stack gap={2} aria-live="polite">
                 {avisos.map((a) => (
-                  <Aviso key={a.titulo} tom={tomAviso[a.tom]} icone={iconeAviso[a.tom]} titulo={a.titulo}>
+                  <AvisoConferencia key={a.titulo} tom={tomAviso[a.tom]} icone={iconeAviso[a.tom]} titulo={a.titulo}>
                     {a.texto}
-                  </Aviso>
+                  </AvisoConferencia>
                 ))}
               </Stack>
           </SecaoDevolucao>

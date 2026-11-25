@@ -4,12 +4,14 @@
 // (`--color-*` do DS) e o color-mix na mesma proporção do protótipo: 5% no cabeçalho, 14% no
 // ícone, 9%/26% no aviso. Só forma — nenhum estado, conta ou post muda.
 //
-// Local de propósito (ADR 0388 §D-1): o `Sec` da Venda V3 não tem o quadrado do ícone, e
+// Local de propósito (ADR 0388 §D-1): o `Sec` e o `Aviso` da Venda V3 não têm o ícone, e
 // mexer nele vazaria para a tela que a ROTA LIVRE opera.
 
 import type { ReactNode } from 'react';
 import { Inline } from '@/Components/layout';
 import { cn } from '@/Lib/utils';
+// Passo é o mesmo numerador da Venda V3: reusado, não recriado (gate reuse:duplicates).
+import { Passo } from '@/Pages/Sells/_components/v3/primitivos';
 
 export type Tom = 'primary' | 'success' | 'warning' | 'info' | 'destructive';
 
@@ -23,14 +25,6 @@ const HUE: Record<Tom, string> = {
 
 /** Texto no tom: 62% do matiz sobre o texto, como o protótipo — legível nos dois temas. */
 const tomTexto = (t: Tom) => `color-mix(in oklch, ${HUE[t]} 62%, var(--color-foreground))`;
-
-export function Passo({ n }: { n: number | string }) {
-  return (
-    <span className="mr-2 inline-flex size-[18px] flex-none items-center justify-center rounded-full bg-primary align-[1px] font-mono text-[11.5px] font-semibold leading-none text-primary-foreground">
-      {n}
-    </span>
-  );
-}
 
 export function Selo({ tom, children }: { tom: Tom; children: ReactNode }) {
   return (
@@ -100,7 +94,7 @@ export function SecaoDevolucao({
 }
 
 /** Aviso da conferência (`.al`): fundo 9%, borda 26%, ícone e título no tom. */
-export function Aviso({ tom, icone, titulo, children }: { tom: Tom; icone: ReactNode; titulo: string; children: ReactNode }) {
+export function AvisoConferencia({ tom, icone, titulo, children }: { tom: Tom; icone: ReactNode; titulo: string; children: ReactNode }) {
   return (
     <div
       className="inline-flex w-full items-start gap-2.5 rounded-lg border px-3 py-2.5 text-[12.5px] leading-[1.45] text-foreground"
