@@ -60,6 +60,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | ✅ |
 | UC-NFRF-10 | Duas regras com a mesma chave não convivem | must `[fiscal]` | charter §Pendências · ADR arq/0006 · `MotorTributarioService::buscarRegra` | `RegraTributariaUnicidadeTest` | 🧪 |
 | UC-NFRF-11 | Abrir a tela de regra (nova ou edição) exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
+| UC-NFRF-12 | Trocar o regime tira do envio o código do outro regime | must `[fiscal]` | charter §Goals (CSOSN Simples · CST Normal) · `UpsertRegraTributariaRequest` (os dois juntos são recusados) | vitest `nfe-tributacao-regra-regime` | ❌ |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
 > e saiu dele em 2026-10-06, com o gate no `destroy` (playbook Fiscal thread 18).
@@ -264,7 +265,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   e não apagadas. Regime e operação diferentes não competem: o motor já desempata os dois. Na
   edição, a própria regra não conta, e a chave de regime e operação é a dela.
 - **Fora daqui:** a importação por CSV já atualiza a regra existente pela mesma chave
-  (`ImportRegrasCsvService`); o teste que reimporta e confere a contagem é outro item do backlog.
+  (`ImportRegrasCsvService`); o teste que reimporta e confere a contagem é o UC-NFIM-08 do
+  [`ImportCsv.casos.md`](ImportCsv.casos.md).
   Regras duplicadas que já existam no banco não são corrigidas aqui; editar uma delas sem mudar a
   chave passa a mostrar o erro, e a saída é apagar a sobra.
 - **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
@@ -288,11 +290,34 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Antes (fato até 2026-11-24):** os dois GETs renderizavam sem checar permissão; ficou no backlog
   como decisão até o dono pedir o gate.
 
+## UC-NFRF-12 · Trocar o regime tira do envio o código do outro regime · `must` `[fiscal]`
+
+- **Persona:** o contador que abre "Nova regra" (o form nasce em Simples, CSOSN 102) e troca para
+  Normal, ou que edita uma regra de regime Normal e a passa para Simples.
+- **Aceite:** Dado o formulário com um regime escolhido · Quando troco o regime, preencho o código do
+  regime novo e salvo · Então o envio leva só o código do regime novo; o do outro vai vazio. Controle:
+  sem trocar o regime, a edição envia o CST que a regra tinha e o CSOSN vazio.
+- **Teste:** [`nfe-tributacao-regra-regime.test.tsx`](../../../../../tests/js/nfe-tributacao-regra-regime.test.tsx)
+  — os três `UC-NFRF-12 · …`, com o `useForm` real do `@inertiajs/react` 3.0.3 do lockfile e só o
+  `router.post`/`router.put` interceptados.
+- **Contrato:** charter §Goals (CSOSN para Simples, CST para Normal). O servidor recusa os dois juntos
+  (`UpsertRegraTributariaRequest::withValidator`, lido para confirmar), então o defeito não grava dado
+  errado: ele recusa o primeiro salvar.
+- **Achado (2026-11-25):** o primeiro envio depois de trocar o regime leva **os dois** códigos (nova
+  regra: CST 000 + CSOSN 102; edição: CSOSN 102 + CST 000). O `submit` limpa o campo com `setData` e
+  chama o `post`/`put` na mesma função; no 3.0.3 o `setData` só chega ao que o `post` lê depois do
+  próximo render. O servidor responde "CSOSN e CST não podem ser preenchidos juntos" no campo `csosn`,
+  que no modo CST a tela não mostra (só o aviso "Verifique os campos destacados"); o segundo clique sai
+  limpo. Os dois casos de troca fixam esse comportamento assert a assert e reprovam quando ele for
+  consertado; quem consertar troca os asserts `CONTRATO` no mesmo PR. Controle por mutação: com um
+  `form.transform(...)` no lugar dos dois `setData`, os asserts de contrato passam e os dois casos de
+  achado caem.
+- **Status: ❌** — o teste prova a falha; o conserto é decisão à parte (fora do escopo de teste).
+
+---
+
 ## Backlog — sem UC até ganhar teste ou contrato
 
-- `[BACKLOG]` **Exclusividade CSOSN × CST.** A tela limpa o campo não usado no submit conforme o
-  regime; se as duas colunas vierem preenchidas, o motor tributário tem dois caminhos. É
-  comportamento de **cliente** (o `.tsx` faz a limpeza) — precisaria de e2e, e a tela não tem spec.
 - `[BACKLOG]` **AuditLog.** `store`/`update`/`destroy` chamam `activity('nfe.tributacao')`, sem
   teste. Escopo declarado da **US-NFE-062**, aberta — deixo lá em vez de duplicar aqui.
 
@@ -303,6 +328,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-11-25 | local, `npx vitest run tests/js/nfe-tributacao-regra-regime.test.tsx` com o `@inertiajs/react` 3.0.3 do lockfile | **`RegraForm.tsx` do `main`:** antes dos asserts de achado, os casos com o contrato falhavam (*"expected '102' to be ''"* e *"expected '000' to be ''"*); com os asserts de achado, 3 passed. **Com `form.transform(...)` no lugar dos dois `setData` (mutação, revertida):** 2 failed · 1 passed, nas linhas de achado. |
 | 2026-11-24 | CT 100 `oimpresso-staging` (checkout `56f45a3c52`), só as 3 rotas GET trocadas no `web.php` do container e devolvidas depois (sha256 conferido) · usuários novos do tenant 98 | **sem o gate (rotas do container):** 2 failed · 5 assertions (*"Expected 403 but received 200"* nas duas telas). **Com o gate:** `TributacaoAbrirTelaPermissaoTest` 2 passed; junto com `TributacaoGatesContratoTest` e `RegraTributariaIbsCbsValidacaoTest`: 14 passed · 1 skipped (UC-NFRF-09, migração `cst_pis` ausente no container) · 134 assertions. |
 | 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado `87cda4e0f` com `vendor/composer` próprio · `RegraTributariaUnicidadeTest` + `RegraTributariaIbsCbsValidacaoTest` + `AceiteContadorTest` + `TributacaoGatesContratoTest` | **branch:** UC-NFRF-10 3 passed; UC-NFRF-01..08 e UC-NFTR-19..21 verdes. **Mesmo teste com o `UpsertRegraTributariaRequest` do `main`:** os 2 casos de recusa do UC-NFRF-10 falham (*"Session is missing expected key [errors]"*). O UC-NFRF-09 pula: o banco do staging não tem `cst_pis`. |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c59f6107a` (thread 05, após `<Grid>` na seção Reforma e `edit()` sem guarda de nulo) · `RegraTributariaIbsCbsValidacaoTest` | **4 passed · 54 assertions** (UC-NFRF-05/06/07/08). PHPStan no `TributacaoController`: sem erros. |
