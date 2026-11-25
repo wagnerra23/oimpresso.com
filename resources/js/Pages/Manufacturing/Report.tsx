@@ -107,8 +107,10 @@ export default function Report({
     router.get(
       ROUTE,
       {
-        start_date: next.de || undefined,
-        end_date: next.ate || undefined,
+        // Vazio vai como `''`, não some: sem as duas datas o servidor abre no mês corrente
+        // (UC-REPORT-08), e limpar o período tem de continuar mostrando tudo.
+        start_date: next.de,
+        end_date: next.ate,
         is_final: next.soFinal ? 1 : 0,
       },
       { preserveState: true, preserveScroll: true, only: ['relatorio', 'filters'], replace: true },
