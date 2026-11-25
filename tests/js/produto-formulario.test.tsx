@@ -552,11 +552,27 @@ describe('UC-PEDIT-14 · natureza fiscal no Editar produto', () => {
     expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
   })
 
-  it('produto sem decisão do contador não mostra a natureza', () => {
+  it('sem o módulo Fiscal (o servidor não manda natureza), não mostra a natureza', () => {
     editar(null)
 
     expect(natureza()).toBeNull()
     expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+
+  it('produto sem decisão do contador mostra "Mercadoria · padrão" e mantém o aviso de NCM (decisão [W] 2026-11-25)', () => {
+    editar({ natureza: 'mercadoria', codigoServico: null, padrao: true, link: '/nfe-brasil/tributacao?produto=9' })
+
+    expect(natureza()?.textContent).toContain('Mercadoria · padrão')
+    expect(natureza()?.textContent).toContain('O contador ainda não decidiu')
+    expect(natureza()?.querySelector('a')?.getAttribute('href')).toBe('/nfe-brasil/tributacao?produto=9')
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+
+  it('produto marcado pendente na Tributação continua "A decidir pelo contador"', () => {
+    editar({ natureza: 'pendente', codigoServico: null, link: null })
+
+    expect(natureza()?.textContent).toContain('A decidir pelo contador')
+    expect(natureza()?.textContent).not.toContain('padrão')
   })
 })
 

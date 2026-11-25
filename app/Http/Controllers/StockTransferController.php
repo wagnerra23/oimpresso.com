@@ -323,6 +323,10 @@ class StockTransferController extends Controller
             // "Transferir entre locais" da lista de produtos (UC-TRCRT-07): `?produto={id}` vira os
             // botões "Adicionar" das variações dele. Só oferece; a linha vem pelo mesmo caminho da busca.
             'produto_sugerido' => $this->produtoSugerido($business_id, (int) request()->query('produto')),
+            // "Transferir" de um local na aba Estoque do painel do produto (UC-TRCRT-08): `?origem={id}`
+            // já escolhe a filial de origem. Só vale local da lista acima (da empresa da sessão e que o
+            // usuário pode usar); qualquer outro id fica de fora e a origem segue em branco.
+            'origem_sugerida' => $this->origemSugerida($business_locations, (int) request()->query('origem')),
             'permissions' => [
                 'view_purchase_price' => $user->can('view_purchase_price'),
                 // UI-only: decide apenas o `readonly` do campo na tela — o servidor não re-checa
@@ -330,6 +334,20 @@ class StockTransferController extends Controller
                 'edit_price' => $user->can('edit_purchase_price'),
             ],
         ]);
+    }
+
+    /**
+     * A filial de origem que o painel do produto mandou (`?origem={id}`), se ela está entre as
+     * filiais que a tela oferece. Tier 0 (ADR 0093): `$business_locations` já é só da empresa da
+     * sessão e dos locais permitidos ao usuário; id fora dela vira `null`, sem erro.
+     */
+    private function origemSugerida($business_locations, int $location_id): ?string
+    {
+        if ($location_id <= 0) {
+            return null;
+        }
+
+        return collect($business_locations)->has($location_id) ? (string) $location_id : null;
     }
 
     /**

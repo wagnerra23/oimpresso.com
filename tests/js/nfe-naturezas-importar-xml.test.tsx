@@ -90,8 +90,10 @@ describe('Importar nota de referência', () => {
   it('UC-NFTR-73 · IBS/CBS iguais ao padrão do ano ficam "padrão"; diferentes ficam fixas', () => {
     const ibs = (uf: string, cbs: string) => `<IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>987.65</vBC>`
       + `<gIBSUF><pIBSUF>${uf}</pIBSUF></gIBSUF><gIBSMun><pIBSMun>0.0000</pIBSMun></gIBSMun><gCBS><pCBS>${cbs}</pCBS></gCBS></gIBSCBS></IBSCBS>`;
-    const padrao = ler(nota({ itens: [det(1, '5102', ICMS00 + PIS_LP + COFINS_LP + ibs('0.1000', '0.9000'))] })).natureza.ibs;
-    expect(padrao).toMatchObject({ on: true, cst: '000', cClass: '000001', origem: 'padrao' });
+    const lida = ler(nota({ itens: [det(1, '5102', ICMS00 + PIS_LP + COFINS_LP + ibs('0.1000', '0.9000'))] }));
+    expect(lida.natureza.ibs).toMatchObject({ on: true, cst: '000', cClass: '000001', origem: 'padrao' });
+    // Texto do protótipo (`lerXml()`): em 2026 o padrão é o do ano de teste.
+    expect(linha(lida, 'Alíquotas')?.obs).toBe('Iguais ao padrão do ano de teste.');
 
     const fixa = ler(nota({ itens: [det(1, '5102', ICMS00 + PIS_LP + COFINS_LP + ibs('0.0500', '0.4500'))] })).natureza.ibs;
     expect(fixa).toMatchObject({ origem: 'fixa', pUF: 0.05, pMun: 0, pCBS: 0.45 });
@@ -150,6 +152,8 @@ describe('Importar nota de referência', () => {
 
     render(<NaturezaEditor inicial={vazia()} editavel regime="LP" empresa={EMPRESA} onFechar={() => {}} />);
     expect(screen.getByText('Como você quer preencher os tributos?')).toBeTruthy();
+    // Subtítulo do passo 1 na natureza nova (protótipo `renderEditor()`, `sub.nat`).
+    expect(screen.getByText('Nome, tipo e finalidade. Depois escolha começar em branco ou importar uma nota de referência.')).toBeTruthy();
     importarNaTela(nota());
     await screen.findByText('nota-4821.xml');
     expect(within(passos()[1]!).getByText('do XML, revisar')).toBeTruthy();

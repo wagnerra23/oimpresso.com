@@ -203,7 +203,7 @@ class ProductUtil extends Util
         foreach ($input_variations_edit as $key => $value) {
             $product_variation_ids[] = $key;
 
-            $product_variation = ProductVariation::find($key);
+            $product_variation = ProductVariation::where('product_id', $product_id)->findOrFail($key); // [T0] ADR 0093: grupo DESTE produto; id alheio aborta o update (ProdutoEditVariacaoBladeTenantTest)
             $product_variation->name = $value['name'];
             $product_variation->save();
 
@@ -2460,6 +2460,9 @@ class ProductUtil extends Util
             'variacao' => $r->type == 'variable' ? $r->product_variation.'-'.$r->variation_name : '',
             'categoria' => (string) ($r->category_name ?? ''),
             'local' => (string) ($r->location_name ?? ''),
+            // O id do local: o "Transferir" da aba Estoque do painel abre a transferência com ele de
+            // origem (UC-PIDX-54). Nenhum valor, só o identificador.
+            'local_id' => isset($r->location_id) ? (int) $r->location_id : null,
             'preco' => $verPreco ? (float) $r->unit_price : null,
             // Produto sem controle de estoque: a Blade mostra "--".
             'estoque' => $r->enable_stock ? (float) ($r->stock ? $r->stock : 0) : null,
