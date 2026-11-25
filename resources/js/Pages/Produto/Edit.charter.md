@@ -38,8 +38,8 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 ## Non-Goals
 
 - ❌ Mudar `type` (Single/Variable/Combo) após criar
-- ❌ Editar variations dinamicamente (Wave 3)
-  - _Nota datada (2026-11-25, UC-PEDIT-32, pedido do [W] pelo item 3 das pendências de 24/11): o Editar passou a editar o sub-SKU e os cinco preços das variações já gravadas. Acrescentar, tirar e renomear valor continua fora._
+- ❌ Acrescentar, tirar ou renomear valor de variação no Editar (Wave 3)
+  - _Até 2026-11-24 esta linha era "Editar variations dinamicamente". Em 2026-11-25 (UC-PEDIT-32, pedido do [W] pelo item 3 das pendências de 24/11) o Editar passou a editar o sub-SKU e os cinco preços das variações já gravadas; o que segue fora é mudar o conjunto de valores._
 - ❌ Deletar produto inline
 
 ## UX Targets
@@ -76,3 +76,4 @@ it('Controller cross-tenant retorna 404')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
+| 2026-11-25 | [W+C] | Non-Goal de variações estreitado: sub-SKU e preço das variações gravadas entram no Editar (UC-PEDIT-32); acrescentar, tirar e renomear valor seguem fora. |
