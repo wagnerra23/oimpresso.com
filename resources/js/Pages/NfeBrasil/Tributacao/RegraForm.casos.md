@@ -60,7 +60,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | ✅ |
 | UC-NFRF-10 | Duas regras com a mesma chave não convivem | must `[fiscal]` | charter §Pendências · ADR arq/0006 · `MotorTributarioService::buscarRegra` | `RegraTributariaUnicidadeTest` | 🧪 |
 | UC-NFRF-11 | Abrir a tela de regra (nova ou edição) exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
-| UC-NFRF-12 | Trocar o regime tira do envio o código do outro regime | must `[fiscal]` | charter §Goals (CSOSN Simples · CST Normal) · `UpsertRegraTributariaRequest` (os dois juntos são recusados) | vitest `nfe-tributacao-regra-regime` | ❌ |
+| UC-NFRF-12 | Trocar o regime tira do envio o código do outro regime | must `[fiscal]` | charter §Goals (CSOSN Simples · CST Normal) · `UpsertRegraTributariaRequest` (os dois juntos são recusados) | vitest `nfe-tributacao-regra-regime` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
 > e saiu dele em 2026-10-06, com o gate no `destroy` (playbook Fiscal thread 18).
@@ -308,11 +308,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   chama o `post`/`put` na mesma função; no 3.0.3 o `setData` só chega ao que o `post` lê depois do
   próximo render. O servidor responde "CSOSN e CST não podem ser preenchidos juntos" no campo `csosn`,
   que no modo CST a tela não mostra (só o aviso "Verifique os campos destacados"); o segundo clique sai
-  limpo. Os dois casos de troca fixam esse comportamento assert a assert e reprovam quando ele for
-  consertado; quem consertar troca os asserts `CONTRATO` no mesmo PR. Controle por mutação: com um
-  `form.transform(...)` no lugar dos dois `setData`, os asserts de contrato passam e os dois casos de
-  achado caem.
-- **Status: ❌** — o teste prova a falha; o conserto é decisão à parte (fora do escopo de teste).
+  limpo.
+- **Conserto (2026-11-25, decisão [W]):** o `submit` passa a limpar o campo por `form.transform(...)`,
+  que vale para o próprio envio. Os dois casos de troca agora exigem o código do outro regime vazio já
+  no 1º envio.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml`. Nasceu ❌ em 2026-11-25 (o teste provava a falha) e saiu dele no mesmo dia com o conserto.
 
 ---
 

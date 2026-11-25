@@ -12,15 +12,11 @@
  * Contrato: RegraForm.charter.md §Goals (CSOSN para Simples, CST para Normal) e o motor tributário,
  * que tem dois caminhos se as duas colunas vierem preenchidas (backlog "Exclusividade CSOSN × CST").
  *
- * ⚠️ ACHADO (2026-11-25) — UC-NFRF-12 nasce ❌. Os dois casos de troca fixam o que a tela FAZ hoje
- * (o 1º envio leva os dois códigos), assert a assert, para não ficarem verdes por um motivo qualquer
- * como um `it.fails` ficaria. Quando o defeito for consertado eles reprovam a lane, e quem consertar
- * troca o `ACHADO` pelo contrato (`csosn`/`cst` vazio no 1º envio) no mesmo PR. Medido com o `@inertiajs/react` 3.0.3 do
- * lockfile: o `setData` do `submit` só chega ao `dataRef` do `useForm` depois do próximo render, e
- * o `post`/`put` logo abaixo lê o valor velho. O 1º envio sai com CST E CSOSN; o servidor recusa
- * ("CSOSN e CST não podem ser preenchidos juntos", erro no campo `csosn`, que no modo CST a tela não
- * mostra); o 2º clique sai limpo. Controle por mutação: trocando os dois `setData` por um
- * `form.transform(...)`, os asserts de CONTRATO passam e os dois `ACHADO` caem. O conserto não entra aqui (escopo: teste).
+ * Histórico: o UC-NFRF-12 nasceu ❌ em 2026-11-25. Com o `@inertiajs/react` 3.0.3 do lockfile, o
+ * `submit` limpava o campo com `setData` e o `post`/`put` logo abaixo lia o valor velho: o 1º envio
+ * saía com CST E CSOSN, o servidor recusava com o erro num campo que a tela não mostrava, e só o 2º
+ * clique passava. Consertado no mesmo dia trocando os `setData` por `form.transform(...)`; os dois
+ * casos de troca agora exigem o código do outro regime vazio já no 1º envio.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -80,7 +76,7 @@ const regraNormal = {
 };
 
 describe('Regra tributária — o código do regime que não vale sai do envio', () => {
-  it('UC-NFRF-12 · ACHADO: nova regra, trocar Simples para Normal — o 1º envio ainda leva o CSOSN junto do CST', () => {
+  it('UC-NFRF-12 · nova regra, trocar Simples para Normal — o 1º envio já sai sem o CSOSN', () => {
     render(<RegraForm regra={null} />);
     fireEvent.change(screen.getByLabelText(/NCM/), { target: { value: '84439100' } });
 
@@ -92,17 +88,16 @@ describe('Regra tributária — o código do regime que não vale sai do envio',
     expect(post.mock.calls[0][0]).toBe('/nfe-brasil/tributacao/regras');
     const primeiro = post.mock.calls[0][1] as Enviado;
     expect(primeiro.cst).toBe('000');
-    // CONTRATO: deveria ser ''. Hoje vai o '102' padrão do Simples, e o servidor recusa os dois juntos.
-    expect(primeiro.csosn).toBe('102');
+    expect(primeiro.csosn).toBe('');
 
-    // O 2º clique já sai limpo: o setData do 1º chegou ao useForm depois do render.
+    // O 2º clique sai igual.
     salvar();
     const segundo = post.mock.calls[1][1] as Enviado;
     expect(segundo.cst).toBe('000');
     expect(segundo.csosn).toBe('');
   });
 
-  it('UC-NFRF-12 · ACHADO: edição, trocar Normal para Simples — o 1º envio ainda leva o CST junto do CSOSN', () => {
+  it('UC-NFRF-12 · edição, trocar Normal para Simples — o 1º envio já sai sem o CST', () => {
     render(<RegraForm regra={regraNormal} />);
 
     trocarRegime('Normal (CST)', 'Simples (CSOSN)');
@@ -113,8 +108,7 @@ describe('Regra tributária — o código do regime que não vale sai do envio',
     expect(put.mock.calls[0][0]).toBe('/nfe-brasil/tributacao/regras/7');
     const primeiro = put.mock.calls[0][1] as Enviado;
     expect(primeiro.csosn).toBe('102');
-    // CONTRATO: deveria ser ''. Hoje vai o CST que a regra tinha.
-    expect(primeiro.cst).toBe('000');
+    expect(primeiro.cst).toBe('');
 
     salvar();
     const segundo = put.mock.calls[1][1] as Enviado;
