@@ -391,8 +391,8 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCriarOperacoesTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvReimportTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvVersaoVigenteTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvSessaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvVersaoVigenteTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasLegadoSaborBrasilTest.php \
             Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
             Modules/NfeBrasil/Tests/Feature/InutilizacaoFaixaContratoTest.php \
