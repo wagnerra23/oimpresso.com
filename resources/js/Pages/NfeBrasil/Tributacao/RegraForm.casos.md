@@ -54,6 +54,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-06 | Formato de IBS/CBS inválido é recusado sem gravar | must `[fiscal]` | NT 2025.002 · padrão decimal das alíquotas (UC-NFCD-04) | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 | UC-NFRF-08 | Os campos de IBS/CBS aparecem e salvam pela tela | should `[fiscal]` | US-FISCAL-021 · charter §Goals (alíquota decimal) · UC-NFRF-05 | `RegraTributariaIbsCbsValidacaoTest` · e2e `nfe-tributacao-regra.spec.ts` | 🧪 |
 | UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
+| UC-NFRF-10 | Duas regras com a mesma chave não convivem | must `[fiscal]` | charter §Pendências · ADR arq/0006 · `MotorTributarioService::buscarRegra` | `RegraTributariaUnicidadeTest` | 🧪 |
 | UC-NFRF-11 | Abrir a tela de regra (nova ou edição) exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
@@ -239,6 +240,31 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   da edição não trazê-los (o "Atualizar" grava nulo por cima, a armadilha do UC-NFRF-08).
 - **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFRF-10 · Duas regras com a mesma chave não convivem · `must` `[fiscal]`
+
+- **Persona:** o responsável fiscal cadastrando uma regra que já existe (esqueceu, ou veio do CSV).
+- **Aceite:** Dada uma regra vigente com NCM, UF origem e UF destino · Quando ele cria outra com a
+  mesma chave, ou edita uma regra levando-a para essa chave · Então erro no campo NCM, que manda
+  editar a regra existente, e **nada** é gravado. Controles positivos: a mesma chave com outra UF
+  de destino grava (é outro nível do cascade); editar a regra sem mudar a chave passa; regra
+  apagada ou de outra empresa não bloqueia.
+- **Teste:** [`RegraTributariaUnicidadeTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaUnicidadeTest.php)
+  — os três `UC-NFRF-10 · …`.
+- **Contrato:** charter §Pendências (*"Confirmar validação de unicidade da chave no FormRequest"*)
+  + [ADR arq/0006](../../../../../memory/requisitos/NfeBrasil/adr/arq/0006-cascade-defaults-ncm-produto.md)
+  (uma regra por nível do cascade) + `MotorTributarioService::buscarRegra`, lido para confirmar:
+  com duas regras na mesma chave ele pega a de menor `id`, então a que vale dependia da ordem de
+  cadastro.
+- **Chave exata:** NCM + UF origem + UF destino (nulo = todas as UFs), no mesmo regime (`crt`) e na
+  mesma operação (`operacao_id`), entre as regras vigentes (`valida_ate` nulo ou a partir de hoje)
+  e não apagadas. Regime e operação diferentes não competem: o motor já desempata os dois. Na
+  edição, a própria regra não conta, e a chave de regime e operação é a dela.
+- **Fora daqui:** a importação por CSV já atualiza a regra existente pela mesma chave
+  (`ImportRegrasCsvService`); o teste que reimporta e confere a contagem é outro item do backlog.
+  Regras duplicadas que já existam no banco não são corrigidas aqui; editar uma delas sem mudar a
+  chave passa a mostrar o erro, e a saída é apagar a sobra.
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## UC-NFRF-11 · Abrir a tela de regra (nova ou edição) exige a permissão fiscal · `must` `[T0]`
 
 - **Persona:** o vendedor do tenant, sem `nfe.tributacao.manage`, que clica em "Nova regra" na tela
@@ -260,10 +286,6 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Backlog — sem UC até ganhar teste ou contrato
 
-- `[BACKLOG]` **Unicidade da chave (NCM + UF origem + UF destino).** O próprio charter lista em
-  §Pendências: *"[ ] Confirmar validação de unicidade da chave no FormRequest"*. Sem ela, duas
-  regras iguais competem no Nível 2 e a que vence depende da ordenação — que é justamente o que
-  `UC-NFTR-06` mede na listagem. Vira UC quando a regra existir.
 - `[BACKLOG]` **Exclusividade CSOSN × CST.** A tela limpa o campo não usado no submit conforme o
   regime; se as duas colunas vierem preenchidas, o motor tributário tem dois caminhos. É
   comportamento de **cliente** (o `.tsx` faz a limpeza) — precisaria de e2e, e a tela não tem spec.
@@ -278,6 +300,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
 | 2026-11-24 | CT 100 `oimpresso-staging` (checkout `56f45a3c52`), só as 3 rotas GET trocadas no `web.php` do container e devolvidas depois (sha256 conferido) · usuários novos do tenant 98 | **sem o gate (rotas do container):** 2 failed · 5 assertions (*"Expected 403 but received 200"* nas duas telas). **Com o gate:** `TributacaoAbrirTelaPermissaoTest` 2 passed; junto com `TributacaoGatesContratoTest` e `RegraTributariaIbsCbsValidacaoTest`: 14 passed · 1 skipped (UC-NFRF-09, migração `cst_pis` ausente no container) · 134 assertions. |
+| 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado `87cda4e0f` com `vendor/composer` próprio · `RegraTributariaUnicidadeTest` + `RegraTributariaIbsCbsValidacaoTest` + `AceiteContadorTest` + `TributacaoGatesContratoTest` | **branch:** UC-NFRF-10 3 passed; UC-NFRF-01..08 e UC-NFTR-19..21 verdes. **Mesmo teste com o `UpsertRegraTributariaRequest` do `main`:** os 2 casos de recusa do UC-NFRF-10 falham (*"Session is missing expected key [errors]"*). O UC-NFRF-09 pula: o banco do staging não tem `cst_pis`. |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c59f6107a` (thread 05, após `<Grid>` na seção Reforma e `edit()` sem guarda de nulo) · `RegraTributariaIbsCbsValidacaoTest` | **4 passed · 54 assertions** (UC-NFRF-05/06/07/08). PHPStan no `TributacaoController`: sem erros. |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c565e22bb` (thread 05) · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 4 passed · 54 assertions. **Mesmo teste com o `TributacaoController` do `main`:** UC-NFRF-08 1 failed (*"two arrays are identical"* — a prop `regra` não traz os 5). `TributacaoControllerTest` 7 passed. `TributacaoGatesContratoTest` 3 failed **iguais com o controller do `main`** (UC-NFRF-01/04 · UC-NFIM-03: o `Admin#1` do staging, abaixo). |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado do branch da thread 04 · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 3 passed · 30 assertions. **Mesmo teste com o `UpsertRegraTributariaRequest` do `main`:** 3 failed (UC-NFRF-05/07: arrays diferentes — os 5 campos voltam nulos; UC-NFRF-06: *"Session is missing expected key [errors]"*). |

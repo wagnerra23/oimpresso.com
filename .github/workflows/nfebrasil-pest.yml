@@ -274,6 +274,8 @@ jobs:
         # + RegraTributariaIbsCbsValidacaoTest (2026-10-07, playbook Fiscal thread 04): a regra
         #   grava os 5 campos IBS/CBS (UC-NFRF-05/06/07). CT 100: 3 passed / 30 assertions; com o
         #   FormRequest do main, 3 failed. Tenant 98 + usuario novo so com nfe.tributacao.manage.
+        # + RegraTributariaUnicidadeTest (2026-11-24): duas regras com a mesma chave (NCM + UF
+        #   origem + UF destino) nao convivem, ao criar nem ao editar (UC-NFRF-10).
         # + 5 do Fiscal que nunca rodavam em CI (2026-11-06, auditoria Fiscal lote 2.2):
         #   TrocaAmbienteCerimonia · HabilitarBusinessCommand · CertHealthCheckCommand ·
         #   CockpitController · NfseCockpitController. Ficam no FIM da lista: o Habilitar
@@ -436,6 +438,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php \
             Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
             Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/RegraTributariaUnicidadeTest.php \
             Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
             Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php \
             Modules/NfeBrasil/Tests/Feature/SefazStatusRecorderTest.php \
