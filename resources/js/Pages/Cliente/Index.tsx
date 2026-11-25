@@ -251,8 +251,9 @@ const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; col
   supplier:       { title: 'Fornecedores',   singular: 'fornecedor',    collective: 'cadastrados' },
   employee:       { title: 'Funcionários',   singular: 'funcionário',   collective: 'cadastrados' },
   representative: { title: 'Representantes', singular: 'representante', collective: 'cadastrados' },
-  // ADR 0246 — singular "outros" minúsculo (botão "+ Novo outros" mostra label canon).
-  other:          { title: 'Outros',         singular: 'outros',        collective: 'cadastrados' },
+  // O botão da aba Outros é "Novo cadastro", como o `ROLE_DEFS.other.cta` do protótipo
+  // (`clientes-page.jsx`). Antes saía "Novo outros" (medição 2026-11-25, A-05).
+  other:          { title: 'Outros',         singular: 'cadastro',      collective: 'cadastrados' },
   all:            { title: 'Contatos',       singular: 'contato',       collective: 'cadastros'   },
 };
 
@@ -348,6 +349,11 @@ function readStoredStatusFilter(): StatusFilter {
     }
   } catch (_) { /* localStorage indisponível */ }
   return '';
+}
+
+/** Nome da linha: o nome; sem ele, a fantasia; sem os dois, vazio (a célula mostra "Sem nome"). */
+function nomeDeExibicao(row: { name?: string | null; fantasia?: string | null }): string {
+  return (row.name ?? '').trim() || (row.fantasia ?? '').trim();
 }
 
 function avatarInitial(name: string): string {
@@ -1008,7 +1014,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
               {(kpis?.total ?? 0).toLocaleString('pt-BR')} {ROLE_TITLE[activeType].collective}
               {' · '}
-              {(kpis?.com_os_aberta ?? 0).toLocaleString('pt-BR')} ativos
+              {(kpis?.com_os_aberta ?? 0).toLocaleString('pt-BR')} {(kpis?.com_os_aberta ?? 0) === 1 ? 'ativo' : 'ativos'}
               {(kpis?.com_atraso ?? 0) > 0 && (
                 <>
                   {' · '}
@@ -1327,7 +1333,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     <SortableTh sortKey="valor_aberto" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-28">Saldo</SortableTh>
                     <SortableTh sortKey="total_os" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-14">OS</SortableTh>
                     <Th>Tags</Th>
-                    <Th className="w-24">Última OS</Th>
+                    <Th className="w-24 whitespace-nowrap">Última OS</Th>
                     <Th className="w-10 text-center">&nbsp;</Th>
                     <Th className="w-10 text-center">&nbsp;</Th>
                   </tr>
@@ -1373,13 +1379,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                             <div className="flex items-center gap-2.5 min-w-0">
                             {/* Wave G — Avatar HSL hash determinístico (Pages/Cliente/_components/Avatar.tsx). */}
                             <ClienteAvatar
-                              name={row.name}
+                              name={nomeDeExibicao(row)}
                               size={32}
                               seed={row.avatar_hash_seed ?? row.name}
                             />
                             <div className="min-w-0">
                             <div className="text-foreground font-medium leading-tight flex items-center gap-1.5">
-                              {row.name}
+                              {nomeDeExibicao(row) || (
+                                // Cadastro sem nome nem fantasia (dado de migração): antes a linha
+                                // ficava em branco com avatar "?" (medição 2026-11-25, A-12).
+                                <span className="italic font-normal text-muted-foreground">Sem nome</span>
+                              )}
                               {row.excluido_em && (
                                 <span className="inline-flex items-center rounded bg-destructive-soft px-1 py-0 text-[9px] font-semibold text-destructive-fg">
                                   Excluído em {formatDate(row.excluido_em.replace(' ', 'T'))}
@@ -1399,7 +1409,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                                 a identidade na lista, desperdiçando a linha. Bug Wagner). */}
                             {(() => {
                               const f = row.fantasia?.trim();
-                              const fant = f && f.toLowerCase() !== row.name.trim().toLowerCase() ? f : null;
+                              // Sem nome, a fantasia já subiu para a 1ª linha (nomeDeExibicao): não repete.
+                              const fant = f && (row.name ?? '').trim() && f.toLowerCase() !== (row.name ?? '').trim().toLowerCase() ? f : null;
                               if (!fant && !row.mobile) return null;
                               return (
                                 <div className="text-[11px] text-muted-foreground/70 leading-tight mt-0.5 flex items-center gap-1">
@@ -1926,8 +1937,11 @@ function SortableTh({
       <button
         type="button"
         onClick={() => onSort(sortKey)}
+        // `uppercase` no próprio botão: o reset do navegador zera `text-transform` em <button>, e
+        // o do <th> não chegava ao texto — "Cliente", "Saldo", "OS" saíam em caixa normal ao lado
+        // de "TIPO", "CIDADE/UF" (medição 2026-11-25, A-08).
         className={
-          'inline-flex items-center gap-1 transition-colors hover:text-foreground ' +
+          'inline-flex items-center gap-1 uppercase transition-colors hover:text-foreground ' +
           (active ? 'text-foreground' : '')
         }
       >
@@ -2159,10 +2173,14 @@ function ClienteSheet({
     return rows.find((r) => r.id === contactId) ?? null;
   }, [rows, contactId, draftContact]);
   const [activeTab, setActiveTab] = useState<DrawerTab>('identificacao');
-  // Toggle PF/PJ -- estado local. Wave C persiste via autosave on blur PATCH.
-  // Placeholder no payload ClienteRow nao tem `tipo` ainda (Migration Wave B
-  // adiciona; ContactController nao pro frontend ainda nesta wave).
-  const [tipo, setTipo] = useState<'PF' | 'PJ'>('PJ');
+  // Tipo do cabeçalho: o mesmo campo `contact.tipo` que a IdentificacaoTab lê (com o mesmo
+  // padrão PJ quando falta). Antes era um estado fixo em 'PJ' sem nenhum `setTipo`, e a gaveta
+  // dizia "Pessoa jurídica" até para contato com CPF (medição 2026-11-25, A-01). Acompanha a troca
+  // feita na aba Identificação pelo `onSaved` dela.
+  const [tipo, setTipo] = useState<'PF' | 'PJ'>(contact?.tipo ?? 'PJ');
+  useEffect(() => {
+    setTipo(contact?.tipo ?? 'PJ');
+  }, [contact?.id, contact?.tipo]);
   // Fix Wagner 2026-05-27 — version counter pra forçar remount do EnderecoTab
   // SÓ quando CNPJ lookup explicitamente persistir endereço (sobrescrita autorizada
   // pelo user). Tabs cadastrais agora usam useEffect deps `[contact.id]` apenas
@@ -2421,6 +2439,9 @@ function ClienteSheet({
                     setEnderecoVersion((v) => v + 1);
                   }}
                   onContactUpdated={onContactUpdated}
+                  onSaved={(field, value) => {
+                    if (field === 'tipo' && (value === 'PF' || value === 'PJ')) setTipo(value);
+                  }}
                 />
               </div>
               <div hidden={activeTab !== 'contato'}>
@@ -2852,7 +2873,7 @@ function CheatSheet({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   const items: Array<{ keys: ReactNode[]; label: string }> = [
-    { keys: [<Kbd key="meta">⌘</Kbd>, <Kbd key="k">K</Kbd>], label: 'Busca rápida (Command Palette)' },
+    { keys: [<Kbd key="meta">⌘</Kbd>, <Kbd key="k">K</Kbd>], label: 'busca global do sistema' },
     { keys: [<Kbd key="slash">/</Kbd>], label: 'Focar busca da página' },
     { keys: [<Kbd key="j">J</Kbd>], label: 'Próxima linha' },
     { keys: [<Kbd key="k2">K</Kbd>], label: 'Linha anterior' },

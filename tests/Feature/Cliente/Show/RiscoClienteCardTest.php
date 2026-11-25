@@ -60,11 +60,11 @@ test('RiscoClienteCard.tsx — 3 tiers visuais (healthy/warn/high) + paleta sema
         ->toContain("bg: 'bg-warning-soft'")
         ->toContain("bg: 'bg-destructive-soft'")
         // Labels PT-BR
-        ->toContain('Saudavel')
-        ->toContain('Atencao')
+        ->toContain('Saudável')
+        ->toContain('Atenção')
         ->toContain('Alto risco')
         // Disclaimer determinismo (vs IA)
-        ->toContain('Score deterministico (sem IA)');
+        ->toContain('Score determinístico (sem IA)');
 });
 
 test('RiscoClienteCard.tsx — LGPD anti-hook: nao expoe PII bruta', function () {

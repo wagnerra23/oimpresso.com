@@ -559,7 +559,7 @@ export default function ClassificacaoTab({ contact, onSaved, disabled = false }:
                 Bloquear cobrança/venda
               </span>
               <span className="text-[10px] text-muted-foreground">
-                Sells e Financeiro impedem checkout e cobrança quando ativo
+                Vendas e Financeiro impedem a venda e a cobrança enquanto estiver ligado
               </span>
             </div>
           </div>

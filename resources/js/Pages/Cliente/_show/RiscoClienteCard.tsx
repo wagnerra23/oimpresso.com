@@ -93,13 +93,13 @@ export default function RiscoClienteCard({ contact, stats }: Props) {
       },
       {
         key: 'sem_contato',
-        label: 'Sem email nem celular cadastrados',
+        label: 'Sem e-mail nem celular cadastrados',
         weight: 1,
         active: !contact.email && !contact.mobile && !contact.landline,
       },
       {
         key: 'pj_sem_ie',
-        label: 'PJ contribuinte sem inscricao estadual',
+        label: 'PJ contribuinte sem inscrição estadual',
         weight: 1,
         active:
           contact.type === 'customer' &&
@@ -114,7 +114,7 @@ export default function RiscoClienteCard({ contact, stats }: Props) {
       },
       {
         key: 'cadastro_velho_sem_compra',
-        label: 'Cadastrado ha > 365d e nunca comprou',
+        label: 'Cadastrado há mais de 365 dias e nunca comprou',
         weight: 1,
         active:
           daysSinceCreated != null &&
@@ -141,14 +141,14 @@ export default function RiscoClienteCard({ contact, stats }: Props) {
       text: 'text-success-fg',
       border: 'border-success/20',
       Icon: CheckCircle2,
-      label: 'Saudavel',
+      label: 'Saudável',
     },
     warn: {
       bg: 'bg-warning-soft',
       text: 'text-warning-fg',
       border: 'border-warning/20',
       Icon: AlertCircle,
-      label: 'Atencao',
+      label: 'Atenção',
     },
     high: {
       bg: 'bg-destructive-soft',
@@ -220,7 +220,7 @@ export default function RiscoClienteCard({ contact, stats }: Props) {
       )}
 
       <p className="mt-3 pt-3 border-t border-border text-[10px] text-muted-foreground leading-relaxed">
-        Score deterministico (sem IA). 8 sinais com pesos canonicos.
+        Score determinístico (sem IA). 8 sinais com pesos fixos.
       </p>
     </div>
   );

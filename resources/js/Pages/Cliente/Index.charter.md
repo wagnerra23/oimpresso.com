@@ -219,7 +219,7 @@ CREATE INDEX idx_contacts_biz_customer ON contacts(business_id, is_customer);
 
 - **6ª aba "Outros"** em `SLOT2_TABS` (após "Repr.") · ícone `Layers` · `href: /cliente?type=other`
 - **5º chip "Outros"** em `PAPEL_OPTIONS` na aba Classificação · pattern toggle idêntico aos 4 existentes
-- **Title H1 + CTA "Novo outros"** quando `?type=other` ativo · `ROLE_TITLE.other` adicionado
+- **Title H1 + CTA "Novo cadastro"** (era "Novo outros" até 2026-11-25) quando `?type=other` ativo · `ROLE_TITLE.other` adicionado
 - **Counters tab subnav** estende pra 6 valores (`all/customer/supplier/employee/representative/other`)
 - **CPF/CNPJ permanece nullable** em `StoreContactRequest.rules['cpf_cnpj']` (já era) → tipo Outros funciona sem documento sem mudar validation
 - **Endpoint `/cliente/{id}/papeis`** estendido pra aceitar `is_other` no whitelist · invariante "≥1 papel ativo" passa de 4 pra 5 papéis
@@ -240,7 +240,7 @@ Sem backfill (nenhum cadastro existente é "Outros"). Migration Wave 30 (importe
 1. `type` enum **permanece** (UPOS legacy)
 2. Flags **aditivas, nunca exclusivas** — `is_customer=1 AND is_other=1` permitido (prospect promovido a cliente mantém histórico)
 3. Índice composto `(business_id, is_other)` — multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
-4. Slot 2 `?type=other` é leitura agregada · CTA "Novo outros" cadastra com `is_other=1` default
+4. Slot 2 `?type=other` é leitura agregada · CTA "Novo cadastro" cadastra com `is_other=1` default
 5. Conversão `Outros → Cliente/Fornecedor/etc` é toggle chip (não tela dedicada)
 
 ### Non-Goals v8

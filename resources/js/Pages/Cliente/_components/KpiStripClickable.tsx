@@ -22,7 +22,7 @@
 // (`kpis.*`, scoped business_id em ContactController::buildClienteIndexKpis). Antes,
 // VIPs/Sem-compra/Novos eram estimados sobre as 50 rows da página — "número sem prova".
 
-import type { ComponentType } from 'react';
+import type { ComponentType, CSSProperties } from 'react';
 import { AlertCircle, Clock, Star, UserPlus, Users } from 'lucide-react';
 
 export type KpiKey = 'ativos' | 'vips' | 'com-saldo' | 'sem-90' | 'novos';
@@ -84,30 +84,41 @@ const TONE_STYLES = {
     bgActive: 'oklch(0.95 0.04 250)',
     iconBg: 'oklch(0.92 0.05 250)',
     iconFg: 'oklch(0.45 0.18 250)',
+    iconBgDark: 'oklch(0.275 0.050 250)',
+    iconFgDark: 'oklch(0.84 0.180 250)',
   },
   amber: {
     border: 'oklch(0.72 0.15 70)',
     bgActive: 'oklch(0.96 0.05 70)',
     iconBg: 'oklch(0.93 0.07 70)',
     iconFg: 'oklch(0.50 0.15 70)',
+    iconBgDark: 'oklch(0.275 0.070 70)',
+    iconFgDark: 'oklch(0.84 0.150 70)',
   },
   rose: {
     border: 'oklch(0.65 0.20 20)',
     bgActive: 'oklch(0.96 0.04 20)',
     iconBg: 'oklch(0.93 0.06 20)',
     iconFg: 'oklch(0.50 0.20 20)',
+    iconBgDark: 'oklch(0.275 0.060 20)',
+    iconFgDark: 'oklch(0.84 0.200 20)',
   },
   emerald: {
     border: 'oklch(0.65 0.14 155)',
     bgActive: 'oklch(0.95 0.04 155)',
     iconBg: 'oklch(0.92 0.06 155)',
     iconFg: 'oklch(0.45 0.14 155)',
+    // O protótipo não reescreve o esmeralda no bloco de 2026-06-20; vale o do bloco anterior.
+    iconBgDark: 'oklch(0.32 0.07 155)',
+    iconFgDark: 'oklch(0.80 0.13 155)',
   },
   violet: {
     border: 'oklch(0.60 0.18 295)',
     bgActive: 'oklch(0.96 0.04 295)',
     iconBg: 'oklch(0.93 0.06 295)',
     iconFg: 'oklch(0.50 0.18 295)',
+    iconBgDark: 'oklch(0.275 0.060 295)',
+    iconFgDark: 'oklch(0.84 0.180 295)',
   },
 } as const;
 
@@ -200,24 +211,34 @@ export function KpiStripClickable({
             onClick={() => onApply(on ? null : card)}
             title={card.sub ? `Filtrar por ${card.label} (${card.sub})` : `Filtrar por ${card.label}`}
             aria-pressed={on}
+            // Cores via variável CSS para o tema escuro poder trocá-las (inline `backgroundColor`
+            // venceria qualquer classe). Os tons claros eram os únicos: no escuro o quadrado do
+            // ícone saía L 0,92 e o card clicado quase branco (medição 2026-11-25, A-10). Escuro =
+            // `clientes-page.css` do protótipo (`[data-theme="dark"] .cli-kpihero-tone-*`), e o card
+            // ativo no escuro fica na superfície, só com o contorno (`.cli-kpihero-on`).
             className={
               'group flex items-center gap-3 p-3 rounded-md border text-left transition-all ' +
-              (on ? 'shadow-sm' : 'bg-card hover:shadow-sm')
+              (on ? 'shadow-sm bg-[var(--kpi-bg-on)] dark:bg-card' : 'bg-card hover:shadow-sm')
             }
             // canon v3.4 polish (Wagner 2026-05-25): contorno warm no light (era hardcoded
             // `oklch(0.9 0.004 90)`, cream-deeper hue 90). dark-aware (2026-07-15): trocado
             // por `var(--border)` (light 0.90 warm → dark 0.34) — no light fica idêntico,
             // no dark o contorno vira hairline escuro sutil (corrige creme brilhante). Dá a
             // "profundidade do contorno" pedida pelo Wagner sem mexer no layout de cards.
-            style={on
-              ? { borderColor: tone.border, backgroundColor: tone.bgActive }
-              : { borderColor: 'var(--border)' }}
+            style={{
+              ...(on
+                ? ({ borderColor: tone.border, '--kpi-bg-on': tone.bgActive } as CSSProperties)
+                : { borderColor: 'var(--border)' }),
+              ...({
+                '--kpi-ic-bg': tone.iconBg,
+                '--kpi-ic-fg': tone.iconFg,
+                '--kpi-ic-bg-d': tone.iconBgDark,
+                '--kpi-ic-fg-d': tone.iconFgDark,
+              } as CSSProperties),
+            }}
           >
-            <div
-              className="h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: tone.iconBg }}
-            >
-              <Icon className="h-4 w-4" style={{ color: tone.iconFg }} />
+            <div className="h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0 bg-[var(--kpi-ic-bg)] text-[var(--kpi-ic-fg)] dark:bg-[var(--kpi-ic-bg-d)] dark:text-[var(--kpi-ic-fg-d)]">
+              <Icon className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
               {/* Rótulo e valor no desenho do protótipo: `.cli-kpihero-l` (mono 10px 600, 0.07em)

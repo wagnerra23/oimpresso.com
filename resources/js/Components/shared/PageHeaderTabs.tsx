@@ -378,7 +378,9 @@ export default function PageHeaderTabs({
                         : { backgroundColor: tomPrototipo ? 'var(--border-2)' : 'var(--bg-2)', color: 'var(--text-dim)' }
                     }
                   >
-                    {ghost.badge}
+                    {/* Número com ponto de milhar, como o título ao lado ("13.428", não "13428"
+                        — medição de Contatos 2026-11-25, A-11). Texto passa como veio. */}
+                    {typeof ghost.badge === 'number' ? ghost.badge.toLocaleString('pt-BR') : ghost.badge}
                   </span>
                 )}
               </Link>
