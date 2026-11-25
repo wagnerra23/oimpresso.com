@@ -47,6 +47,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-11 | CSV em Latin-1 ou UTF-16 é lido; separado por ponto e vírgula é recusado com aviso próprio | must `[V0]` | charter §Pendências (encoding/separador) · SDD `CU-NFE-07` | `ImportRegrasCsvArquivoTest` | 🧪 |
 | UC-NFIM-12 | O resumo da conferência aparece na tela | must `[V0]` | charter §Goals (preview com amostras e erros) · SDD `CU-NFE-07` item 2 | `ImportRegrasCsvArquivoTest` · vitest `nfe-import-csv-confirmacao` | 🧪 |
 | UC-NFIM-13 | Aplicar pede confirmação; cancelar não envia nada | must `[V0]` | charter §Goals (aplicação sob `confirm()`) · §Anti-hooks | vitest `nfe-import-csv-confirmacao` | 🧪 |
+| UC-NFIM-14 | Abrir a tela de import por CSV exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
 | UC-NFIM-15 | A sessão do usuário não cresce com o tamanho do CSV conferido | must `[T0]` | charter §UX (5 MB) · ADR 0093 · medição 2026-11-24 | `ImportRegrasCsvSessaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
@@ -290,6 +291,24 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
+## UC-NFIM-14 · Abrir a tela de import por CSV exige a permissão fiscal · `must` `[T0]`
+
+- **Persona:** o usuário do tenant sem `nfe.tributacao.manage` que clica em "Import CSV" na tela de
+  Tributação.
+- **Aceite:** Dado um usuário sem `nfe.tributacao.manage` (com `nfebrasil.consult.view`) · Quando
+  ele abre `/nfe-brasil/tributacao/import` · Então recebe 403, e não o formulário de upload.
+  Controle positivo: com a permissão, a tela abre com as colunas obrigatórias.
+- **Teste:** [`TributacaoAbrirTelaPermissaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoAbrirTelaPermissaoTest.php)
+  — `UC-NFIM-14 · abrir o import por CSV pede nfe.tributacao.manage`.
+- **Contrato:** charter §Backend (permissão `nfe.tributacao.manage` para o import) · US-NFE-010 ·
+  decisão do dono em 2026-11-24 (pendência 4 da Tributação: gatear o GET).
+- **Regressão que defende:** a tela de escrita fiscal abrir para quem não pode importar.
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Antes (fato até 2026-11-24):** o `show` não checava permissão e entregava só a constante
+  `COLUNAS_OBRIGATORIAS` — sem vazamento de dado; ficou no backlog como decisão.
+
+---
+
 ## UC-NFIM-15 · A sessão do usuário não cresce com o tamanho do CSV · `must` `[T0]`
 
 - **Persona:** responsável fiscal que confere o CSV do contador, de até 5 MB (o teto do upload no
@@ -319,10 +338,6 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Backlog — sem UC até ganhar teste ou contrato
 
-- `[BACKLOG]` **O GET da tela é ungated.** `ImportRegrasController@show` não checa permissão — só
-  as duas mutações checam. Ele entrega apenas a constante `COLUNAS_OBRIGATORIAS`, então não há
-  vazamento de dado; o que existe é uma tela de escrita fiscal visível a qualquer usuário do tenant.
-  Gatear ou não é decisão.
 
 ---
 
@@ -331,6 +346,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-11-24 | CT 100 `oimpresso-staging` (checkout `56f45a3c52`), só as 3 rotas GET trocadas no `web.php` do container e devolvidas depois (sha256 conferido) · usuários novos do tenant 98 | **sem o gate (rotas do container):** 2 failed · 5 assertions (*"Expected 403 but received 200"* nas duas telas). **Com o gate:** `TributacaoAbrirTelaPermissaoTest` 2 passed; junto com `TributacaoGatesContratoTest` e `RegraTributariaIbsCbsValidacaoTest`: 14 passed · 1 skipped (UC-NFRF-09, migração `cst_pis` ausente no container) · 134 assertions. |
 | 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado do branch (`627553bf6`) com `vendor/composer` próprio · `ImportRegrasCsvReimportTest` + `ImportRegrasCsvVersaoVigenteTest` | UC-NFIM-08: **2 passed**. UC-NFIM-09: **1 failed** — *"Failed asserting that 0.17 is identical to 0.18"*: a versão encerrada recebeu o valor do CSV. Antes, sem esse assert, o mesmo caso falhava com *"0.25 is identical to 0.17"*: a vigente não mudou. Versões lidas do banco depois da reimportação: encerrada `0.1700` (`valida_ate` 2026-11-23), vigente `0.2500`. 36 asserções. Com a correção (`f164c68a1`): UC-NFIM-09 **1 passed · 14 assertions**, motor incluído (ICMS 170,00); com o `ImportRegrasCsvService` do `main` no mesmo worktree, **1 failed** (*"0.17 is identical to 0.18"*). Testes vizinhos da importação, do aceite do contador e do motor: 65 passed; os 3 do UC-NFIM-05/06 caem igual com o serviço do `main` (o staging não tem `cst_pis`). |
 | 2026-11-24 | CT 100 `oimpresso-staging`, worktree isolado (`596110b9e`) com `vendor/composer` próprio · `ImportRegrasCsvArquivoTest` + `ImportRegrasCsvServiceTest` + `TributacaoGatesContratoTest` | **25 passed · 116 assertions** (UC-NFIM-10/11/12 e os vizinhos). Com o controller e o parser do `main` no mesmo worktree: UC-NFIM-11 (3) e UC-NFIM-12 **4 failed**; UC-NFIM-10 passa nos dois (o limite já existia). |
 | 2026-11-24 | CT 100, cópia isolada da branch e do `main` (DB `oimpresso_fullsuite_test`) | `ImportRegrasCsvSessaoTest` 7 passed / 53 assertions; com o controller do `main`, 5 failed. `TributacaoGatesContratoTest` igual nos dois lados: UC-NFIM-01/02/04 verdes, UC-NFRF-01/03/04 e UC-NFIM-03 vermelhos no `main` e na branch (usuário do biz 1 nesse DB libera tudo; o edit dá 500) — é ambiente, não esta mudança |

@@ -18,7 +18,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/NfeBrasil/Http/Controllers/TributacaoController@create|store|edit|update` (rotas `nfe-brasil.tributacao.regras.*`, permissão `nfe.tributacao.manage` validada no FormRequest). Form dual create/edit de uma regra tributária NCM (`nfe_fiscal_rules`), Nível 2/3 do cascade ARQ-0006. US-NFE-010 fase 2.
+> Backend: `Modules/NfeBrasil/Http/Controllers/TributacaoController@create|store|edit|update` (rotas `nfe-brasil.tributacao.regras.*`, permissão `nfe.tributacao.manage`: no `create`/`edit` pelo middleware `PermissaoNfe` da rota, desde 2026-11-24 (UC-NFRF-11); no `store`/`update` pelo FormRequest). Form dual create/edit de uma regra tributária NCM (`nfe_fiscal_rules`), Nível 2/3 do cascade ARQ-0006. US-NFE-010 fase 2.
 
 ---
 
@@ -68,4 +68,5 @@ Permitir ao responsável fiscal cadastrar ou ajustar uma regra tributária por N
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot) — validar create e edit, troca de regime CSOSN↔CST
+- [x] Abrir a tela (create/edit) pede `nfe.tributacao.manage` — 2026-11-24, UC-NFRF-11
 - [x] Confirmar validação de unicidade da chave (NCM + UF origem + UF destino) no FormRequest — feito em 2026-11-24 (UC-NFRF-10)

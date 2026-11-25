@@ -17,7 +17,7 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/NfeBrasil/Http/Controllers/ImportRegrasController@show|preview|aplicar` (rotas `nfe-brasil.tributacao.import.*`, permissão `nfe.tributacao.manage`). Form de upload em 2 passos (preview → aplicar) para importar regras tributárias NCM em massa. US-NFE-010 fase 3.
+> Backend: `Modules/NfeBrasil/Http/Controllers/ImportRegrasController@show|preview|aplicar` (rotas `nfe-brasil.tributacao.import.*`, permissão `nfe.tributacao.manage`: no `show` pelo middleware `PermissaoNfe` da rota, desde 2026-11-24 (UC-NFIM-14); no `preview` pelo FormRequest; no `aplicar` no Controller). Form de upload em 2 passos (preview → aplicar) para importar regras tributárias NCM em massa. US-NFE-010 fase 3.
 
 ---
 
@@ -64,4 +64,5 @@ Deixar o responsável fiscal cadastrar/atualizar muitas regras tributárias de u
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot) — validar preview com erros e com >10 linhas
+- [x] Abrir a tela pede `nfe.tributacao.manage` — 2026-11-24, UC-NFIM-14
 - [x] Confirmar limite de 5 MB e comportamento com CSV malformado (encoding/separador) — feito em 2026-11-24 (UC-NFIM-10/11)
