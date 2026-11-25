@@ -29,6 +29,8 @@ import { camposDaPolitica, politicaInicial } from './_components/formulario/poli
 import { semArquivos, useAvisoAoSair } from './_components/formulario/rascunho';
 import { aliquotaDoImposto, camposDoPrecoEditado } from './_components/formulario/precos';
 import type { PrecoSimples } from './_components/formulario/precos';
+import { camposDaGradeEditada, gradeEditadaInicial } from './_components/formulario/gradeEditar';
+import type { GradeGravada } from './_components/formulario/gradeEditar';
 import type { Folheto } from './_components/formulario/envioMidia';
 import type {
   NaturezaFiscalProduto,
@@ -87,6 +89,8 @@ interface ProdutoEditModel {
   expiryPeriodType: string | null;
   /** UC-PEDIT-16: preço gravado do produto simples (sem imposto). Variável e composto: null. */
   precoSimples?: { variacaoId: number; compra: number; margem: number; venda: number } | null;
+  /** UC-PEDIT-32: as variações gravadas do produto variável. Simples e composto: null. */
+  gradeVariavel?: GradeGravada | null;
 }
 
 export interface ProdutoEditPageProps {
@@ -161,6 +165,9 @@ function EditarCompleto(props: ProdutoEditPageProps) {
   const [preco, setPreco] = useState<PrecoSimples | null>(() =>
     precoGravado ? { compra: precoGravado.compra, margem: precoGravado.margem, venda: precoGravado.venda } : null,
   );
+  // UC-PEDIT-32: a grade do variável. Só as linhas mexidas vão no envio (a mesma regra do preço acima).
+  const gradeGravada = p.gradeVariavel ?? null;
+  const [gradeLinhas, setGradeLinhas] = useState(() => (gradeGravada ? gradeEditadaInicial(gradeGravada) : null));
   const [metodoCusto, setMetodoCusto] = useState(() => valorInicialDoMetodo(props.metodoCusto));
   // CU-PROD-20: os locais de armazenagem gravados e o padrão. Só com o estoque controlado.
   // UC-PEDIT-34: mais os locais com saldo e sem endereço, para o bloco mostrar onde o produto está.
@@ -210,7 +217,7 @@ function EditarCompleto(props: ProdutoEditPageProps) {
   });
 
   // UC-PEDIT-30: aviso ao sair com alterações não salvas (o Editar não guarda rascunho).
-  const retrato = JSON.stringify({ form: semArquivos(data as unknown as Record<string, unknown>), preco, politica, armazenagem, metodoCusto });
+  const retrato = JSON.stringify({ form: semArquivos(data as unknown as Record<string, unknown>), preco, gradeLinhas, politica, armazenagem, metodoCusto });
   const retratoInicial = useRef<string | null>(null);
   if (retratoInicial.current === null) retratoInicial.current = retrato;
   const aviso = useAvisoAoSair(retrato !== retratoInicial.current);
@@ -227,6 +234,7 @@ function EditarCompleto(props: ProdutoEditPageProps) {
         ...(ncm !== ncmGravado ? { ncm } : {}),
         ...(cest !== cestGravado ? { cest } : {}),
         ...camposDoPrecoEditado(precoGravado, preco, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
+        ...camposDaGradeEditada(gradeGravada, gradeLinhas, aliquotaDoImposto(d.tax, props.taxAttributes), String(d.tax) !== String(impostoGravado)),
         ...camposDoMetodoCusto(props.metodoCusto, metodoCusto),
         ...(p.enableStock ? camposDaArmazenagem(armazenagem) : {}),
         ...camposDaPolitica(politica, politicaGravada),
@@ -280,6 +288,11 @@ function EditarCompleto(props: ProdutoEditPageProps) {
             tipoAtual={props.productTypes[p.type] ?? p.type}
             naturezaFiscal={p.naturezaFiscal ?? null}
             preco={preco ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes), margemMinima: props.margemMinima ?? null } : undefined}
+            gradeGravada={
+              gradeGravada && gradeLinhas
+                ? { gravada: gradeGravada, linhas: gradeLinhas, mudar: setGradeLinhas, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) }
+                : undefined
+            }
             metodoCusto={
               props.metodoCusto ? { dados: props.metodoCusto, valor: metodoCusto, mudar: setMetodoCusto } : undefined
             }
