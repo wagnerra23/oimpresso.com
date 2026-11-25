@@ -79,11 +79,12 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
             value={data.name}
             onChange={(e) => definir('name', e.target.value)}
             required
+            placeholder="Nome do produto"
           />
           {errors.name && <p className="text-[12px] text-destructive mt-1">{errors.name}</p>}
         </div>
         <div>
-          <Label htmlFor="sku">{novo ? 'SKU (deixe em branco pra gerar automático)' : 'SKU'}</Label>
+          <Label htmlFor="sku">SKU</Label>
           <Inline gap={2}>
             <Input
               id="sku"
@@ -91,7 +92,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               value={data.sku}
               onChange={(e) => definir('sku', e.target.value)}
               onBlur={() => setLeitorPronto(false)}
-              placeholder={leitorPronto ? 'Leitor pronto: bipe o produto' : undefined}
+              placeholder={leitorPronto ? 'Leitor pronto: bipe o produto' : 'Gerado automaticamente'}
               className="font-mono"
             />
             <Button
@@ -121,7 +122,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
           )}
         </div>
         <div>
-          <Label htmlFor="barcode_type">Tipo de código de barras</Label>
+          <Label htmlFor="barcode_type">Tipo de código de barras *</Label>
           <Select value={data.barcode_type ?? ''} onValueChange={(v) => definir('barcode_type', v)}>
             <SelectTrigger id="barcode_type">
               <SelectValue />
@@ -187,7 +188,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               onValueChange={(v) => definir('brand_id', Number(v))}
             >
               <SelectTrigger id="brand_id">
-                <SelectValue placeholder="Selecione" />
+                <SelectValue placeholder="Sem marca" />
               </SelectTrigger>
               <SelectContent>
                 {opcoesDe(opcoes.brands).map(([k, v]) => (
@@ -221,7 +222,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
             }}
           >
             <SelectTrigger id="category_id">
-              <SelectValue placeholder="Selecione" />
+              <SelectValue placeholder="Selecione…" />
             </SelectTrigger>
             <SelectContent>
               {opcoesDe(opcoes.categories).map(([k, v]) => (
@@ -246,11 +247,14 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
             checked={data.enable_stock === 1}
             onCheckedChange={(v) => definir('enable_stock', v === true ? 1 : 0)}
           />
-          <Label htmlFor="enable_stock" className="text-[13px] font-normal">Controlar estoque</Label>
+          <div>
+            <Label htmlFor="enable_stock" className="text-[13px] font-normal">Gerenciar estoque</Label>
+            <p className="text-[11px] text-muted-foreground">Serviços ficam sem estoque.</p>
+          </div>
         </Inline>
         )}
         <div>
-          <Label htmlFor="alert_quantity">Quantidade de alerta</Label>
+          <Label htmlFor="alert_quantity">Estoque mínimo</Label>
           <Input
             id="alert_quantity"
             type="number"
@@ -268,7 +272,7 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               onValueChange={(v) => definir('warranty_id', Number(v))}
             >
               <SelectTrigger id="warranty_id">
-                <SelectValue placeholder="Nenhuma" />
+                <SelectValue placeholder="Sem garantia" />
               </SelectTrigger>
               <SelectContent>
                 {opcoesDe(opcoes.warranties).map(([k, v]) => (
@@ -281,12 +285,13 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
           </div>
         )}
         <div className="col-span-2">
-          <Label htmlFor="product_description">Descrição</Label>
+          <Label htmlFor="product_description">Descrição do produto</Label>
           <Textarea
             id="product_description"
             rows={3}
             value={data.product_description ?? ''}
             onChange={(e) => definir('product_description', e.target.value)}
+            placeholder="O que é, como é produzido, o que está incluso."
           />
         </div>
         <CampoMidia

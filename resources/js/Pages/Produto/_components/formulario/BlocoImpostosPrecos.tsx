@@ -22,7 +22,7 @@ import { OPCOES_DE_POLITICA } from './politicaPreco';
 import type { EstadoPolitica, PoliticaPreco } from './politicaPreco';
 import type { PrecoSimples } from './precos';
 import type { CamposProduto, DefinirCampo, ModoFormulario, OpcoesProduto, TipoProduto } from './tipos';
-import { URL_CADASTRO_CLASSICO, opcoesDe, tipoSemEditor } from './tipos';
+import { ROTULO_TIPO, URL_CADASTRO_CLASSICO, opcoesDe, tipoSemEditor } from './tipos';
 
 interface Props {
   modo: ModoFormulario;
@@ -58,7 +58,7 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
       <CardContent>
         <Grid cols={3} gap={4}>
         <div>
-          <Label htmlFor="tax">Taxa de imposto</Label>
+          <Label htmlFor="tax">Imposto aplicável</Label>
           <Select
             value={data.tax === '' || data.tax == null ? SEM_IMPOSTO : String(data.tax)}
             onValueChange={(v) => definir('tax', v === SEM_IMPOSTO ? '' : Number(v))}
@@ -77,7 +77,7 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
           </Select>
         </div>
         <div>
-          <Label htmlFor="tax_type">Imposto inclui no preço?</Label>
+          <Label htmlFor="tax_type">O preço de venda já tem o imposto?</Label>
           <Select
             value={data.tax_type}
             onValueChange={(v) => definir('tax_type', v as 'inclusive' | 'exclusive')}
@@ -86,13 +86,13 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="exclusive">Exclusivo (somar imposto)</SelectItem>
-              <SelectItem value="inclusive">Inclusivo (já incluído)</SelectItem>
+              <SelectItem value="exclusive">Não, somar ao preço</SelectItem>
+              <SelectItem value="inclusive">Sim, já está no preço</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label htmlFor="type">{novo ? 'Tipo *' : 'Tipo'}</Label>
+          <Label htmlFor="type">{novo ? 'Tipo de produto *' : 'Tipo de produto'}</Label>
           {novo ? (
             <Select value={data.type} onValueChange={(v) => definir('type', v as TipoProduto)}>
               <SelectTrigger id="type">
@@ -101,7 +101,7 @@ export function BlocoImpostosPrecos({ modo, data, definir, opcoes, tipoAtual, pr
               <SelectContent>
                 {opcoesDe(opcoes.productTypes).map(([k, v]) => (
                   <SelectItem key={k} value={k}>
-                    {v}
+                    {ROTULO_TIPO[k as TipoProduto] ?? v}
                   </SelectItem>
                 ))}
               </SelectContent>

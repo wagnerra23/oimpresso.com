@@ -99,7 +99,7 @@ public function index()
 - ❌ middleware `tenant` (não existe — usar canon UPOS `['web','SetSessionData','auth','language','timezone','AdminSidebarMenu','CheckUserLogin']`)
 - ❌ Models inventados — usar `App\Product` + `App\Category` + `App\Brands`
 - ❌ Cor crua `bg-blue-500` — tokens semânticos
-- ❌ `sessionStorage` — usar `localStorage` com prefixo `oimpresso.produto.`
+- ❌ `sessionStorage` — usar `localStorage` com prefixo `oimpresso.produto.`. Exceção única: a origem da busca (UC-PIDX-53, chave `CHAVE_ORIGEM`), que vale só na aba — decisão [W] 2026-11-25
 
 ## 4. Testes (F2 baseline + F4 inertia)
 
