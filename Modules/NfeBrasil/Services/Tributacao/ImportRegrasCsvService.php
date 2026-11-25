@@ -158,8 +158,9 @@ class ImportRegrasCsvService
     }
 
     /**
-     * Aplica linhas validadas em DB. Idempotente — `firstOrCreate`+`update`
-     * por chave natural (business_id, ncm, uf_origem, uf_destino).
+     * Aplica linhas validadas em DB. Idempotente pela chave natural (business_id, ncm,
+     * uf_origem, uf_destino, regime, operação), olhando só a versão vigente: linha nova cria,
+     * linha que muda um valor gera versão nova (R-NFE-019), linha igual não grava.
      *
      * @return array{criadas:int, atualizadas:int, falhas:int}
      */
@@ -191,13 +192,27 @@ class ImportRegrasCsvService
                         fn ($q) => ($linha['operacao_id'] ?? null) === null
                             ? $q->whereNull('operacao_id')
                             : $q->where('operacao_id', $linha['operacao_id']))
+                    // UC-NFIM-09 · só a versão vigente. Sem este filtro o `first()` achava a versão
+                    // encerrada (menor id) depois de uma edição pela tela e gravava o CSV nela.
+                    ->when(NfeFiscalRule::temVersionamento(), fn ($q) => $q->where(
+                        fn ($w) => $w->whereNull('valida_ate')->orWhere('valida_ate', '>=', now()->toDateString())
+                    ))
+                    ->orderByDesc('id')
                     ->first();
 
                 // Thread 15a: as versões que este lote cria/edita entram na revisão do contador
                 // com origem "csv".
                 RevisaoContadorService::comOrigem('csv', function () use ($existente, $linha, $businessId, &$criadas, &$atualizadas) {
                     if ($existente) {
-                        $existente->update($linha);
+                        // R-NFE-019 · mudar um valor é editar: versão nova, a antiga só ganha
+                        // `valida_ate`. Linha igual à vigente não grava nada (reimportar o mesmo
+                        // arquivo não cria versão). Sem versionamento (schema de teste), edita no lugar.
+                        $comparada = (clone $existente)->fill($linha);
+                        if ($comparada->isDirty()) {
+                            NfeFiscalRule::temVersionamento()
+                                ? $existente->novaVersao($linha)
+                                : $existente->update($linha);
+                        }
                         $atualizadas++;
                     } else {
                         NfeFiscalRule::create(array_merge($linha, ['business_id' => $businessId]));
