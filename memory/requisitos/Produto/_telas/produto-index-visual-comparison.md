@@ -54,7 +54,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Item do protótipo | Produção em 2026-10-12 | Veredito |
 > |---|---|---|
 > | Cabeçalho: contexto, "Atualizado", Baixar Excel, Novo produto | presentes | IGUAL |
-> | Filtros (7 + "Não para venda"), recolher, chips "Filtrando por", "Limpar tudo" | presentes (+ 2 filtros de módulo) | IGUAL |
+> | Filtros (7 + "Não para venda"), recolher, chips "Filtrando por", "Limpar tudo" | presentes (+ 2 filtros de módulo) | IGUAL na presença — **o chip não foi medido**. Em 2026-11-24 (produção, `/products?type=variable`, escuro) o chip era o `Badge` cinza do app: fundo `oklch(0.235)` quase da cor da faixa, texto branco 12px, sem borda, 22px, "Tipo: Variável" numa linha; o DS pede fundo `accent 12%`, texto na cor de destaque 11,5px, borda `accent 32%`, 24px, rótulo em negrito e valor separado. **Defeito — corrigido em 2026-11-25** no `FilterChip` compartilhado (`shared/PageFilters`), com rótulo e valor separados na lista |
 > | Abas com contagem, busca com atalho `/`, atalho `n`, densidade, menu de colunas | presentes | IGUAL |
 > | Coluna "Campo personalizado" | aparece quando a empresa deu nome ao campo (até 7) | não é defeito — dado |
 > | Ordenar clicando no cabeçalho | cabeçalho era texto puro; o clique não fazia nada | **defeito — corrigido** (UC-PIDX-13) |
