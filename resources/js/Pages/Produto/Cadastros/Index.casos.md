@@ -309,7 +309,22 @@ era backlog: a aba abria o modal da Blade (`/selling-price-group?classico=1`).
 **Quando** crio "Atacado" pelo drawer (nome e descrição), reabro e troco o nome, e tento editar o do vizinho
 **Então** o meu nasce no meu negócio e a lista o devolve com a descrição pro drawer abrir preenchido; a troca grava; o do vizinho fica como estava.
 
-O "Grupo ativo" do formulário do protótipo fica fora: o `store`/`update` do grupo não gravam a situação (ver backlog UC-CAD-09).
+O "Grupo ativo" do formulário do protótipo fica fora: o `store`/`update` do grupo não gravam a situação (a situação muda pela chave da linha — UC-PCADAP-24).
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-24 · Ativar e desativar grupo de preço na própria linha · `must` `[T0]`
+
+Origem: UC-CAD-09 + protótipo `produto-cadastros.jsx` AbaGrupos (Switch na coluna Situação) + ADR 0093. Até
+2026-11-25 era backlog: a linha só mostrava Ativo/Inativo e a troca ia pela tela clássica.
+
+**Dado** um grupo de preço meu ativo e um do negócio vizinho
+**Quando** desligo e ligo a chave da linha do meu (`GET /selling-price-group/activate-deactivate/{id}`, a rota da tela
+clássica), tento o mesmo com o do vizinho, e tento sem `product.create`
+**Então** o meu passa a inativo e a lista o devolve inativo, depois volta a ativo; o do vizinho é recusado sem erro 500
+e fica como estava; sem a permissão o servidor recusa (403) e nada muda.
 
 Status: 🧪
 
@@ -318,6 +333,5 @@ Status: 🧪
 ## Backlog (sem teste ainda — não é contrato até ganhar teste que o cite)
 
 - [BACKLOG] Remover valor já gravado de um modelo de variação pelo drawer — o servidor só renomeia; remover pede rota e regra de uso.
-- [BACKLOG] Desativar/ativar grupo de preço na própria linha (UC-CAD-09) — hoje a linha mostra Ativo/Inativo e a troca vai pela tela clássica.
 - [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — a lista `/products` não tem esse filtro. Desde 2026-11-25 o número abre `/products?type=variable` (todos os variáveis), como o protótipo; o filtro por modelo segue pendente. (Até 2026-11-19 o destino era `/products/unificado`, apagada no #11251; unidade, categoria e marca passaram a abrir `/products?unit_id=…`, `category_id=…` e `brand_id=…`, que a lista lê da URL.)
 - [BACKLOG] Marca da Oficina na lista (UC-CAD-12), atalho `/` e busca sem resultado (UC-CAD-06/07), estados primeira-vez/carregando/densidade (UC-CAD-14..16) — a tela já tem `/`, busca e primeira-vez; falta teste de browser.
