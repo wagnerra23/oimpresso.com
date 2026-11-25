@@ -203,11 +203,7 @@ class ProductUtil extends Util
         foreach ($input_variations_edit as $key => $value) {
             $product_variation_ids[] = $key;
 
-            // [T0] ADR 0093: o grupo de variação tem que ser DESTE produto (o produto já é da empresa,
-            // conferido no update()). `ProductVariation::find` cru aceitava o id de outra empresa e
-            // renomeava o grupo dela e regravava o preço das variações dele. Id alheio ->
-            // ModelNotFoundException -> rollback do update inteiro.
-            $product_variation = ProductVariation::where('product_id', $product_id)->findOrFail($key);
+            $product_variation = ProductVariation::where('product_id', $product_id)->findOrFail($key); // [T0] ADR 0093: grupo DESTE produto; id alheio aborta o update (ProdutoEditVariacaoBladeTenantTest)
             $product_variation->name = $value['name'];
             $product_variation->save();
 
