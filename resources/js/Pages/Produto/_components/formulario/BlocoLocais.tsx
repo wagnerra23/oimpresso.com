@@ -4,9 +4,7 @@
 // Mesma regra do cadastro Blade (create.blade.php `$default_location`): com um local só, ele já
 // vem marcado; com mais de um, quem cadastra escolhe.
 
-import { Inline } from '@/Components/layout';
-import { Checkbox } from '@/Components/ui/checkbox';
-import { Label } from '@/Components/ui/label';
+import '../../../../../css/cowork-produto-bundle.css';
 import type { CamposProduto, DefinirCampo, OptionMap } from './tipos';
 import { opcoesDe } from './tipos';
 
@@ -21,26 +19,35 @@ export function CampoLocais({ data, definir, locais }: Props) {
   if (lista.length === 0) return null;
   const marcados = data.product_locations ?? [];
 
+  // Forma do protótipo: etiquetas (.pb-tags/.pb-tag do bundle do Produto). Marcada com ✕, desmarcada
+  // apagada com +. Cada etiqueta é uma caixa de marcar para o leitor de tela (role="checkbox").
   return (
     <fieldset aria-label="Locais do negócio" className="min-w-0">
-      <legend className="text-sm font-medium leading-none mb-2">Locais do negócio</legend>
-      <Inline wrap gap={4}>
+      <legend className="cw-label mb-[5px]">Locais do negócio</legend>
+      <div className="pb-tags">
         {lista.map(([id, nome]) => {
           const n = Number(id);
+          const marcado = marcados.includes(n);
           return (
-            <Inline key={id} gap={2}>
-              <Checkbox
-                id={`produto-local-${id}`}
-                checked={marcados.includes(n)}
-                onCheckedChange={(v) =>
-                  definir('product_locations', v === true ? [...marcados, n] : marcados.filter((x) => x !== n))
-                }
-              />
-              <Label htmlFor={`produto-local-${id}`}>{nome}</Label>
-            </Inline>
+            <button
+              key={id}
+              type="button"
+              role="checkbox"
+              aria-checked={marcado}
+              aria-label={nome}
+              data-state={marcado ? 'checked' : 'unchecked'}
+              className="pb-tag"
+              style={{ opacity: marcado ? 1 : 0.4, border: 0, cursor: 'pointer' }}
+              onClick={() =>
+                definir('product_locations', marcado ? marcados.filter((x) => x !== n) : [...marcados, n])
+              }
+            >
+              {nome}
+              <span aria-hidden>{marcado ? '✕' : '+'}</span>
+            </button>
           );
         })}
-      </Inline>
+      </div>
     </fieldset>
   );
 }

@@ -20,6 +20,14 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 
 > Form full-width AppShellV2 — derivado de Produto/Index (ADR 0149 screen-pattern reuse)
 
+> ⚠️ **Estado em 2026-11-25 — este comparativo é um retrato de 2026-05-15 e não descreve a tela de hoje.**
+> Medido no código em `origin/main`:
+> - **Protótipo.** O `produto-cockpit-page.jsx` citado no frontmatter foi apagado em 2026-05-20 (`1070e3759b7`). O protótipo que a tela segue hoje é o que o charter declara em `related_prototype`: `prototipo-ui/cowork/Wagner/produto-blade-forms.jsx` (adotado pelo [#10380](https://github.com/wagnerra23/oimpresso.com/pull/10380), mergeado em 2026-11-05).
+> - **Seções.** São 4, todas abertas: Dados do produto · Configurações · Fiscal · Impostos e preços (`_components/formulario/ProdutoFormulario.tsx`). Os "5 Cards" e o `<details>` "Avançado" abaixo não existem mais: a seção recolhível (no fim chamada "Mais opções") saiu com o #10380. "Locais de armazenagem" é um bloco dentro de Configurações, só com estoque controlado (`UC-PCAD-22`).
+> - **Aprovação.** O `approved_by: pending_wagner_screenshot_approval` segue sem aprovação registrada desde 2026-05-15, apesar do `status: approved` do frontmatter. Aprovar a tela contra o protótipo novo é decisão [W]; este arquivo não registra nenhuma.
+>
+> O texto abaixo fica como estava (fato datado). Para o comportamento vigente, vale o [`Create.casos.md`](../../../../resources/js/Pages/Produto/Create.casos.md); para a forma, o protótipo acima.
+
 ## Resumo executivo
 
 Blade legacy `product.create` tem ~30+ campos compactados em formulário denso jQuery+Bootstrap. MWART entrega versão Inertia com seções Card (Identificação | Preço & Imposto | Estoque | Localizações | Avançado), 8 campos sempre visíveis + ~22 colapsáveis em `<details>` "Avançado", validações de tipo cliente-side (TypeScript). Defaults: type='single', enable_stock=true, tax_type='exclusive'.
@@ -58,3 +66,4 @@ Mesma família visual AppShellV2 + tokens OKLCH Cowork do Index. Form não tem K
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | [W2-C] | Comparativo criado em Wave 2 B4 Produto. |
+| 2026-11-25 | [W+C] | Nota de estado no topo: protótipo apagado em 2026-05-20, tela em 4 seções abertas desde o #10380 (2026-11-05), aprovação ainda pendente. O retrato de 2026-05-15 fica preservado. |
