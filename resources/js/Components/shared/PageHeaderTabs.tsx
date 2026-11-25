@@ -81,6 +81,13 @@ export interface PageHeaderGhost {
    * (Financeiro/Ponto) não mudam.
    */
   badge?: number | string;
+  /**
+   * OPT-IN: o destino ainda responde a tela antiga (Blade), não Inertia. A aba navega
+   * recarregando a página, como o item do sidebar. Sem isto, o `<Link>` do Inertia abria a
+   * janela de erro com o HTML/JSON da resposta dentro (CRM, medido em produção 2026-11-25).
+   * Quem declara é o DataController, que sabe se a tela nova está ligada para a empresa.
+   */
+  recarrega?: boolean;
 }
 
 /**
@@ -297,6 +304,14 @@ export default function PageHeaderTabs({
                   if (onGhostChange) {
                     e.preventDefault();
                     onGhostChange(ghost.key);
+                    return;
+                  }
+                  // O `<Link>` só deixa de interceptar quando o clique já veio com defaultPrevented
+                  // (`shouldIntercept` do @inertiajs/core). Clique com Ctrl/Cmd/Shift ou botão do
+                  // meio o Inertia já não intercepta: o navegador abre a aba nova sozinho.
+                  if (ghost.recarrega && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                    e.preventDefault();
+                    window.location.assign(ghost.href);
                   }
                 }}
                 className={cn(

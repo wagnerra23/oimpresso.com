@@ -10,6 +10,7 @@ use App\Utils\Util;
 use DB;
 use Illuminate\Routing\Controller;
 use Menu;
+use App\Services\FeatureFlagService;
 use Modules\Crm\Entities\CrmContactPersonCommission;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Utils\CrmUtil;
@@ -145,7 +146,7 @@ class DataController extends Controller
         if ($is_crm_enabled) {
             Menu::modify(
                 'admin-sidebar-menu',
-                function ($menu) {
+                function ($menu) use ($business_id, $is_admin) {
                     // ADR 0180 Fase 4 Wave A VENDER (2026-05-21): entry principal CRM
                     // declara atributos extras propagados pelo LegacyMenuAdapter pro
                     // frontend Sidebar.tsx (v3 5 grupos canon):
@@ -183,20 +184,7 @@ class DataController extends Controller
                             // O Funil existe só em produção (US-CRM-092) e fica depois do Painel. Comissões,
                             // Modelo de proposta, Marketplace B2B, Pedido de ordem e Fontes e estágios estão
                             // no protótipo e entram num PR seguinte, cada um com a permissão da rota.
-                            'ghosts'   => array_values(array_filter([
-                                ['key' => 'dashboard',      'label' => 'Painel',         'href' => '/crm/dashboard'],
-                                // US-CRM-092 · ADR 0441 — o funil só aparece para quem pode vê-lo.
-                                auth()->user()?->can('crm.funil.ver') ? ['key' => 'funil', 'label' => 'Funil', 'href' => '/crm/funil'] : null,
-                                ['key' => 'leads',          'label' => 'Leads',          'href' => '/crm/leads'],
-                                ['key' => 'follow-ups',     'label' => 'Acompanhamentos', 'href' => '/crm/follow-ups'],
-                                ['key' => 'campaigns',      'label' => 'Campanhas',      'href' => '/crm/campaigns'],
-                                ['key' => 'contacts-login', 'label' => 'Login de contatos', 'href' => '/crm/all-contacts-login'],
-                                // A tela dá 403 com o registro de ligações desligado (constants.enable_crm_call_log).
-                                config('constants.enable_crm_call_log') ? ['key' => 'call-log', 'label' => 'Registro de chamadas', 'href' => '/crm/call-log'] : null,
-                                ['key' => 'reports',        'label' => 'Relatórios',     'href' => '/crm/reports'],
-                                ['key' => 'proposals',      'label' => 'Propostas',      'href' => '/crm/proposals'],
-                                ['key' => 'settings',       'label' => 'Configurações',  'href' => '/crm/settings'],
-                            ])),
+                            'ghosts'   => self::abasDoCrm((int) $business_id, (bool) $is_admin),
                         ]
                     )->order(29); // Wagner 2026-05-22: Crm ACIMA de Vendas core (order 30)
                     // Antes order 86 — caía após Vendas. ADR 0180 sidebar v3 ordem canon
@@ -226,6 +214,61 @@ class DataController extends Controller
                 });
             }
         }
+    }
+
+    /**
+     * Abas do topo das telas do CRM (lidas pelo ModuleTabs) e itens do CRM no sidebar.
+     *
+     * Duas regras, as duas medidas em produção em 2026-11-25 (pendências CRM-01 e CRM-02):
+     *
+     * 1. A aba só aparece para quem pode abri-la. A condição é a MESMA do portão do
+     *    controller da rota; se divergir, volta o 403 ou some uma aba que funciona.
+     *
+     * 2. `recarrega: true` quando a rota, para esta empresa, ainda responde a tela antiga
+     *    (Blade) em vez de Inertia. O `<Link>` do Inertia não sabe abrir Blade: mostrava a
+     *    janela de erro com o HTML ou o JSON do DataTables dentro. Com `recarrega` a aba
+     *    navega com link comum, como o item do menu lateral já fazia.
+     *
+     * @return array<int, array{key: string, label: string, href: string, recarrega?: bool}>
+     */
+    public static function abasDoCrm(int $business_id, bool $is_admin): array
+    {
+        $user = auth()->user();
+        $pode = fn (string ...$perms): bool => $user !== null
+            && ($user->can('superadmin') || collect($perms)->contains(fn ($p) => $user->can($p)));
+        $flags = app(FeatureFlagService::class);
+        $nova = fn (string $flag): bool => $flags->isOn($flag, ['business_id' => $business_id]);
+        $aba = fn (string $key, string $label, string $href, bool $inertia = true): array => $inertia
+            ? ['key' => $key, 'label' => $label, 'href' => $href]
+            : ['key' => $key, 'label' => $label, 'href' => $href, 'recarrega' => true];
+
+        $chamadas = (bool) config('constants.enable_crm_call_log');
+
+        return array_values(array_filter([
+            $aba('dashboard', 'Painel', '/crm/dashboard'),
+            // US-CRM-092 · ADR 0441 — o funil só aparece para quem pode vê-lo.
+            $user?->can('crm.funil.ver') ? $aba('funil', 'Funil', '/crm/funil') : null,
+            // LeadController::index
+            $pode('crm.access_all_leads', 'crm.access_own_leads') ? $aba('leads', 'Leads', '/crm/leads') : null,
+            // ScheduleController::index
+            $pode('crm.access_all_schedule', 'crm.access_own_schedule') ? $aba('follow-ups', 'Acompanhamentos', '/crm/follow-ups') : null,
+            // CampaignController::index
+            $pode('crm.access_all_campaigns', 'crm.access_own_campaigns')
+                ? $aba('campaigns', 'Campanhas', '/crm/campaigns', $nova('useV2CrmCampanhas')) : null,
+            // ContactLoginController::allContactsLoginList
+            $pode('crm.access_contact_login')
+                ? $aba('contacts-login', 'Login de contatos', '/crm/all-contacts-login', $nova('useV2CrmLogins')) : null,
+            // CallLogController::index — 403 com o registro de ligações desligado.
+            $chamadas && $pode('crm.view_all_call_log', 'crm.view_own_call_log')
+                ? $aba('call-log', 'Registro de chamadas', '/crm/call-log', $nova('useV2CrmChamadas')) : null,
+            // ReportController::index — só Admin.
+            $is_admin ? $aba('reports', 'Relatórios', '/crm/reports', $nova('useV2CrmRelatorios')) : null,
+            // ProposalController::index — basta o módulo, que o item do menu já exige.
+            $aba('proposals', 'Propostas', '/crm/proposals', $nova('useV2CrmPropostas')),
+            // CrmSettingsController::index — superadmin ou Admin.
+            ($is_admin || $pode())
+                ? $aba('settings', 'Configurações', '/crm/settings', $nova('useV2CrmConfiguracoes')) : null,
+        ]));
     }
 
     /**
