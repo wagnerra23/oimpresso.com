@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: os relatórios agregam o trabalho comercial de toda a equipe e nomeiam contatos convertidos. Errar o escopo soma usuário ou contato de outro negócio; errar o portão abre a visão da equipe inteira para quem não é admin.
 owner: wagner
-last_run: "2026-11-06"
-last_run_nota: "2026-10-13 thread Crm/13 F3: trio nasce; os testes moram em Modules/Crm/Tests/Feature/CrmRelatoriosContratoTest.php (lane verticais-pest)."
+last_run: "2026-11-25"
+last_run_nota: "2026-11-25 CRM-03: gavetas, janelas e menus montam no .cockpit (prop container) — nenhum UC muda de comportamento; UCs relidos contra o diff. Antes: 2026-10-13 thread Crm/13 F3: trio nasce; os testes moram em Modules/Crm/Tests/Feature/CrmRelatoriosContratoTest.php (lane verticais-pest)."
 last_run_ci: "_pendente_ — o veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
