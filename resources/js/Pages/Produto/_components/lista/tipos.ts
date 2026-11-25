@@ -584,28 +584,31 @@ export function colunasGuardadas(salvas: Record<string, boolean>, impostoJaDesli
   return resto;
 }
 
-/** Chips "Filtrando por" — nada de filtro invisível (protótipo: `chips`). */
-export function chipsDosFiltros(
-  f: FiltrosLista,
-  o: OpcoesLista,
-): Array<{ chave: keyof FiltrosLista; rotulo: string }> {
+/**
+ * Chips "Filtrando por" — nada de filtro invisível (protótipo: `chips`, com `l` rótulo e `v` valor).
+ * `rotulo` é o nome do filtro ("Tipo") e `valor` o que está ativo ("Variável"), separados como no
+ * `FilterChip` do DS. Filtro liga/desliga não tem valor: o chip mostra só o rótulo ("Falta NCM").
+ */
+export type ChipDeFiltro = { chave: keyof FiltrosLista; rotulo: string; valor?: string };
+
+export function chipsDosFiltros(f: FiltrosLista, o: OpcoesLista): ChipDeFiltro[] {
   const nome = (lista: Opcao[] | null, id: string | null) => (lista ?? []).find((x) => x.id === id)?.nome ?? id ?? '';
-  const out: Array<{ chave: keyof FiltrosLista; rotulo: string }> = [];
-  if (f.type) out.push({ chave: 'type', rotulo: `Tipo: ${nome(TIPOS_PRODUTO, f.type)}` });
-  if (f.category_id) out.push({ chave: 'category_id', rotulo: `Categoria: ${nome(o.categorias, f.category_id)}` });
-  if (f.unit_id) out.push({ chave: 'unit_id', rotulo: `Unidade: ${nome(o.unidades, f.unit_id)}` });
-  if (f.tax_id) out.push({ chave: 'tax_id', rotulo: `Imposto: ${nome(o.impostos, f.tax_id)}` });
-  if (f.brand_id) out.push({ chave: 'brand_id', rotulo: `Marca: ${nome(o.marcas, f.brand_id)}` });
-  if (f.location_id) out.push({ chave: 'location_id', rotulo: `Local: ${nome(o.locais, f.location_id)}` });
-  if (f.active_state) out.push({ chave: 'active_state', rotulo: `Situação: ${nome(SITUACOES, f.active_state)}` });
-  if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: `Natureza fiscal: ${nome(NATUREZAS_FISCAIS, f.natureza_fiscal)}` });
-  if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
+  const out: ChipDeFiltro[] = [];
+  if (f.type) out.push({ chave: 'type', rotulo: 'Tipo', valor: nome(TIPOS_PRODUTO, f.type) });
+  if (f.category_id) out.push({ chave: 'category_id', rotulo: 'Categoria', valor: nome(o.categorias, f.category_id) });
+  if (f.unit_id) out.push({ chave: 'unit_id', rotulo: 'Unidade', valor: nome(o.unidades, f.unit_id) });
+  if (f.tax_id) out.push({ chave: 'tax_id', rotulo: 'Imposto', valor: nome(o.impostos, f.tax_id) });
+  if (f.brand_id) out.push({ chave: 'brand_id', rotulo: 'Marca', valor: nome(o.marcas, f.brand_id) });
+  if (f.location_id) out.push({ chave: 'location_id', rotulo: 'Local', valor: nome(o.locais, f.location_id) });
+  if (f.active_state) out.push({ chave: 'active_state', rotulo: 'Situação', valor: nome(SITUACOES, f.active_state) });
+  if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: 'Natureza fiscal', valor: nome(NATUREZAS_FISCAIS, f.natureza_fiscal) });
+  if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: 'Modelo', valor: nome(o.modelos_dispositivo, f.repair_model_id) });
   if (f.abaixo_do_alerta) out.push({ chave: 'abaixo_do_alerta', rotulo: 'Abaixo do alerta' });
   if (f.falta_ncm) out.push({ chave: 'falta_ncm', rotulo: 'Falta NCM' });
-  if (f.uso) out.push({ chave: 'uso', rotulo: `Uso: ${nome(USOS, f.uso)}` });
+  if (f.uso) out.push({ chave: 'uso', rotulo: 'Uso', valor: nome(USOS, f.uso) });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
-  if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });
+  if (f.q) out.push({ chave: 'q', rotulo: 'Busca', valor: f.q });
   return out;
 }
 
