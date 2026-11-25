@@ -29,9 +29,11 @@ function abasDoPrototipo(): string[] {
 
 function ghostsDoServidor(): string[] {
   const src = ler('Modules/Crm/Http/Controllers/DataController.php');
-  const ini = src.indexOf("'ghosts'   => array_values(array_filter([");
-  const bloco = src.slice(ini, src.indexOf('])),', ini));
-  return [...bloco.matchAll(/'label' => '([^']+)'/g)].map((m) => m[1]);
+  // A lista mora em DataController::abasDoCrm desde 2026-11-25 (CRM-01/02: aba filtrada pela
+  // permissão da rota e marcada para recarregar quando a tela é Blade).
+  const ini = src.indexOf('return array_values(array_filter([', src.indexOf('function abasDoCrm('));
+  const bloco = src.slice(ini, src.indexOf(']));', ini));
+  return [...bloco.matchAll(/\$aba\('[^']+', '([^']+)'/g)].map((m) => m[1]);
 }
 
 describe('CRM · lista do módulo igual ao protótipo', () => {
