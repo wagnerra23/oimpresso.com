@@ -13,7 +13,7 @@ let pagina: Record<string, unknown> = {};
 vi.mock('@inertiajs/react', () => ({
   router: { reload: vi.fn() },
   usePage: () => ({ props: pagina, url: '/crm/dashboard' }),
-  Link: ({ children, href }: { children?: ReactNode; href: string }) => <a href={href}>{children}</a>,
+  Link: ({ children, href, ...resto }: { children?: ReactNode; href: string }) => <a href={href} {...resto}>{children}</a>,
 }));
 
 import CrmCabecalho from '../../Modules/Crm/Resources/js/Pages/Crm/_components/CrmCabecalho';
@@ -40,6 +40,24 @@ describe('CRM-10 · cabeçalho do módulo', () => {
     pagina = { shell: { cockpit: { businessNome: 'Empresa fictícia' }, menu: MENU(['dashboard']) } };
     render(<CrmCabecalho aba="Painel" />);
     expect(screen.queryByText(/Adicionar lead/)).toBeNull();
+  });
+
+  it('CRM-11 · aba ativa marcada só pelo sublinhado, cores do protótipo, faixa com fundo --bg', () => {
+    pagina = { shell: { cockpit: {}, menu: MENU(['dashboard', 'leads']) } };
+    render(<CrmCabecalho aba="Painel" />);
+    const ativa = screen.getByRole('tab', { selected: true });
+    expect(ativa.getAttribute('href')).toBe('/crm/dashboard');
+    expect(ativa.style.backgroundColor).toBe('');
+    expect(ativa.style.borderBottomColor).toBe('var(--accent)');
+    expect(ativa.className).toContain('text-[var(--text)]');
+    expect(screen.getByRole('tab', { selected: false }).className).toContain('text-[var(--text-dim)]');
+    expect((document.querySelector('[data-contract="crm-abas"]') as HTMLElement).style.background).toBe('var(--bg)');
+  });
+
+  it('CONTROLE · fora do CRM a aba ativa segue com o fundo de sempre', async () => {
+    const { default: PageHeaderTabs } = await import('@/Components/shared/PageHeaderTabs');
+    render(<PageHeaderTabs ghosts={[{ key: 'a', label: 'A', href: '/a' }]} activeGhostKey="a" />);
+    expect(screen.getByRole('tab', { selected: true }).style.backgroundColor).not.toBe('');
   });
 
   it('ação própria da tela substitui o "Adicionar lead"', () => {

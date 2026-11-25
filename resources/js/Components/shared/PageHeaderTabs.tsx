@@ -161,6 +161,12 @@ interface Props {
    * `--bg-2`; ver o comentário do contador abaixo). Sem a prop nada muda: `'default'` é o de sempre.
    */
   tone?: 'default' | 'prototype';
+  /**
+   * Fundo (pílula `--accent-soft` 50%) na aba ativa. Default `true`: é o do protótipo de cadastro
+   * (`clientes-page.css`). O protótipo do CRM (`crm-blade.jsx`) marca a ativa SÓ pelo sublinhado,
+   * sem fundo (medido em 2026-11-25, pendência CRM-11) — o CRM passa `false`.
+   */
+  activeFill?: boolean;
   className?: string;
 }
 
@@ -187,6 +193,7 @@ export default function PageHeaderTabs({
   density = 'default',
   scrollable = false,
   tone = 'default',
+  activeFill = true,
   className,
 }: Props) {
   const tomPrototipo = tone === 'prototype';
@@ -350,7 +357,7 @@ export default function PageHeaderTabs({
                         // Light idêntico p/ underline (var(--accent)==0.55 0.15 295); pill segue o
                         // protótipo (accent-soft 50%). Harness claro+escuro com tokens reais em [W].
                         borderBottomColor: 'var(--accent)',
-                        backgroundColor: 'color-mix(in oklch, var(--accent-soft) 50%, transparent)',
+                        backgroundColor: activeFill ? 'color-mix(in oklch, var(--accent-soft) 50%, transparent)' : undefined,
                       }
                     : undefined
                 }

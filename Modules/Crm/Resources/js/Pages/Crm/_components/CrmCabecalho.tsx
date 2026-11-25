@@ -77,7 +77,14 @@ export default function CrmCabecalho({ aba, acoes, abas = true }: {
             {acoes ?? (podeLead && <PageHeaderPrimary label="Adicionar lead" href={crm?.primary?.href ?? '/crm/leads/create'} />)}
           </div>
         }
-        below={abas ? <ModuleTabs modulo="CRM" /> : undefined}
+        below={abas ? (
+          // CRM-11: faixa própria com o fundo da página (`--bg`) e a linha de baixo do header
+          // (`--border`); ativa marcada só pelo sublinhado, cores do protótipo de tela
+          // (ativa `--text`, inativa `--text-dim`).
+          <div style={{ background: 'var(--bg)' }} data-contract="crm-abas">
+            <ModuleTabs modulo="CRM" tone="prototype" activeFill={false} />
+          </div>
+        ) : undefined}
       />
     </div>
   );
