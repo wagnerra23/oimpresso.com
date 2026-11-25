@@ -353,7 +353,13 @@ export default function PageHeaderTabs({
                 {ghost.label}
                 {ghost.badge != null && (
                   <span
-                    className="ml-1.5 inline-block rounded-full px-1.5 min-w-[18px] text-center text-[10.5px] leading-[1.4] font-semibold tabular-nums"
+                    className={cn(
+                      'ml-1.5 inline-block rounded-full px-1.5 min-w-[18px] text-center text-[10.5px] leading-[1.4] font-semibold tabular-nums',
+                      // `.cli-moduletopnav-n` do protótipo de tela tem `padding: 1px 6px`; o `TabBar` do DS,
+                      // `0 6px`. Sem o 1px o contador sai 2px mais baixo que no protótipo (14,7 × 16,7px).
+                      // Só com `tone="prototype"`, como o fundo `--border-2` abaixo: as outras telas seguem o DS.
+                      tomPrototipo && 'py-px',
+                    )}
                     // Pill do contador. Autoridade do token = componente `TabBar` do DS
                     // (`components/TabBar/TabBar.jsx`, ramo `t.count != null`): ativo
                     // `--accent`/`--accent-fg`, inativo `--bg-2`/`--text-dim`.

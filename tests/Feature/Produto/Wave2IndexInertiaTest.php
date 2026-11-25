@@ -52,8 +52,17 @@ it('Page declara interface ProdutoIndexPageProps (TypeScript contract)', functio
     expect($source)->toContain('filters');
 });
 
-it('Page NÃO usa sessionStorage (GOTCHAS — usar localStorage com prefixo oimpresso.produto.)', function () {
-    expect(readProdutoIndex())->not->toContain('sessionStorage');
+it('Page só usa sessionStorage para a origem da busca (UC-PIDX-53, decisão [W] 2026-11-25)', function () {
+    // Exceção única ao GOTCHA "sessionStorage proibido": a origem do aviso "Você veio de… /
+    // Voltar e usar" vale só na aba em que a busca nasceu. Com localStorage ela vazaria para as
+    // outras abas. Qualquer outro uso de sessionStorage na Page continua proibido.
+    $source = readProdutoIndex();
+    preg_match_all('/sessionStorage\.(\w+)\(([^,)]*)/', $source, $chamadas, PREG_SET_ORDER);
+    expect($chamadas)->not->toBeEmpty();
+    foreach ($chamadas as [, $metodo, $chave]) {
+        expect(trim($chave))->toBe('CHAVE_ORIGEM', "sessionStorage.{$metodo} fora da origem da busca");
+    }
+    expect(substr_count($source, 'sessionStorage'))->toBe(count($chamadas));
 });
 
 it('Page usa localStorage com prefixo oimpresso.produto.', function () {

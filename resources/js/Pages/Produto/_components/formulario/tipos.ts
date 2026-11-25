@@ -16,6 +16,10 @@ export type ModoFormulario = 'novo' | 'editar';
 
 export type TipoProduto = 'single' | 'variable' | 'combo';
 
+/** Os nomes que a tela mostra (protótipo, a mesma lista da exportação da lista de produtos). O
+ *  servidor manda os do lang do UltimatePOS ("Combo"); onde a chave não estiver aqui, vale o dele. */
+export const ROTULO_TIPO: Record<TipoProduto, string> = { single: 'Único', variable: 'Variável', combo: 'Composição' };
+
 /**
  * O composto ainda não tem editor na tela React: sem `composition_variation_id` ele nasce sem itens e
  * com preço zero, e não entra em venda, compra, OS nem fabricação. A tela Novo manda o composto para

@@ -141,9 +141,17 @@ it('OBRIGATÓRIO: Pages internas NÃO usam sessionStorage (canon = localStorage 
     $offenders = [];
     foreach (listInternalCockpitPages() as $rel) {
         $source = readCockpitPage($rel);
-        if (str_contains($source, 'sessionStorage')) {
-            $offenders[] = $rel;
+        if (!str_contains($source, 'sessionStorage')) {
+            continue;
         }
+        // Exceção única, decisão [W] 2026-11-25: a origem da busca da lista de produtos
+        // (UC-PIDX-53) vale só na aba. O Wave2IndexInertiaTest confere que todo uso ali
+        // passa pela CHAVE_ORIGEM; aqui a Page só sai da lista se for esse o único uso.
+        if ($rel === 'resources/js/Pages/Produto/Index.tsx'
+            && preg_match_all('/sessionStorage\.\w+\(\s*CHAVE_ORIGEM\s*[,)]/', $source) === substr_count($source, 'sessionStorage')) {
+            continue;
+        }
+        $offenders[] = $rel;
     }
     expect($offenders)->toBeEmpty(
         'sessionStorage proibido (use localStorage com prefix oimpresso.): '

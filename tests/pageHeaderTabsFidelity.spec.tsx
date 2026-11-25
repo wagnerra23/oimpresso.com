@@ -219,12 +219,24 @@ describe('PageHeaderTabs — tone="prototype" (opt-in, só quem pede)', () => {
     expect(ativa.querySelector<HTMLElement>('span.rounded-full')!.style.backgroundColor).toBe(BADGE_ATIVO.bg);
   });
 
+  // Altura do contador: `.cli-moduletopnav-n` tem `padding: 1px 6px`. Medido com o CSS servido em
+  // produção em 2026-11-25: sem o 1px o pill tem 14,6875px; com ele, 16,6875px, igual ao protótipo.
+  it('contador com 1px em cima e embaixo (`py-px`), ativo e inativo', () => {
+    const { ativa, inativa } = renderTom('prototype');
+    for (const aba of [ativa, inativa]) {
+      expect(aba.querySelector<HTMLElement>('span.rounded-full')!.className).toMatch(/(^|\s)py-px(\s|$)/);
+    }
+  });
+
   it('CONTROLE: sem `tone` (e com `tone="default"`) nada muda — as outras telas ficam no DS', () => {
     for (const tone of [undefined, 'default'] as const) {
       const { ativa, inativa } = renderTom(tone);
       expect(ativa.className).toMatch(/(^|\s)text-foreground(\s|$)/);
       expect(inativa.className).toMatch(/(^|\s)text-muted-foreground(\s|$)/);
       expect(inativa.querySelector<HTMLElement>('span.rounded-full')!.style.backgroundColor).toBe(BADGE_INATIVO.bg);
+      for (const aba of [ativa, inativa]) {
+        expect(aba.querySelector<HTMLElement>('span.rounded-full')!.className).not.toMatch(/(^|\s)py-px(\s|$)/);
+      }
       cleanup();
     }
   });

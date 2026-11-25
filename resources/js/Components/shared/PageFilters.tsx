@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import { Badge } from '@/Components/ui/badge';
 import { cn } from '@/Lib/utils';
 
 /**
@@ -25,7 +24,10 @@ import { cn } from '@/Lib/utils';
  *   </PageFilters>
  */
 interface Chip {
+  /** Nome do filtro ("Tipo"). Sem `value`, é o texto inteiro do chip ("Abaixo do alerta"). */
   label: string;
+  /** Valor ativo ("Variável"), separado do rótulo como no `FilterChip` do DS. Opcional. */
+  value?: React.ReactNode;
   onRemove: () => void;
 }
 
@@ -64,7 +66,7 @@ export default function PageFilters({
             Filtros ativos:
           </span>
           {activeChips.map((chip, i) => (
-            <FilterChip key={i} label={chip.label} onRemove={chip.onRemove} />
+            <FilterChip key={i} label={chip.label} value={chip.value} onRemove={chip.onRemove} />
           ))}
           {onReset && (
             <Button
@@ -84,19 +86,55 @@ export default function PageFilters({
   );
 }
 
-function FilterChip({ label, onRemove }: Chip) {
+/**
+ * Chip de filtro ativo — o `FilterChip` do DS (`prototipo-ui/design-system/components/FilterChip`):
+ * pílula de 24px, fonte 11,5px, fundo `color-mix(accent 12%, surface)`, borda `accent 32%`, texto na
+ * cor de destaque; rótulo em negrito (600) e o valor ao lado em peso normal; ✕ de 18px.
+ *
+ * Até 2026-11-25 era um `Badge` cinza: medido em produção em 2026-11-24 (`/products?type=variable`,
+ * escuro), fundo quase da cor da faixa, texto branco 12px, sem borda, 22px de altura, "Tipo: Variável"
+ * numa linha só — o filtro aplicado quase não aparecia.
+ *
+ * As cores vão em `style`, como no DS: os bundles `cowork-*-bundle.css` ficam fora de `@layer` e
+ * venceriam um utilitário (§5 2026-10-14). Os tokens do DS só existem dentro do `.cockpit`; fora dele
+ * cada um cai no token do tema do app.
+ */
+const ACCENT = 'var(--accent, var(--color-primary))';
+const SURFACE = 'var(--surface, var(--color-card))';
+const TEXT = 'var(--text, var(--color-foreground))';
+
+function FilterChip({ label, value, onRemove }: Chip) {
+  const temValor = value !== undefined && value !== null && value !== '';
+  const nomeAcessivel = temValor && typeof value === 'string' ? `${label}: ${value}` : label;
   return (
-    <Badge variant="secondary" className="gap-1 pr-1 font-normal">
-      <span>{label}</span>
+    <span
+      data-slot="filter-chip"
+      className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
+      style={{
+        height: 24,
+        padding: '0 4px 0 10px',
+        borderRadius: 99,
+        fontSize: 11.5,
+        lineHeight: 1,
+        background: `color-mix(in oklch, ${ACCENT} 12%, ${SURFACE})`,
+        color: ACCENT,
+        border: `1px solid color-mix(in oklch, ${ACCENT} 32%, transparent)`,
+      }}
+    >
+      <span style={{ fontWeight: 600 }}>{label}</span>
+      {temValor && (
+        <span style={{ fontWeight: 400, color: `color-mix(in oklch, ${ACCENT} 80%, ${TEXT})` }}>{value}</span>
+      )}
       <button
         type="button"
         onClick={onRemove}
-        aria-label={`Remover filtro: ${label}`}
-        className="rounded-full hover:bg-background/50 p-0.5 transition-colors"
+        aria-label={`Remover filtro: ${nomeAcessivel}`}
+        className="grid place-items-center ml-px h-[18px] w-[18px] cursor-pointer rounded-full opacity-70 transition-[background-color,opacity] hover:bg-[color-mix(in_oklch,var(--accent,var(--color-primary))_18%,transparent)] hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1"
+        style={{ color: 'currentColor' }}
       >
-        <X size={10} />
+        <X size={11} aria-hidden />
       </button>
-    </Badge>
+    </span>
   );
 }
 
