@@ -646,9 +646,9 @@ button, input, select, textarea { font-family: inherit; }
 .dv-rota { font: 500 12.5px/1 var(--font-mono); color: var(--text); white-space: nowrap; }
 .dv-nota { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .seg { display: inline-flex; padding: 2px; gap: 2px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); flex-wrap: wrap; }
-.seg button { appearance: none; border: 0; background: transparent; cursor: pointer; padding: 6px 10px; border-radius: 6px; font: 500 12px/1 var(--font-sans); color: var(--text-dim); }
+.seg button { appearance: none; border: 0; background: transparent; cursor: pointer; padding: 6px 10px; border-radius: 3px; font: 500 12px/1 var(--font-sans); color: var(--text-dim); }
 .seg button:hover { color: var(--text); }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 0 0 1px var(--border); }
 
 .palco {
   padding-block: 24px 32px;
@@ -678,7 +678,7 @@ aside.col { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); }
 /* Seção (mesmo desenho do Sec do create-v3) */
 .sec { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-soft); overflow: hidden; min-width: 0; }
 .sec > header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: color-mix(in oklch, var(--hue, var(--accent)) 5%, var(--surface)); flex-wrap: wrap; }
-.sec > header .ico { width: 30px; height: 30px; flex: none; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in oklch, var(--hue, var(--accent)) 14%, transparent); color: color-mix(in oklch, var(--hue, var(--accent)) 62%, var(--text)); }
+.sec > header .ico { width: 30px; height: 30px; flex: none; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in oklch, var(--hue, var(--accent)) 14%, transparent); color: color-mix(in oklch, var(--hue, var(--accent)) 62%, var(--text)); }
 .sec > header h3 { margin: 0; font: 600 15px/1.3 var(--font-sans); color: var(--text); }
 .sec > header p { margin: 2px 0 0; font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); }
 .sec > header .dir { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -688,25 +688,33 @@ aside.col { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); }
 .lbl { display: block; font: 600 10.5px/1.5 var(--font-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
 .fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; }
 .fld input[type="text"], .fld select, .fld textarea, .inp {
-  font: 13px/1.4 var(--font-sans); color: var(--text); width: 100%; box-sizing: border-box;
-  padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); outline: none;
+  font: 12.5px/1.4 var(--font-sans); color: var(--text); width: 100%; box-sizing: border-box;
+  padding: 7px 10px; border-radius: 5px; border: 1px solid var(--border); background: var(--surface); outline: none;
   transition: border-color .15s, box-shadow .15s;
 }
+/* Mesma medida do Input do DS (.cw-input): 30px, 12,5px, canto 5px. O seletor segue nativo, só no tamanho. */
+.fld input[type="text"], .fld select, .inp { height: 30px; padding: 0 8px; }
 .fld select { padding-right: 28px; }
 .fld input:focus, .fld select:focus, .fld textarea:focus, .inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .fld .help { display: block; margin-top: 4px; font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); }
 .chk { display: flex; align-items: flex-start; gap: 8px; font: 12.5px/1.4 var(--font-sans); color: var(--text); cursor: pointer; }
-.chk input { margin: 2px 0 0; width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
+.chk input { appearance: none; margin: 2px 0 0; width: 16px; height: 16px; box-sizing: border-box; flex: none; display: grid; place-items: center; border: 1.5px solid var(--border); border-radius: 4px; background: var(--surface); cursor: pointer; transition: background-color .15s, border-color .15s; }
+.chk input:checked { border-color: var(--accent); background: var(--accent); }
+.chk input:checked::after { content: ""; width: 4px; height: 8px; margin-top: -2px; border: solid var(--accent-fg); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.chk input:disabled { cursor: not-allowed; opacity: .55; }
 .chk small { display: block; color: var(--text-dim); font-size: 11.5px; }
 .chk[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
 
-.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: 600 12.5px/1 var(--font-sans); cursor: pointer; white-space: nowrap; }
+.btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--color-background); color: var(--text); font: 500 14px/1 var(--font-sans); cursor: pointer; white-space: nowrap; }
+/* Botão secundário = variante outline do DS (button.tsx): no escuro, fundo translúcido do --color-input a 30%. */
+[data-theme="dark"] .btn { background: color-mix(in oklch, var(--color-input) 30%, transparent); }
+[data-theme="dark"] .btn:hover { background: color-mix(in oklch, var(--color-input) 50%, transparent); }
 .btn:hover { background: var(--bg-2); }
-.btn.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: var(--color-primary-foreground); }
 .btn.pri:hover { background: var(--accent-2); }
-.btn.lg { height: 42px; font-size: 13.5px; width: 100%; }
+.btn.lg { height: 40px; width: 100%; }
 .btn[disabled] { opacity: .45; cursor: not-allowed; }
-.btn.ghost { border-color: transparent; background: transparent; color: var(--text-dim); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text); }
 .btn.ghost:hover { color: var(--text); background: var(--bg-2); }
 .btn svg, .ico svg { width: 15px; height: 15px; }
 
@@ -717,7 +725,7 @@ a.tag { text-decoration: none; }
 a.tag:hover { text-decoration: none; background: color-mix(in oklch, var(--c, var(--text-dim)) 20%, var(--surface)); }
 
 /* Nota de origem: cartões de dado */
-.dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 1px; background: var(--border-2); border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
+.dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 1px; background: var(--border-2); border: 1px solid var(--border-2); border-radius: 12px; overflow: hidden; }
 .dados > div { background: var(--surface); padding: 10px 12px; min-width: 0; }
 .dados b { display: block; font: 600 13px/1.35 var(--font-sans); color: var(--text); overflow-wrap: anywhere; }
 .dados b.num { font-size: 12.5px; }
@@ -743,12 +751,11 @@ a.tag:hover { text-decoration: none; background: color-mix(in oklch, var(--c, va
 .vazio { padding: 18px; text-align: center; font: 12.5px/1.5 var(--font-sans); color: var(--text-dim); }
 .trocar { display: flex; justify-content: flex-end; }
 .areas { flex: 1 1 100%; display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
-.areas button { appearance: none; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 8px 16px 10px 0; margin-right: 16px; border-bottom: 2px solid transparent; display: flex; flex-direction: column; gap: 2px; flex: none; }
-.areas button b { font: 600 13px/1.3 var(--font-sans); color: var(--text-dim); }
-.areas button span { font: 11.5px/1.3 var(--font-sans); color: var(--text-mute); white-space: nowrap; }
-.areas button[aria-selected="true"] { border-bottom-color: var(--accent); }
-.areas button[aria-selected="true"] b { color: var(--text); }
-.areas button:hover b { color: var(--text); }
+/* Abas = SubNav do DS (underline): 38px, 14px (500 na ativa, 400 nas demais), contagem em etiqueta, traço roxo a 70%. */
+.areas button { appearance: none; border: 0; background: transparent; cursor: pointer; text-align: left; padding: 8px 12px; margin-bottom: -1px; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 6px; flex: none; font: 400 14px/20px var(--font-sans); color: var(--text-dim); white-space: nowrap; }
+.areas button .cnt { display: inline-flex; align-items: center; justify-content: center; height: 16px; min-width: 16px; padding: 0 6px; box-sizing: border-box; border: 1px solid transparent; border-radius: 999px; background: var(--color-secondary); color: var(--color-secondary-foreground); font: 500 10px/1 var(--font-sans); }
+.areas button[aria-selected="true"] { border-bottom-color: color-mix(in oklch, var(--accent) 70%, transparent); color: var(--text); font-weight: 500; }
+.areas button:hover { color: var(--text); }
 .lista-v { display: flex; flex-direction: column; gap: 12px; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; }
 .kpis > div { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; box-shadow: var(--shadow-soft); }
@@ -860,6 +867,7 @@ textarea.infcpl { font: 12px/1.6 var(--font-mono); min-height: 150px; resize: ve
 .fin .msg { font: 11.5px/1.35 var(--font-sans); color: var(--text-dim); text-align: center; }
 .fin .msg.neg { color: color-mix(in oklch, var(--neg) 62%, var(--text)); }
 .fin .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fin .duas .btn { height: 36px; }
 
 /* Prévia do XML */
 .ovl { position: fixed; inset: 0; z-index: 80; background: color-mix(in oklch, var(--text) 40%, transparent); display: flex; align-items: center; justify-content: center; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
@@ -945,7 +953,7 @@ textarea.infcpl { font: 12px/1.6 var(--font-mono); min-height: 150px; resize: ve
 .steps li { flex: 1 0 auto; display: flex; }
 .steps button { appearance: none; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 10px; border-bottom: 2px solid transparent; width: 100%; text-align: left; }
 .steps button:disabled { cursor: default; }
-.steps .n { width: 22px; height: 22px; border-radius: 999px; flex: none; display: inline-flex; align-items: center; justify-content: center; font: 600 11.5px/1 var(--font-mono); background: var(--bg-2); color: var(--text-dim); border: 1px solid var(--border); }
+.steps .n { width: 22px; height: 22px; box-sizing: border-box; border-radius: 999px; flex: none; display: inline-flex; align-items: center; justify-content: center; font: 600 11.5px/1 var(--font-mono); background: var(--bg-2); color: var(--text-dim); border: 1px solid var(--border); }
 .steps .n svg { width: 13px; height: 13px; }
 .steps b { display: block; font: 600 12.5px/1.25 var(--font-sans); color: var(--text-dim); white-space: nowrap; }
 .steps small { display: block; font: 11px/1.25 var(--font-sans); color: var(--text-mute); white-space: nowrap; }
@@ -963,7 +971,7 @@ textarea.infcpl { font: 12px/1.6 var(--font-mono); min-height: 150px; resize: ve
 
 /* escolha inicial e importação */
 .escolha { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
-.escolha .cen { padding: 14px; gap: 6px; }
+.escolha .cen { padding: 14px; gap: 6px; border-radius: 12px; }
 .escolha .cen b { font-size: 13.5px; display: flex; align-items: center; gap: 8px; }
 .escolha .cen b svg { width: 16px; height: 16px; color: color-mix(in oklch, var(--accent) 62%, var(--text)); }
 .drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 16px; border: 1.5px dashed var(--border); border-radius: 10px; background: var(--bg-2); text-align: center; }
@@ -1417,7 +1425,7 @@ function renderLista() {
     (P ? lancHtml(P, 'lanc') : '<div class="vazio">Nenhuma natureza ativa.</div>') +
     '<p class="pe">Sem valores aqui: base, imposto e totais são calculados no lançamento. O produto completa o que é dele (NCM, origem, alíquota da TIPI, MVA).</p></div></section>';
   h += '<section class="sec"><div class="areas" role="tablist" style="padding: 0 16px; flex: none">' + AREAS.map(function (a) {
-    return '<button role="tab" data-area="' + a.v + '" aria-selected="' + (a.v === S.area) + '"><b>' + a.l + ' <span class="num" style="color:var(--text-mute);font-weight:500">' + NATS.filter(a.f).length + '</span></b><span>&nbsp;</span></button>';
+    return '<button role="tab" data-area="' + a.v + '" aria-selected="' + (a.v === S.area) + '"><span>' + a.l + '</span><span class="cnt">' + NATS.filter(a.f).length + '</span></button>';
   }).join('') + '</div>' +
     '<div class="toolbar"><span class="dica">Clique numa natureza para revisar os passos.</span><div class="fld"><label class="sr" for="fBusca">Buscar natureza</label><input type="text" id="fBusca" data-s="busca" value="' + esc(S.busca) + '" placeholder="Buscar por nome ou CFOP"></div></div>' +
     '<div class="tscroll"><table class="tb lista-tb"><thead><tr><th>Natureza</th><th>CFOP</th><th>ICMS</th><th>Tributos</th><th>Situação</th><th></th></tr></thead><tbody>' +
@@ -1429,7 +1437,7 @@ function renderLista() {
         '<td class="v">' + (ehSN() ? 'CSOSN ' : 'CST ') + esc(cstAtual(N)) + '<small style="font-family:var(--font-sans)">' + esc(N.icms.origem === 'origem' ? 'da nota de origem' : N.icms.origem === 'fixa' ? 'alíquota fixa' : 'alíquota pela UF') + '</small></td>' +
         '<td><div class="txs">' + tagC('ICMS', 'var(--tx-icms)') + (temST(N) ? tagC('ST', 'var(--tx-icms)') : '') + (N.ipi.on ? tagC('IPI ' + N.ipi.cst, 'var(--tx-ipi)') : '') +
           tagC('PIS/COFINS ' + pcCst(N, 'pis'), 'var(--tx-pis)') + (N.ibs.on ? tagC('IBS/CBS ' + N.ibs.cst, 'var(--tx-ibs)') : '') + '</div></td>' +
-        '<td>' + pill(s.t, s.c) + '</td><td class="r"><span class="ib" aria-hidden="true">' + ICO.chev + '</span></td></tr>';
+        '<td>' + pill(s.t, s.c) + '</td><td class="r"><button type="button" class="ib" aria-label="Abrir ' + esc(N.nome) + '">' + ICO.chev + '</button></td></tr>';
     }).join('') : '<tr><td colspan="6"><div class="vazio">Nenhuma natureza nesta visão' + (q ? ' para “' + esc(S.busca) + '”' : '') + '.</div></td></tr>') +
     '</tbody></table></div></section>';
   $('vLista').innerHTML = h;
