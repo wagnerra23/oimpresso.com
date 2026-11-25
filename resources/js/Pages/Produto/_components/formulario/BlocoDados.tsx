@@ -235,7 +235,8 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
         {temSubcategoria && (
           <CampoSubcategoria data={data} definir={definir} porCategoria={opcoes.subcategoriasPorCategoria ?? {}} />
         )}
-        {novo && opcoes.businessLocations && (
+        {/* UC-PEDIT-34: no Editar também (o update() já sincroniza product_locations). */}
+        {opcoes.businessLocations && (
           <CampoLocais data={data} definir={definir} locais={opcoes.businessLocations} />
         )}
         {/* O formulário do Editar não envia o controle de estoque: a caixa só existe no Novo. */}
