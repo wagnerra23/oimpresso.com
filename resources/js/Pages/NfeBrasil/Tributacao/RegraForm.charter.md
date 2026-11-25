@@ -68,4 +68,4 @@ Permitir ao responsável fiscal cadastrar ou ajustar uma regra tributária por N
 ## Pendências antes de `status: live`
 - [ ] Wagner aprova Non-Goals + Anti-hooks
 - [ ] Smoke visual 1280/1440 (screenshot) — validar create e edit, troca de regime CSOSN↔CST
-- [ ] Confirmar validação de unicidade da chave (NCM + UF origem + UF destino) no FormRequest
+- [x] Confirmar validação de unicidade da chave (NCM + UF origem + UF destino) no FormRequest — feito em 2026-11-24 (UC-NFRF-10)
