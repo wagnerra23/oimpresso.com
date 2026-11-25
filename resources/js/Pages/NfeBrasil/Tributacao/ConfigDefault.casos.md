@@ -36,12 +36,12 @@ last_run: "2026-11-04"
 
 | UC | Caso de uso | Prio | Contrato | Teste | Status |
 |----|-------------|------|----------|-------|--------|
-| UC-NFCD-01 | Config de outro business não vaza nem é sobrescrita | must `[T0]` | ADR 0093 · anti-hook | `ConfigDefaultContratoTest` | 🧪 |
-| UC-NFCD-02 | O default persistido carrega a chave `cfop` que o motor Nível 4 lê | must `[fiscal]` | ARQ-0006 §Nível 4 | `ConfigDefaultContratoTest` | 🧪 |
-| UC-NFCD-03 | Regime fora do enum dos 4 regimes é rejeitado | must `[fiscal]` | ARQ-0006 §Onboarding | `ConfigDefaultContratoTest` | 🧪 |
-| UC-NFCD-04 | Alíquota é decimal ∈ [0,1] — "18" (por "18%") é rejeitado | must `[fiscal]` | charter §Automation Hooks | `ConfigDefaultContratoTest` | 🧪 |
-| UC-NFCD-05 | Salvar config não reescreve NFe já emitida | must `[T0]` `[fiscal]` | anti-hook · SINIEF 07/2005 | `ConfigDefaultContratoTest` | 🧪 |
-| UC-NFCD-06 | CSOSN e CST são mutuamente exclusivos | must `[fiscal]` | ARQ-0006 §Onboarding | `ConfigDefaultContratoTest` | 🧪 |
+| UC-NFCD-01 | Config de outro business não vaza nem é sobrescrita | must `[T0]` | ADR 0093 · anti-hook | `ConfigDefaultContratoTest` | ✅ |
+| UC-NFCD-02 | O default persistido carrega a chave `cfop` que o motor Nível 4 lê | must `[fiscal]` | ARQ-0006 §Nível 4 | `ConfigDefaultContratoTest` | ✅ |
+| UC-NFCD-03 | Regime fora do enum dos 4 regimes é rejeitado | must `[fiscal]` | ARQ-0006 §Onboarding | `ConfigDefaultContratoTest` | ✅ |
+| UC-NFCD-04 | Alíquota é decimal ∈ [0,1] — "18" (por "18%") é rejeitado | must `[fiscal]` | charter §Automation Hooks | `ConfigDefaultContratoTest` | ✅ |
+| UC-NFCD-05 | Salvar config não reescreve NFe já emitida | must `[T0]` `[fiscal]` | anti-hook · SINIEF 07/2005 | `ConfigDefaultContratoTest` | ✅ |
+| UC-NFCD-06 | CSOSN e CST são mutuamente exclusivos | must `[fiscal]` | ARQ-0006 §Onboarding | `ConfigDefaultContratoTest` | ✅ |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -66,7 +66,7 @@ last_run: "2026-11-04"
   prova que os dois concordam; um refactor que troque a sessão pelo scope global (ou vice-versa) passa
   silencioso. Este é o `it('isolates config by business_id (cross-tenant 404)')` que o charter promete
   em §Métricas vivas e **nunca existiu**.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -89,7 +89,7 @@ last_run: "2026-11-04"
   escrita (`TributacaoTemplateService::aplicar`, a partir dos arquivos de
   `Modules/NfeBrasil/Resources/templates/`) grava `cfop` e **não** grava `cfop_default` — logo `cfop` é a
   chave que os dois caminhos têm em comum, e é ela que precisa de guarda.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -110,7 +110,7 @@ last_run: "2026-11-04"
 - **Regressão que defende:** o enum vive em **três** lugares que precisam concordar — a coluna
   `nfe_business_configs.regime`, o `Rule::in([...])` do FormRequest e o `REGIMES` do `.tsx`. Sem teste,
   acrescentar um regime no front sem acrescentar no back (ou o inverso) só aparece em produção.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -129,7 +129,7 @@ last_run: "2026-11-04"
   ×100 na nota. O `max:1` do FormRequest é uma linha — este teste é o que impede que ela seja
   "relaxada" por alguém que interprete o `max` como restritivo demais. Cobre os dois lados (rejeita o
   inválido **e** aceita o válido), pra o teste não passar por não-execução.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -152,7 +152,7 @@ last_run: "2026-11-04"
   travar. O risco realista não é alguém escrever `NfeEmissao::update()` de propósito — é um
   Observer/listener futuro em `NfeBusinessConfig` ("recalcular pendentes") que, sem esta guarda, passa
   no review por parecer inofensivo.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -173,7 +173,7 @@ last_run: "2026-11-04"
   `rules()` — é o tipo de bloco que some num refactor de FormRequest sem que nenhuma rule fique
   visivelmente faltando. O `.tsx` limpa o campo oposto no submit, mas isso é conveniência de UI: o
   contrato tem que valer para qualquer cliente do endpoint.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -187,7 +187,7 @@ last_run: "2026-11-04"
   — `UC-NFCD-07 · empresa substituta com CFOP 5405 e CSOSN 500 salva e recebe aviso`.
 - **Contrato:** pedido [F] 2026-11-04 — *"não vamos passar por cima de nenhuma regra fiscal… o sistema vai avisar que está errado"* ·
   `CoerenciaFiscalDoItem` (UC-NFTR-40 em `Index.casos.md`).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ---
 

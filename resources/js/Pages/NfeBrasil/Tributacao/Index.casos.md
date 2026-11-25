@@ -65,33 +65,33 @@ last_run: "2026-11-23"
 
 | UC | Caso de uso | Prio | Contrato | Teste | Status |
 |----|-------------|------|----------|-------|--------|
-| UC-NFTR-01 | Gate de emissão automática é per-business | must `[T0]` `[fiscal]` | ADR 0093 · charter §Goals | `TributacaoIndexContratoTest` | 🧪 |
-| UC-NFTR-02 | Toggle sem config é recusado e não cria config | must `[fiscal]` | charter §UX Anti-patterns | `TributacaoIndexContratoTest` | 🧪 |
-| UC-NFTR-03 | Aplicar template substitui a config e **preserva** as regras NCM | must `[fiscal]` | charter §Automation Hooks | `TributacaoIndexContratoTest` | 🧪 |
-| UC-NFTR-04 | Update/destroy de regra de outro business → 404, e a regra alheia sobrevive | must `[T0]` | ADR 0093 · anti-hook | `TributacaoIndexContratoTest` | 🧪 |
-| UC-NFTR-05 | Listagem não traz regra de outro tenant (com auth real) | must `[T0]` | ADR 0093 · anti-hook | `TributacaoIndexContratoTest` | 🧪 |
-| UC-NFTR-06 | Regras ordenadas por NCM → UF origem → UF destino (NULL primeiro) | must | ARQ-0006 §Níveis 2/3 | `TributacaoControllerTest` | 🧪 |
-| UC-NFTR-14 | A leitura pelo certificado não grava configuração | must `[T0]` `[fiscal]` | charter (sem auto-aplicar) · ADR 0093 | `EmpresaFiscalLookupTest` | 🧪 |
-| UC-NFTR-15 | Template sugerido casa regime + UF + CNAE | must `[fiscal]` | US-NFE-TPL-001 | `TributacaoTemplateSugestaoTest` | 🧪 |
-| UC-NFTR-16 | Fontes divergentes não são resolvidas sozinhas | must `[fiscal]` | ADR 0186 · D-SUPORTE | `EmpresaFiscalLookupTest` | 🧪 |
-| UC-NFTR-17 | Aplicar template exige NCM padrão válido, usa o NCM que a tela manda e registra quem aplicou | must `[fiscal]` | auditoria 2026-05 bug #3 · US-NFE-062 | `TributacaoTemplateAplicarTest` | 🧪 |
+| UC-NFTR-01 | Gate de emissão automática é per-business | must `[T0]` `[fiscal]` | ADR 0093 · charter §Goals | `TributacaoIndexContratoTest` | ✅ |
+| UC-NFTR-02 | Toggle sem config é recusado e não cria config | must `[fiscal]` | charter §UX Anti-patterns | `TributacaoIndexContratoTest` | ✅ |
+| UC-NFTR-03 | Aplicar template substitui a config e **preserva** as regras NCM | must `[fiscal]` | charter §Automation Hooks | `TributacaoIndexContratoTest` | ✅ |
+| UC-NFTR-04 | Update/destroy de regra de outro business → 404, e a regra alheia sobrevive | must `[T0]` | ADR 0093 · anti-hook | `TributacaoIndexContratoTest` | ✅ |
+| UC-NFTR-05 | Listagem não traz regra de outro tenant (com auth real) | must `[T0]` | ADR 0093 · anti-hook | `TributacaoIndexContratoTest` | ✅ |
+| UC-NFTR-06 | Regras ordenadas por NCM → UF origem → UF destino (NULL primeiro) | must | ARQ-0006 §Níveis 2/3 | `TributacaoControllerTest` | ✅ |
+| UC-NFTR-14 | A leitura pelo certificado não grava configuração | must `[T0]` `[fiscal]` | charter (sem auto-aplicar) · ADR 0093 | `EmpresaFiscalLookupTest` | ✅ |
+| UC-NFTR-15 | Template sugerido casa regime + UF + CNAE | must `[fiscal]` | US-NFE-TPL-001 | `TributacaoTemplateSugestaoTest` | ✅ |
+| UC-NFTR-16 | Fontes divergentes não são resolvidas sozinhas | must `[fiscal]` | ADR 0186 · D-SUPORTE | `EmpresaFiscalLookupTest` | ✅ |
+| UC-NFTR-17 | Aplicar template exige NCM padrão válido, usa o NCM que a tela manda e registra quem aplicou | must `[fiscal]` | auditoria 2026-05 bug #3 · US-NFE-062 | `TributacaoTemplateAplicarTest` | ✅ |
 | UC-NFTR-18 | Sem regime escolhido ou sem NCM válido, a tela não avança e não aplica | must `[fiscal]` | UC-NFTR-14..17 · charter (confirmação explícita) | e2e `nfe-tributacao-onboarding.spec.ts` | 🧪 |
-| UC-NFTR-08 | O simulador devolve o mesmo cálculo da emissão e não grava nada | must `[fiscal]` | D-SIM · US-NFE-010 "Preview de cálculo" · `NfeService::montarItensNfe` | `TributacaoSimuladorTest` | 🧪 |
-| UC-NFTR-09 | Simular produto de outra empresa é 404, e sem permissão é 403 | must `[T0]` | ADR 0093 · `nfe.tributacao.manage` | `TributacaoSimuladorTest` | 🧪 |
-| UC-NFTR-10 | Sugestão da Jana nunca altera regra nem produto sozinha | must `[T0]` `[fiscal]` | D-IA · ADR 0141 · Fiscal/SPEC (rejeição é determinística) | `SugestaoFiscalTest` | 🧪 |
-| UC-NFTR-11 | A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ | must `[T0]` | ADR 0093 · ADR 0141 | `ProdutoFiscalToolTest` | 🧪 |
-| UC-NFTR-12 | Aceitar ou descartar sugestão de outra empresa é 404 | must `[T0]` | ADR 0093 | `SugestaoFiscalTest` | 🧪 |
-| UC-NFTR-13 | Jana fora do ar não afeta emissão nem cadastro | must `[fiscal]` | D-IA (IA nunca é caminho crítico) | `SugestaoFiscalTest` | 🧪 |
-| UC-NFTR-19 | Aceite é por versão e exige permissão própria (o dono não aceita pelo contador) | must `[T0]` `[fiscal]` | D-CONTADOR · D-SUPORTE · `RevisaoContadorService::podeAceitar` | `AceiteContadorTest` | 🧪 |
-| UC-NFTR-20 | Pedir ajuste exige comentário e fica registrado | must `[fiscal]` | D-CONTADOR | `AceiteContadorTest` | 🧪 |
-| UC-NFTR-21 | Falta de aceite não bloqueia emissão | must `[fiscal]` | D-SUPORTE (bloqueio vira chamado) | `AceiteContadorTest` | 🧪 |
-| UC-NFTR-22 | Link de revisão só abre com o código do e-mail, expira e serve a um business | must `[T0]` | D-CONTADOR (caminho 1) · US-NFE-009 (14 dias) · ADR 0093 | `RevisaoContadorLinkTest` | 🧪 |
-| UC-NFTR-23 | A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import | must `[T0]` | D-CONTADOR · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS` | `RevisaoContadorLinkTest` | 🧪 |
-| UC-NFTR-24 | A saúde fiscal lista o que vai virar rejeição e o item some ao corrigir | must `[fiscal]` | D-SUPORTE · US-NFE-010 "Filtro Suspeitas" · auditoria 2026-05 bug #3 | `SaudeFiscalTest` | 🧪 |
-| UC-NFTR-25 | "Pronto pra emitir" = nenhuma pendência bloqueante | should `[fiscal]` | D-SUPORTE · UC-TRB-16 | `SaudeFiscalTest` | 🧪 |
-| UC-NFTR-30 | Natureza a decidir não barra a nota e aparece na saúde fiscal (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · D-NATUREZA · US-NFE-068 | `NaturezaFiscalTest` | 🧪 |
-| UC-NFTR-31 | Item que o contador decidiu como serviço não sai em NF-e/NFC-e (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · Súmula 156 STJ · US-NFE-069 (parcial) | `NaturezaFiscalTest` | 🧪 |
-| UC-NFTR-32 | Só o contador decide a natureza, com fonte, e só de produto da própria empresa (UC-FLX-31) | must `[T0]` `[fiscal]` | R-NFE-034 · D-NATUREZA · ADR 0093 | `NaturezaFiscalTest` | 🧪 |
+| UC-NFTR-08 | O simulador devolve o mesmo cálculo da emissão e não grava nada | must `[fiscal]` | D-SIM · US-NFE-010 "Preview de cálculo" · `NfeService::montarItensNfe` | `TributacaoSimuladorTest` | ✅ |
+| UC-NFTR-09 | Simular produto de outra empresa é 404, e sem permissão é 403 | must `[T0]` | ADR 0093 · `nfe.tributacao.manage` | `TributacaoSimuladorTest` | ✅ |
+| UC-NFTR-10 | Sugestão da Jana nunca altera regra nem produto sozinha | must `[T0]` `[fiscal]` | D-IA · ADR 0141 · Fiscal/SPEC (rejeição é determinística) | `SugestaoFiscalTest` | ✅ |
+| UC-NFTR-11 | A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ | must `[T0]` | ADR 0093 · ADR 0141 | `ProdutoFiscalToolTest` | ✅ |
+| UC-NFTR-12 | Aceitar ou descartar sugestão de outra empresa é 404 | must `[T0]` | ADR 0093 | `SugestaoFiscalTest` | ✅ |
+| UC-NFTR-13 | Jana fora do ar não afeta emissão nem cadastro | must `[fiscal]` | D-IA (IA nunca é caminho crítico) | `SugestaoFiscalTest` | ✅ |
+| UC-NFTR-19 | Aceite é por versão e exige permissão própria (o dono não aceita pelo contador) | must `[T0]` `[fiscal]` | D-CONTADOR · D-SUPORTE · `RevisaoContadorService::podeAceitar` | `AceiteContadorTest` | ✅ |
+| UC-NFTR-20 | Pedir ajuste exige comentário e fica registrado | must `[fiscal]` | D-CONTADOR | `AceiteContadorTest` | ✅ |
+| UC-NFTR-21 | Falta de aceite não bloqueia emissão | must `[fiscal]` | D-SUPORTE (bloqueio vira chamado) | `AceiteContadorTest` | ✅ |
+| UC-NFTR-22 | Link de revisão só abre com o código do e-mail, expira e serve a um business | must `[T0]` | D-CONTADOR (caminho 1) · US-NFE-009 (14 dias) · ADR 0093 | `RevisaoContadorLinkTest` | ✅ |
+| UC-NFTR-23 | A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import | must `[T0]` | D-CONTADOR · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS` | `RevisaoContadorLinkTest` | ✅ |
+| UC-NFTR-24 | A saúde fiscal lista o que vai virar rejeição e o item some ao corrigir | must `[fiscal]` | D-SUPORTE · US-NFE-010 "Filtro Suspeitas" · auditoria 2026-05 bug #3 | `SaudeFiscalTest` | ✅ |
+| UC-NFTR-25 | "Pronto pra emitir" = nenhuma pendência bloqueante | should `[fiscal]` | D-SUPORTE · UC-TRB-16 | `SaudeFiscalTest` | ✅ |
+| UC-NFTR-30 | Natureza a decidir não barra a nota e aparece na saúde fiscal (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · D-NATUREZA · US-NFE-068 | `NaturezaFiscalTest` | ✅ |
+| UC-NFTR-31 | Item que o contador decidiu como serviço não sai em NF-e/NFC-e (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · Súmula 156 STJ · US-NFE-069 (parcial) | `NaturezaFiscalTest` | ✅ |
+| UC-NFTR-32 | Só o contador decide a natureza, com fonte, e só de produto da própria empresa (UC-FLX-31) | must `[T0]` `[fiscal]` | R-NFE-034 · D-NATUREZA · ADR 0093 | `NaturezaFiscalTest` | ✅ |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -115,7 +115,7 @@ last_run: "2026-11-23"
   (ou que confie só no global scope sem usuário autenticado — o `ScopeByBusiness` faz early-return em
   `! auth()->check()`) liga a emissão automática do **vizinho** sem nenhum sintoma visível. O teste usa
   auth real, então exercita o scope global **e** o filtro manual juntos.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -138,7 +138,7 @@ last_run: "2026-11-23"
   futuro lendo só o controller poderia "otimizar" emitindo no toggle, e nada quebraria.
 - **Teste:** [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php)
   — `UC-NFTR-07 · ligar a emissão automática grava a escolha da empresa e NÃO despacha emissão`.
-- **Status:** 🧪 existe teste que cita o UC — veredito é da lane (CT 100/CI, ADR 0062).
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("existe teste que cita o UC — veredito é da lane (CT 100/CI, ADR 0062).").
 
 ## UC-NFTR-02 · Toggle sem config é recusado e não cria config · `must` `[fiscal]`
 
@@ -157,7 +157,7 @@ last_run: "2026-11-23"
   o `first()` por `firstOrCreate()` — refactor de aparência inocente, e o tipo de coisa que "conserta" um
   null-check — criaria uma config **vazia** e ligaria a emissão automática em cima dela. A asserção
   cobre os dois lados: a recusa **e** a ausência da row.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -179,7 +179,7 @@ last_run: "2026-11-23"
   regime + a tributação default inteira). A fronteira do estrago — parar em `nfe_business_configs` e não
   encostar em `nfe_fiscal_rules` — hoje é só uma escolha do service, sem teste. O passo de idempotência
   vem junto porque é o que impede o "aplicar de novo" de virar um segundo write silencioso.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -200,7 +200,7 @@ last_run: "2026-11-23"
 - **Regressão que defende:** o `TributacaoControllerTest` existente cobre o 404 do **`edit`** — e só dele.
   `update` e `destroy` (os dois que **escrevem**) estão descobertos, que é exatamente a metade que causa
   dano. Este UC fecha o par escrita/remoção e afirma a sobrevivência do dado, não só o status HTTP.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -225,7 +225,7 @@ last_run: "2026-11-23"
   rota. Não é preguiça: arrancar prop deferida por partial reload exigiria casar `X-Inertia-Version`
   (mismatch → 409), e essa fragilidade não tem relação com o que o caso mede. O que ativa o global scope é a
   **autenticação**, não o transporte HTTP — e ela está presente.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -248,7 +248,7 @@ last_run: "2026-11-23"
   `IS NULL DESC` são portáveis e não dependem do schema real. Não subi esse arquivo para a allowlist
   MySQL porque não consegui provar que ele passa lá (ver §Recibo), e ratchet sem prova é o anti-padrão
   que a própria allowlist proíbe.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -260,7 +260,7 @@ last_run: "2026-11-23"
   `business`. Controle positivo: a leitura de outro business não retorna dados deste, e vice-versa.
 - **Teste:** [`EmpresaFiscalLookupTest`](../../../../../Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php) — `UC-NFTR-14 · leitura pelo certificado não grava`.
 - **Contrato:** charter (sem auto-aplicar template sem clique) · ADR 0093.
-- **Status: 🧪** — escrito no backend pela thread 21 (#8829); o UC entra aqui na thread 22.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("escrito no backend pela thread 21 (#8829); o UC entra aqui na thread 22.").
 
 ## UC-NFTR-15 · Template sugerido casa regime + UF + CNAE · `must` `[fiscal]`
 
@@ -269,7 +269,7 @@ last_run: "2026-11-23"
   três e cada um vem com os valores que aplicaria. Controle positivo: trocar o regime para presumido muda o 1º.
 - **Teste:** [`TributacaoTemplateSugestaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php) — `UC-NFTR-15 · sugestão por regime, UF e CNAE`.
 - **Contrato:** US-NFE-TPL-001.
-- **Status: 🧪**
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪.
 
 ## UC-NFTR-16 · Fontes divergentes não são resolvidas sozinhas · `must` `[fiscal]`
 
@@ -278,7 +278,7 @@ last_run: "2026-11-23"
   e **sem** valor. Controle positivo: com as fontes concordando, o regime volta preenchido.
 - **Teste:** [`EmpresaFiscalLookupTest`](../../../../../Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php) — `UC-NFTR-16 · divergência não é resolvida sozinha`.
 - **Contrato:** ADR 0186 (autoridade por campo) · D-SUPORTE.
-- **Status: 🧪**
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪.
 
 ## UC-NFTR-17 · Aplicar template exige NCM padrão válido e registra quem aplicou · `must` `[fiscal]`
 
@@ -290,7 +290,7 @@ last_run: "2026-11-23"
 - **Teste:** [`TributacaoTemplateAplicarTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoTemplateAplicarTest.php) — `UC-NFTR-17 · aplicar exige NCM padrão e loga` e
   `UC-NFTR-17 · a rota aplica o NCM padrão que a tela manda`.
 - **Contrato:** auditoria 2026-05 bug #3 · US-NFE-062.
-- **Status: 🧪**
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 2 testes. Até 2026-11-24 dizia 🧪.
 
 ## UC-NFTR-18 · Sem regime escolhido ou sem NCM válido, a tela não avança e não aplica · `must` `[fiscal]`
 
@@ -319,7 +319,7 @@ last_run: "2026-11-23"
 - **Regressão que defende:** um simulador com cálculo próprio que diverge da nota.
 - **Fora daqui:** operação, destinatário e regime não entram — a emissão ainda não os passa ao motor;
   mostrá-los faria a prévia divergir da nota.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-09 · Simular produto de outra empresa é 404, e sem permissão é 403 · `must` `[T0]`
 
@@ -331,7 +331,7 @@ last_run: "2026-11-23"
   — `UC-NFTR-09 · simulador isolado por tenant e por permissão`.
 - **Contrato:** ADR 0093 · `SimularTributacaoRequest::authorize`.
 - **Regressão que defende:** endpoint read-only vazando cadastro alheio.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-10 · Sugestão da Jana nunca altera regra nem produto sozinha · `must` `[T0]` `[fiscal]`
 
@@ -344,7 +344,7 @@ last_run: "2026-11-23"
 - **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-10 · sugestão nunca aplica sozinha`.
 - **Contrato:** D-IA ([W] 2026-10-06) · ADR 0141 · Fiscal/SPEC (rejeição é receita determinística por cStat).
 - **Regressão que defende:** IA mudando a tributação sem dono.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-11 · A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ · `must` `[T0]`
 
@@ -356,7 +356,7 @@ last_run: "2026-11-23"
   — `UC-NFTR-11 · tool fiscal só lê o próprio tenant e sem PII`.
 - **Contrato:** ADR 0093 · ADR 0141 (`business_id` pelo construtor).
 - **Regressão que defende:** vazamento entre empresas via prompt.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-12 · Aceitar ou descartar sugestão de outra empresa é 404 · `must` `[T0]`
 
@@ -366,7 +366,7 @@ last_run: "2026-11-23"
 - **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-12 · sugestão isolada por tenant`.
 - **Contrato:** ADR 0093.
 - **Regressão que defende:** aceite cruzado mudando cadastro de outra empresa.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-13 · Jana fora do ar não afeta emissão nem cadastro · `must` `[fiscal]`
 
@@ -377,7 +377,7 @@ last_run: "2026-11-23"
 - **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-13 · IA indisponível não bloqueia fiscal`.
 - **Contrato:** D-IA (IA é sugestão, nunca caminho crítico).
 - **Regressão que defende:** emissão travada porque a IA não respondeu.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-19 · Aceite é por versão e exige permissão própria · `must` `[T0]` `[fiscal]`
 
@@ -391,7 +391,7 @@ last_run: "2026-11-23"
 - **Contrato:** D-CONTADOR · D-SUPORTE. A permissão é checada direto no Spatie (`hasPermissionTo`): o
   `Gate::before` libera o `Admin#` em qualquer `can()`.
 - **Regressão que defende:** dono "aceitando" pelo contador; aceite antigo valendo para regra que mudou.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-20 · Pedir ajuste exige comentário e fica registrado · `must` `[fiscal]`
 
@@ -403,7 +403,7 @@ last_run: "2026-11-23"
 - **Contrato:** D-CONTADOR.
 - **Regressão que defende:** discordância do contador que se perde no e-mail.
 - **Fora daqui:** mostrar o pedido na Saúde fiscal é a thread 14.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-21 · Falta de aceite não bloqueia emissão · `must` `[fiscal]`
 
@@ -414,7 +414,7 @@ last_run: "2026-11-23"
 - **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-21 · sem aceite emite normal`.
 - **Contrato:** D-SUPORTE (bloqueio vira chamado).
 - **Regressão que defende:** um gate de aceite parando o balcão.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-22 · Link de revisão só abre com o código do e-mail, expira e serve a um business · `must` `[T0]`
 
@@ -430,7 +430,7 @@ last_run: "2026-11-23"
 - **Teste:** [`RevisaoContadorLinkTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php) — `UC-NFTR-22 · link assinado + código, 14 dias, um business`.
 - **Contrato:** D-CONTADOR caminho 1 · US-NFE-009 (link de 14 dias) · ADR 0093.
 - **Regressão que defende:** link encaminhado aceitando em nome do contador; link que abre outra empresa.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-23 · A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import · `must` `[T0]`
 
@@ -444,7 +444,7 @@ last_run: "2026-11-23"
 - **Contrato:** D-CONTADOR (caminhos 1 e 3) · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS`.
 - **Regressão que defende:** página do contador vazando dado de negócio; planilha que não volta pelo Import.
 - **Fora daqui:** o cadastro do contador em `/fiscal/config` e o papel "Contador" são a thread 15c.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-24 · A saúde fiscal lista o que vai virar rejeição e o item some ao corrigir · `must` `[fiscal]`
 
@@ -463,7 +463,7 @@ last_run: "2026-11-23"
 - **Regressão que defende:** o usuário só descobre o problema na rejeição da SEFAZ.
 - **Fora daqui:** regra sem cClassTrib (Reforma ligada), versão sem aceite do contador, cliente e emitente sem
   código IBGE, serviço sem código municipal e rejeição cadastral recente ainda não entram.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 2 testes. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-25 · "Pronto pra emitir" = nenhuma pendência bloqueante · `should` `[fiscal]`
 
@@ -474,7 +474,7 @@ last_run: "2026-11-23"
 - **Teste:** [`SaudeFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-25 · pronto pra emitir`.
 - **Contrato:** UC-TRB-16 · D-SUPORTE · templates L1 (US-NFE-TPL-001).
 - **Regressão que defende:** a primeira nota ser o teste da configuração.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-26 · Fechamento do mês: notas fecham e rejeitada pendente vira ação · `must` `[fiscal]`
 
@@ -488,7 +488,7 @@ last_run: "2026-11-23"
   atrás de `NFEBRASIL_FECHAMENTO_CONTADOR` (desligada). Forma da aba "Contador" do `fiscal-tributacao.jsx`.
 - **Contrato:** playbook Fiscal thread 28 (R-FISC-040) · D-FECHAMENTO · D-REJEITADA · `FechamentoContadorService`.
 - **Regressão que defende:** contador fechando com nota rejeitada esquecida.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 4 testes. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-27 · Sublimite avisa a 90% e a segregação separa a ST · `must` `[fiscal]`
 
@@ -502,7 +502,7 @@ last_run: "2026-11-23"
 - **Teste:** [`FechamentoContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php) — `UC-NFTR-27 · R-FISC-041 · …` (4 casos).
 - **Contrato:** playbook Fiscal thread 28 (R-FISC-041) · LC 123/2006 arts. 13-A e 18 §4º/§4º-A.
 - **Regressão que defende:** ICMS pago duas vezes no DAS; estouro de sublimite descoberto tarde.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 4 testes. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-28 · Entrada de outra UF pede classificação para DIFAL · `should` `[fiscal]` · **parcial**
 
@@ -514,7 +514,7 @@ last_run: "2026-11-23"
   "MG para ativo" de "PR para revenda". Depende da ADR de entrada por XML (thread 11, `proposto`).
 - **Teste:** [`FechamentoContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php) — `UC-NFTR-28 · R-FISC-042 (parcial) · …`.
 - **Contrato:** playbook Fiscal thread 28 (R-FISC-042) · LC 87/1996 · LC 190/2022 · D-ENTRADA.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-29 · Vindo do painel de produto, o simulador abre com o produto escolhido · `could` `[T0]`
 
@@ -556,7 +556,7 @@ last_run: "2026-11-23"
   o contador decide, marcar o banner como pendente de novo não desfaz a decisão e ele sai da fila.
 - **Teste:** [`NaturezaFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php) — `UC-NFTR-30 · UC-NFTR-31 · R-NFE-034 · natureza decidida pelo contador vale para o produto`.
 - **Contrato:** R-NFE-034 · D-NATUREZA · `SaudeFiscalService` (`natureza_a_decidir`).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-31 · Item que o contador decidiu como serviço não sai em NF-e/NFC-e · `must` `[fiscal]`
 
@@ -571,7 +571,7 @@ last_run: "2026-11-23"
 - **Contrato:** R-NFE-034 · Súmula 156 do STJ · REGRA MESTRE de valor (a nota não sai com total
   diferente da venda).
 - **Fora daqui:** dividir a venda em NF-e + NFS-e é a US-NFE-069 (backlog abaixo).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 2 testes. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-32 · Só o contador decide a natureza, com fonte, e só de produto da própria empresa · `must` `[T0]` `[fiscal]`
 
@@ -582,7 +582,7 @@ last_run: "2026-11-23"
   empresa não recebe decisão nem pendência ("não encontrado nesta empresa").
 - **Teste:** [`NaturezaFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php) — `UC-NFTR-31 · UC-NFTR-32 · R-NFE-034 · só o contador decide: …` (tenant fictício 98 e cliente 99, ADR 0358).
 - **Contrato:** D-NATUREZA (a Jana só marca pendente) · ADR 0093.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## CST/CFOP incoerente: avisa, não bloqueia (Sabor Brasil, 2026-11-04)
 
@@ -600,7 +600,7 @@ last_run: "2026-11-23"
 - **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-40 …`.
 - **Contrato:** `CoerenciaFiscalDoItem::avisos`. Ao salvar regra ou configuração padrão o aviso vai no
   `flash.info` (toast) e a gravação acontece igual.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-41 · A nota guarda o aviso por item · `must` `[fiscal]`
 
@@ -608,14 +608,14 @@ last_run: "2026-11-23"
   outro com 5401/CSOSN 201 com CEST **Quando** a nota é montada **Então** `metadata.avisos_fiscais` tem
   só o primeiro item, com 2 avisos (substituta + CEST); a nota não é recusada.
 - **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-41 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-42 · CEST de produto de outra empresa não é lido · `must` `[T0]`
 
 - **Aceite:** **Dado** um item cujo produto é de outra empresa **Quando** os avisos são calculados **Então**
   o CEST dele não é lido e o item conta como sem CEST.
 - **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-42 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-43 · A Saúde fiscal lista os produtos que saíram com aviso · `should` `[fiscal]`
 
@@ -624,7 +624,7 @@ last_run: "2026-11-23"
   (não bloqueante).
 - **Teste:** [`CoerenciaFiscalAvisoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/CoerenciaFiscalAvisoTest.php) — `UC-NFTR-43 …`.
 - **Contrato:** `SaudeFiscalService` (`emitido_com_cst_cfop_incoerente`).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-44 · A conferência da natureza repete a do protótipo aprovado · `must` `[fiscal]`
 
@@ -633,13 +633,13 @@ last_run: "2026-11-23"
   sem CST 60 (ou CSOSN 500) e nome igual a outra ativa são **erro**, com o texto da tela.
 - **Teste:** [`ConferenciaNaturezaServiceTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ConferenciaNaturezaServiceTest.php) — `UC-NFTR-44 …`.
 - **Contrato:** `ConferenciaNaturezaService::conferir` (porte de `validar()` de `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`). ⚠️ Regras sem revisão fiscal (RUNBOOK-tributacao §Naturezas).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 3 testes. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-45 · Com a flag desligada a seção de naturezas não existe · `must` `[T0]`
 
 - **Aceite:** **Dado** `useV2NfeNaturezas` desligada para a empresa **Quando** listo ou salvo natureza **Então** 404 e nada é gravado.
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-45 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-46 · Salvar natureza grava a forma da tela; erro de conferência não grava · `must` `[fiscal]`
 
@@ -647,34 +647,34 @@ last_run: "2026-11-23"
   gravado; **Dado** uma natureza sem erro chamada "Bonificacao" **Quando** salvo **Então** 201, `slug`
   `tela-bonificacao` (nunca o `bonificacao` que a emissão procura), `regra_geral` nula e os tributos em `config_tela`.
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-46 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-47 · Natureza que o cálculo já usa não é editada pela tela antes da onda 4 · `must` `[fiscal]`
 
 - **Aceite:** **Dado** uma operação com `regra_geral` (vinda do CSV) **Quando** tento editá-la pela tela **Então** 409 e a linha fica idêntica.
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-47 …`.
 - **Contrato:** `NfeOperacaoFiscal::editavelPelaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-48 · Natureza de outra empresa não aparece nem é editada · `must` `[T0]`
 
 - **Aceite:** **Dado** uma natureza da empresa 99 **Quando** a empresa 98 lista ou edita **Então** ela não aparece e a edição dá 404.
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-48 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-49 · A tela confere a natureza no servidor, sem gravar · `must` `[fiscal]`
 
 - **Aceite:** **Dado** uma devolução sem nota referenciada **Quando** a tela pede a conferência **Então** recebe os
   alertas e nada é gravado; com a flag desligada, 404.
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-49 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-50 · A página só mostra a seção de naturezas com a flag ligada · `must` `[T0]`
 
 - **Aceite:** **Dado** `useV2NfeNaturezas` desligada **Quando** abro `/nfe-brasil/tributacao` **Então** `naturezasLiberado`
   é `false`; ligada, `true`.
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-50 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-51 · A lista mostra a situação, e a natureza do cálculo abre só para leitura · `must`
 
@@ -695,70 +695,70 @@ last_run: "2026-11-23"
 - **Aceite:** **Dado** uma natureza da tela (Presumido, ICMS pela UF, interna de SC 17%) **Quando** calculo um item de 1.000,00 de SC para SC em 2026 **Então** CFOP 5102, ICMS 170,00, PIS 6,50, COFINS 30,00, IBS 1,00, CBS 9,00.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-53 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-54 · Fora do estado: 12% da tabela, 4% para importado (Resolução SF 13/2012) · `must` `[fiscal]`
 
 - **Aceite:** **Dado** a mesma natureza e a interestadual SC→PR de 12% **Quando** o produto é nacional (origem 0) ou importado sem similar (6) **Então** ICMS 120,00; importado (1) ou nacional com conteúdo importado acima de 40% (3) **Então** 40,00; dentro do estado o importado segue com a interna.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-54 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-55 · Alíquota fixa, redução de base e CST sem ICMS próprio · `must` `[fiscal]`
 
 - **Aceite:** **Dado** ICMS fixo de 18% **Então** 180,00; CST 20 com 40% de redução **Então** base 600,00 e ICMS 102,00; CST 41 **Então** ICMS 0.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-55 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-56 · IPI e MVA "da regra do NCM"; PIS/COFINS do Lucro Real · `must` `[fiscal]`
 
 - **Aceite:** **Dado** a regra por NCM com IPI 5% e MVA 40% e a empresa no Lucro Real **Então** IPI 50,00, PIS 16,50, COFINS 76,00 e a MVA da ST é a da regra.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-56 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-57 · Sem fonte do número, o motor recusa com o motivo · `must` `[fiscal]`
 
 - **Aceite:** **Dado** interna da UF não cadastrada, IPI "da regra do NCM" sem regra, IBS/CBS pelo padrão num ano sem padrão, ou ICMS "da nota de origem" fora da devolução **Então** a nota é recusada com o motivo; nunca sai com zero.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-57 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-58 · Operação com regra geral segue a regra geral · `must` `[fiscal]`
 
 - **Aceite:** **Dado** uma operação com `regra_geral` (vinda do CSV) e também `config_tela` **Então** vale a regra geral, como antes da onda 4.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-58 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-59 · A natureza da tela não cai na venda padrão · `must` `[fiscal]`
 
 - **Aceite:** **Dado** `calcularNaOperacao` com uma natureza da tela **Então** vale o cálculo da natureza (ICMS 120,00, não os 170,00 da venda), e a recusa sobe em vez de virar cálculo de venda.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-59 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-60 · A emissão aceita só natureza da tela, ativa, de saída e normal · `must` `[fiscal]`
 
 - **Aceite:** **Dado** uma natureza da tela de saída normal **Então** a NF-e de venda aceita; **Dado** natureza de outra empresa, NFC-e, venda de bonificação, natureza sem configuração da tela, inativa, de entrada, de finalidade não normal ou que pede nota referenciada **Então** a emissão recusa com o motivo.
 - **Teste:** [`NaturezaLancamentoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaLancamentoTest.php) — `UC-NFTR-60 …`.
 - **Contrato:** `NfeService::naturezaDoLancamento`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-61 · A natureza escolhida chega ao cálculo só com a flag ligada · `must` `[T0]`
 
 - **Aceite:** **Dado** `useV2NfeNaturezas` desligada **Quando** a emissão recebe `operacao_id` **Então** o campo é ignorado; ligada, a natureza chega ao `NfeService`; a recusa da natureza volta como 422 `natureza_invalida`.
 - **Teste:** [`NaturezaLancamentoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaLancamentoTest.php) — `UC-NFTR-61 …`.
 - **Contrato:** `NfeEmissaoController::emitir`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-62 · A lista do lançamento traz só as naturezas que a emissão aceita · `must` `[T0]`
 
 - **Aceite:** **Dado** naturezas inativa, de entrada, de devolução, sem configuração da tela e de outra empresa **Quando** listo as naturezas do lançamento **Então** só aparece a que a emissão aceita; flag desligada, 404.
 - **Teste:** [`NaturezaLancamentoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaLancamentoTest.php) — `UC-NFTR-62 …`.
 - **Contrato:** `NaturezaOperacaoController::paraLancamento`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-63 · Sem a flag, o painel fiscal da venda segue como antes · `must` `[fiscal]`
 
@@ -779,28 +779,28 @@ last_run: "2026-11-23"
 - **Aceite:** **Dado** uma natureza com IBS/CBS pelo padrão do ano **Quando** a nota é de 2027 e a CBS de 2027 ainda não tem alíquota **Então** o motor recusa citando a resolução do Senado; **Dado** um ano fora da tabela **Então** recusa dizendo que o ano não tem padrão; **Dado** a CBS cadastrada **Então** calcula IBS 0,1% e a CBS da tabela; 2026 segue 0,1% e 0,9%.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-65 …`.
 - **Contrato:** `config('nfebrasil.ibs_cbs_por_ano')` + `MotorTributarioService::ibsCbsDoAno` (LC 214/2025, transição).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-66 · O IPI da natureza vai ao XML e soma no total da nota · `must` `[fiscal]`
 
 - **Aceite:** **Dado** uma natureza com IPI ligado e CST tributado (50) **Quando** a NF-e é montada **Então** o item leva o grupo IPI com cEnq, base, alíquota e valor, e o IPI entra no vIPI e no vNF (1.000 + 100 = 1.100); **Dado** CST não tributado (53) **Então** o grupo sai sem valor (IPINT); **Dado** CST isento (52) **Então** o motor não calcula IPI mesmo com alíquota na regra do NCM; **Dado** item que não é de natureza da tela **Então** nenhum grupo IPI e vIPI 0,00, como antes.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) e [`IpiNaturezaXmlTest`](../../../../../Modules/NfeBrasil/Tests/Feature/IpiNaturezaXmlTest.php) — `UC-NFTR-66 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela` (CST e cEnq do IPI) + `NfeService::montarItensNfe`/`adicionarItem` (grupo IPI, vIPI, vNF).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 4 testes. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-67 · "Tirar o ICMS da base" do PIS/COFINS vale no cálculo e no XML · `must` `[fiscal]`
 
 - **Aceite:** **Dado** uma natureza com "tirar o ICMS da base" ligado no PIS e na COFINS **Quando** a nota tem ICMS próprio de 120 sobre 1.000 **Então** a base do PIS/COFINS é 880 (PIS 5,72 e COFINS 26,40 no Presumido) e o XML leva essa base; **Dado** a opção desligada **Então** a base é o valor cheio (6,50 e 30,00); **Dado** CST sem ICMS próprio **Então** não há o que tirar.
 - **Teste:** [`NaturezaTelaMotorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaTelaMotorTest.php) — `UC-NFTR-67 …`.
 - **Contrato:** `MotorTributarioService::aplicarNaturezaTela` (`base_pis`/`base_cofins`) + `NfeService::montarItensNfe` (vBC do PIS/COFINS).
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-68 · A lista de naturezas traz o resumo da própria empresa · `must` `[T0]`
 
 - **Aceite:** **Dado** a flag ligada para a empresa da sessão **Quando** a seção pede a lista **Então** vem junto o
   resumo dela (nome, UF de origem pela mesma regra da emissão e IBS/CBS do ano da configuração), nunca o de outra empresa.
 - **Teste:** [`NaturezaOperacaoTelaTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaOperacaoTelaTest.php) — `UC-NFTR-68 …`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFTR-69 · A lista segue a forma do protótipo: resumo, abas com contagem e coluna Tributos · `must`
 
@@ -944,3 +944,7 @@ last_run: "2026-11-23"
 >
 > Os `Status: 🧪` só sobem pra ✅ quando o manifesto do G-7 (`scripts/casos-test-results.json`) for
 > regravado a partir do JUnit — ✅ é afirmação que exige prova.
+>
+> Em 2026-11-24 os 55 UC desta tela com veredito `pass` no manifesto (gerado em 2026-11-23) subiram
+> para ✅, cada um com a origem da prova na própria linha de Status. Continuam 🧪 os 9 sem entrada no
+> manifesto (UC-NFTR-18, e2e, e os que ainda não aparecem nele).

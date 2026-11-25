@@ -9,7 +9,11 @@ last_run: "2026-11-24"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 
-> ℹ️ **`last_run` 2026-11-13 → 2026-11-24 (G-6).** O `RegraForm.tsx` mudou em 2026-11-15 (#10879, os
+> ℹ️ **`last_run` 2026-11-13 → 2026-11-23 (G-6).** O `RegraForm.tsx` mudou em 2026-11-15 (#10879,
+> R-NFE-025b). A data nova é a do manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23
+> a partir do JUnit do CI), que tem `pass` para os 9 UC desta tela — execução posterior à mudança.
+
+> ℹ️ **`last_run` 2026-11-23 → 2026-11-24 (G-6).** O `RegraForm.tsx` mudou em 2026-11-15 (#10879, os
 > campos CST PIS/COFINS do UC-NFRF-09). Re-execução em 2026-11-24 no CT 100: UC-NFRF-01..08 e o novo
 > UC-NFRF-11 verdes; o UC-NFRF-09 pulou lá (migração `cst_pis` ausente no container) e segue com o
 > veredito da lane. Recibo no rodapé.
@@ -45,15 +49,15 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Contrato | Teste | Status |
 |----|-------------|------|----------|-------|--------|
-| UC-NFRF-01 | Criar/editar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · charter §Backend · US-NFE-010 | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFRF-02 | A regra nasce no meu tenant, nunca no de quem a rota apontar | must `[T0]` `[V0]` | ADR 0093 · SDD `CU-NFE-11` · charter §Non-Goals | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFRF-03 | Abrir a edição de regra alheia é 404 — e não vaza a alíquota dela | must `[T0]` | ADR 0093 · SDD `CU-NFE-11` | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFRF-04 | Apagar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · US-NFE-010 · SDD §5.4.1 | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFRF-05 | A regra grava e relê os 5 campos de IBS/CBS | must `[fiscal]` | US-FISCAL-021 · migration `2026_05_26_000001` · NT 2025.002 | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
-| UC-NFRF-07 | Editar a regra também grava IBS/CBS (não só criar) | must `[fiscal]` | US-FISCAL-021 · `TributacaoController::update` | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
-| UC-NFRF-06 | Formato de IBS/CBS inválido é recusado sem gravar | must `[fiscal]` | NT 2025.002 · padrão decimal das alíquotas (UC-NFCD-04) | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
-| UC-NFRF-08 | Os campos de IBS/CBS aparecem e salvam pela tela | should `[fiscal]` | US-FISCAL-021 · charter §Goals (alíquota decimal) · UC-NFRF-05 | `RegraTributariaIbsCbsValidacaoTest` · e2e `nfe-tributacao-regra.spec.ts` | 🧪 |
-| UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
+| UC-NFRF-01 | Criar/editar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · charter §Backend · US-NFE-010 | `TributacaoGatesContratoTest` | ✅ |
+| UC-NFRF-02 | A regra nasce no meu tenant, nunca no de quem a rota apontar | must `[T0]` `[V0]` | ADR 0093 · SDD `CU-NFE-11` · charter §Non-Goals | `TributacaoGatesContratoTest` | ✅ |
+| UC-NFRF-03 | Abrir a edição de regra alheia é 404 — e não vaza a alíquota dela | must `[T0]` | ADR 0093 · SDD `CU-NFE-11` | `TributacaoGatesContratoTest` | ✅ |
+| UC-NFRF-04 | Apagar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · US-NFE-010 · SDD §5.4.1 | `TributacaoGatesContratoTest` | ✅ |
+| UC-NFRF-05 | A regra grava e relê os 5 campos de IBS/CBS | must `[fiscal]` | US-FISCAL-021 · migration `2026_05_26_000001` · NT 2025.002 | `RegraTributariaIbsCbsValidacaoTest` | ✅ |
+| UC-NFRF-07 | Editar a regra também grava IBS/CBS (não só criar) | must `[fiscal]` | US-FISCAL-021 · `TributacaoController::update` | `RegraTributariaIbsCbsValidacaoTest` | ✅ |
+| UC-NFRF-06 | Formato de IBS/CBS inválido é recusado sem gravar | must `[fiscal]` | NT 2025.002 · padrão decimal das alíquotas (UC-NFCD-04) | `RegraTributariaIbsCbsValidacaoTest` | ✅ |
+| UC-NFRF-08 | Os campos de IBS/CBS aparecem e salvam pela tela | should `[fiscal]` | US-FISCAL-021 · charter §Goals (alíquota decimal) · UC-NFRF-05 | `RegraTributariaIbsCbsValidacaoTest` · e2e `nfe-tributacao-regra.spec.ts` | ✅ |
+| UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | ✅ |
 | UC-NFRF-10 | Duas regras com a mesma chave não convivem | must `[fiscal]` | charter §Pendências · ADR arq/0006 · `MotorTributarioService::buscarRegra` | `RegraTributariaUnicidadeTest` | 🧪 |
 | UC-NFRF-11 | Abrir a tela de regra (nova ou edição) exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
 
@@ -82,7 +86,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   que é precisamente o estado em que **três outras mutações do mesmo Controller já estão**
   (`destroy`, `toggleAutoEmission`, `aplicarTemplate` — SDD §5.4.1, varredura contada: `can(`/`abort`
   no arquivo = **0**). Este caso trava as duas que ainda gateiam antes que regridam para a média.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -105,7 +109,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   um formatador ou um "deixa mais legível" faz) transforma um campo controlado pelo cliente na
   fonte do tenant. O `validated()` não protege sozinho: basta alguém adicionar `business_id` às
   regras do FormRequest um dia.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -127,7 +131,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `actingAs`** e semeia as **duas** chaves de sessão do módulo (SDD §5.4.2), então mede as duas
   camadas. E assere o **conteúdo** da resposta, não só o status: um 404 renderizado com o payload
   já montado ainda vazaria.
-- **Status: 🧪** — ver §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("ver §Recibo.").
 
 ---
 
@@ -154,7 +158,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `toggleAutoEmission` e `aplicarTemplate`. Só `destroy` vira UC **aqui**, porque é a única cujo
   contrato o charter **desta tela** sustenta; as outras duas pertencem à `Tributacao/Index`
   (arquivo de outra sessão, não tocado) e estão registradas no SDD §5.4.1 + §9 R1.
-- **Status: 🧪** — o gate existe desde 2026-10-06: `destroy` recebe `DestroyRegraTributariaRequest`
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("o gate existe desde 2026-10-06: `destroy` recebe `DestroyRegraTributariaRequest`").
   (mesmo `authorize()` do store/update). O teste ganhou controle positivo (com a permissão, a mesma
   rota apaga). O texto *"Por que nasce ❌"* acima é a medição de 2026-07-28 e fica como estava; o
   SDD §5.4.1 recebeu a nota datada no mesmo PR. Vermelho→verde no §Recibo.
@@ -175,7 +179,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   (já lê os 5).
 - **Regressão que defende:** `store`/`update` gravam `$request->validated()` e o FormRequest não
   declarava os 5 campos — eles sumiam em silêncio e o motor lia nulo.
-- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.").
 
 ## UC-NFRF-07 · Editar a regra também grava IBS/CBS (não só criar) · `must` `[fiscal]`
 
@@ -187,7 +191,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   — `UC-NFRF-07 · update grava e preserva IBS/CBS`.
 - **Contrato:** `TributacaoController::update` (`$regra->update($request->validated())`).
 - **Regressão que defende:** o caminho de edição continuar descartando os campos.
-- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.").
 
 ## UC-NFRF-06 · Formato de IBS/CBS inválido é recusado sem gravar · `must` `[fiscal]`
 
@@ -201,7 +205,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** alíquota digitada como inteiro ("9") vira 900% de CBS na nota.
 - **Fora daqui:** exigir IBS/CBS por regime ou data (CRT 3, Simples em 2027) é `D-OPERACAO`; os
   campos no `RegraForm.tsx` são a thread 05 (UC-NFRF-08).
-- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.").
 
 ## UC-NFRF-08 · Os campos de IBS/CBS aparecem e salvam pela tela · `should` `[fiscal]`
 
@@ -221,7 +225,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Contrato:** US-FISCAL-021 · UC-NFRF-05 (o servidor aceita os 5) · charter §Goals.
 - **Regressão que defende:** o backend aceita e a tela nunca manda; ou a tela manda, a edição abre
   vazia e o "Atualizar" grava nulo por cima.
-- **Status: 🧪** — os testes citam o UC; o veredito é das lanes `PHP / Pest (NfeBrasil · MySQL)` e
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("os testes citam o UC; o veredito é das lanes `PHP / Pest (NfeBrasil · MySQL)` e").
   `e2e-gate`.
 
 ---
@@ -238,7 +242,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Contrato:** SPEC NfeBrasil R-NFE-025b · migration `2026_11_13_000001`.
 - **Regressão que defende:** o FormRequest não declarar os dois (somem do `validated()`) ou a prop
   da edição não trazê-los (o "Atualizar" grava nulo por cima, a armadilha do UC-NFRF-08).
-- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.
+- **Status: ✅** — veredito `pass` no manifesto G-7 (`scripts/casos-test-results.json`, gerado em 2026-11-23 a partir do JUnit), 1 teste. Até 2026-11-24 dizia 🧪 ("o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`.").
 
 ## UC-NFRF-10 · Duas regras com a mesma chave não convivem · `must` `[fiscal]`
 
