@@ -109,6 +109,6 @@ describe('UC-PIDX-31 · natureza fiscal', () => {
     cleanup();
     render(<FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={false} naturezaFiscal aplicar={() => {}} />);
     expect(screen.getByLabelText('Natureza fiscal')).toBeTruthy();
-    expect(chipsDosFiltros(filtros, opcoes).map((c) => c.rotulo)).toContain('Natureza fiscal: A decidir pelo contador');
+    expect(chipsDosFiltros(filtros, opcoes)).toContainEqual({ chave: 'natureza_fiscal', rotulo: 'Natureza fiscal', valor: 'A decidir pelo contador' });
   });
 });
