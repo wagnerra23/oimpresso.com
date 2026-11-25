@@ -72,7 +72,7 @@ describe('UC-PIDX-45 · excluir sem perder e restaurar', () => {
   it('"Excluídos" é uma situação do filtro e vira chip; a célula diz "excluído"', () => {
     expect(SITUACOES.map((s) => s.id)).toContain('excluido');
     const filtros = { active_state: 'excluido' } as unknown as FiltrosLista;
-    expect(chipsDosFiltros(filtros, OPCOES)).toContainEqual({ chave: 'active_state', rotulo: 'Situação: Excluídos' });
+    expect(chipsDosFiltros(filtros, OPCOES)).toContainEqual({ chave: 'active_state', rotulo: 'Situação', valor: 'Excluídos' });
     expect(subLinhaProduto(EXCLUIDA)).toContain('excluído');
     expect(subLinhaProduto(EXCLUIDA)).not.toContain('inativo');
   });

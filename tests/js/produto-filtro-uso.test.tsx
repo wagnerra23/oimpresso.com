@@ -48,8 +48,8 @@ describe('UC-PIDX-44 · filtro "Uso"', () => {
   });
 
   it('vira um chip "Uso: …" na linha "Filtrando por"', () => {
-    expect(chipsDosFiltros(filtros({ uso: 'servico' }), OPCOES)).toContainEqual({ chave: 'uso', rotulo: 'Uso: Serviço' });
-    expect(chipsDosFiltros(filtros({ uso: 'vender' }), OPCOES)).toContainEqual({ chave: 'uso', rotulo: 'Uso: Para vender' });
+    expect(chipsDosFiltros(filtros({ uso: 'servico' }), OPCOES)).toContainEqual({ chave: 'uso', rotulo: 'Uso', valor: 'Serviço' });
+    expect(chipsDosFiltros(filtros({ uso: 'vender' }), OPCOES)).toContainEqual({ chave: 'uso', rotulo: 'Uso', valor: 'Para vender' });
     expect(chipsDosFiltros(filtros(), OPCOES).map((c) => c.chave)).not.toContain('uso');
   });
 });

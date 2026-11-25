@@ -237,8 +237,12 @@ function Rolagem({ ativa, alturaMaxima, children }: { ativa: boolean; alturaMaxi
  *
  * `-my-0.5` faz os 16px ocuparem a altura de uma linha de texto do cabeçalho (12px): assim a linha
  * com a caixinha mede o mesmo que as outras.
+ *
+ * `mx-auto` centraliza: desde 2026-11-12 o `Checkbox` é `display: grid` (bloco), e bloco não obedece
+ * ao `text-center` da célula. Medido em produção 2026-11-24 em `/products`: 0px da caixinha até a
+ * borda esquerda da célula de 34px e 18px até a direita. Com a margem automática ficam 9 e 9.
  */
-const CLASSE_CAIXINHA = '-my-0.5 align-middle';
+const CLASSE_CAIXINHA = '-my-0.5 mx-auto align-middle';
 
 /**
  * Célula da caixinha (cabeçalho e linha): 34px sem margem lateral, a caixinha de 16px centrada.
