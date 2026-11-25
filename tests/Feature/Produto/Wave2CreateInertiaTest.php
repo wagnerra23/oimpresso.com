@@ -82,7 +82,9 @@ it('Page não guarda estado de tela no navegador; só o rascunho (rascunho.ts) u
 
 it('Page tem a seção "Configurações" aberta, sem bloco recolhível', function () {
     $source = readProdutoCreate();
-    expect($source)->toContain('<CardTitle>Configurações</CardTitle>');
+    // Desde o #11477 os blocos do cadastro são `SecaoCadastro` (Widget do protótipo), não `Card`:
+    // o título vem pela prop. O contrato é a seção existir sempre aberta, não a tag que a desenha.
+    expect($source)->toContain('<SecaoCadastro titulo="Configurações"');
     expect($source)->not->toContain('<details');
     expect($source)->not->toContain('Collapsible');
 });
