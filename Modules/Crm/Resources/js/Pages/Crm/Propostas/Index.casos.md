@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista de propostas mostra e-mails comerciais enviados a contatos (assunto, corpo, cc, bcc, anexos). Errar o escopo vaza proposta de outro negócio ou de colega; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-11-06"
+last_run: "2026-11-25"
+last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/14 (F3). O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
