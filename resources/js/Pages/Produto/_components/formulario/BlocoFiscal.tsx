@@ -3,7 +3,7 @@
 // Até 2026-11-04 esses campos ficavam dentro de "Preço & Imposto". O CFOP padrão de venda do
 // protótipo ainda não tem coluna no produto e fica fora desta tela.
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { SecaoCadastro } from './SecaoCadastro';
 import { Grid } from '@/Components/layout';
 import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
 import { CampoNcm } from './CampoNcm';
@@ -21,12 +21,8 @@ interface Props {
 
 export function BlocoFiscal({ data, definir, errors, naturezaFiscal }: Props) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Fiscal</CardTitle>
-      </CardHeader>
+    <SecaoCadastro titulo="Fiscal" nota="natureza · NCM · CEST · CFOP · origem">
       {/* Quatro colunas: NCM, CEST e a origem, que ocupa duas (OrigemMercadoriaField é col-span-2). */}
-      <CardContent>
         <Grid cols={4} gap={4}>
         {naturezaFiscal && (
           <div className="col-span-4">
@@ -46,7 +42,6 @@ export function BlocoFiscal({ data, definir, errors, naturezaFiscal }: Props) {
           error={errors.origem_mercadoria}
         />
         </Grid>
-      </CardContent>
-    </Card>
+    </SecaoCadastro>
   );
 }
