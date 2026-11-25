@@ -3,10 +3,11 @@
 // (create.blade.php / edit.blade.php), que o store() e o update() já tratam: o servidor decide a
 // tela seguinte.
 //
-// "Salvar e adicionar estoque inicial" (só no Novo): o destino (OpeningStockController@add) é Blade, e o
-// store() devolve Inertia::location quando o envio vem da tela React, para o navegador abrir a página
-// inteira (exceção ao Non-Goal do charter, 2026-11-06). Como no Blade, só com `product.opening_stock`, e
-// desligado quando o produto não controla estoque.
+// "Salvar e adicionar estoque inicial": o destino (OpeningStockController@add) é Blade, e o store() (Novo)
+// e o update() (Editar, UC-PEDIT-35) devolvem Inertia::location quando o envio vem da tela React, para o
+// navegador abrir a página inteira (exceção ao Non-Goal do charter, 2026-11-06). Como no Blade, só com
+// `product.opening_stock`, e desligado quando o produto não controla estoque (serviço não controla). O
+// Editar manda o `update_n_edit_opening_stock` do edit.blade.php.
 
 import { Link } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
@@ -21,7 +22,7 @@ interface Props {
   desabilitado: boolean;
   /** "Salvar e adicionar preços por grupo" só aparece com grupo de preço cadastrado, como no Blade. */
   comGruposDePreco?: boolean;
-  /** "Salvar e adicionar estoque inicial": aparece com `product.opening_stock` (Novo). */
+  /** "Salvar e adicionar estoque inicial": aparece com `product.opening_stock`. */
   podeEstoqueInicial?: boolean;
   /** O produto controla estoque: sem isso, o botão de estoque inicial fica desligado. */
   controlaEstoque?: boolean;
@@ -48,14 +49,14 @@ export function AcoesDoCadastro({
           Salvar e adicionar preços por grupo
         </Button>
       )}
-      {novo && podeEstoqueInicial && (
+      {podeEstoqueInicial && (
         <Button
           variant="outline"
           size="cowork"
           type="submit"
           form={form}
           name="submit_type"
-          value="submit_n_add_opening_stock"
+          value={novo ? 'submit_n_add_opening_stock' : 'update_n_edit_opening_stock'}
           disabled={desabilitado || !controlaEstoque}
         >
           Salvar e adicionar estoque inicial
