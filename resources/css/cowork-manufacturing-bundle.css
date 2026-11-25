@@ -29,6 +29,11 @@
    (C-04 das Pendências da Fabricação, 2026-11-25). */
 .mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:transparent}
 
+/* C-10: fundo escurecido atrás da gaveta, o do `Drawer` do DS (Drawer.jsx L32). O overlay é do
+   `ui/sheet` compartilhado e não aceita classe; aqui ele só muda quando o irmão seguinte é a gaveta
+   da Fabricação (`.mfg-root[data-contract="drawer"]`), então as outras telas ficam como estão. */
+[data-slot="sheet-overlay"]:has(+ .mfg-root[data-contract="drawer"]){background:oklch(0.15 0 0 / .45)}
+
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
 
 .mfg-bar{display:flex;align-items:center;gap:10px;padding:12px 20px}
