@@ -289,3 +289,17 @@ Status: 🧪
 > Teste: `Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php`.
 
 Status: 🧪
+
+## UC-CRMACO-24 · A linha traz a informação adicional · `should`
+
+**Dado** um acompanhamento com informação adicional gravada (`followup_additional_info`)
+**Quando** a lista carrega
+**Então** a coluna "Informação adicional" mostra os pares "chave: valor" separados por " · ", e fica vazia
+quando não há nada gravado.
+
+> Âncora: protótipo `crm-blade.jsx` → `TelaAcompanhamentos` (coluna `extra`) e a Blade, que lista o mesmo
+> campo como "chave : valor" (`ScheduleController` addColumn `additional_info`). Pendência CRM-32, medida em
+> produção em 2026-11-25: a coluna faltava na tela nova.
+> Teste: `Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php`.
+
+Status: 🧪

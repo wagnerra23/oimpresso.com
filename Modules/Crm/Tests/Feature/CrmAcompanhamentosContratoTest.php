@@ -299,6 +299,26 @@ it('UC-CRMACO-13 · a linha da lista traz os valores do modal de edição', func
     expect($linha['editar']['schedule_type'])->toBe('call');
 });
 
+it('UC-CRMACO-24 · a linha traz a informação adicional como a Blade a lista', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $id = acoAcompanhamento(ACO_BIZ, 'Com extra', $user);
+    DB::table('crm_schedules')->where('id', $id)->update(['followup_additional_info' => json_encode(['Origem' => 'Indicação', 'Prazo' => '2 dias'])]);
+    acoAcompanhamento(ACO_BIZ, 'Sem extra', $user);
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    $linhas = collect($this->actingAs($user)->get(ACO_ROTA, [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'acompanhamentos', 'X-Inertia-Partial-Component' => 'Crm/Acompanhamentos/Index',
+    ])->assertOk()->json('props.acompanhamentos.data'));
+
+    $com = $linhas->firstWhere('titulo', 'Com extra '.ACO_TAG);
+    $sem = $linhas->firstWhere('titulo', 'Sem extra '.ACO_TAG);
+    $this->assertNotNull($com, 'a linha com informação adicional não veio na lista');
+    $this->assertNotNull($sem, 'a linha sem informação adicional não veio na lista');
+    expect($com['informacao_adicional'])->toBe('Origem: Indicação · Prazo: 2 dias');
+    expect($sem['informacao_adicional'])->toBeNull();
+});
+
 // ── Escrita (thread Crm/07, PR-b): recorrente e registro, pelas mesmas rotas da Blade ─────────
 
 /** O corpo do modal de recorrente: sem contato e sem datas, como a Blade create_recursive_follow_up. */

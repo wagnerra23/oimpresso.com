@@ -927,6 +927,10 @@ class ScheduleController extends Controller
                     'categoria' => $s->followup_category,
                     'atribuidos' => $s->users->pluck('user_full_name')->values(),
                     'descricao' => strip_tags((string) $s->description),
+                    // CRM-32 (2026-11-25): a coluna "Informação adicional" do protótipo é o mesmo
+                    // `followup_additional_info` que a Blade lista como "chave : valor" (addColumn acima).
+                    'informacao_adicional' => collect($s->followup_additional_info ?? [])
+                        ->map(fn ($v, $k) => "{$k}: ".(is_scalar($v) ? $v : json_encode($v)))->values()->implode(' · ') ?: null,
                     'por' => $s->follow_up_by,
                     'em_dias' => $s->recursion_days,
                     'adicionado_por' => trim("{$s->surname} {$s->first_name} {$s->last_name}"),
