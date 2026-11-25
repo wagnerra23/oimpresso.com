@@ -37,6 +37,17 @@ class ProductController extends Controller
      */
     private const FLAG_CADASTRO_REACT = 'useV2ProdutoCadastro';
 
+    /**
+     * Novo e Editar abrem a tela React? Visita Inertia: sempre (ela não aceita HTML de volta). GET de
+     * página inteira: só com a chave da empresa ligada e sem `?classico=1`. A empresa vem da sessão.
+     */
+    private function abreCadastroReact(int $business_id): bool
+    {
+        return (bool) request()->header('X-Inertia')
+            || (! request()->boolean('classico')
+                && app(FeatureFlagService::class)->isOn(self::FLAG_CADASTRO_REACT, ['business_id' => $business_id]));
+    }
+
     /** Peso líquido (kg) e dimensões da embalagem (cm) — UC-PCAD-16 e UC-PEDIT-13, CU-PROD-17. */
     private const PESO_E_DIMENSOES = ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm'];
 
@@ -2200,11 +2211,7 @@ class ProductController extends Controller
         // Chave desligada (o default): o Blade segue sendo o cadastro, como antes. [F] 2026-10-16.
         // Em 2026-07-17 a tela React não mandava preço; o preço entrou em 2026-10-16 (Create.casos.md
         // UC-PCAD-09). Variável e composto seguem no Blade (UC-PCAD-11).
-        $telaReact = request()->header('X-Inertia')
-            || (! request()->boolean('classico')
-                && app(FeatureFlagService::class)->isOn(self::FLAG_CADASTRO_REACT, ['business_id' => $business_id]));
-
-        if ($telaReact) {
+        if ($this->abreCadastroReact((int) $business_id)) {
             return Inertia::render('Produto/Create', [
                 // UC-PCAD-30: a chave do rascunho no navegador, por empresa e usuário. A tela não monta a
                 // chave sozinha: a empresa vem da sessão, nunca do cliente (ADR 0093).
@@ -3147,7 +3154,10 @@ class ProductController extends Controller
         $alert_quantity = ! is_null($product->alert_quantity) ? $this->productUtil->num_f($product->alert_quantity, false, null, true) : null;
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
-        if (request()->header('X-Inertia')) {
+        // Mesma regra do Novo (abreCadastroReact): visita Inertia sempre abre o React; GET de página
+        // inteira (F5, link direto) abre o React só com a chave da empresa ligada; `?classico=1` volta
+        // ao Blade. Até 2026-11-25 o GET de página inteira servia sempre o Blade.
+        if ($this->abreCadastroReact((int) $business_id)) {
             $naturezaFiscal = $this->naturezaFiscalDoProduto((int) $business_id, (int) $id);
 
             return Inertia::render('Produto/Edit', [
