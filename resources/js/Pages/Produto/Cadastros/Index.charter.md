@@ -32,6 +32,8 @@ deixa quebrar o catálogo por engano. D3 [W] 2026-10-01: Page parametrizada, uma
   contador de cada aba vindo do estado do servidor. `/units`, `/variation-templates`, `/selling-price-group` e
   `/warranties` abrem a mesma tela, cada uma na sua aba.
 - **R3** Coluna "Produtos" clicável: abre o índice de produtos filtrado por aquele valor. Zero não é clicável.
+  Na aba Variações a coluna se chama "Em uso" (rótulo do protótipo) e abre `/products?type=variable` — o
+  índice não filtra por modelo de variação, então leva aos produtos variáveis, como o protótipo (`filtro: { type: "variable" }`).
 - **R4** Registro em uso não é excluído: a confirmação diz quantos produtos usam e não oferece o botão
   destrutivo. A recusa é do servidor (`UnitController@destroy` já recusava; `BrandController@destroy` e
   `VariationTemplateController@destroy` passam a recusar). Garantia não tem excluir: o `destroy` nunca foi implementado.

@@ -1,7 +1,7 @@
 // Drawer de criar/editar da tela Cadastros (playbook Produto · thread 10: PR-a Unidades e Marcas ·
 // PR-b Categorias, Variações e Garantias). Copy e campos de produto-cadastros.jsx (AbaVariacoes :219-232 ·
 // AbaUnidades :315-334 · AbaCategorias :379-393 · AbaMarcas :430-436 · AbaGarantias :468-478). O protótipo
-// abre um modal central; a ficha da thread pede o drawer PT-02 — a forma é a do PT-02, o conteúdo é o do protótipo.
+// também abre o `Drawer` do DS de 760px (`FormModal`, decisão [W] 2026-10-05) — forma e conteúdo vêm dele.
 //
 // Grava nas MESMAS rotas do modal clássico e com os mesmos nomes de campo (POST/PUT de /units, /brands,
 // /taxonomies, /variation-templates, /warranties e /selling-price-group). Grupos de preço (AbaGrupos :281-287): nome e
@@ -9,7 +9,8 @@
 // servidor lê; desmarcar na edição manda `define_base_unit=0` explícito (UC-PCADAP-12) — é ESTOQUE.
 
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { Plus } from 'lucide-react';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -18,6 +19,22 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline, Stack } from '@/Components/layout';
+import { cn } from '@/Lib/utils';
+import { CAMPO, GHOST, MD, PRIMARIO_BTN, ROTULO, SM, SUB } from './estilo';
+
+// Moldura do `Drawer` do DS (PT-02, 760px), medida no protótipo servido em 2026-11-25: o × numa faixa
+// própria de 14×18 com borda embaixo; título 600 17px/1.3 e subtítulo 12,5px em --text-dim num bloco
+// de 16×18; corpo em --bg-2 com 16×20 de respiro; rodapé com borda em cima, 12×18. Antes saía a
+// moldura do shadcn (título 16px, descrição 14px, sem bordas, fundo --background).
+const PAINEL = 'w-full gap-0 border-[var(--border)] bg-[var(--surface)] shadow-[-16px_0_40px_-12px_rgb(0_0_0/0.3)] sm:max-w-[760px]';
+const FAIXA_FECHAR = 'flex items-center border-b border-[var(--border)] px-[18px] py-[14px]';
+const FECHAR = 'ml-auto size-7 rounded-[6px] text-[16px] font-normal text-[var(--text-mute)] hover:bg-[var(--bg-2)] hover:text-[var(--text)] dark:hover:bg-[var(--bg-2)]';
+const CABECALHO = 'gap-1 px-[18px] py-4';
+const TITULO = 'text-[17px] leading-[1.3] font-semibold tracking-[-0.01em] text-[var(--text)]';
+const SUBTITULO = 'text-[12.5px] text-[var(--text-dim)]';
+const CORPO = 'flex-1 overflow-y-auto bg-[var(--bg-2)] px-5 py-4';
+const RODAPE = 'mt-0 flex-row justify-end gap-2 border-t border-[var(--border)] px-[18px] py-3';
+const KBD = 'ml-1 rounded-[3px] bg-[color-mix(in_oklch,currentColor_14%,transparent)] px-[5px] py-px font-mono text-[10.5px]';
 
 type Opcao = { id: number; rotulo: string };
 export type Pedido =
@@ -46,9 +63,9 @@ const META = {
 function Campo({ id, label, ajuda, children }: { id: string; label?: string; ajuda?: string; children: ReactNode }) {
   return (
     <Stack gap={1}>
-      {label && <Label htmlFor={id}>{label}</Label>}
+      {label && <Label htmlFor={id} className={ROTULO}>{label}</Label>}
       {children}
-      {ajuda && <p className="text-xs text-muted-foreground">{ajuda}</p>}
+      {ajuda && <p className={SUB}>{ajuda}</p>}
     </Stack>
   );
 }
@@ -58,8 +75,8 @@ function Chave({ id, checked, onChange, label, sub, disabled }: { id: string; ch
     <Inline gap={3} align="start">
       <Switch id={id} variant="cowork" checked={checked} onCheckedChange={onChange} disabled={disabled} className="mt-0.5" />
       <Stack gap={0}>
-        <Label htmlFor={id}>{label}</Label>
-        {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
+        <Label htmlFor={id} className="text-[13px] font-medium text-[var(--text)]">{label}</Label>
+        {sub && <span className={SUB}>{sub}</span>}
       </Stack>
     </Inline>
   );
@@ -68,7 +85,7 @@ function Chave({ id, checked, onChange, label, sub, disabled }: { id: string; ch
 function Lista({ id, value, opcoes, onChange }: { id: string; value: string; opcoes: { value: string; rotulo: string }[]; onChange: (v: string) => void }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger id={id}><SelectValue /></SelectTrigger>
+      <SelectTrigger id={id} className={cn(CAMPO, 'w-full')}><SelectValue /></SelectTrigger>
       <SelectContent>{opcoes.map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.rotulo}</SafeSelectItem>)}</SelectContent>
     </Select>
   );
@@ -111,7 +128,7 @@ function completo(p: Pedido): boolean {
   }
 }
 
-export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: Pedido; onClose: () => void; onSalvo: () => void }) {
+export default function CadastroDrawer({ pedido, container, onClose, onSalvo }: { pedido: Pedido; container?: HTMLElement | null; onClose: () => void; onSalvo: () => void }) {
   const [p, setP] = useState<Pedido>(pedido);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -142,9 +159,9 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
     campos = (
       <>
         <Grid fit="sm" gap={4}>
-          <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" autoFocus value={v.nome} placeholder="Metro quadrado" onChange={(e) => set({ nome: e.target.value })} /></Campo>
+          <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" className={CAMPO} autoFocus value={v.nome} placeholder="Metro quadrado" onChange={(e) => set({ nome: e.target.value })} /></Campo>
           <Campo id="dr-simbolo" label="Símbolo *" ajuda="Como aparece na tabela, na OS e na nota.">
-            <Input id="dr-simbolo" value={v.simbolo} placeholder="m²" onChange={(e) => set({ simbolo: e.target.value })} />
+            <Input id="dr-simbolo" className={CAMPO} value={v.simbolo} placeholder="m²" onChange={(e) => set({ simbolo: e.target.value })} />
           </Campo>
         </Grid>
         <Chave id="dr-decimal" checked={v.decimal} onChange={(x) => set({ decimal: x })} label="Aceita quantidade decimal" sub="Ligado para m² e kg; desligado para peça e caixa." />
@@ -152,7 +169,7 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
           label="Cadastrar como múltiplo de uma unidade base" sub="Ex.: 1 caixa = 1.000 peças. A conversão vale na compra e na venda." />
         {!!v.base_id && (
           <Grid fit="sm" gap={4}>
-            <Campo id="dr-mult" label="Quantidade da base"><Input id="dr-mult" inputMode="decimal" value={v.multiplicador} placeholder="1000" onChange={(e) => set({ multiplicador: e.target.value })} /></Campo>
+            <Campo id="dr-mult" label="Quantidade da base"><Input id="dr-mult" className={CAMPO} inputMode="decimal" value={v.multiplicador} placeholder="1000" onChange={(e) => set({ multiplicador: e.target.value })} /></Campo>
             <Campo id="dr-base-id" label="Unidade base">
               <Lista id="dr-base-id" value={String(v.base_id)} onChange={(x) => set({ base_id: Number(x) })} opcoes={bases.map((b) => ({ value: String(b.id), rotulo: b.rotulo }))} />
             </Campo>
@@ -163,8 +180,8 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
   } else if (p.tipo === 'marca') {
     campos = (
       <>
-        <Campo id="dr-nome" label="Nome da marca *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Vinilcor" onChange={(e) => set({ nome: e.target.value })} /></Campo>
-        <Campo id="dr-desc" label="Descrição curta"><Input id="dr-desc" value={p.v.descricao} placeholder="Lonas e banners." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
+        <Campo id="dr-nome" label="Nome da marca *"><Input id="dr-nome" className={CAMPO} autoFocus value={p.v.nome} placeholder="Vinilcor" onChange={(e) => set({ nome: e.target.value })} /></Campo>
+        <Campo id="dr-desc" label="Descrição curta"><Input id="dr-desc" className={CAMPO} value={p.v.descricao} placeholder="Lonas e banners." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
         {p.oficina && <Chave id="dr-oficina" checked={p.v.oficina} onChange={(x) => set({ oficina: x })} label="Usar como marca de aparelho na Oficina" sub="Aparece na abertura de OS de reparo, além do catálogo." />}
       </>
     );
@@ -173,10 +190,10 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
     campos = (
       <>
         <Grid fit="sm" gap={4}>
-          <Campo id="dr-nome" label="Nome da categoria *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Comunicação visual" onChange={(e) => set({ nome: e.target.value })} /></Campo>
-          <Campo id="dr-codigo" label="Código" ajuda="Curto e único — entra no SKU gerado."><Input id="dr-codigo" value={p.v.codigo} placeholder="CV" onChange={(e) => set({ codigo: e.target.value })} /></Campo>
+          <Campo id="dr-nome" label="Nome da categoria *"><Input id="dr-nome" className={CAMPO} autoFocus value={p.v.nome} placeholder="Comunicação visual" onChange={(e) => set({ nome: e.target.value })} /></Campo>
+          <Campo id="dr-codigo" label="Código" ajuda="Curto e único — entra no SKU gerado."><Input id="dr-codigo" className={CAMPO} value={p.v.codigo} placeholder="CV" onChange={(e) => set({ codigo: e.target.value })} /></Campo>
         </Grid>
-        <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" value={p.v.descricao} onChange={(e) => set({ descricao: e.target.value })} /></Campo>
+        <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" className="rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] shadow-none dark:bg-[var(--surface)]" value={p.v.descricao} onChange={(e) => set({ descricao: e.target.value })} /></Campo>
         {/* Hierarquia de 2 níveis: categoria com subcategoria não vira subcategoria (o servidor também recusa). */}
         <Chave id="dr-sub" checked={!!p.v.pai_id} onChange={(x) => set({ pai_id: x ? (pais[0]?.id ?? null) : null })} label="Cadastrar como subcategoria"
           disabled={p.temFilhas || !pais.length} sub={p.temFilhas ? 'Tem subcategorias dentro — mova-as antes.' : undefined} />
@@ -191,38 +208,38 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
     const valores = p.v.valores;
     campos = (
       <>
-        <Campo id="dr-nome" label="Nome da variação *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Cor, Acabamento, Gramatura…" onChange={(e) => set({ nome: e.target.value })} /></Campo>
-        <Stack gap={1}>
-          <Label>Valores da variação *</Label>
+        <Campo id="dr-nome" label="Nome da variação *"><Input id="dr-nome" className={CAMPO} autoFocus value={p.v.nome} placeholder="Cor, Acabamento, Gramatura…" onChange={(e) => set({ nome: e.target.value })} /></Campo>
+        <Stack gap={1} className="mt-3 gap-1.5">
+          <Label className={ROTULO}>Valores da variação *</Label>
           {valores.map((x, i) => (
-            <Inline key={i} gap={2}>
-              <Input aria-label={`Valor ${i + 1}`} value={x.nome} placeholder={`Valor ${i + 1}`}
+            <Inline key={i} gap={2} align="end" className="gap-1.5">
+              <Input className={CAMPO} aria-label={`Valor ${i + 1}`} value={x.nome} placeholder={`Valor ${i + 1}`}
                 onChange={(e) => set({ valores: valores.map((y, k) => (k === i ? { ...y, nome: e.target.value } : y)) })} />
               {/* Valor já gravado não sai por aqui: o servidor não remove valor de modelo (só renomeia). */}
-              <Button type="button" variant="outline" size="sm" aria-label={`Remover valor ${i + 1}`} disabled={!!x.id || valores.length === 1}
+              <Button type="button" variant="outline" className={cn(SM, GHOST)} aria-label={`Remover valor ${i + 1}`} disabled={!!x.id || valores.length === 1}
                 title={x.id ? 'Valor já gravado — renomeie; remover não é feito por aqui.' : undefined}
                 onClick={() => set({ valores: valores.filter((_, k) => k !== i) })}>✕</Button>
             </Inline>
           ))}
-          <Button type="button" variant="outline" size="sm" className="self-start" disabled={!valores[valores.length - 1]?.nome.trim()}
-            onClick={() => set({ valores: [...valores, { nome: '' }] })}>Adicionar valor</Button>
+          <Button type="button" variant="outline" className={cn(SM, GHOST, 'self-start')} disabled={!valores[valores.length - 1]?.nome.trim()}
+            onClick={() => set({ valores: [...valores, { nome: '' }] })}><Plus className="size-3" aria-hidden />Adicionar valor</Button>
         </Stack>
       </>
     );
   } else if (p.tipo === 'grupo') {
     campos = (
       <>
-        <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Atacado" onChange={(e) => set({ nome: e.target.value })} /></Campo>
-        <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" value={p.v.descricao} placeholder="Quando este grupo se aplica." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
+        <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" className={CAMPO} autoFocus value={p.v.nome} placeholder="Atacado" onChange={(e) => set({ nome: e.target.value })} /></Campo>
+        <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" className="rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] shadow-none dark:bg-[var(--surface)]" value={p.v.descricao} placeholder="Quando este grupo se aplica." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
       </>
     );
   } else {
     campos = (
       <>
-        <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="12 meses" onChange={(e) => set({ nome: e.target.value })} /></Campo>
-        <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" value={p.v.descricao} placeholder="O que cobre e o que não cobre." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
+        <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" className={CAMPO} autoFocus value={p.v.nome} placeholder="12 meses" onChange={(e) => set({ nome: e.target.value })} /></Campo>
+        <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" className="rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] shadow-none dark:bg-[var(--surface)]" value={p.v.descricao} placeholder="O que cobre e o que não cobre." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
         <Grid fit="sm" gap={4}>
-          <Campo id="dr-dur" label="Duração *"><Input id="dr-dur" inputMode="numeric" value={p.v.duracao} placeholder="12" onChange={(e) => set({ duracao: e.target.value })} /></Campo>
+          <Campo id="dr-dur" label="Duração *"><Input id="dr-dur" className={CAMPO} inputMode="numeric" value={p.v.duracao} placeholder="12" onChange={(e) => set({ duracao: e.target.value })} /></Campo>
           <Campo id="dr-tipo" label="Unidade do prazo *">
             <Lista id="dr-tipo" value={p.v.tipo_prazo} onChange={(x) => set({ tipo_prazo: x })}
               opcoes={[{ value: 'days', rotulo: 'Dias' }, { value: 'months', rotulo: 'Meses' }, { value: 'years', rotulo: 'Anos' }]} />
@@ -234,18 +251,27 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-[760px]" data-contract="produto-cadastros-drawer">
-        <SheetHeader>
-          <SheetTitle>{p.id ? meta.editar : meta.novo}</SheetTitle>
-          <SheetDescription>{meta.ajuda}</SheetDescription>
+      <SheetContent container={container} showCloseButton={false} className={PAINEL} data-contract="produto-cadastros-drawer">
+        <div className={FAIXA_FECHAR}>
+          <SheetClose asChild>
+            <Button type="button" variant="ghost" size="icon" aria-label="Fechar" className={FECHAR}>×</Button>
+          </SheetClose>
+        </div>
+        <SheetHeader className={CABECALHO}>
+          <SheetTitle className={TITULO}>{p.id ? meta.editar : meta.novo}</SheetTitle>
+          <SheetDescription className={SUBTITULO}>{meta.ajuda}</SheetDescription>
         </SheetHeader>
-        <Stack asChild gap={4} className="px-4"><form id="cadastro-drawer" onSubmit={salvar}>
-          {campos}
-          {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
-        </form></Stack>
-        <SheetFooter className="flex-row justify-end">
-          <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button type="submit" form="cadastro-drawer" disabled={salvando || !completo(p)}>{salvando ? 'Salvando…' : 'Salvar'}</Button>
+        <div className={CORPO}>
+          <Stack asChild gap={4}><form id="cadastro-drawer" onSubmit={salvar}>
+            {campos}
+            {erro && <p role="alert" className="text-[12.5px] text-[var(--color-destructive-fg)]">{erro}</p>}
+          </form></Stack>
+        </div>
+        <SheetFooter className={RODAPE}>
+          <Button type="button" variant="outline" className={cn(MD, GHOST)} onClick={onClose}>Cancelar</Button>
+          <Button type="submit" form="cadastro-drawer" className={cn(MD, PRIMARIO_BTN)} disabled={salvando || !completo(p)}>
+            {salvando ? 'Salvando…' : <>Salvar<kbd className={KBD}>↵</kbd></>}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

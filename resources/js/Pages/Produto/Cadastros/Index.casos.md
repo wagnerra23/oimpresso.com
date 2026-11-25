@@ -319,5 +319,5 @@ Status: 🧪
 
 - [BACKLOG] Remover valor já gravado de um modelo de variação pelo drawer — o servidor só renomeia; remover pede rota e regra de uso.
 - [BACKLOG] Desativar/ativar grupo de preço na própria linha (UC-CAD-09) — hoje a linha mostra Ativo/Inativo e a troca vai pela tela clássica.
-- [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — a lista `/products` não tem esse filtro. (Até 2026-11-19 o destino era `/products/unificado`, apagada no #11251; unidade, categoria e marca passaram a abrir `/products?unit_id=…`, `category_id=…` e `brand_id=…`, que a lista lê da URL.)
+- [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — a lista `/products` não tem esse filtro. Desde 2026-11-25 o número abre `/products?type=variable` (todos os variáveis), como o protótipo; o filtro por modelo segue pendente. (Até 2026-11-19 o destino era `/products/unificado`, apagada no #11251; unidade, categoria e marca passaram a abrir `/products?unit_id=…`, `category_id=…` e `brand_id=…`, que a lista lê da URL.)
 - [BACKLOG] Marca da Oficina na lista (UC-CAD-12), atalho `/` e busca sem resultado (UC-CAD-06/07), estados primeira-vez/carregando/densidade (UC-CAD-14..16) — a tela já tem `/`, busca e primeira-vez; falta teste de browser.

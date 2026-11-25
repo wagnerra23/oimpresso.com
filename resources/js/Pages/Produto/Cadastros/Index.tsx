@@ -14,13 +14,14 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { CircleAlert, Plus, TriangleAlert } from 'lucide-react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialog, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { PageHeader } from '@/Components/PageHeader';
@@ -28,6 +29,9 @@ import SubNav, { type SubNavItem } from '@/Components/shared/SubNav';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Inline, Stack } from '@/Components/layout';
 import CadastroDrawer, { type Pedido } from './_components/CadastroDrawer';
+import { AJUDA, CAMPO, CHIP, DANGER, GHOST, MD, MONO, PRIMARIO, PRIMARIO_BTN, SM, SUB, TD, TH } from './_components/estilo';
+import { MOLDURA_JANELA, TITULO_JANELA } from '../_components/lista/moldura-janela';
+import { cn } from '@/Lib/utils';
 
 type AbaViva = 'variacoes' | 'grupos' | 'unidades' | 'categorias' | 'marcas' | 'garantias';
 interface Pode { view: boolean; create: boolean; update: boolean; delete: boolean }
@@ -62,6 +66,8 @@ type Linha = { id: number; nome: string; busca: string; em_uso: number; filhas: 
 // Copy de cada aba, tirada de produto-cadastros.jsx (AbaVariacoes :214 · AbaGrupos :264 · AbaUnidades :310 ·
 // AbaCategorias :374 · AbaMarcas :425 · AbaGarantias :463). `rota` recebe o DELETE (JSON do legado);
 // `uso: false` = aba sem coluna Produtos; `corpo` = confirmação de excluir livre.
+// `colunas`: [rótulo, largura em px] — as larguras do `columns[]` de cada aba do protótipo; sem
+// largura, a coluna fica com o resto. A coluna de uso é a penúltima e alinha à direita.
 const LIVRE = 'Nenhum produto usa este registro — sai limpo. Ação sem volta.';
 const ABA = {
   variacoes: {
@@ -69,7 +75,7 @@ const ABA = {
     busca: 'Buscar variação ou valor…', uso: true, corpo: 'O modelo deixa de aparecer no cadastro novo. Nenhum produto usa esses valores hoje.',
     ajuda: 'Modelo reaproveitado no cadastro de produto variável: escolher “Cor” já traz os valores abaixo como variações.',
     primeiro: 'Modelo de variação é o atalho do produto variável: cadastre “Cor” uma vez e todo produto novo já oferece os valores.',
-    colunas: ['Variação', 'Valores', 'Produtos', 'Ações'],
+    colunas: [['Variação', 200], ['Valores'], ['Em uso', 90], ['Ações', 160]],
   },
   grupos: {
     o: 'grupos de preço', base: 'product', rota: '/selling-price-group', novo: 'Novo grupo',
@@ -77,35 +83,35 @@ const ABA = {
     corpo: 'Os preços digitados neste grupo somem junto. Vendas já emitidas mantêm o valor praticado. Se a ideia é só esconder, desative.',
     ajuda: 'Cada grupo ativo vira uma coluna em Preços por grupo e uma opção de preço no PDV e no orçamento. Desativar esconde o grupo sem apagar os preços já digitados.',
     primeiro: 'Sem grupo cadastrado todo mundo paga o preço de tabela. Crie “Atacado” pra ter um segundo preço no PDV e no orçamento.',
-    colunas: ['Grupo', 'Descrição', 'Situação', 'Ações'],
+    colunas: [['Grupo', 200], ['Descrição'], ['Situação', 140], ['Ações', 160]],
   },
   unidades: {
     o: 'unidades', base: 'unit', rota: '/units', novo: 'Nova unidade',
     busca: 'Buscar unidade…', uso: true, corpo: LIVRE,
     ajuda: 'Unidade decimal aceita quantidade fracionada (m², kg). Múltiplo de unidade base converte compra em caixa para venda em peça.',
     primeiro: 'Todo produto precisa de unidade. Comece pelas três da gráfica: Unidade (Un), Metro quadrado (m²) e Metro linear (m).',
-    colunas: ['Unidade', 'Aceita decimal', 'Múltiplo da base', 'Produtos', 'Ações'],
+    colunas: [['Unidade', 210], ['Aceita decimal', 130], ['Múltiplo da base'], ['Produtos', 100], ['Ações', 160]],
   },
   categorias: {
     o: 'categorias', base: 'category', rota: '/taxonomies', novo: 'Nova categoria',
     busca: 'Buscar categoria ou código…', uso: true, corpo: LIVRE,
     ajuda: 'Categoria e subcategoria do produto — as mesmas do filtro do índice e do relatório de lucro por categoria. Código curto entra no SKU automático.',
     primeiro: 'Categoria é o que faz o relatório de lucro por categoria existir e o SKU sair automático. Comece pelas famílias que você orça.',
-    colunas: ['Categoria', 'Código', 'Descrição', 'Produtos', 'Ações'],
+    colunas: [['Categoria', 240], ['Código', 110], ['Descrição'], ['Produtos', 100], ['Ações', 160]],
   },
   marcas: {
     o: 'marcas', base: 'brand', rota: '/brands', novo: 'Nova marca',
     busca: 'Buscar marca…', uso: true, corpo: LIVRE,
     ajuda: 'Marca do produto — filtro do índice, relatório por marca e, quando marcada, lista de marcas de aparelho da Oficina.',
     primeiro: 'Marca é opcional no produto, mas é ela que faz o relatório por marca e a lista de aparelhos da Oficina.',
-    colunas: ['Marca', 'Descrição curta', 'Produtos', 'Ações'],
+    colunas: [['Marca', 220], ['Descrição curta'], ['Produtos', 100], ['Ações', 160]],
   },
   garantias: {
     o: 'garantias', base: 'warranty', rota: '/warranties', novo: 'Nova garantia',
     busca: 'Buscar garantia…', uso: false, corpo: LIVRE,
     ajuda: 'Prazo de garantia do produto — imprime na OS e na nota, e serve de base pro atendimento aceitar ou recusar retorno.',
     primeiro: 'Sem prazo cadastrado o atendimento decide retorno de cabeça. Cadastre os prazos que você já pratica.',
-    colunas: ['Garantia', 'Descrição', 'Duração', 'Ações'],
+    colunas: [['Garantia', 200], ['Descrição'], ['Duração', 140], ['Ações', 160]],
   },
 } as const;
 
@@ -140,38 +146,38 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
 
   const linhas: Linha[] | null = aba === 'variacoes'
     ? variacoes?.map((v) => ({ id: v.id, nome: v.nome, busca: `${v.nome} ${v.valores.join(' ')}`, em_uso: v.em_uso, filhas: 0,
-      filtro: '', celulas: [
-        <Stack gap={0}><b>{v.nome}</b><span className="text-xs text-muted-foreground">{v.valores.length} valor(es)</span></Stack>,
-        <Inline wrap gap={1}>{v.valores.map((x, i) => <span key={i} className="rounded border border-border px-1.5 text-xs">{x}</span>)}</Inline>,
+      filtro: 'type=variable', celulas: [
+        <><b className={PRIMARIO}>{v.nome}</b><span className={SUB}>{v.valores.length} valor(es)</span></>,
+        <Inline wrap gap={1}>{v.valores.map((x, i) => <span key={i} className={CHIP}>{x}</span>)}</Inline>,
       ] })) ?? null
     : aba === 'grupos'
       ? grupos?.map((g) => ({ id: g.id, nome: g.nome, busca: `${g.nome} ${g.descricao}`, em_uso: 0, filhas: 0, filtro: '', celulas: [
-        <b className={g.ativo ? undefined : 'text-muted-foreground'}>{g.nome}</b>, g.descricao || '—', g.ativo ? 'Ativo' : 'Inativo',
+        <b className={cn(PRIMARIO, !g.ativo && 'text-[var(--text-dim)]')}>{g.nome}</b>, g.descricao || '—', g.ativo ? 'Ativo' : 'Inativo',
       ] })) ?? null
     : aba === 'garantias'
       ? garantias?.map((w) => ({ id: w.id, nome: w.nome, busca: `${w.nome} ${w.descricao}`, em_uso: 0, filhas: 0, filtro: '', celulas: [
-        <Stack gap={0}><b>{w.nome}</b><span className="text-xs text-muted-foreground">{w.duracao ?? 'sem prazo'}</span></Stack>,
-        w.descricao || '—', <span className="font-mono text-xs">{w.duracao ?? '—'}</span>,
+        <><b className={PRIMARIO}>{w.nome}</b><span className={SUB}>{w.duracao ?? 'sem prazo'}</span></>,
+        w.descricao || '—', <span className={MONO}>{w.duracao ?? '—'}</span>,
       ] })) ?? null
     : aba === 'unidades'
     ? unidades?.map((u) => ({ id: u.id, nome: u.nome, busca: u.nome, em_uso: u.em_uso, filhas: 0, filtro: `unit_id=${u.id}`, celulas: [
-      <><b>{u.nome}</b> <span className="text-muted-foreground">({u.simbolo})</span></>,
+      <><b className={PRIMARIO}>{u.nome} <span className="font-normal text-[var(--text-dim)]">({u.simbolo})</span></b></>,
       u.decimal ? 'Sim' : 'Não',
-      <span className="font-mono text-xs">{u.base ?? '—'}</span>,
+      <span className={MONO}>{u.base ?? '—'}</span>,
     ] })) ?? null
     : aba === 'categorias'
       ? categorias?.map((c) => ({ id: c.id, nome: c.nome, busca: `${c.nome} ${c.codigo}`, em_uso: c.em_uso, filhas: c.filhas,
         filtro: `category_id=${c.pai_id ?? c.id}`, celulas: [
-          <Stack gap={0}>
-            <b className={c.pai_id ? 'pl-4' : undefined}>{c.pai_id ? `↳ ${c.nome}` : c.nome}</b>
-            <span className={`text-xs text-muted-foreground${c.pai_id ? ' pl-4' : ''}`}>
+          <>
+            <b className={cn(PRIMARIO, c.pai_id && 'pl-4')}>{c.pai_id ? `↳ ${c.nome}` : c.nome}</b>
+            <span className={cn(SUB, c.pai_id && 'pl-4')}>
               {c.pai_id ? `em ${c.pai ?? 'categoria excluída'}` : c.filhas > 0 ? `categoria · ${c.filhas} subcategoria(s)` : 'categoria'}
             </span>
-          </Stack>,
-          <span className="font-mono text-xs">{c.codigo || '—'}</span>,
+          </>,
+          <span className={MONO}>{c.codigo || '—'}</span>,
           c.descricao || '—',
         ] })) ?? null
-      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `brand_id=${m.id}`, celulas: [<b>{m.nome}</b>, m.descricao || '—'] })) ?? null;
+      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `brand_id=${m.id}`, celulas: [<b className={PRIMARIO}>{m.nome}</b>, m.descricao || '—'] })) ?? null;
 
   // Drawer (thread 10). Base válida = unidade que não é múltiplo de outra (protótipo :332); pai válido =
   // categoria principal (o mesmo filtro da lista de pais do modal clássico).
@@ -208,8 +214,14 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
     }
     return null;
   };
-  const botaoEscrita = (rotulo: string, id?: number, props: { size?: 'sm'; variant?: 'outline'; className?: string } = {}) => (
-    <Button {...props} onClick={() => setDrawer(abrir(id))}>{rotulo}</Button>);
+  const botaoEscrita = (rotulo: ReactNode, id?: number, className?: string, variant: 'default' | 'outline' = 'outline') => (
+    <Button variant={variant} className={className} onClick={() => setDrawer(abrir(id))}>{rotulo}</Button>);
+  const novo = <><Plus className="size-[13px]" aria-hidden />{cfg.novo}</>;
+
+  // Drawer e janela são portais: montam dentro do `.cockpit`, onde os tokens do DS existem
+  // (lápide §5 2026-10-19). No <body> o fundo e as cores dos dois saíam vazios.
+  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
 
   const termo = busca.trim().toLowerCase();
   const filtradas = linhas?.filter((l) => !termo || l.busca.toLowerCase().includes(termo)) ?? [];
@@ -256,48 +268,51 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
               description={`Seu papel não tem ${aba === 'grupos' ? 'product.create' : `${cfg.base}.view`} — quem libera é o administrador, em Papéis.`} />
           ) : (
             <>
-              <Inline wrap gap={2} data-contract="produto-cadastros-barra">
-                <Input ref={buscaRef} className="max-w-xs" value={busca} placeholder={cfg.busca} aria-label={cfg.busca}
+              <Inline wrap gap={2} align="end" className="gap-[10px]" data-contract="produto-cadastros-barra">
+                <Input ref={buscaRef} className={cn(CAMPO, 'max-w-[300px] flex-[1_1_260px]')} value={busca} placeholder={cfg.busca} aria-label={cfg.busca}
                   onChange={(e) => setBusca(e.target.value)} />
-                <span className="text-xs text-muted-foreground"><kbd>/</kbd> foca a busca</span>
+                <span className={cn(AJUDA, 'pb-2 whitespace-nowrap')}><kbd>/</kbd> foca · <kbd>⌘K</kbd> troca de tela</span>
                 {pode.create ? (
-                  botaoEscrita(cfg.novo, undefined, { size: 'sm', className: 'ml-auto' })
+                  botaoEscrita(novo, undefined, cn(SM, PRIMARIO_BTN, 'ml-auto'), 'default')
                 ) : (
-                  <Button size="sm" className="ml-auto" disabled title={`Seu papel não tem ${cfg.base}.create`}>{cfg.novo}</Button>
+                  <Button className={cn(SM, PRIMARIO_BTN, 'ml-auto')} disabled title={`Seu papel não tem ${cfg.base}.create — quem libera é o administrador, em Papéis.`}>{novo}</Button>
                 )}
               </Inline>
-              <p className="text-sm text-muted-foreground" data-contract="produto-cadastros-ajuda">{cfg.ajuda}</p>
+              <p className={AJUDA} data-contract="produto-cadastros-ajuda">{cfg.ajuda}</p>
               {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
 
               <div data-contract="produto-cadastros-tabela">
                 <Deferred data={aba} fallback={<Skeleton className="h-48 w-full" />}>
                   {!linhas?.length ? (
                     <EmptyState title={`Nenhum registro de ${cfg.o}`} description={cfg.primeiro}
-                      action={pode.create ? botaoEscrita(cfg.novo) : undefined} />
+                      action={pode.create ? botaoEscrita(novo, undefined, cn(MD, PRIMARIO_BTN), 'default') : undefined} />
                   ) : !filtradas.length ? (
                     <EmptyState variant="search" icon="search-x" title="Nada com esse termo"
                       description={`Nenhuma das ${linhas.length} ${cfg.o} bate com “${busca}”.`}
-                      action={<Button variant="outline" onClick={() => setBusca('')}>Limpar busca</Button>} />
+                      action={<Button variant="outline" className={cn(MD, GHOST)} onClick={() => setBusca('')}>Limpar busca</Button>} />
                   ) : (
-                    <table className="w-full text-sm">
-                      <thead className="text-left text-xs text-muted-foreground">
-                        <tr>{cfg.colunas.map((c) => <th key={c} className="border-b border-border py-2 pr-3 font-medium">{c}</th>)}</tr>
+                    <table className="w-full border-separate border-spacing-0 text-[12.5px]">
+                      <thead>
+                        <tr>{cfg.colunas.map(([rotulo, largura], i) => (
+                          <th key={rotulo} scope="col" style={largura ? { width: largura } : undefined}
+                            className={cn(TH, cfg.uso && i === cfg.colunas.length - 2 && 'text-right')}>{rotulo}</th>
+                        ))}</tr>
                       </thead>
                       <tbody>
                         {filtradas.map((l) => (
-                          <tr key={l.id} className="border-b border-border">
-                            {l.celulas.map((c, i) => <td key={i} className="py-2 pr-3">{c}</td>)}
+                          <tr key={l.id} className="hover:[&>td]:bg-[var(--bg-2)]">
+                            {l.celulas.map((c, i) => <td key={i} className={TD}>{c}</td>)}
                             {cfg.uso && (
-                              <td className="py-2 pr-3 text-right tabular-nums">
+                              <td className={cn(TD, 'text-right tabular-nums')}>
                                 {l.em_uso > 0 && l.filtro
-                                  ? <Link href={`/products?${l.filtro}`} className="text-primary underline-offset-2 hover:underline">{l.em_uso}</Link>
-                                  : l.em_uso}
+                                  ? <Button asChild variant="outline" className={cn(SM, GHOST)}><Link href={`/products?${l.filtro}`}>{l.em_uso}</Link></Button>
+                                  : <span className={l.em_uso > 0 ? undefined : 'text-[var(--text-dim)]'}>{l.em_uso}</span>}
                               </td>
                             )}
-                            <td className="py-2 pr-3">
-                              <Inline gap={2}>
-                                {pode.update && botaoEscrita('Editar', l.id, { variant: 'outline', size: 'sm' })}
-                                {pode.delete && <Button variant="outline" size="sm" onClick={() => setExcluir(l)}>Excluir</Button>}
+                            <td className={TD}>
+                              <Inline gap={2} className="gap-1.5">
+                                {pode.update && botaoEscrita('Editar', l.id, cn(SM, GHOST))}
+                                {pode.delete && <Button variant="outline" className={cn(SM, DANGER)} onClick={() => setExcluir(l)}>Excluir</Button>}
                               </Inline>
                             </td>
                           </tr>
@@ -314,27 +329,53 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
       </Card>
 
       {drawer && (
-        <CadastroDrawer pedido={drawer} onClose={() => setDrawer(null)}
+        <CadastroDrawer pedido={drawer} container={cockpit} onClose={() => setDrawer(null)}
           onSalvo={() => { setDrawer(null); router.reload({ only: [aba] }); }} />
       )}
 
+      {/* `Modal` do DS (520px) com o `Alert` dentro: aviso "Ação sem volta" quando sai limpo,
+          recusa do servidor quando há uso (produto-cadastros.jsx `Confirmar`). */}
       <AlertDialog open={!!excluir} onOpenChange={(o) => !o && setExcluir(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className={cn(MOLDURA_JANELA, 'sm:max-w-[520px]')} container={cockpit}>
           <AlertDialogHeader>
-            <AlertDialogTitle>{excluir && recusa(excluir) ? 'O servidor recusa esta exclusão' : `Excluir “${excluir?.nome}”`}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {excluir && recusa(excluir)
-                ? `${recusa(excluir)}. ${excluir.filhas > 0 ? 'Mova ou exclua as subcategorias' : 'Troque o valor nesses produtos'} primeiro${excluir.em_uso > 0 ? ' — pela Edição em massa resolve em uma passada' : ''}.`
-                : cfg.corpo}
+            <AlertDialogTitle className={TITULO_JANELA}>{`Excluir “${excluir?.nome ?? ''}”`}</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              {excluir && recusa(excluir) ? (
+                <Aviso tom="perigo" titulo="O servidor recusa esta exclusão">
+                  {recusa(excluir)}. {excluir.filhas > 0 ? 'Mova ou exclua as subcategorias' : 'Troque o valor nesses produtos'} primeiro
+                  {excluir.em_uso > 0 && <> — pela <b>Edição em massa</b> resolve em uma passada</>}.
+                </Aviso>
+              ) : (
+                <Aviso tom="atencao" titulo="Ação sem volta">{cfg.corpo}</Aviso>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{excluir && recusa(excluir) ? 'Entendi' : 'Cancelar'}</AlertDialogCancel>
-            {excluir && !recusa(excluir) && <AlertDialogAction onClick={confirmar}>Excluir</AlertDialogAction>}
+            <AlertDialogCancel className={cn(MD, GHOST)}>{excluir && recusa(excluir) ? 'Fechar' : 'Cancelar'}</AlertDialogCancel>
+            {excluir && !recusa(excluir) && <Button variant="outline" className={cn(MD, DANGER)} onClick={confirmar}>Excluir</Button>}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </Stack>
+  );
+}
+
+// `Alert` do DS: fundo 6% e borda 22% do tom, ícone numa caixa a 14%.
+function Aviso({ tom, titulo, children }: { tom: 'atencao' | 'perigo'; titulo: string; children: ReactNode }) {
+  const cor = tom === 'perigo' ? 'var(--neg)' : 'var(--warn)';
+  const mistura = (p: number) => `color-mix(in oklab, ${cor} ${p}%, transparent)`;
+  const Icone = tom === 'perigo' ? CircleAlert : TriangleAlert;
+  return (
+    <div className="flex items-start gap-[11px] rounded-[8px] border px-3.5 py-3 text-left"
+      style={{ background: mistura(6), borderColor: mistura(22) }}>
+      <span className="mt-px grid size-[22px] flex-none place-items-center rounded-[6px]" style={{ background: mistura(14), color: cor }}>
+        <Icone className="size-3.5" aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1 pt-px">
+        <div className="text-[13px] leading-[1.3] font-semibold text-[var(--text)]">{titulo}</div>
+        <div className="mt-0.5 text-[12.5px] leading-[1.45] text-[var(--text-dim)]">{children}</div>
+      </div>
+    </div>
   );
 }
 
