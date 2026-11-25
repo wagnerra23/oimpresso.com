@@ -176,7 +176,7 @@ função da lista Blade que roda hoje em produção.
 - ❌ Estoque vazio quando o produto controla estoque
 - ❌ Preço ou custo enviado a quem não pode vê-los (gate no servidor, UC-PIDX-03)
 - ❌ Botão de ação sem efeito para quem não tem a permissão
-- ❌ Cor crua `bg-(green|red)-N`; `sessionStorage`
+- ❌ Cor crua `bg-(green|red)-N`; `sessionStorage`, exceto a origem da busca do aviso "Você veio de… / Voltar e usar" (UC-PIDX-53), que vale só na aba — decisão [W] 2026-11-25, após o #11429 deixar o teste vermelho
 
 ---
 
