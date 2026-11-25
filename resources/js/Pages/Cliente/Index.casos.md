@@ -251,6 +251,22 @@ last_run: "2026-11-25"
 - **Teste:** `tests/Feature/Cliente/ClienteMenusListaPermissaoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-24 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## UC-CIDX-25 · Operações › Pessoas da gaveta carrega as pessoas de contato `[T0]` `[must]`
+- **Persona:** quem abre a gaveta do cliente e vai em Operações › Pessoas.
+- **Como usa:** a sub-aba pede `GET /cliente/{id}/pessoas-json`.
+- **Aceite:** Dado um cliente com pessoas de contato (usuários CRM com `crm_contact_id`) · Quando a sub-aba abre · Então lista só as pessoas daquele cliente e daquela empresa · E cliente sem pessoa cai no estado vazio "Nenhuma pessoa de contato registrada." · E cliente de outra empresa responde 404 · E quem só vê os próprios clientes recebe 403 no cliente de outro vendedor.
+- **Âncora de contrato:** medição de 2026-11-25 (`memory/requisitos/Crm/cliente-index-visual-comparison.md`, A-02): a sub-aba ficava em "Carregando pessoas de contato…" para sempre, sem requisição · protótipo `cliente-drawer760.jsx` (tabela Nome · Usuário · E-mail · Departamento · Cargo) · o defer `contact_persons` do `ContactController::show()` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClientePessoasJsonTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) e `tests/js/cliente-gaveta-pendencias.test.tsx` (Vitest) — `UC-CIDX-25 …`.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
+## UC-CIDX-26 · E-mail legado com dois endereços não acusa erro ao abrir a aba Contato `[must]`
+- **Persona:** quem abre a gaveta de um cliente migrado do sistema antigo.
+- **Como usa:** aba Contato, campos E-mail, E-mail comercial e E-mail NF-e.
+- **Aceite:** Dado um cadastro cujo e-mail veio da migração como "a@x.com.br; b@x.com.br" · Quando a aba abre · Então nenhum campo mostra "Formato de e-mail inválido" · E quando a pessoa digita num desses campos, a validação volta a valer e o aviso aparece para valor inválido · E valor inválido continua sem ser gravado.
+- **Âncora de contrato:** medição de 2026-11-25 (`memory/requisitos/Crm/cliente-index-visual-comparison.md`, A-14): a aba abria com o aviso sem ninguém digitar · o dado em si é de migração (F-04) e não é alterado aqui.
+- **Teste:** `tests/js/cliente-gaveta-pendencias.test.tsx` (Vitest) — `UC-CIDX-26 …`. O lado da tela do UC-CIDX-25 está no mesmo arquivo.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.

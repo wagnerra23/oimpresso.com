@@ -364,6 +364,51 @@ class ContactController extends Controller
     }
 
     /**
+     * Pessoas de contato do cliente (usuários CRM com `crm_contact_id`), para a sub-aba
+     * Operações › Pessoas da gaveta. Espelha o defer `contact_persons` do show(). Antes a gaveta
+     * passava `undefined` e a aba ficava em "Carregando pessoas de contato…" para sempre, sem
+     * nenhuma requisição (medição 2026-11-25, A-02).
+     * Tier 0: contato DENTRO do business + mesmo escopo "só os próprios" das outras abas.
+     *
+     * GET /cliente/{id}/pessoas-json
+     */
+    public function pessoasJson($id)
+    {
+        if (! auth()->user()->can('customer.view') && ! auth()->user()->can('customer.view_own')
+            && ! auth()->user()->can('supplier.view') && ! auth()->user()->can('supplier.view_own')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = request()->session()->get('user.business_id');
+        $this->exigirAcessoAoContato(\App\Contact::where('business_id', $business_id)->findOrFail($id));
+
+        return response()->json($this->pessoasDeContato((int) $business_id, (int) $id));
+    }
+
+    /**
+     * Pessoas de contato (usuários CRM com `crm_contact_id`) de um contato, só da empresa.
+     * Uma fonte para a ficha cheia (`show()`, defer `contact_persons`) e para a gaveta
+     * (`pessoasJson`). Multi-tenant Tier 0: `business_id` explícito.
+     */
+    private function pessoasDeContato(int $businessId, int $contactId): array
+    {
+        return User::where('business_id', $businessId)
+            ->where('crm_contact_id', $contactId)
+            ->orderBy('first_name')
+            ->limit(200)
+            ->get(['id', 'username', 'email', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation'])
+            ->map(fn ($u) => [
+                'id' => (int) $u->id,
+                'username' => (string) ($u->username ?? ''),
+                'email' => $u->email,
+                'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
+                'department' => $u->crm_department,
+                'designation' => $u->crm_designation,
+            ])
+            ->all();
+    }
+
+    /**
      * Wave Onda 1 PR D 2026-05-26 — Paginador de veículos do contato (frota Martinho).
      *
      * Multi-tenant Tier 0 (ADR 0093): business_id scope obrigatório.
@@ -526,12 +571,16 @@ class ContactController extends Controller
         // 'customer.*' (UPOS legacy), com 'supplier.*' só onde o gate acima já distingue.
         return Inertia::render('Cliente/Index', [
             'activeType' => $type,
-            'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type)),
+            // Três grupos de defer, buscados em paralelo. No grupo único eles vinham numa só requisição
+            // e a tabela esperava KPIs e contadores: medido em produção em 2026-11-25 (empresa 1), a
+            // aba Todos levava 2,35 s nos três juntos contra 1,20 s só a tabela (A-13). O piso de
+            // ~0,9 s por requisição é do servidor e vale até para os 392 bytes dos KPIs.
+            'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type), 'kpis'),
             // ADR 0189 v3.1 + LEARNINGS AP18 (2026-05-25): counters por papel canon
             // pro PageHeader Zona C subnav. Backend devolve count(*) por tipo;
             // frontend NUNCA recalcula via rows.filter (rows traz só tipo ativo,
             // server-side filtered → outros tipos retornariam 0 — bug visível).
-            'tab_counts' => Inertia::defer(fn () => $this->buildClienteIndexTabCounts((int) $business_id)),
+            'tab_counts' => Inertia::defer(fn () => $this->buildClienteIndexTabCounts((int) $business_id), 'tab_counts'),
             'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id, $type)),
             'permissions' => [
                 'create' => auth()->user()->can('customer.create'),
@@ -2315,20 +2364,7 @@ class ContactController extends Controller
                     ->all()),
                 // Onda Final.C — Tab Pessoas de contato: usuários CRM com crm_contact_id = $contact->id.
                 // Feature do Modules/Crm — fica vazio se CRM module não habilitado pra biz. Multi-tenant Tier 0.
-                'contact_persons' => Inertia::defer(fn () => User::where('business_id', $business_id)
-                    ->where('crm_contact_id', $contact->id)
-                    ->orderBy('first_name')
-                    ->limit(200)
-                    ->get(['id', 'username', 'email', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation'])
-                    ->map(fn ($u) => [
-                        'id' => (int) $u->id,
-                        'username' => (string) ($u->username ?? ''),
-                        'email' => $u->email,
-                        'full_name' => trim(($u->surname ?? '') . ' ' . ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
-                        'department' => $u->crm_department,
-                        'designation' => $u->crm_designation,
-                    ])
-                    ->all()),
+                'contact_persons' => Inertia::defer(fn () => $this->pessoasDeContato((int) $business_id, (int) $contact->id)),
                 // Onda Final.E — Tab Reward Points: pontos fidelidade do contact.
                 // Condicional business.enable_rp (passa null se desligado).
                 'reward_points' => Inertia::defer(fn () => ($req->session()->get('business.enable_rp') == 1 && in_array($contact->type, ['customer', 'both'], true))
