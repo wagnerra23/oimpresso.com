@@ -3009,6 +3009,72 @@ class ProductController extends Controller
         ];
     }
 
+    /**
+     * UC-PEDIT-31: a grade do produto variável para a tela Editar React. Uma linha por variação, na
+     * ordem de cadastro, com os três valores sem imposto (os "com imposto" a tela deriva da alíquota,
+     * como no produto simples). Produto simples e composição: null.
+     *
+     * @return array{modelo: string, linhas: list<array{variacaoId: int, valor: string, subSku: string, compra: float, margem: float, venda: float}>}|null
+     */
+    private function gradeDoProdutoVariavel(Product $product): ?array
+    {
+        if ($product->type !== 'variable') {
+            return null;
+        }
+        $linhas = Variation::where('product_id', $product->id)
+            ->orderBy('product_variation_id')->orderBy('id')
+            ->get(['id', 'name', 'sub_sku', 'default_purchase_price', 'profit_percent', 'default_sell_price'])
+            ->map(fn (Variation $v) => [
+                'variacaoId' => (int) $v->id,
+                'valor' => (string) $v->name,
+                'subSku' => (string) $v->sub_sku,
+                'compra' => (float) $v->default_purchase_price,
+                'margem' => (float) $v->profit_percent,
+                'venda' => (float) $v->default_sell_price,
+            ])->values()->all();
+        $modelo = (string) (ProductVariation::where('product_id', $product->id)->orderBy('id')->value('name') ?? '');
+
+        return ['modelo' => $modelo, 'linhas' => $linhas];
+    }
+
+    /**
+     * UC-PEDIT-31: grava as linhas da grade que a tela Editar React mandou (`variacoes_editadas`,
+     * chave = id da variação). Só vêm as linhas mexidas: a que não vem fica como está, nada é apagado
+     * e o nome do valor não muda. O caminho do Blade (`product_variation_edit`) é outro: reescreve a
+     * grade inteira e apaga a variação que falta. A variação tem que ser DESTE produto [T0]: id alheio
+     * -> ModelNotFoundException -> rollback do update inteiro.
+     */
+    private function gravarGradeEditada(Product $product, mixed $linhas): void
+    {
+        if (! is_array($linhas)) {
+            return;
+        }
+        $colunas = [
+            'default_purchase_price' => 'dpp',
+            'dpp_inc_tax' => 'dpp_inc_tax',
+            'profit_percent' => 'profit_percent',
+            'default_sell_price' => 'dsp',
+            'sell_price_inc_tax' => 'dsp_inc_tax',
+        ];
+        foreach ($linhas as $variacaoId => $linha) {
+            $variacao = Variation::where('product_id', $product->id)->findOrFail((int) $variacaoId);
+            if (! is_array($linha)) {
+                continue;
+            }
+            // Ausência = a tela não declarou -> preserva (REGRA MESTRE: ausente não vira num_uf(null) = 0).
+            foreach ($colunas as $coluna => $chave) {
+                if (array_key_exists($chave, $linha)) {
+                    $variacao->{$coluna} = $this->productUtil->num_uf($linha[$chave]);
+                }
+            }
+            $subSku = trim((string) ($linha['sub_sku'] ?? ''));
+            if ($subSku !== '') {
+                $variacao->sub_sku = $subSku;
+            }
+            $variacao->save();
+        }
+    }
+
     public function edit($id)
     {
         $user = auth()->user();
@@ -3120,6 +3186,8 @@ class ProductController extends Controller
                     // UC-PEDIT-16: o preço gravado do produto simples (a variação única), como o
                     // edit_single_product_form_part.blade.php mostra. Variável e composto: null.
                     'precoSimples' => $this->precoSimplesDoProduto($product),
+                    // UC-PEDIT-31: a grade do produto variável (uma linha por variação, preço sem imposto).
+                    'gradeVariavel' => $this->gradeDoProdutoVariavel($product),
                 ],
                 // UC-PEDIT-24: os campos personalizados com o nome que a empresa deu.
                 'camposDaEmpresa' => $this->camposPersonalizadosDaEmpresa(),
@@ -3408,6 +3476,9 @@ class ProductController extends Controller
                     Media::uploadMedia($product->business_id, $variation, $request, 'variation_images');
                 }
             } elseif ($product->type == 'variable') {
+                // UC-PEDIT-31: as linhas que a tela Editar React mexeu.
+                $this->gravarGradeEditada($product, $request->input('variacoes_editadas'));
+
                 //Update existing variations
                 $input_variations_edit = $request->get('product_variation_edit');
                 if (! empty($input_variations_edit)) {
