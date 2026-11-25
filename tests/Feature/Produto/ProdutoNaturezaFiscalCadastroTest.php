@@ -118,10 +118,22 @@ it('UC-PEDIT-14 · produto de mercadoria chega ao Editar com a natureza', functi
     expect(pnfNaturezaNaTela($this, $p->productId)['natureza'])->toBe('mercadoria');
 });
 
-it('UC-PEDIT-14 · produto sem decisão do contador chega sem natureza', function () {
+it('UC-PEDIT-14 · produto sem decisão do contador chega como mercadoria, marcada como padrão (decisão [W] 2026-11-25)', function () {
     $p = EstoqueFixture::singleProduct((int) $this->business->id);
 
-    expect(pnfNaturezaNaTela($this, $p->productId))->toBeNull();
+    $natureza = pnfNaturezaNaTela($this, $p->productId);
+
+    expect($natureza['natureza'])->toBe('mercadoria');
+    expect($natureza['padrao'])->toBeTrue();
+    expect($natureza['codigoServico'])->toBeNull();
+});
+
+it('UC-PEDIT-14 · decisão do contador não vem marcada como padrão', function () {
+    $bizId = (int) $this->business->id;
+    $p = EstoqueFixture::singleProduct($bizId);
+    pnfDecidir($bizId, $p->productId, 'mercadoria');
+
+    expect(pnfNaturezaNaTela($this, $p->productId))->not->toHaveKey('padrao');
 });
 
 it('UC-PEDIT-14 · decisão gravada com o business_id de outra empresa não aparece', function () {
@@ -134,5 +146,8 @@ it('UC-PEDIT-14 · decisão gravada com o business_id de outra empresa não apar
     // Linha inválida de propósito: produto desta empresa, business_id da outra.
     pnfDecidir($outroBizId, $p->productId, 'servico', '24.01');
 
-    expect(pnfNaturezaNaTela($this, $p->productId))->toBeNull();
+    // A linha da outra empresa é ignorada: o produto fica sem decisão, logo mercadoria padrão, nunca serviço.
+    $natureza = pnfNaturezaNaTela($this, $p->productId);
+    expect($natureza['natureza'])->toBe('mercadoria');
+    expect($natureza['padrao'])->toBeTrue();
 });
