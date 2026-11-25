@@ -74,7 +74,15 @@ describe('Como fica no lançamento', () => {
     expect(within(cfop).getByText('5101')).toBeTruthy();
     expect(screen.queryByText('?102')).toBeNull();
 
-    render(<ComoFicaNoLancamento linhas={[linhas[0]]} regime="LP" empresa={EMPRESA} />);
+    // Só a Venda do sistema ativa: não diz "cadastre uma natureza ativa", porque há uma ativa na tabela.
+    const { unmount } = render(<ComoFicaNoLancamento linhas={[linhas[0]]} regime="LP" empresa={EMPRESA} />);
+    expect(screen.queryByText(/Cadastre uma natureza ativa/)).toBeNull();
+    expect(screen.getByText('Venda já é usada pelo cálculo da nota e não é montada nesta tela. Crie uma natureza aqui para ver como ela fica no lançamento.')).toBeTruthy();
+    unmount();
+
+    // Nenhuma natureza ativa: aí sim pede o cadastro.
+    const inativa = { ...linhas[0], natureza: { ...linhas[0].natureza, ativo: false } };
+    render(<ComoFicaNoLancamento linhas={[inativa]} regime="LP" empresa={EMPRESA} />);
     expect(screen.getByText('Cadastre uma natureza ativa para ver como ela fica no lançamento.')).toBeTruthy();
   });
 });

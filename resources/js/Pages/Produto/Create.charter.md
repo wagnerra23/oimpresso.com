@@ -35,15 +35,17 @@ mwart_pattern_reuse:
 
 ## Mission
 
-Cadastrar produto novo (single/variable/combo) com validação cliente-side TypeScript + server-side Laravel. Preserva pipeline UPOS legacy (geração SKU server-side, sync product_locations, Media upload). 8 campos sempre visíveis + ~22 colapsáveis em `<details>` "Avançado".
+Cadastrar produto novo (single/variable/combo) com validação cliente-side TypeScript + server-side Laravel. Preserva pipeline UPOS legacy (geração SKU server-side, sync product_locations, Media upload). Todos os campos ficam visíveis nas 4 seções abertas do protótipo; nenhuma é recolhível. _(Até a v3 este parágrafo dizia "8 campos sempre visíveis + ~22 colapsáveis em `<details>` 'Avançado'". A seção recolhível, que no fim se chamava "Mais opções", saiu com o [#10380](https://github.com/wagnerra23/oimpresso.com/pull/10380), mergeado em 2026-11-05.)_
 
 ## Goals — Features (faz)
 
 - AppShellV2 + PageHeader "Novo produto" + "Voltar à lista"
 - 4 seções Card na forma do protótipo (`produto-blade-forms.jsx`, desde 2026-11-04): Dados do produto · Configurações · Fiscal · Impostos e preços
 - Rodapé de ações: Cancelar · "Salvar e adicionar preços por grupo" (só com grupo de preço) · "Salvar e adicionar outro" · Salvar (`UC-PCAD-18`)
-- Campos sempre visíveis (8): name · sku · type · unit · category · brand · tax · alert_quantity
-- Campos avançados colapsáveis: barcode_type · sub_category · sub_units · weight · product_description · enable_sr_no · expiry (se enabled) · racks (se enabled) · custom_fields 1-20
+- Dados do produto: name · sku · barcode_type · unit · sub_units · category · sub_category · brand · enable_stock · alert_quantity · product_description, entre outros
+- Configurações (aberta, não recolhível): weight e dimensões · enable_sr_no · expiry (se enabled) · Locais de armazenagem (se controla estoque) · custom_fields com o nome da empresa
+- Impostos e preços: type (simples/variável/combo) · tax · preços
+- _Até 2026-11-05 os campos de Configurações ficavam numa seção recolhível ("Avançado", depois "Mais opções"); a lista acima é a do código em 2026-11-25 (`_components/formulario/Bloco*.tsx`)._
 - Defaults: type='single' · enable_stock=true · tax_type='exclusive'
 - Suporte duplicate via `?d=N` (preenche form com produto+`(copy)`)
 - TypeScript estrito sem `any`
@@ -172,3 +174,4 @@ verdade — **nenhum UC os cita de propósito**.
 | 2026-10-20 | [M+C] | O cadastro ganha o campo NCM (`UC-PCAD-13`) e o aviso de NCM faltando (`UC-PCAD-14`), decisão [M] (`CU-PROD-16`/`CU-PROD-18` do SDD). §Non-Goals: segunda exceção datada ao *"NÃO modifica `store()`"*, no mesmo formato da primeira. O Non-Goal em si não muda: revê-lo é decisão [W]. |
 | 2026-10-21 | [M+C] | O cadastro ganha o campo CEST (`UC-PCAD-15`), ao lado do NCM. §Non-Goals: terceira exceção datada ao *"NÃO modifica `store()`"*, no mesmo formato das anteriores. |
 | 2026-10-21 | [M+C] | "Mais opções" ganha peso líquido e dimensões da embalagem (`UC-PCAD-16`), e o "Peso" de sempre passa a se chamar "Peso bruto (kg)". §Non-Goals: quarta exceção datada ao *"NÃO modifica `store()`"*. |
+| 2026-11-25 | [W+C] | Mission e Goals deixam de descrever a seção recolhível "Avançado" (que saiu com o #10380, em 2026-11-05): os campos foram listados pelas seções que o código renderiza hoje. Sem mudança de comportamento. |

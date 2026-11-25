@@ -816,10 +816,12 @@ last_run: "2026-11-23"
 - **Aceite:** **Dado** uma natureza criada pela tela **Quando** escolho o destino do cliente **Então** a prévia mostra o
   CFOP do destino com o nome, o CST/CSOSN e de onde vem cada alíquota (interna da UF, interestadual, DAS no Simples,
   PIS/COFINS do regime pelas alíquotas do motor, IBS/CBS do ano da configuração), sem nenhum valor; sem CFOP para o
-  destino, avisa em vez de inventar. A Venda padrão e as do CSV ficam de fora da prévia. Fonte de forma:
-  `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`, `lancamento(N, d)`.
+  destino, avisa em vez de inventar. A Venda padrão e as do CSV ficam de fora da prévia. **Dado** que só elas estão
+  ativas **Então** o vazio diz que já são usadas pelo cálculo da nota e não são montadas nesta tela, em vez de "Cadastre
+  uma natureza ativa" (há uma ativa na tabela); "Cadastre uma natureza ativa…" fica só para quando nenhuma está ativa.
+  Fonte de forma: `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`, `lancamento(N, d)`.
 - **Teste:** [`nfe-naturezas-lancamento.test.tsx`](../../../../../tests/js/nfe-naturezas-lancamento.test.tsx) — `UC-NFTR-70 …` (mutação: PIS do Presumido 0,7% reprova).
-- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento"). Até 2026-11-25 o arquivo não estava em nenhum passo do `ci.yml`.
 
 ## UC-NFTR-71 · O editor da natureza segue o protótipo: 7 passos com estado, navegação, revisão e lateral · `must`
 
@@ -830,14 +832,14 @@ last_run: "2026-11-23"
   "N pendências nos passos marcados em vermelho". Fonte de forma: `prototipo-ui/cowork/Felipe/Configuracao de
   Tributos.html`, `renderEditor()` e `renderAside()`.
 - **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-71 …` (mutação: sem a contagem de pendências na barra, reprova).
-- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento"). Até 2026-11-25 o arquivo não estava em nenhum passo do `ci.yml`.
 
 ## UC-NFTR-72 · Duplicar abre uma cópia não salva, e salvar a cópia cria uma natureza nova · `must`
 
 - **Aceite:** **Dado** uma natureza salva **Quando** clico em Duplicar **Então** o editor abre "<nome> (cópia)" como
   natureza nova, ainda não salva; "Criar natureza" grava por `POST /naturezas`, sem id, e a original fica como estava.
 - **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-72 …`.
-- **Status: 🧪** — veredito do passo Vitest do `ci.yml`.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento"). Até 2026-11-25 o arquivo não estava em nenhum passo do `ci.yml`.
 
 ## Importar nota de referência (protótipo `lerXml()` · `passoNat()` · `painelImport()`)
 
@@ -902,6 +904,41 @@ last_run: "2026-11-23"
 - **Contrato:** charter §Goals (*"Confirmação destrutiva ao aplicar template se já existe config"*). O que o
   servidor faz ao aplicar é o UC-NFTR-03.
 - **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Tributação — aplicar modelo pede confirmação").
+
+## UC-NFTR-79 · Natureza nova trava os passos e o salvar até escolher como preencher · `must`
+
+- **Aceite:** **Dado** uma natureza nova sem escolha **Então** o aviso "Dê um nome à natureza." da conferência já aparece
+  no passo 1; os passos 2 a 7 e "Próximo: CFOP" ficam travados; a lateral diz "Escolha começar em branco ou importar uma
+  nota." e "Criar natureza" fica travado. **Quando** escolho "Importar nota de referência" **Então** o botão vira
+  "Revisar passo a passo" e só destrava depois de ler o XML; ele leva ao passo CFOP. Fonte:
+  `prototipo-ui/cowork/Felipe/Configuracao de Tributos.html`, `travado()`, `podeProx` e `renderAside()`.
+- **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-79 …` (mutação: `travado` sempre falso, reprova).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento").
+
+## UC-NFTR-80 · Sem ICMS próprio, o passo ICMS não mostra "Entra na base do ICMS" · `must`
+
+- **Aceite:** **Dado** uma natureza cujo CST/CSOSN não tem ICMS próprio (CSOSN 102 do Simples, CST 40, 41, 60…) **Quando**
+  abro o passo ICMS **Então** o grupo "Entra na base do ICMS" não aparece; **Dado** CST 00 no Presumido **Então** aparece.
+  Só esconde os campos: o que está gravado na natureza não muda. Fonte: protótipo, `painel('icms')` com `semIcmsProprio()`.
+- **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-80 …` (mutação: grupo sempre visível, reprova).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento").
+
+## UC-NFTR-81 · A Revisão tem o salvar também no rodapé do passo · `must`
+
+- **Aceite:** **Dado** o passo 7 · Revisão **Então** o rodapé do passo tem "Criar natureza" (nova) ou "Salvar natureza"
+  (salva), com a mesma trava do salvar da lateral, no lugar do "Próximo". Fonte: protótipo, `renderEditor()`, `nav`.
+- **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-81 …` (mutação: sem o botão no rodapé, reprova).
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento").
+
+## UC-NFTR-82 · Até 1080px a lateral "No lançamento" fica abaixo do passo · `should`
+
+- **Aceite:** **Dado** a tela com 1080px ou menos (1024px, por exemplo) **Então** a lateral "No lançamento" vai para baixo
+  do passo, em uma coluna; acima de 1080px fica ao lado, com 336px. Fonte: protótipo, `@media (max-width: 1080px)`.
+- **Teste:** [`nfe-naturezas-editor.test.tsx`](../../../../../tests/js/nfe-naturezas-editor.test.tsx) — `UC-NFTR-82 …`.
+  Limite: o jsdom não faz layout, então o teste confere a regra de colunas da grade (`min-[1081px]:…`), não a posição
+  medida. A regra foi compilada com o Tailwind do projeto em 2026-11-25: `grid-cols-1` na base e
+  `minmax(0,1fr) 336px` só em `width >= 1081px`.
+- **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento").
 
 ## Backlog — sem UC até ganhar teste
 

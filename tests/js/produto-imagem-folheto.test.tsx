@@ -75,6 +75,22 @@ describe('UC-PCAD-29 · Novo: imagem e folheto vão com o produto', () => {
     expect(pedidos).toHaveLength(0)
   })
 
+  it('arrastar para a área: imagem vai para a imagem, PDF vai para o folheto (forma do protótipo)', () => {
+    responder({})
+    const definir = vi.fn()
+    render(<CampoMidia modo="novo" data={{} as CamposProduto} definir={definir} />)
+
+    const area = screen.getByRole('region', { name: 'Área para soltar a imagem e o folheto' })
+    const img = arquivo('banner.png', 'image/png')
+    fireEvent.drop(area, { dataTransfer: { files: [img] } })
+    const pdf = arquivo('folheto.pdf', 'application/pdf')
+    fireEvent.drop(area, { dataTransfer: { files: [pdf] } })
+
+    expect(definir).toHaveBeenCalledWith('image', img)
+    expect(definir).toHaveBeenCalledWith('product_brochure', pdf)
+    expect(pedidos).toHaveLength(0)
+  })
+
   it('arquivo acima de 5 MB é recusado na tela', () => {
     const definir = vi.fn()
     render(<CampoMidia modo="novo" data={{} as CamposProduto} definir={definir} />)

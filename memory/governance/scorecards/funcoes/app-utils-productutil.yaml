@@ -67,6 +67,15 @@
 #   o kit. O C8 foi recontado no main de 2026-11-17 e cresceu por outros PRs, não pelo #10953. As demais
 #   funções NÃO foram revistas. `totals` não muda (nenhum status mudou).
 #
+# Rejulgamento parcial 2026-11-25 [W+C] (PR #11473): a fonte mudou numa linha só, 206, dentro de
+#   updateVariableProductVariations: `ProductVariation::find($key)` virou
+#   `ProductVariation::where('product_id', $product_id)->findOrFail($key)`. `git diff --numstat` = 1/1,
+#   sem linha deslocada. Rejulgado só o C1 dessa função: seguia `concordo`, mas a nota antiga dizia que o
+#   `Variation::where(...product_variation_id...)` escopava pelo dono, e o grupo em si vinha por `find`
+#   cru (id de outra empresa renomeava o grupo dela e regravava o preço). Status mantido, agora pela
+#   linha 206; ProdutoEditVariacaoBladeTenantTest cobre e morde. As demais funções NÃO foram revistas.
+#   `totals` não muda (nenhum status mudou).
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -76,7 +85,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "8842132d3e6017fc2705d81eee0d93f51290db6b"
+source_blob_sha: "27aadba935c4c9a0c4f037bbc21fb45b6afcfc22"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21
@@ -134,7 +143,7 @@ functions:
   - function: updateVariableProductVariations
     line: 195
     vereditos:
-      C1: { status: concordo, evidencia: { quote: "->where('T.business_id', $product->business_id)->where('purchase_lines.product_id', $product->id)", linhas: "303-305" }, ancora: "0093", nota: "checagem de delete filtra business_id; Variation::where('id',$k)->where('product_variation_id',$key) (224-226) escopa por owner" }
+      C1: { status: concordo, evidencia: { quote: "->where('T.business_id', $product->business_id)->where('purchase_lines.product_id', $product->id)", linhas: "303-305" }, ancora: "0093", nota: "checagem de delete filtra business_id; desde o #11473 o grupo vem por ProductVariation::where('product_id', $product_id)->findOrFail($key) (206) e a variação por product_variation_id (224-226). Antes o grupo vinha por find cru: id de outra empresa passava" }
       C2: { status: concordo, evidencia: { quote: "'default_sell_price' => $this->num_uf($v['default_sell_price'])", linhas: "215-219, 268-272" }, ancora: "num_uf suite", nota: "num_uf pass-through, sem aritmética; sem golden da função" }
       C3: { status: n/a, motivo: "função de escrita; lança Exception no caminho de erro" }
       C4: { status: incerto, evidencia: { quote: "Variation::where('id', $removed_variation_id)->delete(); ... throw new \\Exception", linhas: "324-329, 332-334" }, ancora: "0093 (atomicidade)", nota: "create+update+delete multi-escrita com throw no meio; ProductController@update envolve (verificado 976/1169) mas ModifierSets:268 não verificado — write parcial se caller não envolver" }
