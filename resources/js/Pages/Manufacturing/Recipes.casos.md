@@ -12,6 +12,11 @@ last_run: "2026-11-25"
 > ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): um comportamento novo.** UC-RECIPE-27: a aba abre uma receita
 > pelo endereço (`?receita=ID`), mesmo fora da página atual (Pendências da Fabricação I-05). Os demais UC não mudaram.
 
+> ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): forma e plural do subtítulo, não comportamento.**
+> Pendências da Fabricação (medição 2026-11-25), itens R-01 e C-01..C-04: o subtítulo do cabeçalho
+> passa a dizer "ordem"/"ordens" conforme o número e põe os números em negrito; o resto é CSS. Nenhum
+> UC cita o subtítulo, e os dados, filtros e permissões não mudaram.
+
 > ℹ️ **`last_run` 2026-10-19 → 2026-10-27 (G-6): cutover da Blade.** Pedido [W] 2026-10-27, *"1 PR por tela,
 > com cutover apagando a Blade"*. Saíram `?legacy=1`, o ramo DataTables, `recipe/create`, `recipe/{id}`,
 > as partials `get-ingredient-row` / `ingredient-group-form` e as 6 Blades de receita. `add-ingredient`
