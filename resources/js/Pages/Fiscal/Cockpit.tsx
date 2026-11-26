@@ -359,7 +359,10 @@ export default function Cockpit({
   }, [emitirOpen]);
 
   const totalRej = kpis.rejeitadas + (alerts.filter((a) => a.level === 'crit').length);
-  const crumb = `Maio 2026 · ${kpis.emitidas} notas · ${totalRej} requerem ação`;
+  // O período ainda é literal (vem assim desde a Onda 1). Uma constante só, para o crumb e o
+  // rodapé dos KPIs não discordarem entre si — o protótipo usa o mesmo período nos dois.
+  const periodo = { titulo: 'Maio 2026', curto: 'maio/2026' };
+  const crumb = `${periodo.titulo} · ${kpis.emitidas} notas · ${totalRej} requerem ação`;
 
   // KPI "Certif. A1" — `certificadoValidadeDias` é NEGATIVO quando o cert já venceu.
   // Até 2026-09-04 o valor era interpolado cru (`${dias}d`), e um cert vencido há 28
@@ -455,7 +458,7 @@ export default function Cockpit({
           <span className="fx-ribbon-item">
             <small>Emitidas<SeloProcedencia mapa={procedencia} chave="kpis" /><SeloProcedencia mapa={procedencia} chave="spark" /></small>
             <b>{kpis.emitidas}</b>
-            <em className="up">↑ 12 vs abr</em>
+            <em>{periodo.curto}</em>
             <RibbonSpark data={sparklines.emitidas} />
           </span>
           <span className="fx-ribbon-item">
@@ -483,10 +486,12 @@ export default function Cockpit({
           <span className="fx-ribbon-item">
             <small>Faturado fiscal</small>
             <b>{brl(kpis.faturamentoFiscal).replace('R$ ', 'R$ ')}</b>
+            <em>{periodo.curto}</em>
           </span>
-          <Button type="button" variant="outline" size="xs" className="ml-auto shrink-0 self-center" onClick={() => goto('/fiscal/sped')}>
+          {/* CTA como painel de altura cheia, encostado à direita (`.fx-ribbon-cta` do protótipo). */}
+          <button type="button" className="fx-ribbon-cta" onClick={() => goto('/fiscal/sped')}>
             Fechar mês →
-          </Button>
+          </button>
         </div>
 
         {/* Fila de alertas — o que o ribbon conta em "requerem ação", item a item.
