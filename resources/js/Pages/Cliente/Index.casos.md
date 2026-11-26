@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-11-25"
+last_run: "2026-11-26"
 ---
 
 > ℹ️ **`last_run` 2026-11-21 → 2026-11-25 (G-6): pendências da medição de 2026-11-25, seção A (texto e forma).**
