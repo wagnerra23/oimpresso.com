@@ -972,8 +972,9 @@ class ScheduleController extends Controller
     private function garantiaInertia($business_id): array
     {
         $agora = Carbon::now();
-        $consulta = Schedule::leftjoin('contacts', 'crm_schedules.contact_id', '=', 'contacts.id')
-            ->leftjoin('categories as C', 'crm_schedules.followup_category_id', '=', 'C.id')
+        // Consulta crua: o Larastan não conhece as colunas do join nem as da garantia no model.
+        $consulta = DB::table('crm_schedules')->leftJoin('contacts', 'crm_schedules.contact_id', '=', 'contacts.id')
+            ->leftJoin('categories as C', 'crm_schedules.followup_category_id', '=', 'C.id')
             ->where('crm_schedules.business_id', $business_id)
             ->where('crm_schedules.garantia', 1)
             ->select('crm_schedules.*', 'contacts.name as contato', 'contacts.supplier_business_name as biz_name', 'C.name as tipo');
