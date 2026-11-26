@@ -111,6 +111,22 @@ it('UC-FNFE-32 · sem IE é não contribuinte (9) e não leva tag IE; indicador 
     expect($cpf)->not->toHaveKey('cnpj');
 });
 
+it('UC-FNFE-32 · o indicador gravado pelo drawer (ind_ie_dest) vence o antigo (indicador_ie)', function () {
+    $svc = app(NfeService::class);
+
+    // O caso real: indicador antigo diz contribuinte, sem IE; o drawer marcou não contribuinte.
+    // Antes a nota saía com indIEDest 1 sem IE e a SEFAZ rejeitava (cStat 232).
+    $drawer = $svc->destinatarioDoContato(contato36([
+        'inscricao_estadual' => null, 'indicador_ie' => 1, 'ind_ie_dest' => 9,
+    ]), 'SC');
+    expect($drawer['ind_ie_dest'])->toBe('9');
+    expect($drawer)->not->toHaveKey('ie');
+
+    // Sem ind_ie_dest, o indicador antigo continua valendo.
+    $antigo = $svc->destinatarioDoContato(contato36(['indicador_ie' => 2, 'ind_ie_dest' => null]), 'SC');
+    expect($antigo['ind_ie_dest'])->toBe('2');
+});
+
 it('UC-FNFE-33 · contato sem CPF/CNPJ não vira destinatário (a nota segue anônima)', function () {
     $svc = app(NfeService::class);
 

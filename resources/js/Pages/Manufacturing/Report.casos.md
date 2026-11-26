@@ -6,8 +6,12 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.6 — os UC abaixo DERIVAM dele
 related_us: [US-MANU-002]
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-11-25"
 ---
+
+> ℹ️ **`last_run` 2026-10-06 → 2026-11-25 (G-6): um comportamento novo.** UC-REPORT-08: sem datas na URL o
+> relatório abre no mês corrente (Pendências da Fabricação P-01). Limpar o período segue mostrando tudo.
+> Os demais UC não mudaram.
 
 > ℹ️ **`last_run` 2026-10-04 → 2026-10-06 (G-6): forma E um comportamento.** Forma: datas 150×34 canto 8, rótulos
 > DE/ATÉ 10,5px semi-negrito e "Só finalizadas" 12,5px peso 500 — as mesmas peças da aba Ordens
@@ -146,6 +150,19 @@ last_run: "2026-10-06"
 - **Teste:** `GateDoModuloTest.php`
 - **Regressão que defende:** custo total e médio por produto entregue a qualquer usuário da empresa, e o
   ramo AJAX e o legado sem gate nenhum.
+- **Status: 🧪**
+
+---
+
+## UC-REPORT-08 · O relatório abre no mês corrente
+- **Persona:** quem abre o relatório para ver o custo de produção deste mês.
+- **Aceite:** Dado ordens finalizadas neste mês e três meses atrás · Quando abro `/manufacturing/report` sem
+  datas · Então as datas vêm preenchidas do dia 1 ao último dia do mês e só a ordem do mês conta · Quando
+  limpo as duas datas · Então as duas ordens contam · Quando escolho o mês antigo · Então só a ordem dele conta.
+- **Fonte:** protótipo `manufacturing-producao.jsx` (datas já preenchidas com o mês) · Pendências da
+  Fabricação P-01, medição de 2026-11-25 · aprovação [W] em 2026-11-25.
+- **Teste:** `RelatorioPeriodoPadraoTest.php`
+- **Regressão que defende:** a tela abrir em "Sem produção no período" com ordens na empresa.
 - **Status: 🧪**
 
 ---

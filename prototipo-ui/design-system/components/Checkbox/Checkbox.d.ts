@@ -5,6 +5,10 @@ export interface CheckboxProps {
   label?: string;
   disabled?: boolean;
   name?: string;
+  /** Traço de "parte marcada" (cabeçalho de grade com seleção parcial). */
+  indeterminate?: boolean;
+  /** Nome acessível quando não há `label` visível. */
+  ariaLabel?: string;
 }
 
 /** Labeled checkbox with accent fill (DS v4). */

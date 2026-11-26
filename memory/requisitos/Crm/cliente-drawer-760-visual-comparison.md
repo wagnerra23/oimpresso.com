@@ -281,3 +281,7 @@ Sobreposto com dim 6; reforça que mudança não é só layout — é semântica
 ---
 
 _Visual-comparison criado 2026-05-21 (Wave A) — methodology mwart-comparative V4 (15 dimensões + 3 extras). Notas calibradas pela auditoria de Wagner (~28/100 conjunto, distribuído ±5 por dimensão). Gate F1.5 pendente: Wagner aprovará SCREENSHOT pós-Wave B+G em prod biz=1 com 8 tabs renderizando — NÃO esta tabela. Substituição de paradigma (Show.tsx full-page → drawer 760 lateral) requer ADR 0179 `accepted` antes de Wave B. Próxima atualização: pós-merge Wave Z, substituir estimativas por medições reais._
+
+## Medição 2026-11-25 (prod × protótipo `cliente-drawer760.jsx`)
+
+A gaveta foi medida junto com a lista. As diferenças (itens G-01 a G-23) e os defeitos da gaveta (A-01, A-02, A-03, A-04, A-07, A-14) estão em [cliente-index-visual-comparison.md §Medição 2026-11-25](cliente-index-visual-comparison.md), para ficarem numa lista só.

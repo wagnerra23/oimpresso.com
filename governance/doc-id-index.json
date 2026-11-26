@@ -2265,6 +2265,8 @@
     "requisitos-design-system-adr-ui-0032-alvo-de-toque-erp-denso-1280": "memory/requisitos/_DesignSystem/adr/ui/0032-alvo-de-toque-erp-denso-1280.md",
     "requisitos-design-system-adr-ui-0033-foreground-de-success-e-warning-vira-cor-de-contraste": "memory/requisitos/_DesignSystem/adr/ui/0033-foreground-de-success-e-warning-vira-cor-de-contraste.md",
     "requisitos-design-system-adr-ui-0034-remove-o-seletor-de-matiz-cor-do-ds-nao-e-preferencia-de-navegador": "memory/requisitos/_DesignSystem/adr/ui/0034-remove-o-seletor-de-matiz-cor-do-ds-nao-e-preferencia-de-navegador.md",
+    "requisitos-design-system-adr-ui-0035-texto-shadcn-no-claro-usa-o-texto-do-shell": "memory/requisitos/_DesignSystem/adr/ui/0035-texto-shadcn-no-claro-usa-o-texto-do-shell.md",
+    "requisitos-design-system-adr-ui-0036-hover-e-foco-do-shadcn-no-claro-seguem-o-shell": "memory/requisitos/_DesignSystem/adr/ui/0036-hover-e-foco-do-shadcn-no-claro-seguem-o-shell.md",
     "requisitos-design-system-architecture": "memory/requisitos/_DesignSystem/ARCHITECTURE.md",
     "requisitos-design-system-audits-2026-04-22": "memory/requisitos/_DesignSystem/audits/2026-04-22.md",
     "requisitos-design-system-audits-2026-04-24": "memory/requisitos/_DesignSystem/audits/2026-04-24.md",
@@ -4662,13 +4664,13 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4656,
-    "resolved": 3121,
+    "total": 4658,
+    "resolved": 3123,
     "unstamped": 1535,
     "collisions": 0,
     "by_source": {
       "unstamped": 1535,
-      "stamped": 1242,
+      "stamped": 1244,
       "derived-adr": 461,
       "derived-handoffs": 632,
       "derived-sessions": 786
