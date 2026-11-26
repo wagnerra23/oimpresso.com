@@ -223,7 +223,10 @@ export default function NotaDrawerV2({ nota, onClose, onQuickFilterCliente }: No
   });
   const rejected = REJECTED_CODES.includes(nota.status);
   const recipe = rejected ? getRecipe(nota.status) : null;
-  const tone = sefazTone(nota.status);
+  // cStat fora do mapa não vira pílula sem cor: segue a mesma régua da lista e do protótipo
+  // (`fxTone`) — rejeitada em vermelho, o resto em âmbar até a SEFAZ responder.
+  const toneMapa = sefazTone(nota.status);
+  const tone = toneMapa === 'neutral' ? (rejected ? 'bad' : 'warn') : toneMapa;
 
   const itens = nota.itens ?? [];
   const arquivos = nota.arquivos ?? [];
@@ -239,44 +242,37 @@ export default function NotaDrawerV2({ nota, onClose, onQuickFilterCliente }: No
       bodyRef={bodyRef}
       extraAsideClassName={scrolled ? 'is-scrolled' : undefined}
       header={
-        <div>
-          <small>{nota.modelo === 65 ? 'NFC-e' : 'NF-e'} · série {nota.serie}</small>
+        <div className="fx-drawer-titulo">
+          {/* Cabeçalho na forma do `FxNotaDrawer` do protótipo: tipo, número e série no título,
+              destinatário e data na linha de baixo. A chave foi para a lista de dados. */}
           <h2>
-            {nota.modelo === 65 ? 'NFC-e ' : 'NFe '}{nota.num}
+            {nota.modelo === 65 ? 'NFC-e ' : 'NF-e '}{nota.num} · série {nota.serie}
             {scrolled && (
               <span className={`fx-sefaz ${tone}`} style={{ marginLeft: 8 }}>
                 <span className="code">{nota.status}</span>
               </span>
             )}
           </h2>
-          <code className="fx-drawer-key">{nota.key ?? '—'}</code>
+          <p>{nota.dest} · {nota.when}</p>
         </div>
       }
       footer={
         <>
-          <Button type="button" {...btnProps('ghost')} disabled title="Em breve">
-            Reconsultar <kbd>R</kbd>
-          </Button>
-          <div className="fx-drawer-f-r">
-            <Button type="button" {...btnProps('ghost')} disabled title="Download XML">XML</Button>
-            <Button type="button" {...btnProps('ghost')} disabled title="Download DANFE">DANFE</Button>
-            {nota.status === 100 && cancelW && (
-              <Button type="button" {...btnProps('danger')} disabled title="Em breve">
-                Cancelar <kbd>X</kbd>
-              </Button>
-            )}
-            {rejected && (
-              <Button type="button" {...btnProps('primary')} disabled title="Em breve">
-                Retransmitir <kbd>⏎</kbd>
-              </Button>
-            )}
-          </div>
+          {/* Rótulos e ordem do rodapé do protótipo. Os botões seguem desabilitados: a ação
+              de cada um ainda não existe nesta gaveta, e o `title` diz isso. */}
+          <Button type="button" {...btnProps('ghost')} disabled title="Download XML — em breve">Baixar XML</Button>
+          <Button type="button" {...btnProps('ghost')} disabled title="Download DANFE — em breve">Baixar DANFE</Button>
+          {nota.status === 100 && cancelW && (
+            <Button type="button" {...btnProps('danger')} disabled title="Em breve">Cancelar nota</Button>
+          )}
+          {rejected && (
+            <Button type="button" {...btnProps('primary')} disabled title="Em breve">Retransmitir</Button>
+          )}
         </>
       }
     >
       {/* Status SEFAZ + prazos */}
       <section className="fx-drawer-sec">
-        <h4>Status SEFAZ</h4>
         <div className="fx-drawer-status-row">
           <span className={`fx-sefaz ${tone}`}>
             <span className="code">{nota.status}</span>
@@ -294,7 +290,7 @@ export default function NotaDrawerV2({ nota, onClose, onQuickFilterCliente }: No
 
       {/* Operação */}
       <section className="fx-drawer-sec">
-        <h4>Operação</h4>
+        <h4>Destinatário e operação</h4>
         <dl className="fx-kv">
           <dt>Destinatário</dt>
           <dd>
@@ -311,13 +307,17 @@ export default function NotaDrawerV2({ nota, onClose, onQuickFilterCliente }: No
               <b>{nota.dest}</b>
             </a>
           </dd>
-          <dt>{nota.cnpj ? 'CNPJ' : 'CPF'}</dt>
-          <dd className="fx-mono">{formatDoc(nota.cnpj, nota.cpf)} · {nota.uf}</dd>
+          <dt>Documento</dt>
+          <dd className="fx-mono">{formatDoc(nota.cnpj, nota.cpf)}</dd>
+          <dt>UF</dt>
+          <dd>{nota.uf}</dd>
           <dt>Venda</dt>
           <dd>{nota.venda ?? '—'}</dd>
-          <dt>Emissão</dt>
-          <dd>{nota.when}</dd>
-          <dt>Valor</dt>
+          <dt>Modelo</dt>
+          <dd>{nota.modelo}</dd>
+          <dt>Chave</dt>
+          <dd className="fx-mono">{nota.key ?? '—'}</dd>
+          <dt>Valor total</dt>
           <dd className="fx-strong">{brl(nota.value)}</dd>
         </dl>
       </section>
