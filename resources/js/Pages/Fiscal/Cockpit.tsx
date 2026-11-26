@@ -16,7 +16,7 @@ import { Input } from '@/Components/ui/input';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router } from '@inertiajs/react';
 import {
-  Archive, ChevronDown, FileText, Plus, Receipt, RefreshCw, Scale,
+  Archive, FileText, Plus, Receipt, RefreshCw, Scale,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -431,7 +431,7 @@ export default function Cockpit({
                 aria-haspopup="menu"
                 aria-expanded={emitirOpen}
               >
-                <Plus size={12} /> Emitir <ChevronDown size={11} />
+                <Plus size={12} /> Emitir
               </Button>
               {emitirOpen && (
                 <div role="menu" className="fx-popmenu">
