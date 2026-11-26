@@ -23,8 +23,8 @@ import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
+import CrmCabecalho from '../_components/CrmCabecalho';
 import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/order-request';
@@ -72,7 +72,7 @@ function colunas(opcoes: Opcoes | undefined): ColumnDef<Pedido>[] {
 export default function PedidosIndex({ filtros, opcoes, pedidos }: Props) {
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Pedido de ordem" subtitle="Pedidos que os clientes fizeram pelo portal do contato." />
+      <CrmCabecalho aba="Pedido de ordem" abas={false} />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">

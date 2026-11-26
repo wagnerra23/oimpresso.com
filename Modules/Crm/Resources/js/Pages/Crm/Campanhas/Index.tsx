@@ -22,8 +22,7 @@ import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
-import { PageHeader } from '@/Components/PageHeader';
-import ModuleTabs from '@/Components/shared/ModuleTabs';
+import CrmCabecalho from '../_components/CrmCabecalho';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
 import { useCockpit } from '@/Hooks/useCockpit';
 
@@ -60,7 +59,7 @@ export default function CampanhasIndex({ filtros, campanhas, campanha }: Props) 
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader below={<ModuleTabs modulo="CRM" />} title="Campanhas" subtitle="Envios de SMS e e-mail para leads e clientes." />
+      <CrmCabecalho aba="Campanhas" />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">

@@ -42,9 +42,12 @@ export interface ModuleTabsProps {
   /** Contagem por key de ghost. `null`/ausente = sem número; `0` aparece. */
   badges?: Record<string, number | null | undefined>;
   extraOverflowItems?: PageHeaderOverflowItem[];
+  /** Repassados ao PageHeaderTabs. Sem eles, nada muda (ver o docblock de cada um lá). */
+  tone?: 'default' | 'prototype';
+  activeFill?: boolean;
 }
 
-export default function ModuleTabs({ modulo, active, showPrimary, badges, extraOverflowItems }: ModuleTabsProps) {
+export default function ModuleTabs({ modulo, active, showPrimary, badges, extraOverflowItems, tone, activeFill }: ModuleTabsProps) {
   const pagina = usePage();
   const menu = ((pagina.props as { shell?: { menu?: ItemDoMenu[] } })?.shell?.menu) ?? [];
   const nomes = (Array.isArray(modulo) ? modulo : [modulo]).map((n) => n.toLowerCase());
@@ -67,6 +70,8 @@ export default function ModuleTabs({ modulo, active, showPrimary, badges, extraO
       scrollable
       density="compact"
       extraOverflowItems={extraOverflowItems}
+      tone={tone}
+      activeFill={activeFill}
     />
   );
 }

@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a opção "Ativar solicitação de pedido" liga o menu de pedido no portal do contato e o prefixo numera esses pedidos. Gravar no negócio errado, ou deixar quem não é dono mudar, altera o portal de outro cliente.
 owner: wagner
-last_run: "2026-11-06"
+last_run: "2026-11-25"
+last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/15 (F3). O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 

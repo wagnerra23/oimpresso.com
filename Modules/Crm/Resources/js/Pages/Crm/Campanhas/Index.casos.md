@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: campanhas carregam os destinatários de SMS e e-mail de um negócio. Errar o escopo mostra campanha de outro negócio ou de colega; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela; renderizar o corpo como HTML abre script gravado por quem cria a campanha.
 owner: wagner
-last_run: "2026-11-25"
-last_run_nota: "2026-11-25 CRM-03: gavetas, janelas e menus montam no .cockpit (prop container) — nenhum UC muda de comportamento; UCs relidos contra o diff. Antes: 2026-10-13 thread Crm/11 F3: trio nasce; os testes moram em Modules/Crm/Tests/Feature/CrmCampanhasContratoTest.php (lane verticais-pest)."
+last_run: "2026-11-26"
+last_run_nota: "2026-11-26 a pilha do inventário (CRM-03 + CRM-10/11) entra junta no main; a tela só junta os imports dos dois lados (CrmCabecalho e useCockpit), nenhum UC muda — UCs relidos contra o diff. 2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff. Também 2026-11-25 CRM-03: portais no .cockpit, nenhum UC muda. Antes: 2026-10-13 thread Crm/11 F3: trio nasce; os testes moram em Modules/Crm/Tests/Feature/CrmCampanhasContratoTest.php (lane verticais-pest)."
 last_run_ci: "_pendente_ — o veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 

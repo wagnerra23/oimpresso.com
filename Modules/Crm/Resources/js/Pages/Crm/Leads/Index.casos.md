@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista de leads mostra contatos em prospecção com celular, e-mail e documento. Errar o escopo vaza contato de outro negócio ou de colega que não devia ver; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-11-25"
-last_run_nota: "2026-11-25 CRM-03: gavetas, janelas e menus montam no .cockpit (prop container) — nenhum UC muda de comportamento; UCs relidos contra o diff. Antes: 2026-10-06 thread Crm/09: UC-CRMLD-11..13 novos; LeadController (edit/update/destroy) mudou. Lane verticais-pest no branch do #8756 (run 37451383426): UC-CRMLD-11, 12 e 13 ✓, 268 passed · 1620 assertions; as 2 falhas (UC-CRMACO-20, UC-SANEG-14) já falham no push de main 211b51697c (run 37382355413)."
+last_run: "2026-11-26"
+last_run_nota: "2026-11-26 CRM-23/25: kanban dentro da tela (vista=kanban, prop kanban) e janela de conversão; postLifeStage e convertToCustomer passam a exigir lead visível (leadQuery) e estágio do negócio — UC-CRMLD-15/16/17 novos; UCs 01-14 relidos, o 07 (lead_view=kanban na Blade) segue igual. 2026-11-25 CRM-20/21/22/26: Leads na forma do protótipo (filtros recolhíveis, contador, Ação, selos, gaveta 480px) + UC-CRMLD-14 (Tipo e campos personalizados no payload); UCs 01-13 relidos contra o diff, nenhum muda. 2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff. Também 2026-11-25 CRM-03: portais no .cockpit, nenhum UC muda. Antes: 2026-10-06 thread Crm/09: UC-CRMLD-11..13 novos; LeadController (edit/update/destroy) mudou. Lane verticais-pest no branch do #8756 (run 37451383426): UC-CRMLD-11, 12 e 13 ✓, 268 passed · 1620 assertions; as 2 falhas (UC-CRMACO-20, UC-SANEG-14) já falham no push de main 211b51697c (run 37382355413)."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/02. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -87,7 +87,7 @@ Status: 🧪
 
 ## UC-CRMLD-07 · `?classico=1` e o kanban devolvem a tela Blade · `should`
 
-**Dado** que conversão, kanban e "local" ainda vivem na Blade
+**Dado** que a tela Blade segue disponível para quem pede
 **Quando** abro `/crm/leads?classico=1` ou `/crm/leads?lead_view=kanban`
 **Então** recebo a view `crm::lead.index`.
 
@@ -162,5 +162,45 @@ Status: 🧪
 **Quando** tento salvar o lead de fora, ou excluir qualquer um dos dois pela rota de leads
 **Então** salvar dá 404 e o nome não muda; excluir responde sem sucesso e os dois seguem lá.
 O meu próprio lead sai pela mesma rota.
+
+Status: 🧪
+
+## UC-CRMLD-14 · Lista e gaveta trazem Tipo e os campos personalizados · `should`
+
+**Dado** um lead pessoa jurídica com os dois primeiros campos personalizados preenchidos
+**Quando** abro a lista e a gaveta desse lead
+**Então** a linha e a gaveta trazem "PJ" e os dois valores, e a tela recebe o rótulo que o negócio
+deu a esses campos (ou o rótulo padrão). Lead pessoa física sai "PF".
+Âncora: pendências CRM-22 e CRM-26 — no protótipo são "Pessoa de contato", "Interesse" e "Tipo";
+na Blade, as colunas `custom_field_1/2` com o rótulo do negócio.
+
+Status: 🧪
+
+## UC-CRMLD-15 · O kanban traz os leads da lista, sem página, com o estágio · `should`
+
+**Dado** leads do meu negócio, um deles num estágio de vida, e um lead de outro negócio
+**Quando** abro a vista Kanban da tela
+**Então** recebo todos os leads da mesma consulta da lista, cada um com o id do estágio, e nenhum de
+outro negócio. Fora da vista Kanban esse conjunto não é calculado.
+Âncora: pendência CRM-23; a Blade montava o quadro com `lead_view=kanban` sobre a mesma consulta.
+
+Status: 🧪
+
+## UC-CRMLD-16 · Arrastar muda o estágio só de lead que vejo, para estágio do meu negócio · `must`
+
+**Dado** que só vejo os meus leads
+**Quando** movo um lead meu para um estágio do meu negócio
+**Então** o estágio muda. Estágio de outro negócio é recusado (422); lead de colega ou de outro
+negócio não é encontrado (404), e nada muda neles.
+Âncora: pendência CRM-23 e a regra de escopo da lista (UC-CRMLD-03/04).
+
+Status: 🧪
+
+## UC-CRMLD-17 · Converter só alcança lead que vejo · `must`
+
+**Dado** um lead meu e um lead de outro negócio
+**Quando** converto o meu
+**Então** ele passa a cliente; convertê-lo de novo, ou converter o de outro negócio, dá 404.
+Âncora: pendência CRM-25; a conversão da Blade (`lead/{id}/convert`).
 
 Status: 🧪

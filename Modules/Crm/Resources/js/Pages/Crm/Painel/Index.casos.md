@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o painel agrega contatos, conversões e agenda do negócio inteiro. Errar o escopo mostra número de outro negócio; errar o gate entrega o quadro do negócio a quem não é Admin.
 owner: wagner
-last_run: "2026-11-06"
+last_run: "2026-11-25"
+last_run_nota: "2026-11-25: a tabela do Painel passa a ser a CrmMini compartilhada, mesma forma; nenhum UC muda. 2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/04. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 

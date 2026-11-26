@@ -25,6 +25,8 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::get('commissions', [Modules\Crm\Http\Controllers\ContactLoginController::class, 'commissions']);
     Route::get('all-contacts-login', [Modules\Crm\Http\Controllers\ContactLoginController::class, 'allContactsLoginList']);
     Route::resource('contact-login', 'Modules\Crm\Http\Controllers\ContactLoginController')->except(['show']);
+    // Aba Garantia de Acompanhamentos (US-CRM-094, fatia 3); 404 com CRM_GARANTIA_SLA_ENABLED desligada.
+    Route::post('follow-ups/garantia', [Modules\Crm\Http\Controllers\ScheduleController::class, 'abrirGarantia']);
     Route::resource('follow-ups', 'Modules\Crm\Http\Controllers\ScheduleController')->except(['show']);
     Route::get('todays-follow-ups', [Modules\Crm\Http\Controllers\ScheduleController::class, 'getTodaysSchedule']);
     Route::get('lead-follow-ups', [Modules\Crm\Http\Controllers\ScheduleController::class, 'getLeadSchedule']);
