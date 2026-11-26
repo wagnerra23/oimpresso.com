@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import CrmCabecalho from '../_components/CrmCabecalho';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/order-request';
 const CLASSICO = `${ROTA}?classico=1`;
@@ -133,12 +134,13 @@ export default function PedidosIndex({ filtros, opcoes, pedidos }: Props) {
 }
 
 function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo: string; lista?: Opcao[]; filtros: Filtros }) {
+  const cockpit = useCockpit();
   return (
     <div className="flex flex-col gap-1">
       <Label>{nome}</Label>
       <Select value={filtros[campo] || TODOS} onValueChange={(v) => filtrar(filtros, { [campo]: v === TODOS ? undefined : v })}>
         <SelectTrigger aria-label={nome}><SelectValue /></SelectTrigger>
-        <SelectContent>
+        <SelectContent container={cockpit}>
           <SelectItem value={TODOS}>Todos</SelectItem>
           {(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}
         </SelectContent>

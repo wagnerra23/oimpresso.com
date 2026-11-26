@@ -2052,6 +2052,35 @@ class ProductController extends Controller
     }
 
     /**
+     * UC-PCAD-34: SKU digitado no produto. O Blade confere antes de enviar (`checkProductSku`, chamado
+     * pelo `product.js`) e o `store()`/`update()` não conferiam; a tela React mandava o SKU repetido e o
+     * produto nascia com ele. Recusa o SKU que já é SKU ou sub-SKU de outro produto da empresa, sem
+     * olhar outras empresas (ADR 0093). SKU em branco o servidor gera.
+     */
+    protected function validarSkuDigitado(Request $request, int $business_id, ?int $produtoId = null): void
+    {
+        $sku = trim((string) $request->input('sku'));
+        if ($sku !== '' && $this->skuEmUsoNaEmpresa($business_id, $sku, $produtoId)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['sku' => "O SKU {$sku} já existe em outro produto."]);
+        }
+    }
+
+    /** A mesma checagem de `checkProductSku`: SKU de produto ou sub-SKU de variação, só desta empresa. */
+    protected function skuEmUsoNaEmpresa(int $business_id, string $sku, ?int $ignorarProdutoId = null): bool
+    {
+        $produto = Product::where('business_id', $business_id)->where('sku', $sku);
+        $variacao = Variation::where('variations.sub_sku', $sku)
+            ->join('products', 'variations.product_id', '=', 'products.id')
+            ->where('products.business_id', $business_id);
+        if ($ignorarProdutoId !== null) {
+            $produto->where('id', '!=', $ignorarProdutoId);
+            $variacao->where('variations.product_id', '!=', $ignorarProdutoId);
+        }
+
+        return $produto->exists() || $variacao->exists();
+    }
+
+    /**
      * UC-PCAD-26 · UC-PEDIT-26: as sub-unidades de cada unidade da empresa, com o multiplicador do
      * cadastro de unidades, como o Blade lista em `/products/get_sub_units` (a unidade principal e as
      * que derivam dela). Vazio quando a empresa não usa sub-unidades (`enable_sub_units`).
@@ -2738,6 +2767,7 @@ class ProductController extends Controller
         $this->validarPesoEDimensoes($request);
         $this->validarLocaisDeArmazenagem($request, (int) $uc_pcad_05_bid);
         $this->validarPoliticaDePreco($request);
+        $this->validarSkuDigitado($request, (int) $uc_pcad_05_bid);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -3191,6 +3221,10 @@ class ProductController extends Controller
                     'naturezaFiscal' => $naturezaFiscal,
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
+                    // UC-PEDIT-36 (AR-PROD-004, paridade Delphi): "Última alteração", só leitura. O
+                    // updated_at é gravado no fuso da empresa (middleware Timezone) e lido no mesmo fuso,
+                    // então sai como está, sem o +3h do format_date. Formato pt-BR fixo.
+                    'ultimaAlteracao' => $product->updated_at ? $product->updated_at->format('d/m/Y H:i') : null,
                     'alertQuantity' => $alert_quantity,
                     'weight' => $product->weight,
                     'productDescription' => $product->product_description,
@@ -3288,6 +3322,11 @@ class ProductController extends Controller
         $this->validarPesoEDimensoes($request);
         $this->validarLocaisDeArmazenagem($request, (int) $business_id, (int) $id);
         $this->validarPoliticaDePreco($request);
+        // UC-PCAD-34: só confere o SKU que mudou. Um SKU repetido que já estava gravado não impede
+        // de editar o resto do produto.
+        if (trim((string) $request->input('sku')) !== trim((string) $alvo->sku)) {
+            $this->validarSkuDigitado($request, (int) $business_id, (int) $id);
+        }
         // CU-PROD-20 (#10765): o retrato dos locais antes da edição, para o histórico.
         $armazenagemAntes = $this->armazenagemAtual((int) $business_id, (int) $id);
 
@@ -4253,12 +4292,7 @@ class ProductController extends Controller
         $sku = trim((string) ($dados['sku'] ?? ''));
         if ($sku !== '') {
             // A mesma checagem de `checkProductSku`, que o formulário Blade fazia antes de enviar.
-            $emUso = Product::where('business_id', $business_id)->where('sku', $sku)->exists()
-                || Variation::where('sub_sku', $sku)
-                    ->join('products', 'variations.product_id', '=', 'products.id')
-                    ->where('products.business_id', $business_id)
-                    ->exists();
-            if ($emUso) {
+            if ($this->skuEmUsoNaEmpresa($business_id, $sku)) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['sku' => 'Este SKU já está em uso.']);
             }
         }

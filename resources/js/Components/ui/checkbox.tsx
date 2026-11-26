@@ -7,14 +7,19 @@ import { cn } from "@/Lib/utils"
  * Caixinha do DS — `prototipo-ui/design-system/components/Checkbox/Checkbox.jsx`, a mesma em todas as
  * telas (filtros, seleção de linha da `shared/DataTable`, formulários).
  *
- * Os números vêm de lá: 16×16, canto `--radius-sm`, borda de 1,5px; desmarcada, borda `--border` sobre
+ * Os números vêm de lá: 16×16, canto `--radius-sm`, borda de 1,5px; desmarcada, borda `--text-mute` sobre
  * `--surface`; marcada, fundo e borda `--accent` com o ✓ de 11px (traço 3,5) na cor `--accent-fg`;
  * transição de .15s; desabilitada com opacidade .55.
  *
  * Até 2026-11-12 era a caixinha do shadcn: borda de 1px na cor de destaque (roxa) até desmarcada,
  * sombra e o ✓ do lucide. Medido no navegador, a borda era a única diferença de forma.
  *
- * Os tokens do DS (`--border`, `--surface`, `--accent`, `--accent-fg`) só existem dentro do `.cockpit`.
+ * Exceção ao DS, decidida pelo [W] em 2026-11-25: a borda desmarcada usa `--text-mute`, não `--border`.
+ * Medido na lista de vendas em produção, `--border` dava 1,17:1 contra a linha no escuro e 1,34:1 no
+ * claro; a caixinha sumia. `--text-mute` dá 4,54:1 e 4,68:1, acima dos 3:1 que a WCAG 1.4.11 pede para
+ * contorno de controle. O `Checkbox.jsx` do DS precisa receber a mesma troca no Cowork.
+ *
+ * Os tokens do DS (`--text-mute`, `--surface`, `--accent`, `--accent-fg`) só existem dentro do `.cockpit`.
  * Fora dele (tela pública, portal montado no `<body>`) cada um cai no token do tema do app.
  *
  * O ✓ usa `--accent-fg`, não o branco literal do `Checkbox.jsx`: no escuro o destaque clareia e o
@@ -34,7 +39,7 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "peer grid h-4 w-4 shrink-0 place-items-center rounded-sm border-[1.5px] border-[var(--border,var(--color-border))] bg-[var(--surface,var(--color-background))] outline-none transition-[background-color,border-color] duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-[.55] data-[state=checked]:border-[var(--accent,var(--color-primary))] data-[state=checked]:bg-[var(--accent,var(--color-primary))] data-[state=indeterminate]:border-[var(--accent,var(--color-primary))] data-[state=indeterminate]:bg-[var(--accent,var(--color-primary))]",
+        "peer grid h-4 w-4 shrink-0 place-items-center rounded-sm border-[1.5px] border-[var(--text-mute,var(--color-muted-foreground))] bg-[var(--surface,var(--color-background))] outline-none transition-[background-color,border-color] duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-[.55] data-[state=checked]:border-[var(--accent,var(--color-primary))] data-[state=checked]:bg-[var(--accent,var(--color-primary))] data-[state=indeterminate]:border-[var(--accent,var(--color-primary))] data-[state=indeterminate]:bg-[var(--accent,var(--color-primary))]",
         className
       )}
       {...props}

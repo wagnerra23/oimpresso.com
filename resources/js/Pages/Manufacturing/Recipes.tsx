@@ -35,7 +35,14 @@ import { ROTA_NOVA_ORDEM } from './_lib/ordem';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import NovaReceitaDialog from './_components/NovaReceitaDialog';
-import Gaveta, { BOTAO_PRIMARIO, BOTAO_SECUNDARIO, SecaoGaveta } from './_components/Gaveta';
+import Gaveta, {
+  BOTAO_PRIMARIO,
+  BOTAO_PRIMARIO_SM,
+  BOTAO_SECUNDARIO,
+  KPI_FILTRO,
+  KPI_LEITURA,
+  SecaoGaveta,
+} from './_components/Gaveta';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 /** Filtros da URL — o servidor devolve o que entendeu, já normalizado. */
@@ -62,6 +69,8 @@ interface Props {
   permissions: Permissoes;
   producao: ContadoresProducao;
   settings: { enable_updating_product_price: boolean };
+  /** UC-RECIPE-27: a receita de `?receita=ID`, mesmo fora da página atual. Null se não for da empresa. */
+  receita_aberta?: Receita | null;
 }
 
 const ROTA = '/manufacturing/recipe';
@@ -158,10 +167,11 @@ export default function Recipes({
   permissions,
   producao,
   settings,
+  receita_aberta = null,
 }: Props) {
   const [q, setQ] = useState(filtros.q ?? '');
   const [sel, setSel] = useState<number[]>([]);
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<number | null>(receita_aberta?.id ?? null);
   const [imprimir, setImprimir] = useState<{ itens: Receita[]; semCusto: boolean } | null>(null);
   const [novaAberta, setNovaAberta] = useState(false);
   const buscaRef = useRef<HTMLInputElement>(null);
@@ -214,7 +224,8 @@ export default function Recipes({
       : marcadasNoFiltro > 0
         ? 'some'
         : 'none';
-  const aberta = recipes.data.find((r) => r.id === openId) ?? null;
+  const aberta =
+    recipes.data.find((r) => r.id === openId) ?? (receita_aberta?.id === openId ? receita_aberta : null);
 
   // As marcadas podem estar em OUTRAS páginas — a ficha delas vem num reload parcial que só
   // calcula `fichas`. `preserveUrl` não deixa o `?fichas=` sujar o endereço da tela.
@@ -235,15 +246,15 @@ export default function Recipes({
         <div className="os-page-h-l">
           <h1>Fabricação</h1>
           <p>
-            {kpis.total} receita{kpis.total === 1 ? '' : 's'} · {producao.total} ordem
-            {producao.total === 1 ? '' : 's'} de produção · custo recalculado pelo preço atual dos
+            <strong>{kpis.total}</strong> receita{kpis.total === 1 ? '' : 's'} ·{' '}
+            <strong>{producao.total}</strong> {producao.total === 1 ? 'ordem' : 'ordens'} de produção · custo recalculado pelo preço atual dos
             ingredientes
           </p>
         </div>
         <div className="os-page-h-r">
           {permissions.criar && (
-            <Button size="sm" onClick={() => setNovaAberta(true)}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova receita
+            <Button size="sm" className={BOTAO_PRIMARIO_SM} onClick={() => setNovaAberta(true)}>
+              <Plus className="h-[13px] w-[13px]" /> Nova receita
             </Button>
           )}
         </div>
@@ -263,12 +274,14 @@ export default function Recipes({
           o número (medido com a sonda nos dois lados, 2026-09-30). */}
       <div className="mfg-kpis" data-contract="kpis" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <KpiCard
+          className={KPI_LEITURA}
           label="Custo médio / unidade"
           value={fmt(kpis.custo_medio)}
           description={`média das ${kpis.total} receita${kpis.total === 1 ? '' : 's'}`}
         />
         <KpiCard
           variant="filter"
+          className={KPI_FILTRO}
           label="Margem abaixo de 45%"
           value={kpis.margem_baixa}
           description="preço de venda desatualizado"
@@ -278,6 +291,7 @@ export default function Recipes({
           onClick={() => trocarKpi('margem')}
         />
         <KpiCard
+          className={KPI_LEITURA}
           label="Produção do mês"
           value={producao.mes_final}
           description={`${producao.mes_rascunho} rascunho${producao.mes_rascunho === 1 ? '' : 's'} em aberto`}
@@ -358,17 +372,18 @@ export default function Recipes({
           exige dupla prova + antes→depois + aprovação [W]. Fica declarado, não silenciado.
           A flag `enable_updating_product_price` vem no payload esperando essa decisão. */}
       {sel.length > 0 && (
-        <div className="mfg-bulk">
-          <b>
-            {sel.length} receita{sel.length > 1 ? 's' : ''} selecionada{sel.length > 1 ? 's' : ''}
+        <div className="mfg-bulk" role="region" aria-label="Ações em lote">
+          <b aria-live="polite">
+            <i>{sel.length}</i>
+            receita{sel.length > 1 ? 's' : ''} selecionada{sel.length > 1 ? 's' : ''}
           </b>
-          <span className="sp" />
-          <Button variant="ghost" size="sm" onClick={() => setSel([])}>
-            Limpar
-          </Button>
-          <Button variant="ghost" size="sm" onClick={imprimirSelecionadas}>
-            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir fichas
-          </Button>
+          <span className="sep" aria-hidden />
+          <button type="button" onClick={imprimirSelecionadas}>
+            <Printer size={14} aria-hidden /> Imprimir fichas
+          </button>
+          <button type="button" className="x" onClick={() => setSel([])} aria-label="Limpar seleção">
+            ×
+          </button>
         </div>
       )}
 

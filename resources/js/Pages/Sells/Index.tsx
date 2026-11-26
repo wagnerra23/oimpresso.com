@@ -33,6 +33,10 @@ import {
   X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
+import AbasVendas from './_components/AbasVendas';
+import ColunasListaModal from './_components/ColunasListaModal';
+import { chaveColunas, colunasGravadas } from './_components/colunasLista';
+import { CHAVE_VISAO, hojeLocal, visaoInicial } from './_components/visaoSalva';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
 import VdBulkEmitModal, { type BulkEmitItem } from './_components/VdBulkEmitModal';
 import { toast } from 'sonner';
@@ -44,9 +48,6 @@ import SellsDateFilter, {
 } from './_components/SellsDateFilter';
 import SellsTabsVisao, { type SellsVisao } from './_components/SellsTabsVisao';
 import SellsTabelaUnificada, {
-  COLUMNS_OPERACIONAL,
-  COLUMNS_FINANCEIRA,
-  COLUMNS_PRODUCAO,
   type ColumnId,
   type SaleRow as UnifiedSaleRow,
 } from './_components/SellsTabelaUnificada';
@@ -425,7 +426,7 @@ function Sparkline({
 // Saved views — Hoje / Pendentes / Atrasadas / Rejeitadas / Faturadas / Favoritas
 // (mock simplificado — backend não implementa view filter ainda; client-side)
 // ──────────────────────────────────────────────────────────────
-type SavedViewId = 'hoje' | 'pendentes' | 'aguardando-faturamento' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
+type SavedViewId = 'hoje' | 'pendentes-pgto' | 'pendentes' | 'aguardando-faturamento' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
 interface SavedView {
   id: SavedViewId;
   label: string;
@@ -435,8 +436,12 @@ interface SavedView {
 // Glossário BR (gap #6): faturar = emitir NF + título no contas a receber.
 // Critério: payment_status !== 'paid' AND fiscal_status NULL — pedido pronto mas
 // sem NF ainda. Permite a Larissa filtrar a fila de "preciso emitir NF" rapidamente.
+// "Hoje" de verdade (protótipo data-vendas.jsx: vendas do dia) entrou em 2026-11-26. Até ali o id
+// 'hoje' carregava o rótulo "Pendentes pgto." e o filtro de não pago, herança da reescrita de
+// 2026-05-17; esse par passou para o id 'pendentes-pgto'.
 const SAVED_VIEWS: SavedView[] = [
-  { id: 'hoje',                    label: 'Pendentes pgto.',         filter: (r) => r.payment_status !== 'paid' },
+  { id: 'hoje',                    label: 'Hoje',                    filter: (r) => r.transaction_date?.slice(0, 10) === hojeLocal() },
+  { id: 'pendentes-pgto',          label: 'Pendentes pgto.',         filter: (r) => r.payment_status !== 'paid' },
   { id: 'pendentes',               label: 'Pendentes',               filter: (r) => r.payment_status === 'due' || r.payment_status === 'partial' },
   { id: 'aguardando-faturamento',  label: 'Aguardando faturamento',  filter: (r) => r.payment_status !== 'paid' && (r.fiscal_status === null || r.fiscal_status === undefined) },
   { id: 'atrasadas',               label: 'Atrasadas',               filter: (r) => r.sla_kind === 'overdue' },
@@ -463,14 +468,11 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   });
   useEffect(() => ls.set('foco', foco), [foco]);
 
-  // Saved view dropdown (Hoje / Pendentes / Atrasadas / etc).
-  // Default 'todas' — Larissa @ ROTA LIVRE biz=4 reportou 2026-05-21 abrir em
-  // "Caixa" não bate com a operação dela (ADR 0105 sinal qualificado).
-  const [savedViewId, setSavedViewId] = useState<SavedViewId>(() => {
-    const v = ls.get('savedView', 'todas');
-    return SAVED_VIEWS.find((s) => s.id === v)?.id ?? 'todas';
-  });
-  useEffect(() => ls.set('savedView', savedViewId), [savedViewId]);
+  // Visão salva: abre em "Hoje" para quem nunca escolheu; escolha antiga respeitada (visaoSalva.ts).
+  const [savedViewId, setSavedViewId] = useState<SavedViewId>(
+    () => visaoInicial((k) => ls.get(k, ''), SAVED_VIEWS.map((v) => v.id)) as SavedViewId,
+  );
+  useEffect(() => ls.set(CHAVE_VISAO, savedViewId), [savedViewId]);
 
   // 5-pill status filter.
   // `?pill=rascunho` abre direto nos rascunhos (link de /sells/drafts e do menu Visões).
@@ -687,17 +689,25 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   });
   useEffect(() => ls.set('visao', visao), [visao]);
 
-  // Connect visão → visibleColumns pra SellsTabelaUnificada (ADR 0178). Filtra
-  // 'commission' do preset quando setting business.sales_cmsn_agnt = 'disable'.
-  const visibleColumns = useMemo<ColumnId[]>(() => {
-    const preset =
-      visao === 'financeira' ? COLUMNS_FINANCEIRA :
-      visao === 'producao' ? COLUMNS_PRODUCAO :
-      COLUMNS_OPERACIONAL;
-    return props.coworkCommissionEnabled
-      ? preset
-      : preset.filter((c) => c !== 'commission');
-  }, [visao, props.coworkCommissionEnabled]);
+  // Colunas da tabela: a escolha gravada no botão "Colunas" (uma por visão) ou, sem escolha, o
+  // conjunto da visão (ADR 0178), como antes. Comissão some quando business.sales_cmsn_agnt =
+  // 'disable'. Regra em _components/colunasLista.ts.
+  const comissaoLigada = !!props.coworkCommissionEnabled;
+  const [colunasVersao, setColunasVersao] = useState(0);
+  const [colunasAbertas, setColunasAbertas] = useState(false);
+  const visibleColumns = useMemo<ColumnId[]>(
+    () => colunasGravadas(ls.get(chaveColunas(visao), ''), visao, comissaoLigada),
+    // colunasVersao muda a cada gravação: o valor vem do localStorage, fora do estado do React.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [visao, comissaoLigada, colunasVersao, ls],
+  );
+  const gravarColunas = useCallback(
+    (c: ColumnId[] | null) => {
+      ls.set(chaveColunas(visao), c ? JSON.stringify(c) : '');
+      setColunasVersao((v) => v + 1);
+    },
+    [ls, visao],
+  );
 
   // UI overlays.
   const [cheatOpen, setCheatOpen] = useState(false);
@@ -705,7 +715,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const [palQ, setPalQ] = useState('');
   const [palSel, setPalSel] = useState(0);
   const [viewsOpen, setViewsOpen] = useState(false);
-  const [visoesOpen, setVisoesOpen] = useState(false);
   // US-SELL-COWORK-R2-IA — ⌘K palette ✦ "Perguntar à IA" abre drawer da 1ª venda
   // visível + painel IA. Esta flag sincroniza com SaleSheet via prop initialAiOpen.
   const [aiTriggered, setAiTriggered] = useState(false);
@@ -1017,7 +1026,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         if (cheatOpen) setCheatOpen(false);
         else if (palOpen) setPalOpen(false);
         else if (viewsOpen) setViewsOpen(false);
-        else if (visoesOpen) setVisoesOpen(false);
         else if (openSaleId != null) setOpenSaleId(null);
         else if (focusIdx >= 0) setFocusIdx(-1);
         return;
@@ -1077,7 +1085,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [filtered, focusIdx, cheatOpen, palOpen, viewsOpen, visoesOpen, openSaleId, toggleFav, toggleSel]);
+  }, [filtered, focusIdx, cheatOpen, palOpen, viewsOpen, openSaleId, toggleFav, toggleSel]);
 
   // Outside-click close pra dropdowns.
   const viewsRef = useRef<HTMLDivElement>(null);
@@ -1089,16 +1097,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [viewsOpen]);
-
-  const visoesRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!visoesOpen) return;
-    const onClick = (e: MouseEvent) => {
-      if (visoesRef.current && !visoesRef.current.contains(e.target as Node)) setVisoesOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [visoesOpen]);
 
   // Reset focus when filtered list size changes.
   useEffect(() => {
@@ -1113,24 +1111,29 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         <header className="os-head vd-head-clean">
           <div className="os-head-l">
             <h1>Vendas</h1>
-            {/* PR 1666 — header subtitle métrica live (paridade prototipo Cowork).
-                Substitui string estática por agregados do payload atual.
-                Fallback elegante quando rows ainda não carregaram. */}
+            {/* Subtítulo do protótipo (vendas-page.jsx `vd-head-stat`), decisão [W] 2026-11-25:
+                vendas e faturado de HOJE (os mesmos números do KPI "Faturado hoje") e o estado
+                das cobranças — estouradas, senão atrasando, senão "tudo em dia". Até 2026-11-26
+                contava todas as linhas carregadas, que dependem do filtro de período. */}
             <p>
               {rows.length > 0 ? (
                 <>
-                  <strong>{rows.length}</strong> vendas
+                  <strong>{kpiToday.count}</strong> {kpiToday.count === 1 ? 'venda' : 'vendas'} hoje
                   {' · '}
-                  <strong>{fmtShort(rows.reduce((acc, r) => acc + (Number(r.final_total) || 0), 0))}</strong> faturado
-                  {(() => {
-                    const overdue = rows.filter((r) => r.sla_kind === 'overdue').length;
-                    return overdue > 0 ? (
-                      <>
-                        {' · '}
-                        <strong className="vd-delta-dn">{overdue}</strong> estouradas
-                      </>
-                    ) : null;
-                  })()}
+                  <strong>{fmtShort(kpiToday.total)}</strong> faturado
+                  {' · '}
+                  {slaCounts.overdue > 0 ? (
+                    <>
+                      <strong className="vd-delta-dn">{slaCounts.overdue}</strong>{' '}
+                      {slaCounts.overdue === 1 ? 'estourada' : 'estouradas'}
+                    </>
+                  ) : slaCounts.warning > 0 ? (
+                    <>
+                      <strong className="vd-delta-dn">{slaCounts.warning}</strong> atrasando
+                    </>
+                  ) : (
+                    <span className="vd-delta-up">tudo em dia</span>
+                  )}
                 </>
               ) : (
                 'Pedidos · faturamento · NF-e/NFS-e'
@@ -1165,44 +1168,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               <Printer size={11} />
               <span>Imprimir caixa</span>
             </button>
-            <div className="vd-visoes" ref={visoesRef} data-contract="menu-visoes">
-              <button
-                className="vd-toolbar-act vd-visoes-btn"
-                onClick={() => setVisoesOpen((v) => !v)}
-                type="button"
-                title="Outras visões deste módulo"
-              >
-                <Folder size={11} />
-                <span>Visões</span>
-                <ChevronDown size={11} style={{ marginLeft: 2 }} />
-              </button>
-              {visoesOpen && (
-                <div className="vd-visoes-menu">
-                  <div className="vd-visoes-grp">Visões deste módulo</div>
-                  <div className="vd-visoes-item active">
-                    <span className="vd-visoes-dot" />Lista de vendas
-                    <span className="vd-visoes-here">aqui</span>
-                  </div>
-                  {[
-                    { id: 'caixa',      label: 'Caixa do dia', href: '/vendas/caixa' },
-                    { id: 'quotations', label: 'Orçamentos', href: '/sells/quotations' },
-                    { id: 'drafts',     label: 'Rascunhos',  href: '/sells?pill=rascunho' },
-                    { id: 'subs',       label: 'Assinaturas',href: '/sells/subscriptions' },
-                  ].map((s) => (
-                    <a key={s.id} className="vd-visoes-item" href={s.href}>
-                      <span className="vd-visoes-dot" />
-                      {s.label}
-                    </a>
-                  ))}
-                  <div className="vd-visoes-sep" />
-                  <a className="vd-visoes-item primary" href="/sells/create?pos=1">
-                    <span className="vd-visoes-dot pdv" />
-                    Abrir PDV balcão
-                    <kbd>F2</kbd>
-                  </a>
-                </div>
-              )}
-            </div>
             {props.permissions.create && (
               <a className="os-btn primary" href="/sells/create">
                 <Plus size={11} />
@@ -1211,6 +1176,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             )}
           </div>
         </header>
+        {/* Barra das telas do módulo, a mesma de Rascunhos, Caixa do dia etc. (decisão [W]
+            2026-11-25). Substitui o menu "Visões", que listava parte dessas telas. */}
+        <AbasVendas ativa="vendas" />
 
         {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
         {/* KPIs row — 5 cards numa linha a 1280 (Faturado hero · Ticket médio · A receber · 4º vista-dependente · PIX hoje) */}
@@ -1603,6 +1571,16 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 }}
               />
             </button>
+            {/* Botão Colunas do protótipo (vendas-page.jsx), decisão [W] 2026-11-25. */}
+            <button
+              type="button"
+              className="vd-views-btn"
+              onClick={() => setColunasAbertas(true)}
+              aria-haspopup="dialog"
+              title="Escolher e ordenar as colunas da lista"
+            >
+              Colunas ({visibleColumns.length - 1})
+            </button>
           </div>
           <div className="vd-toolbar-r">
             {/* Campo de busca da lista, como no protótipo. Usa o mesmo estado da paleta ⌘K
@@ -1885,6 +1863,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
       {/* KB-9.75 P0 #4 — Faturar em lote NF-e/NFS-e (wire-up bug-fix 2026-05-26).
           VdBulkEmitModal monta só quando openBulk=true; items derivados de selectedIds. */}
+      <ColunasListaModal
+        aberto={colunasAbertas}
+        onFechar={() => setColunasAbertas(false)}
+        visao={visao}
+        ativas={visibleColumns}
+        comissao={comissaoLigada}
+        onAtivasChange={gravarColunas}
+        onRestaurar={() => gravarColunas(null)}
+      />
       <VdBulkEmitModal
         open={openBulk}
         items={buildBulkItems()}

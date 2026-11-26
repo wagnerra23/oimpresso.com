@@ -22,10 +22,15 @@
  *  - Sem `shell.menu` (página fora do AppShellV2), mostra todas: é o comportamento anterior.
  *  - A aba da tela atual sempre aparece.
  *
+ * "Todas as vendas" (`/sells`) entrou em 2026-11-26, quando a lista de vendas passou a usar esta
+ * barra no lugar do menu "Visões" (decisão [W] 2026-11-25). No protótipo ela é o botão "Todas as
+ * vendas" do cabeçalho de cada tela; como aba, a barra marca onde a pessoa está também na lista.
+ *
  * Dados e filtro, separados do componente (`AbasVendas.tsx`) porque o react-refresh pede
  * arquivo de componente só com componente. Use o componente no slot `below` do `PageHeader`.
  */
 export const ABAS_VENDAS = [
+  { key: 'vendas', label: 'Todas as vendas', href: '/sells' },
   { key: 'pos', label: 'Lista de POS', href: '/pos' },
   { key: 'rascunhos', label: 'Rascunhos', href: '/sells/drafts' },
   { key: 'cotacoes', label: 'Cotações', href: '/sells/quotations' },

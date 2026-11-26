@@ -13,11 +13,13 @@ import {
   CHAVES_FIXAS,
   COLUNAS,
   alternarColuna,
+  camposDeProducao,
   carregarColunas,
   colunasPadrao,
   moverColuna,
   salvarColunas,
   sanearColunas,
+  textoDaColuna,
 } from '@/Pages/Sells/_components/v3/colunas-dominio';
 
 /** Storage de mentira — deixa simular bloqueado, com lixo e com cota cheia. */
@@ -146,5 +148,30 @@ describe('alternar — fixa não desliga', () => {
 
   it('UC-V366 · chave desconhecida não entra', () => {
     expect(alternarColuna(base, 'inventada')).toEqual(base);
+  });
+});
+
+describe('UC-V416 · campos de produção do lançamento chegam à linha', () => {
+  const lancado = {
+    sku: 'INST-01', nome: 'Instalação', un: 'h', medidas: null, qtd: '2', preco: '90,00',
+    desc: '0', acr: '0', estoque: null, obsInterna: '', obsProducao: '',
+    executante: 'Técnico de teste', local: 'Fachada', impressao: 'Digital — UV',
+  };
+
+  it('UC-V416 · leva executante, local e impressão, e nenhum campo de valor', () => {
+    const campos = camposDeProducao(lancado);
+    expect(campos).toEqual({ executante: 'Técnico de teste', local: 'Fachada', impressao: 'Digital — UV' });
+    // controle: preço, quantidade e desconto não passam por aqui
+    expect(Object.keys(campos).sort()).toEqual(['executante', 'impressao', 'local']);
+  });
+
+  it('UC-V416 · as colunas de produção leem o que a linha guardou; vazio continua sem fonte', () => {
+    const linha = { sku: 'INST-01', un: 'h', medidas: null, estoque: null, ...camposDeProducao(lancado) };
+    expect(textoDaColuna('impressao', linha)).toBe('Digital — UV');
+    expect(textoDaColuna('executante', linha)).toBe('Técnico de teste');
+
+    const semNada = { ...linha, executante: null, impressao: '   ' };
+    expect(textoDaColuna('impressao', semNada)).toBeNull();
+    expect(textoDaColuna('executante', semNada)).toBeNull();
   });
 });

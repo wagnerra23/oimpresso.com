@@ -204,6 +204,22 @@ Gravando, a comissão também tem duas portas: o seletor "Comissionado" do rodap
 | Colunas do grid | o catálogo do protótipo tem 31 colunas (Seq., Cód. produto, Tipo, Qtd. peças, Comprimento, Fórmula, R$ tabela, R$ desconto, R$ outros, CEST, Em produção, Obs. da produção, Local de estoque…); a produção tem 30, com nomes e grupos diferentes, reordena por ‹ › e confirma por "Aplicar" | DÍVIDA A FECHAR |
 | Consulta de cliente | mesma estrutura; a produção pede 2 letras antes de listar | IGUAL na forma (a lista vem do cadastro) |
 
+> **Errata 2026-11-26.** A tabela acima é a medição de 2026-11-24 e fica como estava. Sete linhas
+> envelheceram no mesmo dia, com as levas de forma mergeadas depois da medição (conferido no código):
+>
+> | Linha | Fechado por | O que mudou |
+> |---|---|---|
+> | Topo | [#11425](https://github.com/wagnerra23/oimpresso.com/pull/11425) | `PageHeader` padrão. O "Voltar para Vendas · esc" **não se aplica** a `/sells/create-v3`: no protótipo ele só aparece na rota `venda-nova` (aberta por "Adicionar venda"); a medição usou a rota errada (UC-V410) |
+> | Numeração das seções | [#11425](https://github.com/wagnerra23/oimpresso.com/pull/11425) | 1 Cliente · 2 Itens · 3 Fechamento; Entrega e Observações sem número (UC-V410) |
+> | Itens | [#11433](https://github.com/wagnerra23/oimpresso.com/pull/11433) | "Consultar produto… F3" (`_components/v3/ConsultaProduto.tsx`, UC-V412). Gravando, EAN, código de fábrica e categoria saem com travessão (dívida declarada no UC-V412) |
+> | Entrega e frete | [#11443](https://github.com/wagnerra23/oimpresso.com/pull/11443) | gravando, grava frete por conta, transportadora, placa/UF, volumes, remessa e endereço de entrega (UC-V413). Renavam, ANTT, modalidade, UF de destino, marca, coleta e previsão seguem sem coluna |
+> | Comissão · gaveta | [#11431](https://github.com/wagnerra23/oimpresso.com/pull/11431) | título "Comissão desta venda", bruto/líquido/margem no topo, um botão por tipo de beneficiário, rodapé com o total e só "Fechar" (UC-V411). Liberação por parcela, ciclo de apuração e nota de estorno ficam fora (REGRA MESTRE); gravar o beneficiário segue BACKLOG |
+> | Situação | [#11439](https://github.com/wagnerra23/oimpresso.com/pull/11439) | gravando, lista as etapas do processo `venda_com_producao` em que a V3 entra (`SellsV3Controller::etapasDaVenda`, UC-V414), não o modelo de `/fluxos`; fazer a V3 seguir o modelo é BACKLOG |
+> | Colunas do grid | [#11444](https://github.com/wagnerra23/oimpresso.com/pull/11444) | as colunas presentes nos dois lados têm o nome e o grupo do protótipo. Colunas só do protótipo, as três de valor (R$ tabela, R$ desconto, R$ outros) e as só da produção seguem abertas |
+>
+> **Rodapé:** só o rótulo do botão da venda final mudou ("Gravar venda" → "Finalizar venda", #11425). Os
+> demais rótulos e o rascunho, a proforma e a bonificação seguem como na tabela.
+
 ### O que este registro não cobre
 
 - **D6** (espaçamento, tipografia e cor), pela razão acima.

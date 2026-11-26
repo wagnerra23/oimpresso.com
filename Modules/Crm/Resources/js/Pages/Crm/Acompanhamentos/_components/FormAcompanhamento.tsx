@@ -15,11 +15,13 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { csrf, type Listas, type Opcao, type Valores } from './acompanhamento';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 
 export default function FormAcompanhamento({ id, inicial, opcoes, onFechar, onSalvo }: {
   id: number | null; inicial: Valores; opcoes?: Listas; onFechar: () => void; onSalvo: () => void;
 }) {
+  const cockpit = useCockpit();
   const [v, setV] = useState<Valores>(inicial);
   const [erros, setErros] = useState<Record<string, string[]>>({});
   const [salvando, setSalvando] = useState(false);
@@ -60,13 +62,13 @@ export default function FormAcompanhamento({ id, inicial, opcoes, onFechar, onSa
   const sel = (nome: keyof Valores, lista?: Opcao[]) => (
     <Select value={(v[nome] as string) || undefined} onValueChange={(x) => muda({ [nome]: x } as Partial<Valores>)}>
       <SelectTrigger id={`aco-${nome}`}><SelectValue placeholder="Selecione" /></SelectTrigger>
-      <SelectContent>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
+      <SelectContent container={cockpit}>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
     </Select>
   );
 
   return (
     <Dialog open onOpenChange={(aberto) => { if (!aberto) onFechar(); }}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent container={cockpit} className="sm:max-w-3xl">
         <DialogHeader><DialogTitle>{id ? 'Editar acompanhamento' : 'Adicionar acompanhamento'}</DialogTitle></DialogHeader>
         <Grid cols={3} gap={3}>
           {campo('Título *', 'title', <Input id="aco-title" value={v.title} placeholder="Ligar — medidas da fachada" onChange={(e) => muda({ title: e.target.value })} />, 'col-span-2')}

@@ -12,7 +12,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Plus, X } from 'lucide-react';
+import { ChevronDown, Plus, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
@@ -24,6 +24,7 @@ import DataTable from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import { BOTAO_PRIMARIO_SM, KPI_FILTRO, KPI_LEITURA } from './_components/Gaveta';
 import OrdemDrawer, { type OrdemDetalhe } from './_components/OrdemDrawer';
 import { CAMPO_DATA, ROTULO_CAMPO, ROTULO_CHECKBOX, isDataCompleta } from './_lib/filtros';
 import { ROTA_NOVA_ORDEM } from './_lib/ordem';
@@ -293,16 +294,21 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
         <div className="os-page-h-l">
           <h1>Produção</h1>
           <p>
-            {recipes_count === undefined
-              ? 'Ordens de produção do módulo de Fabricação.'
-              : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
-                `${summary?.total_count ?? 0} ordens de produção`}
+            {recipes_count === undefined ? (
+              'Ordens de produção do módulo de Fabricação.'
+            ) : (
+              <>
+                <strong>{recipes_count}</strong> receita{recipes_count === 1 ? '' : 's'} ·{' '}
+                <strong>{summary?.total_count ?? 0}</strong>{' '}
+                {(summary?.total_count ?? 0) === 1 ? 'ordem' : 'ordens'} de produção
+              </>
+            )}
           </p>
         </div>
         <div className="os-page-h-r">
-          <Button asChild size="sm">
+          <Button asChild size="sm" className={BOTAO_PRIMARIO_SM}>
             <a href={ROTA_NOVA_ORDEM}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova produção
+              <Plus className="h-[13px] w-[13px]" /> Nova produção
             </a>
           </Button>
         </div>
@@ -347,12 +353,14 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
           `.mfg-tablewrap` (0 20px 24px), em `manufacturing-bundle.css`. */}
       <div className="grid grid-cols-1 gap-2.5 px-5 pb-1 pt-3.5 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
         <KpiCard
+          className={KPI_LEITURA}
           label="Total"
           value={indicadores?.total_count ?? 0}
           description={recorteDosIndicadores ? 'no filtro de local e data' : 'ordens cadastradas'}
         />
         <KpiCard
           variant="filter"
+          className={KPI_FILTRO}
           label="Finalizadas"
           value={indicadores?.final_count ?? 0}
           description="estoque já movimentado"
@@ -362,11 +370,13 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
           onClick={() => applyFilter(filters, { is_final: filters.is_final ? null : true })}
         />
         <KpiCard
+          className={KPI_LEITURA}
           label="Pendentes"
           value={indicadores?.pending_count ?? 0}
           description="rascunhos, sem movimentar estoque"
         />
         <KpiCard
+          className={KPI_LEITURA}
           label="Valor total"
           value={formatCurrency(indicadores?.total_value ?? 0)}
           description={recorteDosIndicadores ? 'ordens no filtro de local e data' : 'todas as ordens cadastradas'}
@@ -390,24 +400,31 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
                 <span className={ROTULO_CAMPO}>
                   Local
                 </span>
-                {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
-                <select
-                  id="mfg-op-local"
-                  className="h-[34px] w-[180px] rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] text-foreground"
-                  value={filters.location_id ?? ''}
-                  onChange={(e) =>
-                    applyFilter(filters, {
-                      location_id: e.target.value ? Number(e.target.value) : null,
-                    })
-                  }
-                >
-                  <option value="">Todos os locais</option>
-                  {locationEntries.map(([id, name]) => (
-                    <option key={id} value={id}>
-                      {String(name)}
-                    </option>
-                  ))}
-                </select>
+                {/* Seta própria e padding 7 28 7 10, como o `Select` do DS (Input.jsx L111-113). */}
+                <span className="relative">
+                  {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
+                  <select
+                    id="mfg-op-local"
+                    className="h-[34px] w-[180px] appearance-none rounded-[8px] border border-[var(--border)] bg-[var(--surface)] py-[7px] pr-7 pl-2.5 text-[13px] text-foreground"
+                    value={filters.location_id ?? ''}
+                    onChange={(e) =>
+                      applyFilter(filters, {
+                        location_id: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                  >
+                    <option value="">Todos os locais</option>
+                    {locationEntries.map(([id, name]) => (
+                      <option key={id} value={id}>
+                        {String(name)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    aria-hidden
+                    className="pointer-events-none absolute top-1/2 right-2.5 h-3 w-3 -translate-y-1/2 text-[var(--text-mute)]"
+                  />
+                </span>
               </label>
             </Stack>
           )}
@@ -521,8 +538,8 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
             não o recalculado do Relatório (US-MANU-002) — ver RUNBOOK-producao.md §1. Fica dentro
             da área da lista, como o `.mfg-foot` das irmãs (margem de 10px acima). */}
         {productions.length > 0 && (
-          <p className="mt-2.5 text-xs text-muted-foreground tabular-nums">
-            {productions.length} ordens · custo do período{' '}
+          <p className="mt-2.5 pl-0.5 text-[11.5px] leading-[1.45] text-[var(--text-dim)] tabular-nums">
+            {productions.length} {productions.length === 1 ? 'ordem' : 'ordens'} · custo do período{' '}
             <span className="font-medium text-foreground">{formatCurrency(custoDoPeriodo)}</span> ·
             ordens finalizadas mostram o custo congelado na data
           </p>

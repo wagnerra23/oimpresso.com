@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Stack } from '@/Components/layout';
 import { enviar, type Listas, type Opcao } from './acompanhamento';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 // O enum de crm_schedule_logs.log_type — a Blade usa a mesma lista fixa.
 const TIPOS_REGISTRO: Opcao[] = [
@@ -22,6 +23,7 @@ const TIPOS_REGISTRO: Opcao[] = [
 export default function FormRegistro({ acompanhamento, opcoes, onFechar, onSalvo }: {
   acompanhamento: { id: number; titulo: string; tipo: string | null; status: string | null }; opcoes?: Listas; onFechar: () => void; onSalvo: () => void;
 }) {
+  const cockpit = useCockpit();
   const [v, setV] = useState({
     subject: '', log_type: acompanhamento.tipo ?? '', start_datetime: '', end_datetime: '', description: '', status: acompanhamento.status ?? '',
   });
@@ -48,13 +50,13 @@ export default function FormRegistro({ acompanhamento, opcoes, onFechar, onSalvo
   const sel = (id: string, valor: string, lista: Opcao[] | undefined, aoMudar: (x: string) => void) => (
     <Select value={valor || undefined} onValueChange={aoMudar}>
       <SelectTrigger id={id}><SelectValue placeholder="Selecione" /></SelectTrigger>
-      <SelectContent>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
+      <SelectContent container={cockpit}>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
     </Select>
   );
 
   return (
     <Dialog open onOpenChange={(aberto) => { if (!aberto) onFechar(); }}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent container={cockpit} className="sm:max-w-2xl">
         <DialogHeader><DialogTitle>Adicionar registro — {acompanhamento.titulo}</DialogTitle></DialogHeader>
         <Grid cols={3} gap={3}>
           <Stack gap={1} className="col-span-3">

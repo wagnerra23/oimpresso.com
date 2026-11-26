@@ -8,13 +8,16 @@
  * relative-time suffix via `rel` — e.g. <StatusBadge kind="frescor" value="recente" rel="há 1sem" />
  */
 export function StatusBadge({ kind, value, label, rel, tone: toneProp }) {
+  // D2 ([W] 2026-11-25): os tons de estado são SUAVES com ponto, como o `StatusBadge` da produção
+  // (`ui/badge` success/warning/danger/info + `dot`). O cheio com texto branco reprovava AA: verde
+  // 2,71:1 e âmbar 2,35:1 (medido em 25/11; o mínimo para texto pequeno é 4,5:1). O suave passa.
   const C = {
-    success: { bg: 'var(--color-success)', fg: '#fff' },
-    warning: { bg: 'var(--color-warning)', fg: '#fff' },
-    danger:  { bg: 'var(--color-destructive)', fg: '#fff' },
-    info:    { bg: 'var(--color-info)', fg: '#fff' },
-    neutral: { bg: 'var(--color-secondary)', fg: 'var(--color-secondary-foreground)' },
-    outline: { bg: 'transparent', fg: 'var(--color-foreground)', border: 'var(--color-border)' },
+    success: { bg: 'var(--color-success-soft)', fg: 'var(--color-success-fg)', border: 'color-mix(in oklch, var(--color-success) 20%, transparent)', dot: true },
+    warning: { bg: 'var(--color-warning-soft)', fg: 'var(--color-warning-fg)', border: 'color-mix(in oklch, var(--color-warning) 20%, transparent)', dot: true },
+    danger:  { bg: 'var(--color-destructive-soft)', fg: 'var(--color-destructive-fg)', border: 'color-mix(in oklch, var(--color-destructive) 20%, transparent)', dot: true },
+    info:    { bg: 'var(--color-info-soft)', fg: 'var(--color-info-fg)', border: 'color-mix(in oklch, var(--color-info) 20%, transparent)', dot: true },
+    neutral: { bg: 'var(--color-muted)', fg: 'var(--color-muted-foreground)', border: 'var(--color-border)', dot: true },
+    outline: { bg: 'transparent', fg: 'var(--color-foreground)', border: 'var(--color-border)', dot: true },
     // soft styles (bg-soft + readable fg + colored dot) — SLA & atendimento
     'sla-fresh':   { bg: 'var(--color-sla-fresh-soft)',   fg: 'var(--color-sla-fresh)',   dot: true },
     'sla-aging':   { bg: 'var(--color-sla-aging-soft)',   fg: 'var(--color-sla-aging)',   dot: true },
@@ -100,9 +103,10 @@ export function StatusBadge({ kind, value, label, rel, tone: toneProp }) {
   const pulse = kind === 'prioridade' && key === 'urgente';
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: c.mono ? '2px 6px' : '2px 10px', borderRadius: c.mono ? 'var(--radius-sm, 4px)' : 9999,
-      fontSize: c.mono ? 'var(--fs-1)' : 'var(--fs-2)', fontWeight: c.mono ? 700 : 500, lineHeight: 1.5,
+      // Medidas da produção (`ui/badge`): 12px/16px, padding 2px 8px, vão 4px.
+      display: 'inline-flex', alignItems: 'center', gap: c.mono ? 5 : 4,
+      padding: c.mono ? '2px 6px' : '2px 8px', borderRadius: c.mono ? 'var(--radius-sm, 4px)' : 9999,
+      fontSize: c.mono ? 'var(--fs-1)' : 12, fontWeight: c.mono ? 700 : 500, lineHeight: c.mono ? 1.5 : '16px',
       fontFamily: c.mono ? 'var(--font-mono)' : 'inherit', letterSpacing: c.mono ? '.03em' : 'normal',
       background: c.bg, color: c.fg,
       border: '1px solid ' + (c.border || 'transparent'),

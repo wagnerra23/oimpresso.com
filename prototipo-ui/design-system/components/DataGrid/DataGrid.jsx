@@ -125,6 +125,12 @@ export function DataGrid({
   const pad = relaxed ? '9px 10px' : '5px 10px';
   const th = { position: 'sticky', top: 0, zIndex: 1, background: 'var(--bg-2)', padding: '7px 10px', font: '600 10px/1.2 var(--font-sans)', textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--text-mute)', whiteSpace: 'nowrap', borderBottom: '1px solid var(--border)', userSelect: 'none' };
   const chk = { accentColor: 'var(--accent)', width: 13, height: 13, cursor: 'pointer' };
+  // D1 ([W] 2026-11-25): a caixinha é o `Checkbox` do DS (16px), como na produção (`ui/checkbox`).
+  // A nativa fica só de reserva, se o Checkbox não carregou — o mesmo padrão da `Pagination`.
+  // Função, não componente: um componente definido aqui dentro remontaria a caixa a cada render.
+  const caixa = ({ checked, indeterminate, onChange, ariaLabel, inputRef }) => (NS.Checkbox
+    ? <NS.Checkbox checked={checked} indeterminate={indeterminate} onChange={onChange} ariaLabel={ariaLabel} />
+    : <input type="checkbox" ref={inputRef} checked={checked} onChange={(e) => onChange(e.target.checked)} aria-label={ariaLabel} style={chk} />);
   const colW = (c) => (w[c.key] != null ? w[c.key] + 'px' : c.width);
 
   const numBtn = (p, on) => (
@@ -172,7 +178,7 @@ export function DataGrid({
             <tr>
               {selectable && (
                 <th scope="col" style={{ ...th, width: 34, textAlign: 'center' }}>
-                  <input type="checkbox" ref={headChk} checked={!!allChecked} onChange={(e) => toggleAll(e.target.checked)} aria-label="Selecionar página" style={chk} />
+                  {caixa({ checked: !!allChecked, indeterminate: someChecked && !allChecked, onChange: toggleAll, ariaLabel: 'Selecionar página', inputRef: headChk })}
                 </th>
               )}
               {columns.map((c, ci) => (
@@ -207,7 +213,7 @@ export function DataGrid({
                   style={{ cursor: onRowClick ? 'pointer' : 'default', boxShadow: row.state === 'urgent' ? 'inset 2px 0 0 var(--neg)' : 'none' }}>
                   {selectable && (
                     <td onClick={(e) => e.stopPropagation()} style={{ padding: pad, textAlign: 'center', background: base, borderBottom: '1px solid var(--border-2)', width: 34 }}>
-                      <input type="checkbox" checked={sel.has(String(row.id))} onChange={() => toggleRow(row)} aria-label={'Selecionar ' + row.id} style={chk} />
+                      {caixa({ checked: sel.has(String(row.id)), onChange: () => toggleRow(row), ariaLabel: 'Selecionar ' + row.id })}
                     </td>
                   )}
                   {columns.map((c) => (

@@ -173,3 +173,29 @@ Resíduo, que depende de markup no `.tsx` e não de CSS: no protótipo o separad
 tipografia do valor do KPI (22px).
 
 **Para o PR-1d:** M1, M2 e M3. M4 fica registrado como dívida de produto (decisão [W]), não de layout.
+
+## Conferência 2026-11-25 — produção × `vendas-page.jsx` e decisões [W]
+
+Conferência de forma (tema escuro, 1440×900, produção `/sells` só leitura, protótipo do git em
+`7d5c17ab`) achou 14 diferenças. Cinco eram ajuste de CSS e foram para o
+[PR #11505](https://github.com/wagnerra23/oimpresso.com/pull/11505): descrição do cliente, hora,
+pílula de Origem com fundo, abas de situação na forma do TabBar do DS e o card "Faturado hoje".
+Medindo o tema claro, o card "Faturado hoje" também era verde-escuro sólido em produção. O
+relatório, feito só no escuro, não tinha visto isso.
+
+As sete que pediam decisão foram decididas por [W] em 2026-11-25, nesta sessão:
+
+| # | Ponto | Decisão [W] | Consequência |
+|---|---|---|---|
+| 01 | Caixinha de seleção da linha | Fica o checkbox do **DS**, com a borda corrigida para aparecer no escuro | O conserto é no componente comum (`Components/ui/checkbox.tsx`), vale para todas as telas; o protótipo passa a usar o do DS |
+| 04 | Cor da pílula Origem "Balcão" | Fica o **azul do DS v6** (`--origin-CRM`) | O protótipo troca o verde pelo token de origem |
+| 06 | Barra de abas do módulo | A lista entra na **barra que as outras telas de Vendas já usam** (`abasVendasDados.ts`), como primeira aba | O `VdModNav` do protótipo (CRM · Oficina · Vendas…) sai; o protótipo fica com uma barra só |
+| 07 | Botão Visões | **Sai** | Fica redundante com a barra do item 06 |
+| 07 | Subtítulo do cabeçalho | **Do protótipo**: "N vendas hoje · R$ faturado" e sempre o estado das cobranças (estouradas, atrasando ou "tudo em dia") | Deixa de contar a lista carregada, que muda com filtro e página |
+| 08 | Visão ao abrir a primeira vez | **Hoje** | Depois, cada pessoa continua com a última escolha |
+| 08 | Botão Colunas | **Entra agora** | Escolher e ordenar colunas, salvo por pessoa |
+| 10 | Colunas do modo Operacional | **Mantém** Data · Origem · Pagamento | Produção (OS) · Entrega · Arte só quando a empresa tiver Produção ligada e o servidor mandar o dado; o protótipo mostra as duas versões. Supera a pendência M4 acima |
+| 11 | Coluna Pipeline | **Etapa atual + contador** (nome curto e "6/11" com barra fina) | Cabe em ~130px com qualquer número de etapas e devolve largura à coluna Cliente (item 03) |
+
+O item 13 (etiqueta "Paga" do protótipo com 2,2:1) é correção **no protótipo**, não na tela.
+Itens 02 e 14 são diferenças de 0,5px da escala do DS e ficam como estão.
