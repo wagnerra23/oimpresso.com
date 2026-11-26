@@ -4,7 +4,7 @@ module: Estoque
 title: "SPEC — Estoque (cross-cutting: saldo, reserva, movimentação)"
 status: ativo
 version: "1.0"
-last_updated: "2026-06-04"
+last_updated: "2026-11-26"
 owner: wagner
 owners: [W]
 related_adrs:
@@ -36,7 +36,7 @@ doc_raiz: ./DOC-RAIZ-ESTOQUE.md
 > owner: wagner · priority: p0 · estimate: 24h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** _pendente_ — parte 1 feita (abrir, contar, fechar e divergência em `App\Services\Estoque\ContagemInventarioService`, prova em `tests/Feature/Estoque/ContagemInventarioContratoTest.php`); faltam aprovar o ajuste e a tela com coletor.
+**Implementado em:** _pendente_ — parte 1 feita (abrir, contar, fechar e divergência em `App\Services\Estoque\ContagemInventarioService`, prova em `tests/Feature/Estoque/ContagemInventarioContratoTest.php`); falta a tela com coletor. A aprovação do ajuste saiu desta US em 2026-11-26 (decisão [W] abaixo).
 
 Lacuna P0 do levantamento de 2026-10-25: `CatalogoProcessos.php` (processo `inventario`) dizia que não existe contagem, nem tabela nem rota, e que o ajuste de estoque só tira e não vem de contagem.
 
@@ -46,8 +46,8 @@ Aceite:
 - **Contar:** o coletor lê o SKU da variação (ou o do produto, quando ele tem uma só) e soma 1 a cada leitura; digitar a quantidade substitui. Produto sem controle de estoque é recusado. Quantidade negativa é recusada.
 - **Saldo congelado por item:** na primeira contagem do item o sistema guarda o saldo daquele local. A divergência é `contado − saldo guardado`; venda feita depois de contar a prateleira não vira falta falsa. A loja não para durante a contagem.
 - **Fechar:** depois de fechada, ninguém conta mais. A tela mostra falta e sobra por item, com o valor pela custo de compra.
-- **Aprovar ajuste (parte 2):** só quem tem a permissão de aprovar inventário. Aplica a diferença sobre o saldo do momento da aprovação, tirando a falta e lançando a sobra, com um movimento auditável por contagem. Regra mestre de estoque: antes→depois apresentado ao [W] e dupla prova antes do merge.
-- **Tela (parte 3):** abrir, contar pelo coletor, ver a divergência e aprovar.
+- **Aprovar ajuste (parte 2) — saiu desta US.** Decisão [W] 2026-11-26 (item 3 do documento "Movimentação de estoque: o que decidir", de 18/11): a contagem fecha e manda o ajuste para aprovação; quem aprova é a aba Pendências da tela nova de Movimentação de estoque, construída por quem fizer essa tela. A regra continua a mesma: só quem tem a permissão de aprovar inventário. Aplica a diferença sobre o saldo do momento da aprovação, tirando a falta e lançando a sobra, com um movimento auditável por contagem. Regra mestre de estoque: antes→depois apresentado ao [W] e dupla prova antes do merge.
+- **Tela (parte 3):** abrir, contar pelo coletor, ver a divergência e fechar mandando o ajuste para aprovação.
 - **Tier 0:** contagem, local e produto sempre da mesma empresa; outra empresa não vê, não conta e não fecha.
 - **Fora desta US:** zerar itens não contados (decidir se a contagem é total ou por amostra), custo médio (outra US).
 
