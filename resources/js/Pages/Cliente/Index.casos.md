@@ -267,12 +267,12 @@ last_run: "2026-11-25"
 - **Teste:** `tests/js/cliente-gaveta-pendencias.test.tsx` (Vitest) — `UC-CIDX-26 …`. O lado da tela do UC-CIDX-25 está no mesmo arquivo.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
-## UC-CIDX-27 · "Com saldo" conta quem tem saldo a receber, vencido ou não `[T0]` `[must]`
+## UC-CIDX-28 · "Com saldo" conta quem tem saldo a receber, vencido ou não `[T0]` `[must]`
 - **Persona:** Larissa — o subtítulo "N com saldo" e o card "Com saldo" dizem quantos clientes devem algo a ela.
 - **Como usa:** cabeçalho da lista (subtítulo) e o card "Com saldo", que liga o filtro "Em débito".
 - **Aceite:** Dado um cliente com venda a receber ainda não vencida e outro com venda vencida · Quando os KPIs são computados · Então `com_saldo` conta os dois e `com_atraso` conta só o vencido · E cliente com venda paga ou só com bonificação não entra · E venda gravada em outra empresa não põe o cliente em "Com saldo" (Tier 0) · E nenhum valor muda: é contagem de contatos.
 - **Âncora de contrato:** medição de 2026-11-25 (`memory/requisitos/Crm/cliente-index-visual-comparison.md`, A-15): o subtítulo dizia "com saldo" mas lia `kpis.com_atraso` (só vencidos) · protótipo `prototipo-ui/cowork/Wagner/clientes-page.jsx` (`comSaldo` = clientes com `saldo > 0`, card "Com saldo · inadimplência") · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
-- **Teste:** `tests/Feature/Cliente/ClienteKpiComSaldoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-27 …`.
+- **Teste:** `tests/Feature/Cliente/ClienteKpiComSaldoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-28 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)

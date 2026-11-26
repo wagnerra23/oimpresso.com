@@ -689,7 +689,7 @@ class ContactController extends Controller
         // A-15 (2026-11-26) — "Com saldo" do protótipo (`clientes-page.jsx`: `comSaldo` = clientes
         // com saldo > 0, vencido ou não) não é `com_atraso` (só os vencidos). Conta contatos com
         // venda a receber (due/partial, sem bonificação). Só contagem — nenhum valor é calculado.
-        // UC-CIDX-27. Nota: hoje `com_os_aberta` usa o mesmo predicado de pagamento; é outro defeito.
+        // UC-CIDX-28. Nota: hoje `com_os_aberta` usa o mesmo predicado de pagamento; é outro defeito.
         $com_saldo = (clone $base)
             ->whereExists(function ($q) use ($business_id) {
                 $q->select(DB::raw(1))

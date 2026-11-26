@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-CIDX-27 (Index.casos.md) — "Com saldo" conta quem tem saldo a receber, não só os vencidos.
+// Cobre UC-CIDX-28 (Index.casos.md) — "Com saldo" conta quem tem saldo a receber, não só os vencidos.
 
 use App\Http\Controllers\ContactController;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -80,7 +80,7 @@ function csalKpis(int $bizId): array
     return $m->invoke(app(ContactController::class), $bizId, 'customer');
 }
 
-it('UC-CIDX-27 "Com saldo" conta quem tem saldo a receber, vencido ou não; "em atraso" segue só os vencidos', function () {
+it('UC-CIDX-28 "Com saldo" conta quem tem saldo a receber, vencido ou não; "em atraso" segue só os vencidos', function () {
     $antes = csalKpis($this->bizId);
 
     $aVencer = csalCliente($this, 'AVencer');
@@ -103,7 +103,7 @@ it('UC-CIDX-27 "Com saldo" conta quem tem saldo a receber, vencido ou não; "em 
         ->and((int) $depois['com_atraso'] - (int) $antes['com_atraso'])->toBe(1);
 });
 
-it('UC-CIDX-27 [T0] venda de outra empresa não põe o cliente em "Com saldo"', function () {
+it('UC-CIDX-28 [T0] venda de outra empresa não põe o cliente em "Com saldo"', function () {
     if ($this->outroBizId === null) {
         $this->markTestSkipped('Segunda empresa não semeada — o caso cross-tenant precisa dela.');
     }
