@@ -760,11 +760,13 @@
   display: flex;
   align-items: stretch;
   gap: 0;
-  padding: 12px 0;
-  margin: 0 0 14px;
-  border-top: 1px solid var(--fx-border);
-  border-bottom: 1px solid var(--fx-border);
+  padding: 0;
+  margin: 0;
+  
   overflow-x: auto;
+  border: 1px solid var(--fx-border);
+  border-radius: 12px;
+  background: var(--fx-surface);
 }
 .fx-ribbon-item {
   display: flex;
@@ -779,42 +781,48 @@
 .fx-ribbon-item:last-child  { border-right: 0; }
 .fx-ribbon-item small {
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--fx-text-mute);
 }
 .fx-ribbon-item b {
   font-size: var(--fs-6);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
 }
 .fx-ribbon-item .emph { color: var(--bad); }
 .fx-ribbon-item .ok-text { color: var(--ok); }
 .fx-ribbon-item em {
   font-style: normal;
-  font-size: 10.5px;
+  font-size: var(--fs-2);
   color: var(--fx-text-mute);
-  margin-top: 1px;
+  margin-top: 0;
 }
 .fx-ribbon-item em.up   { color: var(--ok); }
 .fx-ribbon-item em.down { color: var(--bad); }
 .fx-ribbon-cta {
   margin-left: auto;
-  padding: 6px 14px;
+  padding: 0 18px;
   font-size: var(--fs-3);
   font-weight: 600;
-  border-radius: 7px;
-  background: transparent;
-  border: 1px solid var(--fis);
+  border-radius: 0;
+  background: var(--fx-bg-2);
+  border: 0;
   color: var(--fis);
   cursor: pointer;
-  align-self: center;
+  align-self: stretch;
   transition: background .12s, color .12s;
+  border-left: 1px solid var(--fx-border);
+  white-space: nowrap;
 }
-.fx-ribbon-cta:hover { background: var(--fis); color: white; }
+.fx-ribbon-cta:hover { background: var(--fis-soft); color: var(--fis); }
+/* Forma do protótipo (fiscal-page.css), medida em 2026-11-26 com a mesma sonda nos dois lados. */
+.fx-ribbon-item, .fx-ribbon-item:first-child { gap: 1px; padding: 12px 18px; min-width: 132px; border-right: 1px solid var(--fx-border-2); }
+.fx-ribbon-item svg { margin-top: 2px; }
 
 /* Toolbar minimalista (search + 3 dropdowns + density) */
 .fx-notas-toolbar {
