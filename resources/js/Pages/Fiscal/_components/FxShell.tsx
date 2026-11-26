@@ -3,12 +3,9 @@
 // ⌘K palette habilitada em PR #7 Wave (US-FISCAL-015) — busca cross-fiscal.
 
 import { router } from '@inertiajs/react';
-import { btnProps } from '../_lib/botao-fiscal';
 import { type MapaProcedencia } from '../_lib/procedencia';
 import { BotaoProcedencia } from './SeloProcedencia';
 import { FX_PAGES } from '../_lib/paginas-fiscais';
-import { Button } from '@/Components/ui/button';
-import { Search } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 
 import CmdKPalette from './CmdKPalette';
@@ -77,32 +74,36 @@ export default function FxShell({
 
   return (
     <div className="fx-page" data-screen-label={`00 ${route}`}>
+      {/* Cabeçalho na forma do `FxHeader` do protótipo (`fiscal-page.jsx`): crumb em `<p>`,
+          pílula de ambiente neutra com o ponto colorido, Procedência ANTES do ⌘K e o ⌘K como
+          par de teclas — sem rótulo "Buscar". Medido contra o protótipo em 2026-11-26. */}
       <header className="fx-hero">
         <div className="fx-hero-l">
           <h1>{title}</h1>
-          {crumb && <span className="fx-hero-crumb">{crumb}</span>}
+          {crumb && <p className="fx-hero-crumb">{crumb}</p>}
         </div>
         <div className="fx-hero-r">
           {env && (
-            <span className={`fx-env ${envTone}`}>
+            <span className="fx-env" data-tone={envTone}>
+              <i aria-hidden="true" />
               {env}
               {envSelo}
             </span>
           )}
-          <Button
+          {procedencia && Object.keys(procedencia).length > 0 && <BotaoProcedencia />}
+          <button
             type="button"
-            {...btnProps('ghost')} className="fx-cmdk-btn"
+            className="fx-kbd"
             onClick={() => {
               // Dispara o listener Cmd/Ctrl+K do CmdKPalette via synthetic event.
               window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
             }}
-            title="Busca global fiscal (Cmd/Ctrl+K)"
+            title="Busca fiscal (Cmd/Ctrl+K)"
+            aria-label="Busca global fiscal (Cmd/Ctrl+K)"
           >
-            <Search size={13} aria-hidden="true"/>
-            <span>Buscar</span>
-            <kbd>⌘K</kbd>
-          </Button>
-          {procedencia && Object.keys(procedencia).length > 0 && <BotaoProcedencia />}
+            <b>⌘</b>
+            <b>K</b>
+          </button>
           {actions}
         </div>
       </header>

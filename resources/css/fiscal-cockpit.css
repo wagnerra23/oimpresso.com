@@ -39,11 +39,12 @@
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   color: var(--fx-text);
   font-size: 13.5px;
-  line-height: 1.5;
-  padding: 18px 24px 0;
+  line-height: 1.45;
+  padding: 22px 26px 44px;
   min-height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
+  gap: 18px;
 }
 
 .fx-page kbd {
@@ -64,28 +65,44 @@
 /* ─── HERO ─────────────────────────────────────────────────────── */
 .fx-hero {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--fx-border);
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 2px;
+  border-bottom: 0;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
-.fx-hero-l { flex: 1; min-width: 0; }
-.fx-hero-l h1 { margin: 0; font-size: var(--fs-7); font-weight: 600; letter-spacing: -0.015em; } /* 600 = .fx-h h1 do protótipo (medido 2026-11-23) */
-.fx-hero-crumb { display: block; font-size: var(--fs-3); color: var(--fx-text-mute); margin-top: 2px; }
-.fx-hero-r { display: flex; align-items: center; gap: 8px; }
+.fx-hero-l { flex: 0 1 auto; min-width: 0; }
+.fx-hero-l h1 { margin: 0; font-size: var(--fs-7); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; } /* 600 = .fx-h h1 do protótipo (medido 2026-11-23) */
+.fx-hero-crumb { display: block; font-size: var(--fs-3); color: var(--fx-text-dim); margin: 3px 0 0; }
+.fx-hero-r { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
 .fx-env {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 3px 9px;
-  border-radius: 99px;
+  border-radius: 999px;
   font-size: var(--fs-2);
-  font-weight: 600;
+  font-weight: 400;
+  color: var(--fx-text-dim);
+  background: var(--fx-surface);
+  border: 1px solid var(--fx-border);
 }
 .fx-env.ok   { background: var(--ok-soft);   color: var(--ok); }
 .fx-env.warn { background: var(--warn-soft); color: var(--warn); }
 .fx-env.bad  { background: var(--bad-soft);  color: var(--bad); }
+/* Forma do protótipo (fiscal-page.css), medida em 2026-11-26 com a mesma sonda nos dois lados. */
+.fx-body > * { flex: none; }
+.fx-env i { display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.fx-env[data-tone="warn"] i { background: var(--warn); }
+.fx-env[data-tone="bad"] i { background: var(--bad); }
+.fx-kbd { display: flex; gap: 3px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.fx-kbd b { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-1); font-weight: 500; padding: 1px 5px; border: 1px solid var(--fx-border); border-radius: 4px; background: var(--fx-bg-2); color: var(--fx-text-mute); }
+.fx-page .cw-btn-ghost, .fx-page .cw-btn-primary { display: inline-flex; align-items: center; justify-content: normal; gap: 6px; height: auto; padding: 5px 10px; border-radius: 6px; font-size: var(--fs-3); font-weight: 400; line-height: inherit; white-space: normal; box-shadow: none; }
+.fx-page .cw-btn-ghost { border: 1px solid var(--fx-border); background: var(--fx-surface); color: var(--fx-text-dim); }
+.fx-page .cw-btn-ghost:hover { color: var(--fx-text); border-color: color-mix(in oklch, var(--fis) 30%, var(--fx-border)); }
+.fx-page .cw-btn-primary { border: 1px solid var(--fis); background: var(--fis); color: white; }
 
 /* ─── BUTTONS ──────────────────────────────────────────────────── */
 .fx-btn {
@@ -202,7 +219,7 @@
 }
 
 /* ─── BODY ─────────────────────────────────────────────────────── */
-.fx-body { flex: 1; }
+.fx-body { flex: 1; display: flex; flex-direction: column; gap: 18px; }
 
 /* ─── SUB-TABS (modelo NFe/NFCe/Entrada) ──────────────────────── */
 .fx-subtabs {
@@ -604,7 +621,7 @@
  * usá-lo direto seria pior — sem variante -soft e não declarado neste escopo. */
 .fx-alerts {
   display: flex; flex-direction: column;
-  gap: 6px; align-items: stretch; margin-bottom: 18px;
+  gap: 6px; align-items: stretch; margin-bottom: 0;
 }
 .fx-alert {
   display: flex; align-items: center; gap: 10px;
