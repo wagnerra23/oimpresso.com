@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a agenda comercial mostra compromissos de clientes e leads. Errar o escopo vaza agenda de outro negócio ou de colega que não devia ver; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-11-25"
-last_run_nota: "2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff."
+last_run: "2026-11-26"
+last_run_nota: "2026-11-26 CRM-30: aba Garantia e janela de abrir chamado (UC-CRMACO-25/26, novos); os UCs anteriores não mudam, a lista e o rodapé seguem iguais fora da aba. 2026-11-25 CRM-33: gaveta do acompanhamento na forma do protótipo (480px, seções em caixa alta, Informação adicional); nenhum UC muda. 2026-11-25 CRM-10/11: cabeçalho único do CRM (título, contexto, selo, Adicionar lead) e barra de abas — nenhum UC muda de comportamento; UCs relidos contra o diff."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/03. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -301,6 +301,42 @@ quando não há nada gravado.
 > Âncora: protótipo `crm-blade.jsx` → `TelaAcompanhamentos` (coluna `extra`) e a Blade, que lista o mesmo
 > campo como "chave : valor" (`ScheduleController` addColumn `additional_info`). Pendência CRM-32, medida em
 > produção em 2026-11-25: a coluna faltava na tela nova.
+> Teste: `Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php`.
+
+Status: 🧪
+
+## Aba Garantia (US-CRM-094, fatia 3)
+
+> Chamado de garantia é acompanhamento com `garantia=1` (ChamadoGarantiaService, fatia 1). Tudo atrás de
+> `CRM_GARANTIA_SLA_ENABLED`, desligada por padrão. Pendência CRM-30 do inventário produção × protótipo
+> (2026-11-25), protótipo `crm-blade.jsx` → `TelaAcompanhamentos`, aba "Garantia".
+
+## UC-CRMACO-25 · A aba Garantia lista os chamados pelo vencimento, no escopo de quem vê · `must` `[T0]`
+
+**Dado** a chave ligada e chamados de garantia no meu negócio e em outro
+**Quando** abro Acompanhamentos
+**Então** a aba lista só os chamados do meu negócio, do vencimento mais antigo ao mais novo
+**E** cada um traz o estado do prazo: encerrado (concluído ou cancelado), vencido, vencendo (vence em até 4h) ou no prazo
+**E** a venda ou a OS, a fila e o responsável
+**E** quem só vê os próprios (`crm.access_own_schedule`) vê só os chamados em que é responsável
+**E** com a chave desligada a prop não vem e a aba não aparece.
+
+> Âncora: US-CRM-094 critério 7 + ADR 0093. A janela de 4h é a do protótipo (`SLA.vencendo`); o aviso ao
+> responsável é a fatia 2, que ainda não existe, e por isso a tela não promete aviso.
+> Teste: `Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php`.
+
+Status: 🧪
+
+## UC-CRMACO-26 · Abrir chamado acha a venda ou a OS pelo número, só do cliente nesta empresa · `must` `[T0]`
+
+**Dado** a chave ligada
+**Quando** abro um chamado com o cliente, o número da venda ou da OS e o defeito relatado
+**Então** o chamado nasce no meu negócio, ligado à venda, com o prazo da política
+**E** número de venda de outra empresa, cliente de outra empresa ou defeito com menos de 5 letras dão 422 e nada é gravado
+**E** com a chave desligada a rota dá 404.
+
+> Âncora: US-CRM-094 critérios 1, 2 e 5 + ADR 0093. O modal do protótipo pede "Venda ou OS" como texto
+> ("POS-2026-0471 ou OS-2026-0312"); o servidor procura o número entre as vendas e as OS do cliente.
 > Teste: `Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php`.
 
 Status: 🧪

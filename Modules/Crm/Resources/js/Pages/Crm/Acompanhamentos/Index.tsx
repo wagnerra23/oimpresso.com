@@ -25,7 +25,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import CrmCabecalho from '../_components/CrmCabecalho';
-import { CrmCartao, CrmDensidade, CrmFiltros, CrmPilula, type TomPilula } from '../_components/CrmBlocos';
+import { CrmCartao, CrmDensidade, CrmFiltros, CrmPilula } from '../_components/CrmBlocos';
 import SubNav from '@/Components/shared/SubNav';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
@@ -38,7 +38,10 @@ import FormRecorrente from './_components/FormRecorrente';
 import FormRegistro from './_components/FormRegistro';
 import FormAntecipado from './_components/FormAntecipado';
 import DrawerAcompanhamento from './_components/DrawerAcompanhamento';
-import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
+import FormChamadoGarantia from './_components/FormChamadoGarantia';
+import TabelaGarantia from './_components/TabelaGarantia';
+import type { Garantia } from './_components/garantia';
+import { NOVO, NOVO_RECORRENTE, TOM, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
 import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/follow-ups';
@@ -62,12 +65,10 @@ interface Props {
   opcoes?: Opcoes;
   acompanhamentos?: PaginatorShape<Acompanhamento>;
   contagem?: { total: number; status: Record<string, number>; tipo: Record<string, number> };
+  /** Aba Garantia (CRM-30): nula com CRM_GARANTIA_SLA_ENABLED desligada — e aí a aba não aparece. */
+  garantia?: Garantia | null;
 }
 
-// Tons do protótipo (`TOM` do crm-blade.jsx): agendado = destaque (roxo), aberto = aviso, concluído = ok.
-const TOM: Record<string, TomPilula> = {
-  scheduled: 'info', open: 'warn', completed: 'ok', cancelled: 'mute', canceled: 'mute',
-};
 
 const rotulo = (lista: Opcao[] | undefined, v: string | null) => lista?.find((o) => o.value === v)?.label ?? v ?? '—';
 /** "Agendado: 3 · Concluído: 1" — só os valores que aparecem na consulta. */
@@ -78,7 +79,7 @@ function filtrar(filtros: Filtros, mudanca: Filtros) {
   router.get(ROTA, { ...filtros, ...mudanca }, { preserveState: true, preserveScroll: true, replace: true });
 }
 
-export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos, contagem }: Props) {
+export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos, contagem, garantia }: Props) {
   const cockpit = useCockpit();
   const recorrente = filtros.is_recursive === '1';
   const [form, setForm] = useState<{ id: number | null; inicial: Valores } | null>(null);
@@ -88,6 +89,10 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
   const [antecipado, setAntecipado] = useState(false);
   const [ver, setVer] = useState<Acompanhamento | null>(null);
   const [compacta, setCompacta] = useState(false);
+  // A aba Garantia não vai ao servidor: os chamados já vêm na prop deferida `garantia`.
+  const [naGarantia, setNaGarantia] = useState(false);
+  const [chamado, setChamado] = useState(false);
+  const comGarantia = garantia !== null;
   const recarregar = () => router.reload({ only: ['acompanhamentos', 'contagem'] });
   const acoes = {
     editar: (r: Acompanhamento) => setForm({ id: r.id, inicial: { ...r.editar, title: r.titulo } }),
@@ -137,8 +142,8 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
 
       <CrmCartao
         data-contract="crm-acompanhamentos"
-        titulo="Todos os acompanhamentos"
-        nota={acompanhamentos ? `${acompanhamentos.data.length} de ${acompanhamentos.total}` : null}
+        titulo={naGarantia ? 'Chamados de garantia' : 'Todos os acompanhamentos'}
+        nota={naGarantia ? (garantia ? `${garantia.itens.length}` : null) : acompanhamentos ? `${acompanhamentos.data.length} de ${acompanhamentos.total}` : null}
         semPadding
       >
         <div className="flex flex-col gap-3 p-3">
@@ -147,20 +152,31 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
               <CrmDensidade compacta={compacta} onChange={setCompacta} />
               <Button variant="outline" size="sm" onClick={() => setRec({ id: null, inicial: NOVO_RECORRENTE })}><Plus className="size-3" /> Recorrente</Button>
               <Button variant="outline" size="sm" onClick={() => setAntecipado(true)}><Plus className="size-3" /> Acompanhamento antecipado</Button>
-              <Button size="sm" onClick={() => setForm({ id: null, inicial: NOVO })}><Plus className="size-3" /> Adicionar</Button>
+              {naGarantia
+                ? <Button size="sm" className="text-white" onClick={() => setChamado(true)}><Plus className="size-3" /> Abrir chamado de garantia</Button>
+                : <Button size="sm" onClick={() => setForm({ id: null, inicial: NOVO })}><Plus className="size-3" /> Adicionar</Button>}
             </div>
           </div>
 
           <SubNav
             ariaLabel="Abas de acompanhamento"
-            value={recorrente ? 'recorrente' : 'todos'}
-            onChange={(v) => filtrar(filtros, { is_recursive: v === 'recorrente' ? '1' : undefined })}
+            value={naGarantia ? 'garantia' : recorrente ? 'recorrente' : 'todos'}
+            onChange={(v) => {
+              setNaGarantia(v === 'garantia');
+              if (v !== 'garantia' && (v === 'recorrente') !== recorrente) filtrar(filtros, { is_recursive: v === 'recorrente' ? '1' : undefined });
+            }}
             items={[
               { value: 'todos', label: 'Acompanhamentos' },
               { value: 'recorrente', label: 'Acompanhamento recorrente' },
+              ...(comGarantia ? [{ value: 'garantia', label: garantia ? `Garantia (${garantia.contagem.abertos})` : 'Garantia' }] : []),
             ]}
           />
 
+          {naGarantia ? (
+            <Deferred data="garantia" fallback={<Skeleton className="h-64 w-full" />}>
+              {garantia ? <TabelaGarantia garantia={garantia} status={opcoes?.status} compacta={compacta} /> : null}
+            </Deferred>
+          ) : (
           <Deferred data="acompanhamentos" fallback={<Skeleton className="h-64 w-full" />}>
             {acompanhamentos ? (
               <>
@@ -191,8 +207,14 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
               </>
             ) : null}
           </Deferred>
+          )}
         </div>
       </CrmCartao>
+
+      {chamado ? (
+        <FormChamadoGarantia opcoes={opcoes} garantia={garantia ?? undefined} onFechar={() => setChamado(false)}
+          onSalvo={() => { setChamado(false); router.reload({ only: ['garantia'] }); }} />
+      ) : null}
 
       {form ? (
         <FormAcompanhamento key={form.id ?? 'novo'} id={form.id} inicial={form.inicial} opcoes={opcoes}

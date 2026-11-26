@@ -356,3 +356,86 @@ it('UC-CRMLD-13 · editar ou excluir pelo id não alcança cliente nem lead de o
     $this->assertSame(1, DB::table('contacts')->where('id', $cliente)->whereNull('deleted_at')->count(), 'excluiu um cliente pela rota de lead');
     $this->assertSame(1, DB::table('contacts')->where('id', $deFora)->whereNull('deleted_at')->count(), 'excluiu lead de outro negócio');
 });
+
+it('UC-CRMLD-14 · lista e gaveta trazem Tipo e os dois campos personalizados, com o rótulo do negócio', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $pj = leadContato(LEAD_BIZ, 'Lead PJ', $user);
+    $pf = leadContato(LEAD_BIZ, 'Lead PF', $user);
+    DB::table('contacts')->where('id', $pj)->update(['contact_type' => 'business', 'custom_field1' => 'Ana Compras', 'custom_field2' => 'Lona 440g']);
+    DB::table('contacts')->where('id', $pf)->update(['contact_type' => 'individual']);
+
+    $detalhe = leadParcial($user, 'lead', '?lead='.$pj)->json('props.lead');
+    expect($detalhe['tipo'] ?? null)->toBe('PJ');
+    expect($detalhe['campo1'] ?? null)->toBe('Ana Compras');
+    expect($detalhe['campo2'] ?? null)->toBe('Lona 440g');
+    expect(leadParcial($user, 'lead', '?lead='.$pf)->json('props.lead.tipo'))->toBe('PF');
+
+    $linha = collect((array) leadParcial($user, 'leads')->json('props.leads.data'))->firstWhere('id', $pj);
+    expect($linha['tipo'] ?? null)->toBe('PJ');
+    expect($linha['campo1'] ?? null)->toBe('Ana Compras');
+
+    $this->actingAs($user)->get(LEAD_ROTA)->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
+        ->component('Crm/Leads/Index', false)
+        ->where('rotulos.campo1', fn ($v) => is_string($v) && $v !== '')
+        ->where('rotulos.campo2', fn ($v) => is_string($v) && $v !== ''));
+});
+
+// ── CRM-23/25 — kanban e conversão na tela nova ──
+
+it('UC-CRMLD-15 · o kanban traz todos os leads com o id do estágio, só quando pedido e no escopo da lista [T0]', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $estagio = leadCategoria(LEAD_BIZ, 'life_stage', 'Qualificado', $user);
+    $meu = leadContato(LEAD_BIZ, 'Lead no quadro', $user);
+    DB::table('contacts')->where('id', $meu)->update(['crm_life_stage' => $estagio]);
+    leadContato(LEAD_OUTRO, 'Lead vizinho', $vizinho);
+
+    $quadro = collect((array) leadParcial($user, 'kanban', '?vista=kanban')->json('props.kanban'));
+    $cartao = $quadro->firstWhere('id', $meu);
+    expect($cartao['estagio_id'] ?? null)->toBe((string) $estagio);
+    $this->assertNull($quadro->first(fn ($l) => str_contains((string) ($l['nome'] ?? ''), 'Lead vizinho')), 'o kanban mostrou lead de outro business');
+
+    $this->actingAs($user)->get(LEAD_ROTA)->assertOk()->assertInertia(fn (AssertableInertia $p) => $p
+        ->component('Crm/Leads/Index', false)->where('kanban', null));
+});
+
+it('UC-CRMLD-16 · mudar o estágio só vale para lead visível e estágio do meu negócio [T0]', function () {
+    $proprio = leadUsuario('lead_proprio_test', ['crm.access_own_leads']);
+    $colega = leadUsuario('lead_colega_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $estagio = leadCategoria(LEAD_BIZ, 'life_stage', 'Proposta', $proprio);
+    $estagioDeFora = leadCategoria(LEAD_OUTRO, 'life_stage', 'Fora', $vizinho);
+    $meu = leadContato(LEAD_BIZ, 'Lead meu', $proprio);
+    $doColega = leadContato(LEAD_BIZ, 'Lead do colega', $colega);
+    $deFora = leadContato(LEAD_OUTRO, 'Lead de fora', $vizinho);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+    $mover = fn (int $id, int $para) => $this->actingAs($proprio)->get('/crm/lead/'.$id.'/post-life-stage?crm_life_stage='.$para, $ajax);
+
+    // âncora positiva: o próprio lead muda de estágio
+    $mover($meu, $estagio)->assertOk()->assertJson(['success' => true]);
+    expect((int) DB::table('contacts')->where('id', $meu)->value('crm_life_stage'))->toBe($estagio);
+
+    $mover($meu, $estagioDeFora)->assertStatus(422);
+    expect((int) DB::table('contacts')->where('id', $meu)->value('crm_life_stage'))->toBe($estagio);
+
+    $mover($doColega, $estagio)->assertNotFound();
+    $mover($deFora, $estagio)->assertNotFound();
+    $this->assertNull(DB::table('contacts')->where('id', $doColega)->value('crm_life_stage'), 'quem só vê os próprios moveu o lead do colega');
+    $this->assertNull(DB::table('contacts')->where('id', $deFora)->value('crm_life_stage'), 'moveu lead de outro negócio');
+});
+
+it('UC-CRMLD-17 · converter só alcança lead visível; o lead vira cliente [T0]', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $meu = leadContato(LEAD_BIZ, 'Lead a converter', $user);
+    $deFora = leadContato(LEAD_OUTRO, 'Lead de fora', $vizinho);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+    $this->actingAs($user)->get('/crm/lead/'.$meu.'/convert', $ajax)->assertOk()->assertJson(['success' => true]);
+    expect(DB::table('contacts')->where('id', $meu)->value('type'))->toBe('customer');
+
+    // já é cliente: a rota de lead não o alcança mais
+    $this->actingAs($user)->get('/crm/lead/'.$meu.'/convert', $ajax)->assertNotFound();
+    $this->actingAs($user)->get('/crm/lead/'.$deFora.'/convert', $ajax)->assertNotFound();
+    expect(DB::table('contacts')->where('id', $deFora)->value('type'))->toBe('lead');
+});

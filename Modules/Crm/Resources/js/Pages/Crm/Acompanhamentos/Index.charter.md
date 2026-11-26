@@ -5,7 +5,7 @@ component: Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/crm-blade.jsx
 owner: wagner
 status: draft
-last_validated: "2026-10-05"
+last_validated: "2026-11-26"
 parent_module: Crm
 related_adrs: [93, 104]
 tier: B
@@ -45,11 +45,16 @@ clientes e leads, com o responsável e o status. Termo na UI: "acompanhamentos",
   modal aqui (grupos por `getFollowUpGroups` em JSON), com a notificação da Blade (PR-c4); o rodapé
   conta status e tipo sobre a consulta filtrada; clicar na linha abre o drawer de detalhe com os
   registros. Guardas: UC-CRMACO-18..21.
+- Aba "Garantia" (US-CRM-094 fatia 3, pendência CRM-30), só com `CRM_GARANTIA_SLA_ENABLED` ligada:
+  chamados pelo vencimento com o selo do prazo (No prazo · Vencendo em até 4h · Vencido · Encerrado),
+  rodapé por estado e a janela "Abrir chamado de garantia" do protótipo. Guardas: UC-CRMACO-25 e 26.
 
 ## Non-Goals (nesta fase)
 
 - ❌ Densidade do protótipo e o "Prazo" (badge de SLA) do drawer: não há dado de prazo no
   acompanhamento (`_saida-07d`).
+- ❌ Na aba Garantia, a coluna "Ação" ("Ver") e a frase "Alerta ao responsável 4h antes": a gaveta
+  ainda não mostra chamado, e o aviso é a fatia 2 da US-CRM-094, que não existe.
 - _Até 2026-10-05 este bloco listava como fora de escopo o antecipado, os registros e o
   rodapé/drawer; os três entraram pela thread 07 (PR-c1..c3)._
 
@@ -57,10 +62,12 @@ clientes e leads, com o responsável e o status. Termo na UI: "acompanhamentos",
 
 - ❌ Decidir Inertia × DataTables só por `request()->ajax()`: o Inertia manda `X-Requested-With`
   junto do `X-Inertia` (§5 2026-09-08). Guarda: UC-CRMACO-02.
-- ❌ Montar consulta própria para a tela nova: ela herda a do DataTables, para não divergir de
-  escopo. Guardas: UC-CRMACO-03 (outro negócio) e UC-CRMACO-04 (só os meus).
-- ❌ Endpoint de gravação próprio da tela nova: o modal usa `store`/`update`/`destroy` do
-  `ScheduleController`, os mesmos da Blade. Guardas: UC-CRMACO-08, 09 e 11.
+- ❌ Montar consulta própria para a lista de acompanhamentos: ela herda a do DataTables, para não
+  divergir de escopo. Guardas: UC-CRMACO-03 (outro negócio) e UC-CRMACO-04 (só os meus).
+- ❌ Endpoint de gravação próprio para o que a Blade já grava: o modal usa `store`/`update`/`destroy`
+  do `ScheduleController`, os mesmos da Blade. Guardas: UC-CRMACO-08, 09 e 11.
+  _A aba Garantia não tem Blade: consulta e rota (`POST /crm/follow-ups/garantia`) são dela, com o
+  mesmo recorte de escopo da lista (empresa da sessão e "só os meus"). Guardas: UC-CRMACO-25 e 26._
 - ❌ Aceitar `business_id`/`created_by` ou contato de outro negócio vindos do formulário.
   Guardas: UC-CRMACO-09, 10, 12 e 15.
 - ❌ Registro gravado em acompanhamento de outro negócio. Guarda: UC-CRMACO-17.

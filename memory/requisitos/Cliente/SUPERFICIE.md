@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 404 arquivos em 18 papéis.
+**Total mapeado:** 410 arquivos em 18 papéis.
 
 ## Controllers — 30
 
@@ -284,14 +284,18 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.tsx](../../../resources/js/Pages/Cliente/Map.tsx)
 - [Show.tsx](../../../resources/js/Pages/Cliente/Show.tsx)
 
-## Componentes / apoio de tela — 41
+## Componentes / apoio de tela — 45
 
 - [DrawerAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/DrawerAcompanhamento.tsx)
 - [FormAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormAcompanhamento.tsx)
 - [FormAntecipado.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormAntecipado.tsx)
+- [FormChamadoGarantia.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormChamadoGarantia.tsx)
 - [FormRecorrente.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRecorrente.tsx)
 - [FormRegistro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRegistro.tsx)
+- [TabelaGarantia.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/TabelaGarantia.tsx)
 - [FunilQuadro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/_components/FunilQuadro.tsx)
+- [ConverterLead.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/_components/ConverterLead.tsx)
+- [LeadsKanban.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/_components/LeadsKanban.tsx)
 - [PortalContatoLayout.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/_layout/PortalContatoLayout.tsx)
 - [CrmBlocos.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/_components/CrmBlocos.tsx)
 - [CrmCabecalho.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/_components/CrmCabecalho.tsx)
@@ -381,7 +385,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - 46 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 47
+## Demais arquivos (manifestos, docs, assets e misc) — 49
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
@@ -407,6 +411,8 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [crm.js](../../../Modules/Crm/Resources/assets/js/crm.js)
 - [crm.css](../../../Modules/Crm/Resources/assets/sass/crm.css)
 - [acompanhamento.ts](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/acompanhamento.ts)
+- [garantia.ts](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/garantia.ts)
+- [lead.ts](../../../Modules/Crm/Resources/js/Pages/Crm/_components/lead.ts)
 - [.gitkeep](../../../Modules/Crm/Resources/lang/.gitkeep)
 - [lang.php](../../../Modules/Crm/Resources/lang/ar/lang.php)
 - [lang.php](../../../Modules/Crm/Resources/lang/ce/lang.php)

@@ -20,7 +20,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Icon } from '@/Components/Icon';
 import { toast } from 'sonner';
 import CrmCabecalho from '../_components/CrmCabecalho';
-import { CrmCartao } from '../_components/CrmBlocos';
+import { CrmCartao, CrmMini } from '../_components/CrmBlocos';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 
@@ -48,37 +48,8 @@ const espera = <Skeleton className="h-32 w-full" />;
 // CRM-13: o cartão é o `Widget` do protótipo — `CrmCartao` (../_components/CrmBlocos).
 const Bloco = CrmCartao;
 
-// CRM-14: a tabela do protótipo é a `Mini` (`.pb-tbl`): cabeçalho só quando o protótipo tem
-// (caixa alta 10,5px/700 sobre `--bg-2`), linha 12,5px com 7×10px e separador embaixo, número
-// mono à direita.
-function Tabela({ cabecalho, linhas }: { cabecalho?: string[]; linhas: (string | number)[][] }) {
-  const colunas = cabecalho?.length ?? (linhas[0]?.length || 2);
-  const borda = { borderBottomColor: 'var(--border-2)' };
-  return (
-    <table className="w-full border-separate border-spacing-0 text-[12.5px]">
-      {cabecalho && (
-        <thead>
-          <tr>
-            {cabecalho.map((c, i) => (
-              <th key={c} scope="col" className={`whitespace-nowrap border-b px-2.5 py-2 text-[10.5px] font-bold uppercase tracking-[0.06em] ${i ? 'text-right' : 'text-left'}`}
-                style={{ color: 'var(--text-mute)', background: 'var(--bg-2)', borderBottomColor: 'var(--border)' }}>{c}</th>
-            ))}
-          </tr>
-        </thead>
-      )}
-      <tbody>
-        {linhas.length === 0 && <tr><td colSpan={colunas} className="border-b px-2.5 py-[7px] text-center" style={{ ...borda, color: 'var(--text-mute)' }}>Sem dados</td></tr>}
-        {linhas.map((l, i) => (
-          <tr key={i}>
-            {l.map((v, j) => (
-              <td key={j} className={j ? 'border-b px-2.5 py-[7px] text-right font-mono text-[12px] tabular-nums' : 'border-b px-2.5 py-[7px]'} style={borda}>{v}</td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
+// CRM-14: a `Mini` do protótipo — `CrmMini` (../_components/CrmBlocos), a mesma da gaveta.
+const Tabela = CrmMini;
 
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 /** "1990-08-27" → "27 de ago" — o protótipo não mostra o ano (CRM-15). */

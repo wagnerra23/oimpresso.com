@@ -2,6 +2,11 @@
 // para o react-refresh: módulo de componente só exporta componente.
 
 export interface Opcao { value: string; label: string }
+
+/** Tons do protótipo (`TOM` do crm-blade.jsx): agendado = destaque (roxo), aberto = aviso, concluído = ok. Lista e gaveta. */
+export const TOM: Record<string, 'ok' | 'warn' | 'neg' | 'info' | 'mute'> = {
+  scheduled: 'info', open: 'warn', completed: 'ok', cancelled: 'mute', canceled: 'mute',
+};
 export interface Valores {
   title: string; contact_id: string; status: string; start_datetime: string; end_datetime: string;
   description: string; schedule_type: string; followup_category_id: string; user_id: string[];
