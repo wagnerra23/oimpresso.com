@@ -130,6 +130,10 @@ on:
       - 'Modules/Crm/Http/Controllers/CallLogController.php'
       - 'Modules/Crm/Http/Requests/MassDestroyCallLogRequest.php'
       - 'Modules/Crm/Tests/Feature/CrmChamadas*'
+      # CRM-01/02 (2026-11-25) — abas do topo filtradas pela permissão da rota e recarga
+      # quando a tela nova está desligada para a empresa.
+      - 'Modules/Crm/Http/Controllers/DataController.php'
+      - 'Modules/Crm/Tests/Feature/CrmAbasDoTopoContratoTest.php'
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
       - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
       - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
@@ -296,6 +300,10 @@ jobs:
               - 'Modules/Crm/Http/Controllers/CallLogController.php'
               - 'Modules/Crm/Http/Requests/MassDestroyCallLogRequest.php'
               - 'Modules/Crm/Tests/Feature/CrmChamadas*'
+              # CRM-01/02 (2026-11-25) — abas do topo filtradas pela permissão da rota e recarga
+              # quando a tela nova está desligada para a empresa.
+              - 'Modules/Crm/Http/Controllers/DataController.php'
+              - 'Modules/Crm/Tests/Feature/CrmAbasDoTopoContratoTest.php'
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
               - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
               - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
@@ -847,6 +855,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/TipoInstalacaoContratoTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
+            Modules/Crm/Tests/Feature/CrmAbasDoTopoContratoTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
