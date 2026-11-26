@@ -11,6 +11,12 @@ outcomes:
 
 # NF-e fictícia na OS00138 para testar a devolução com nota
 
+## TL;DR
+
+A venda OS00138 (biz=1) ganhou uma NF-e fictícia autorizada (série 900, nº 1,
+`nfe_emissoes.id` 1873) com XML guardado, para o Luiz testar a devolução com nota. Não existe
+na SEFAZ. Remover quando o Luiz avisar que terminou (passo a passo no fim).
+
 ## Por que existe
 
 O Luiz precisava de uma venda com NF-e autorizada e XML guardado para testar a tela
