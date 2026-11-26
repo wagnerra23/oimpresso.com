@@ -702,7 +702,7 @@ class LeadController extends Controller
             // deste negócio. Antes valia qualquer contato e qualquer id de categoria.
             $this->leadQuery($business_id)->findOrFail($id);
             $estagio = request()->input('crm_life_stage');
-            if (! empty($estagio) && ! Category::forDropdown($business_id, 'life_stage')->has((int) $estagio)) {
+            if (! empty($estagio) && ! collect(Category::forDropdown($business_id, 'life_stage'))->has((int) $estagio)) {
                 return response()->json(['success' => false, 'msg' => __('messages.something_went_wrong')], 422);
             }
 
