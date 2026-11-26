@@ -13,6 +13,7 @@ use App\User;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia;
 use Modules\NfeBrasil\Jobs\EmitirNFSeJob;
 use Modules\NfeBrasil\Jobs\EmitirNfceJob;
 use Spatie\Permission\Models\Permission;
@@ -365,4 +366,42 @@ it('UC-NFTR-29 · vindo do painel de produto (?produto=), o simulador abre com o
     } finally {
         DB::rollBack();
     }
+});
+
+// ---------------------------------------------------------------------------------------
+// UC-NFTR-84 · `regras` e `templates` chegam deferidas; `config` vem no render inicial
+// ---------------------------------------------------------------------------------------
+//
+// Contrato: charter §Constraints "p95 first-paint < 1500ms" + o render da tela (Wave 25 D3,
+// `<Deferred data="regras|templates">`). Um refactor que volte as duas props a eager degrada a
+// abertura sem sintoma visível — e só este caso fica vermelho.
+//
+// Pedido real pela rota (middleware e versão do Inertia), não o controller na mão: o
+// `loadDeferredProps` refaz o pedido como o cliente faz (`X-Inertia-Partial-Data` + versão), e
+// só traz as props que o 1º pedido declarou em `deferredProps`.
+it('UC-NFTR-84 · regras e templates são deferidas e chegam no partial reload; config é eager', function () {
+    nftrConfig(NFTR_BIZ);
+    nftrRegra(NFTR_BIZ, '49019900');
+
+    $regras = null;
+    $templates = null;
+    $this->withSession(['business.id' => NFTR_BIZ, 'user.business_id' => NFTR_BIZ])
+        ->get('/nfe-brasil/tributacao')
+        ->assertOk()
+        ->assertInertia(function (AssertableInertia $p) use (&$regras, &$templates) {
+            $p->component('NfeBrasil/Tributacao/Index')
+                ->where('config.regime', 'simples')   // eager: já no 1º pedido
+                ->missing('regras')                   // deferidas: fora do 1º pedido
+                ->missing('templates')
+                ->loadDeferredProps(function (AssertableInertia $r) use (&$regras, &$templates) {
+                    $props = $r->toArray()['props'];
+                    $regras = $props['regras'] ?? null;
+                    $templates = $props['templates'] ?? null;
+                });
+        });
+
+    // Controle positivo: o 2º pedido trouxe as duas — e com dado, não vazias por ausência.
+    expect($regras)->toBeArray()->toHaveCount(1);
+    expect($regras[0]['ncm'])->toBe('49019900');
+    expect($templates)->toBeArray()->not->toBeEmpty();
 });

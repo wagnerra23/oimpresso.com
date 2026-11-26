@@ -211,7 +211,32 @@ export type LinhaDoGrid = {
   un: string;
   medidas: string | null;
   estoque: number | null;
+  /* Produção, vindos do lançamento (UC-V416). Opcionais: a linha da cena não os traz. */
+  executante?: string | null;
+  impressao?: string;
 };
+
+/** Os campos de produção que o lançamento coleta e a linha da venda guarda (UC-V416). */
+export type CamposDeProducao = {
+  executante: string | null;
+  local: string;
+  impressao: string;
+};
+
+/**
+ * Recorta do item lançado só os campos de produção, para a Page juntar à linha.
+ * Nenhum campo de valor ou de quantidade passa por aqui: preço, desconto e
+ * quantidade seguem pelo caminho que já existia.
+ */
+export function camposDeProducao(item: CamposDeProducao): CamposDeProducao {
+  return { executante: item.executante, local: item.local, impressao: item.impressao };
+}
+
+/** Texto livre vazio é ausência de dado: devolve `null`, não string vazia. */
+function textoOuNada(v: string | null | undefined): string | null {
+  const t = (v ?? '').trim();
+  return t === '' ? null : t;
+}
 
 /** O recorte do catálogo que o grid consulta por SKU. */
 export type ProdutoDoGrid = {
@@ -257,6 +282,10 @@ export function textoDaColuna(
       return produto?.categoria ?? null;
     case 'estoque':
       return linha.estoque === null ? 'não controla' : String(linha.estoque);
+    case 'impressao':
+      return textoOuNada(linha.impressao);
+    case 'executante':
+      return textoOuNada(linha.executante);
     default:
       return null;
   }

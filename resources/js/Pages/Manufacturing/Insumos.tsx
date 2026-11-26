@@ -12,7 +12,7 @@
 // de cada receita, recalculados com a MESMA fórmula de custo do resto do módulo. O cliente só
 // formata. Isso é o §9 do handoff ("a autoridade é o servidor") e evita uma segunda conta na tela.
 
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -245,8 +245,8 @@ export default function Insumos({
       </div>
 
       {/* Moldura de `Gaveta.tsx` (a do protótipo: Drawer + DrawerSection do DS), a mesma das
-          gavetas de Receitas e Ordens. Diferença de propósito: o nome da receita afetada é texto, não
-          link (no protótipo abre a receita) — a aba Receitas não abre uma receita pelo endereço. */}
+          gavetas de Receitas e Ordens. O nome da receita afetada abre a receita na aba Receitas, como
+          no protótipo (UC-INS-08): `?receita=ID`, que a aba resolve no servidor (UC-RECIPE-27). */}
       <Gaveta
         aberta={!!sel}
         onClose={fechar}
@@ -318,7 +318,9 @@ export default function Insumos({
                 {usos.map((u) => (
                   <div className="mfg-ing mfg-ing5" key={u.recipe_id}>
                     <span className="n">
-                      {u.nome}
+                      <Link className="mfg-link" href={`/manufacturing/recipe?receita=${u.recipe_id}`}>
+                        {u.nome}
+                      </Link>
                       <small>
                         {u.sku} · {num(u.peso, 0)}% do custo
                       </small>

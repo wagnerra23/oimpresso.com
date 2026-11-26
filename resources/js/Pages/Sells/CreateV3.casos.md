@@ -516,6 +516,18 @@ Valor (REGRA MESTRE): a mensagem entre abas leva só id, SKU e nome. O preço sa
 
 Âncora: pedido do [W] em 2026-11-24 ("Sim, em outra aba"), sobre o aviso `.pb-volta` do protótipo `cowork/Felipe/produto-blade.jsx`. Contrato entre abas em `resources/js/Lib/produto-escolhido.ts`; regra da venda em `_components/v3/procurar-na-lista.ts`.
 
+## UC-V416 · O funcionário, o local da aplicação e o tipo de impressão do lançamento ficam na linha da venda
+
+**Status:** 🧪 — `tests/js/colunas-dominio.test.ts` (2 testes) e `tests/js/sells-v3-lancar-item-producao.test.tsx` (2 testes), na lane `sells-v3-dominio-gate`; sem veredito no manifesto ainda.
+
+- **Dado** o operador lançando um item com funcionário (serviço), local da aplicação e tipo de impressão preenchidos,
+- **Quando** confirma "Adicionar à venda",
+- **Então** a linha da venda guarda os três, e as colunas "Tipo de impressão" e "Funcionário", quando ligadas, mostram o que foi escolhido.
+- **E** campo deixado em branco continua sem fonte: a coluna mostra travessão (UC-V368), não texto vazio.
+- **E** nada disso mexe em valor nem em estoque: preço, quantidade, desconto e total seguem o caminho de antes, e os três campos não entram no payload da gravação (`paraGravar` lista os campos um a um). O "local" aqui é o **local da aplicação** do serviço (fachada, interno, veículo…), não o local de estoque da venda (`location_id`).
+
+Âncora: a seção de produção do protótipo `prototipo-ui/cowork/Wagner/venda-v3.jsx` (tipo de impressão, local de aplicação, funcionário), comparada em [`CreateV3-visual-comparison.md` §3](../../../../memory/requisitos/Sells/CreateV3-visual-comparison.md), e as colunas de produção do catálogo (UC-V415). "Local da aplicação" ainda não tem coluna no catálogo de produção (fica no backlog do UC-V415); o dado já fica na linha para quando ela existir. Gravando, o lançamento não oferece local nem impressão (UC-V408), então só o funcionário pode chegar preenchido.
+
 ### O que a gravação ainda não cobre (fica para os próximos PRs)
 
 Edição, venda de reparo, rascunho e proforma, parcelas e comissão dividida (recusadas, UC-V381), entrega,
@@ -970,7 +982,8 @@ fabrica, categoria, estoque` por `textoDaColuna`). As 18 sem fonte: medidas
 (`acabamento, aplicacao, impressao, executante, prazo`) e estoque (`saldoApos, lote, deposito`).
 Parte delas o lançamento **coleta e a Page descarta** (`executante`, `local`, `impressao` em
 `ItemLancado`); parte só existe no state local do drawer de detalhe. Ligar cada fonte é trabalho
-próprio, fora deste PR.
+próprio, fora deste PR. _(Atualizado em 2026-11-26: `impressao` e `executante` ganharam fonte pelo
+UC-V416, e o lançamento não descarta mais os três; as colunas sem fonte passaram de 18 para 16.)_
 
 ---
 
@@ -1114,7 +1127,7 @@ O CST também é por imposto: o ICMS tem lista própria (`CST_ICMS`), os demais 
 
 ## Backlog de contrato
 
-- **[BACKLOG]** O lançamento **para de descartar** `executante`, `local` e `impressao` ao virar linha da venda — o modal já coleta os três (`ItemLancado`), e são 3 das 19 colunas sem fonte do UC-V368.
+- ~~**[BACKLOG]** O lançamento **para de descartar** `executante`, `local` e `impressao` ao virar linha da venda.~~ _(Fechado em 2026-11-26 pelo UC-V416: `adicionarLancado` copia os três para a linha, e `textoDaColuna` lê `impressao` e `executante`.)_
 
 - **[BACKLOG]** A rota `/sells/create-v3` responde **403** a usuário autenticado sem `sell.create` e sem `superadmin` — mesma alçada da tela de venda real, o preview não afrouxa permissão.
 - **[BACKLOG]** A rota responde **302** (login) a usuário não autenticado.

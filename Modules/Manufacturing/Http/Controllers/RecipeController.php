@@ -161,6 +161,19 @@ class RecipeController extends Controller
                 'mes_final'   => (int) $mes['final_count'],
                 'mes_rascunho' => (int) $mes['draft_count'],
             ],
+            // UC-RECIPE-27 (Pendências da Fabricação I-05): `?receita=ID` abre a gaveta dessa receita
+            // mesmo fora da página atual — o link vem da gaveta do Insumo. Sai de `$todas`, a lista já
+            // da empresa da sessão: id de outra empresa devolve null (Tier 0, ADR 0093). O custo segue
+            // a mesma regra da lista (UC-RECIPE-26).
+            'receita_aberta' => (function () use ($todas, $podeVerCusto) {
+                $id = (int) request()->query('receita', 0);
+                $achada = $id > 0 ? collect($todas)->firstWhere('id', $id) : null;
+                if ($achada === null) {
+                    return null;
+                }
+
+                return $podeVerCusto ? $achada : \Modules\Manufacturing\Support\OcultaCusto::receita($achada);
+            })(),
             'settings' => [
                 // §16 — chave real do JSON `business.manufacturing_settings`.
                 'enable_updating_product_price' => ! empty($settings['enable_updating_product_price']),
