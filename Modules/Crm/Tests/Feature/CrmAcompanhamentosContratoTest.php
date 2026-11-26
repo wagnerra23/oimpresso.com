@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-CRM-094
 
 declare(strict_types=1);
 
