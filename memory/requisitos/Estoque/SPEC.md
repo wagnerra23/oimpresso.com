@@ -93,3 +93,22 @@ Regras do cálculo (2026-10-27), na empresa inteira, período padrão de 90 dias
 - [x] Sugestão de compra pelo giro, prazo do fornecedor e o que está a caminho (UC-ABC-03).
 - [x] Tier 0: venda e estoque de outra empresa não entram (UC-ABC-04). Só leitura (UC-ABC-05).
 - [ ] Tela com a curva e a sugestão, e o botão que leva a sugestão para a requisição de compra.
+
+### US-ESTOQUE-004 · Reserva da venda sem mexer na tela de Venda, encerrada quando a saída é efetivada
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story · origin: decisao-wagner-2026-11-26
+> blocked_by: —
+
+**Implementado em:** `app/Domain/Fsm/SideEffects/ReservarEstoque.php` · `app/Observers/ReservaDaVendaObserver.php`
+
+**Testado em:** `tests/Feature/Estoque/ReservaDaVendaContratoTest.php` (lane `estoque-pest.yml`).
+
+Item 5 do documento "Movimentação de estoque: o que decidir" (18/11). Decisão [W] 2026-11-26: a reserva da venda acontece sem mexer na tela de Venda, que não manda a lista de itens. E a regra do [W]: estoque reservado não é baixado de novo; quando a saída é efetivada, a quantidade sai do saldo reservado e baixa uma vez só do estoque total.
+
+**Aceite:**
+- [x] Sem lista de itens, a ação de reserva usa as linhas da própria venda: quantidade vendida menos a devolvida, no local da venda, só de produto que controla estoque. Kit e combo seguem pelo BomResolver.
+- [x] Venda já finalizada não reserva: o estoque dela já saiu.
+- [x] Reservar não muda o saldo (INV-4).
+- [x] Quando a venda vira final, a reserva ativa dela deixa de ser ativa (`released`). Quem baixa o estoque total é o núcleo, uma vez; o encerramento não baixa de novo.
+- [x] Venda cancelada ou excluída antes da saída libera a reserva.
+- [x] Tier 0: encerrar a reserva de uma venda não toca a de outra empresa.
