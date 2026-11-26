@@ -621,6 +621,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-11-26 · [W+C] Forma, sem UC novo: botão "Colunas (N)" na linha de controles, como no protótipo (decisão [W] 2026-11-25, item 08). A pessoa liga, desliga e reordena as colunas que a tabela já tem (item 10: sem colunas novas); cada visão guarda a própria escolha; sem escolha, a tabela é a mesma de antes. Seleção e Venda são fixas; Comissão só com comissão ligada. Testes `tests/js/sells-colunas-lista.test.ts` e `tests/js/sells-colunas-modal.test.tsx`.
 - 2026-11-12 · [F+C] **UC-SIDX-08** — o Excluir do menu ⋮ passa a avisar quando o servidor recusa (resposta 200 com `success:false`, ex.: venda com devolução). Antes a linha ficava sem explicação. Teste `tests/js/sells-index-excluir-recusa.test.tsx`.
 - 2026-10-30 · [W+C] P-154: a bonificação fica fora do rodapé da lista, do faturado do dia, dos relatórios de venda e lucro e do saldo do cliente (UC-SBON-06..09).
 - 2026-10-30 · [W+C] P-154: a bonificação aparece na lista, no drawer e na impressão/exportação em lote (UC-SBON-02..05). Pagamento rápido, criar OS, Caixa do dia e os totais de cliente na IA seguem só com venda comum.

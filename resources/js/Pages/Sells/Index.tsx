@@ -33,6 +33,8 @@ import {
   X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
+import ColunasListaModal from './_components/ColunasListaModal';
+import { chaveColunas, colunasGravadas } from './_components/colunasLista';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
 import VdBulkEmitModal, { type BulkEmitItem } from './_components/VdBulkEmitModal';
 import { toast } from 'sonner';
@@ -44,9 +46,6 @@ import SellsDateFilter, {
 } from './_components/SellsDateFilter';
 import SellsTabsVisao, { type SellsVisao } from './_components/SellsTabsVisao';
 import SellsTabelaUnificada, {
-  COLUMNS_OPERACIONAL,
-  COLUMNS_FINANCEIRA,
-  COLUMNS_PRODUCAO,
   type ColumnId,
   type SaleRow as UnifiedSaleRow,
 } from './_components/SellsTabelaUnificada';
@@ -687,17 +686,25 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   });
   useEffect(() => ls.set('visao', visao), [visao]);
 
-  // Connect visão → visibleColumns pra SellsTabelaUnificada (ADR 0178). Filtra
-  // 'commission' do preset quando setting business.sales_cmsn_agnt = 'disable'.
-  const visibleColumns = useMemo<ColumnId[]>(() => {
-    const preset =
-      visao === 'financeira' ? COLUMNS_FINANCEIRA :
-      visao === 'producao' ? COLUMNS_PRODUCAO :
-      COLUMNS_OPERACIONAL;
-    return props.coworkCommissionEnabled
-      ? preset
-      : preset.filter((c) => c !== 'commission');
-  }, [visao, props.coworkCommissionEnabled]);
+  // Colunas da tabela: a escolha gravada no botão "Colunas" (uma por visão) ou, sem escolha, o
+  // conjunto da visão (ADR 0178), como antes. Comissão some quando business.sales_cmsn_agnt =
+  // 'disable'. Regra em _components/colunasLista.ts.
+  const comissaoLigada = !!props.coworkCommissionEnabled;
+  const [colunasVersao, setColunasVersao] = useState(0);
+  const [colunasAbertas, setColunasAbertas] = useState(false);
+  const visibleColumns = useMemo<ColumnId[]>(
+    () => colunasGravadas(ls.get(chaveColunas(visao), ''), visao, comissaoLigada),
+    // colunasVersao muda a cada gravação: o valor vem do localStorage, fora do estado do React.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [visao, comissaoLigada, colunasVersao, ls],
+  );
+  const gravarColunas = useCallback(
+    (c: ColumnId[] | null) => {
+      ls.set(chaveColunas(visao), c ? JSON.stringify(c) : '');
+      setColunasVersao((v) => v + 1);
+    },
+    [ls, visao],
+  );
 
   // UI overlays.
   const [cheatOpen, setCheatOpen] = useState(false);
@@ -1603,6 +1610,16 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                 }}
               />
             </button>
+            {/* Botão Colunas do protótipo (vendas-page.jsx), decisão [W] 2026-11-25. */}
+            <button
+              type="button"
+              className="vd-views-btn"
+              onClick={() => setColunasAbertas(true)}
+              aria-haspopup="dialog"
+              title="Escolher e ordenar as colunas da lista"
+            >
+              Colunas ({visibleColumns.length - 1})
+            </button>
           </div>
           <div className="vd-toolbar-r">
             {/* Campo de busca da lista, como no protótipo. Usa o mesmo estado da paleta ⌘K
@@ -1885,6 +1902,15 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
       {/* KB-9.75 P0 #4 — Faturar em lote NF-e/NFS-e (wire-up bug-fix 2026-05-26).
           VdBulkEmitModal monta só quando openBulk=true; items derivados de selectedIds. */}
+      <ColunasListaModal
+        aberto={colunasAbertas}
+        onFechar={() => setColunasAbertas(false)}
+        visao={visao}
+        ativas={visibleColumns}
+        comissao={comissaoLigada}
+        onAtivasChange={gravarColunas}
+        onRestaurar={() => gravarColunas(null)}
+      />
       <VdBulkEmitModal
         open={openBulk}
         items={buildBulkItems()}

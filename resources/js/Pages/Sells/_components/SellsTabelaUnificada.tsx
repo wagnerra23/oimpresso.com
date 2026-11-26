@@ -169,7 +169,7 @@ const PILL_STYLE: Record<PillKey, { bg: string; fg: string; label: string }> = {
 // ──────────────────────────────────────────────────────────────
 // COLUMN DEFS — header + cell por ColumnId
 // ──────────────────────────────────────────────────────────────
-const COL_HEADERS: Record<ColumnId, { label: string; width?: number; style?: React.CSSProperties; className?: string }> = {
+export const COL_HEADERS: Record<ColumnId, { label: string; width?: number; style?: React.CSSProperties; className?: string }> = {
   check:      { label: '', width: 24, style: { padding: '0 0 0 12px' } },
   invoice:    { label: 'Venda', width: 82 },
   date:       { label: 'Data', width: 80 },
