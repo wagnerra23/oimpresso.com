@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 405 arquivos em 18 papéis.
+**Total mapeado:** 407 arquivos em 18 papéis.
 
 ## Controllers — 30
 
@@ -284,7 +284,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.tsx](../../../resources/js/Pages/Cliente/Map.tsx)
 - [Show.tsx](../../../resources/js/Pages/Cliente/Show.tsx)
 
-## Componentes / apoio de tela — 41
+## Componentes / apoio de tela — 43
 
 - [DrawerAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/DrawerAcompanhamento.tsx)
 - [FormAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormAcompanhamento.tsx)
@@ -292,6 +292,8 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [FormRecorrente.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRecorrente.tsx)
 - [FormRegistro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRegistro.tsx)
 - [FunilQuadro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/_components/FunilQuadro.tsx)
+- [ConverterLead.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/_components/ConverterLead.tsx)
+- [LeadsKanban.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/_components/LeadsKanban.tsx)
 - [PortalContatoLayout.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/_layout/PortalContatoLayout.tsx)
 - [CrmBlocos.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/_components/CrmBlocos.tsx)
 - [CrmCabecalho.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/_components/CrmCabecalho.tsx)

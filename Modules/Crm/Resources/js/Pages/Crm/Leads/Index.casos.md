@@ -87,7 +87,7 @@ Status: 🧪
 
 ## UC-CRMLD-07 · `?classico=1` e o kanban devolvem a tela Blade · `should`
 
-**Dado** que conversão, kanban e "local" ainda vivem na Blade
+**Dado** que a tela Blade segue disponível para quem pede
 **Quando** abro `/crm/leads?classico=1` ou `/crm/leads?lead_view=kanban`
 **Então** recebo a view `crm::lead.index`.
 

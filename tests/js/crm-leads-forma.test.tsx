@@ -42,6 +42,13 @@ describe('Leads · forma do protótipo', () => {
     expect(screen.getByRole('radio', { name: 'Compacto' })).toBeTruthy();
   });
 
+  it('CRM-24 · rodapé com o total e sem "Adicionar/Remover do local" (botões sem ação, removidos por [W])', () => {
+    render(<LeadsIndex filtros={{}} rotulos={ROTULOS} leads={PAGINA as never} />);
+    const rodape = document.querySelector('[data-contract="crm-rodape"]') as HTMLElement;
+    expect(within(rodape).getByText('Total: 9')).toBeTruthy();
+    expect(within(rodape).queryByText(/local/i)).toBeNull();
+  });
+
   it('CRM-22 · coluna Ação, estágio pintado por tom e colunas dos campos personalizados', () => {
     render(<LeadsIndex filtros={{}} rotulos={ROTULOS} leads={PAGINA as never} />);
     expect(screen.getByRole('button', { name: 'Ações de Lead fictício A' })).toBeTruthy();
