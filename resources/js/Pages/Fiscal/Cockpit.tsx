@@ -505,19 +505,15 @@ export default function Cockpit({
 
         {/* Toolbar minimalista — search + 3 selects + density */}
         <div className="fx-notas-toolbar">
-          {/* Espaço da lupa pela utilitária canon `.cw-input-icon-left`, NÃO `pl-*`:
-              a Tailwind é layered e perde pro `.cw-input` unlayered (cowork-fields.css). */}
-          <div className="relative min-w-[240px] flex-1">
+          <div className="fx-search">
             <svg
               width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               aria-hidden="true"
             >
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
             <Input
               type="search"
-              className="cw-input-icon-left"
               placeholder="Buscar nº, cliente, CNPJ, chave…"
               aria-label="Buscar notas por número, cliente, CNPJ ou chave"
               value={search}
@@ -528,22 +524,8 @@ export default function Cockpit({
           <SeloProcedencia mapa={procedencia} chave="notas" />
           <SeloProcedencia mapa={procedencia} chave="viewCounts" />
 
-          {/* Onda 3 C — SavedViewsChips (substitui o <select> por chips horizontais Linear-style) */}
-          <SavedViewsChips
-            views={SAVED_VIEWS.map((v) => ({
-              id: v.id,
-              label: v.label,
-              count: savedViewCounts[v.id] ?? 0,
-              tone: v.tone ?? null,
-            }))}
-            value={view}
-            onChange={(id) => applyView(id as Exclude<ViewId, 'custom'>)}
-            customCount={rows.length}
-            isCustom={view === 'custom'}
-          />
-
           <Select value={tipo} onValueChange={(v) => handleManualFilter('tipo', v)}>
-            <SelectTrigger size="sm" className="w-auto" aria-label="Filtrar por tipo">
+            <SelectTrigger size="sm" className="fx-select w-auto" aria-label="Filtrar por tipo">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -555,7 +537,7 @@ export default function Cockpit({
           </Select>
 
           <Select value={status} onValueChange={(v) => handleManualFilter('status', v)}>
-            <SelectTrigger size="sm" className="w-auto" aria-label="Filtrar por status">
+            <SelectTrigger size="sm" className="fx-select w-auto" aria-label="Filtrar por status">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -569,6 +551,22 @@ export default function Cockpit({
 
           <DensidadeToggle value={density} onChange={setDensity} />
         </div>
+
+        {/* Visões salvas numa fileira própria, abaixo da busca — no protótipo elas não
+            dividem linha com os filtros (`.fx-toolbar` + `.fx-chips`). */}
+        {/* Onda 3 C — SavedViewsChips (substitui o <select> por chips horizontais Linear-style) */}
+        <SavedViewsChips
+          views={SAVED_VIEWS.map((v) => ({
+            id: v.id,
+            label: v.label,
+            count: savedViewCounts[v.id] ?? 0,
+            tone: v.tone ?? null,
+          }))}
+          value={view}
+          onChange={(id) => applyView(id as Exclude<ViewId, 'custom'>)}
+          customCount={rows.length}
+          isCustom={view === 'custom'}
+        />
 
         {/* Chip de cliente filtrado */}
         {clienteFilter && (
@@ -764,7 +762,7 @@ export default function Cockpit({
             </span>
 
             <Select value={String(porPagina)} onValueChange={(v) => setPorPagina(Number(v))}>
-              <SelectTrigger size="sm" className="w-auto" aria-label="Notas por página">
+              <SelectTrigger size="sm" className="fx-select w-auto" aria-label="Notas por página">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
