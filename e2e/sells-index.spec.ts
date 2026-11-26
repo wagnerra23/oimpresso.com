@@ -12,6 +12,8 @@ test('UC-S10 · lista de vendas renderiza com pílulas de status', async ({ page
   await page.waitForLoadState('networkidle');
 
   await expect(page.getByRole('heading', { name: 'Vendas' })).toBeVisible({ timeout: 15_000 });
-  // Pílulas de classificação por payment_status (Todas é a default).
-  await expect(page.getByText('Todas', { exact: true }).first()).toBeVisible();
+  // Pílulas de classificação por payment_status: botão "Todas" com o contador ao lado.
+  await expect(page.getByRole('button', { name: /^Todas\s*\d+$/ }).first()).toBeVisible();
+  // Navegador sem escolha gravada abre na visão salva "Hoje" (decisão [W] 2026-11-25, item 08).
+  await expect(page.getByRole('button', { name: 'Hoje', exact: true })).toBeVisible();
 });

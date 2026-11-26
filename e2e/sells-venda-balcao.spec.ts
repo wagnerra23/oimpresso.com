@@ -58,6 +58,12 @@ test('UC-S11 · menu de Ações da venda oferece Devolução → /sell-return/ad
   await page.waitForLoadState('networkidle');
   await expect(page.getByRole('heading', { name: 'Vendas' })).toBeVisible({ timeout: 15_000 });
 
+  // A lista abre na visão "Hoje" (decisão [W] 2026-11-25), que filtra só as linhas carregadas.
+  // Este caso é sobre o menu de Ações, não sobre a visão: troca para "Todas" pela interface.
+  await page.getByRole('button', { name: 'Hoje', exact: true }).click();
+  await page.getByText('Todas', { exact: true }).first().click();
+  await expect(page.getByRole('button', { name: 'Todas', exact: true })).toBeVisible();
+
   // Abre o menu ⋮ da primeira linha (kebab restaurado — #3494).
   const acoes = page.getByRole('button', { name: 'Ações da venda' }).first();
   await expect(acoes).toBeVisible({ timeout: 15_000 });
