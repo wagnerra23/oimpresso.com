@@ -6,8 +6,11 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.4 + §18.3 — os UC abaixo DERIVAM dele
 related_us: [US-MANU-005]
 owner: wagner
-last_run: "2026-11-17"
+last_run: "2026-11-25"
 ---
+
+> ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): um comportamento novo.** UC-INS-08: o nome da receita afetada,
+> na gaveta, vira link para a receita (Pendências da Fabricação I-05). Os demais UC não mudaram.
 
 > ℹ️ **`last_run` 2026-10-19 → 2026-10-21 (G-6): a gaveta ganhou a seção "Método de custo"** (UC-INSMET-06..09),
 > que grava a escolha `medio` | `ultimo` pelo `PUT /compras/insumos/{variation}/metodo-custo`. Simulação, receitas
@@ -274,6 +277,18 @@ Status: 🧪
 - **Fonte:** decisão B3 de [W] em 2026-11-09 (o custo fica atrás de `view_purchase_price`, a permissão que o núcleo usa para preço de compra) · auditoria do Manufacturing, lote 2.6.
 - **Teste:** `CustoPorPermissaoTest.php`
 - **Regressão que defende:** a tela de impacto de preço entregar o preço de compra a quem não pode vê-lo.
+- **Status: 🧪**
+
+---
+
+## UC-INS-08 · O nome da receita afetada abre a receita
+- **Persona:** quem simula a alta de um insumo e quer ver a receita que mais sofre.
+- **Aceite:** Dado a gaveta de um insumo aberta · Então o nome de cada receita afetada é um link para
+  `/manufacturing/recipe?receita=ID` daquela receita.
+- **Fonte:** protótipo (gaveta do Insumo) · Pendências da Fabricação I-05, medição de 2026-11-25 · aprovação [W]
+  em 2026-11-25. Do outro lado, UC-RECIPE-27.
+- **Teste:** `tests/js/manufacturing-insumos-link-receita.test.tsx`
+- **Regressão que defende:** o nome voltar a ser texto e o usuário ter de procurar a receita na lista.
 - **Status: 🧪**
 
 ---

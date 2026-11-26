@@ -9,6 +9,9 @@ owner: wagner
 last_run: "2026-11-25"
 ---
 
+> ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): um comportamento novo.** UC-RECIPE-27: a aba abre uma receita
+> pelo endereço (`?receita=ID`), mesmo fora da página atual (Pendências da Fabricação I-05). Os demais UC não mudaram.
+
 > ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): forma e plural do subtítulo, não comportamento.**
 > Pendências da Fabricação (medição 2026-11-25), itens R-01 e C-01..C-04: o subtítulo do cabeçalho
 > passa a dizer "ordem"/"ordens" conforme o número e põe os números em negrito; o resto é CSS. Nenhum
@@ -400,6 +403,19 @@ last_run: "2026-11-25"
   UC-RECIPE-04 · auditoria do Manufacturing, lote 2.3.
 - **Teste:** `FormaCustoExtraTest.php` — a conta à mão e a fórmula que o rótulo anuncia.
 - **Regressão que defende:** o painel dizer "Custo extra (2,5%)" ao lado de um custo que somou 2,5 inteiro.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-27 · A receita abre pelo endereço
+- **Persona:** quem vem da gaveta de um insumo e clica no nome de uma receita afetada.
+- **Aceite:** Dado uma receita da minha empresa · Quando abro `/manufacturing/recipe?receita=ID`, mesmo com uma
+  busca que a tira da lista · Então a gaveta dela abre · Dado uma receita de outra empresa · Então nada abre (a
+  dona dela abre) · Dado um usuário sem `view_purchase_price` · Então a receita abre sem custo.
+- **Fonte:** protótipo (o nome da receita, na gaveta do Insumo, abre a receita) · Pendências da Fabricação I-05,
+  medição de 2026-11-25 · aprovação [W] em 2026-11-25 · ADR 0093 (empresa) · UC-RECIPE-26 (custo).
+- **Teste:** `ReceitaPorEnderecoTest.php`
+- **Regressão que defende:** o link do Insumo cair numa lista sem a receita aberta, ou abrir receita de outra empresa.
 - **Status: 🧪**
 
 ---
