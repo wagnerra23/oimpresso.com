@@ -621,6 +621,7 @@ Perguntas do documento "Casos de uso por tela" que só o [W] responde. Cada uma 
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-11-26 · [W+C] Forma, sem UC novo: a visão salva "Hoje" passa a existir de verdade (vendas do dia, como no protótipo) e é com ela que a lista abre para quem nunca escolheu uma visão (decisão [W] 2026-11-25, item 08). Até aqui o id `hoje` carregava o rótulo "Pendentes pgto."; esse par virou o id `pendentes-pgto`. Quem já tinha uma visão gravada continua nela: a ROTA LIVRE pediu "Todas" em 2026-05-21 (#1311). Teste `tests/js/sells-visao-salva.test.ts`.
 - 2026-11-12 · [F+C] **UC-SIDX-08** — o Excluir do menu ⋮ passa a avisar quando o servidor recusa (resposta 200 com `success:false`, ex.: venda com devolução). Antes a linha ficava sem explicação. Teste `tests/js/sells-index-excluir-recusa.test.tsx`.
 - 2026-10-30 · [W+C] P-154: a bonificação fica fora do rodapé da lista, do faturado do dia, dos relatórios de venda e lucro e do saldo do cliente (UC-SBON-06..09).
 - 2026-10-30 · [W+C] P-154: a bonificação aparece na lista, no drawer e na impressão/exportação em lote (UC-SBON-02..05). Pagamento rápido, criar OS, Caixa do dia e os totais de cliente na IA seguem só com venda comum.

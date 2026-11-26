@@ -33,6 +33,7 @@ import {
   X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
+import { CHAVE_VISAO, hojeLocal, visaoInicial } from './_components/visaoSalva';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
 import VdBulkEmitModal, { type BulkEmitItem } from './_components/VdBulkEmitModal';
 import { toast } from 'sonner';
@@ -425,7 +426,7 @@ function Sparkline({
 // Saved views — Hoje / Pendentes / Atrasadas / Rejeitadas / Faturadas / Favoritas
 // (mock simplificado — backend não implementa view filter ainda; client-side)
 // ──────────────────────────────────────────────────────────────
-type SavedViewId = 'hoje' | 'pendentes' | 'aguardando-faturamento' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
+type SavedViewId = 'hoje' | 'pendentes-pgto' | 'pendentes' | 'aguardando-faturamento' | 'atrasadas' | 'rejeitadas' | 'faturadas' | 'todas';
 interface SavedView {
   id: SavedViewId;
   label: string;
@@ -435,8 +436,12 @@ interface SavedView {
 // Glossário BR (gap #6): faturar = emitir NF + título no contas a receber.
 // Critério: payment_status !== 'paid' AND fiscal_status NULL — pedido pronto mas
 // sem NF ainda. Permite a Larissa filtrar a fila de "preciso emitir NF" rapidamente.
+// "Hoje" de verdade (protótipo data-vendas.jsx: vendas do dia) entrou em 2026-11-26. Até ali o id
+// 'hoje' carregava o rótulo "Pendentes pgto." e o filtro de não pago, herança da reescrita de
+// 2026-05-17; esse par passou para o id 'pendentes-pgto'.
 const SAVED_VIEWS: SavedView[] = [
-  { id: 'hoje',                    label: 'Pendentes pgto.',         filter: (r) => r.payment_status !== 'paid' },
+  { id: 'hoje',                    label: 'Hoje',                    filter: (r) => r.transaction_date?.slice(0, 10) === hojeLocal() },
+  { id: 'pendentes-pgto',          label: 'Pendentes pgto.',         filter: (r) => r.payment_status !== 'paid' },
   { id: 'pendentes',               label: 'Pendentes',               filter: (r) => r.payment_status === 'due' || r.payment_status === 'partial' },
   { id: 'aguardando-faturamento',  label: 'Aguardando faturamento',  filter: (r) => r.payment_status !== 'paid' && (r.fiscal_status === null || r.fiscal_status === undefined) },
   { id: 'atrasadas',               label: 'Atrasadas',               filter: (r) => r.sla_kind === 'overdue' },
@@ -463,14 +468,11 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   });
   useEffect(() => ls.set('foco', foco), [foco]);
 
-  // Saved view dropdown (Hoje / Pendentes / Atrasadas / etc).
-  // Default 'todas' — Larissa @ ROTA LIVRE biz=4 reportou 2026-05-21 abrir em
-  // "Caixa" não bate com a operação dela (ADR 0105 sinal qualificado).
-  const [savedViewId, setSavedViewId] = useState<SavedViewId>(() => {
-    const v = ls.get('savedView', 'todas');
-    return SAVED_VIEWS.find((s) => s.id === v)?.id ?? 'todas';
-  });
-  useEffect(() => ls.set('savedView', savedViewId), [savedViewId]);
+  // Visão salva: abre em "Hoje" para quem nunca escolheu; escolha antiga respeitada (visaoSalva.ts).
+  const [savedViewId, setSavedViewId] = useState<SavedViewId>(
+    () => visaoInicial((k) => ls.get(k, ''), SAVED_VIEWS.map((v) => v.id)) as SavedViewId,
+  );
+  useEffect(() => ls.set(CHAVE_VISAO, savedViewId), [savedViewId]);
 
   // 5-pill status filter.
   // `?pill=rascunho` abre direto nos rascunhos (link de /sells/drafts e do menu Visões).
