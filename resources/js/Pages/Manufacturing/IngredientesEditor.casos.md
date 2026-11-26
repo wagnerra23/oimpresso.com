@@ -6,8 +6,12 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §5 e §9 (prototipo-ui/cowork/Felipe/handoff_fabricacao/README.md) — os UC DERIVAM dele
 related_us: [US-MANU-006]
 owner: wagner
-last_run: "2026-11-17"
+last_run: "2026-11-25"
 ---
+
+> ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): forma, não comportamento.** Pendências da Fabricação,
+> lote 4: botões, cartões e campos ganharam as medidas do Design System. Rótulos, ações, regras e
+> permissões não mudaram; nenhum UC cita tamanho ou cor de botão.
 
 > ℹ️ **`last_run` 2026-11-16 → 2026-11-17 (G-6): sem mudança de comportamento.** O último commit no `.tsx` é o do lote 2.6 (#11011), descrito na nota abaixo; ele entrou no main às 01:58 UTC de 2026-11-17, um dia depois da data que a nota registrou. Revalidado no lote 4.1: UC-INGRED-01..16 seguem como estavam.
 >

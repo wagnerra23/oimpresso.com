@@ -5,7 +5,7 @@ irmaos: RegraForm.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F7 · §
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta regra decide a alíquota que sai na nota — errar aqui é multa fiscal, não bug de tela.
 owner: wagner
-last_run: "2026-11-24"
+last_run: "2026-11-26"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 
@@ -60,6 +60,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-09 | A regra grava e reabre o CST de PIS e de COFINS | must `[fiscal]` | SPEC NfeBrasil R-NFE-025b · leiaute NF-e 4.00 grupos Q e S | `RegraTributariaIbsCbsValidacaoTest` | ✅ |
 | UC-NFRF-10 | Duas regras com a mesma chave não convivem | must `[fiscal]` | charter §Pendências · ADR arq/0006 · `MotorTributarioService::buscarRegra` | `RegraTributariaUnicidadeTest` | 🧪 |
 | UC-NFRF-11 | Abrir a tela de regra (nova ou edição) exige a permissão fiscal | must `[T0]` | charter §Backend · US-NFE-010 · decisão do dono 2026-11-24 | `TributacaoAbrirTelaPermissaoTest` | 🧪 |
+| UC-NFRF-13 | Criar, editar e apagar regra gravam quem fez | must `[fiscal]` | US-NFE-062 · charter §Backend (activity) | `TributacaoAuditLogContratoTest` | 🧪 |
 | UC-NFRF-12 | Trocar o regime tira do envio o código do outro regime | must `[fiscal]` | charter §Goals (CSOSN Simples · CST Normal) · `UpsertRegraTributariaRequest` (os dois juntos são recusados) | vitest `nfe-tributacao-regra-regime` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
@@ -314,12 +315,28 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   no 1º envio.
 - **Status: 🧪** — veredito do passo Vitest do `ci.yml`. Nasceu ❌ em 2026-11-25 (o teste provava a falha) e saiu dele no mesmo dia com o conserto.
 
+## UC-NFRF-13 · Criar, editar e apagar regra gravam quem fez · `must` `[fiscal]`
+
+- **Persona:** o contador que precisa explicar por que uma nota saiu com aquela alíquota. A regra pode
+  ter mudado; o histórico diz quem mudou e quando.
+- **Aceite:** **Dado** um usuário com `nfe.tributacao.manage` **Quando** cria, edita e apaga uma regra
+  **Então** `activity_log` ganha uma linha `nfe.tributacao` para cada ação (`regra.created`,
+  `regra.updated`, `regra.deleted`), com o usuário como autor e `business_id` nas properties; a criação
+  leva também NCM e UFs, a edição aponta a regra (ou a versão nova dela, R-NFE-019) e a remoção aponta a
+  regra apagada. Controle: apagar regra de outra empresa é 404 e não grava linha.
+- **Teste:** [`TributacaoAuditLogContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoAuditLogContratoTest.php)
+  — `UC-NFRF-13 · criar, editar e apagar regra gravam activity com autor e business_id` e
+  `UC-NFRF-13 · apagar regra de outro business é 404 e não grava log`.
+- **Contrato:** [US-NFE-062](../../../../../memory/requisitos/NfeBrasil/SPEC.md) (aceite: *"Toda mensagem
+  inclui `business_id` em properties"* e *"Pest test valida que `activity_log` recebe entry após mutation"*)
+  + charter desta tela (*"`store`/`update` gravam `activity('nfe.tributacao')` com business_id + NCM/UF"*).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog — sem UC até ganhar teste ou contrato
 
-- `[BACKLOG]` **AuditLog.** `store`/`update`/`destroy` chamam `activity('nfe.tributacao')`, sem
-  teste. Escopo declarado da **US-NFE-062**, aberta — deixo lá em vez de duplicar aqui.
+- ~~`[BACKLOG]` AuditLog~~ — virou **UC-NFRF-13** (2026-11-26).
 
 ---
 

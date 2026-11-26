@@ -120,6 +120,7 @@ export interface NaturezaFiscalProduto {
 export type ErrosProduto = Partial<
   Record<
     | 'name'
+    | 'sku'
     | 'product_variation'
     | 'unit_id'
     | 'origem_mercadoria'

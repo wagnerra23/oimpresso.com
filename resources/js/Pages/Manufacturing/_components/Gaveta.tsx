@@ -46,6 +46,22 @@ export const BOTAO_SECUNDARIO = `${BOTAO} border-[var(--border)] bg-[var(--surfa
 /** Variante `primary`: o fundo e o hover ficam com o Button (`--color-primary`); o DS usa `--accent`,
  *  que o AppShell reescreve pelo matiz salvo (nota no topo do bundle da Fabricação). */
 export const BOTAO_PRIMARIO = `${BOTAO} border border-transparent font-semibold text-[var(--accent-fg)]`;
+/** Tamanho `sm` do Button do DS (Button.jsx L7-9): 26px, 12px/600, raio 8, padding 0 10 — o "Nova
+ *  receita" e o "Nova produção" do cabeçalho (C-07). O ícone vai com 13px, como no protótipo. */
+export const BOTAO_PRIMARIO_SM =
+  'h-[26px] gap-1.5 rounded-[8px] border border-transparent px-2.5 py-0 text-[12px] leading-none font-semibold text-[var(--accent-fg)]';
+/** Cartões de indicador nas medidas do `KpiCard` do DS (KpiCard.jsx): o de leitura com padding 14,
+ *  gap 6 e sombra .04 (L110-113); o que filtra com raio 8 e sombra .05 (L46-48). O componente
+ *  compartilhado não muda — só a Fabricação recebe a classe (C-08/C-09, ADR 0388 D-1). */
+/** Variante `ghost` do Button do DS em tamanho `sm` (26px, 12px, padding 0 10) — "Ingrediente em …". */
+export const BOTAO_SECUNDARIO_SM = `${BOTAO_SECUNDARIO} h-[26px] px-2.5 text-[12px]`;
+/** "Excluir receita" no contorno do DS (`Button` variant danger como ghost): texto vermelho,
+ *  fundo de superfície, borda vermelha a 30% (E-02). Usar com `variant="outline"`. O vermelho claro
+ *  do protótipo vale só no escuro: no claro deu 2,45:1 sobre branco, medido em produção em 2026-11-26;
+ *  `--color-destructive` dá 4,78:1. */
+export const BOTAO_PERIGO = `${BOTAO} border-[color-mix(in_oklch,var(--color-destructive)_30%,transparent)] bg-[var(--surface)] text-[var(--color-destructive)] shadow-none hover:bg-[color-mix(in_oklch,var(--color-destructive)_12%,var(--surface))] hover:text-[var(--color-destructive)] dark:text-[oklch(0.74_0.13_18)] dark:hover:text-[oklch(0.74_0.13_18)] dark:border-[color-mix(in_oklch,var(--color-destructive)_30%,transparent)] dark:bg-[var(--surface)] dark:hover:bg-[color-mix(in_oklch,var(--color-destructive)_12%,var(--surface))]`;
+export const KPI_LEITURA = 'gap-1.5 p-[14px] shadow-[0_1px_2px_rgba(0,0,0,.04)]';
+export const KPI_FILTRO = 'rounded-[8px] shadow-[0_1px_2px_rgba(0,0,0,.05)]';
 
 interface Props {
   aberta: boolean;

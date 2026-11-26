@@ -675,8 +675,11 @@ class NfeService
      * R-NFE-036 · monta o `dest` a partir do cadastro do cliente. Sem DB (testável).
      *
      * IE: `inscricao_estadual` (canon NF-e) ou o espelho `ie` do drawer. `ind_ie_dest` vem do
-     * `indicador_ie` cadastrado (1 contribuinte · 2 isento · 9 não contribuinte); sem ele, IE
-     * preenchida = 1, vazia = 9. UF inválida cai na UF do emitente (operação interna).
+     * indicador cadastrado (1 contribuinte · 2 isento · 9 não contribuinte): primeiro a coluna
+     * `ind_ie_dest`, que é a que o drawer do cliente grava (migration 2026_05_23), depois a antiga
+     * `indicador_ie`; sem nenhum dos dois, IE preenchida = 1, vazia = 9. Ler só a antiga fazia a
+     * escolha feita na tela não chegar à nota (2026-11-25, biz 1: rejeição 232 em homologação).
+     * UF inválida cai na UF do emitente (operação interna).
      *
      * @return array<string,mixed>|null
      */
@@ -688,7 +691,10 @@ class NfeService
         }
 
         $ie  = preg_replace('/\D/', '', (string) (($c->inscricao_estadual ?? '') ?: ($c->ie ?? '')));
-        $ind = (string) ($c->indicador_ie ?? '');
+        $ind = (string) ($c->ind_ie_dest ?? '');
+        if (! in_array($ind, ['1', '2', '9'], true)) {
+            $ind = (string) ($c->indicador_ie ?? '');
+        }
         if (! in_array($ind, ['1', '2', '9'], true)) {
             $ind = $ie !== '' ? '1' : '9';
         }

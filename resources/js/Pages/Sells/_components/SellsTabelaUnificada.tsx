@@ -26,6 +26,7 @@ import QuickPaymentPopover from './QuickPaymentPopover';
 import VdSource, { type VdSourceKind } from './VdSource';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { COL_HEADERS } from './colunasRotulos';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -169,23 +170,7 @@ const PILL_STYLE: Record<PillKey, { bg: string; fg: string; label: string }> = {
 // ──────────────────────────────────────────────────────────────
 // COLUMN DEFS — header + cell por ColumnId
 // ──────────────────────────────────────────────────────────────
-const COL_HEADERS: Record<ColumnId, { label: string; width?: number; style?: React.CSSProperties; className?: string }> = {
-  check:      { label: '', width: 24, style: { padding: '0 0 0 12px' } },
-  invoice:    { label: 'Venda', width: 82 },
-  date:       { label: 'Data', width: 80 },
-  client:     { label: 'Cliente' },
-  seller:     { label: 'Atendido por', width: 168 },
-  source:     { label: 'Origem', width: 138, className: 'vd-col-source' },
-  pipeline:   { label: 'Pipeline', width: 128 },
-  fiscal:     { label: 'Fiscal', width: 148 },
-  payment:    { label: 'Pagamento', width: 128 },
-  location:   { label: 'Localização', width: 120 },
-  paid:       { label: 'Pago', width: 100 },
-  due:        { label: 'A receber', width: 110 },
-  total:      { label: 'Total', width: 110 },
-  status:     { label: 'Status', width: 88 },
-  commission: { label: 'Comissão', width: 120 },
-};
+// Rótulos e larguras em colunasRotulos.ts (também usados pela janela Colunas).
 
 // ──────────────────────────────────────────────────────────────
 // PROPS
