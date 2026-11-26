@@ -41,6 +41,12 @@ import {
 } from './_lib/custo';
 import BuscaInsumo, { type InsumoEncontrado } from './_components/BuscaInsumo';
 import ExcluirReceitaDialog from './_components/ExcluirReceitaDialog';
+import {
+  BOTAO_PERIGO,
+  BOTAO_PRIMARIO,
+  BOTAO_SECUNDARIO,
+  BOTAO_SECUNDARIO_SM,
+} from './_components/Gaveta';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -227,8 +233,8 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
                   <BuscaInsumo grupo={g.nome} onEscolher={(ins) => incluirInsumo(gi, ins)} onFechar={() => setBuscandoEm(null)} />
                 ) : (
                   <div className="px-3 pb-2.5 pt-2">
-                    <Button type="button" size="sm" variant="outline" onClick={() => setBuscandoEm(gi)}>
-                      <Plus className="mr-1 h-3 w-3" /> Ingrediente em {g.nome}
+                    <Button type="button" variant="outline" className={BOTAO_SECUNDARIO_SM} onClick={() => setBuscandoEm(gi)}>
+                      <Plus className="h-3 w-3" /> Ingrediente em {g.nome}
                     </Button>
                   </div>
                 ))}
@@ -262,18 +268,18 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
                       if (e.key === 'Escape') setNovoGrupo(false);
                     }}
                   />
-                  <Button type="button" size="sm" onClick={() => criarGrupo(nomeGrupo)}>
+                  <Button type="button" className={BOTAO_PRIMARIO} onClick={() => criarGrupo(nomeGrupo)}>
                     Criar grupo
                   </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setNovoGrupo(false)}>
+                  <Button type="button" variant="outline" className={BOTAO_SECUNDARIO} onClick={() => setNovoGrupo(false)}>
                     Cancelar
                   </Button>
                 </Inline>
               </div>
             ) : (
               <div className="mt-3">
-                <Button type="button" variant="outline" className="w-full" onClick={() => setNovoGrupo(true)}>
-                  <Plus className="mr-1 h-3 w-3" /> Novo grupo de ingredientes
+                <Button type="button" variant="outline" className={`${BOTAO_SECUNDARIO} w-full`} onClick={() => setNovoGrupo(true)}>
+                  <Plus className="h-3 w-3" /> Novo grupo de ingredientes
                 </Button>
               </div>
             ))}
@@ -350,7 +356,7 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
 
       <div className="mfg-ed-f" data-contract="acoes">
         {podeEditar && receita.id !== null && (
-          <Button type="button" variant="destructive" onClick={() => setExcluindo(true)}>
+          <Button type="button" variant="outline" className={BOTAO_PERIGO} onClick={() => setExcluindo(true)}>
             Excluir receita
           </Button>
         )}
@@ -363,11 +369,11 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
             </span>
           </Inline>
         )}
-        <Button type="button" variant="outline" asChild>
+        <Button type="button" variant="outline" className={BOTAO_SECUNDARIO} asChild>
           <a href={ROTA_RECEITAS}>{podeEditar ? 'Cancelar' : 'Voltar para Receitas'}</a>
         </Button>
         {podeEditar && (
-          <Button type="submit" disabled={processing || motivoBloqueio !== null}>
+          <Button type="submit" className={BOTAO_PRIMARIO} disabled={processing || motivoBloqueio !== null}>
             {processing ? 'Salvando…' : 'Salvar receita'}
           </Button>
         )}

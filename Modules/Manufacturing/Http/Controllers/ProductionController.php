@@ -1142,9 +1142,13 @@ class ProductionController extends Controller
         // Sem Inertia::defer aqui, de propósito: `indexV2()` acima documenta o rollback do
         // Wave L/W7 (PR #963) — defer quebrava o initial render desta mesma tela (props
         // undefined). `relatorio`/`recipes_count` seguem eager, igual ao resto do módulo v2.
+        // UC-REPORT-08 (Pendências da Fabricação P-01, 2026-11-25): sem nenhuma das duas datas na
+        // URL, o relatório abre no mês corrente, como o protótipo. Data vazia enviada pela tela
+        // (`start_date=`) é escolha de ver tudo e continua sem filtro: o padrão só vale na ausência.
+        $semPeriodo = ! request()->has('start_date') && ! request()->has('end_date');
         $filters = [
-            'start_date' => request()->get('start_date'),
-            'end_date'   => request()->get('end_date'),
+            'start_date' => $semPeriodo ? now()->startOfMonth()->toDateString() : request()->get('start_date'),
+            'end_date'   => $semPeriodo ? now()->endOfMonth()->toDateString() : request()->get('end_date'),
             // R-DoD "Só finalizadas com default LIGADO" — ausência do param = true, não false.
             'is_final'   => ! request()->has('is_final') || request()->boolean('is_final'),
         ];

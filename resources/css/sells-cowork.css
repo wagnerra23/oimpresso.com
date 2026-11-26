@@ -1452,43 +1452,53 @@
 .sells-cowork [data-theme="dark"] .os-stat.warn b { color: oklch(0.78 0.16 25); }
 .sells-cowork .os-stat.muted b { color: var(--text-dim); font-size: 18px; }
 /* Toolbar */
+/* Abas de situação na forma do TabBar do DS (prototipo-ui/design-system/_ds_bundle.js, TabBar,
+   size md): fileira sem gap sobre a linha da faixa, aba ativa com sublinhado de 2px no accent e
+   fundo accent-soft a 50%, contador em Plex Mono (accent cheio na ativa). Antes havia duas regras
+   opostas pra .os-tab (caixa aqui e sublinhado mais abaixo) que o navegador somava: a ativa saía
+   com caixa, contorno e sublinhado juntos. A regra do sublinhado foi apagada; esta é a única.
+   A linha da faixa é da .vd-tabs-row (inertia.css); a aba desce 1px pra o sublinhado cobri-la. */
 .sells-cowork .os-tabs {
-  display: flex; gap: 2px;
+  display: flex; align-items: flex-end; gap: 0;
   flex-wrap: wrap;
+  padding: 0 24px;
 }
 .sells-cowork .os-tab {
   appearance: none; border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   background: transparent;
   color: var(--text-dim);
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
-  padding: 6px 11px;
-  border-radius: var(--radius-sm);
-  cursor: default;
+  font: 500 var(--fs-4)/1 var(--font-sans, system-ui);
+  height: 36px;
+  padding: 0 12px;
+  cursor: pointer;
+  white-space: nowrap;
   display: inline-flex; align-items: center; gap: 6px;
+  transition: color .15s, background .15s, border-color .15s;
 }
-.sells-cowork .os-tab:hover { background: var(--border-2); color: var(--text); }
-.sells-cowork .os-tab.active {
-  background: var(--surface);
-  border: 1px solid var(--border);
+.sells-cowork .os-tab:hover { background: color-mix(in oklch, var(--border-2) 60%, transparent); color: var(--text); }
+.sells-cowork .os-tab.active,
+.sells-cowork .os-tab.active:hover {
+  background: color-mix(in oklch, var(--accent-soft) 50%, transparent);
+  border-bottom-color: var(--accent);
   color: var(--text);
-  padding: 5px 10px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.04);
-}
-.sells-cowork .os-tab.warn { color: var(--neg); }
-.sells-cowork .os-tab.warn.active { border-color: oklch(0.85 0.08 25); }
-.sells-cowork .os-tab-n {
-  font-size: 10.5px;
-  font-variant-numeric: tabular-nums;
-  background: var(--border-2);
-  color: var(--text-dim);
-  padding: 1px 6px;
-  border-radius: 999px;
   font-weight: 600;
 }
-.sells-cowork .os-tab.active .os-tab-n { background: var(--accent-soft); color: var(--accent); }
-.sells-cowork .os-tab.warn .os-tab-n { background: oklch(0.93 0.07 25); color: oklch(0.50 0.18 25); }
+.sells-cowork .os-tab.warn { color: var(--neg); }
+.sells-cowork .os-tab.warn.active { border-bottom-color: var(--neg); }
+.sells-cowork .os-tab-n {
+  font: 600 var(--fs-1)/1.4 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  background: var(--bg-2);
+  color: var(--text-dim);
+  padding: 0 6px;
+  min-width: 18px;
+  text-align: center;
+  border-radius: 99px;
+}
+.sells-cowork .os-tab.active .os-tab-n { background: var(--accent); color: var(--accent-fg); }
+.sells-cowork .os-tab.warn .os-tab-n { background: var(--neg-soft); color: var(--neg); }
 /* Bulk bar */
 /* Buttons */
 .sells-cowork .os-btn {
@@ -1766,9 +1776,11 @@
 /* ════════════ VENDAS ════════════ */
 .sells-cowork .vendas-page .vd-id { font-family:var(--font-mono); font-size:var(--fs-3); color:var(--text); font-weight:600; }
 .sells-cowork .vendas-page .vd-date { font-size:var(--fs-2); }
-.sells-cowork .vendas-page .vd-time { font-size:var(--fs-1); color:oklch(0.55 0.02 250); }
+/* Hora e descrição do cliente seguem o texto do tema (protótipo vendas.css). A cor fixa não mudava
+   no escuro: 2,8:1 e 2,3:1 no fundo da tabela, abaixo de 4,5:1 (medição 2026-11-25). */
+.sells-cowork .vendas-page .vd-time { font-size:var(--fs-1); color:var(--text-mute); }
 .sells-cowork .vendas-page .vd-client-name { font-weight:600; font-size:var(--fs-4); }
-.sells-cowork .vendas-page .vd-notes { font-size:var(--fs-2); color:oklch(0.50 0.02 250); }
+.sells-cowork .vendas-page .vd-notes { font-size:var(--fs-2); color:var(--text-dim); }
 .sells-cowork .vendas-page .vd-pay > div:first-child { font-weight:500; font-size:var(--fs-3); }
 .sells-cowork .vendas-page .vd-transp { font-size:11.5px; }
 .sells-cowork .vendas-page .vd-transp-pill {
@@ -1943,24 +1955,6 @@
 .sells-cowork .os-kpi-value { font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; color:var(--text); }
 .sells-cowork .os-kpi-sub { font-size:var(--fs-2); color:var(--text-dim, oklch(0.55 0.02 250)); }
 .sells-cowork .os-kpi-alert .os-kpi-value { color:oklch(0.50 0.14 70); }
-.sells-cowork .os-tabs {
-  display:flex; align-items:center; gap:4px; flex-wrap:wrap;
-  padding:8px 24px 0; border-bottom:1px solid var(--border, oklch(0.93 0.01 250));
-}
-.sells-cowork .os-tab {
-  display:inline-flex; align-items:center; gap:6px;
-  padding:8px 12px; border:none; background:transparent; cursor:pointer;
-  font-size:var(--fs-3); color:var(--text-dim, oklch(0.50 0.02 250)); font-weight:500;
-  border-bottom:2px solid transparent; transition:all .12s;
-}
-.sells-cowork .os-tab:hover { color:var(--text); }
-.sells-cowork .os-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-.sells-cowork .os-tab .count {
-  display:inline-block; padding:1px 6px; border-radius:8px;
-  background:oklch(0.95 0.01 250); font-size:var(--fs-1); font-weight:600;
-  color:oklch(0.40 0.02 250);
-}
-.sells-cowork .os-tab.active .count { background:oklch(0.94 0.06 var(--accent-h, 295)); color:var(--accent); }
 .sells-cowork .os-table-wrap { padding:14px 24px 20px; overflow:auto; }
 .sells-cowork .os-table {
   width:100%; border-collapse:collapse;
@@ -2412,18 +2406,19 @@
 .sells-cowork .vendas-aplus .vd-views-sep { height: 1px; background: var(--border-2); margin: 4px -4px; }
 /* ── KPIs ── */
 .sells-cowork .vendas-aplus .vd-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+/* Herói "Faturado hoje" na forma do protótipo (vendas.css .vd-kpi-hero): superfície com um
+   toque de verde embaixo e o valor em --pos. Antes era um card verde-escuro sólido nos dois temas
+   com o valor em cor fixa quase branca (medição em produção 2026-11-25). */
 .sells-cowork .vendas-aplus .vd-kpi-hero {
-  background: var(--vd-green-hero); color: oklch(0.92 0.01 155);
-  border-color: var(--vd-green-hero);
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface) 55%, color-mix(in oklch, var(--pos) 6%, transparent) 100%);
+  border-color: color-mix(in oklch, var(--pos) 30%, transparent);
 }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-label { color: var(--vd-green-fg); }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value { color: oklch(0.95 0.01 155); }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-sub { color: var(--vd-green-fg); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-label { color: var(--text-dim); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value { color: var(--pos); }
+.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-sub { color: var(--text-mute); }
 .sells-cowork .vendas-aplus .vd-spark { margin-top: 8px; height: 32px; }
 .sells-cowork .vendas-aplus .vd-delta-up { color: var(--vd-ok) !important; display: inline-flex; align-items: center; gap: 4px; }
-.sells-cowork .vendas-aplus .vd-kpi-hero .vd-delta-up { color: oklch(0.78 0.10 155) !important; }
 .sells-cowork .vendas-aplus .os-kpi-value small { font-size: var(--fs-4); color: var(--text-mute); font-weight: 500; margin-left: 2px; }
-.sells-cowork .vendas-aplus .vd-kpi-hero .os-kpi-value small { color: oklch(0.65 0.04 155); }
 /* ageing 3 bars */
 .sells-cowork .vendas-aplus .vd-ageing {
   margin-top: 10px;
@@ -3874,6 +3869,11 @@
   white-space: nowrap;
 }
 .sells-cowork .vd-src-os:hover { opacity: 1; }
+/* Pílula inteira com fundo e cor da origem, como no protótipo (vendas.css .vd-src-*). Antes só a
+   bolinha tinha cor. A cor vem dos tokens --vd-src-* acima (DS v6 → --origin-*). */
+.sells-cowork .vd-src-balcao  { background: var(--vd-src-balcao-soft);  color: var(--vd-src-balcao); }
+.sells-cowork .vd-src-oficina { background: var(--vd-src-oficina-soft); color: var(--vd-src-oficina); }
+.sells-cowork .vd-src-online  { background: var(--vd-src-online-soft);  color: var(--vd-src-online); }
 .sells-cowork .vd-src-balcao  .vd-src-dot { background: var(--vd-src-balcao); }
 .sells-cowork .vd-src-oficina .vd-src-dot { background: var(--vd-src-oficina); }
 .sells-cowork .vd-src-online  .vd-src-dot { background: var(--vd-src-online); }
@@ -3908,7 +3908,7 @@
   justify-content: space-between;
   gap: 6px;
   padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-2);
   border-left: 2px solid;
   border-radius: 3px;
   min-width: 0;
@@ -3918,7 +3918,7 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: oklch(0.78 0.01 80);
+  color: var(--text-dim);
   opacity: 0.9;
   white-space: nowrap;
   overflow: hidden;
@@ -3928,7 +3928,7 @@
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: var(--fs-3);
   font-weight: 700;
-  color: white;
+  color: var(--text);
   white-space: nowrap;
 }
 .sells-cowork .vd-kpi-b.balcao { border-left-color: var(--vd-src-balcao); }

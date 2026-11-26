@@ -5,9 +5,9 @@
  * escuro: 16×16, canto 6px, borda 1,5px `--border` sobre `--surface` desmarcada, `--accent` marcada,
  * ✓ de 11px com traço 3,5, opacidade .55 desabilitada — iguais. Antes a borda era roxa até desmarcada.
  *
- * 2026-11-25: a borda da desmarcada passou a `--text-mute` nos dois temas. A do DS (`--border`) dava
- * 1,17:1 no escuro e 1,35:1 no claro, e a caixinha sumia na tabela; com `--text-mute` fica 4,57:1 e
- * 4,75:1, perto dos 4,54:1 da caixa do protótipo. Decisão [F]; o DS ainda não tem essa troca.
+ * Exceção decidida pelo [W] em 2026-11-25: a borda desmarcada passou de `--border` para `--text-mute`.
+ * Medido na lista de vendas em 2026-11-26, `--border` dava 1,17:1 contra a linha no escuro e 1,34:1 no
+ * claro (a caixinha sumia); `--text-mute` dá 4,54:1 e 4,68:1. O `Checkbox.jsx` do DS ainda tem `--border`.
  *
  * O vitest roda em jsdom, sem CSS: aqui se prova a CLASSE que produz cada medida e o desenho do ✓.
  */
@@ -18,7 +18,7 @@ import { Checkbox } from '@/Components/ui/checkbox';
 const tokens = (el: Element) => (el.getAttribute('class') ?? '').split(/\s+/);
 
 describe('Checkbox do app = Checkbox do DS', () => {
-  it('desmarcada: borda de 1,5px --text-mute sobre --surface, sem a borda roxa nem sombra', () => {
+  it('desmarcada: borda de 1,5px em --text-mute sobre --surface, sem a borda roxa nem sombra', () => {
     render(<Checkbox aria-label="x" />);
     const t = tokens(screen.getByRole('checkbox', { name: 'x' }));
     expect(t).toEqual(expect.arrayContaining([
@@ -27,12 +27,13 @@ describe('Checkbox do app = Checkbox do DS', () => {
       'disabled:opacity-[.55]', 'duration-150',
     ]));
     expect(t).not.toContain('border-primary');
+    expect(t).not.toContain('border-[var(--border,var(--color-border))]');
     expect(t).not.toContain('shadow-sm');
   });
 
   it('a borda da desmarcada é a mesma classe nos dois temas: não volta a --border nem ganha exceção por tema', () => {
-    // Decisão [F] 2026-11-25. Quem muda entre claro e escuro é o VALOR de --text-mute, não a classe.
-    // Uma exceção `dark:` faria o claro voltar a 1,35:1, que foi o defeito medido.
+    // A exceção do cabeçalho vale nos dois temas: quem muda entre claro e escuro é o VALOR de
+    // --text-mute, não a classe. Uma exceção `dark:` deixaria o claro com a borda que sumia.
     render(<Checkbox aria-label="x" />);
     const t = tokens(screen.getByRole('checkbox', { name: 'x' }));
     expect(t.filter((c) => c.includes('--border'))).toEqual([]);

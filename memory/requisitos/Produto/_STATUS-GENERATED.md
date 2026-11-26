@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 21 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 15 |
-| UC declarados | 235 |
-| UC com teste que os cita | 219 |
+| UC declarados | 250 |
+| UC com teste que os cita | 234 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -161,6 +161,7 @@ authority: generated
 | UC-PCADAP-21 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-22 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-23 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-24 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCROT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-PCROT-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PEDIT-01 | Edit | 🧪 aguarda veredito da lane |
@@ -193,6 +194,12 @@ authority: generated
 | UC-PEDIT-28 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-29 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-30 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-31 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-32 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-33 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-34 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-35 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-36 | Edit | 🧪 aguarda veredito da lane |
 | UC-PETQ-01 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
@@ -252,6 +259,10 @@ authority: generated
 | UC-PIDX-48 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-49 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-50 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-51 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-52 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-53 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-54 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
@@ -290,6 +301,10 @@ authority: generated
 | UC-PURCRE-09 | Index | 🧪 aguarda veredito da lane |
 | UC-RLT-06 | Index | 🧪 aguarda veredito da lane |
 | UC-RLT-07 | Index | 🧪 aguarda veredito da lane |
+| UC-TRCRT-06 | Index | 🧪 aguarda veredito da lane |
+| UC-TRCRT-07 | Index | 🧪 aguarda veredito da lane |
+| UC-TRCRT-08 | Index | 🧪 aguarda veredito da lane |
+| UC-V413 | Index | 🧪 aguarda veredito da lane |
 
 ---
 
