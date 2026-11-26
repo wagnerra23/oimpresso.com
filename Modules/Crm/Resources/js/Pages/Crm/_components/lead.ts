@@ -29,3 +29,22 @@ export function frescor(data: string | null, agora = new Date()): { texto: strin
   const texto = horas < 1 ? 'agora' : horas < 24 ? `há ${Math.floor(horas)}h` : `há ${dias}d`;
   return { texto, tom: dias <= 2 ? 'ok' : dias <= 7 ? 'warn' : 'neg' };
 }
+
+const AJAX = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+
+/** Rotas da Blade que a tela nova reaproveita (`lead/{id}/post-life-stage`). */
+async function chamar(url: string): Promise<boolean> {
+  try {
+    const r = await fetch(url, { headers: AJAX, credentials: 'same-origin' });
+    const json = r.ok ? await r.json() : null;
+    return !!json?.success;
+  } catch {
+    return false;
+  }
+}
+
+/** CRM-23: muda o estágio de vida do lead (o arrasto no kanban). */
+export function moverEstagio(id: number, estagioId: string): Promise<boolean> {
+  return chamar(`/crm/lead/${id}/post-life-stage?crm_life_stage=${encodeURIComponent(estagioId)}`);
+}
+

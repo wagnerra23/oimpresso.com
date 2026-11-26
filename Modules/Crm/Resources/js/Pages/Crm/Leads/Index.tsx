@@ -8,8 +8,9 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/crm-blade.jsx → TelaLeads()
 // Contrato: governance/design/contracts/crm-leads.contract.json
 //
-// "Adicionar" abre o formulário de lead (Cliente/Create parametrizado, thread Crm/06). A
-// conversão para cliente, o kanban e o "local" do contato seguem na Blade (`?classico=1`).
+// "Adicionar" abre o formulário de lead (Cliente/Create parametrizado, thread Crm/06). O kanban
+// (`?vista=kanban`, CRM-23) mora aqui; a conversão para cliente e o "local" do contato seguem
+// apontando para a Blade (`?classico=1`) — lá os botões de local não têm ação (CRM-24, decisão [W]).
 //
 // Forma (pendências CRM-20/21/22/26, medido em produção em 2026-11-25): filtros recolhíveis,
 // cartão "Todos os leads" com contador, Confortável/Compacto e Lista/Kanban em seletores,
@@ -30,13 +31,14 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
 import CrmCabecalho from '../_components/CrmCabecalho';
 import { CrmCartao, CrmFiltros, CrmGaveta, CrmMini, CrmPilula, CrmSecao } from '../_components/CrmBlocos';
-import { frescor, tomDoEstagio } from '../_components/lead';
+import { frescor, moverEstagio, tomDoEstagio } from '../_components/lead';
+import { toast } from 'sonner';
+import LeadsKanban from './_components/LeadsKanban';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/leads';
 const CLASSICO = `${ROTA}?classico=1`;
-const KANBAN = `${ROTA}?lead_view=kanban`;
 // Formulário de lead = Cliente/Create parametrizado (thread Crm/06, D2).
 const NOVO = `${ROTA}/create`;
 const TODOS = '__todos';
@@ -47,7 +49,7 @@ interface Lead {
   id: number; codigo: string | null; nome: string; celular: string | null; email: string | null;
   documento: string | null; fonte: string | null; estagio: string | null; atribuidos: string[];
   endereco: string; ultimo: string | null; proximo: string | null; adicionado_em: string | null;
-  tipo?: 'PJ' | 'PF' | null; campo1?: string | null; campo2?: string | null;
+  tipo?: 'PJ' | 'PF' | null; campo1?: string | null; campo2?: string | null; estagio_id?: string | null;
 }
 interface Rotulos { campo1: string; campo2: string }
 type Filtros = Record<string, string | undefined>;
@@ -56,6 +58,7 @@ interface Props {
   rotulos?: Rotulos;
   opcoes?: Opcoes;
   leads?: PaginatorShape<Lead>;
+  kanban?: Lead[] | null;
   lead?: Lead | null;
 }
 
@@ -71,9 +74,28 @@ function verLead(filtros: Filtros, id: number | null) {
   });
 }
 
-export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, leads, lead }: Props) {
+export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, leads, kanban, lead }: Props) {
   const cockpit = useCockpit();
   const [compacta, setCompacta] = useState(false);
+  // Estágio mudado pelo arrasto, antes de a lista voltar do servidor.
+  const [movidos, setMovidos] = useState<Record<number, string>>({});
+  const vista = filtros.vista === 'kanban' ? 'kanban' : 'lista';
+  const estagios = opcoes?.estagios ?? [];
+
+  const mover = async (l: Lead, estagioId: string) => {
+    const antes = movidos[l.id];
+    setMovidos((m) => ({ ...m, [l.id]: estagioId }));
+    if (await moverEstagio(l.id, estagioId)) {
+      toast.success(`${l.nome} → ${estagios.find((e) => e.value === estagioId)?.label ?? 'novo estágio'}`);
+      return;
+    }
+    setMovidos((m) => {
+      const resto = { ...m };
+      if (antes === undefined) delete resto[l.id]; else resto[l.id] = antes;
+      return resto;
+    });
+    toast.error(`Não foi possível mover ${l.nome}.`);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -83,7 +105,7 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
         <Deferred data="opcoes" fallback={<Skeleton className="h-16 w-full" />}>
           <div className="grid gap-3 sm:grid-cols-3">
             <Filtro rotulo="Fonte" campo="source" lista={opcoes?.fontes} filtros={filtros} />
-            <Filtro rotulo="Estágio de vida" campo="life_stage" lista={opcoes?.estagios} filtros={filtros} />
+            {vista === 'lista' && <Filtro rotulo="Estágio de vida" campo="life_stage" lista={opcoes?.estagios} filtros={filtros} />}
             <Filtro rotulo="Atribuído a" campo="user_id" lista={opcoes?.usuarios} filtros={filtros} />
           </div>
         </Deferred>
@@ -92,30 +114,39 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
       <CrmCartao
         data-contract="crm-leads"
         titulo="Todos os leads"
-        nota={leads ? `${leads.data.length} de ${leads.total}` : null}
+        nota={vista === 'kanban' ? (kanban ? `${kanban.length} leads` : null) : leads ? `${leads.data.length} de ${leads.total}` : null}
         semPadding
       >
         <div className="flex flex-col gap-3 p-3">
           <div className="flex flex-wrap items-center gap-2" data-contract="crm-toolbar">
             <div className="ml-auto flex flex-wrap items-center gap-2">
               {/* O contrato `crm-leads` lê "Confortável/Compacto" no arquivo da tela. */}
-              <Segmented
+              {vista === 'lista' && <Segmented
                 aria-label="Densidade da tabela"
                 value={compacta ? 'comp' : 'conf'}
                 onValueChange={(v) => v && setCompacta(v === 'comp')}
                 options={[{ value: 'conf', label: 'Confortável' }, { value: 'comp', label: 'Compacto' }]}
-              />
-              {/* O kanban segue na Blade (UC-CRMLD-07): escolher "Kanban" leva até lá. */}
+              />}
               <Segmented
                 aria-label="Modo de exibição"
-                value="lista"
-                onValueChange={(v) => { if (v === 'kanban') window.location.assign(KANBAN); }}
+                value={vista}
+                onValueChange={(v) => v && filtrar(filtros, { vista: v === 'kanban' ? 'kanban' : undefined, life_stage: undefined })}
                 options={[{ value: 'lista', label: 'Exibição de lista' }, { value: 'kanban', label: 'Kanban' }]}
               />
               <Button asChild size="sm"><a href={NOVO}><Plus className="size-3" /> Adicionar</a></Button>
             </div>
           </div>
 
+          {vista === 'kanban' ? (
+            <Deferred data={['kanban', 'opcoes']} fallback={<Skeleton className="h-64 w-full" />}>
+              <LeadsKanban
+                leads={(kanban ?? []).map((l) => (movidos[l.id] ? { ...l, estagio_id: movidos[l.id] } : l))}
+                estagios={estagios}
+                onMover={(l, e) => { const inteiro = kanban?.find((k) => k.id === l.id); if (inteiro) void mover(inteiro, e); }}
+                onAbrir={(id) => verLead(filtros, id)}
+              />
+            </Deferred>
+          ) : (
           <Deferred data="leads" fallback={<Skeleton className="h-64 w-full" />}>
             {leads ? (
               <>
@@ -145,6 +176,7 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
               </>
             ) : null}
           </Deferred>
+          )}
         </div>
       </CrmCartao>
 
