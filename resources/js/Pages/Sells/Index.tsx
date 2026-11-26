@@ -33,6 +33,7 @@ import {
   X,
 } from 'lucide-react';
 import SaleSheet from './_components/SaleSheet';
+import AbasVendas from './_components/AbasVendas';
 import { CHAVE_VISAO, hojeLocal, visaoInicial } from './_components/visaoSalva';
 import QuickPaymentPopover from './_components/QuickPaymentPopover';
 import VdBulkEmitModal, { type BulkEmitItem } from './_components/VdBulkEmitModal';
@@ -707,7 +708,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const [palQ, setPalQ] = useState('');
   const [palSel, setPalSel] = useState(0);
   const [viewsOpen, setViewsOpen] = useState(false);
-  const [visoesOpen, setVisoesOpen] = useState(false);
   // US-SELL-COWORK-R2-IA — ⌘K palette ✦ "Perguntar à IA" abre drawer da 1ª venda
   // visível + painel IA. Esta flag sincroniza com SaleSheet via prop initialAiOpen.
   const [aiTriggered, setAiTriggered] = useState(false);
@@ -1019,7 +1019,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         if (cheatOpen) setCheatOpen(false);
         else if (palOpen) setPalOpen(false);
         else if (viewsOpen) setViewsOpen(false);
-        else if (visoesOpen) setVisoesOpen(false);
         else if (openSaleId != null) setOpenSaleId(null);
         else if (focusIdx >= 0) setFocusIdx(-1);
         return;
@@ -1079,7 +1078,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [filtered, focusIdx, cheatOpen, palOpen, viewsOpen, visoesOpen, openSaleId, toggleFav, toggleSel]);
+  }, [filtered, focusIdx, cheatOpen, palOpen, viewsOpen, openSaleId, toggleFav, toggleSel]);
 
   // Outside-click close pra dropdowns.
   const viewsRef = useRef<HTMLDivElement>(null);
@@ -1091,16 +1090,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [viewsOpen]);
-
-  const visoesRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!visoesOpen) return;
-    const onClick = (e: MouseEvent) => {
-      if (visoesRef.current && !visoesRef.current.contains(e.target as Node)) setVisoesOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    return () => document.removeEventListener('mousedown', onClick);
-  }, [visoesOpen]);
 
   // Reset focus when filtered list size changes.
   useEffect(() => {
@@ -1115,24 +1104,29 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         <header className="os-head vd-head-clean">
           <div className="os-head-l">
             <h1>Vendas</h1>
-            {/* PR 1666 — header subtitle métrica live (paridade prototipo Cowork).
-                Substitui string estática por agregados do payload atual.
-                Fallback elegante quando rows ainda não carregaram. */}
+            {/* Subtítulo do protótipo (vendas-page.jsx `vd-head-stat`), decisão [W] 2026-11-25:
+                vendas e faturado de HOJE (os mesmos números do KPI "Faturado hoje") e o estado
+                das cobranças — estouradas, senão atrasando, senão "tudo em dia". Até 2026-11-26
+                contava todas as linhas carregadas, que dependem do filtro de período. */}
             <p>
               {rows.length > 0 ? (
                 <>
-                  <strong>{rows.length}</strong> vendas
+                  <strong>{kpiToday.count}</strong> {kpiToday.count === 1 ? 'venda' : 'vendas'} hoje
                   {' · '}
-                  <strong>{fmtShort(rows.reduce((acc, r) => acc + (Number(r.final_total) || 0), 0))}</strong> faturado
-                  {(() => {
-                    const overdue = rows.filter((r) => r.sla_kind === 'overdue').length;
-                    return overdue > 0 ? (
-                      <>
-                        {' · '}
-                        <strong className="vd-delta-dn">{overdue}</strong> estouradas
-                      </>
-                    ) : null;
-                  })()}
+                  <strong>{fmtShort(kpiToday.total)}</strong> faturado
+                  {' · '}
+                  {slaCounts.overdue > 0 ? (
+                    <>
+                      <strong className="vd-delta-dn">{slaCounts.overdue}</strong>{' '}
+                      {slaCounts.overdue === 1 ? 'estourada' : 'estouradas'}
+                    </>
+                  ) : slaCounts.warning > 0 ? (
+                    <>
+                      <strong className="vd-delta-dn">{slaCounts.warning}</strong> atrasando
+                    </>
+                  ) : (
+                    <span className="vd-delta-up">tudo em dia</span>
+                  )}
                 </>
               ) : (
                 'Pedidos · faturamento · NF-e/NFS-e'
@@ -1167,44 +1161,6 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
               <Printer size={11} />
               <span>Imprimir caixa</span>
             </button>
-            <div className="vd-visoes" ref={visoesRef} data-contract="menu-visoes">
-              <button
-                className="vd-toolbar-act vd-visoes-btn"
-                onClick={() => setVisoesOpen((v) => !v)}
-                type="button"
-                title="Outras visões deste módulo"
-              >
-                <Folder size={11} />
-                <span>Visões</span>
-                <ChevronDown size={11} style={{ marginLeft: 2 }} />
-              </button>
-              {visoesOpen && (
-                <div className="vd-visoes-menu">
-                  <div className="vd-visoes-grp">Visões deste módulo</div>
-                  <div className="vd-visoes-item active">
-                    <span className="vd-visoes-dot" />Lista de vendas
-                    <span className="vd-visoes-here">aqui</span>
-                  </div>
-                  {[
-                    { id: 'caixa',      label: 'Caixa do dia', href: '/vendas/caixa' },
-                    { id: 'quotations', label: 'Orçamentos', href: '/sells/quotations' },
-                    { id: 'drafts',     label: 'Rascunhos',  href: '/sells?pill=rascunho' },
-                    { id: 'subs',       label: 'Assinaturas',href: '/sells/subscriptions' },
-                  ].map((s) => (
-                    <a key={s.id} className="vd-visoes-item" href={s.href}>
-                      <span className="vd-visoes-dot" />
-                      {s.label}
-                    </a>
-                  ))}
-                  <div className="vd-visoes-sep" />
-                  <a className="vd-visoes-item primary" href="/sells/create?pos=1">
-                    <span className="vd-visoes-dot pdv" />
-                    Abrir PDV balcão
-                    <kbd>F2</kbd>
-                  </a>
-                </div>
-              )}
-            </div>
             {props.permissions.create && (
               <a className="os-btn primary" href="/sells/create">
                 <Plus size={11} />
@@ -1213,6 +1169,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             )}
           </div>
         </header>
+        {/* Barra das telas do módulo, a mesma de Rascunhos, Caixa do dia etc. (decisão [W]
+            2026-11-25). Substitui o menu "Visões", que listava parte dessas telas. */}
+        <AbasVendas ativa="vendas" />
 
         {/* Render do Dashboard (Insights Jana migrado pra /ia/dashboard). */}
         {/* KPIs row — 5 cards numa linha a 1280 (Faturado hero · Ticket médio · A receber · 4º vista-dependente · PIX hoje) */}
