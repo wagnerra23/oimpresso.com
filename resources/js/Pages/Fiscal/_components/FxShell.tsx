@@ -124,10 +124,8 @@ export default function FxShell({
               disabled={disabled}
               title={disabled ? 'Em PR seguinte' : `Atalho: ${p.short}`}
             >
-              {p.icon}
               <span>{p.label}</span>
               {n != null && n > 0 && <span className="n">{n}</span>}
-              <kbd>{p.short}</kbd>
             </button>
           );
         })}

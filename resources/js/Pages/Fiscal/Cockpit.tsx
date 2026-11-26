@@ -388,6 +388,14 @@ export default function Cockpit({
         envTone={sefazStatus.operacional ? 'ok' : 'bad'}
         envSelo={<SeloProcedencia mapa={procedencia} chave="sefaz" />}
         procedencia={procedencia}
+        // Contagens nas abas, como o `FxSubnav` do protótipo: notas por modelo, eventos e
+        // DF-e a manifestar — os mesmos números que esta tela já mostra no ribbon e no topo.
+        counts={{
+          nfe: notas.filter((n) => n.kind === 'nfe').length,
+          nfse: notas.filter((n) => n.kind === 'nfse').length,
+          fiscal_eventos: eventosMock.length,
+          dfe: kpis.dfeAguardando,
+        }}
         cheats={[
           { keys: ['⌘', 'K'], label: 'buscar' },
           { keys: ['N'], label: 'emitir' },

@@ -144,36 +144,47 @@
 /* ─── SUB-NAV ──────────────────────────────────────────────────── */
 .fx-subnav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 14px 0 18px;
-  padding: 4px;
-  background: var(--fx-bg-2);
-  border-radius: 10px;
+  flex-wrap: nowrap;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  background: var(--cw-bg);
+  border-radius: 0;
+  flex: none;
+  align-items: center;
+  border-bottom: 1px solid var(--fx-border);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 .fx-subnav-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
-  font-size: var(--fs-3);
+  padding: 0 14px;
+  font-size: 13px;
   font-weight: 500;
   background: transparent;
   color: var(--fx-text-dim);
-  border: 1px solid transparent;
-  border-radius: 7px;
+  border: 0;
+  border-radius: 0;
   cursor: pointer;
   transition: all .15s;
+  height: 36px;
+  margin-bottom: -1px;
+  line-height: 1;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
 }
 .fx-subnav-chip:hover:not(.disabled):not(.active) {
-  background: var(--fx-surface);
+  background: transparent;
   color: var(--fx-text);
 }
 .fx-subnav-chip.active {
-  background: var(--fx-surface);
-  color: var(--fis);
-  border-color: var(--fx-border);
+  background: transparent;
+  color: var(--fx-text);
+  border-color: transparent;
   font-weight: 600;
+  border-bottom-color: var(--fis);
 }
 .fx-subnav-chip.disabled { opacity: .45; cursor: not-allowed; }
 .fx-subnav-chip .n {
@@ -181,13 +192,12 @@
   align-items: center;
   justify-content: center;
   min-width: 18px;
-  padding: 0 5px;
-  height: 18px;
-  background: var(--bad);
-  color: white;
+  padding: 0 6px;
+  height: auto;
+  background: var(--fx-bg-2);
+  color: var(--fx-text-dim);
   border-radius: 99px;
-  font-size: var(--fs-1);
-  font-weight: 700;
+  font: 600 var(--fs-1)/1.4 "IBM Plex Mono", ui-monospace, monospace;
 }
 
 /* ─── BODY ─────────────────────────────────────────────────────── */
