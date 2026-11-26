@@ -686,6 +686,21 @@ class ContactController extends Controller
                   ->where('transactions.due_date', '<', now());
             })
             ->count();
+        // A-15 (2026-11-26) — "Com saldo" do protótipo (`clientes-page.jsx`: `comSaldo` = clientes
+        // com saldo > 0, vencido ou não) não é `com_atraso` (só os vencidos). Conta contatos com
+        // venda a receber (due/partial, sem bonificação). Só contagem — nenhum valor é calculado.
+        // UC-CIDX-27. Nota: hoje `com_os_aberta` usa o mesmo predicado de pagamento; é outro defeito.
+        $com_saldo = (clone $base)
+            ->whereExists(function ($q) use ($business_id) {
+                $q->select(DB::raw(1))
+                  ->from('transactions')
+                  ->whereColumn('transactions.contact_id', 'contacts.id')
+                  ->where('transactions.business_id', $business_id)
+                  ->where('transactions.type', 'sell')
+                  ->whereIn('transactions.payment_status', ['due', 'partial'])
+                  ->where(fn ($w) => Transaction::filtrarSemBonificacao($w, 'transactions.sub_type'));
+            })
+            ->count();
         // FIX 2026-05-21: `transactions.total_paid` NÃO existe no schema UltimatePOS.
         // Pagamentos estão em `transaction_payments.amount` (1:N). Subquery scalar.
         $totalPaidSub = '(SELECT COALESCE(SUM(amount), 0) FROM transaction_payments WHERE transaction_payments.transaction_id = transactions.id)';
@@ -732,6 +747,7 @@ class ContactController extends Controller
             'total' => (int) $total,
             'com_os_aberta' => (int) $com_os_aberta,
             'com_atraso' => (int) $com_atraso,
+            'com_saldo' => (int) $com_saldo,
             'valor_total_aberto' => $valor_total_aberto,
             'vips' => (int) $vips,
             'sem_compra_90d' => (int) $sem_compra_90d,

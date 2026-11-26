@@ -105,6 +105,8 @@ interface ClienteKpis {
   total: number;
   com_os_aberta: number;
   com_atraso: number;
+  /** A-15 — clientes com saldo a receber (vencido ou não). Subtítulo e KPI "Com saldo". */
+  com_saldo: number;
   // Onda 3 — counts reais server-side (antes estimados client-side sobre a página).
   vips: number;
   sem_compra_90d: number;
@@ -1015,11 +1017,11 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               {(kpis?.total ?? 0).toLocaleString('pt-BR')} {ROLE_TITLE[activeType].collective}
               {' · '}
               {(kpis?.com_os_aberta ?? 0).toLocaleString('pt-BR')} {(kpis?.com_os_aberta ?? 0) === 1 ? 'ativo' : 'ativos'}
-              {(kpis?.com_atraso ?? 0) > 0 && (
+              {(kpis?.com_saldo ?? 0) > 0 && (
                 <>
                   {' · '}
                   <strong className="text-destructive font-medium">
-                    {(kpis.com_atraso).toLocaleString('pt-BR')} com saldo
+                    {(kpis.com_saldo).toLocaleString('pt-BR')} com saldo
                   </strong>
                 </>
               )}
@@ -1136,7 +1138,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       <Deferred data="kpis" fallback={<KpiSkeleton />}>
         <KpiStripClickable
           ativos={kpis?.com_os_aberta ?? 0}
-          comSaldo={kpis?.com_atraso ?? 0}
+          comSaldo={kpis?.com_saldo ?? 0}
           vips={kpis?.vips ?? 0}
           sem90={kpis?.sem_compra_90d ?? 0}
           novos={kpis?.novos_mes ?? 0}
