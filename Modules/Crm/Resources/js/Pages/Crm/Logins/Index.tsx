@@ -24,6 +24,7 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { PageHeader } from '@/Components/PageHeader';
 import ModuleTabs from '@/Components/shared/ModuleTabs';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/all-contacts-login';
 const CLASSICO = `${ROTA}?classico=1`;
@@ -60,6 +61,7 @@ const COLUNAS: ColumnDef<Login>[] = [
 ];
 
 export default function LoginsIndex({ filtros, opcoes, logins }: Props) {
+  const cockpit = useCockpit();
   return (
     <div className="flex flex-col gap-4">
       <PageHeader below={<ModuleTabs modulo="CRM" />} title="Login de contatos" subtitle="Acessos do portal do contato: quem do cliente entra e com qual usuário." />
@@ -73,7 +75,7 @@ export default function LoginsIndex({ filtros, opcoes, logins }: Props) {
                 <Label>Contato</Label>
                 <Select value={filtros.contact_id || TODOS} onValueChange={(v) => filtrar(filtros, { contact_id: v === TODOS ? undefined : v })}>
                   <SelectTrigger aria-label="Contato"><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectContent container={cockpit}>
                     <SelectItem value={TODOS}>Todos</SelectItem>
                     {(opcoes?.contatos ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}
                   </SelectContent>

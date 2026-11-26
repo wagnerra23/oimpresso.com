@@ -26,6 +26,7 @@ import {
 } from '@/Components/ui/alert-dialog';
 import CustomerSearchAutocomplete from '@/Pages/Sells/_components/CustomerSearchAutocomplete';
 import { BRL, FunilColuna, NegocioCard, type Etapa, type Negocio } from './_components/FunilQuadro';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/funil';
 
@@ -41,6 +42,7 @@ interface Props {
 interface Movimento { negocio: Negocio; para: Etapa }
 
 export default function FunilIndex({ etapas, pode_editar, negocios, resumo }: Props) {
+  const cockpit = useCockpit();
   const [aberto, setAberto] = useState<Negocio | null>(null);
   const [novoAberto, setNovoAberto] = useState(false);
   const [confirmar, setConfirmar] = useState<Movimento | null>(null);
@@ -108,7 +110,7 @@ export default function FunilIndex({ etapas, pode_editar, negocios, resumo }: Pr
       </Deferred>
 
       <Sheet open={aberto !== null} onOpenChange={(o) => !o && setAberto(null)}>
-        <SheetContent side="right" className="w-full sm:max-w-md">
+        <SheetContent container={cockpit} side="right" className="w-full sm:max-w-md">
           {aberto && (
             <>
               <SheetHeader>
@@ -148,7 +150,7 @@ export default function FunilIndex({ etapas, pode_editar, negocios, resumo }: Pr
       {pode_editar && <NovoNegocio aberto={novoAberto} onFechar={() => setNovoAberto(false)} />}
 
       <AlertDialog open={confirmar !== null} onOpenChange={(o) => !o && setConfirmar(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent container={cockpit}>
           <AlertDialogHeader>
             <AlertDialogTitle>Marcar como {confirmar?.para.rotulo.toLowerCase()}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -168,6 +170,7 @@ export default function FunilIndex({ etapas, pode_editar, negocios, resumo }: Pr
 }
 
 function NovoNegocio({ aberto, onFechar }: { aberto: boolean; onFechar: () => void }) {
+  const cockpit = useCockpit();
   const [titulo, setTitulo] = useState('');
   const [contato, setContato] = useState<number | null>(null);
   const [valor, setValor] = useState(0);
@@ -190,7 +193,7 @@ function NovoNegocio({ aberto, onFechar }: { aberto: boolean; onFechar: () => vo
 
   return (
     <Sheet open={aberto} onOpenChange={(o) => !o && onFechar()}>
-      <SheetContent side="right" className="w-full sm:max-w-md">
+      <SheetContent container={cockpit} side="right" className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Novo negócio</SheetTitle>
           <SheetDescription>Entra no funil na etapa Lead.</SheetDescription>

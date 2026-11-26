@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectGroup, SelectLabel, SelectTrigger, SelectV
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { enviar, type Listas, type Opcao } from './acompanhamento';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 // Valores da Blade: o grupo vai em `follow_up_by`, a opção decide o filtro.
 const POR = [
@@ -34,6 +35,7 @@ async function ler<T>(url: string, params: URLSearchParams): Promise<T> {
 }
 
 export default function FormAntecipado({ opcoes, onFechar, onSalvo }: { opcoes?: Listas; onFechar: () => void; onSalvo: () => void }) {
+  const cockpit = useCockpit();
   const [por, setPor] = useState('');
   const [dias, setDias] = useState('');
   const [faturas, setFaturas] = useState<{ id: number; text: string }[] | null>(null);
@@ -96,21 +98,21 @@ export default function FormAntecipado({ opcoes, onFechar, onSalvo }: { opcoes?:
   const sel = (nome: keyof typeof v, lista?: Opcao[]) => (
     <Select value={v[nome] || undefined} onValueChange={(x) => muda({ [nome]: x })}>
       <SelectTrigger id={`ant-${nome}`}><SelectValue placeholder="Selecione" /></SelectTrigger>
-      <SelectContent>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
+      <SelectContent container={cockpit}>{(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
     </Select>
   );
   const escolhas = cat === 'payment_status' ? (faturas ?? []).map((f) => ({ value: String(f.id), label: f.text })) : cat === 'contact_name' ? (opcoes?.contatos ?? []) : [];
 
   return (
     <Dialog open onOpenChange={(aberto) => { if (!aberto) onFechar(); }}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl" data-contract="crm-antecipado">
+      <DialogContent container={cockpit} className="max-h-[90vh] overflow-y-auto sm:max-w-4xl" data-contract="crm-antecipado">
         <DialogHeader><DialogTitle>Acompanhamento antecipado</DialogTitle></DialogHeader>
         <Grid cols={3} gap={3} data-contract="crm-antecipado-base">
           {campo('Categoria *', 'followup_category_id', sel('followup_category_id', opcoes?.categorias))}
           {campo('Acompanhamento por *', 'follow_up_by', (
             <Select value={por || undefined} onValueChange={escolherPor}>
               <SelectTrigger id="ant-follow_up_by"><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>{POR.map((g) => (
+              <SelectContent container={cockpit}>{POR.map((g) => (
                 <SelectGroup key={g.cat}><SelectLabel>{g.grupo}</SelectLabel>
                   {g.itens.map(([valor, rot]) => <SafeSelectItem key={valor} value={valor}>{rot}</SafeSelectItem>)}
                 </SelectGroup>
@@ -146,7 +148,7 @@ export default function FormAntecipado({ opcoes, onFechar, onSalvo }: { opcoes?:
                 <td className="font-mono text-xs">{g.faturas.map((f) => f.numero).join(', ') || '—'}</td>
                 <td><Select value={g.usuario || undefined} onValueChange={(x) => setGrupos(grupos.map((o) => (o.contact_id === g.contact_id ? { ...o, usuario: x } : o)))}>
                   <SelectTrigger aria-label={`Atribuído de ${g.cliente}`}><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{(opcoes?.usuarios ?? []).map((u) => <SafeSelectItem key={u.value} value={u.value}>{u.label}</SafeSelectItem>)}</SelectContent>
+                  <SelectContent container={cockpit}>{(opcoes?.usuarios ?? []).map((u) => <SafeSelectItem key={u.value} value={u.value}>{u.label}</SafeSelectItem>)}</SelectContent>
                 </Select></td>
                 <td className="text-right"><Button variant="ghost" size="sm" onClick={() => setGrupos(grupos.filter((o) => o.contact_id !== g.contact_id))}>Remover</Button></td>
               </tr>
@@ -192,7 +194,7 @@ export default function FormAntecipado({ opcoes, onFechar, onSalvo }: { opcoes?:
                 {campo('Unidade', 'notify_type', (
                   <Select value={notif.notify_type || undefined} onValueChange={(x) => setNotif({ ...notif, notify_type: x })}>
                     <SelectTrigger id="ant-notify_type"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{(opcoes?.notificar ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
+                    <SelectContent container={cockpit}>{(opcoes?.notificar ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
                   </Select>
                 ))}
               </Grid>

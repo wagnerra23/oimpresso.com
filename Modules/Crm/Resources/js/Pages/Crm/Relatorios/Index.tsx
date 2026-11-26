@@ -23,6 +23,7 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { PageHeader } from '@/Components/PageHeader';
 import ModuleTabs from '@/Components/shared/ModuleTabs';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/reports';
 const TODOS = '__todos';
@@ -54,6 +55,7 @@ function verConvertidos(filtros: Filtros, id: number | null) {
 }
 
 export default function RelatoriosIndex({ filtros, status, categorias, por_usuario, por_contato, conversao, convertidos }: Props) {
+  const cockpit = useCockpit();
   const convertidoPor = new URLSearchParams(usePage().url.split('?')[1] ?? '').get('convertido_por');
   const quem = conversao?.find((c) => String(c.id) === convertidoPor);
 
@@ -77,7 +79,7 @@ export default function RelatoriosIndex({ filtros, status, categorias, por_usuar
               <Label>Categoria de acompanhamento</Label>
               <Select value={filtros.followup_category_id || TODOS} onValueChange={(v) => filtrar(filtros, { followup_category_id: v === TODOS ? undefined : v })}>
                 <SelectTrigger aria-label="Categoria de acompanhamento"><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectContent container={cockpit}>
                   <SelectItem value={TODOS}>Todas</SelectItem>
                   {(categorias ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}
                 </SelectContent>
@@ -128,7 +130,7 @@ export default function RelatoriosIndex({ filtros, status, categorias, por_usuar
 
       <Sheet open={!!convertidos} onOpenChange={(aberto) => { if (!aberto) verConvertidos(filtros, null); }}>
         {convertidos ? (
-          <SheetContent side="right" className="w-full sm:max-w-[760px]">
+          <SheetContent container={cockpit} side="right" className="w-full sm:max-w-[760px]">
             <SheetHeader>
               <SheetTitle>{quem?.nome ?? 'Conversões'}</SheetTitle>
               <SheetDescription>{convertidos.length} lead(s) convertidos em cliente</SheetDescription>
