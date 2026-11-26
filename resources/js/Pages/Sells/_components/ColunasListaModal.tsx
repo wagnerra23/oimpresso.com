@@ -24,7 +24,8 @@ import {
 } from '@/Components/ui/dialog';
 
 import { useCockpit } from './v3/cockpit-portal';
-import { COL_HEADERS, type ColumnId } from './SellsTabelaUnificada';
+import type { ColumnId } from './SellsTabelaUnificada';
+import { COL_HEADERS } from './colunasRotulos';
 import { FIXAS, alternar, foraDaLista, mover } from './colunasLista';
 
 const VISAO_ROTULO = { operacional: 'Operacional', financeira: 'Financeira', producao: 'Produção' } as const;
