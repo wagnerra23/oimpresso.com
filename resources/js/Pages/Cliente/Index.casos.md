@@ -273,6 +273,7 @@ last_run: "2026-11-26"
 - **Aceite:** Dado um cadastro na empresa do usuário e outro numa segunda empresa · Quando a lista abre (aba Clientes e aba Todos) · Então só o cadastro da própria empresa aparece · E os KPIs (total, novos no mês, VIPs) e os contadores das abas não mudam quando a outra empresa ganha cadastro · E mudam em 1 quando a própria empresa ganha · E no sentido inverso a segunda empresa também não vê nem conta o cadastro da primeira.
 - **Âncora de contrato:** US-CRM-080 (`memory/requisitos/Crm/SPEC.md`) · `App\Contact` não tem global scope (SDD §5.4.2), então o isolamento é o `where('contacts.business_id')` manual de `ContactController::buildClienteIndexKpis`, `buildClienteIndexTabCounts` e `buildClienteIndexCustomers` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Teste:** `tests/Feature/Cliente/ClienteIndexIsolamentoEmpresaTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-27 …`. Tenant de teste 98 × 99.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ## UC-CIDX-28 · "Com saldo" conta quem tem saldo a receber, vencido ou não `[T0]` `[must]`
 - **Persona:** Larissa — o subtítulo "N com saldo" e o card "Com saldo" dizem quantos clientes devem algo a ela.
