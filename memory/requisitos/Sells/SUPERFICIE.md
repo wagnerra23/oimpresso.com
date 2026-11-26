@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 240 arquivos em 9 papéis.
+**Total mapeado:** 241 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -251,7 +251,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 - [Subscriptions.casos.md](../../../resources/js/Pages/Sells/Subscriptions.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 30
+## Demais arquivos (manifestos, docs, assets e misc) — 31
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
@@ -283,3 +283,4 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [parcelas-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/parcelas-dominio.ts)
 - [procurar-na-lista.ts](../../../resources/js/Pages/Sells/_components/v3/procurar-na-lista.ts)
 - [tabela-preco-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/tabela-preco-dominio.ts)
+- [visaoSalva.ts](../../../resources/js/Pages/Sells/_components/visaoSalva.ts)
