@@ -305,6 +305,10 @@ class AppServiceProvider extends ServiceProvider
         // `sell.aprovar_margem_baixa`. Sem margem configurada, não age.
         \App\Transaction::observe(\App\Observers\TransactionMargemMinimaObserver::class);
 
+        // Decisão [W] 2026-11-26: a saída efetivada (ou o cancelamento) tira a quantidade do saldo
+        // reservado da venda, sem baixar de novo. Ver ReservaDaVendaObserver.
+        \App\Transaction::observe(\App\Observers\ReservaDaVendaObserver::class);
+
         // FSM (parecer juiz 2026-07-21): zera o singleton FsmAuthorizationFlag
         // ANTES de cada job — impede que uma flag não-consumida (exceção antes
         // do save, self-transition não-dirty, Titulo sem guard) vaze autorização

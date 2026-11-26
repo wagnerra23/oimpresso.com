@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1101 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1102 tarefas abertas** em **61 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -57,8 +57,8 @@
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`Auditoria`](#auditoria) | 4 | 0 | 0 | 0 | 4 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
+| [`Estoque`](#estoque) | 4 | 1 | 0 | 0 | 3 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
-| [`Estoque`](#estoque) | 3 | 1 | 0 | 0 | 2 |
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`AssetManagement`](#assetmanagement) | 2 | 0 | 0 | 0 | 2 |
@@ -1503,15 +1503,6 @@
 - **US-CONSULTA-003** — Criar BRIEFING.md após migração real `pendente`
 - **US-CONSULTA-004** — Cliente acompanha o status: aviso a cada mudança + portal atualizado `parcial`
 
-## Dashboard
-
-
-### todo
-
-- **US-DASH-001** — Soft wrapper Inertia `/home` (F6 entrega 2026-05-21)
-- **US-DASH-002** — Charts ECharts em Inertia (backlog F1→F4 wave)
-- **US-DASH-003** — Widget registry pluggable em React (backlog ADR nova)
-
 ## Estoque
 
 
@@ -1521,8 +1512,18 @@
 
 ### todo
 
+- **US-ESTOQUE-004** — Reserva da venda sem mexer na tela de Venda, encerrada quando a saída é efetivada _(`p1` · @wagner)_
 - **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
 - **US-ESTOQUE-003** — Sugestão de reposição e curva ABC por produto _(`p2` · @wagner)_
+
+## Dashboard
+
+
+### todo
+
+- **US-DASH-001** — Soft wrapper Inertia `/home` (F6 entrega 2026-05-21)
+- **US-DASH-002** — Charts ECharts em Inertia (backlog F1→F4 wave)
+- **US-DASH-003** — Widget registry pluggable em React (backlog ADR nova)
 
 ## VozDoCliente
 

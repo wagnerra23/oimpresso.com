@@ -124,6 +124,9 @@ on:
       - 'tests/Feature/Stock/**'
       # US-ESTOQUE-002 — contagem de inventário (serviço + migration SOB TESTE).
       - 'app/Services/Estoque/**'
+      # US-ESTOQUE-004 — reserva da venda (arquivos SOB TESTE).
+      - 'app/Domain/Fsm/SideEffects/ReservarEstoque.php'
+      - 'app/Observers/ReservaDaVendaObserver.php'
       - 'database/migrations/2026_10_26_120000_create_estoque_contagens_tables.php'
       - 'database/migrations/2026_10_26_130000_add_ajuste_ids_to_estoque_contagens.php'
       # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.
@@ -229,6 +232,9 @@ jobs:
               - 'tests/Feature/Stock/**'
               # US-ESTOQUE-002 — contagem de inventário (serviço + migration SOB TESTE).
               - 'app/Services/Estoque/**'
+              # US-ESTOQUE-004 — reserva da venda (arquivos SOB TESTE).
+              - 'app/Domain/Fsm/SideEffects/ReservarEstoque.php'
+              - 'app/Observers/ReservaDaVendaObserver.php'
               - 'database/migrations/2026_10_26_120000_create_estoque_contagens_tables.php'
               - 'database/migrations/2026_10_26_130000_add_ajuste_ids_to_estoque_contagens.php'
               # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.

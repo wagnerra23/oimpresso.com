@@ -4,7 +4,7 @@
 > Fonte única: o plano é a verdade, este índice é derivado ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP via `parent_plan` ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). Frescor/órfão = sentinela `plan-health` (memory-health Check J).
 
 ## Saúde (derivada)
-- **9** planos registrados (com `## Status vivo`) · **27** pendentes de backfill (arquivo *plan* sem bloco)
+- **9** planos registrados (com `## Status vivo`) · **30** pendentes de backfill (arquivo *plan* sem bloco)
 - reviewed_at preenchido: **6/9** · vinculados a MCP (`parent_plan`): **6/9**
 - Por status: proposto 5 · ativo 3 · (vazio) 1
 - Inconsistências de schema: 4 — ver final
@@ -22,7 +22,7 @@
 | [OBSERVABILITY — Jana](../Jana/OBSERVABILITY.md) | Jana | proposto | W/C | 2026-07-28 | — | um caso real observado percorre trace → avaliação → revisão  |
 | [Plano — Atendimento Automático (WhatsApp / Caixa Unificada)](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | ativo | W | 2026-06-20 | `plano-atendimento-automatico` | E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR |
 
-## Pendentes de `## Status vivo` (27) — backfill dirigido pela sentinela
+## Pendentes de `## Status vivo` (30) — backfill dirigido pela sentinela
 | Plano | Módulo |
 |---|---|
 | [DEPRECATION-PLAN — ADS](../ADS/DEPRECATION-PLAN.md) | ADS |
@@ -47,6 +47,9 @@
 | [Onda 2 — Clientes & contatos · plano de layout (Code × Design)](../Mwart/ONDA-2-CLIENTES-PLANO.md) | Mwart |
 | [Plano de paralelização — OficinaAuto Fase 1 (pós-Martinho)](../OficinaAuto/demo-martinho-2026-05-13/plano-paralelizacao.md) | OficinaAuto |
 | [PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via gateway adici](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway |
+| [Comparação design × produção — `RecurringBilling/Planos/Create`](../RecurringBilling/Planos-Create-visual-comparison.md) | RecurringBilling |
+| [Comparação design × produção — `RecurringBilling/Planos/Edit`](../RecurringBilling/Planos-Edit-visual-comparison.md) | RecurringBilling |
+| [Comparação design × produção — `RecurringBilling/Planos/Index`](../RecurringBilling/Planos-Index-visual-comparison.md) | RecurringBilling |
 | [Gap — Cobrança Recorrente · Planos (protótipo × tela viva)](../RecurringBilling/cobranca-recorrente-planos-gap.md) | RecurringBilling |
 | [Plan — Ativar gateway nas assinaturas dormentes](../RecurringBilling/features/gateway-ativacao/plan.md) | RecurringBilling |
 | [DEPRECATION-PLAN — SRS](../SRS/DEPRECATION-PLAN.md) | SRS |
