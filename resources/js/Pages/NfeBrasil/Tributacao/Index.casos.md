@@ -92,6 +92,8 @@ last_run: "2026-11-23"
 | UC-NFTR-30 | Natureza a decidir não barra a nota e aparece na saúde fiscal (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · D-NATUREZA · US-NFE-068 | `NaturezaFiscalTest` | ✅ |
 | UC-NFTR-31 | Item que o contador decidiu como serviço não sai em NF-e/NFC-e (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · Súmula 156 STJ · US-NFE-069 (parcial) | `NaturezaFiscalTest` | ✅ |
 | UC-NFTR-32 | Só o contador decide a natureza, com fonte, e só de produto da própria empresa (UC-FLX-31) | must `[T0]` `[fiscal]` | R-NFE-034 · D-NATUREZA · ADR 0093 | `NaturezaFiscalTest` | ✅ |
+| UC-NFTR-83 | Ligar/desligar a emissão automática grava quem fez, o tenant e o valor | must `[fiscal]` | US-NFE-062 · charter §Goals (AuditLog) | `TributacaoAuditLogContratoTest` | 🧪 |
+| UC-NFTR-84 | `regras` e `templates` chegam deferidas; `config` vem no render inicial | must | charter §Constraints (p95 first-paint) · Wave 25 D3 | `TributacaoIndexContratoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -940,6 +942,34 @@ last_run: "2026-11-23"
   `minmax(0,1fr) 336px` só em `width >= 1081px`.
 - **Status: 🧪** — veredito do passo Vitest do `ci.yml` ("Naturezas — editor e prévia do lançamento").
 
+## UC-NFTR-83 · Ligar/desligar a emissão automática grava quem fez · `must` `[fiscal]`
+
+- **Persona:** quem responde depois por uma nota que saiu (ou não saiu) sozinha. Ligar a emissão
+  automática muda o comportamento fiscal da empresa; sem registro, não há como saber quem ligou e quando.
+- **Aceite:** **Dado** uma empresa com config **Quando** um usuário com `nfe.tributacao.manage` liga e
+  depois desliga o toggle **Então** `activity_log` ganha duas linhas `nfe.tributacao` /
+  `auto_emission.toggled`, com o usuário como autor, a config como objeto e `business_id` + `enabled`
+  (`true`, depois `false`) nas properties.
+- **Teste:** [`TributacaoAuditLogContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoAuditLogContratoTest.php)
+  — `UC-NFTR-83 · o toggle de emissão automática grava activity com autor, business_id e o valor`.
+- **Contrato:** [US-NFE-062](../../../../../memory/requisitos/NfeBrasil/SPEC.md) (aceite: *"Toda mensagem
+  inclui `business_id` em properties"* e *"Pest test valida que `activity_log` recebe entry após mutation"*)
+  + charter §Goals (AuditLog em `toggleAutoEmission`, log-name `auto_emission.toggled`).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-84 · `regras` e `templates` chegam deferidas; `config` vem no render inicial · `must`
+
+- **Persona:** quem abre a tela de tributação com muitas regras. A lista e os templates são as partes
+  caras; o primeiro desenho da tela não espera por elas.
+- **Aceite:** **Dado** uma empresa com config e uma regra **Quando** abro `/nfe-brasil/tributacao`
+  **Então** o primeiro pedido traz `config` e não traz `regras` nem `templates`; o partial reload das props
+  deferidas (o que o `<Deferred>` faz) traz as duas, com a regra da empresa e a lista de templates.
+- **Teste:** [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php)
+  — `UC-NFTR-84 · regras e templates são deferidas e chegam no partial reload; config é eager`.
+- **Contrato:** charter §Constraints (*p95 first-paint < 1500ms*) + Wave 25 D3 (`Inertia::defer` em
+  `regras`/`templates`, `<Deferred data="regras|templates">` na tela).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
@@ -955,13 +985,9 @@ last_run: "2026-11-23"
   NF-e sozinha; o bloqueio vale para a divisão.
 - `[BACKLOG]` **"Perguntar à Jana" responde com fonte e não altera nada** (playbook Fiscal thread 10, UC-NFTR-10b provisório). Não entrou no PR da 10: é chat livre, e a thread entregou só as sugestões estruturadas. Vira UC com o teste `JanaFiscalPerguntaTest`.
 
-- `[BACKLOG]` **`regras` e `templates` são deferidos; `config` é eager.** O charter promete
-  `p95 first-paint < 1500ms` e o controller aplica `Inertia::defer` nas duas props caras (Wave 25 D3).
-  Nada prova que continuam deferidas — um refactor que volte a eager degrada a tela sem sinal. Vira UC
-  quando houver um caso que asserte a ausência das props no render inicial e a presença no partial reload.
-- `[BACKLOG]` **AuditLog nas mutações de regra.** `store`/`update`/`destroy` e `toggleAutoEmission` já
-  chamam `activity('nfe.tributacao')->log(...)`, mas nenhum teste prova. É o escopo declarado da
-  **US-NFE-062** (P1), ainda aberta — deixo lá em vez de duplicar aqui.
+- ~~`[BACKLOG]` `regras` e `templates` são deferidos~~ — virou **UC-NFTR-84** (2026-11-26).
+- ~~`[BACKLOG]` AuditLog nas mutações de regra~~ — virou **UC-NFTR-83** (toggle) e, na tela de regra,
+  **UC-NFRF-13** (`store`/`update`/`destroy`), os dois em `TributacaoAuditLogContratoTest` (2026-11-26).
 
 ---
 
