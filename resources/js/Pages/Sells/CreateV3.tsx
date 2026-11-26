@@ -72,6 +72,7 @@ import { abaDaAcao, type Aba } from './_components/v3/item-fiscal-dominio';
 import { type Parcela } from './_components/v3/parcelas-dominio';
 import { type Beneficiario, type Gatilho } from './_components/v3/comissao-dominio';
 import {
+  camposDeProducao,
   carregarColunas,
   colunasVisiveis,
   ehEditavel,
@@ -125,6 +126,10 @@ type Item = {
   estoque: number | null;
   /* Só com a gravação ligada (UC-V380): ids do cadastro, vindos de /products/list. */
   ids?: IdsDoCadastro;
+  /* Produção, vindos do lançamento (UC-V416). Não entram no payload da gravação. */
+  executante?: string | null;
+  local?: string;
+  impressao?: string;
 };
 
 /* precoVenda = preço de venda do cadastro na busca: é o piso com `enable_msp` (UC-V390). */
@@ -677,6 +682,7 @@ export default function SellsCreateV3({ cena, gravacao }: Props) {
         acr: item.acr,
         estoque: item.estoque,
         ids,
+        ...camposDeProducao(item),
       },
     ]);
     setLancando(null);
