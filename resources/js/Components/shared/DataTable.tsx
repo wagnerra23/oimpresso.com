@@ -150,7 +150,7 @@ const CLASSE_ESTADO: Record<EstadoDaLinha, string> = {
  * pad 7×10 · divisória `--border` a 60% · hover accent 5%. "Accent" ali é o roxo da marca, que
  * aqui é `primary`: o `accent` do shadcn é neutro.
  */
-export type DensidadeDaTabela = 'default' | 'dense' | 'grid';
+export type DensidadeDaTabela = 'default' | 'dense' | 'grid' | 'grid-relaxed';
 
 const THEAD_PADRAO = 'border-b border-border bg-muted/30 text-xs text-muted-foreground';
 
@@ -173,6 +173,18 @@ const THEAD_PADRAO = 'border-b border-border bg-muted/30 text-xs text-muted-fore
  * `<tr>`: com `border-collapse: separate` o fundo do `<tr>` some atrás do da célula, e três
  * variantes arbitrárias concorrendo no mesmo `<td>` dependeriam da ordem de geração do CSS.
  */
+const DENSIDADE_GRID = {
+  thead: 'text-[var(--text-dim)]',
+  th: 'sticky top-0 z-[1] bg-[var(--bg-2)] px-2.5 py-[7px] text-[10px] leading-[1.2] uppercase tracking-[.05em] font-semibold whitespace-nowrap border-b border-border select-none',
+  // `leading-[1.45]`: a altura de linha do texto no protótipo (medido 2026-10-04: nome 18,125px
+  // sobre 12,5px, sub 15,95px sobre 11px). Com o 1,5 herdado do app a linha saía 1px mais alta.
+  // Sem `text-[12.5px]` aqui: o tamanho vem do `<table>` (herda), pra a célula mono poder pôr
+  // 12px sem duas classes de fonte disputando a mesma célula.
+  td: 'px-2.5 py-[5px] leading-[1.45] align-middle border-b border-[var(--border-2)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[320px]',
+  tbody: '',
+  tr: '',
+};
+
 const CLASSE_DENSIDADE: Record<DensidadeDaTabela, { thead: string; th: string; td: string; tbody: string; tr: string }> = {
   default: {
     thead: THEAD_PADRAO,
@@ -188,17 +200,12 @@ const CLASSE_DENSIDADE: Record<DensidadeDaTabela, { thead: string; th: string; t
     tbody: 'divide-y divide-border/60',
     tr: 'hover:bg-primary/5',
   },
-  grid: {
-    thead: 'text-[var(--text-dim)]',
-    th: 'sticky top-0 z-[1] bg-[var(--bg-2)] px-2.5 py-[7px] text-[10px] leading-[1.2] uppercase tracking-[.05em] font-semibold whitespace-nowrap border-b border-border select-none',
-    // `leading-[1.45]`: a altura de linha do texto no protótipo (medido 2026-10-04: nome 18,125px
-    // sobre 12,5px, sub 15,95px sobre 11px). Com o 1,5 herdado do app a linha saía 1px mais alta.
-    // Sem `text-[12.5px]` aqui: o tamanho vem do `<table>` (herda), pra a célula mono poder pôr
-    // 12px sem duas classes de fonte disputando a mesma célula.
-    td: 'px-2.5 py-[5px] leading-[1.45] align-middle border-b border-[var(--border-2)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[320px]',
-    tbody: '',
-    tr: '',
-  },
+  grid: DENSIDADE_GRID,
+  // `grid-relaxed` — o `DataGrid` em `density="comfortable"`: célula 9×10 em vez de 5×10
+  // (`DataGrid.jsx`, `relaxed ? '9px 10px' : '5px 10px'`). É o "Confortável" do `DataTablePro`,
+  // que as telas do CRM do protótipo usam (pendência CRM-32, linha de 45px medida em 2026-11-25).
+  // Todo o resto é o `grid`.
+  'grid-relaxed': { ...DENSIDADE_GRID, td: DENSIDADE_GRID.td.replace('py-[5px]', 'py-[9px]') },
 };
 
 /** `grid`: listra das linhas pares — `color-mix` do DS, literal. */
@@ -372,6 +379,11 @@ interface Props<T> {
   /** Anatomia da tabela — ver `DensidadeDaTabela`. Omitido = `default` (markup de sempre). */
   density?: DensidadeDaTabela;
   /**
+   * Só no `grid`/`grid-relaxed`: listra das linhas pares. Default `true` (o `DataGrid` do DS).
+   * O `DataTablePro` do DS desliga (`zebra: false`) — as telas do CRM do protótipo usam ele.
+   */
+  zebra?: boolean;
+  /**
    * Liga a alça de arrastar na borda direita de cada cabeçalho (ver `LARGURA_MINIMA_DA_COLUNA`).
    * Pensado pra tabela em que TODA coluna declara `meta.width`: a coluna arrastada passa a ter
    * largura fixa, e uma coluna sem largura declarada continuaria absorvendo a sobra.
@@ -485,6 +497,7 @@ export default function DataTable<T>({
   minTableWidth,
   tableWrapperClassName,
   density = 'default',
+  zebra = true,
   selection,
   rowClickable,
   totalLabel = 'itens',
@@ -503,7 +516,7 @@ export default function DataTable<T>({
   // Tabela desmontada no meio de um arrasto não deixa listener no documento.
   useEffect(() => () => soltarArrasto.current?.(), []);
   const dens = CLASSE_DENSIDADE[density];
-  const grid = density === 'grid';
+  const grid = density === 'grid' || density === 'grid-relaxed';
   const nColunas = columns.length + (selection ? 1 : 0);
 
   // Debounce busca — envia pro backend (Scout faz keyword/vector lookup)
@@ -759,7 +772,7 @@ export default function DataTable<T>({
                 // pinta a seleção na `<td>` (ver `CLASSE_DENSIDADE`).
                 const estado = rowState?.(row.original) ?? (marcada && !grid ? 'selected' : undefined);
                 const clicavel = onRowClick !== undefined && (rowClickable?.(row.original) ?? true);
-                const fundoGrid = grid ? (marcada ? GRID_SELECIONADA : i % 2 === 1 ? GRID_LISTRA : '') : '';
+                const fundoGrid = grid ? (marcada ? GRID_SELECIONADA : zebra && i % 2 === 1 ? GRID_LISTRA : '') : '';
                 const classeTd = `${dens.td}${fundoGrid ? ' ' + fundoGrid : ''}`;
                 return (
                   <tr

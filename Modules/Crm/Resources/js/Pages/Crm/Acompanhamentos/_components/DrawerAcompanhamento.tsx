@@ -1,33 +1,25 @@
 // Drawer de detalhe do acompanhamento (thread Crm/07). Âncora: protótipo `crm-blade.jsx` →
 // TelaAcompanhamentos (Drawer: "Informações de acompanhamento", "Descrição", rodapé "Log de
 // acompanhamento" + "Marcar concluído"), mais a lista de registros que a Blade mostrava no modal de log.
+// Forma (CRM-33): gaveta do protótipo via `CrmGaveta` — 480px, seções com título em caixa alta e
+// tabela rótulo/valor mono. "Prazo" do protótipo não entra: não há prazo de acompanhamento no backend.
 // Registros vêm de GET /crm/follow-up-log?schedule_id=…&lista=1; concluir usa o MESMO PUT do modal de edição.
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
-import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { enviar, type Listas, type Opcao, type Valores } from './acompanhamento';
+import { TOM, enviar, type Listas, type Opcao, type Valores } from './acompanhamento';
+import { CrmGaveta, CrmMini, CrmPilula, CrmSecao } from '../../_components/CrmBlocos';
 
 export interface Detalhe {
   id: number; titulo: string; contato: string; inicio: string | null; fim: string | null; status: string | null;
-  tipo: string | null; categoria: string | null; atribuidos: string[]; descricao: string;
+  tipo: string | null; categoria: string | null; atribuidos: string[]; descricao: string; informacao_adicional?: string | null;
   adicionado_por: string; adicionado_em: string | null; editar: Omit<Valores, 'title'>;
 }
 interface Registro { id: number; assunto: string; tipo: string; inicio: string | null; fim: string | null; descricao: string; por: string | null }
 
 const rotulo = (lista: Opcao[] | undefined, v: string | null) => lista?.find((o) => o.value === v)?.label ?? v ?? '—';
-
-function Linha({ rotulo: r, valor }: { rotulo: string; valor: React.ReactNode }) {
-  return (
-    <div className="flex justify-between gap-4 py-1 text-sm">
-      <span className="text-muted-foreground">{r}</span>
-      <span className="text-right">{valor || '—'}</span>
-    </div>
-  );
-}
 
 export default function DrawerAcompanhamento({ item, opcoes, onFechar, onRegistrar, onConcluido }: {
   item: Detalhe; opcoes?: Listas; onFechar: () => void; onRegistrar: () => void; onConcluido: () => void;
@@ -60,46 +52,43 @@ export default function DrawerAcompanhamento({ item, opcoes, onFechar, onRegistr
   }
 
   return (
-    <Sheet open onOpenChange={(aberto) => { if (!aberto) onFechar(); }}>
-      <SheetContent className="flex w-full flex-col sm:max-w-lg" data-contract="crm-acompanhamento-drawer">
-        <SheetHeader>
-          <Badge variant="neutral" className="w-fit">{rotulo(opcoes?.status, item.status)}</Badge>
-          <SheetTitle>{item.titulo}</SheetTitle>
-          <SheetDescription>{item.contato} · {rotulo(opcoes?.tipos, item.tipo)}</SheetDescription>
-        </SheetHeader>
-        <div className="flex-1 space-y-5 overflow-y-auto px-4">
-          <section>
-            <h3 className="mb-1 text-sm font-semibold">Informações de acompanhamento</h3>
-            <Linha rotulo="Início" valor={item.inicio} />
-            <Linha rotulo="Fim" valor={item.fim} />
-            <Linha rotulo="Categoria" valor={item.categoria} />
-            <Linha rotulo="Atribuído a" valor={item.atribuidos.join(', ')} />
-            <Linha rotulo="Adicionado por" valor={[item.adicionado_por, item.adicionado_em].filter(Boolean).join(' · ')} />
-          </section>
-          <section>
-            <h3 className="mb-1 text-sm font-semibold">Descrição</h3>
-            <p className="whitespace-pre-line text-sm text-muted-foreground">{item.descricao || 'Sem descrição.'}</p>
-          </section>
-          <section data-contract="crm-acompanhamento-registros">
-            <h3 className="mb-1 text-sm font-semibold">Registros{registros ? ` (${registros.length})` : ''}</h3>
-            {registros === null ? <Skeleton className="h-16 w-full" />
-              : registros.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum registro ainda.</p>
-              : (
-                <ul className="space-y-3">{registros.map((r) => (
-                  <li key={r.id} className="rounded-md border p-2 text-sm">
-                    <div className="flex justify-between gap-2"><b>{r.assunto}</b><span className="text-xs text-muted-foreground">{rotulo(opcoes?.tipos, r.tipo)}</span></div>
-                    <div className="text-xs text-muted-foreground">{[r.inicio, r.fim].filter(Boolean).join(' → ')}{r.por ? ` · ${r.por}` : ''}</div>
-                    {r.descricao ? <p className="mt-1 whitespace-pre-line">{r.descricao}</p> : null}
-                  </li>
-                ))}</ul>
-              )}
-          </section>
-        </div>
-        <SheetFooter className="flex-row justify-end gap-2">
-          <Button variant="outline" onClick={onRegistrar}>Log de acompanhamento</Button>
-          <Button onClick={concluir} disabled={concluindo || item.status === 'completed'}>{concluindo ? 'Concluindo…' : 'Marcar concluído'}</Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+    <CrmGaveta data-contract="crm-acompanhamento-drawer" onFechar={onFechar}
+      selo={<CrmPilula tom={TOM[item.status ?? ''] ?? 'mute'}>{rotulo(opcoes?.status, item.status)}</CrmPilula>}
+      titulo={item.titulo}
+      subtitulo={`${item.contato} · ${rotulo(opcoes?.tipos, item.tipo)}`}
+      rodape={<>
+        <Button variant="outline" onClick={onRegistrar}>Log de acompanhamento</Button>
+        <Button className="text-white" onClick={concluir} disabled={concluindo || item.status === 'completed'}>{concluindo ? 'Concluindo…' : 'Marcar concluído'}</Button>
+      </>}
+    >
+      <CrmSecao titulo="Informações de acompanhamento">
+        <CrmMini linhas={[
+          ['Início', item.inicio || '—'],
+          ['Fim', item.fim || '—'],
+          ['Categoria', item.categoria || '—'],
+          ['Atribuído a', item.atribuidos.join(', ') || '—'],
+          ['Adicionado por', [item.adicionado_por, item.adicionado_em].filter(Boolean).join(' · ') || '—'],
+        ]} />
+      </CrmSecao>
+      <CrmSecao titulo="Descrição">
+        <p className="m-0 whitespace-pre-line text-[12.5px]" style={{ color: 'var(--text-dim)' }}>{item.descricao || 'Sem descrição.'}</p>
+        {item.informacao_adicional ? (
+          <p className="mb-0 mt-1.5 text-[12.5px]" style={{ color: 'var(--text-dim)' }}><b>Informação adicional:</b> {item.informacao_adicional}</p>
+        ) : null}
+      </CrmSecao>
+      <CrmSecao data-contract="crm-acompanhamento-registros" titulo={`Registros${registros ? ` (${registros.length})` : ''}`}>
+        {registros === null ? <Skeleton className="h-16 w-full" />
+          : registros.length === 0 ? <p className="m-0 text-[12.5px]" style={{ color: 'var(--text-mute)' }}>Nenhum registro ainda.</p>
+          : (
+            <ul className="m-0 list-none space-y-2 p-0">{registros.map((r) => (
+              <li key={r.id} className="rounded-md border p-2 text-[12.5px]" style={{ borderColor: 'var(--border-2)' }}>
+                <div className="flex justify-between gap-2"><b>{r.assunto}</b><span className="text-[11px]" style={{ color: 'var(--text-mute)' }}>{rotulo(opcoes?.tipos, r.tipo)}</span></div>
+                <div className="font-mono text-[11px]" style={{ color: 'var(--text-mute)' }}>{[r.inicio, r.fim].filter(Boolean).join(' → ')}{r.por ? ` · ${r.por}` : ''}</div>
+                {r.descricao ? <p className="mb-0 mt-1 whitespace-pre-line">{r.descricao}</p> : null}
+              </li>
+            ))}</ul>
+          )}
+      </CrmSecao>
+    </CrmGaveta>
   );
 }

@@ -21,6 +21,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import CrmCabecalho from '../_components/CrmCabecalho';
 import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Components/shared/DataTable';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/proposals';
 const MODELO = '/crm/proposal-template';
@@ -48,6 +49,7 @@ function verProposta(filtros: Filtros, id: number | null) {
 }
 
 export default function PropostasIndex({ filtros, pode_enviar, propostas, proposta }: Props) {
+  const cockpit = useCockpit();
   const [densidade, setDensidade] = useState<DensidadeDaTabela>('default');
 
   const colunas: ColumnDef<Proposta>[] = [
@@ -106,7 +108,7 @@ export default function PropostasIndex({ filtros, pode_enviar, propostas, propos
 
       <Sheet open={!!proposta} onOpenChange={(aberto) => { if (!aberto) verProposta(filtros, null); }}>
         {proposta ? (
-          <SheetContent side="right" className="w-full sm:max-w-[760px]">
+          <SheetContent container={cockpit} side="right" className="w-full sm:max-w-[760px]">
             <SheetHeader>
               <SheetTitle>{proposta.assunto || '—'}</SheetTitle>
               <SheetDescription>

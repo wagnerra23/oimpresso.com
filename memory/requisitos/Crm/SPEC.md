@@ -639,9 +639,9 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 
 ### US-CRM-094 · Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
 
-**Implementado em:** `Modules/Crm/Services/ChamadoGarantiaService.php` · `Modules/Crm/Entities/SlaPolitica.php` · `Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php` — parcial: abertura com prazo (fatia 1). Alerta de prazo vencendo e tela são as fatias 2 e 3.
+**Implementado em:** `Modules/Crm/Services/ChamadoGarantiaService.php` · `Modules/Crm/Entities/SlaPolitica.php` · `Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php` · `Modules/Crm/Http/Controllers/ScheduleController.php` · `Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/TabelaGarantia.tsx` · `Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormChamadoGarantia.tsx` — parcial: abertura com prazo (fatia 1) e aba Garantia com a janela de abrir chamado (fatia 3, CRM-30). Falta o alerta de prazo vencendo (fatia 2).
 
-**Testado em:** `Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php`
+**Testado em:** `Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php` · `Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php` (UC-CRMACO-25/26)
 
 > owner: — · priority: p3 · estimate: 8h · type: story
 > blocked_by: —

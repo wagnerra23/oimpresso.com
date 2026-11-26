@@ -17,9 +17,7 @@ import { Deferred, router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { MoreHorizontal } from 'lucide-react';
-import { Card, CardContent } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
+import { ChevronDown, Plus } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -27,6 +25,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import CrmCabecalho from '../_components/CrmCabecalho';
+import { CrmCartao, CrmDensidade, CrmFiltros, CrmPilula } from '../_components/CrmBlocos';
 import SubNav from '@/Components/shared/SubNav';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
@@ -39,7 +38,11 @@ import FormRecorrente from './_components/FormRecorrente';
 import FormRegistro from './_components/FormRegistro';
 import FormAntecipado from './_components/FormAntecipado';
 import DrawerAcompanhamento from './_components/DrawerAcompanhamento';
-import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
+import FormChamadoGarantia from './_components/FormChamadoGarantia';
+import TabelaGarantia from './_components/TabelaGarantia';
+import type { Garantia } from './_components/garantia';
+import { NOVO, NOVO_RECORRENTE, TOM, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
+import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/follow-ups';
 const TODOS = '__todos';
@@ -52,7 +55,7 @@ interface Opcoes {
 interface Acompanhamento {
   id: number; titulo: string; contato: string; inicio: string | null; fim: string | null;
   status: string | null; tipo: string | null; categoria: string | null; atribuidos: string[];
-  descricao: string; por: string | null; em_dias: number | null;
+  descricao: string; informacao_adicional: string | null; por: string | null; em_dias: number | null;
   adicionado_por: string; adicionado_em: string | null;
   editar: Omit<Valores, 'title'> & Pick<Recorrente, 'follow_up_by' | 'follow_up_by_value' | 'recursion_days'>;
 }
@@ -62,11 +65,10 @@ interface Props {
   opcoes?: Opcoes;
   acompanhamentos?: PaginatorShape<Acompanhamento>;
   contagem?: { total: number; status: Record<string, number>; tipo: Record<string, number> };
+  /** Aba Garantia (CRM-30): nula com CRM_GARANTIA_SLA_ENABLED desligada — e aí a aba não aparece. */
+  garantia?: Garantia | null;
 }
 
-const TOM: Record<string, 'info' | 'warning' | 'success' | 'neutral'> = {
-  scheduled: 'info', open: 'warning', completed: 'success', cancelled: 'neutral', canceled: 'neutral',
-};
 
 const rotulo = (lista: Opcao[] | undefined, v: string | null) => lista?.find((o) => o.value === v)?.label ?? v ?? '—';
 /** "Agendado: 3 · Concluído: 1" — só os valores que aparecem na consulta. */
@@ -77,7 +79,8 @@ function filtrar(filtros: Filtros, mudanca: Filtros) {
   router.get(ROTA, { ...filtros, ...mudanca }, { preserveState: true, preserveScroll: true, replace: true });
 }
 
-export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos, contagem }: Props) {
+export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos, contagem, garantia }: Props) {
+  const cockpit = useCockpit();
   const recorrente = filtros.is_recursive === '1';
   const [form, setForm] = useState<{ id: number | null; inicial: Valores } | null>(null);
   const [excluir, setExcluir] = useState<Acompanhamento | null>(null);
@@ -85,6 +88,11 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
   const [registro, setRegistro] = useState<Acompanhamento | null>(null);
   const [antecipado, setAntecipado] = useState(false);
   const [ver, setVer] = useState<Acompanhamento | null>(null);
+  const [compacta, setCompacta] = useState(false);
+  // A aba Garantia não vai ao servidor: os chamados já vêm na prop deferida `garantia`.
+  const [naGarantia, setNaGarantia] = useState(false);
+  const [chamado, setChamado] = useState(false);
+  const comGarantia = garantia !== null;
   const recarregar = () => router.reload({ only: ['acompanhamentos', 'contagem'] });
   const acoes = {
     editar: (r: Acompanhamento) => setForm({ id: r.id, inicial: { ...r.editar, title: r.titulo } }),
@@ -94,6 +102,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
     },
     registrar: setRegistro,
     excluir: setExcluir,
+    ver: setVer,
   };
 
   async function confirmarExclusao() {
@@ -111,9 +120,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
     <div className="flex flex-col gap-4">
       <CrmCabecalho aba="Acompanhamentos" />
 
-      <Card data-contract="crm-filtros">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <h3 className="text-sm font-medium">Filtros</h3>
+      <CrmFiltros data-contract="crm-filtros">
           <Deferred data="opcoes" fallback={<Skeleton className="h-16 w-full" />}>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Filtro rotulo="Contato" campo="contact_id" lista={opcoes?.contatos} filtros={filtros} />
@@ -131,36 +138,51 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
               <Filtro rotulo="Categoria" campo="followup_category_id" lista={opcoes?.categorias} filtros={filtros} />
             </div>
           </Deferred>
-        </CardContent>
-      </Card>
+      </CrmFiltros>
 
-      <Card data-contract="crm-acompanhamentos">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-medium">Todos os acompanhamentos</h3>
-            <div className="ml-auto flex flex-wrap gap-2" data-contract="crm-toolbar">
-              <Button variant="outline" size="sm" onClick={() => setRec({ id: null, inicial: NOVO_RECORRENTE })}>Recorrente</Button>
-              <Button variant="outline" size="sm" onClick={() => setAntecipado(true)}>Acompanhamento antecipado</Button>
-              <Button size="sm" onClick={() => setForm({ id: null, inicial: NOVO })}>Adicionar</Button>
+      <CrmCartao
+        data-contract="crm-acompanhamentos"
+        titulo={naGarantia ? 'Chamados de garantia' : 'Todos os acompanhamentos'}
+        nota={naGarantia ? (garantia ? `${garantia.itens.length}` : null) : acompanhamentos ? `${acompanhamentos.data.length} de ${acompanhamentos.total}` : null}
+        semPadding
+      >
+        <div className="flex flex-col gap-3 p-3">
+          <div className="flex flex-wrap items-center gap-2" data-contract="crm-toolbar">
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <CrmDensidade compacta={compacta} onChange={setCompacta} />
+              <Button variant="outline" size="sm" onClick={() => setRec({ id: null, inicial: NOVO_RECORRENTE })}><Plus className="size-3" /> Recorrente</Button>
+              <Button variant="outline" size="sm" onClick={() => setAntecipado(true)}><Plus className="size-3" /> Acompanhamento antecipado</Button>
+              {naGarantia
+                ? <Button size="sm" className="text-white" onClick={() => setChamado(true)}><Plus className="size-3" /> Abrir chamado de garantia</Button>
+                : <Button size="sm" onClick={() => setForm({ id: null, inicial: NOVO })}><Plus className="size-3" /> Adicionar</Button>}
             </div>
           </div>
 
           <SubNav
             ariaLabel="Abas de acompanhamento"
-            value={recorrente ? 'recorrente' : 'todos'}
-            onChange={(v) => filtrar(filtros, { is_recursive: v === 'recorrente' ? '1' : undefined })}
+            value={naGarantia ? 'garantia' : recorrente ? 'recorrente' : 'todos'}
+            onChange={(v) => {
+              setNaGarantia(v === 'garantia');
+              if (v !== 'garantia' && (v === 'recorrente') !== recorrente) filtrar(filtros, { is_recursive: v === 'recorrente' ? '1' : undefined });
+            }}
             items={[
               { value: 'todos', label: 'Acompanhamentos' },
               { value: 'recorrente', label: 'Acompanhamento recorrente' },
+              ...(comGarantia ? [{ value: 'garantia', label: garantia ? `Garantia (${garantia.contagem.abertos})` : 'Garantia' }] : []),
             ]}
           />
 
+          {naGarantia ? (
+            <Deferred data="garantia" fallback={<Skeleton className="h-64 w-full" />}>
+              {garantia ? <TabelaGarantia garantia={garantia} status={opcoes?.status} compacta={compacta} /> : null}
+            </Deferred>
+          ) : (
           <Deferred data="acompanhamentos" fallback={<Skeleton className="h-64 w-full" />}>
             {acompanhamentos ? (
               <>
                 <DataTable<Acompanhamento>
                   caption={recorrente ? 'Acompanhamentos recorrentes' : 'Acompanhamentos'}
-                  columns={colunas(opcoes, recorrente, acoes)}
+                  columns={colunas(opcoes, recorrente, acoes, cockpit)}
                   data={acompanhamentos.data}
                   pagination={acompanhamentos}
                   endpoint={ROTA}
@@ -168,6 +190,9 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
                   initialSearch={filtros.q ?? ''}
                   searchPlaceholder="Buscar por título ou contato"
                   emptyMessage="Nada com esses filtros"
+                  density={compacta ? 'grid' : 'grid-relaxed'}
+                  zebra={false}
+                  tableWrapperClassName="overflow-hidden rounded-md border border-border"
                   rowKey={(r) => r.id}
                   onRowClick={recorrente ? undefined : setVer}
                 />
@@ -182,8 +207,14 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
               </>
             ) : null}
           </Deferred>
-        </CardContent>
-      </Card>
+          )}
+        </div>
+      </CrmCartao>
+
+      {chamado ? (
+        <FormChamadoGarantia opcoes={opcoes} garantia={garantia ?? undefined} onFechar={() => setChamado(false)}
+          onSalvo={() => { setChamado(false); router.reload({ only: ['garantia'] }); }} />
+      ) : null}
 
       {form ? (
         <FormAcompanhamento key={form.id ?? 'novo'} id={form.id} inicial={form.inicial} opcoes={opcoes}
@@ -211,7 +242,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
       ) : null}
 
       <AlertDialog open={!!excluir} onOpenChange={(aberto) => { if (!aberto) setExcluir(null); }}>
-        <AlertDialogContent>
+        <AlertDialogContent container={cockpit}>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir acompanhamento?</AlertDialogTitle>
             <AlertDialogDescription>{excluir?.titulo} — esta ação não pode ser desfeita.</AlertDialogDescription>
@@ -227,12 +258,13 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos,
 }
 
 function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo: string; lista?: Opcao[]; filtros: Filtros }) {
+  const cockpit = useCockpit();
   return (
     <div className="flex flex-col gap-1">
       <Label>{nome}</Label>
       <Select value={filtros[campo] || TODOS} onValueChange={(v) => filtrar(filtros, { [campo]: v === TODOS ? undefined : v })}>
         <SelectTrigger aria-label={nome}><SelectValue /></SelectTrigger>
-        <SelectContent>
+        <SelectContent container={cockpit}>
           <SelectItem value={TODOS}>Todos</SelectItem>
           {(lista ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}
         </SelectContent>
@@ -243,12 +275,12 @@ function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo
 
 interface Acoes {
   editar: (r: Acompanhamento) => void; editarRecorrente: (r: Acompanhamento) => void;
-  registrar: (r: Acompanhamento) => void; excluir: (r: Acompanhamento) => void;
+  registrar: (r: Acompanhamento) => void; excluir: (r: Acompanhamento) => void; ver: (r: Acompanhamento) => void;
 }
 
-function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes): ColumnDef<Acompanhamento>[] {
-  const texto = (header: string, acc: (r: Acompanhamento) => ReactNode, width = 150): ColumnDef<Acompanhamento> => ({
-    id: header, header, cell: ({ row }) => acc(row.original) ?? '—', meta: { width },
+function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes, cockpit: HTMLElement | null): ColumnDef<Acompanhamento>[] {
+  const texto = (header: string, acc: (r: Acompanhamento) => ReactNode, width = 150, mono = false): ColumnDef<Acompanhamento> => ({
+    id: header, header, cell: ({ row }) => acc(row.original) ?? '—', meta: { width, mono },
   });
 
   const acao: ColumnDef<Acompanhamento> = {
@@ -258,13 +290,14 @@ function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes):
         <DropdownMenuTrigger asChild>
           {/* A linha abre o drawer; o menu não pode abrir os dois (aviso do DataTable). */}
           <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.titulo}`}
-            onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}><MoreHorizontal className="size-4" /></Button>
+            onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>Ações <ChevronDown className="size-3" /></Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuContent container={cockpit} align="start" onClick={(e) => e.stopPropagation()}>
           {/* Recorrente tem modal próprio; o registro (log) só existe no avulso, como na Blade. */}
           {recorrente
             ? <DropdownMenuItem onSelect={() => acoes.editarRecorrente(row.original)}>Editar</DropdownMenuItem>
             : <>
+                <DropdownMenuItem onSelect={() => acoes.ver(row.original)}>Ver acompanhamento</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => acoes.editar(row.original)}>Editar</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => acoes.registrar(row.original)}>Adicionar registro</DropdownMenuItem>
               </>}
@@ -278,10 +311,10 @@ function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes):
     acao,
     ...(recorrente ? [] : [
       texto('Contato', (r) => r.contato, 200),
-      texto('Início', (r) => r.inicio),
-      texto('Fim', (r) => r.fim),
+      texto('Início', (r) => r.inicio, 150, true),
+      texto('Fim', (r) => r.fim, 150, true),
     ]),
-    texto('Status', (r) => r.status ? <Badge variant={TOM[r.status] ?? 'neutral'}>{rotulo(opcoes?.status, r.status)}</Badge> : '—', 126),
+    texto('Status', (r) => r.status ? <CrmPilula tom={TOM[r.status] ?? 'mute'}>{rotulo(opcoes?.status, r.status)}</CrmPilula> : '—', 126),
     texto('Tipo de acompanhamento', (r) => rotulo(opcoes?.tipos, r.tipo), 168),
     texto('Categoria', (r) => r.categoria, 138),
     ...(recorrente ? [
@@ -290,9 +323,10 @@ function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes):
     ] : []),
     texto('Atribuído a', (r) => r.atribuidos.join(', ') || '—', 178),
     texto('Descrição', (r) => r.descricao || '—', 280),
+    texto('Informação adicional', (r) => r.informacao_adicional || '—', 230),
     texto('Título', (r) => r.titulo, 200),
     texto('Adicionado por', (r) => r.adicionado_por),
-    texto('Adicionado em', (r) => r.adicionado_em, 128),
+    texto('Adicionado em', (r) => r.adicionado_em, 128, true),
   ];
 }
 
