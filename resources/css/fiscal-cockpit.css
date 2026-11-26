@@ -436,7 +436,7 @@
 .fx-drawer-bg {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.35);
+  background: rgba(0,0,0,.42);
   z-index: 90;
   animation: fx-fade .15s;
 }
@@ -445,14 +445,16 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 480px;
-  max-width: 92vw;
+  width: min(520px, 100vw);
+  max-width: none;
   background: var(--fx-surface);
   z-index: 100;
   display: flex;
   flex-direction: column;
-  box-shadow: -8px 0 24px rgba(0,0,0,.12);
+  box-shadow: none;
   animation: fx-slide .18s cubic-bezier(.16,1,.3,1);
+  border-left: 1px solid var(--fx-border);
+  line-height: 1.45;
 }
 @keyframes fx-fade  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fx-slide { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -460,13 +462,14 @@
 .fx-drawer-h {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px 20px;
+  gap: 10px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--fx-border);
+  background: var(--fx-bg-2);
 }
 .fx-drawer-h > div:first-child { flex: 1; min-width: 0; }
 .fx-drawer-h small { font-size: var(--fs-2); color: var(--fx-text-mute); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-.fx-drawer-h h2 { margin: 2px 0 4px; font-size: 18px; font-weight: 700; }
+.fx-drawer-h h2 { margin: 0; font-size: var(--fs-6); font-weight: 600; line-height: 1.15; color: var(--fx-text); }
 .fx-drawer-key {
   display: block;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
@@ -475,26 +478,31 @@
   word-break: break-all;
 }
 .fx-drawer-x {
-  display: inline-flex;
+  display: block;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 4px 8px;
-  background: transparent;
+  padding: 1px 6px;
+  background: var(--fx-surface);
   border: 1px solid var(--fx-border);
   border-radius: 6px;
   cursor: pointer;
-  color: var(--fx-text-dim);
+  color: var(--fx-text-mute);
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  line-height: 1;
 }
-.fx-drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
-.fx-drawer-sec { margin-bottom: 18px; }
+.fx-drawer-body { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+.fx-drawer-sec { margin-bottom: 0; display: flex; flex-direction: column; gap: 6px; }
 .fx-drawer-sec h4 {
-  margin: 0 0 8px;
-  font-size: var(--fs-2);
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  margin: 0;
+  font-size: var(--fs-1);
+  font-weight: 600;
+  letter-spacing: .07em;
   text-transform: uppercase;
   color: var(--fx-text-mute);
+  line-height: 1.2;
 }
 .fx-drawer-status-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .fx-drawer-hint { margin: 8px 0 0; font-size: var(--fs-3); color: var(--fx-text-dim); }
@@ -515,12 +523,25 @@
 .fx-drawer-f {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
+  gap: 6px;
+  padding: 12px 16px;
   border-top: 1px solid var(--fx-border);
   background: var(--fx-bg-2);
+  flex-wrap: wrap;
 }
 .fx-drawer-f-r { margin-left: auto; display: flex; gap: 6px; }
+/* Forma do protótipo (fiscal-page.css), medida em 2026-11-26 com a mesma sonda nos dois lados. */
+.fx-drawer-h > .fx-drawer-titulo { flex: 0 1 auto; }
+.fx-drawer-h p { margin: 2px 0 0; font-size: var(--fs-2); color: var(--fx-text-dim); }
+.fx-drawer .fx-kv { grid-template-columns: auto 1fr; margin: 1em 0; font-size: var(--fs-3); }
+.fx-drawer .fx-kv dd { text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.fx-drawer .fx-sefaz { gap: 5px; padding: 2px 9px; border-radius: 999px; border: 1px solid; font-size: var(--fs-2); font-weight: 600; white-space: nowrap; }
+.fx-drawer .fx-sefaz.ok { color: var(--ok); border-color: color-mix(in oklch, var(--ok) 28%, transparent); background: color-mix(in oklch, var(--ok) 8%, transparent); }
+.fx-drawer .fx-sefaz.warn { color: var(--warn); border-color: color-mix(in oklch, var(--warn) 30%, transparent); background: color-mix(in oklch, var(--warn) 8%, transparent); }
+.fx-drawer .fx-sefaz.bad { color: var(--bad); border-color: color-mix(in oklch, var(--bad) 30%, transparent); background: color-mix(in oklch, var(--bad) 8%, transparent); }
+.fx-drawer .cw-btn-ghost, .fx-drawer .cw-btn-primary { display: inline-flex; align-items: center; justify-content: normal; gap: 6px; height: auto; padding: 5px 10px; border-radius: 6px; font-size: var(--fs-3); font-weight: 400; line-height: inherit; white-space: normal; box-shadow: none; }
+.fx-drawer .cw-btn-ghost { border: 1px solid var(--fx-border); background: var(--fx-surface); color: var(--fx-text-dim); }
+.fx-drawer .cw-btn-primary { border: 1px solid var(--fis); background: var(--fis); color: white; }
 
 /* ─── ACTION CARD (Jana sugere) ──────────────────────────────── */
 .fx-action-card {

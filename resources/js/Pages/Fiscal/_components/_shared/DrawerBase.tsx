@@ -86,7 +86,7 @@ export default function DrawerBase({
   header,
   footer,
   children,
-  width = 480,
+  width = 520,
   bodyFlush = false,
   closeOnEsc = true,
   bodyRef,
@@ -207,7 +207,7 @@ export default function DrawerBase({
 
   if (!open) return null;
 
-  const widthStyle = width !== 480 ? { width: `min(${width}px, 96vw)` } : undefined;
+  const widthStyle = width !== 520 ? { width: `min(${width}px, 96vw)` } : undefined;
   const bodyStyle = bodyFlush ? { padding: 0 } : undefined;
   // Compose className: base + is-scrolled auto + extra do consumer
   const classes = ['fx-drawer'];

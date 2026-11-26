@@ -69,7 +69,7 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) a **lista navegável d
 - **Densidade:** linhas ~48px, fonte 12.5px corpo / 13.5px número da nota (mono).
 - **Cor de status:** verde = aceito pela SEFAZ · âmbar = transitório ou SEFAZ indisponível (103/105/108/109) · vermelho = rejeição. A classificação por código deixou de ser digitada aqui e passa a ser **derivada** do campo `status` da tabela oficial — ver §Reconciliação 2026-09-04.
 - **Pílula 24h:** verde >12h, âmbar 6-12h, vermelho <6h (urgência cresce).
-- **Drawer:** largura 480px desktop, full-width mobile, ESC fecha, click-outside fecha.
+- **Drawer:** largura 520px desktop (`.fx-drawer` do protótipo, medido 2026-11-26; era 480px), full-width mobile, ESC fecha, click-outside fecha.
 - **Foco visual:** linha cursor (J/K) com `outline: 2px solid var(--fis)`.
 
 ## Contrato de teclado — destilado (2026-09-03, Onda 2)

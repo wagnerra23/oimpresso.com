@@ -107,7 +107,7 @@ describe('UC-FCKP-11 · a lista unificada é operável só pelo teclado', () => 
 
     const drawer = screen.getByRole('dialog');
     // 9003 é a 3ª nota. Se o drawer abrisse sempre a primeira, viria 9001.
-    expect(within(drawer).getByRole('heading', { level: 2 }).textContent).toBe('NFe 9003');
+    expect(within(drawer).getByRole('heading', { level: 2 }).textContent).toBe('NF-e 9003 · série 1');
   });
 
   it('Space abre o drawer E cancela o default (senão a página rola)', () => {
