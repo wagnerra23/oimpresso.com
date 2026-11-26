@@ -15,12 +15,12 @@
 .fx-page,
 .fx-drawer {
   --fis:       oklch(0.55 0.15 295); /* 2026-09-01: era hue 30; roxo canon DS = --cw-accent (ADR 0235) */
-  --fis-soft:  oklch(0.95 0.04 295);
-  --ok:        oklch(0.55 0.13 145);
+  --fis-soft:  oklch(0.945 0.045 295); /* 2026-11-26: = --accent-soft do protótipo (medido) */
+  --ok:        oklch(0.55 0.17 150); /* 2026-11-26: = --pos do protótipo (medido) */
   --ok-soft:   oklch(0.94 0.06 145);
-  --warn:      oklch(0.62 0.13 60);
+  --warn:      oklch(0.63 0.16 68); /* 2026-11-26: = --warn do protótipo (medido) */
   --warn-soft: oklch(0.96 0.05 60);
-  --bad:       oklch(0.55 0.18 25);
+  --bad:       oklch(0.58 0.21 25); /* 2026-11-26: = --neg do protótipo (medido) */
   --bad-soft:  oklch(0.95 0.04 25);
   --fx-border: oklch(0.90 0.004 90);
   --fx-border-2: oklch(0.93 0.004 90);
@@ -28,10 +28,11 @@
   /* `oklch(1 0 0)` E branco puro — equivalente exato do `#ffffff` que o `.cockpit`
    * do DS usa. Fica em oklch, e não em hex, porque o `color-no-hex` do stylelint
    * é regra desta casa: o gate pegou o hex (0 -> 1) e ele estava certo. */
-  --fx-surface: oklch(1 0 0);
+  --fx-surface: oklch(1 0 none); /* 2026-11-26: hue `none` (branco não tem matiz). Com `0` explícito,
+                                    o color-mix dos alertas puxava o matiz pra 1.5 em vez do 25 do protótipo. */
   --fx-text:   oklch(0.22 0.01 80);
   --fx-text-dim: oklch(0.50 0.01 80);
-  --fx-text-mute: oklch(0.65 0.01 80);
+  --fx-text-mute: oklch(0.555 0.01 80); /* 2026-11-26: = --text-mute do protótipo (medido) */
 }
 
 .fx-page {
