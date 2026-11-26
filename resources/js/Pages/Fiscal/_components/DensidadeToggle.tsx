@@ -34,7 +34,7 @@ interface DensidadeToggleProps {
  * Os três botões de densidade. `role="radiogroup"` + `aria-pressed` vêm do Cockpit
  * (era a única tela que tinha o controle) e do protótipo — não reinvento a semântica aqui.
  *
- * Cada ícone declara `aria-hidden`: o lucide não emite sozinho, e o
+ * Cada botão mostra a inicial da densidade (C · C · R), como no protótipo, e ela declara `aria-hidden`: o lucide não emite sozinho, e o
  * `fiscal-nfe-teclado.test.tsx` (UC-FNFE-11) exige que nenhum ícone decorativo da
  * `.fx-page` chegue ao leitor de tela. Mas o ícone aqui é o ÚNICO conteúdo do botão —
  * e a nota daquele mesmo teste diz a regra: *"ícone sozinho em botão precisa de rótulo
@@ -52,11 +52,7 @@ export default function DensidadeToggle({ value, onChange }: DensidadeToggleProp
         aria-label="Densidade compacta"
         aria-pressed={value === 'compact'}
       >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <rect x="3" y="6" width="18" height="2" />
-          <rect x="3" y="11" width="18" height="2" />
-          <rect x="3" y="16" width="18" height="2" />
-        </svg>
+        <span aria-hidden="true">C</span>
       </button>
       <button
         type="button"
@@ -66,11 +62,7 @@ export default function DensidadeToggle({ value, onChange }: DensidadeToggleProp
         aria-label="Densidade confortável"
         aria-pressed={value === 'comfort'}
       >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <rect x="3" y="4" width="18" height="3" />
-          <rect x="3" y="10" width="18" height="3" />
-          <rect x="3" y="16" width="18" height="3" />
-        </svg>
+        <span aria-hidden="true">C</span>
       </button>
       <button
         type="button"
@@ -80,10 +72,7 @@ export default function DensidadeToggle({ value, onChange }: DensidadeToggleProp
         aria-label="Densidade relaxada"
         aria-pressed={value === 'relax'}
       >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <rect x="3" y="3" width="18" height="5" />
-          <rect x="3" y="11" width="18" height="5" />
-        </svg>
+        <span aria-hidden="true">R</span>
       </button>
     </div>
   );

@@ -236,15 +236,15 @@
   margin-bottom: 12px;
 }
 .fx-search {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   flex: 1;
-  min-width: 240px;
-  padding: 6px 10px;
+  min-width: 250px;
+  padding: 5px 10px;
   background: var(--fx-surface);
   border: 1px solid var(--fx-border);
-  border-radius: 7px;
+  border-radius: 6px;
 }
 .fx-search input {
   flex: 1;
@@ -821,7 +821,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 .fx-notas-toolbar .fx-search { flex: 1; min-width: 240px; }
@@ -846,25 +846,33 @@
 /* Density toggle */
 .fx-density {
   display: inline-flex;
-  background: var(--fx-bg-2);
-  border-radius: 7px;
-  padding: 2px;
+  background: transparent;
+  border-radius: 6px;
+  padding: 0;
+  border: 1px solid var(--fx-border);
+  overflow: hidden;
 }
 .fx-density button {
   appearance: none;
   border: 0;
-  background: transparent;
-  padding: 4px 8px;
-  border-radius: 5px;
+  background: var(--fx-surface);
+  padding: 1px 6px;
+  border-radius: 0;
   cursor: pointer;
   color: var(--fx-text-mute);
-  display: inline-flex;
+  display: block;
   align-items: center;
+  width: 26px;
+  height: 26px;
+  font-size: var(--fs-2);
+  font-weight: 600;
+  line-height: 1.45;
+  box-shadow: none;
 }
 .fx-density button.active {
-  background: var(--fx-surface);
-  color: var(--fx-text);
-  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  background: var(--fis-soft);
+  color: var(--fis);
+  box-shadow: none;
 }
 
 
@@ -1056,20 +1064,22 @@
   color: var(--fx-text-dim);
   cursor: pointer;
 }
-.fx-saved-view.active { background: var(--fis-soft); border-color: var(--fis); color: var(--fis); }
+.fx-saved-view.active { background: var(--fis-soft); border-color: color-mix(in oklch, var(--fis) 40%, var(--fx-border)); color: var(--fis); }
 .fx-saved-view .n {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  padding: 0 5px;
-  height: 16px;
-  background: var(--fx-bg-2);
-  border-radius: 99px;
+  min-width: 0;
+  padding: 0;
+  height: auto;
+  background: transparent;
+  border-radius: 0;
   font-size: var(--fs-1);
   font-weight: 700;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  color: var(--fx-text-mute);
 }
-.fx-saved-view.active .n { background: var(--fis); color: white; }
+.fx-saved-view.active .n { background: transparent; color: var(--fis); }
 
 /* ═══════════════════════════════════════════════════════════════ */
 /* Onda 1 — NotaDrawerV2 + NFSeDrawer subcomponents                */
@@ -1300,9 +1310,9 @@
 /* ═══════════════════════════════════════════════════════════════ */
 
 .fx-saved-views {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
 }
 .fx-saved-views .fx-saved-view.t-bad:not(.active) {
@@ -1317,6 +1327,16 @@
   color: var(--ok);
   border-color: var(--ok-soft);
 }
+/* Forma do protótipo (fiscal-page.css), medida em 2026-11-26 com a mesma sonda nos dois lados. */
+.fx-search svg { flex: none; color: var(--fx-text-mute); }
+.fx-page .fx-search input { flex: 1; height: auto; min-width: 0; padding: 1px 2px; border: 0; border-radius: 0; background: transparent; box-shadow: none; font-size: var(--fs-3); color: var(--fx-text); outline: none; }
+.fx-page .fx-select { width: auto; flex: none; height: auto; gap: 8px; padding: 5px 8px; border: 1px solid var(--fx-border); border-radius: 6px; background: var(--fx-surface); color: var(--fx-text-dim); font-size: var(--fs-3); box-shadow: none; }
+.fx-density button + button { border-left: 1px solid var(--fx-border); }
+.fx-body > .fx-notas-toolbar + .fx-saved-views { margin-top: -8px; }
+.fx-saved-view, .fx-saved-views .fx-saved-view.t-bad:not(.active), .fx-saved-views .fx-saved-view.t-warn:not(.active), .fx-saved-views .fx-saved-view.t-ok:not(.active) { gap: 6px; padding: 4px 11px; border: 1px solid var(--fx-border); border-radius: 999px; background: var(--fx-surface); color: var(--fx-text-dim); font-size: var(--fs-3); font-weight: 400; }
+.fx-saved-view:hover { color: var(--fx-text); }
+.fx-saved-view.t-bad .n { color: var(--bad); }
+.fx-saved-view.t-warn .n { color: var(--warn); }
 
 .fx-subtab .n.t-warn { background: var(--warn-soft); color: var(--warn); }
 .fx-subtab .n.t-bad  { background: var(--bad-soft);  color: var(--bad);  }
