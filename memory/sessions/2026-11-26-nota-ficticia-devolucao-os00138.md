@@ -43,6 +43,12 @@ A tentativa rejeitada nº 12 (`id` 1871) foi desligada da venda do mesmo jeito q
 `NfeService` faz numa nova tentativa: `transaction_id` = null e
 `metadata.original_transaction_id` = 87123. Ela continua `rejeitada`.
 
+**Segundo ajuste (mesmo dia):** o Luiz testa com a conta `WR23` (`users.id` 1, papel
+`Operacional#1`), que tem "ver só as próprias vendas". A lista de origem da devolução filtra
+por `transactions.created_by` nesse caso, e a OS00138 tinha sido criada pela conta admin
+`users.id` 635, então não aparecia para ele (a última que ele via era a OS00134). A venda
+de teste passou a `created_by = 1`. Nenhuma permissão foi alterada.
+
 A gravação foi direta no banco (script avulso via SSH, apagado depois), sem seeder nem
 comando versionado. Este registro existe por isso.
 
@@ -68,7 +74,8 @@ Dentro de uma transação, em biz=1:
    (é fictícia; a regra de não apagar vale para nota que existe na SEFAZ).
 3. Religue a tentativa rejeitada: `UPDATE nfe_emissoes SET transaction_id = 87123 WHERE id = 1871 AND business_id = 1 AND transaction_id IS NULL`.
 4. Apague o arquivo `nfe-brasil/1/notas/900-1.xml` do disco `nfe_fiscal`.
-5. Confira em `/sell-return/create?nota=sem` que a OS00138 voltou para "Sem nota".
+5. Se quiser devolver o dono original da venda: `UPDATE transactions SET created_by = 635 WHERE id = 87123 AND business_id = 1`.
+6. Confira em `/sell-return/create?nota=sem` que a OS00138 voltou para "Sem nota".
 
 As devoluções de venda que o Luiz registrar na OS00138 durante o teste são dele: decidir
 com ele se ficam ou saem.
