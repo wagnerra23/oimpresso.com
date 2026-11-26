@@ -70,6 +70,8 @@ interface ProdutoEditModel {
   naturezaFiscal?: NaturezaFiscalProduto | null;
   barcodeType: string;
   enableStock: boolean;
+  /** UC-PEDIT-36 (AR-PROD-004): data e hora da última alteração (dd/mm/aaaa hh:mm), só leitura. */
+  ultimaAlteracao?: string | null;
   /** CU-PROD-20: o local padrão de armazenagem (null = sem padrão). */
   localPadraoId?: number | null;
   /** CU-PROD-21: a política de preço gravada (`fixo` · `acompanha` · `margem`) e a margem alvo. */
@@ -270,7 +272,15 @@ function EditarCompleto(props: ProdutoEditPageProps) {
               <h1 className="mt-1 text-[24px] font-semibold tracking-tight truncate">
                 Editar · {p.name}
               </h1>
-              <div className="mt-1 font-mono text-[12px] text-muted-foreground">{p.sku}</div>
+              <div className="mt-1 flex flex-wrap items-baseline gap-x-2 text-[12px] text-muted-foreground">
+                <span className="font-mono">{p.sku}</span>
+                {/* UC-PEDIT-36 (AR-PROD-004, paridade Delphi): só leitura, vem do updated_at. */}
+                {p.ultimaAlteracao ? (
+                  <span data-testid="produto-ultima-alteracao">
+                    {p.sku ? '· ' : ''}Última alteração {p.ultimaAlteracao}
+                  </span>
+                ) : null}
+              </div>
             </div>
             <Button variant="outline" asChild className="shrink-0">
               <Link href="/products">
