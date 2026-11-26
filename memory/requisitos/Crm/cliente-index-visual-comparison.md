@@ -151,6 +151,10 @@ Com a coluna deslocada, o `--compare` pareia `col1` da prod (Cliente) com `col1`
   dois endereços separados por "; " (dado de migração). Decidir: separar em E-mail + E-mail comercial, aceitar a
   lista, ou só validar depois que a pessoa editar o campo.
 - **A-15 — Conferir:** o subtítulo diz "N com saldo", mas lê `kpis.com_atraso` (`Index.tsx:1012-1016`).
+  ✔ 2026-11-26, PR #11523: confirmado o defeito — `com_atraso` conta só venda vencida, e o protótipo conta quem tem
+  saldo a receber. Chave nova `kpis.com_saldo` (contagem de contatos, nenhum valor muda) no subtítulo e no card
+  "Com saldo"; `com_atraso` segue no payload. UC-CIDX-28. Achado ao lado, sem conserto: `com_os_aberta` ("ativos")
+  usa o mesmo predicado de pagamento (due/partial), não OS aberta — os dois números saem iguais.
 
 ### B · Decisões do [W] antes de implementar
 
