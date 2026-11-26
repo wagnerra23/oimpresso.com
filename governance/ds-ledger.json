@@ -123,7 +123,7 @@
     },
     {
       "screen": "Crm",
-      "note": "21 arquivo(s)",
+      "note": "29 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -442,7 +442,7 @@
     },
     {
       "screen": "Sells",
-      "note": "90 arquivo(s)",
+      "note": "94 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -629,7 +629,7 @@
     },
     {
       "screen": "Produto",
-      "note": "74 arquivo(s)",
+      "note": "75 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -730,8 +730,8 @@
   "progressPct": 64,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "c3a2eefcd5",
-  "generatedAt": "2026-11-25T19:31:42.656Z",
+  "measuredAgainstSha": "3dd45a1bad",
+  "generatedAt": "2026-11-26T19:14:28.608Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
