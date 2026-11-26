@@ -32,7 +32,7 @@ export function frescor(data: string | null, agora = new Date()): { texto: strin
 
 const AJAX = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
 
-/** Rotas da Blade que a tela nova reaproveita (`lead/{id}/post-life-stage`). */
+/** Rotas da Blade que a tela nova reaproveita (`lead/{id}/post-life-stage` e `lead/{id}/convert`). */
 async function chamar(url: string): Promise<boolean> {
   try {
     const r = await fetch(url, { headers: AJAX, credentials: 'same-origin' });
@@ -48,3 +48,7 @@ export function moverEstagio(id: number, estagioId: string): Promise<boolean> {
   return chamar(`/crm/lead/${id}/post-life-stage?crm_life_stage=${encodeURIComponent(estagioId)}`);
 }
 
+/** CRM-25: converte o lead em cliente. */
+export function converterLead(id: number): Promise<boolean> {
+  return chamar(`/crm/lead/${id}/convert`);
+}

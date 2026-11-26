@@ -34,8 +34,8 @@ abre o detalhe num drawer, sem sair da lista.
   Mais busca por nome, ID ou celular. Densidade Confortável / Compacto.
 - Drawer de detalhe (`?lead=ID`): informação do lead e acompanhamento, com "Abrir ficha completa"
   (a tela `/crm/leads/{id}`).
-- Kanban por estágio de vida (todos os estágios do negócio, contador, arrastar muda o estágio) —
-  pendência CRM-23.
+- Kanban por estágio de vida (todos os estágios do negócio, contador, arrastar muda o estágio) e
+  janela de conversão para cliente com o estágio depois da conversão (pendências CRM-23/25).
 - Escopo de visibilidade **igual ao da Blade**: a Inertia recebe a mesma consulta do DataTables
   (`business_id` + `type = lead` + filtros + "só os meus" para quem tem só `crm.access_own_leads`),
   e o drawer sai dessa mesma consulta.
@@ -47,13 +47,13 @@ abre o detalhe num drawer, sem sair da lista.
   atribuído a, gravando pelo `LeadController@store`. Guardas: UC-CRMLD-08..10. A edição do lead
   (`edit()` → `contact.edit`) seguia na Blade até a thread Crm/09 (2026-10-06): agora é o
   `Cliente/Edit` parametrizado, gravando pelo `LeadController@update`. Guardas: UC-CRMLD-11..13.
-- ~~❌ Kanban~~ — entregue em 2026-11-26 (pendência CRM-23, pedido [W] 2026-11-26): é a vista
-  `?vista=kanban` desta tela, sobre a mesma consulta da lista; arrastar muda o estágio pela rota da
-  Blade, agora presa ao escopo da lista. Guardas: UC-CRMLD-15/16. O `?lead_view=kanban` da Blade
-  segue servindo a tela antiga (UC-CRMLD-07).
-- ❌ Conversão para cliente: segue na Blade (CRM-25, próximo PR).
-- ❌ "Adicionar/Remover do local": seguem apontando para a Blade. Lá os botões não têm ação (nenhum
-  script trata o clique, e contato não tem "local" no banco); o que eles devem fazer é decisão [W].
+- ~~❌ Kanban e conversão para cliente~~ — entregues em 2026-11-26 (pendências CRM-23/25, pedido [W]
+  2026-11-26): o kanban é a vista `?vista=kanban` desta tela, sobre a mesma consulta da lista, e a
+  conversão é uma janela que grava o estágio escolhido e converte pelas rotas da Blade, agora presas
+  ao escopo da lista. Guardas: UC-CRMLD-15..17. O `?lead_view=kanban` da Blade segue servindo a
+  tela antiga (UC-CRMLD-07).
+- ❌ "Adicionar/Remover do local": removidos da tela e da Blade (pendência CRM-24, [W] 2026-11-26).
+  Os botões nunca tiveram ação (nenhum script tratava o clique) e contato não tem "local" no banco.
 
 ## Anti-hooks
 

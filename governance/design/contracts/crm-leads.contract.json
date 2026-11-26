@@ -1,5 +1,5 @@
 {
-  "_nota": "Copiado do bloco derivado em prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/_saida-01.md (thread Crm/01, #8345) — não re-derivado do .tsx. Só o `alvo` mudou: o provisório da 01 virou o caminho real da Page (D4 = Modules/Crm/Resources/js/Pages, namespace Inertia `Crm/Leads/Index`, mesmo molde do crm-acompanhamentos #8352).",
+  "_nota": "Copiado do bloco derivado em prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/_saida-01.md (thread Crm/01, #8345) — não re-derivado do .tsx. Só o `alvo` mudou: o provisório da 01 virou o caminho real da Page (D4 = Modules/Crm/Resources/js/Pages, namespace Inertia `Crm/Leads/Index`, mesmo molde do crm-acompanhamentos #8352). 2026-11-26: o rodapé perdeu \"Adicionar ao local\" e \"Remover do local\" por decisão [W] (pendência CRM-24): os botões da Blade nunca tiveram ação e contato não tem local no banco. O protótipo ainda os mostra; pedido ao Cowork.",
   "tela": "Crm/Leads/Index",
   "fonte": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
   "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx"],
@@ -7,7 +7,7 @@
     { "id": "crm-filtros", "copy": ["Filtros", "Fonte", "Estágio de vida", "Atribuído a"] },
     { "id": "crm-leads", "copy": ["Todos os leads", "Nada com esses filtros"], "estados": ["list_view", "kanban", "vazio"] },
     { "id": "crm-toolbar", "copy": ["Buscar por nome, ID ou celular", "Exibição de lista", "Kanban", "Adicionar", "Confortável", "Compacto"] },
-    { "id": "crm-rodape", "copy": ["Adicionar ao local", "Remover do local"] }
+    { "id": "crm-rodape", "copy": ["Total:"] }
   ],
   "ordem": ["crm-filtros", "crm-leads", "crm-toolbar", "crm-rodape"]
 }
