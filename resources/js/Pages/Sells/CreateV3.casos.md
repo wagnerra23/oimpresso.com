@@ -524,6 +524,7 @@ imposto do pedido, acréscimo, PIX/boleto/TEF, troca de local e `pos_settings` �
 - **[BACKLOG]** `edit_invoice_number`: a V3 não tem campo de número da nota; quando tiver, ele só aparece com a permissão (`sell/create.blade.php:238`).
 - **[BACKLOG]** `print_invoice`: a V3 não tem impressão; o store já não devolve o recibo sem a permissão (`SellPosController@store`), então gravar não vaza nada.
 - **[BACKLOG]** Endereço de entrega do cliente: o Create preenche `shipping_address` com o do cadastro ao escolher o cliente; a V3 grava `shipping_address` vazio, como antes do grupo 3.
+  - **Errata 2026-11-26:** desatualizado em parte. Desde o [#11443](https://github.com/wagnerra23/oimpresso.com/pull/11443) (UC-V413), com a gravação ligada, a gaveta Entrega e frete grava `shipping_address` quando a pessoa marca outro endereço de entrega (`EntregaFrete.tsx` monta o texto, `camposDoTransporte` em `entrega-dominio.ts` envia). O que segue em aberto é só o caso do endereço do cadastro: sem outro endereço marcado, a V3 manda `shipping_address` vazio, e o Create preenche com o do cadastro.
 
 ---
 
