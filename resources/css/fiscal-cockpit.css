@@ -286,20 +286,21 @@
 .fx-table {
   background: var(--fx-surface);
   border: 1px solid var(--fx-border);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
 }
 .fx-table table { width: 100%; border-collapse: collapse; }
 .fx-table thead th {
   background: var(--fx-bg-2);
   text-align: left;
-  padding: 8px 12px;
+  padding: 9px 14px;
   font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--fx-text-mute);
   border-bottom: 1px solid var(--fx-border);
+  white-space: nowrap;
 }
 .fx-table tbody td {
   padding: 9px 12px;
@@ -367,8 +368,8 @@
   font-weight: 500;
 }
 .fx-timepill.u-ok   { background: var(--ok-soft);   color: var(--ok); }
-.fx-timepill.u-warn { background: var(--warn-soft); color: var(--warn); }
-.fx-timepill.u-crit { background: var(--bad-soft);  color: var(--bad); }
+.fx-timepill.u-warn { background: transparent; color: var(--warn); border-color: color-mix(in oklch, var(--warn) 30%, transparent); }
+.fx-timepill.u-crit { background: transparent;  color: var(--bad); border-color: color-mix(in oklch, var(--bad) 32%, transparent); }
 .fx-timepill b { font-weight: 700; }
 
 /* ─── EMPTY state ──────────────────────────────────────────────── */
@@ -891,9 +892,9 @@
 .fx-row-act.danger:hover { border-color: var(--bad); }
 
 /* Density variants */
-.fx-density-compact .fx-table tbody td { padding: 5px 10px; font-size: var(--fs-3); }
+.fx-density-compact .fx-table tbody td { padding: 6px 14px; font-size: var(--fs-3); }
 .fx-density-comfort .fx-table tbody td { padding: 9px 12px; font-size: 12.5px; }
-.fx-density-relax   .fx-table tbody td { padding: 13px 14px; font-size: var(--fs-4); }
+.fx-density-relax   .fx-table tbody td { padding: 16px 14px; font-size: var(--fs-3); }
 
 /* Active filter chip (cliente clicado) */
 .fx-active-filter {
@@ -1436,10 +1437,14 @@
 .fx-cockpit-notas .fx-sefaz.ok, .fx-tl-i .fx-sefaz.ok { color: var(--ok);   border-color: color-mix(in oklch, var(--ok) 28%, transparent);   background: color-mix(in oklch, var(--ok) 8%, transparent); }
 .fx-cockpit-notas .fx-sefaz.warn, .fx-tl-i .fx-sefaz.warn { color: var(--warn); border-color: color-mix(in oklch, var(--warn) 30%, transparent); background: color-mix(in oklch, var(--warn) 8%, transparent); }
 .fx-cockpit-notas .fx-sefaz.bad, .fx-tl-i .fx-sefaz.bad { color: var(--bad);  border-color: color-mix(in oklch, var(--bad) 30%, transparent);  background: color-mix(in oklch, var(--bad) 8%, transparent); }
-.fx-cockpit-notas .fx-row-act { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: inherit; min-width: 24px; min-height: 24px; padding: 1px 5px; }
+.fx-cockpit-notas .fx-row-act { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: inherit; min-width: 24px; min-height: 24px; padding: 1px 5px; color: var(--fx-text-mute); }
 .fx-cockpit-notas a.fx-row-act { display: inline-flex; align-items: center; text-decoration: none; }
 .fx-cockpit-notas tbody tr { cursor: pointer; }
 .fx-cockpit-notas tbody tr.sel td { background: var(--fis-soft); }
+/* Forma do protótipo (fiscal-page.css), medida em 2026-11-26 com a mesma sonda nos dois lados. */
+.fx-table tbody td, .fx-density-comfort .fx-table tbody td { padding: 10px 14px; font-size: var(--fs-3); color: var(--fx-text-dim); }
+.fx-cockpit-notas .fx-sefaz { font-size: var(--fs-2); }
+.fx-timepill, .fx-timepill.u-ok { margin-left: 0; padding: 2px 8px; border: 1px solid var(--fx-border); border-radius: 999px; background: transparent; color: var(--fx-text-dim); font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: var(--fs-2); font-weight: 400; white-space: nowrap; }
 
 /* ── DÉBITOS CONHECIDOS · forma do protótipo (fiscal-page.css L7, L216-223), medida em 2026-11-23. */
 .fx-page > .fx-debitos, .fx-debitos { margin-top: 8px; }
