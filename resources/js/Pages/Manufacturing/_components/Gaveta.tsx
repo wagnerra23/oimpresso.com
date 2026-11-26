@@ -55,9 +55,11 @@ export const BOTAO_PRIMARIO_SM =
  *  compartilhado não muda — só a Fabricação recebe a classe (C-08/C-09, ADR 0388 D-1). */
 /** Variante `ghost` do Button do DS em tamanho `sm` (26px, 12px, padding 0 10) — "Ingrediente em …". */
 export const BOTAO_SECUNDARIO_SM = `${BOTAO_SECUNDARIO} h-[26px] px-2.5 text-[12px]`;
-/** "Excluir receita" no contorno do DS (`Button` variant danger como ghost): texto vermelho claro,
- *  fundo de superfície, borda vermelha a 30% (E-02). Usar com `variant="outline"`. */
-export const BOTAO_PERIGO = `${BOTAO} border-[color-mix(in_oklch,var(--color-destructive)_30%,transparent)] bg-[var(--surface)] text-[oklch(0.74_0.13_18)] shadow-none hover:bg-[color-mix(in_oklch,var(--color-destructive)_12%,var(--surface))] hover:text-[oklch(0.74_0.13_18)] dark:border-[color-mix(in_oklch,var(--color-destructive)_30%,transparent)] dark:bg-[var(--surface)] dark:hover:bg-[color-mix(in_oklch,var(--color-destructive)_12%,var(--surface))]`;
+/** "Excluir receita" no contorno do DS (`Button` variant danger como ghost): texto vermelho,
+ *  fundo de superfície, borda vermelha a 30% (E-02). Usar com `variant="outline"`. O vermelho claro
+ *  do protótipo vale só no escuro: no claro deu 2,45:1 sobre branco, medido em produção em 2026-11-26;
+ *  `--color-destructive` dá 4,78:1. */
+export const BOTAO_PERIGO = `${BOTAO} border-[color-mix(in_oklch,var(--color-destructive)_30%,transparent)] bg-[var(--surface)] text-[var(--color-destructive)] shadow-none hover:bg-[color-mix(in_oklch,var(--color-destructive)_12%,var(--surface))] hover:text-[var(--color-destructive)] dark:text-[oklch(0.74_0.13_18)] dark:hover:text-[oklch(0.74_0.13_18)] dark:border-[color-mix(in_oklch,var(--color-destructive)_30%,transparent)] dark:bg-[var(--surface)] dark:hover:bg-[color-mix(in_oklch,var(--color-destructive)_12%,var(--surface))]`;
 export const KPI_LEITURA = 'gap-1.5 p-[14px] shadow-[0_1px_2px_rgba(0,0,0,.04)]';
 export const KPI_FILTRO = 'rounded-[8px] shadow-[0_1px_2px_rgba(0,0,0,.05)]';
 
