@@ -14,11 +14,13 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Icon } from '@/Components/Icon';
+import { toast } from 'sonner';
 import CrmCabecalho from '../_components/CrmCabecalho';
+import { CrmCartao, CrmMini } from '../_components/CrmBlocos';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 
@@ -43,39 +45,18 @@ interface Props { permissoes: Permissoes; pessoal?: Pessoal; negocio?: Negocio |
 
 const espera = <Skeleton className="h-32 w-full" />;
 
-function Bloco({ 'data-contract': contrato, titulo, acao, children }: { 'data-contract': string; titulo: ReactNode; acao?: ReactNode; children: ReactNode }) {
-  return (
-    <Card data-contract={contrato}>
-      <CardContent className="flex flex-col gap-3 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-medium">{titulo}</h3>
-          {acao}
-        </div>
-        {children}
-      </CardContent>
-    </Card>
-  );
-}
+// CRM-13: o cartão é o `Widget` do protótipo — `CrmCartao` (../_components/CrmBlocos).
+const Bloco = CrmCartao;
 
-function Tabela({ cabecalho, linhas }: { cabecalho: string[]; linhas: (string | number)[][] }) {
-  return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="text-left text-muted-foreground">
-          {cabecalho.map((c, i) => <th key={c} className={i ? 'text-right font-medium' : 'font-medium'}>{c}</th>)}
-        </tr>
-      </thead>
-      <tbody>
-        {linhas.length === 0 && <tr><td colSpan={cabecalho.length} className="py-2 text-center text-muted-foreground">Sem dados</td></tr>}
-        {linhas.map((l, i) => (
-          <tr key={i} className="border-t">
-            {l.map((v, j) => <td key={j} className={j ? 'py-1 text-right tabular-nums' : 'py-1'}>{v}</td>)}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
+// CRM-14: a `Mini` do protótipo — `CrmMini` (../_components/CrmBlocos), a mesma da gaveta.
+const Tabela = CrmMini;
+
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+/** "1990-08-27" → "27 de ago" — o protótipo não mostra o ano (CRM-15). */
+const diaDoAniversario = (dob?: string) => {
+  const [, m, d] = (dob ?? '').split('-').map(Number);
+  return m && d ? `${d} de ${MESES[m - 1]}` : null;
+};
 
 export default function PainelIndex({ permissoes, pessoal, negocio }: Props) {
   return (
@@ -99,7 +80,7 @@ function PainelPessoal({ permissoes, pessoal }: { permissoes: Permissoes; pessoa
   if (!pessoal) return null;
   return (
     <>
-      <KpiGrid cols={4}>
+      <KpiGrid cols={Math.max(2, [pessoal.hoje !== null, pessoal.meus_leads !== null, true, !!pessoal.chamadas].filter(Boolean).length) as 2 | 3 | 4}>
         {pessoal.hoje !== null && <KpiCard label="Acompanhamentos de hoje" value={pessoal.hoje} tone="info" />}
         {pessoal.meus_leads !== null && <KpiCard label="Meus leads" value={pessoal.meus_leads} tone="info" />}
         <KpiCard label="Meus leads convertidos" value={pessoal.convertidos} tone="success" />
@@ -108,12 +89,12 @@ function PainelPessoal({ permissoes, pessoal }: { permissoes: Permissoes; pessoa
       <div className="grid gap-4 md:grid-cols-2">
         {permissoes.acompanhamentos && pessoal.por_status && (
           <Bloco data-contract="crm-painel-meus" titulo="Meus acompanhamentos">
-            <Tabela cabecalho={['Status', 'Total']} linhas={pessoal.por_status.map((s) => [s.rotulo, s.total])} />
+            <Tabela linhas={pessoal.por_status.map((s) => [s.rotulo, s.total])} />
           </Bloco>
         )}
         {pessoal.chamadas && (
           <Bloco data-contract="crm-painel-chamadas" titulo="Meus registros de chamadas">
-            <Tabela cabecalho={['Período', 'Total']} linhas={[
+            <Tabela linhas={[
               ['Chamadas hoje', pessoal.chamadas.hoje],
               ['Chamadas ontem', pessoal.chamadas.ontem],
               ['Chamadas neste mês', pessoal.chamadas.mes],
@@ -137,7 +118,7 @@ function PainelNegocio({ negocio }: { negocio: Negocio }) {
         <label key={p.id} className="flex items-center gap-2 text-sm">
           <Checkbox checked={marcados.includes(p.id)} onCheckedChange={() => alternar(p.id)} />
           <span>{p.name}</span>
-          {p.dob && <small className="text-muted-foreground">{p.dob.split('-').reverse().join('/')}</small>}
+          {diaDoAniversario(p.dob) && <small className="text-muted-foreground">{diaDoAniversario(p.dob)}</small>}
         </label>
       ))}
     </div>
@@ -163,9 +144,10 @@ function PainelNegocio({ negocio }: { negocio: Negocio }) {
         data-contract="crm-painel-aniversarios"
         titulo="Aniversários"
         acao={marcados.length > 0
-          ? <Button asChild size="sm"><a href={desejos}>Enviar desejos</a></Button>
-          : <Button size="sm" disabled>Enviar desejos</Button>}
+          ? <Button asChild size="sm"><a href={desejos}><Icon name="send" size={12} /> Enviar desejos</a></Button>
+          : <Button size="sm" onClick={() => toast.warning('Selecione os contatos para enviar os desejos.')}><Icon name="send" size={12} /> Enviar desejos</Button>}
       >
+        <p className="mb-2.5 text-xs text-muted-foreground">Marque quem vai receber e mande os parabéns como campanha.</p>
         <div className="grid gap-4 md:grid-cols-2">
           {lista('Hoje', negocio.aniversarios.hoje)}
           {lista('Próximos', negocio.aniversarios.proximos)}
