@@ -974,24 +974,27 @@ class ScheduleController extends Controller
         $agora = Carbon::now();
         $consulta = Schedule::leftjoin('contacts', 'crm_schedules.contact_id', '=', 'contacts.id')
             ->leftjoin('categories as C', 'crm_schedules.followup_category_id', '=', 'C.id')
-            ->with(['users'])
             ->where('crm_schedules.business_id', $business_id)
             ->where('crm_schedules.garantia', 1)
             ->select('crm_schedules.*', 'contacts.name as contato', 'contacts.supplier_business_name as biz_name', 'C.name as tipo');
 
         if (! auth()->user()->can('superadmin') && ! auth()->user()->can('crm.access_all_schedule')) {
-            $user_id = auth()->user()->id;
-            $consulta->whereHas('users', fn ($q) => $q->where('user_id', $user_id));
+            $consulta->whereIn('crm_schedules.id', DB::table('crm_schedule_users')->where('user_id', auth()->user()->id)->select('schedule_id'));
         }
 
         $chamados = $consulta->orderBy('crm_schedules.sla_vence_em')->limit(200)->get();
         $ids = $chamados->pluck('id');
+        $responsaveis = DB::table('crm_schedule_users as su')->join('users as u', 'u.id', '=', 'su.user_id')
+            ->whereIn('su.schedule_id', $ids)->where('u.business_id', $business_id)
+            ->get(['su.schedule_id', 'u.first_name', 'u.last_name'])
+            ->groupBy('schedule_id')
+            ->map(fn ($g) => $g->map(fn ($u) => trim("{$u->first_name} {$u->last_name}"))->implode(', '));
         $vendas = DB::table('crm_followup_invoices as fi')->join('transactions as t', 't.id', '=', 'fi.transaction_id')
             ->whereIn('fi.follow_up_id', $ids)->where('t.business_id', $business_id)->pluck('t.invoice_no', 'fi.follow_up_id');
         $os = DB::table('repair_job_sheets')->where('business_id', $business_id)
             ->whereIn('id', $chamados->pluck('repair_job_sheet_id')->filter())->pluck('job_sheet_no', 'id');
 
-        $itens = $chamados->map(function ($c) use ($agora, $vendas, $os) {
+        $itens = $chamados->map(function ($c) use ($agora, $vendas, $os, $responsaveis) {
             $vence = $c->sla_vence_em ? Carbon::parse($c->sla_vence_em) : null;
             $prazo = match (true) {
                 in_array($c->status, ['completed', 'cancelled'], true) => 'encerrado',
@@ -1011,7 +1014,7 @@ class ScheduleController extends Controller
                 'origem' => $origem,
                 'tipo' => $c->tipo ?: 'Padrão da empresa',
                 'fila' => $c->fila,
-                'responsavel' => $c->users->pluck('user_full_name')->implode(', '),
+                'responsavel' => (string) ($responsaveis[$c->id] ?? ''),
                 'status' => $c->status,
                 'relato' => strip_tags((string) $c->description),
             ];
