@@ -46,6 +46,9 @@ function acoLimpa(): void
     if (Schema::hasTable('crm_schedules')) {
         DB::table('crm_schedules')->where('title', 'like', '%'.ACO_TAG.'%')->delete();
     }
+    if (Schema::hasTable('transactions')) {
+        DB::table('transactions')->where('invoice_no', 'like', 'ACOG-%')->delete();
+    }
     if (Schema::hasTable('contacts')) {
         DB::table('contacts')->where('name', 'like', '%'.ACO_TAG.'%')->delete();
     }
@@ -535,4 +538,118 @@ it('UC-CRMACO-21 · o antecipado grava a notificação escolhida em cada acompan
     $linha = DB::table('crm_schedules')->where('contact_id', $a)->where('title', 'like', 'Silencio %')->first();
     $this->assertNotNull($linha, 'o antecipado sem notificação não foi gravado');
     expect((int) $linha->allow_notification)->toBe(0);
+});
+
+
+// ── Aba Garantia (US-CRM-094, fatia 3) ──
+
+/** Venda final do contato, com número que o teste conhece (o modal manda o número, não o id). */
+function acoVenda(int $biz, int $contato, string $numero): int
+{
+    return (int) DB::table('transactions')->insertGetId([
+        'business_id' => $biz, 'location_id' => \Tests\Support\EstoqueFixture::locationId($biz), 'contact_id' => $contato,
+        'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid', 'invoice_no' => $numero,
+        'transaction_date' => now(), 'total_before_tax' => 100, 'final_total' => 100,
+        'created_by' => DB::table('users')->where('business_id', $biz)->value('id'), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/** Chamado de garantia cru: acompanhamento com garantia=1 e o prazo em horas a partir de agora. */
+function acoChamado(int $biz, string $relato, User $responsavel, int $venceEmHoras, string $status = 'open', ?int $venda = null): int
+{
+    $id = acoAcompanhamento($biz, 'Garantia: '.$relato, $responsavel);
+    DB::table('crm_schedules')->where('id', $id)->update([
+        'garantia' => 1, 'status' => $status, 'description' => $relato, 'fila' => 'Assistência',
+        'sla_vence_em' => now()->addHours($venceEmHoras), 'end_datetime' => now()->addHours($venceEmHoras),
+    ]);
+    if ($venda !== null) {
+        DB::table('crm_followup_invoices')->insert(['follow_up_id' => $id, 'transaction_id' => $venda]);
+    }
+
+    return $id;
+}
+
+/** A prop deferida `garantia`, pedida como o browser pede. */
+function acoGarantia(User $user): ?array
+{
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    return test()->actingAs($user)->get(ACO_ROTA, [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'garantia', 'X-Inertia-Partial-Component' => 'Crm/Acompanhamentos/Index',
+    ])->assertOk()->json('props.garantia');
+}
+
+it('UC-CRMACO-25 · a aba Garantia lista os chamados pelo vencimento, com o estado do prazo, no escopo de quem vê [T0]', function () {
+    if (! Schema::hasColumn('crm_schedules', 'garantia')) {
+        $this->markTestSkipped('Coluna crm_schedules.garantia ausente.');
+    }
+    $todos = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $meus = acoUsuario('aco_meus_test', ['crm.access_own_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+
+    // Sem a chave, a prop não existe e a tela não mostra a aba.
+    config(['crm.garantia_sla.enabled' => false]);
+    expect(acoGarantia($todos))->toBeNull();
+
+    config(['crm.garantia_sla.enabled' => true]);
+    $contato = acoContato(ACO_BIZ, $todos);
+    $venda = acoVenda(ACO_BIZ, $contato, 'ACOG-'.uniqid());
+    acoChamado(ACO_BIZ, 'No prazo '.ACO_TAG, $todos, 30, 'open', $venda);
+    acoChamado(ACO_BIZ, 'Vencido '.ACO_TAG, $todos, -2);
+    acoChamado(ACO_BIZ, 'Vencendo '.ACO_TAG, $meus, 2);
+    acoChamado(ACO_BIZ, 'Encerrado '.ACO_TAG, $todos, -50, 'completed');
+    acoChamado(ACO_OUTRO, 'Vizinho '.ACO_TAG, $vizinho, 5);
+    acoAcompanhamento(ACO_BIZ, 'Comum sem garantia', $todos);
+
+    $g = acoGarantia($todos);
+    $meusDoArquivo = collect($g['itens'])->filter(fn ($i) => str_contains($i['relato'], ACO_TAG))->values();
+    expect($meusDoArquivo->pluck('relato')->all())->toBe(['Encerrado '.ACO_TAG, 'Vencido '.ACO_TAG, 'Vencendo '.ACO_TAG, 'No prazo '.ACO_TAG]);
+    expect($meusDoArquivo->pluck('prazo')->all())->toBe(['encerrado', 'vencido', 'vencendo', 'ok']);
+    expect($meusDoArquivo[3]['origem'])->toStartWith('Venda ACOG-');
+    expect($meusDoArquivo[3]['fila'])->toBe('Assistência');
+    expect(json_encode($g))->not->toContain('Vizinho '.ACO_TAG)->not->toContain('Comum sem garantia');
+
+    // Quem só vê os próprios vê só o chamado em que é responsável.
+    $dele = collect(acoGarantia($meus)['itens'])->filter(fn ($i) => str_contains($i['relato'], ACO_TAG));
+    expect($dele->pluck('relato')->values()->all())->toBe(['Vencendo '.ACO_TAG]);
+});
+
+it('UC-CRMACO-26 · abrir chamado acha a venda pelo número só entre as do cliente nesta empresa, e sem a chave dá 404 [T0]', function () {
+    if (! Schema::hasColumn('crm_schedules', 'garantia')) {
+        $this->markTestSkipped('Coluna crm_schedules.garantia ausente.');
+    }
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $contato = acoContato(ACO_BIZ, $user);
+    $numero = 'ACOG-'.uniqid();
+    $venda = acoVenda(ACO_BIZ, $contato, $numero);
+    $alheio = acoContato(ACO_OUTRO, $vizinho);
+    $numeroAlheio = 'ACOG-'.uniqid();
+    acoVenda(ACO_OUTRO, $alheio, $numeroAlheio);
+    $corpo = ['contact_id' => $contato, 'origem' => $numero, 'relato' => 'Lona desbotou '.ACO_TAG];
+
+    config(['crm.garantia_sla.enabled' => false]);
+    $this->actingAs($user)->post(ACO_ROTA.'/garantia', $corpo, ACO_AJAX)->assertNotFound();
+    expect(DB::table('crm_schedules')->where('description', 'Lona desbotou '.ACO_TAG)->exists())->toBeFalse();
+
+    config(['crm.garantia_sla.enabled' => true]);
+    // Venda de outra empresa, digitada pelo número: não é achada.
+    $this->actingAs($user)->post(ACO_ROTA.'/garantia', ['origem' => $numeroAlheio] + $corpo, ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors('origem');
+    // Cliente de outra empresa com a venda dele: recusado.
+    $this->actingAs($user)->post(ACO_ROTA.'/garantia', ['contact_id' => $alheio, 'origem' => $numeroAlheio] + $corpo, ACO_AJAX)
+        ->assertStatus(422);
+    // Defeito curto demais.
+    $this->actingAs($user)->post(ACO_ROTA.'/garantia', ['relato' => 'ok'] + $corpo, ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors('relato');
+    expect(DB::table('crm_schedules')->where('description', 'like', '%'.ACO_TAG.'%')->where('garantia', 1)->count())->toBe(0);
+
+    $id = $this->actingAs($user)->post(ACO_ROTA.'/garantia', $corpo, ACO_AJAX)->assertOk()->assertJson(['success' => true])->json('id');
+    $chamado = DB::table('crm_schedules')->find($id);
+    expect((int) $chamado->business_id)->toBe(ACO_BIZ)
+        ->and((int) $chamado->garantia)->toBe(1)
+        ->and((int) $chamado->contact_id)->toBe($contato)
+        ->and($chamado->sla_vence_em)->not->toBeNull();
+    expect(DB::table('crm_followup_invoices')->where('follow_up_id', $id)->value('transaction_id'))->toBe($venda);
 });

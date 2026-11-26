@@ -912,6 +912,9 @@ class ScheduleController extends Controller
 
                 return ['total' => $ids->count(), 'status' => $por('status'), 'tipo' => $por('schedule_type')];
             }),
+            // Aba Garantia (US-CRM-094, fatia 3): só com a chave ligada. Sem a chave a prop é nula
+            // e a tela não mostra a aba.
+            'garantia' => config('crm.garantia_sla.enabled') ? Inertia::defer(fn () => $this->garantiaInertia($business_id)) : null,
             'acompanhamentos' => Inertia::defer(fn () => $schedules
                 ->orderByDesc('crm_schedules.start_datetime')
                 ->paginate(25)
@@ -957,5 +960,130 @@ class ScheduleController extends Controller
                     ],
                 ])),
         ]);
+    }
+
+    /**
+     * Chamados de garantia da aba "Garantia" (US-CRM-094, fatia 3), ordenados pelo vencimento.
+     *
+     * A aba não herda os filtros da lista de acompanhamentos (o protótipo a mostra à parte). O
+     * escopo é o mesmo da lista: a empresa da sessão e, para quem só vê os próprios, os chamados
+     * em que é responsável.
+     */
+    private function garantiaInertia($business_id): array
+    {
+        $agora = Carbon::now();
+        $consulta = Schedule::leftjoin('contacts', 'crm_schedules.contact_id', '=', 'contacts.id')
+            ->leftjoin('categories as C', 'crm_schedules.followup_category_id', '=', 'C.id')
+            ->with(['users'])
+            ->where('crm_schedules.business_id', $business_id)
+            ->where('crm_schedules.garantia', 1)
+            ->select('crm_schedules.*', 'contacts.name as contato', 'contacts.supplier_business_name as biz_name', 'C.name as tipo');
+
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('crm.access_all_schedule')) {
+            $user_id = auth()->user()->id;
+            $consulta->whereHas('users', fn ($q) => $q->where('user_id', $user_id));
+        }
+
+        $chamados = $consulta->orderBy('crm_schedules.sla_vence_em')->limit(200)->get();
+        $ids = $chamados->pluck('id');
+        $vendas = DB::table('crm_followup_invoices as fi')->join('transactions as t', 't.id', '=', 'fi.transaction_id')
+            ->whereIn('fi.follow_up_id', $ids)->where('t.business_id', $business_id)->pluck('t.invoice_no', 'fi.follow_up_id');
+        $os = DB::table('repair_job_sheets')->where('business_id', $business_id)
+            ->whereIn('id', $chamados->pluck('repair_job_sheet_id')->filter())->pluck('job_sheet_no', 'id');
+
+        $itens = $chamados->map(function ($c) use ($agora, $vendas, $os) {
+            $vence = $c->sla_vence_em ? Carbon::parse($c->sla_vence_em) : null;
+            $prazo = match (true) {
+                in_array($c->status, ['completed', 'cancelled'], true) => 'encerrado',
+                $vence === null => 'ok',
+                $vence->lt($agora) => 'vencido',
+                $vence->lte($agora->copy()->addHours(4)) => 'vencendo',
+                default => 'ok',
+            };
+            $origem = isset($vendas[$c->id]) ? 'Venda '.$vendas[$c->id] : (isset($os[$c->repair_job_sheet_id]) ? 'OS '.$os[$c->repair_job_sheet_id] : '—');
+
+            return [
+                'id' => $c->id,
+                'prazo' => $prazo,
+                'aberto' => $c->start_datetime ? Carbon::parse($c->start_datetime)->format('d/m/Y H:i') : null,
+                'vence' => $vence?->format('d/m/Y H:i'),
+                'contato' => trim(($c->biz_name ? $c->biz_name.', ' : '').$c->contato),
+                'origem' => $origem,
+                'tipo' => $c->tipo ?: 'Padrão da empresa',
+                'fila' => $c->fila,
+                'responsavel' => $c->users->pluck('user_full_name')->implode(', '),
+                'status' => $c->status,
+                'relato' => strip_tags((string) $c->description),
+            ];
+        })->values();
+
+        $abertos = $itens->where('prazo', '!=', 'encerrado');
+        $politicas = DB::table('crm_sla_politicas as p')->leftJoin('categories as C', 'C.id', '=', 'p.followup_category_id')
+            ->leftJoin('users as u', function ($j) use ($business_id) {
+                $j->on('u.id', '=', 'p.responsavel_user_id')->where('u.business_id', $business_id);
+            })
+            ->where('p.business_id', $business_id)->where('p.ativo', 1)
+            ->get(['p.followup_category_id', 'C.name as tipo', 'p.prazo_horas', 'p.fila', 'u.first_name', 'u.last_name']);
+
+        return [
+            'itens' => $itens,
+            'contagem' => ['abertos' => $abertos->count()] + collect(['ok', 'vencendo', 'vencido'])->mapWithKeys(fn ($k) => [$k => $abertos->where('prazo', $k)->count()])->all(),
+            'politicas' => $politicas->map(fn ($p) => [
+                'tipo_id' => $p->followup_category_id ? (string) $p->followup_category_id : null,
+                'tipo' => $p->followup_category_id ? (string) $p->tipo : 'Padrão da empresa',
+                'horas' => (int) $p->prazo_horas,
+                'fila' => $p->fila,
+                'responsavel' => trim("{$p->first_name} {$p->last_name}") ?: null,
+            ])->values(),
+            'prazo_padrao_horas' => (int) config('crm.garantia_sla.prazo_padrao_horas', 48),
+            'filas' => $politicas->pluck('fila')->merge($itens->pluck('fila'))->filter()->unique()->sort()->values(),
+        ];
+    }
+
+    /**
+     * "Abrir chamado de garantia" da aba Garantia (US-CRM-094, fatia 3). A venda ou a OS vêm
+     * como número digitado ("POS-2026-0471" ou "OS-2026-0312", como no protótipo) e são
+     * procuradas só entre as do cliente nesta empresa; o resto é o ChamadoGarantiaService.
+     */
+    public function abrirGarantia(Request $request, \Modules\Crm\Services\ChamadoGarantiaService $servico)
+    {
+        $business_id = $request->session()->get('user.business_id');
+        if (! config('crm.garantia_sla.enabled')) {
+            abort(404);
+        }
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))
+            || ! (auth()->user()->can('crm.access_all_schedule') || auth()->user()->can('crm.access_own_schedule'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $dados = $request->validate([
+            'contact_id' => 'required|integer',
+            'origem' => 'required|string|max:60',
+            'relato' => 'required|string|min:5',
+            'followup_category_id' => 'nullable|integer',
+            'fila' => 'nullable|string|max:60',
+            'responsavel_user_id' => 'nullable|integer',
+        ], [], ['origem' => 'venda ou OS', 'relato' => 'defeito relatado']);
+
+        $numero = trim($dados['origem']);
+        $vendaId = DB::table('transactions')->where('business_id', $business_id)->where('type', 'sell')
+            ->where('contact_id', $dados['contact_id'])->where('invoice_no', $numero)->value('id');
+        $osId = $vendaId ? null : DB::table('repair_job_sheets')->where('business_id', $business_id)
+            ->where('contact_id', $dados['contact_id'])->where('job_sheet_no', $numero)->value('id');
+        if (! $vendaId && ! $osId) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['origem' => 'Venda ou OS não encontrada para este cliente.']);
+        }
+
+        $chamado = $servico->abrir((int) $business_id, (int) auth()->id(), [
+            'contact_id' => (int) $dados['contact_id'],
+            'relato' => $dados['relato'],
+            'transaction_id' => $vendaId,
+            'repair_job_sheet_id' => $osId,
+            'followup_category_id' => $dados['followup_category_id'] ?? null,
+            'fila' => $dados['fila'] ?? null,
+            'responsavel_user_id' => $dados['responsavel_user_id'] ?? null,
+        ]);
+
+        return response()->json(['success' => true, 'id' => $chamado->id]);
     }
 }
