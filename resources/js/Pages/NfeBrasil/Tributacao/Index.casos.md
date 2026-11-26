@@ -983,6 +983,17 @@ last_run: "2026-11-23"
 - `[BACKLOG]` **Produto com natureza pendente bloqueia o faturamento dividido com mensagem que manda o
   contador decidir** (US-NFE-069). Hoje pendente emite pelo padrão da UF (UC-NFTR-30), que é a regra da
   NF-e sozinha; o bloqueio vale para a divisão.
+  - **Errata 2026-11-26 (os quatro itens acima, da US-NFE-069):** feitos no
+    [#9727](https://github.com/wagnerra23/oimpresso.com/pull/9727) (mergeado em 2026-10-21), fora desta tela.
+    O `SeparacaoNotasDaVenda` (`Modules/NfeBrasil/Services/`) divide a venda em parte mercadoria e parte
+    serviço, com as duas somando o `final_total` centavo a centavo; a NF-e emite a parte mercadoria com
+    `separada = true` (`NfeService`, docblock "Venda separada") e a NFS-e a parte serviço
+    (`NfseController::emitirParaTransaction`). A natureza e o `codigo_servico` vêm de
+    `nfe_naturezas_produto`, e a NFS-e manda o código gravado como `lc116`; item de serviço (a instalação
+    do caso de teste) vai para a NFS-e mesmo com mercadoria na venda. Natureza pendente fica listada em
+    `pendentes`, e as duas emissões recusam com 422 "o contador decide antes de faturar". Os casos são
+    UC-FNFSE-06 a 09 em `Fiscal/Nfse.casos.md`, com o `SeparacaoNotasDaVendaContratoTest`. Sem
+    `separada`, a NF-e segue recusando item de serviço (UC-NFTR-31).
 - `[BACKLOG]` **"Perguntar à Jana" responde com fonte e não altera nada** (playbook Fiscal thread 10, UC-NFTR-10b provisório). Não entrou no PR da 10: é chat livre, e a thread entregou só as sugestões estruturadas. Vira UC com o teste `JanaFiscalPerguntaTest`.
 
 - ~~`[BACKLOG]` `regras` e `templates` são deferidos~~ — virou **UC-NFTR-84** (2026-11-26).
@@ -1004,6 +1015,12 @@ last_run: "2026-11-23"
 > `Schema::hasTable` em 2026-07-27): a suite SKIPa inteira lá. A lane de CI é o único lugar que a executa.
 > Ao ler o resultado, conferir a **contagem de testes passados** no JUnit, não só o check verde — suite
 > que SKIPa também fica verde (gate mudo, `proibicoes.md` §5 2026-07-27).
+>
+> **Errata 2026-11-26:** a ausência das tabelas é a medição de 2026-07-27 e foi superada. O CT 100 já
+> executou a suíte desta tela em 2026-10-07 (linha do recibo acima: 19 passed, 135 assertions) e, em
+> 2026-11-24, a do `RegraForm` (UC-NFRF-01..08 e 11 verdes, nota de `last_run` do `RegraForm.casos.md`;
+> lá só o UC-NFRF-09 pulou, por faltar a migração `cst_pis` no container). A regra de conferir a contagem
+> de testes passados, e não só o check verde, continua valendo.
 >
 > Os `Status: 🧪` só sobem pra ✅ quando o manifesto do G-7 (`scripts/casos-test-results.json`) for
 > regravado a partir do JUnit — ✅ é afirmação que exige prova.
