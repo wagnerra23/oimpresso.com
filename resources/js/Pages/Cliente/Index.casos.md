@@ -267,12 +267,20 @@ last_run: "2026-11-25"
 - **Teste:** `tests/js/cliente-gaveta-pendencias.test.tsx` (Vitest) — `UC-CIDX-26 …`. O lado da tela do UC-CIDX-25 está no mesmo arquivo.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
+## UC-CIDX-27 · A lista de clientes não mostra nem conta cadastro de outra empresa `[T0]` `[must]`
+- **Persona:** qualquer pessoa que abre Contatos (`/cliente`), em qualquer aba.
+- **Como usa:** a lista carrega em parcial as props deferidas `kpis`, `tab_counts` e `customers`.
+- **Aceite:** Dado um cadastro na empresa do usuário e outro numa segunda empresa · Quando a lista abre (aba Clientes e aba Todos) · Então só o cadastro da própria empresa aparece · E os KPIs (total, novos no mês, VIPs) e os contadores das abas não mudam quando a outra empresa ganha cadastro · E mudam em 1 quando a própria empresa ganha · E no sentido inverso a segunda empresa também não vê nem conta o cadastro da primeira.
+- **Âncora de contrato:** US-CRM-080 (`memory/requisitos/Crm/SPEC.md`) · `App\Contact` não tem global scope (SDD §5.4.2), então o isolamento é o `where('contacts.business_id')` manual de `ContactController::buildClienteIndexKpis`, `buildClienteIndexTabCounts` e `buildClienteIndexCustomers` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteIndexIsolamentoEmpresaTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-27 …`. Tenant de teste 98 × 99.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG] Clicar num KPI aplica o filtro correspondente (toggle 2x desativa)** — exige spec e2e do `KpiStripClickable`.
 - **[BACKLOG] Abrir o drawer 760 ao clicar na linha + autosave on blur** — spec Playwright (o cadastro em si é coberto por Edit.casos UC-CEDI-04).
 - **[BACKLOG] 6 dropdowns de filtro (Tipo/Status/UF/Tags/Sem compra/Saldo) filtram** — e2e.
-- **[BACKLOG] A LISTAGEM não devolve cliente de outro tenant** — hoje o cross-tenant do módulo é coberto no `edit` (UC-CEDI-03), no mapa (UC-CMAP-02), no saldo (UC-CLED-04) e nos pagamentos (UC-CSHW-03), mas **não** em `GET /cliente`. O `ClienteKpisServerSideTest` cobre os KPIs por *source-grep*, não a lista. É a lacuna Tier 0 que sobra, e pesa mais aqui porque **`App\Contact` não tem global scope** (0 ocorrências de `addGlobalScope` em `app/Contact.php` — SDD §5.4.2): o isolamento é `where('business_id')` manual. É exatamente o que **US-CRM-080** pede; vira UC quando a US for atendida.
+- ~~**[BACKLOG] A LISTAGEM não devolve cliente de outro tenant**~~ — virou **UC-CIDX-27** (2026-11-26), com teste próprio da lista, dos KPIs e dos contadores das abas.
 
 **Casos pedidos em 2026-10-23 — saldo a favor e limite de crédito**
 
