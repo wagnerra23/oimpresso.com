@@ -116,6 +116,22 @@ export function computePresetRange(preset: DateFilterPreset, now: Date = new Dat
   };
 }
 
+const PRESETS_VALIDOS: readonly DateFilterPreset[] = ['day', 'week', 'month', 'year', 'custom', 'all'];
+
+/**
+ * Período com que a lista de vendas abre.
+ *
+ * Decisão [W] 2026-11-25 (item 08 da conferência lista × protótipo): na primeira vez a
+ * lista abre em "Hoje" (`day`); depois vale a última escolha salva. `salvo` é o valor lido
+ * do localStorage, `''` quando a pessoa nunca escolheu. Valor desconhecido conta como
+ * nunca escolhido.
+ */
+export function presetInicial(salvo: string): DateFilterPreset {
+  return (PRESETS_VALIDOS as readonly string[]).includes(salvo)
+    ? (salvo as DateFilterPreset)
+    : 'day';
+}
+
 const PRESET_LABEL: Record<Exclude<DateFilterPreset, 'all'>, string> = {
   day: 'Dia',
   week: 'Semana',

@@ -40,6 +40,7 @@ import { toast } from 'sonner';
 // Refs: Index.charter.md v2 Goals · feedback-design-literal-copy §How to apply #5.
 import SellsDateFilter, {
   computePresetRange,
+  presetInicial,
   type DateFilterPreset,
 } from './_components/SellsDateFilter';
 import SellsTabsVisao, { type SellsVisao } from './_components/SellsTabsVisao';
@@ -528,23 +529,19 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   // viewMode + groupBy + Grade Avançada REMOVIDOS 2026-05-21 (cleanup pós-Onda Unificação,
   // ADR 0178). Conceito de "Lista vs Grade Avançada" eliminado — tabs Visão atendem.
 
-  const [datePreset, setDatePreset] = useState<DateFilterPreset>(() => {
-    const v = ls.get('datePreset', 'all');
-    return (['day', 'week', 'month', 'year', 'custom', 'all'] as const).includes(
-      v as DateFilterPreset
-    )
-      ? (v as DateFilterPreset)
-      : 'all';
-  });
+  // Primeira vez abre em "Hoje"; depois, a última escolha salva (decisão [W] 2026-11-25, item 08).
+  const [datePreset, setDatePreset] = useState<DateFilterPreset>(() =>
+    presetInicial(ls.get('datePreset', ''))
+  );
   useEffect(() => ls.set('datePreset', datePreset), [datePreset]);
 
   const [dateFrom, setDateFrom] = useState<string>(() => {
-    const stored = ls.get('datePreset', 'all') as DateFilterPreset;
+    const stored = presetInicial(ls.get('datePreset', ''));
     if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateFrom;
     return ls.get('dateFrom', '');
   });
   const [dateTo, setDateTo] = useState<string>(() => {
-    const stored = ls.get('datePreset', 'all') as DateFilterPreset;
+    const stored = presetInicial(ls.get('datePreset', ''));
     if (stored !== 'all' && stored !== 'custom') return computePresetRange(stored).dateTo;
     return ls.get('dateTo', '');
   });

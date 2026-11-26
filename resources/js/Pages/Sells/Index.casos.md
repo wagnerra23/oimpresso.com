@@ -207,6 +207,16 @@ last_run: "2026-11-21"
 
 ---
 
+## UC-SIDX-09 · A lista abre em "Hoje" na primeira vez e depois na última escolha `[must]`
+- **Persona:** Larissa / Guilherme — abre a consulta de vendas para ver o movimento do dia.
+- **Como usa:** abre `/sells`; troca o período (Dia · Semana · Mês · Ano · Personalizado) quando precisa de outro recorte.
+- **Aceite:** Dado que a pessoa nunca escolheu período nesta empresa (nada salvo) · Quando abre a lista · Então o período é "Hoje" (`day`, o dia inteiro) · E, se ela escolheu outro período (inclusive "todas", ao limpar o filtro), a próxima abertura usa esse · E valor salvo desconhecido conta como nunca escolhido.
+- **Âncora de contrato:** decisão [W] 2026-11-25, item 08 da conferência lista × protótipo (`memory/requisitos/Sells/sells-index-dsv6-visual-comparison.md`, PR #11507): *"Visão ao abrir a primeira vez: Hoje. Depois, cada pessoa continua com a última escolha."* A escolha fica no localStorage por empresa (`oimpresso.sells.b<id>.datePreset`). Antes de 2026-11-26 a lista abria em "todas".
+- **Teste:** `tests/js/sells-index-periodo-inicial.test.ts` — `UC-SIDX-09 …` (lane Vitest do `Frontend / Vite build`).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+---
+
 ## UC-SDUP-04 · A venda duplicada mostra na linha de qual venda veio `[must]`
 - **Persona:** vendedor que repete o pedido de um cliente (recompra) — Sabor Brasil, Zoom, Techpress.
 - **Como usa:** no menu ⋮ da linha escolhe **Duplicar**; a venda nova aparece na lista com "Duplicada de #V-150" embaixo do número.
