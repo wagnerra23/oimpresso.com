@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"OfficeImpressoPontoWR2DesignSystem_019dd0","components":[{"name":"Alert","sourcePath":"components/Alert/Alert.jsx"},{"name":"AppSidebar","sourcePath":"components/AppSidebar/AppSidebar.jsx"},{"name":"Avatar","sourcePath":"components/Avatar/Avatar.jsx"},{"name":"BoardColumn","sourcePath":"components/BoardColumn/BoardColumn.jsx"},{"name":"Breadcrumb","sourcePath":"components/Breadcrumb/Breadcrumb.jsx"},{"name":"BulkBar","sourcePath":"components/BulkBar/BulkBar.jsx"},{"name":"Button","sourcePath":"components/Button/Button.jsx"},{"name":"Chart","sourcePath":"components/Chart/Chart.jsx"},{"name":"Checkbox","sourcePath":"components/Checkbox/Checkbox.jsx"},{"name":"ColumnPrefs","sourcePath":"components/ColumnManager/ColumnManager.jsx"},{"name":"ColumnManager","sourcePath":"components/ColumnManager/ColumnManager.jsx"},{"name":"Command","sourcePath":"components/Command/Command.jsx"},{"name":"DataGrid","sourcePath":"components/DataGrid/DataGrid.jsx"},{"name":"DataTable","sourcePath":"components/DataTable/DataTable.jsx"},{"name":"DataTablePro","sourcePath":"components/DataTablePro/DataTablePro.jsx"},{"name":"DatePicker","sourcePath":"components/DatePicker/DatePicker.jsx"},{"name":"Dimension","sourcePath":"components/Dimension/Dimension.jsx"},{"name":"Drawer","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DrawerSection","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DropdownMenu","sourcePath":"components/DropdownMenu/DropdownMenu.jsx"},{"name":"EmptyState","sourcePath":"components/EmptyState/EmptyState.jsx"},{"name":"FilterChip","sourcePath":"components/FilterChip/FilterChip.jsx"},{"name":"FsmStepper","sourcePath":"components/FsmStepper/FsmStepper.jsx"},{"name":"Input","sourcePath":"components/Input/Input.jsx"},{"name":"SearchInput","sourcePath":"components/Input/Input.jsx"},{"name":"Textarea","sourcePath":"components/Input/Input.jsx"},{"name":"Select","sourcePath":"components/Input/Input.jsx"},{"name":"Kebab","sourcePath":"components/Kebab/Kebab.jsx"},{"name":"KpiCard","sourcePath":"components/KpiCard/KpiCard.jsx"},{"name":"KpiFilterCard","sourcePath":"components/KpiFilterCard/KpiFilterCard.jsx"},{"name":"Logo","sourcePath":"components/Logo/Logo.jsx"},{"name":"Modal","sourcePath":"components/Modal/Modal.jsx"},{"name":"PageHeader","sourcePath":"components/PageHeader/PageHeader.jsx"},{"name":"Pagination","sourcePath":"components/Pagination/Pagination.jsx"},{"name":"PeriodBar","sourcePath":"components/PeriodBar/PeriodBar.jsx"},{"name":"PlacaVeiculo","sourcePath":"components/PlacaVeiculo/PlacaVeiculo.jsx"},{"name":"PresenterMode","sourcePath":"components/PresenterMode/PresenterMode.jsx"},{"name":"Progress","sourcePath":"components/Progress/Progress.jsx"},{"name":"ProofFrame","sourcePath":"components/ProofFrame/ProofFrame.jsx"},{"name":"ProofStrip","sourcePath":"components/ProofStrip/ProofStrip.jsx"},{"name":"RadioGroup","sourcePath":"components/RadioGroup/RadioGroup.jsx"},{"name":"RegistrationMark","sourcePath":"components/RegistrationMark/RegistrationMark.jsx"},{"name":"Segmented","sourcePath":"components/Segmented/Segmented.jsx"},{"name":"Skeleton","sourcePath":"components/Skeleton/Skeleton.jsx"},{"name":"StatusBadge","sourcePath":"components/StatusBadge/StatusBadge.jsx"},{"name":"Switch","sourcePath":"components/Switch/Switch.jsx"},{"name":"TabBar","sourcePath":"components/TabBar/TabBar.jsx"},{"name":"TagChip","sourcePath":"components/TagChip/TagChip.jsx"},{"name":"TaskCard","sourcePath":"components/TaskCard/TaskCard.jsx"},{"name":"Timeline","sourcePath":"components/Timeline/Timeline.jsx"},{"name":"Toast","sourcePath":"components/Toast/Toast.jsx"},{"name":"Toolbar","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarDivider","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarSpacer","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarButton","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarSearch","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"Tooltip","sourcePath":"components/Tooltip/Tooltip.jsx"},{"name":"Widget","sourcePath":"components/Widget/Widget.jsx"}],"sourceHashes":{"Norte/norte-app.jsx":"032253e5bb48","Norte/norte-data.jsx":"6f29edbe0218","components/Alert/Alert.jsx":"6e286e49d769","components/AppSidebar/AppSidebar.jsx":"f99e84d00339","components/Avatar/Avatar.jsx":"b048f23ec4f9","components/BoardColumn/BoardColumn.jsx":"adbbb54b5fb3","components/Breadcrumb/Breadcrumb.jsx":"257e48371799","components/BulkBar/BulkBar.jsx":"61d8c05959b8","components/Button/Button.jsx":"80807dc45cbb","components/Chart/Chart.jsx":"c6062288c717","components/Checkbox/Checkbox.jsx":"095cdd35c03f","components/ColumnManager/ColumnManager.jsx":"6ba863d8f2ff","components/Command/Command.jsx":"09e4d5e2ecd8","components/DataGrid/DataGrid.jsx":"49aafb281a03","components/DataTable/DataTable.jsx":"d995c444ba62","components/DataTablePro/DataTablePro.jsx":"c6a4e3f44847","components/DatePicker/DatePicker.jsx":"06226f7d6268","components/Dimension/Dimension.jsx":"ccfde33af6ff","components/Drawer/Drawer.jsx":"1e766133c429","components/DropdownMenu/DropdownMenu.jsx":"b934261b1049","components/EmptyState/EmptyState.jsx":"453df944697f","components/FilterChip/FilterChip.jsx":"dcbf9c9815df","components/FsmStepper/FsmStepper.jsx":"f54c8bf5dc86","components/Input/Input.jsx":"d3563b73d7f6","components/Kebab/Kebab.jsx":"50730baf348b","components/KpiCard/KpiCard.jsx":"5adeb0d1cef1","components/KpiFilterCard/KpiFilterCard.jsx":"b3cad8b3b316","components/Logo/Logo.jsx":"c86f0c3126cf","components/Modal/Modal.jsx":"71c782e4ede8","components/PageHeader/PageHeader.jsx":"5f5ad41c15c4","components/Pagination/Pagination.jsx":"66819b89c651","components/PeriodBar/PeriodBar.jsx":"a8c2b59cfb38","components/PlacaVeiculo/PlacaVeiculo.jsx":"9465ca04efbd","components/PresenterMode/PresenterMode.jsx":"8332bf26e55e","components/Progress/Progress.jsx":"879fb87ba200","components/ProofFrame/ProofFrame.jsx":"9ab9d4ed331d","components/ProofStrip/ProofStrip.jsx":"775796275e70","components/RadioGroup/RadioGroup.jsx":"4a5967735d11","components/RegistrationMark/RegistrationMark.jsx":"03406851d192","components/Segmented/Segmented.jsx":"7bdfe9a0113e","components/Skeleton/Skeleton.jsx":"d44e989f0a36","components/StatusBadge/StatusBadge.jsx":"78c0e9a52873","components/Switch/Switch.jsx":"cb639a41d4ca","components/TabBar/TabBar.jsx":"fcb85a0dd1f1","components/TagChip/TagChip.jsx":"54ba3d2ea026","components/TaskCard/TaskCard.jsx":"f0ce84e1c3a5","components/Timeline/Timeline.jsx":"a1a97ca8c292","components/Toast/Toast.jsx":"c9188fbc0e54","components/Toolbar/Toolbar.jsx":"bb1859b7a5de","components/Tooltip/Tooltip.jsx":"f8ad52fcecc9","components/Widget/Widget.jsx":"3e105ffc6579","public/cowork-preview/erp-shell-v2/tweaks-panel.jsx":"a1107c630a56","ui_kits/app/Icon.jsx":"4af337c66c2f","ui_kits/app/PontoWidgets.jsx":"5fb47953a705","ui_kits/app/Primitives.jsx":"b176ec3a02e3","ui_kits/app/Sidebar.jsx":"ee03bcc21698","ui_kits/site/DashboardMockup.jsx":"8eb9ea953996","ui_kits/site/FeatureGrid.jsx":"447215c14b71","ui_kits/site/Hero.jsx":"3bf4eb5a0fc5","ui_kits/site/PricingTiers.jsx":"cad02b6ccc17","ui_kits/site/SiteFooter.jsx":"29c8b030f269","ui_kits/site/SiteHeader.jsx":"94155431e660","ui_kits/site/SocialProof.jsx":"d310605c4fcd"},"inlinedExternals":[],"unexposedExports":[]} */
+/* @ds-bundle: {"format":4,"namespace":"OfficeImpressoPontoWR2DesignSystem_019dd0","components":[{"name":"Alert","sourcePath":"components/Alert/Alert.jsx"},{"name":"AppSidebar","sourcePath":"components/AppSidebar/AppSidebar.jsx"},{"name":"Avatar","sourcePath":"components/Avatar/Avatar.jsx"},{"name":"BoardColumn","sourcePath":"components/BoardColumn/BoardColumn.jsx"},{"name":"Breadcrumb","sourcePath":"components/Breadcrumb/Breadcrumb.jsx"},{"name":"BulkBar","sourcePath":"components/BulkBar/BulkBar.jsx"},{"name":"Button","sourcePath":"components/Button/Button.jsx"},{"name":"Chart","sourcePath":"components/Chart/Chart.jsx"},{"name":"Checkbox","sourcePath":"components/Checkbox/Checkbox.jsx"},{"name":"ColumnPrefs","sourcePath":"components/ColumnManager/ColumnManager.jsx"},{"name":"ColumnManager","sourcePath":"components/ColumnManager/ColumnManager.jsx"},{"name":"Command","sourcePath":"components/Command/Command.jsx"},{"name":"DataGrid","sourcePath":"components/DataGrid/DataGrid.jsx"},{"name":"DataTable","sourcePath":"components/DataTable/DataTable.jsx"},{"name":"DataTablePro","sourcePath":"components/DataTablePro/DataTablePro.jsx"},{"name":"DatePicker","sourcePath":"components/DatePicker/DatePicker.jsx"},{"name":"Dimension","sourcePath":"components/Dimension/Dimension.jsx"},{"name":"Drawer","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DrawerSection","sourcePath":"components/Drawer/Drawer.jsx"},{"name":"DropdownMenu","sourcePath":"components/DropdownMenu/DropdownMenu.jsx"},{"name":"EmptyState","sourcePath":"components/EmptyState/EmptyState.jsx"},{"name":"FilterChip","sourcePath":"components/FilterChip/FilterChip.jsx"},{"name":"FsmStepper","sourcePath":"components/FsmStepper/FsmStepper.jsx"},{"name":"Input","sourcePath":"components/Input/Input.jsx"},{"name":"SearchInput","sourcePath":"components/Input/Input.jsx"},{"name":"Textarea","sourcePath":"components/Input/Input.jsx"},{"name":"Select","sourcePath":"components/Input/Input.jsx"},{"name":"Kebab","sourcePath":"components/Kebab/Kebab.jsx"},{"name":"KpiCard","sourcePath":"components/KpiCard/KpiCard.jsx"},{"name":"KpiFilterCard","sourcePath":"components/KpiFilterCard/KpiFilterCard.jsx"},{"name":"Logo","sourcePath":"components/Logo/Logo.jsx"},{"name":"Modal","sourcePath":"components/Modal/Modal.jsx"},{"name":"PageHeader","sourcePath":"components/PageHeader/PageHeader.jsx"},{"name":"Pagination","sourcePath":"components/Pagination/Pagination.jsx"},{"name":"PeriodBar","sourcePath":"components/PeriodBar/PeriodBar.jsx"},{"name":"PlacaVeiculo","sourcePath":"components/PlacaVeiculo/PlacaVeiculo.jsx"},{"name":"PresenterMode","sourcePath":"components/PresenterMode/PresenterMode.jsx"},{"name":"Progress","sourcePath":"components/Progress/Progress.jsx"},{"name":"ProofFrame","sourcePath":"components/ProofFrame/ProofFrame.jsx"},{"name":"ProofStrip","sourcePath":"components/ProofStrip/ProofStrip.jsx"},{"name":"RadioGroup","sourcePath":"components/RadioGroup/RadioGroup.jsx"},{"name":"RegistrationMark","sourcePath":"components/RegistrationMark/RegistrationMark.jsx"},{"name":"Segmented","sourcePath":"components/Segmented/Segmented.jsx"},{"name":"Skeleton","sourcePath":"components/Skeleton/Skeleton.jsx"},{"name":"StatusBadge","sourcePath":"components/StatusBadge/StatusBadge.jsx"},{"name":"Switch","sourcePath":"components/Switch/Switch.jsx"},{"name":"TabBar","sourcePath":"components/TabBar/TabBar.jsx"},{"name":"TagChip","sourcePath":"components/TagChip/TagChip.jsx"},{"name":"TaskCard","sourcePath":"components/TaskCard/TaskCard.jsx"},{"name":"Timeline","sourcePath":"components/Timeline/Timeline.jsx"},{"name":"Toast","sourcePath":"components/Toast/Toast.jsx"},{"name":"Toolbar","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarDivider","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarSpacer","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarButton","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"ToolbarSearch","sourcePath":"components/Toolbar/Toolbar.jsx"},{"name":"Tooltip","sourcePath":"components/Tooltip/Tooltip.jsx"},{"name":"Widget","sourcePath":"components/Widget/Widget.jsx"}],"sourceHashes":{"Norte/norte-app.jsx":"032253e5bb48","Norte/norte-data.jsx":"6f29edbe0218","components/Alert/Alert.jsx":"6e286e49d769","components/AppSidebar/AppSidebar.jsx":"f99e84d00339","components/Avatar/Avatar.jsx":"b048f23ec4f9","components/BoardColumn/BoardColumn.jsx":"adbbb54b5fb3","components/Breadcrumb/Breadcrumb.jsx":"257e48371799","components/BulkBar/BulkBar.jsx":"61d8c05959b8","components/Button/Button.jsx":"80807dc45cbb","components/Chart/Chart.jsx":"c6062288c717","components/Checkbox/Checkbox.jsx":"46b2c40b0a64","components/ColumnManager/ColumnManager.jsx":"6ba863d8f2ff","components/Command/Command.jsx":"09e4d5e2ecd8","components/DataGrid/DataGrid.jsx":"e112e6e79ba9","components/DataTable/DataTable.jsx":"d995c444ba62","components/DataTablePro/DataTablePro.jsx":"c6a4e3f44847","components/DatePicker/DatePicker.jsx":"06226f7d6268","components/Dimension/Dimension.jsx":"ccfde33af6ff","components/Drawer/Drawer.jsx":"1e766133c429","components/DropdownMenu/DropdownMenu.jsx":"b934261b1049","components/EmptyState/EmptyState.jsx":"453df944697f","components/FilterChip/FilterChip.jsx":"dcbf9c9815df","components/FsmStepper/FsmStepper.jsx":"f54c8bf5dc86","components/Input/Input.jsx":"d3563b73d7f6","components/Kebab/Kebab.jsx":"50730baf348b","components/KpiCard/KpiCard.jsx":"5adeb0d1cef1","components/KpiFilterCard/KpiFilterCard.jsx":"b3cad8b3b316","components/Logo/Logo.jsx":"c86f0c3126cf","components/Modal/Modal.jsx":"71c782e4ede8","components/PageHeader/PageHeader.jsx":"5f5ad41c15c4","components/Pagination/Pagination.jsx":"66819b89c651","components/PeriodBar/PeriodBar.jsx":"a8c2b59cfb38","components/PlacaVeiculo/PlacaVeiculo.jsx":"9465ca04efbd","components/PresenterMode/PresenterMode.jsx":"8332bf26e55e","components/Progress/Progress.jsx":"879fb87ba200","components/ProofFrame/ProofFrame.jsx":"9ab9d4ed331d","components/ProofStrip/ProofStrip.jsx":"775796275e70","components/RadioGroup/RadioGroup.jsx":"4a5967735d11","components/RegistrationMark/RegistrationMark.jsx":"03406851d192","components/Segmented/Segmented.jsx":"7bdfe9a0113e","components/Skeleton/Skeleton.jsx":"d44e989f0a36","components/StatusBadge/StatusBadge.jsx":"462cfa00dea1","components/Switch/Switch.jsx":"cb639a41d4ca","components/TabBar/TabBar.jsx":"fcb85a0dd1f1","components/TagChip/TagChip.jsx":"54ba3d2ea026","components/TaskCard/TaskCard.jsx":"f0ce84e1c3a5","components/Timeline/Timeline.jsx":"a1a97ca8c292","components/Toast/Toast.jsx":"c9188fbc0e54","components/Toolbar/Toolbar.jsx":"bb1859b7a5de","components/Tooltip/Tooltip.jsx":"f8ad52fcecc9","components/Widget/Widget.jsx":"3e105ffc6579","public/cowork-preview/erp-shell-v2/tweaks-panel.jsx":"a1107c630a56","ui_kits/app/Icon.jsx":"4af337c66c2f","ui_kits/app/PontoWidgets.jsx":"5fb47953a705","ui_kits/app/Primitives.jsx":"b176ec3a02e3","ui_kits/app/Sidebar.jsx":"ee03bcc21698","ui_kits/site/DashboardMockup.jsx":"8eb9ea953996","ui_kits/site/FeatureGrid.jsx":"447215c14b71","ui_kits/site/Hero.jsx":"3bf4eb5a0fc5","ui_kits/site/PricingTiers.jsx":"cad02b6ccc17","ui_kits/site/SiteFooter.jsx":"29c8b030f269","ui_kits/site/SiteHeader.jsx":"94155431e660","ui_kits/site/SocialProof.jsx":"d310605c4fcd"},"inlinedExternals":[],"unexposedExports":[]} */
 
 (() => {
 
@@ -2504,66 +2504,34 @@ Object.assign(__ds_scope, { Chart });
 
 // components/Checkbox/Checkbox.jsx
 try { (() => {
-/**
- * Checkbox — labeled checkbox with accent fill when checked (DS v4).
- * Pure, dependency-free. Controlled: checked + onChange(next).
- */
-function Checkbox({
-  checked = false,
-  onChange,
-  label,
-  disabled = false,
-  name
-}) {
-  return /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 8,
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      userSelect: 'none',
-      opacity: disabled ? 0.55 : 1,
-      font: '500 12.5px/1.4 var(--font-sans)',
-      color: 'var(--text)'
+function Checkbox({ checked = false, onChange, label, disabled = false, name, indeterminate = false, ariaLabel }) {
+  const on = checked || indeterminate;
+  return /* @__PURE__ */ React.createElement("label", { style: { display: "inline-flex", alignItems: "center", gap: 8, cursor: disabled ? "not-allowed" : "pointer", userSelect: "none", opacity: disabled ? 0.55 : 1, font: "500 12.5px/1.4 var(--font-sans)", color: "var(--text)" } }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "checkbox",
+      name,
+      checked,
+      disabled,
+      "aria-label": ariaLabel,
+      "aria-checked": indeterminate ? "mixed" : void 0,
+      ref: (el) => {
+        if (el) el.indeterminate = indeterminate;
+      },
+      onChange: onChange ? (e) => onChange(e.target.checked) : void 0,
+      style: { position: "absolute", opacity: 0, pointerEvents: "none", width: 1, height: 1 }
     }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    name: name,
-    checked: checked,
-    disabled: disabled,
-    onChange: onChange ? e => onChange(e.target.checked) : undefined,
-    style: {
-      position: 'absolute',
-      opacity: 0,
-      pointerEvents: 'none',
-      width: 1,
-      height: 1
-    }
-  }), /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: 16,
-      height: 16,
-      flexShrink: 0,
-      borderRadius: 'var(--radius-sm, 4px)',
-      border: '1.5px solid ' + (checked ? 'var(--accent)' : 'var(--border)'),
-      background: checked ? 'var(--accent)' : 'var(--surface)',
-      display: 'grid',
-      placeItems: 'center',
-      transition: 'background .15s, border-color .15s'
-    }
-  }, checked && /*#__PURE__*/React.createElement("svg", {
-    width: "11",
-    height: "11",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "#fff",
-    strokeWidth: "3.5",
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    "aria-hidden": true
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M5 12l5 5 9-9"
-  }))), label);
+  ), /* @__PURE__ */ React.createElement("span", { style: {
+    width: 16,
+    height: 16,
+    flexShrink: 0,
+    borderRadius: "var(--radius-sm, 4px)",
+    border: "1.5px solid " + (on ? "var(--accent)" : "var(--border)"),
+    background: on ? "var(--accent)" : "var(--surface)",
+    display: "grid",
+    placeItems: "center",
+    transition: "background .15s, border-color .15s"
+  } }, indeterminate && !checked && /* @__PURE__ */ React.createElement("svg", { width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "#fff", strokeWidth: "3.5", strokeLinecap: "round", "aria-hidden": true }, /* @__PURE__ */ React.createElement("path", { d: "M6 12h12" })), checked && /* @__PURE__ */ React.createElement("svg", { width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "#fff", strokeWidth: "3.5", strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true }, /* @__PURE__ */ React.createElement("path", { d: "M5 12l5 5 9-9" }))), label);
 }
 Object.assign(__ds_scope, { Checkbox });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/Checkbox/Checkbox.jsx", error: String((e && e.message) || e) }); }
@@ -3239,75 +3207,20 @@ Object.assign(__ds_scope, { Command });
 
 // components/DataGrid/DataGrid.jsx
 try { (() => {
-/**
- * DataGrid — a ÚNICA grade do DS (ver NOTAS_INTERNAS.md · fusão 2026-08).
- * Absorveu DataTable (seleção/ordenação controladas) e DataTablePro (header
- * fixo + resize de colunas). A paginação embutida reusa o componente Pagination.
- *
- * columns: [{ key, label, align?:'right', mono?, width?, sortable?, resizable?, sortValue?(row) }]
- * rows:    [{ id, state?:'urgent'|'archived'|'selected', cells:{ [key]: node | {primary,sub} } }]
- * pagination (default true) · resizable · density 'compact'|'comfortable'
- * Seleção e ordenação: internas por padrão; passe selectedIds/onToggleRow ou
- * sortKey/onSort para controlar por fora (API antiga do DataTable).
- *
- * `caption` — NOME ACESSÍVEL da tabela, num <caption> visualmente oculto.
- * Trazido do DataTable de 2026-09-09 (que por sua vez veio do vivo,
- * `resources/js/Components/shared/DataTable.tsx`) e que a fusão tinha deixado
- * para trás: o alias repassava o prop, mas aqui ninguém o lia, então o nome
- * sumia sem erro nenhum. Duas tabelas na mesma página são indistinguíveis na
- * lista de tabelas do leitor de tela sem ele, e NENHUMA regra de axe cobre isso
- * (medido no vivo com axe-core 4.12.1 em 5 arranjos de markup: 0 violações em
- * todos). Opcional aqui e OBRIGATÓRIO no `.d.ts` do alias `DataTable`, como no
- * vivo — o runtime degrada em vez de quebrar.
- *
- * `scope="col"` nos cabeçalhos é explicitação (WCAG H63), não conserto: o
- * algoritmo de tabela já associava coluna e célula.
- */
-function GridCell({
-  value,
-  mono
-}) {
-  if (value && typeof value === 'object' && !React.isValidElement(value) && ('primary' in value || 'sub' in value)) {
-    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("b", {
-      style: {
-        display: 'block',
-        fontWeight: 600,
-        fontSize: 12.5,
-        letterSpacing: '-0.006em',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
-      }
-    }, value.primary), value.sub && /*#__PURE__*/React.createElement("small", {
-      style: {
-        display: 'block',
-        fontSize: 11,
-        color: 'var(--text-mute)',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
-      }
-    }, value.sub));
+function GridCell({ value, mono }) {
+  if (value && typeof value === "object" && !React.isValidElement(value) && ("primary" in value || "sub" in value)) {
+    return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("b", { style: { display: "block", fontWeight: 600, fontSize: 12.5, letterSpacing: "-0.006em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, value.primary), value.sub && /* @__PURE__ */ React.createElement("small", { style: { display: "block", fontSize: 11, color: "var(--text-mute)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } }, value.sub));
   }
-  if (mono) return /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: 'var(--font-mono)',
-      fontSize: 12,
-      letterSpacing: '-0.01em'
-    }
-  }, value);
+  if (mono) return /* @__PURE__ */ React.createElement("span", { style: { fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "-0.01em" } }, value);
   return value;
 }
 function gridPages(page, count) {
-  if (count <= 7) return Array.from({
-    length: count
-  }, (_, i) => i + 1);
+  if (count <= 7) return Array.from({ length: count }, (_, i) => i + 1);
   const out = [1];
-  const lo = Math.max(2, page - 1),
-    hi = Math.min(count - 1, page + 1);
-  if (lo > 2) out.push('…');
+  const lo = Math.max(2, page - 1), hi = Math.min(count - 1, page + 1);
+  if (lo > 2) out.push("\u2026");
   for (let i = lo; i <= hi; i++) out.push(i);
-  if (hi < count - 1) out.push('…');
+  if (hi < count - 1) out.push("\u2026");
   out.push(count);
   return out;
 }
@@ -3321,7 +3234,7 @@ function DataGrid({
   page: pageProp,
   defaultPage = 1,
   onPageChange,
-  density = 'compact',
+  density = "compact",
   selectable = false,
   zebra = true,
   resizable = false,
@@ -3330,8 +3243,8 @@ function DataGrid({
   defaultSort,
   maxHeight = 420,
   height,
-  emptyLabel = 'Nenhum registro encontrado',
-  totalLabel = 'registros',
+  emptyLabel = "Nenhum registro encontrado",
+  totalLabel = "registros",
   caption,
   selectedIds,
   onToggleRow,
@@ -3343,41 +3256,41 @@ function DataGrid({
   const [pageState, setPageState] = React.useState(defaultPage);
   const [sizeState, setSizeState] = React.useState(pageSizeProp);
   const [sortKeyState, setSortKeyState] = React.useState(defaultSort ? defaultSort.key : null);
-  const [sortDirState, setSortDirState] = React.useState(defaultSort && defaultSort.dir === 'desc' ? 'desc' : 'asc');
-  const [selState, setSelState] = React.useState(() => new Set());
+  const [sortDirState, setSortDirState] = React.useState(defaultSort && defaultSort.dir === "desc" ? "desc" : "asc");
+  const [selState, setSelState] = React.useState(() => /* @__PURE__ */ new Set());
   const [w, setW] = React.useState({});
   const drag = React.useRef(null);
-  const NS = typeof window !== 'undefined' && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+  const NS = typeof window !== "undefined" && window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
   const controlledSel = Array.isArray(selectedIds);
   const controlledSort = onSort != null;
   const sel = controlledSel ? new Set(selectedIds.map(String)) : selState;
   const sortKey = controlledSort ? sortKeyProp : sortKeyState;
-  const sortDir = controlledSort ? sortDirProp || 'asc' : sortDirState;
+  const sortDir = controlledSort ? sortDirProp || "asc" : sortDirState;
   const pageSize = onPageSizeChange ? pageSizeProp : sizeState;
   const page = pageProp != null ? pageProp : pageState;
-  const setPage = p => {
+  const setPage = (p) => {
     if (pageProp == null) setPageState(p);
     if (onPageChange) onPageChange(p);
   };
-  const setSize = n => {
-    if (onPageSizeChange) onPageSizeChange(n);else setSizeState(n);
+  const setSize = (n) => {
+    if (onPageSizeChange) onPageSizeChange(n);
+    else setSizeState(n);
     setPage(1);
   };
   const sortVal = (c, row) => {
     if (c.sortValue) return c.sortValue(row);
     const v = row.cells ? row.cells[c.key] : row[c.key];
-    if (v && typeof v === 'object' && 'primary' in v) return String(v.primary).toLowerCase();
-    if (typeof v === 'number') return v;
-    return String(v == null ? '' : v).toLowerCase();
+    if (v && typeof v === "object" && "primary" in v) return String(v.primary).toLowerCase();
+    if (typeof v === "number") return v;
+    return String(v == null ? "" : v).toLowerCase();
   };
   let sorted = rows;
   if (sortKey && !controlledSort) {
-    const c = columns.find(x => x.key === sortKey);
+    const c = columns.find((x) => x.key === sortKey);
     if (c) {
-      const dir = sortDir === 'desc' ? -1 : 1;
+      const dir = sortDir === "desc" ? -1 : 1;
       sorted = rows.slice().sort((a, b) => {
-        const x = sortVal(c, a),
-          y = sortVal(c, b);
+        const x = sortVal(c, a), y = sortVal(c, b);
         return (x < y ? -1 : x > y ? 1 : 0) * dir;
       });
     }
@@ -3386,346 +3299,144 @@ function DataGrid({
   const pageCount = pagination ? Math.max(1, Math.ceil(total / pageSize)) : 1;
   const current = Math.min(page, pageCount);
   const view = pagination ? sorted.slice((current - 1) * pageSize, current * pageSize) : sorted;
-  const doSort = c => {
+  const doSort = (c) => {
     if (!c.sortable) return;
     if (controlledSort) {
       onSort(c.key);
       return;
     }
-    if (sortKey === c.key) setSortDirState(d => d === 'asc' ? 'desc' : 'asc');else {
+    if (sortKey === c.key) setSortDirState((d) => d === "asc" ? "desc" : "asc");
+    else {
       setSortKeyState(c.key);
-      setSortDirState('asc');
+      setSortDirState("asc");
     }
     setPage(1);
   };
-  const allChecked = selectable && view.length > 0 && view.every(r => sel.has(String(r.id)));
-  const someChecked = selectable && view.some(r => sel.has(String(r.id)));
-  const headChk = el => {
+  const allChecked = selectable && view.length > 0 && view.every((r) => sel.has(String(r.id)));
+  const someChecked = selectable && view.some((r) => sel.has(String(r.id)));
+  const headChk = (el) => {
     if (el) el.indeterminate = someChecked && !allChecked;
   };
-  const emit = next => {
+  const emit = (next) => {
     setSelState(next);
     if (onSelectionChange) onSelectionChange([...next]);
   };
-  const toggleAll = on => {
+  const toggleAll = (on) => {
     if (controlledSel || onToggleAll) {
       if (onToggleAll) onToggleAll(on);
       return;
     }
     const n = new Set(sel);
-    view.forEach(r => on ? n.add(String(r.id)) : n.delete(String(r.id)));
+    view.forEach((r) => on ? n.add(String(r.id)) : n.delete(String(r.id)));
     emit(n);
   };
-  const toggleRow = row => {
+  const toggleRow = (row) => {
     if (controlledSel || onToggleRow) {
       if (onToggleRow) onToggleRow(row.id, row);
       return;
     }
     const n = new Set(sel);
     const k = String(row.id);
-    if (n.has(k)) n.delete(k);else n.add(k);
+    if (n.has(k)) n.delete(k);
+    else n.add(k);
     emit(n);
   };
   const startResize = (key, e) => {
     e.preventDefault();
     e.stopPropagation();
-    const th = e.currentTarget.parentNode;
-    drag.current = {
-      key,
-      startX: e.clientX,
-      startW: th.getBoundingClientRect().width
-    };
-    const move = ev => {
+    const th2 = e.currentTarget.parentNode;
+    drag.current = { key, startX: e.clientX, startW: th2.getBoundingClientRect().width };
+    const move = (ev) => {
       const d = ev.clientX - drag.current.startX;
-      setW(m => ({
-        ...m,
-        [drag.current.key]: Math.max(48, Math.round(drag.current.startW + d))
-      }));
+      setW((m) => ({ ...m, [drag.current.key]: Math.max(48, Math.round(drag.current.startW + d)) }));
     };
     const up = () => {
-      document.removeEventListener('mousemove', move);
-      document.removeEventListener('mouseup', up);
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", up);
       drag.current = null;
     };
-    document.addEventListener('mousemove', move);
-    document.addEventListener('mouseup', up);
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", up);
   };
-  const relaxed = density === 'relaxed' || density === 'comfortable';
-  const pad = relaxed ? '9px 10px' : '5px 10px';
-  const th = {
-    position: 'sticky',
-    top: 0,
-    zIndex: 1,
-    background: 'var(--bg-2)',
-    padding: '7px 10px',
-    font: '600 10px/1.2 var(--font-sans)',
-    textTransform: 'uppercase',
-    letterSpacing: '.05em',
-    color: 'var(--text-mute)',
-    whiteSpace: 'nowrap',
-    borderBottom: '1px solid var(--border)',
-    userSelect: 'none'
-  };
-  const chk = {
-    accentColor: 'var(--accent)',
-    width: 13,
-    height: 13,
-    cursor: 'pointer'
-  };
-  const colW = c => w[c.key] != null ? w[c.key] + 'px' : c.width;
-  const numBtn = (p, on) => /*#__PURE__*/React.createElement("button", {
-    key: p,
-    type: "button",
-    onClick: () => setPage(p),
-    "aria-current": on ? 'page' : undefined,
-    style: {
-      minWidth: 24,
-      height: 24,
-      padding: '0 6px',
-      border: '1px solid ' + (on ? 'transparent' : 'var(--border)'),
-      borderRadius: 5,
-      background: on ? 'var(--accent)' : 'transparent',
-      color: on ? 'var(--accent-fg)' : 'var(--text-dim)',
-      font: (on ? '600' : '500') + ' 11.5px/1 var(--font-sans)',
-      fontVariantNumeric: 'tabular-nums',
-      cursor: 'pointer'
-    }
-  }, p);
-  const edge = (dir, disabled) => /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    disabled: disabled,
-    onClick: () => setPage(current + (dir === 'left' ? -1 : 1)),
-    "aria-label": dir === 'left' ? 'Página anterior' : 'Próxima página',
-    style: {
-      width: 24,
-      height: 24,
-      display: 'inline-grid',
-      placeItems: 'center',
-      border: '1px solid var(--border)',
-      borderRadius: 5,
-      background: 'transparent',
-      color: disabled ? 'var(--text-mute)' : 'var(--text)',
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      opacity: disabled ? 0.45 : 1
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "12",
-    height: "12",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "2.4",
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-  }, /*#__PURE__*/React.createElement("polyline", {
-    points: dir === 'left' ? '15 18 9 12 15 6' : '9 18 15 12 9 6'
-  })));
-  const footer = !pagination ? null : /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 'none',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-      gap: 12,
-      flexWrap: 'wrap',
-      padding: '7px 10px',
-      borderTop: '1px solid var(--border)',
-      background: 'var(--bg-2)'
-    }
-  }, NS.Pagination ? /*#__PURE__*/React.createElement(NS.Pagination, {
-    compact: true,
-    page: current,
-    pageCount: pageCount,
-    onChange: setPage,
-    total: total,
-    pageSize: pageSize,
-    totalLabel: totalLabel,
-    onPageSize: pageSizeOptions && pageSizeOptions.length > 1 ? setSize : undefined,
-    pageSizeOptions: pageSizeOptions
-  }) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      width: '100%',
-      justifyContent: 'space-between'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      font: '400 11.5px/1 var(--font-sans)',
-      color: 'var(--text-mute)',
-      fontVariantNumeric: 'tabular-nums'
-    }
-  }, /*#__PURE__*/React.createElement("b", {
-    style: {
-      color: 'var(--text-dim)',
-      fontWeight: 600
-    }
-  }, total === 0 ? 0 : (current - 1) * pageSize + 1, "\u2013", Math.min(current * pageSize, total)), " de ", total, " ", totalLabel), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 4
-    }
-  }, edge('left', current <= 1), gridPages(current, pageCount).map((p, i) => p === '…' ? /*#__PURE__*/React.createElement("span", {
-    key: 'e' + i,
-    style: {
-      padding: '0 2px',
-      color: 'var(--text-mute)',
-      font: '400 11.5px/1 var(--font-sans)'
-    }
-  }, "\u2026") : numBtn(p, p === current)), edge('right', current >= pageCount))));
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      minWidth: 0,
-      background: 'var(--surface)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxHeight: height != null ? height : maxHeight,
-      overflow: 'auto',
-      scrollbarGutter: 'stable'
-    }
-  }, /*#__PURE__*/React.createElement("table", {
-    style: {
-      width: '100%',
-      borderCollapse: 'separate',
-      borderSpacing: 0,
-      fontSize: 12.5,
-      color: 'var(--text)',
-      fontFamily: 'var(--font-sans)',
-      tableLayout: resizable ? 'fixed' : 'auto'
-    }
-  }, caption && /*#__PURE__*/React.createElement("caption", {
-    style: {
-      position: 'absolute',
-      width: 1,
-      height: 1,
-      padding: 0,
-      margin: -1,
-      overflow: 'hidden',
-      clip: 'rect(0 0 0 0)',
-      clipPath: 'inset(50%)',
-      whiteSpace: 'nowrap',
-      border: 0
-    }
-  }, caption), /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, selectable && /*#__PURE__*/React.createElement("th", {
-    scope: "col",
-    style: {
-      ...th,
-      width: 34,
-      textAlign: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    ref: headChk,
-    checked: !!allChecked,
-    onChange: e => toggleAll(e.target.checked),
-    "aria-label": "Selecionar p\xE1gina",
-    style: chk
-  })), columns.map((c, ci) => /*#__PURE__*/React.createElement("th", {
-    key: c.key,
-    scope: "col",
-    style: {
-      ...th,
-      position: 'sticky',
-      textAlign: c.align === 'right' ? 'right' : 'left',
-      width: colW(c),
-      cursor: c.sortable ? 'pointer' : 'default'
+  const relaxed = density === "relaxed" || density === "comfortable";
+  const pad = relaxed ? "9px 10px" : "5px 10px";
+  const th = { position: "sticky", top: 0, zIndex: 1, background: "var(--bg-2)", padding: "7px 10px", font: "600 10px/1.2 var(--font-sans)", textTransform: "uppercase", letterSpacing: ".05em", color: "var(--text-mute)", whiteSpace: "nowrap", borderBottom: "1px solid var(--border)", userSelect: "none" };
+  const chk = { accentColor: "var(--accent)", width: 13, height: 13, cursor: "pointer" };
+  const caixa = ({ checked, indeterminate, onChange, ariaLabel, inputRef }) => NS.Checkbox ? /* @__PURE__ */ React.createElement(NS.Checkbox, { checked, indeterminate, onChange, ariaLabel }) : /* @__PURE__ */ React.createElement("input", { type: "checkbox", ref: inputRef, checked, onChange: (e) => onChange(e.target.checked), "aria-label": ariaLabel, style: chk });
+  const colW = (c) => w[c.key] != null ? w[c.key] + "px" : c.width;
+  const numBtn = (p, on) => /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      key: p,
+      type: "button",
+      onClick: () => setPage(p),
+      "aria-current": on ? "page" : void 0,
+      style: { minWidth: 24, height: 24, padding: "0 6px", border: "1px solid " + (on ? "transparent" : "var(--border)"), borderRadius: 5, background: on ? "var(--accent)" : "transparent", color: on ? "var(--accent-fg)" : "var(--text-dim)", font: (on ? "600" : "500") + " 11.5px/1 var(--font-sans)", fontVariantNumeric: "tabular-nums", cursor: "pointer" }
     },
-    "aria-sort": sortKey === c.key ? sortDir === 'desc' ? 'descending' : 'ascending' : undefined
-  }, /*#__PURE__*/React.createElement("span", {
-    onClick: () => doSort(c),
-    style: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 3,
-      color: sortKey === c.key ? 'var(--text)' : 'inherit'
+    p
+  );
+  const edge = (dir, disabled) => /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      disabled,
+      onClick: () => setPage(current + (dir === "left" ? -1 : 1)),
+      "aria-label": dir === "left" ? "P\xE1gina anterior" : "Pr\xF3xima p\xE1gina",
+      style: { width: 24, height: 24, display: "inline-grid", placeItems: "center", border: "1px solid var(--border)", borderRadius: 5, background: "transparent", color: disabled ? "var(--text-mute)" : "var(--text)", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1 }
+    },
+    /* @__PURE__ */ React.createElement("svg", { width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.4", strokeLinecap: "round", strokeLinejoin: "round" }, /* @__PURE__ */ React.createElement("polyline", { points: dir === "left" ? "15 18 9 12 15 6" : "9 18 15 12 9 6" }))
+  );
+  const footer = !pagination ? null : /* @__PURE__ */ React.createElement("div", { style: { flex: "none", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, flexWrap: "wrap", padding: "7px 10px", borderTop: "1px solid var(--border)", background: "var(--bg-2)" } }, NS.Pagination ? /* @__PURE__ */ React.createElement(
+    NS.Pagination,
+    {
+      compact: true,
+      page: current,
+      pageCount,
+      onChange: setPage,
+      total,
+      pageSize,
+      totalLabel,
+      onPageSize: pageSizeOptions && pageSizeOptions.length > 1 ? setSize : void 0,
+      pageSizeOptions
     }
-  }, c.label, c.sortable && /*#__PURE__*/React.createElement("span", {
-    "aria-hidden": true,
-    style: {
-      opacity: sortKey === c.key ? 1 : 0.4
-    }
-  }, sortKey === c.key ? sortDir === 'desc' ? '↓' : '↑' : '↕')), resizable && c.resizable !== false && ci < columns.length - 1 && /*#__PURE__*/React.createElement("span", {
-    onMouseDown: e => startResize(c.key, e),
-    style: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      width: 7,
-      height: '100%',
-      cursor: 'col-resize',
-      zIndex: 2,
-      transform: 'translateX(3px)'
-    }
-  }))))), /*#__PURE__*/React.createElement("tbody", null, view.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
-    colSpan: columns.length + (selectable ? 1 : 0),
-    style: {
-      padding: '34px 12px',
-      textAlign: 'center',
-      color: 'var(--text-mute)',
-      font: '400 12.5px/1.4 var(--font-sans)'
-    }
-  }, emptyLabel)), view.map((row, i) => {
-    const isSel = sel.has(String(row.id)) || row.state === 'selected';
-    const base = isSel ? 'var(--accent-soft)' : zebra && i % 2 ? 'color-mix(in oklch, var(--bg-2) 55%, transparent)' : 'transparent';
-    return /*#__PURE__*/React.createElement("tr", {
-      key: row.id,
-      onClick: onRowClick ? () => onRowClick(row) : undefined,
-      tabIndex: onRowClick ? 0 : undefined,
-      role: onRowClick ? 'button' : undefined,
-      onKeyDown: onRowClick ? e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onRowClick(row);
-        }
-      } : undefined,
-      onMouseEnter: e => {
-        if (!isSel) for (const td of e.currentTarget.children) td.style.background = 'var(--bg-2)';
-      },
-      onMouseLeave: e => {
-        if (!isSel) for (const td of e.currentTarget.children) td.style.background = base;
-      },
-      style: {
-        cursor: onRowClick ? 'pointer' : 'default',
-        boxShadow: row.state === 'urgent' ? 'inset 2px 0 0 var(--neg)' : 'none'
-      }
-    }, selectable && /*#__PURE__*/React.createElement("td", {
-      onClick: e => e.stopPropagation(),
-      style: {
-        padding: pad,
-        textAlign: 'center',
-        background: base,
-        borderBottom: '1px solid var(--border-2)',
-        width: 34
-      }
-    }, /*#__PURE__*/React.createElement("input", {
-      type: "checkbox",
-      checked: sel.has(String(row.id)),
-      onChange: () => toggleRow(row),
-      "aria-label": 'Selecionar ' + row.id,
-      style: chk
-    })), columns.map(c => /*#__PURE__*/React.createElement("td", {
+  ) : /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 12, width: "100%", justifyContent: "space-between" } }, /* @__PURE__ */ React.createElement("span", { style: { font: "400 11.5px/1 var(--font-sans)", color: "var(--text-mute)", fontVariantNumeric: "tabular-nums" } }, /* @__PURE__ */ React.createElement("b", { style: { color: "var(--text-dim)", fontWeight: 600 } }, total === 0 ? 0 : (current - 1) * pageSize + 1, "\u2013", Math.min(current * pageSize, total)), " de ", total, " ", totalLabel), /* @__PURE__ */ React.createElement("div", { style: { display: "inline-flex", alignItems: "center", gap: 4 } }, edge("left", current <= 1), gridPages(current, pageCount).map((p, i) => p === "\u2026" ? /* @__PURE__ */ React.createElement("span", { key: "e" + i, style: { padding: "0 2px", color: "var(--text-mute)", font: "400 11.5px/1 var(--font-sans)" } }, "\u2026") : numBtn(p, p === current)), edge("right", current >= pageCount))));
+  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", minWidth: 0, background: "var(--surface)" } }, /* @__PURE__ */ React.createElement("div", { style: { maxHeight: height != null ? height : maxHeight, overflow: "auto", scrollbarGutter: "stable" } }, /* @__PURE__ */ React.createElement("table", { style: { width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: 12.5, color: "var(--text)", fontFamily: "var(--font-sans)", tableLayout: resizable ? "fixed" : "auto" } }, caption && /* @__PURE__ */ React.createElement("caption", { style: { position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", clipPath: "inset(50%)", whiteSpace: "nowrap", border: 0 } }, caption), /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, selectable && /* @__PURE__ */ React.createElement("th", { scope: "col", style: { ...th, width: 34, textAlign: "center" } }, caixa({ checked: !!allChecked, indeterminate: someChecked && !allChecked, onChange: toggleAll, ariaLabel: "Selecionar p\xE1gina", inputRef: headChk })), columns.map((c, ci) => /* @__PURE__ */ React.createElement(
+    "th",
+    {
       key: c.key,
-      style: {
-        padding: pad,
-        background: base,
-        borderBottom: '1px solid var(--border-2)',
-        textAlign: c.align === 'right' ? 'right' : 'left',
-        fontVariantNumeric: c.align === 'right' ? 'tabular-nums' : 'normal',
-        opacity: row.state === 'archived' ? 0.55 : 1,
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        maxWidth: 320
-      }
-    }, /*#__PURE__*/React.createElement(GridCell, {
-      value: row.cells ? row.cells[c.key] : row[c.key],
-      mono: c.mono
-    }))));
+      scope: "col",
+      style: { ...th, position: "sticky", textAlign: c.align === "right" ? "right" : "left", width: colW(c), cursor: c.sortable ? "pointer" : "default" },
+      "aria-sort": sortKey === c.key ? sortDir === "desc" ? "descending" : "ascending" : void 0
+    },
+    /* @__PURE__ */ React.createElement("span", { onClick: () => doSort(c), style: { display: "inline-flex", alignItems: "center", gap: 3, color: sortKey === c.key ? "var(--text)" : "inherit" } }, c.label, c.sortable && /* @__PURE__ */ React.createElement("span", { "aria-hidden": true, style: { opacity: sortKey === c.key ? 1 : 0.4 } }, sortKey === c.key ? sortDir === "desc" ? "\u2193" : "\u2191" : "\u2195")),
+    resizable && c.resizable !== false && ci < columns.length - 1 && /* @__PURE__ */ React.createElement("span", { onMouseDown: (e) => startResize(c.key, e), style: { position: "absolute", top: 0, right: 0, width: 7, height: "100%", cursor: "col-resize", zIndex: 2, transform: "translateX(3px)" } })
+  )))), /* @__PURE__ */ React.createElement("tbody", null, view.length === 0 && /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("td", { colSpan: columns.length + (selectable ? 1 : 0), style: { padding: "34px 12px", textAlign: "center", color: "var(--text-mute)", font: "400 12.5px/1.4 var(--font-sans)" } }, emptyLabel)), view.map((row, i) => {
+    const isSel = sel.has(String(row.id)) || row.state === "selected";
+    const base = isSel ? "var(--accent-soft)" : zebra && i % 2 ? "color-mix(in oklch, var(--bg-2) 55%, transparent)" : "transparent";
+    return /* @__PURE__ */ React.createElement(
+      "tr",
+      {
+        key: row.id,
+        onClick: onRowClick ? () => onRowClick(row) : void 0,
+        tabIndex: onRowClick ? 0 : void 0,
+        role: onRowClick ? "button" : void 0,
+        onKeyDown: onRowClick ? (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onRowClick(row);
+          }
+        } : void 0,
+        onMouseEnter: (e) => {
+          if (!isSel) for (const td of e.currentTarget.children) td.style.background = "var(--bg-2)";
+        },
+        onMouseLeave: (e) => {
+          if (!isSel) for (const td of e.currentTarget.children) td.style.background = base;
+        },
+        style: { cursor: onRowClick ? "pointer" : "default", boxShadow: row.state === "urgent" ? "inset 2px 0 0 var(--neg)" : "none" }
+      },
+      selectable && /* @__PURE__ */ React.createElement("td", { onClick: (e) => e.stopPropagation(), style: { padding: pad, textAlign: "center", background: base, borderBottom: "1px solid var(--border-2)", width: 34 } }, caixa({ checked: sel.has(String(row.id)), onChange: () => toggleRow(row), ariaLabel: "Selecionar " + row.id })),
+      columns.map((c) => /* @__PURE__ */ React.createElement("td", { key: c.key, style: { padding: pad, background: base, borderBottom: "1px solid var(--border-2)", textAlign: c.align === "right" ? "right" : "left", fontVariantNumeric: c.align === "right" ? "tabular-nums" : "normal", opacity: row.state === "archived" ? 0.55 : 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 320 } }, /* @__PURE__ */ React.createElement(GridCell, { value: row.cells ? row.cells[c.key] : row[c.key], mono: c.mono })))
+    );
   })))), footer);
 }
 Object.assign(__ds_scope, { DataGrid });
@@ -7350,249 +7061,137 @@ Object.assign(__ds_scope, { Skeleton });
 
 // components/StatusBadge/StatusBadge.jsx
 try { (() => {
-/**
- * StatusBadge — domain-mapped status pill (DS v6).
- * Pure, dependency-free: uses global React + inline token styles.
- * Domains (ERP): documento · fiscal · os · payment · prioridade · sla · atendimento · frescor · tipo
- * Módulo Ponto (RH): intercorrencia · rep — mantidos para o módulo de ponto eletrônico.
- *
- * `frescor` (CRM/Clientes) renders a soft pill with a colored dot and an optional
- * relative-time suffix via `rel` — e.g. <StatusBadge kind="frescor" value="recente" rel="há 1sem" />
- */
-function StatusBadge({
-  kind,
-  value,
-  label,
-  rel,
-  tone: toneProp
-}) {
+function StatusBadge({ kind, value, label, rel, tone: toneProp }) {
   const C = {
-    success: {
-      bg: 'var(--color-success)',
-      fg: '#fff'
-    },
-    warning: {
-      bg: 'var(--color-warning)',
-      fg: '#fff'
-    },
-    danger: {
-      bg: 'var(--color-destructive)',
-      fg: '#fff'
-    },
-    info: {
-      bg: 'var(--color-info)',
-      fg: '#fff'
-    },
-    neutral: {
-      bg: 'var(--color-secondary)',
-      fg: 'var(--color-secondary-foreground)'
-    },
-    outline: {
-      bg: 'transparent',
-      fg: 'var(--color-foreground)',
-      border: 'var(--color-border)'
-    },
+    success: { bg: "var(--color-success-soft)", fg: "var(--color-success-fg)", border: "color-mix(in oklch, var(--color-success) 20%, transparent)", dot: true },
+    warning: { bg: "var(--color-warning-soft)", fg: "var(--color-warning-fg)", border: "color-mix(in oklch, var(--color-warning) 20%, transparent)", dot: true },
+    danger: { bg: "var(--color-destructive-soft)", fg: "var(--color-destructive-fg)", border: "color-mix(in oklch, var(--color-destructive) 20%, transparent)", dot: true },
+    info: { bg: "var(--color-info-soft)", fg: "var(--color-info-fg)", border: "color-mix(in oklch, var(--color-info) 20%, transparent)", dot: true },
+    neutral: { bg: "var(--color-muted)", fg: "var(--color-muted-foreground)", border: "var(--color-border)", dot: true },
+    outline: { bg: "transparent", fg: "var(--color-foreground)", border: "var(--color-border)", dot: true },
     // soft styles (bg-soft + readable fg + colored dot) — SLA & atendimento
-    'sla-fresh': {
-      bg: 'var(--color-sla-fresh-soft)',
-      fg: 'var(--color-sla-fresh)',
-      dot: true
-    },
-    'sla-aging': {
-      bg: 'var(--color-sla-aging-soft)',
-      fg: 'var(--color-sla-aging)',
-      dot: true
-    },
-    'sla-late': {
-      bg: 'var(--color-sla-late-soft)',
-      fg: 'var(--color-sla-late)',
-      dot: true
-    },
-    'sla-expired': {
-      bg: 'var(--color-sla-expired-soft)',
-      fg: 'var(--color-sla-expired)',
-      dot: true
-    },
-    'canal-email': {
-      bg: 'var(--color-canal-email-soft)',
-      fg: 'var(--color-canal-email)',
-      dot: true
-    },
-    'canal-ig': {
-      bg: 'var(--color-canal-ig-soft)',
-      fg: 'var(--color-canal-ig)',
-      dot: true
-    },
-    'canal-fb': {
-      bg: 'var(--color-canal-fb-soft)',
-      fg: 'var(--color-canal-fb)',
-      dot: true
-    },
-    'canal-ml': {
-      bg: 'var(--color-canal-ml-soft)',
-      fg: 'var(--color-canal-ml)',
-      dot: true
-    },
+    "sla-fresh": { bg: "var(--color-sla-fresh-soft)", fg: "var(--color-sla-fresh)", dot: true },
+    "sla-aging": { bg: "var(--color-sla-aging-soft)", fg: "var(--color-sla-aging)", dot: true },
+    "sla-late": { bg: "var(--color-sla-late-soft)", fg: "var(--color-sla-late)", dot: true },
+    "sla-expired": { bg: "var(--color-sla-expired-soft)", fg: "var(--color-sla-expired)", dot: true },
+    "canal-email": { bg: "var(--color-canal-email-soft)", fg: "var(--color-canal-email)", dot: true },
+    "canal-ig": { bg: "var(--color-canal-ig-soft)", fg: "var(--color-canal-ig)", dot: true },
+    "canal-fb": { bg: "var(--color-canal-fb-soft)", fg: "var(--color-canal-fb)", dot: true },
+    "canal-ml": { bg: "var(--color-canal-ml-soft)", fg: "var(--color-canal-ml)", dot: true },
     // frescor (CRM) — soft tinted + dot, derived from semantic tokens
-    'fresc-hot': {
-      bg: 'color-mix(in oklch, var(--color-success) 16%, transparent)',
-      fg: 'var(--color-success)',
-      border: 'color-mix(in oklch, var(--color-success) 30%, transparent)',
-      dot: true
-    },
-    'fresc-warm': {
-      bg: 'color-mix(in oklch, var(--color-warning) 16%, transparent)',
-      fg: 'var(--color-warning)',
-      border: 'color-mix(in oklch, var(--color-warning) 30%, transparent)',
-      dot: true
-    },
-    'fresc-cold': {
-      bg: 'color-mix(in oklch, var(--color-destructive) 16%, transparent)',
-      fg: 'oklch(0.74 0.14 18)',
-      border: 'color-mix(in oklch, var(--color-destructive) 30%, transparent)',
-      dot: true
-    },
+    "fresc-hot": { bg: "color-mix(in oklch, var(--color-success) 16%, transparent)", fg: "var(--color-success)", border: "color-mix(in oklch, var(--color-success) 30%, transparent)", dot: true },
+    "fresc-warm": { bg: "color-mix(in oklch, var(--color-warning) 16%, transparent)", fg: "var(--color-warning)", border: "color-mix(in oklch, var(--color-warning) 30%, transparent)", dot: true },
+    "fresc-cold": { bg: "color-mix(in oklch, var(--color-destructive) 16%, transparent)", fg: "oklch(0.74 0.14 18)", border: "color-mix(in oklch, var(--color-destructive) 30%, transparent)", dot: true },
     // tipo de cadastro — mono pill
-    'tipo-pj': {
-      bg: 'var(--color-tipo-pj-soft)',
-      fg: 'var(--color-tipo-pj)',
-      mono: true
-    },
-    'tipo-pf': {
-      bg: 'var(--color-tipo-pf-soft)',
-      fg: 'var(--color-tipo-pf)',
-      mono: true
-    }
+    "tipo-pj": { bg: "var(--color-tipo-pj-soft)", fg: "var(--color-tipo-pj)", mono: true },
+    "tipo-pf": { bg: "var(--color-tipo-pf-soft)", fg: "var(--color-tipo-pf)", mono: true }
   };
   const MAP = {
     // Documento / aprovação — workflow genérico de ERP (pedido, requisição, OP…)
     documento: {
-      rascunho: ['Rascunho', 'outline'],
-      pendente: ['Pendente', 'neutral'],
-      aprovado: ['Aprovado', 'success'],
-      rejeitado: ['Rejeitado', 'danger'],
-      aplicado: ['Aplicado', 'info'],
-      cancelado: ['Cancelado', 'outline']
+      rascunho: ["Rascunho", "outline"],
+      pendente: ["Pendente", "neutral"],
+      aprovado: ["Aprovado", "success"],
+      rejeitado: ["Rejeitado", "danger"],
+      aplicado: ["Aplicado", "info"],
+      cancelado: ["Cancelado", "outline"]
     },
     // Documento fiscal — NF-e / NFC-e / MDF-e
     fiscal: {
-      rascunho: ['Rascunho', 'outline'],
-      emitida: ['Emitida', 'neutral'],
-      autorizada: ['Autorizada', 'success'],
-      cancelada: ['Cancelada', 'outline'],
-      denegada: ['Denegada', 'danger'],
-      rejeitada: ['Rejeitada', 'danger'],
-      inutilizada: ['Inutilizada', 'outline']
+      rascunho: ["Rascunho", "outline"],
+      emitida: ["Emitida", "neutral"],
+      autorizada: ["Autorizada", "success"],
+      cancelada: ["Cancelada", "outline"],
+      denegada: ["Denegada", "danger"],
+      rejeitada: ["Rejeitada", "danger"],
+      inutilizada: ["Inutilizada", "outline"]
     },
     // Ordem de serviço (Oficina Auto) — FSM real: aberta → orçamento → aprovada → em serviço/produção → concluída → entregue
     os: {
-      aberta: ['Aberta', 'neutral'],
-      orcamento: ['Aguardando aprovação', 'warning'],
-      aprovada: ['Aprovada', 'success'],
-      em_servico: ['Em serviço', 'warning'],
-      em_producao: ['Em produção', 'warning'],
-      concluida: ['Concluída', 'success'],
-      entregue: ['Entregue', 'success'],
-      cancelada: ['Cancelada', 'outline'],
-      atrasada: ['Atrasada', 'danger']
+      aberta: ["Aberta", "neutral"],
+      orcamento: ["Aguardando aprova\xE7\xE3o", "warning"],
+      aprovada: ["Aprovada", "success"],
+      em_servico: ["Em servi\xE7o", "warning"],
+      em_producao: ["Em produ\xE7\xE3o", "warning"],
+      concluida: ["Conclu\xEDda", "success"],
+      entregue: ["Entregue", "success"],
+      cancelada: ["Cancelada", "outline"],
+      atrasada: ["Atrasada", "danger"]
     },
     // Intercorrência (módulo Ponto/RH) — ajuste de marcação
     intercorrencia: {
-      rascunho: ['Rascunho', 'outline'],
-      pendente: ['Pendente', 'neutral'],
-      aprovada: ['Aprovada', 'success'],
-      rejeitada: ['Rejeitada', 'danger'],
-      aplicada: ['Aplicada', 'info'],
-      cancelada: ['Cancelada', 'outline']
+      rascunho: ["Rascunho", "outline"],
+      pendente: ["Pendente", "neutral"],
+      aprovada: ["Aprovada", "success"],
+      rejeitada: ["Rejeitada", "danger"],
+      aplicada: ["Aplicada", "info"],
+      cancelada: ["Cancelada", "outline"]
     },
     prioridade: {
-      baixa: ['Baixa', 'outline'],
-      normal: ['Normal', 'neutral'],
-      alta: ['Alta', 'danger'],
-      urgente: ['Urgente', 'danger']
+      baixa: ["Baixa", "outline"],
+      normal: ["Normal", "neutral"],
+      alta: ["Alta", "danger"],
+      urgente: ["Urgente", "danger"]
     },
     payment: {
-      pending: ['Pendente', 'neutral'],
-      partial: ['Parcial', 'warning'],
-      paid: ['Pago', 'success'],
-      due: ['Vencido', 'danger'],
-      overdue: ['Atrasado', 'danger']
+      pending: ["Pendente", "neutral"],
+      partial: ["Parcial", "warning"],
+      paid: ["Pago", "success"],
+      due: ["Vencido", "danger"],
+      overdue: ["Atrasado", "danger"]
     },
-    rep: {
-      rep_p: ['REP-P', 'outline'],
-      rep_c: ['REP-C', 'outline'],
-      rep_a: ['REP-A', 'outline']
-    },
+    rep: { rep_p: ["REP-P", "outline"], rep_c: ["REP-C", "outline"], rep_a: ["REP-A", "outline"] },
     // SLA de atendimento — frescor do ticket / cobrança
     sla: {
-      fresh: ['No prazo', 'sla-fresh'],
-      aging: ['Vencendo', 'sla-aging'],
-      late: ['Atrasado', 'sla-late'],
-      expired: ['Vencido', 'sla-expired']
+      fresh: ["No prazo", "sla-fresh"],
+      aging: ["Vencendo", "sla-aging"],
+      late: ["Atrasado", "sla-late"],
+      expired: ["Vencido", "sla-expired"]
     },
     // Tipo de cadastro — PJ / PF
     tipo: {
-      pj: ['PJ', 'tipo-pj'],
-      pf: ['PF', 'tipo-pf']
+      pj: ["PJ", "tipo-pj"],
+      pf: ["PF", "tipo-pf"]
     },
     // Frescor do cliente (recência de compra) — CRM / Clientes
     frescor: {
-      recente: ['recente', 'fresc-hot'],
-      fresc: ['fresc', 'fresc-warm'],
-      frio: ['frio', 'fresc-cold'],
-      distante: ['distante', 'fresc-cold']
+      recente: ["recente", "fresc-hot"],
+      fresc: ["fresc", "fresc-warm"],
+      frio: ["frio", "fresc-cold"],
+      distante: ["distante", "fresc-cold"]
     },
     // Canal do atendimento (inbox omnichannel)
     atendimento: {
-      email: ['E-mail', 'canal-email'],
-      instagram: ['Instagram', 'canal-ig'],
-      facebook: ['Facebook', 'canal-fb'],
-      mercadolivre: ['Mercado Livre', 'canal-ml'],
-      whatsapp: ['WhatsApp', 'sla-fresh']
+      email: ["E-mail", "canal-email"],
+      instagram: ["Instagram", "canal-ig"],
+      facebook: ["Facebook", "canal-fb"],
+      mercadolivre: ["Mercado Livre", "canal-ml"],
+      whatsapp: ["WhatsApp", "sla-fresh"]
     }
   };
-  const key = (value || '').toString().toLowerCase();
+  const key = (value || "").toString().toLowerCase();
   const entry = (MAP[kind] || {})[key];
-  const tone = toneProp || (entry ? entry[1] : 'outline');
+  const tone = toneProp || (entry ? entry[1] : "outline");
   const text = label || (entry ? entry[0] : value);
   const c = C[tone] || C.outline;
-  const pulse = kind === 'prioridade' && key === 'urgente';
-  return /*#__PURE__*/React.createElement("span", {
-    style: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 5,
-      padding: c.mono ? '2px 6px' : '2px 10px',
-      borderRadius: c.mono ? 'var(--radius-sm, 4px)' : 9999,
-      fontSize: c.mono ? 'var(--fs-1)' : 'var(--fs-2)',
-      fontWeight: c.mono ? 700 : 500,
-      lineHeight: 1.5,
-      fontFamily: c.mono ? 'var(--font-mono)' : 'inherit',
-      letterSpacing: c.mono ? '.03em' : 'normal',
-      background: c.bg,
-      color: c.fg,
-      border: '1px solid ' + (c.border || 'transparent'),
-      animation: pulse ? 'sb-pulse 2s cubic-bezier(.4,0,.6,1) infinite' : 'none'
-    }
-  }, c.dot && /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: 6,
-      height: 6,
-      borderRadius: 9999,
-      background: 'currentColor',
-      flexShrink: 0
-    },
-    "aria-hidden": true
-  }), text, rel && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
-    style: {
-      opacity: 0.55
-    }
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      opacity: 0.85,
-      fontWeight: 400
-    }
-  }, rel)));
+  const pulse = kind === "prioridade" && key === "urgente";
+  return /* @__PURE__ */ React.createElement("span", { style: {
+    // Medidas da produção (`ui/badge`): 12px/16px, padding 2px 8px, vão 4px.
+    display: "inline-flex",
+    alignItems: "center",
+    gap: c.mono ? 5 : 4,
+    padding: c.mono ? "2px 6px" : "2px 8px",
+    borderRadius: c.mono ? "var(--radius-sm, 4px)" : 9999,
+    fontSize: c.mono ? "var(--fs-1)" : 12,
+    fontWeight: c.mono ? 700 : 500,
+    lineHeight: c.mono ? 1.5 : "16px",
+    fontFamily: c.mono ? "var(--font-mono)" : "inherit",
+    letterSpacing: c.mono ? ".03em" : "normal",
+    background: c.bg,
+    color: c.fg,
+    border: "1px solid " + (c.border || "transparent"),
+    animation: pulse ? "sb-pulse 2s cubic-bezier(.4,0,.6,1) infinite" : "none"
+  } }, c.dot && /* @__PURE__ */ React.createElement("span", { style: { width: 6, height: 6, borderRadius: 9999, background: "currentColor", flexShrink: 0 }, "aria-hidden": true }), text, rel && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { style: { opacity: 0.55 } }, "\xB7"), /* @__PURE__ */ React.createElement("span", { style: { opacity: 0.85, fontWeight: 400 } }, rel)));
 }
 Object.assign(__ds_scope, { StatusBadge });
 })(); } catch (e) { __ds_ns.__errors.push({ path: "components/StatusBadge/StatusBadge.jsx", error: String((e && e.message) || e) }); }
