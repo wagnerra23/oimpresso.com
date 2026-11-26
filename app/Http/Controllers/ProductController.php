@@ -3221,6 +3221,10 @@ class ProductController extends Controller
                     'naturezaFiscal' => $naturezaFiscal,
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
+                    // UC-PEDIT-36 (AR-PROD-004, paridade Delphi): "Última alteração", só leitura. O
+                    // updated_at é gravado no fuso da empresa (middleware Timezone) e lido no mesmo fuso,
+                    // então sai como está, sem o +3h do format_date. Formato pt-BR fixo.
+                    'ultimaAlteracao' => $product->updated_at ? $product->updated_at->format('d/m/Y H:i') : null,
                     'alertQuantity' => $alert_quantity,
                     'weight' => $product->weight,
                     'productDescription' => $product->product_description,

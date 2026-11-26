@@ -6,8 +6,12 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.7 + §16 — os UC abaixo DERIVAM dele
 related_us: [US-MANU-003, US-MANU-008]
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-11-25"
 ---
+
+> ℹ️ **`last_run` 2026-10-06 → 2026-11-25 (G-6): forma, não comportamento.** Pendências da Fabricação,
+> lote 4: botões, cartões e campos ganharam as medidas do Design System. Rótulos, ações, regras e
+> permissões não mudaram; nenhum UC cita tamanho ou cor de botão.
 
 > ℹ️ **`last_run` 2026-09-30 → 2026-10-06 (G-6): forma, não regra de negócio.** As duas opções viram
 > **interruptores** (`Switch`), como no protótipo, no lugar das caixas de marcação; o campo de prefixo fica 34px,

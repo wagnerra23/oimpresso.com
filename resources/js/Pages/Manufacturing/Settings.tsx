@@ -22,6 +22,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { Switch } from '@/Components/ui/switch';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import { BOTAO_PRIMARIO } from './_components/Gaveta';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface SettingsShape {
@@ -79,69 +80,66 @@ export default function Settings({
       <FabricacaoAbas ativa="config" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
       <form className="mfg-cfg" data-contract="form" onSubmit={salvar}>
-        <div className="mfg-card">
-          <div className="mfg-sec">
-            <span>Configurações do módulo</span>
-            <span className="ln" />
+        {/* Cartões na forma do `Widget` do DS (Widget.jsx): cabeçalho com título 13,5px/600 e corpo
+            próprio, raio 12 (S-01). */}
+        <section className="mfg-card">
+          <h3>Configurações do módulo</h3>
+          <div>
+            <label className="mfg-fld" style={{ width: 260 }}>
+              <span>Prefixo da referência</span>
+              <input
+                className="mfg-inp"
+                value={s.ref_no_prefix}
+                onChange={(e) => setS({ ...s, ref_no_prefix: e.target.value })}
+              />
+              <small>usado na numeração das ordens de produção</small>
+            </label>
+
+            {/* Interruptores, como o protótipo (`manufacturing-producao.jsx`: `<Switch label sublabel>` dentro
+                de `.mfg-switch-host`). Antes eram caixas de marcação — o mesmo controle do filtro "Só
+                finalizadas" das outras abas, mas aqui é ligar/desligar uma opção do módulo ([M] 2026-10-06).
+                O campo de prefixo ganha a largura do protótipo (260). */}
+            <label className="mfg-check big" htmlFor="mfg-cfg-travar-qtd">
+              <Switch
+                id="mfg-cfg-travar-qtd"
+                checked={s.disable_editing_ingredient_qty}
+                onCheckedChange={(v) =>
+                  setS({ ...s, disable_editing_ingredient_qty: v === true })
+                }
+              />
+              Bloquear edição da quantidade de ingrediente
+              <small>
+                quando ligado, a receita manda: nem editor nem ordem de produção permitem
+                ajustar consumo.
+              </small>
+            </label>
+
+            <label className="mfg-check big" htmlFor="mfg-cfg-preco-produto">
+              <Switch
+                id="mfg-cfg-preco-produto"
+                checked={s.enable_updating_product_price}
+                onCheckedChange={(v) =>
+                  setS({ ...s, enable_updating_product_price: v === true })
+                }
+              />
+              Atualizar preço do produto ao finalizar produção
+              <small>propaga o custo unitário calculado para a ficha do produto.</small>
+            </label>
+
+            <div className="mfg-ed-f mfg-inline">
+              <span className="mfg-crumb-meta">
+                Fabricação{version ? ` v${version}` : ''}
+              </span>
+              <span className="sp" />
+              <Button type="submit" className={BOTAO_PRIMARIO} disabled={!dirty || salvando}>
+                Atualizar
+              </Button>
+            </div>
           </div>
+        </section>
 
-          <label className="mfg-fld" style={{ width: 260 }}>
-            <span>Prefixo da referência</span>
-            <input
-              className="mfg-inp"
-              value={s.ref_no_prefix}
-              onChange={(e) => setS({ ...s, ref_no_prefix: e.target.value })}
-            />
-            <small>usado na numeração das ordens de produção</small>
-          </label>
-
-          {/* Interruptores, como o protótipo (`manufacturing-producao.jsx`: `<Switch label sublabel>` dentro
-              de `.mfg-switch-host`). Antes eram caixas de marcação — o mesmo controle do filtro "Só
-              finalizadas" das outras abas, mas aqui é ligar/desligar uma opção do módulo ([M] 2026-10-06).
-              O campo de prefixo ganha a largura do protótipo (260). */}
-          <label className="mfg-check big" htmlFor="mfg-cfg-travar-qtd">
-            <Switch
-              id="mfg-cfg-travar-qtd"
-              checked={s.disable_editing_ingredient_qty}
-              onCheckedChange={(v) =>
-                setS({ ...s, disable_editing_ingredient_qty: v === true })
-              }
-            />
-            Bloquear edição da quantidade de ingrediente
-            <small>
-              quando ligado, a receita manda: nem editor nem ordem de produção permitem
-              ajustar consumo.
-            </small>
-          </label>
-
-          <label className="mfg-check big" htmlFor="mfg-cfg-preco-produto">
-            <Switch
-              id="mfg-cfg-preco-produto"
-              checked={s.enable_updating_product_price}
-              onCheckedChange={(v) =>
-                setS({ ...s, enable_updating_product_price: v === true })
-              }
-            />
-            Atualizar preço do produto ao finalizar produção
-            <small>propaga o custo unitário calculado para a ficha do produto.</small>
-          </label>
-
-          <div className="mfg-ed-f mfg-inline">
-            <span className="mfg-crumb-meta">
-              Fabricação{version ? ` v${version}` : ''}
-            </span>
-            <span className="sp" />
-            <Button type="submit" size="sm" disabled={!dirty || salvando}>
-              Atualizar
-            </Button>
-          </div>
-        </div>
-
-        <div className="mfg-card">
-          <div className="mfg-sec">
-            <span>Integrações</span>
-            <span className="ln" />
-          </div>
+        <section className="mfg-card">
+          <h3>Integrações</h3>
           <ul className="mfg-int">
             <li>
               <b>Produtos</b> — a receita pertence a uma variação; o custo calculado alimenta
@@ -164,7 +162,7 @@ export default function Settings({
               </Link>
             </li>
           </ul>
-        </div>
+        </section>
       </form>
     </div>
   );
