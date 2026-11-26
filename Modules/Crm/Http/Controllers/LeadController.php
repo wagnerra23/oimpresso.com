@@ -656,11 +656,13 @@ class LeadController extends Controller
     public function convertToCustomer($id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->autorizarLeads($business_id);
 
         if (request()->ajax()) {
+            // CRM-25: só lead deste negócio que o usuário vê na lista. Antes valia qualquer
+            // contato do negócio, inclusive cliente e lead de colega para quem só vê os próprios.
+            $this->leadQuery($business_id)->findOrFail($id);
+
             try {
                 $contact = CrmContact::where('business_id', $business_id)->findOrFail($id);
 
@@ -693,15 +695,21 @@ class LeadController extends Controller
     public function postLifeStage($id)
     {
         $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->autorizarLeads($business_id);
 
         if (request()->ajax()) {
+            // CRM-23: o arrasto no kanban só move lead que o usuário vê, e só para um estágio
+            // deste negócio. Antes valia qualquer contato e qualquer id de categoria.
+            $this->leadQuery($business_id)->findOrFail($id);
+            $estagio = request()->input('crm_life_stage');
+            if (! empty($estagio) && ! Category::forDropdown($business_id, 'life_stage')->has((int) $estagio)) {
+                return response()->json(['success' => false, 'msg' => __('messages.something_went_wrong')], 422);
+            }
+
             try {
                 $contact = CrmContact::where('business_id', $business_id)->findOrFail($id);
 
-                $contact->crm_life_stage = request()->input('crm_life_stage');
+                $contact->crm_life_stage = empty($estagio) ? null : (int) $estagio;
                 $contact->save();
 
                 $output = [
@@ -731,6 +739,19 @@ class LeadController extends Controller
      * Leads deste negócio que o usuário pode ver: `business_id` + `type = lead` + "só os meus"
      * quando ele não tem `crm.access_all_leads`. Base de edit/update/destroy (thread Crm/09).
      */
+    /** Mesma barreira da lista: módulo CRM na assinatura e permissão de ver leads (todos ou os próprios). */
+    private function autorizarLeads($business_id): void
+    {
+        $user = auth()->user();
+        if ($user->can('superadmin')) {
+            return;
+        }
+        if (! $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')
+            || ! ($user->can('crm.access_all_leads') || $user->can('crm.access_own_leads'))) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
     private function leadQuery($business_id)
     {
         $query = CrmContact::where('business_id', $business_id)->where('type', 'lead');
@@ -765,6 +786,7 @@ class LeadController extends Controller
             'documento' => $l->tax_number,
             'fonte' => $l->Source?->name,
             'estagio' => $l->lifeStage?->name,
+            'estagio_id' => $l->crm_life_stage ? (string) $l->crm_life_stage : null,
             'atribuidos' => $l->leadUsers->pluck('user_full_name')->values(),
             'endereco' => implode(', ', array_filter([$l->address_line_1, $l->address_line_2, $l->city, $l->state, $l->country, $l->zip_code])),
             'ultimo' => $data($l->last_follow_up),
@@ -784,7 +806,7 @@ class LeadController extends Controller
         $rotulosDoNegocio = (array) (json_decode((string) session('business.custom_labels'), true)['contact'] ?? []);
 
         return Inertia::render('Crm/Leads/Index', [
-            'filtros' => request()->only(['source', 'life_stage', 'user_id', 'q']),
+            'filtros' => request()->only(['source', 'life_stage', 'user_id', 'q', 'vista']),
             'rotulos' => [
                 'campo1' => $rotulosDoNegocio['custom_field_1'] ?? __('lang_v1.contact_custom_field1'),
                 'campo2' => $rotulosDoNegocio['custom_field_2'] ?? __('lang_v1.contact_custom_field2'),
@@ -799,6 +821,11 @@ class LeadController extends Controller
                 ->paginate(25)
                 ->withQueryString()
                 ->through($linha)),
+            // CRM-23: o kanban traz todos os leads da consulta (sem página), como a Blade fazia
+            // no `lead_view=kanban`. Só é calculado quando a vista pedida é o kanban.
+            'kanban' => request()->input('vista') === 'kanban'
+                ? Inertia::defer(fn () => (clone $leads)->orderByDesc('contacts.created_at')->get()->map($linha)->values())
+                : null,
             // Drawer de detalhe: a MESMA consulta da lista, filtrada pelo id. Lead de outro
             // negócio, cliente (type ≠ lead) ou lead de colega, para quem só vê os próprios,
             // dá `null` — o drawer não abre.
