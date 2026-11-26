@@ -9,8 +9,8 @@
 // Contrato: governance/design/contracts/crm-leads.contract.json
 //
 // "Adicionar" abre o formulário de lead (Cliente/Create parametrizado, thread Crm/06). O kanban
-// (`?vista=kanban`, CRM-23) mora aqui; a conversão para cliente e o "local" do contato seguem
-// apontando para a Blade (`?classico=1`) — lá os botões de local não têm ação (CRM-24, decisão [W]).
+// (`?vista=kanban`, CRM-23) e a conversão para cliente (CRM-25) moram aqui; o "local" do contato
+// segue apontando para a Blade (`?classico=1`) — lá os botões não têm ação (CRM-24, decisão [W]).
 //
 // Forma (pendências CRM-20/21/22/26, medido em produção em 2026-11-25): filtros recolhíveis,
 // cartão "Todos os leads" com contador, Confortável/Compacto e Lista/Kanban em seletores,
@@ -34,6 +34,7 @@ import { CrmCartao, CrmFiltros, CrmGaveta, CrmMini, CrmPilula, CrmSecao } from '
 import { frescor, moverEstagio, tomDoEstagio } from '../_components/lead';
 import { toast } from 'sonner';
 import LeadsKanban from './_components/LeadsKanban';
+import ConverterLead from './_components/ConverterLead';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { useCockpit } from '@/Hooks/useCockpit';
 
@@ -77,6 +78,7 @@ function verLead(filtros: Filtros, id: number | null) {
 export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, leads, kanban, lead }: Props) {
   const cockpit = useCockpit();
   const [compacta, setCompacta] = useState(false);
+  const [converter, setConverter] = useState<Lead | null>(null);
   // Estágio mudado pelo arrasto, antes de a lista voltar do servidor.
   const [movidos, setMovidos] = useState<Record<number, string>>({});
   const vista = filtros.vista === 'kanban' ? 'kanban' : 'lista';
@@ -152,7 +154,7 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
               <>
                 <DataTable<Lead>
                   caption="Leads"
-                  columns={colunas(rotulos, filtros, cockpit)}
+                  columns={colunas(rotulos, filtros, cockpit, setConverter)}
                   data={leads.data}
                   pagination={leads}
                   endpoint={ROTA}
@@ -188,7 +190,7 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
           subtitulo={[lead.codigo, lead.fonte, lead.atribuidos.join(', ')].filter(Boolean).join(' · ') || '—'}
           rodape={<>
             <Button asChild variant="outline"><a href={`${ROTA}/${lead.id}`}>Abrir ficha completa</a></Button>
-            <Button asChild className="text-white"><a href={CLASSICO}>Converter para cliente</a></Button>
+            <Button className="text-white" onClick={() => { setConverter(lead); verLead(filtros, null); }}>Converter para cliente</Button>
           </>}
         >
           <CrmSecao titulo="Informação do lead">
@@ -205,6 +207,8 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
           </CrmSecao>
         </CrmGaveta>
       ) : null}
+
+      {converter ? <ConverterLead lead={converter} estagios={estagios} onFechar={() => setConverter(null)} /> : null}
     </div>
   );
 }
@@ -225,7 +229,7 @@ function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo
   );
 }
 
-function colunas(rotulos: Rotulos, filtros: Filtros, cockpit: HTMLElement | null): ColumnDef<Lead>[] {
+function colunas(rotulos: Rotulos, filtros: Filtros, cockpit: HTMLElement | null, onConverter: (l: Lead) => void): ColumnDef<Lead>[] {
   const texto = (header: string, acc: (r: Lead) => ReactNode, width = 150, mono = false): ColumnDef<Lead> => ({
     id: header, header, cell: ({ row }) => acc(row.original) || '—', meta: { width, mono },
   });
@@ -241,8 +245,7 @@ function colunas(rotulos: Rotulos, filtros: Filtros, cockpit: HTMLElement | null
         </DropdownMenuTrigger>
         <DropdownMenuContent container={cockpit} align="start" onClick={(e) => e.stopPropagation()}>
           <DropdownMenuItem onSelect={() => verLead(filtros, row.original.id)}>Exibir lead</DropdownMenuItem>
-          {/* A conversão ainda mora na Blade (CRM-25). */}
-          <DropdownMenuItem asChild><a href={CLASSICO}>Converter para cliente</a></DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => onConverter(row.original)}>Converter para cliente</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
