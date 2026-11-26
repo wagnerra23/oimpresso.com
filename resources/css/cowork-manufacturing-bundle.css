@@ -26,7 +26,7 @@
    navegador de quem tem outro hue salvo. Detalhe e medição: Recipes.charter.md. */
 .mfg-root{display:flex;flex-direction:column;min-height:0;flex:1}
 .mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:transparent}
-
+[data-slot="sheet-overlay"]:has(+ .mfg-root[data-contract="drawer"]){background:oklch(0.15 0 0 / .45)} /* Drawer.jsx L32; só a gaveta da Fabricação */
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
 
 .mfg-bar{display:flex;align-items:center;gap:10px;padding:12px 20px}

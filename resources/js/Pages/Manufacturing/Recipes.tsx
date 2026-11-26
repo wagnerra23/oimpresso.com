@@ -35,7 +35,14 @@ import { ROTA_NOVA_ORDEM } from './_lib/ordem';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import NovaReceitaDialog from './_components/NovaReceitaDialog';
-import Gaveta, { BOTAO_PRIMARIO, BOTAO_SECUNDARIO, SecaoGaveta } from './_components/Gaveta';
+import Gaveta, {
+  BOTAO_PRIMARIO,
+  BOTAO_PRIMARIO_SM,
+  BOTAO_SECUNDARIO,
+  KPI_FILTRO,
+  KPI_LEITURA,
+  SecaoGaveta,
+} from './_components/Gaveta';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 /** Filtros da URL — o servidor devolve o que entendeu, já normalizado. */
@@ -242,8 +249,8 @@ export default function Recipes({
         </div>
         <div className="os-page-h-r">
           {permissions.criar && (
-            <Button size="sm" onClick={() => setNovaAberta(true)}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova receita
+            <Button size="sm" className={BOTAO_PRIMARIO_SM} onClick={() => setNovaAberta(true)}>
+              <Plus className="h-[13px] w-[13px]" /> Nova receita
             </Button>
           )}
         </div>
@@ -263,12 +270,14 @@ export default function Recipes({
           o número (medido com a sonda nos dois lados, 2026-09-30). */}
       <div className="mfg-kpis" data-contract="kpis" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <KpiCard
+          className={KPI_LEITURA}
           label="Custo médio / unidade"
           value={fmt(kpis.custo_medio)}
           description={`média das ${kpis.total} receita${kpis.total === 1 ? '' : 's'}`}
         />
         <KpiCard
           variant="filter"
+          className={KPI_FILTRO}
           label="Margem abaixo de 45%"
           value={kpis.margem_baixa}
           description="preço de venda desatualizado"
@@ -278,6 +287,7 @@ export default function Recipes({
           onClick={() => trocarKpi('margem')}
         />
         <KpiCard
+          className={KPI_LEITURA}
           label="Produção do mês"
           value={producao.mes_final}
           description={`${producao.mes_rascunho} rascunho${producao.mes_rascunho === 1 ? '' : 's'} em aberto`}

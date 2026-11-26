@@ -24,6 +24,7 @@ import DataTable from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import { BOTAO_PRIMARIO_SM, KPI_FILTRO, KPI_LEITURA } from './_components/Gaveta';
 import OrdemDrawer, { type OrdemDetalhe } from './_components/OrdemDrawer';
 import { CAMPO_DATA, ROTULO_CAMPO, ROTULO_CHECKBOX, isDataCompleta } from './_lib/filtros';
 import { ROTA_NOVA_ORDEM } from './_lib/ordem';
@@ -305,9 +306,9 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
           </p>
         </div>
         <div className="os-page-h-r">
-          <Button asChild size="sm">
+          <Button asChild size="sm" className={BOTAO_PRIMARIO_SM}>
             <a href={ROTA_NOVA_ORDEM}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova produção
+              <Plus className="h-[13px] w-[13px]" /> Nova produção
             </a>
           </Button>
         </div>
@@ -352,12 +353,14 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
           `.mfg-tablewrap` (0 20px 24px), em `manufacturing-bundle.css`. */}
       <div className="grid grid-cols-1 gap-2.5 px-5 pb-1 pt-3.5 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
         <KpiCard
+          className={KPI_LEITURA}
           label="Total"
           value={indicadores?.total_count ?? 0}
           description={recorteDosIndicadores ? 'no filtro de local e data' : 'ordens cadastradas'}
         />
         <KpiCard
           variant="filter"
+          className={KPI_FILTRO}
           label="Finalizadas"
           value={indicadores?.final_count ?? 0}
           description="estoque já movimentado"
@@ -367,11 +370,13 @@ function Index({ productions = [], summary, kpis, business_locations = {}, filte
           onClick={() => applyFilter(filters, { is_final: filters.is_final ? null : true })}
         />
         <KpiCard
+          className={KPI_LEITURA}
           label="Pendentes"
           value={indicadores?.pending_count ?? 0}
           description="rascunhos, sem movimentar estoque"
         />
         <KpiCard
+          className={KPI_LEITURA}
           label="Valor total"
           value={formatCurrency(indicadores?.total_value ?? 0)}
           description={recorteDosIndicadores ? 'ordens no filtro de local e data' : 'todas as ordens cadastradas'}
