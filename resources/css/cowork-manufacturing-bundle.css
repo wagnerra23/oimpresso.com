@@ -29,7 +29,11 @@
 [data-slot="sheet-overlay"]:has(+ .mfg-root[data-contract="drawer"]){background:oklch(0.15 0 0 / .45)} /* Drawer.jsx L32; só a gaveta da Fabricação */
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
 
-.mfg-bar{display:flex;align-items:center;gap:10px;padding:12px 20px}
+.mfg-bar{display:flex;align-items:center;gap:6px;padding:12px 20px}
+/* Segmented do DS, tamanho sm (Segmented.jsx L25-46); anel em --color-primary, não --accent */
+.mfg-bar .cw-segmented{border-radius:8px;background:var(--bg-2);border-color:var(--border)}
+.mfg-bar .cw-segmented button{height:26px;padding:0 9px;border-radius:6px;font-size:11.5px}
+.mfg-bar .cw-segmented button[data-state="on"]{box-shadow:0 1px 2px rgba(0,0,0,.10),0 0 0 1px color-mix(in oklch,var(--color-primary) 22%,transparent)}
 .mfg-s{position:relative;flex:1;max-width:360px;display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:0 10px;height:34px}
 .mfg-s input{flex:1;border:0;background:none;outline:none;color:var(--text);font-size:13px}
 .mfg-s .ic{color:var(--text-mute);flex:none}
@@ -48,14 +52,18 @@
 .mfg-empty{padding:56px 20px;text-align:center;color:var(--text-dim);display:flex;flex-direction:column;gap:6px;align-items:center}
 .mfg-empty b{color:var(--text);font-size:13.5px}
 
-.mfg-bulk{position:sticky;bottom:0;display:flex;align-items:center;gap:12px;margin:10px 20px 0;padding:10px 14px;border:1px solid var(--color-primary);border-radius:8px;background:var(--surface);box-shadow:0 6px 24px rgba(0,0,0,.28)}
-.mfg-bulk b{font-size:12.5px;color:var(--text)}
-.mfg-bulk .sp{flex:1}
+/* BulkBar do DS (BulkBar.jsx): pílula escura flutuando no centro do rodapé */
+.mfg-bulk{position:sticky;bottom:16px;z-index:5;width:fit-content;margin:10px auto 0;display:flex;align-items:center;gap:14px;padding:8px 10px 8px 16px;border-radius:99px;background:oklch(0.21 0 0);color:oklch(0.96 0 0);box-shadow:0 20px 40px -12px rgba(0,0,0,.45)}
+.mfg-bulk b{display:inline-flex;align-items:center;gap:8px;font:600 12.5px/1 var(--font-sans)}
+.mfg-bulk b i{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--color-primary);color:var(--accent-fg);font:700 11.5px/1 var(--font-mono)}
+.mfg-bulk .sep{width:1px;height:20px;background:oklch(0.35 0 0)}
+.mfg-bulk button{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:0;border-radius:6px;background:transparent;color:inherit;font:500 12.5px/1 var(--font-sans);cursor:pointer}
+.mfg-bulk button:hover{background:oklch(0.30 0 0)}
+.mfg-bulk button.x{width:24px;height:24px;padding:0;justify-content:center;border-radius:50%;color:oklch(0.7 0 0);font-size:14px}
 
 /* ── Drawer (PT-02) ── */
 /* A moldura antiga das gavetas (.mfg-scrim, .mfg-drw, -h, -b, -f) saiu em 2026-10-19: as três gavetas
    usam Pages/Manufacturing/_components/Gaveta.tsx (o Drawer do DS, medido contra o protótipo). */
-.mfg-x{margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);width:28px;height:28px;cursor:pointer}
 .mfg-sec{padding:16px 0 4px;display:flex;align-items:center;gap:8px}
 .mfg-sec span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-mute)}
 .mfg-sec .ln{flex:1;height:1px;background:var(--border)}
@@ -98,8 +106,6 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-inp:disabled{opacity:.55;cursor:not-allowed}
 .mfg-inp.sel{height:26px;font-size:11px;padding:0 4px;background:var(--surface)}
 .mfg-inp.num{width:82px;height:26px;text-align:right;font-family:var(--font-mono,ui-monospace,monospace);font-size:11.5px;padding:0 6px}
-.mfg-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mfg-err{margin:8px 0 0;font-size:11.5px;color:var(--neg)}
 .mfg-link{background:none;border:0;padding:0;color:var(--color-primary);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
 .mfg-check{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:var(--text);cursor:pointer}
 .mfg-check.big{display:grid;grid-template-columns:32px 1fr;gap:4px 10px;align-items:start;margin-top:12px;font-size:13px;font-weight:400;color:var(--text)}
@@ -109,12 +115,6 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-filters .sp{flex:1}
 
 /* ── Modal ── */
-.mfg-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(520px,94vw);max-height:88vh;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);border-radius:12px;z-index:61;box-shadow:0 24px 64px rgba(0,0,0,.4)}
-.mfg-modal-h{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
-.mfg-modal-h b{font-size:14px;color:var(--text)}
-.mfg-modal-h .mfg-x{margin-left:auto}
-.mfg-modal-b{padding:4px 18px 18px;overflow:auto}
-.mfg-modal-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--border)}
 
 /* ── Editor / formulários full ── */
 .mfg-ed{display:flex;flex-direction:column;flex:1;min-height:0}
@@ -154,12 +154,8 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-grp-h .mfg-mini{margin-left:8px}
 .mfg-mini{background:none;border:1px solid var(--border);border-radius:5px;width:22px;height:22px;color:var(--text-mute);cursor:pointer;font-size:11px;line-height:1}
 .mfg-mini.danger:hover{color:var(--neg);border-color:color-mix(in oklch,var(--neg) 40%,transparent)}
-.mfg-add{display:inline-flex;align-items:center;gap:6px;margin:8px 12px 10px;background:none;border:1px dashed var(--border);border-radius:6px;padding:5px 11px;color:var(--text-dim);font-size:11.5px;cursor:pointer}
-.mfg-add:hover{color:var(--color-primary);border-color:var(--color-primary)}
-.mfg-add.mfg-block{display:flex;justify-content:center;width:calc(100% - 0px);margin:12px 0 0}
 .mfg-pick{margin:8px 12px 12px;border:1px solid var(--color-primary);border-radius:8px;padding:8px;background:var(--bg-2)}
 .mfg-s.sm{height:28px;max-width:none}
-.mfg-pick-x{background:none;border:0;color:var(--text-mute);font-size:10px;cursor:pointer;font-family:var(--font-mono,ui-monospace,monospace)}
 .mfg-pick-list{display:flex;flex-direction:column;margin-top:6px;max-height:220px;overflow:auto}
 .mfg-pick-list.row{flex-direction:row;flex-wrap:wrap;gap:6px}
 .mfg-pick-i{display:flex;align-items:center;gap:10px;background:none;border:0;border-radius:6px;padding:6px 8px;text-align:left;cursor:pointer;color:var(--text)}
@@ -171,16 +167,14 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 
 /* ── Configurações ── */
 .mfg-cfg{padding:12px 20px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;align-items:start}
-.mfg-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:4px 16px 18px}
-.mfg-int{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--text-dim);line-height:1.5}
+.mfg-card{border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.04);overflow:hidden}
+.mfg-card>h3{margin:0;padding:12px 14px;border-bottom:1px solid var(--border-2);font:600 13.5px/1.25 var(--font-sans);letter-spacing:-.008em;color:var(--text)}
+.mfg-card>div{padding:14px}
+.mfg-int{list-style:none;margin:0;padding:14px;display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--text-dim);line-height:1.5}
 .mfg-int b{color:var(--text)}
 
-.mfg-toast{position:fixed;top:18px;right:22px;z-index:70;background:var(--surface);border:1px solid var(--color-primary);border-radius:8px;padding:9px 14px;font-size:12.5px;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.32)}
 
 /* ── Confirmação ── */
-.mfg-modal.sm{width:min(400px,92vw)}
-.mfg-modal.sm .mfg-modal-b p{margin:12px 0 0;font-size:12.5px;color:var(--text-dim);line-height:1.5}
-.mfg-modal.sm .mfg-modal-b b{color:var(--text)}
 
 .mfg-sim{display:flex;align-items:center;gap:12px;margin-top:10px}
 .mfg-sim input[type=range]{flex:1;accent-color:var(--color-primary)}

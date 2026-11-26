@@ -368,17 +368,18 @@ export default function Recipes({
           exige dupla prova + antes→depois + aprovação [W]. Fica declarado, não silenciado.
           A flag `enable_updating_product_price` vem no payload esperando essa decisão. */}
       {sel.length > 0 && (
-        <div className="mfg-bulk">
-          <b>
-            {sel.length} receita{sel.length > 1 ? 's' : ''} selecionada{sel.length > 1 ? 's' : ''}
+        <div className="mfg-bulk" role="region" aria-label="Ações em lote">
+          <b aria-live="polite">
+            <i>{sel.length}</i>
+            receita{sel.length > 1 ? 's' : ''} selecionada{sel.length > 1 ? 's' : ''}
           </b>
-          <span className="sp" />
-          <Button variant="ghost" size="sm" onClick={() => setSel([])}>
-            Limpar
-          </Button>
-          <Button variant="ghost" size="sm" onClick={imprimirSelecionadas}>
-            <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir fichas
-          </Button>
+          <span className="sep" aria-hidden />
+          <button type="button" onClick={imprimirSelecionadas}>
+            <Printer size={14} aria-hidden /> Imprimir fichas
+          </button>
+          <button type="button" className="x" onClick={() => setSel([])} aria-label="Limpar seleção">
+            ×
+          </button>
         </div>
       )}
 

@@ -21,7 +21,7 @@
 // Busca: papel "combobox" → `Command` do DS com `shouldFilter={false}` (busca no servidor), mesmo
 // idioma do `Purchase/_components/GradeProductCombobox.tsx` (REGISTRY_DS_COMPONENTES §Combobox).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { AlertCircle, Loader2, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
@@ -32,6 +32,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Inline } from '@/Components/layout/inline';
 import { Stack } from '@/Components/layout/stack';
+import { BOTAO_PRIMARIO, BOTAO_SECUNDARIO } from './Gaveta';
 
 /** Linha de `GET /manufacturing/nova-receita/produtos` (`RecipeBomService::buscarProdutosParaReceita`). */
 export interface ProdutoNovaReceita {
@@ -69,7 +70,15 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
+/** Moldura do `Modal` do DS (Modal.jsx L35-38): raio 12, padding 20, superfície, sombra longa;
+ *  título 17px/600. Os tokens vêm do `.cockpit`, por isso o portal monta lá (como a Gaveta). */
+const MOLDURA =
+  'gap-4 rounded-[12px] border-[var(--border)] bg-[var(--surface)] p-5 shadow-[0_24px_60px_-12px_rgba(0,0,0,.45)]';
+const TITULO = 'text-[17px] leading-[1.3] font-semibold tracking-[-.01em] text-[var(--text)]';
+
 export default function NovaReceitaDialog({ open, onOpenChange }: Props) {
+  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
   const [query, setQuery] = useState('');
   const [opcoes, setOpcoes] = useState<ProdutoNovaReceita[]>([]);
   const [buscando, setBuscando] = useState(false);
@@ -151,9 +160,13 @@ export default function NovaReceitaDialog({ open, onOpenChange }: Props) {
       {/* `grid-cols-[minmax(0,1fr)]`: o `DialogContent` é grid, e a coluna implícita crescia até o
           nome de produto mais comprido — medido em produção (2026-10-07): lista de 740px numa janela
           de 520px, empurrando os botões pra fora. Com a coluna limitada, o nome corta com "…". */}
-      <DialogContent className="grid-cols-[minmax(0,1fr)] sm:max-w-[520px]" data-screen-label="Fabricação · Nova receita">
+      <DialogContent
+        container={cockpit}
+        className={`grid-cols-[minmax(0,1fr)] sm:max-w-[520px] ${MOLDURA}`}
+        data-screen-label="Fabricação · Nova receita"
+      >
         <DialogHeader>
-          <DialogTitle>Nova receita</DialogTitle>
+          <DialogTitle className={TITULO}>Nova receita</DialogTitle>
           <DialogDescription>A receita pertence a um produto do catálogo.</DialogDescription>
         </DialogHeader>
 
@@ -270,10 +283,10 @@ export default function NovaReceitaDialog({ open, onOpenChange }: Props) {
         </Stack>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" className={BOTAO_SECUNDARIO} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={!produto} onClick={continuar}>
+          <Button className={BOTAO_PRIMARIO} disabled={!produto} onClick={continuar}>
             {temReceita ? 'Abrir receita existente' : 'Continuar para os ingredientes'}
           </Button>
         </DialogFooter>
