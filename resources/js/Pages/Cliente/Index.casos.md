@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-11-25"
+last_run: "2026-11-26"
 ---
 
 > ℹ️ **`last_run` 2026-11-21 → 2026-11-25 (G-6): pendências da medição de 2026-11-25, seção A (texto e forma).**
@@ -273,6 +273,13 @@ last_run: "2026-11-25"
 - **Aceite:** Dado um cadastro na empresa do usuário e outro numa segunda empresa · Quando a lista abre (aba Clientes e aba Todos) · Então só o cadastro da própria empresa aparece · E os KPIs (total, novos no mês, VIPs) e os contadores das abas não mudam quando a outra empresa ganha cadastro · E mudam em 1 quando a própria empresa ganha · E no sentido inverso a segunda empresa também não vê nem conta o cadastro da primeira.
 - **Âncora de contrato:** US-CRM-080 (`memory/requisitos/Crm/SPEC.md`) · `App\Contact` não tem global scope (SDD §5.4.2), então o isolamento é o `where('contacts.business_id')` manual de `ContactController::buildClienteIndexKpis`, `buildClienteIndexTabCounts` e `buildClienteIndexCustomers` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Teste:** `tests/Feature/Cliente/ClienteIndexIsolamentoEmpresaTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-27 …`. Tenant de teste 98 × 99.
+
+## UC-CIDX-28 · "Com saldo" conta quem tem saldo a receber, vencido ou não `[T0]` `[must]`
+- **Persona:** Larissa — o subtítulo "N com saldo" e o card "Com saldo" dizem quantos clientes devem algo a ela.
+- **Como usa:** cabeçalho da lista (subtítulo) e o card "Com saldo", que liga o filtro "Em débito".
+- **Aceite:** Dado um cliente com venda a receber ainda não vencida e outro com venda vencida · Quando os KPIs são computados · Então `com_saldo` conta os dois e `com_atraso` conta só o vencido · E cliente com venda paga ou só com bonificação não entra · E venda gravada em outra empresa não põe o cliente em "Com saldo" (Tier 0) · E nenhum valor muda: é contagem de contatos.
+- **Âncora de contrato:** medição de 2026-11-25 (`memory/requisitos/Crm/cliente-index-visual-comparison.md`, A-15): o subtítulo dizia "com saldo" mas lia `kpis.com_atraso` (só vencidos) · protótipo `prototipo-ui/cowork/Wagner/clientes-page.jsx` (`comSaldo` = clientes com `saldo > 0`, card "Com saldo · inadimplência") · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Cliente/ClienteKpiComSaldoTest.php` (Pest, lane `PHP / Pest (Cliente · MySQL)`) — `UC-CIDX-28 …`.
 - **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)

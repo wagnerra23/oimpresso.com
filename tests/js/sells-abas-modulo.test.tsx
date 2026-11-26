@@ -7,6 +7,11 @@
  * Medido em produção em 2026-11-24: só `/pos` tinha a barra; `/sells/drafts` não tinha; a aba
  * Assinaturas apontava para `/subscriptions` (404). O menu do hub Vendas que o servidor manda
  * não tinha `/sales-order` nem `/vendas/caixa` — é o caso que o filtro abaixo reproduz.
+ *
+ * Em 2026-11-26 a lista de vendas (`/sells`) passou a usar esta barra no lugar do menu "Visões"
+ * (decisão [W] 2026-11-25), e a barra ganhou a aba "Todas as vendas" na frente das 9 telas do
+ * `venda-blade.jsx`. Lá ela é o botão "Todas as vendas" do cabeçalho; no `VdModNav` da lista
+ * (`vendas-extras.jsx`) ela já é aba. A aba vem antes das 9, que seguem a ordem do protótipo.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -25,6 +30,7 @@ function ordemDoPrototipo(): string[] {
 
 // Chave da aba (= chave do protótipo) → tela que a mostra ativa.
 const TELAS: Record<string, string> = {
+  vendas: 'resources/js/Pages/Sells/Index.tsx',
   pos: 'resources/js/Pages/Sells/Pos/Index.tsx',
   rascunhos: 'resources/js/Pages/Sells/Drafts.tsx',
   cotacoes: 'resources/js/Pages/Sells/Quotations.tsx',
@@ -54,14 +60,18 @@ describe('Vendas · barra de abas do módulo', () => {
     expect(ordemDoPrototipo()).toHaveLength(9);
   });
 
-  it('mesmas telas e mesma ordem do protótipo', () => {
-    expect(ABAS_VENDAS.map((a) => a.key)).toEqual(ordemDoPrototipo());
+  it('Todas as vendas e depois as telas do protótipo, na ordem dele', () => {
+    expect(ABAS_VENDAS.map((a) => a.key)).toEqual(['vendas', ...ordemDoPrototipo()]);
   });
 
   it('cada tela do módulo mostra a barra com a sua própria aba ativa', () => {
     for (const [chave, arquivo] of Object.entries(TELAS)) {
       expect(ler(arquivo), arquivo).toContain(`<AbasVendas ativa="${chave}" />`);
     }
+  });
+
+  it('Todas as vendas aponta para a lista', () => {
+    expect(ABAS_VENDAS.find((a) => a.key === 'vendas')?.href).toBe('/sells');
   });
 
   it('Assinaturas aponta para a rota que existe', () => {
@@ -84,6 +94,6 @@ describe('Vendas · barra de abas do módulo', () => {
   });
 
   it('sem menu no payload, mostra todas (comportamento anterior)', () => {
-    expect(abasVisiveis('pos', undefined, {})).toHaveLength(9);
+    expect(abasVisiveis('pos', undefined, {})).toHaveLength(10);
   });
 });

@@ -77,6 +77,7 @@ on:
       # UC-V404..V407 (2026-11-23): gravando, nada da cena aparece — render da Page e dos dois
       # componentes que mudaram por isso (entrega e lançamento do item).
       - 'tests/js/sells-v3-gravando-sem-cena.test.tsx'
+      - 'tests/js/sells-v3-lancar-item-producao.test.tsx'
       - 'resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx'
       - 'resources/js/Pages/Sells/_components/v3/LancarItem.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ComissaoDrawer.tsx'
@@ -134,6 +135,7 @@ on:
       # UC-V404..V407 (2026-11-23): gravando, nada da cena aparece — render da Page e dos dois
       # componentes que mudaram por isso (entrega e lançamento do item).
       - 'tests/js/sells-v3-gravando-sem-cena.test.tsx'
+      - 'tests/js/sells-v3-lancar-item-producao.test.tsx'
       - 'resources/js/Pages/Sells/_components/v3/EntregaFrete.tsx'
       - 'resources/js/Pages/Sells/_components/v3/LancarItem.tsx'
       - 'resources/js/Pages/Sells/_components/v3/ComissaoDrawer.tsx'
@@ -242,6 +244,7 @@ jobs:
             tests/js/sells-v3-item-abas.test.tsx \
             tests/js/sells-v3-fechamento-prototipo.test.tsx \
             tests/js/sells-v3-gravando-sem-cena.test.tsx \
+            tests/js/sells-v3-lancar-item-producao.test.tsx \
             tests/numberPtBR.test.ts \
             tests/br-inputs.test.tsx \
             tests/scanner-race.test.tsx \

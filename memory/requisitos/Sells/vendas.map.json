@@ -13,12 +13,12 @@
         "linhas": "810-818"
       },
       "vivo": {
-        "arquivo": "resources/js/Pages/Sells/Index.tsx",
-        "linhas": "1244-1281",
-        "ancora": true
+        "arquivo": "resources/js/Pages/Sells/_components/AbasVendas.tsx",
+        "linhas": "13-19",
+        "ancora": "tabs"
       },
       "status": "mapeado",
-      "acao": "✅ APLICADO 2026-06-22 (link adicionado)",
+      "acao": "✅ APLICADO 2026-06-22 (link adicionado) · 2026-11-26: menu Visões removido, a navegação entre telas do módulo passou para a barra AbasVendas (decisão [W] 2026-11-25)",
       "_acionavel": true,
       "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `div.vd-visoes` (botão + dropdown de visões, incl. \"Abrir PDV balcão\" e Caixa do dia)."
     },

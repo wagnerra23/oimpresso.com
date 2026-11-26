@@ -26,6 +26,7 @@ import { CampoMidia } from './CampoMidia';
 import type { Folheto } from './envioMidia';
 import type { TipoAuxiliar } from './envioCadastroAuxiliar';
 import { avisoCodigoBarras } from './ean';
+import { skuEmUso } from './skuDuplicado';
 import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
 
@@ -48,6 +49,14 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
   // UC-PCAD-28 · UC-PEDIT-28: "Bipar" põe o cursor no SKU, onde o leitor de código de barras digita.
   const skuRef = useRef<HTMLInputElement>(null);
   const [leitorPronto, setLeitorPronto] = useState(false);
+  // UC-PCAD-34: ao sair do SKU, a mesma conferência do Blade (`/products/check_product_sku`). É só
+  // aviso; quem recusa é o servidor no salvar.
+  const [skuRepetido, setSkuRepetido] = useState<string | null>(null);
+  const conferirSku = async (sku: string) => {
+    const texto = sku.trim();
+    if (texto === '') return;
+    if ((await skuEmUso(texto, midia?.produtoId)) === true) setSkuRepetido(texto);
+  };
   // UC-PCAD-28 · UC-PEDIT-28: "+" de unidade e de marca. O diálogo monta dentro do .cockpit para
   // herdar o tema (§5 2026-10-19).
   const [auxiliar, setAuxiliar] = useState<TipoAuxiliar | null>(null);
@@ -86,8 +95,15 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               id="sku"
               ref={skuRef}
               value={data.sku}
-              onChange={(e) => definir('sku', e.target.value)}
-              onBlur={() => setLeitorPronto(false)}
+              onChange={(e) => {
+                definir('sku', e.target.value);
+                setSkuRepetido(null);
+              }}
+              onBlur={(e) => {
+                setLeitorPronto(false);
+                void conferirSku(e.target.value);
+              }}
+              aria-invalid={errors.sku || skuRepetido ? true : undefined}
               placeholder={leitorPronto ? 'Leitor pronto: bipe o produto' : 'Gerado automaticamente'}
               className="font-mono"
             />
@@ -111,6 +127,11 @@ export function BlocoDados({ modo, data, definir, errors, opcoes, midia }: Props
               clique depois de bipar se perdia, medido 2026-11-16). Posição absoluta cobria o título
               das sub-unidades e, a 768px, o rótulo Marca. Na tela o aviso fica no próprio SKU
               (placeholder); aqui, só para leitor de tela. */}
+          {errors.sku ? (
+            <p className="text-[12px] text-destructive mt-1">{errors.sku}</p>
+          ) : (
+            skuRepetido && <p className="text-[12px] text-destructive mt-1">O SKU {skuRepetido} já existe em outro produto.</p>
+          )}
           {leitorPronto && (
             <p role="status" className="sr-only">
               Leitor pronto: bipe o produto e o código cai no SKU.

@@ -291,3 +291,10 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 > serve os dois branches (Blade e Inertia) na **mesma rota**, então `route-hits:16` pode ter medido
 > tráfego do **Blade** — se for isso, afeta as 8 telas do módulo e qualquer tela em branch dual
 > MWART. Verificar antes de tratar o `live` como fato. Registrado em `Index.casos.md` §Divergências D-4.
+>
+> ✅ **Errata 2026-11-26 — resolvida em 2026-10-15** (`Index.casos.md`, nota de D-4 e G-g): o
+> `ProductController@index` serve a tela React por padrão e o Blade só com `?classico=1`, então o
+> tráfego de `/products` passou a ser da tela React e o `live` deste charter vale. O SPEC já trata o
+> `Index` como a única tela `live` e o SDD §1.1 foi corrigido com data. Fica aberta só a pergunta de
+> mecanismo, sobre o promotor automático ler tráfego do Blade nas **outras** telas do módulo, que está
+> no backlog do `Index.casos.md`.

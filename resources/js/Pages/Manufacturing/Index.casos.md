@@ -6,8 +6,13 @@ por_que: comportamento é durável — o contrato de teste nasce junto com a tel
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 related_us: [US-MANU-004, US-MANU-008, US-MANU-009]
 owner: wagner
-last_run: "2026-11-17"
+last_run: "2026-11-25"
 ---
+
+> ℹ️ **`last_run` 2026-11-17 → 2026-11-25 (G-6): forma e plural do subtítulo, não comportamento.**
+> Pendências da Fabricação (medição 2026-11-25), itens R-01 e C-01..C-04: o subtítulo do cabeçalho
+> passa a dizer "ordem"/"ordens" conforme o número e põe os números em negrito; o resto é CSS. Nenhum
+> UC cita o subtítulo, e os dados, filtros e permissões não mudaram.
 
 > ℹ️ **2026-10-07 — UC-OP-10 novo (regra de VALOR):** os 4 indicadores passam a seguir o filtro de
 > local e período (decisão [W] 2026-10-06). O contador da barra de abas não muda (todas as ordens).

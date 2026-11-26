@@ -50,7 +50,7 @@ export interface KpiCardDef {
 export interface KpiStripClickableProps {
   /** Total real de clientes ativos (kpis.com_os_aberta). */
   ativos: number;
-  /** Total real com saldo aberto (kpis.com_atraso). */
+  /** Total real com saldo aberto (kpis.com_saldo — vencido ou não). */
   comSaldo: number;
   /** Total real VIP (kpis.vips · contacts.vip=1). */
   vips: number;

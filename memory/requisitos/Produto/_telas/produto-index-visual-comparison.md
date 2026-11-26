@@ -429,9 +429,21 @@ Blade legacy tem topbar de filtros + DataTables com 11 colunas + ações dropdow
 | Toggle "Mostrar inativos" persisted | Larissa às vezes precisa ver inativo | Wave 3 |
 | Topnav módulo (afeta 78 telas MWART) | Navegação intra-módulo | PR separado (ADR 0039 §1 gap conhecido) |
 
+> ✅ **Errata 2026-11-26 — os quatro gaps acima estão resolvidos.** A tabela é da v2 de cards (2026-05-15);
+> a tela foi refeita na v3 em 2026-10-11 (seção do topo) e os quatro itens existem na lista atual:
+> - **Drawer lateral:** painel de detalhe, [#9131](https://github.com/wagnerra23/oimpresso.com/pull/9131)/[#9132](https://github.com/wagnerra23/oimpresso.com/pull/9132), medido em 2026-10-11 (seção do topo); clicar na linha abre o painel (`Index.casos.md`, D-2).
+> - **Abas de filtro:** "Abas com contagem" medidas IGUAL ao protótipo em 2026-10-12 (tabela "Funções da lista", no topo).
+> - **Mostrar inativos:** filtro de situação `active_state` na barra de filtros (`Index.tsx`, lista `texto` dos filtros), e o inativo aparece destacado na lista (IGUAL em 2026-10-12).
+> - **Topnav do módulo:** a tela usa `PageHeader` com `PageHeaderTabs` (`Index.tsx`).
+
 ## Aprovação
 
 ⏳ **Pendente Wagner screenshot approval** — quando build:inertia gera bundle, capturar screenshot 1280×800 e Wagner aprova via SYNC_LOG.
+
+> ✅ **Errata 2026-11-26 — superado.** Este pendente era da v2 de cards, que não foi para produção. A lista
+> atual nasceu do charter v3 (2026-10-10, autorizado pelo [W] via WhatsApp e repassado pelo [F], histórico
+> do `Index.charter.md`) e é conferida contra o protótipo por medição (`design-diff.mjs`, a mesma sonda nos
+> dois lados) desde 2026-10-11, nas seções do topo deste arquivo.
 
 ## Histórico
 
