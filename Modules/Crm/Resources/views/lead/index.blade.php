@@ -113,15 +113,6 @@
                         </th>
 		            </tr>
 		        </thead>
-                <tfoot>
-                    <tr class="bg-gray font-17 text-center footer-total">
-                        <td colspan="23" class="text-left">
-                            <button type="button" class="btn btn-xs btn-success update_contact_location" data-type="add">@lang('lang_v1.add_to_location')</button>
-                                &nbsp;
-                                <button type="button" class="btn btn-xs bg-navy update_contact_location" data-type="remove">@lang('lang_v1.remove_from_location')</button>
-                        </td>
-                    </tr>
-                </tfoot>
 		    </table>
         @endif
         @if($lead_view == 'kanban')

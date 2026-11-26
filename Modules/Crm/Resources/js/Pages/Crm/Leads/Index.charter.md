@@ -52,8 +52,8 @@ abre o detalhe num drawer, sem sair da lista.
   conversão é uma janela que grava o estágio escolhido e converte pelas rotas da Blade, agora presas
   ao escopo da lista. Guardas: UC-CRMLD-15..17. O `?lead_view=kanban` da Blade segue servindo a
   tela antiga (UC-CRMLD-07).
-- ❌ "Adicionar/Remover do local": seguem apontando para a Blade. Lá os botões não têm ação (nenhum
-  script trata o clique, e contato não tem "local" no banco); o que eles devem fazer é decisão [W].
+- ❌ "Adicionar/Remover do local": removidos da tela e da Blade (pendência CRM-24, [W] 2026-11-26).
+  Os botões nunca tiveram ação (nenhum script tratava o clique) e contato não tem "local" no banco.
 
 ## Anti-hooks
 

@@ -9,8 +9,8 @@
 // Contrato: governance/design/contracts/crm-leads.contract.json
 //
 // "Adicionar" abre o formulário de lead (Cliente/Create parametrizado, thread Crm/06). O kanban
-// (`?vista=kanban`, CRM-23) e a conversão para cliente (CRM-25) moram aqui; o "local" do contato
-// segue apontando para a Blade (`?classico=1`) — lá os botões não têm ação (CRM-24, decisão [W]).
+// (`?vista=kanban`, CRM-23) e a conversão para cliente (CRM-25) moram aqui. "Adicionar/Remover do
+// local" saíram (CRM-24, [W] 2026-11-26): nunca tiveram ação e contato não tem "local" no banco.
 //
 // Forma (pendências CRM-20/21/22/26, medido em produção em 2026-11-25): filtros recolhíveis,
 // cartão "Todos os leads" com contador, Confortável/Compacto e Lista/Kanban em seletores,
@@ -39,7 +39,6 @@ import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { useCockpit } from '@/Hooks/useCockpit';
 
 const ROTA = '/crm/leads';
-const CLASSICO = `${ROTA}?classico=1`;
 // Formulário de lead = Cliente/Create parametrizado (thread Crm/06, D2).
 const NOVO = `${ROTA}/create`;
 const TODOS = '__todos';
@@ -170,10 +169,6 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
                 />
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground" data-contract="crm-rodape">
                   <span>Total: {leads.total}</span>
-                  <div className="ml-auto flex gap-2">
-                    <Button asChild variant="outline" size="sm"><a href={CLASSICO}>Adicionar ao local</a></Button>
-                    <Button asChild variant="outline" size="sm"><a href={CLASSICO}>Remover do local</a></Button>
-                  </div>
                 </div>
               </>
             ) : null}
