@@ -47,7 +47,14 @@ class FinanceiroDemoSeeder extends Seeder
     public const CONTATO_PREFIXO = 'DEMO-FIN-';
 
     /** Razão social da conta bancária fictícia (idempotência). */
-    public const CONTA_NOME = 'Conta Demo (fictícia)';
+    /** Prefixo visível em tudo que o seeder cria (contatos, categorias, conta). */
+    public const PREFIXO = '[TESTE] ';
+
+    /** Nome da conta bancária fictícia (idempotência e aviso de não usar). */
+    public const CONTA_NOME = '[TESTE] Conta fictícia - NÃO USAR';
+
+    /** Empresas onde o seeder nunca grava, nem com override (cliente real). */
+    public const NUNCA = [4];
 
     public function run(): void
     {
@@ -58,6 +65,12 @@ class FinanceiroDemoSeeder extends Seeder
         // Fail-safe anti-poluição (Tier 0): RECUSA gravar demo em tenant REAL/
         // protegido (biz=1 WR2, biz=4 ROTA LIVRE…). Override consciente só com
         // ALLOW_DEMO_ON_PROTECTED=1 (NÃO recomendado — risco de poluir dado real).
+        if (in_array($businessId, self::NUNCA, true)) {
+            $this->command->error("RECUSADO: business_id={$businessId} é cliente real. Sem override.");
+
+            return;
+        }
+
         $protected = (array) config('app.protected_business_ids', [1, 4]);
         if (in_array($businessId, $protected, true) && env('ALLOW_DEMO_ON_PROTECTED') != '1') {
             $this->command->error(
@@ -216,6 +229,11 @@ class FinanceiroDemoSeeder extends Seeder
         $this->command->line('  títulos: ' . count($rows) . " ({$receber} a receber, " . (count($rows) - $receber) . ' a pagar)');
         $this->command->line("  baixas: {$quitados}");
         $this->command->line("  títulos demo anteriores que seriam arquivados (soft delete): {$demoAntigos}");
+        $catNovas = 11 - DB::table('fin_categorias')->where('business_id', $businessId)
+            ->where('nome', 'LIKE', self::PREFIXO . '%')->whereNull('deleted_at')->count();
+        $this->command->line("  categorias [TESTE] novas: {$catNovas}");
+        $this->command->line('  tabelas: contacts, accounts, fin_contas_bancarias, fin_categorias, fin_titulos, fin_titulo_baixas');
+        $this->command->line("  remover depois: php artisan financeiro:demo-limpar --business={$businessId} (dry-run) e depois --force");
     }
 
     /** @return array<string,string> nome da parte => 'customer'|'supplier' */
@@ -311,8 +329,11 @@ class FinanceiroDemoSeeder extends Seeder
     {
         // ContaBancaria primeira ativa do business — usada em baixas (não criamos baixa neste seeder,
         // mas mantém referência futura).
+        // Só a conta fictícia do próprio seeder. Nunca uma conta real da empresa
+        // (2026-11-27: na empresa 1 as baixas de teste iriam para a conta real).
         return (int) (DB::table('fin_contas_bancarias')
             ->where('business_id', $businessId)
+            ->where('beneficiario_razao_social', self::CONTA_NOME)
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->value('id') ?? 0) ?: null;
@@ -329,23 +350,24 @@ class FinanceiroDemoSeeder extends Seeder
         ];
 
         $map = [];
-        foreach ($nomes as $nome) {
+        foreach ($nomes as $base) {
+            $nome = self::PREFIXO . $base;
             $existing = Categoria::where('business_id', $businessId)
                 ->where('nome', $nome)
                 ->first();
             if ($existing) {
-                $map[$nome] = $existing->id;
+                $map[$base] = $existing->id;
                 continue;
             }
             $cat = Categoria::create([
                 'business_id'    => $businessId,
                 'nome'           => $nome,
-                'cor'            => $this->corPorNome($nome),
+                'cor'            => $this->corPorNome($base),
                 'plano_conta_id' => null,
-                'tipo'           => in_array($nome, ['Insumo', 'Utilidade', 'Aluguel', 'Imposto', 'Folha', 'Serviço']) ? 'despesa' : 'receita',
+                'tipo'           => in_array($base, ['Insumo', 'Utilidade', 'Aluguel', 'Imposto', 'Folha', 'Serviço']) ? 'despesa' : 'receita',
                 'ativo'          => true,
             ]);
-            $map[$nome] = $cat->id;
+            $map[$base] = $cat->id;
         }
         return $map;
     }
@@ -391,36 +413,36 @@ class FinanceiroDemoSeeder extends Seeder
 
         return [
             // ── A RECEBER (17 — 60% do total) ──────────────────────────────────
-            ['id' => 'R-2641',  'kind' => 'receivable', 'desc' => 'Banner lona 4x1m promo dia das maes #V-7832 #OS-4831', 'party' => 'Padaria Pao Quente',       'category' => 'Banner',          'amount' => 480.00,  'due' => $d(3),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NF 4112'],
-            ['id' => 'R-2641a', 'kind' => 'receivable', 'desc' => 'Banner anuncio venda Pascoa',                    'party' => 'Padaria Pao Quente',       'category' => 'Banner',          'amount' => 320.00,  'due' => $d(-48), 'paid_at' => $d(-47), 'channel' => 'PIX',  'invoice' => 'NF 4080'],
-            ['id' => 'R-2641b', 'kind' => 'receivable', 'desc' => 'Etiqueta adesiva 1000un',                        'party' => 'Padaria Pao Quente',       'category' => 'Adesivo',         'amount' => 290.00,  'due' => $d(-25), 'paid_at' => $d(-24), 'channel' => 'PIX',  'invoice' => 'NF 4096'],
-            ['id' => 'R-2642',  'kind' => 'receivable', 'desc' => 'Adesivagem frota 12 veiculos #V-7823 #OS-4833 #BL-4113', 'party' => 'Auto Posto Trevo',         'category' => 'Adesivo',         'amount' => 2340.00, 'due' => $d(6),   'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8422'],
-            ['id' => 'R-2643',  'kind' => 'receivable', 'desc' => 'Lona fachada 2x6m + instalacao',                  'party' => 'Loja Bella Moda',          'category' => 'Fachada',         'amount' => 1890.00, 'due' => $d(-6),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8418'],
-            ['id' => 'R-2644',  'kind' => 'receivable', 'desc' => 'Placas de obra 8un + suporte',                    'party' => 'Construtora Vertice',      'category' => 'Placa',           'amount' => 3200.00, 'due' => $d(13),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8425'],
-            ['id' => 'R-2645',  'kind' => 'receivable', 'desc' => 'Cartao fidelidade laminado 1000un',               'party' => 'Farmacia Saude Total',     'category' => 'Grafica rapida',  'amount' => 720.00,  'due' => $d(-3),  'paid_at' => $d(-3),  'channel' => 'PIX',  'invoice' => 'NFe 8419'],
-            ['id' => 'R-2646',  'kind' => 'receivable', 'desc' => 'Cardapio menu plastificado 40un',                 'party' => 'Restaurante Sabor Cia',    'category' => 'Grafica rapida',  'amount' => 340.00,  'due' => $d(9),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NFe 8426'],
-            ['id' => 'R-2647',  'kind' => 'receivable', 'desc' => 'Banner 3x1m show local #V-7831',                  'party' => 'Studio Foco',              'category' => 'Banner',          'amount' => 380.00,  'due' => $d(-5),  'paid_at' => $d(-5),  'channel' => 'PIX',  'invoice' => 'NFe 8417'],
-            ['id' => 'R-2648',  'kind' => 'receivable', 'desc' => 'Wind banner 2.5m + base',                         'party' => 'Imobiliaria Horizonte',    'category' => 'Banner',          'amount' => 560.00,  'due' => $d(11),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8427'],
-            ['id' => 'R-2649',  'kind' => 'receivable', 'desc' => 'Envelopamento veiculo Hilux #V-7829 #BL-4118',    'party' => 'Transporte Veloz Ltda',    'category' => 'Adesivo',         'amount' => 4200.00, 'due' => $d(-11), 'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8410'],
-            ['id' => 'R-2650',  'kind' => 'receivable', 'desc' => 'Lona backdrop 3x2m + ilhos',                      'party' => 'Academia Movimento',       'category' => 'Banner',          'amount' => 290.00,  'due' => $d(1),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NFe 8423'],
-            ['id' => 'R-2651',  'kind' => 'receivable', 'desc' => 'Placa ACM fachada 1.5x0.6m',                      'party' => 'Clinica Vida Plena',       'category' => 'Fachada',         'amount' => 880.00,  'due' => $d(-2),  'paid_at' => $d(-2),  'channel' => 'PIX',  'invoice' => 'NFe 8420'],
-            ['id' => 'R-2652',  'kind' => 'receivable', 'desc' => 'Faixa aniversario 5x0.7m',                        'party' => 'Maria Aparecida PF',       'category' => 'Banner',          'amount' => 120.00,  'due' => $d(0),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NFe 8424'],
-            ['id' => 'R-2653',  'kind' => 'receivable', 'desc' => 'Cartoes de visita 4x4 4000un',                    'party' => 'Imobiliaria Horizonte',    'category' => 'Grafica rapida',  'amount' => 540.00,  'due' => $d(16),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8428'],
-            ['id' => 'R-2654',  'kind' => 'receivable', 'desc' => 'Rotulo adesivo perolado 2000un',                  'party' => 'Cervejaria Lupulada',      'category' => 'Adesivo',         'amount' => 1640.00, 'due' => $d(-9),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8412'],
+            ['id' => 'R-2641',  'kind' => 'receivable', 'desc' => 'Banner lona 4x1m promo dia das maes #V-7832 #OS-4831', 'party' => '[TESTE] Padaria Pao Quente',       'category' => 'Banner',          'amount' => 480.00,  'due' => $d(3),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NF 4112'],
+            ['id' => 'R-2641a', 'kind' => 'receivable', 'desc' => 'Banner anuncio venda Pascoa',                    'party' => '[TESTE] Padaria Pao Quente',       'category' => 'Banner',          'amount' => 320.00,  'due' => $d(-48), 'paid_at' => $d(-47), 'channel' => 'PIX',  'invoice' => 'NF 4080'],
+            ['id' => 'R-2641b', 'kind' => 'receivable', 'desc' => 'Etiqueta adesiva 1000un',                        'party' => '[TESTE] Padaria Pao Quente',       'category' => 'Adesivo',         'amount' => 290.00,  'due' => $d(-25), 'paid_at' => $d(-24), 'channel' => 'PIX',  'invoice' => 'NF 4096'],
+            ['id' => 'R-2642',  'kind' => 'receivable', 'desc' => 'Adesivagem frota 12 veiculos #V-7823 #OS-4833 #BL-4113', 'party' => '[TESTE] Auto Posto Trevo',         'category' => 'Adesivo',         'amount' => 2340.00, 'due' => $d(6),   'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8422'],
+            ['id' => 'R-2643',  'kind' => 'receivable', 'desc' => 'Lona fachada 2x6m + instalacao',                  'party' => '[TESTE] Loja Bella Moda',          'category' => 'Fachada',         'amount' => 1890.00, 'due' => $d(-6),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8418'],
+            ['id' => 'R-2644',  'kind' => 'receivable', 'desc' => 'Placas de obra 8un + suporte',                    'party' => '[TESTE] Construtora Vertice',      'category' => 'Placa',           'amount' => 3200.00, 'due' => $d(13),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8425'],
+            ['id' => 'R-2645',  'kind' => 'receivable', 'desc' => 'Cartao fidelidade laminado 1000un',               'party' => '[TESTE] Farmacia Saude Total',     'category' => 'Grafica rapida',  'amount' => 720.00,  'due' => $d(-3),  'paid_at' => $d(-3),  'channel' => 'PIX',  'invoice' => 'NFe 8419'],
+            ['id' => 'R-2646',  'kind' => 'receivable', 'desc' => 'Cardapio menu plastificado 40un',                 'party' => '[TESTE] Restaurante Sabor Cia',    'category' => 'Grafica rapida',  'amount' => 340.00,  'due' => $d(9),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NFe 8426'],
+            ['id' => 'R-2647',  'kind' => 'receivable', 'desc' => 'Banner 3x1m show local #V-7831',                  'party' => '[TESTE] Studio Foco',              'category' => 'Banner',          'amount' => 380.00,  'due' => $d(-5),  'paid_at' => $d(-5),  'channel' => 'PIX',  'invoice' => 'NFe 8417'],
+            ['id' => 'R-2648',  'kind' => 'receivable', 'desc' => 'Wind banner 2.5m + base',                         'party' => '[TESTE] Imobiliaria Horizonte',    'category' => 'Banner',          'amount' => 560.00,  'due' => $d(11),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8427'],
+            ['id' => 'R-2649',  'kind' => 'receivable', 'desc' => 'Envelopamento veiculo Hilux #V-7829 #BL-4118',    'party' => '[TESTE] Transporte Veloz Ltda',    'category' => 'Adesivo',         'amount' => 4200.00, 'due' => $d(-11), 'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8410'],
+            ['id' => 'R-2650',  'kind' => 'receivable', 'desc' => 'Lona backdrop 3x2m + ilhos',                      'party' => '[TESTE] Academia Movimento',       'category' => 'Banner',          'amount' => 290.00,  'due' => $d(1),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NFe 8423'],
+            ['id' => 'R-2651',  'kind' => 'receivable', 'desc' => 'Placa ACM fachada 1.5x0.6m',                      'party' => '[TESTE] Clinica Vida Plena',       'category' => 'Fachada',         'amount' => 880.00,  'due' => $d(-2),  'paid_at' => $d(-2),  'channel' => 'PIX',  'invoice' => 'NFe 8420'],
+            ['id' => 'R-2652',  'kind' => 'receivable', 'desc' => 'Faixa aniversario 5x0.7m',                        'party' => '[TESTE] Maria Aparecida PF',       'category' => 'Banner',          'amount' => 120.00,  'due' => $d(0),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NFe 8424'],
+            ['id' => 'R-2653',  'kind' => 'receivable', 'desc' => 'Cartoes de visita 4x4 4000un',                    'party' => '[TESTE] Imobiliaria Horizonte',    'category' => 'Grafica rapida',  'amount' => 540.00,  'due' => $d(16),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8428'],
+            ['id' => 'R-2654',  'kind' => 'receivable', 'desc' => 'Rotulo adesivo perolado 2000un',                  'party' => '[TESTE] Cervejaria Lupulada',      'category' => 'Adesivo',         'amount' => 1640.00, 'due' => $d(-9),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NFe 8412'],
 
             // ── A PAGAR (12 — 40% do total) ────────────────────────────────────
-            ['id' => 'P-1882',  'kind' => 'payable', 'desc' => 'Papel couche 250g 4 resmas #PC-281 #BL-9982',         'party' => 'Suprigraf Distribuidora',  'category' => 'Insumo',          'amount' => 2450.00, 'due' => $d(1),   'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NF 11402'],
-            ['id' => 'P-1883',  'kind' => 'payable', 'desc' => 'Energia eletrica abril',                              'party' => 'Equatorial Energia',       'category' => 'Utilidade',       'amount' => 1180.40, 'due' => $d(5),   'paid_at' => null,   'channel' => 'Debito autom', 'invoice' => 'Fat 9981'],
-            ['id' => 'P-1884',  'kind' => 'payable', 'desc' => 'Aluguel galpao maio',                                 'party' => 'Imobiliaria Centro',       'category' => 'Aluguel',         'amount' => 4500.00, 'due' => $d(-7),  'paid_at' => $d(-7),  'channel' => 'Transferencia', 'invoice' => 'Recibo 045'],
-            ['id' => 'P-1885',  'kind' => 'payable', 'desc' => 'Internet + telefonia maio',                           'party' => 'Vivo Empresas',            'category' => 'Utilidade',       'amount' => 320.00,  'due' => $d(-6),  'paid_at' => $d(-6),  'channel' => 'Debito autom', 'invoice' => 'Fat 7711'],
-            ['id' => 'P-1886',  'kind' => 'payable', 'desc' => 'IPTU 5a parcela',                                     'party' => 'Prefeitura Municipal',     'category' => 'Imposto',         'amount' => 890.00,  'due' => $d(11),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'DAM 0058'],
-            ['id' => 'P-1887',  'kind' => 'payable', 'desc' => 'Tinta solvente CMYK plotter',                         'party' => 'Tinta Solvent BR',         'category' => 'Insumo',          'amount' => 650.00,  'due' => $d(7),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NF 03340'],
-            ['id' => 'P-1888',  'kind' => 'payable', 'desc' => 'Laminacao BOPP 200m',                                 'party' => 'Alphagraf Acabamento',     'category' => 'Serviço',         'amount' => 1120.00, 'due' => $d(-4),  'paid_at' => $d(-4),  'channel' => 'PIX',  'invoice' => 'NF 02281'],
-            ['id' => 'P-1889',  'kind' => 'payable', 'desc' => 'Manutencao plotter Roland',                           'party' => 'TecPlot Assistencia',      'category' => 'Serviço',         'amount' => 780.00,  'due' => $d(2),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'OS 1144'],
-            ['id' => 'P-1890',  'kind' => 'payable', 'desc' => 'Salario funcionario demo abril compl',                         'party' => 'Folha Funcionario Demo',      'category' => 'Folha',           'amount' => 2800.00, 'due' => $d(-4),  'paid_at' => $d(-4),  'channel' => 'Transferencia', 'invoice' => 'Folha 04/26'],
-            ['id' => 'P-1891',  'kind' => 'payable', 'desc' => 'Lona 440g blackout 50m',                              'party' => 'Suprigraf Distribuidora',  'category' => 'Insumo',          'amount' => 1980.00, 'due' => $d(10),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NF 11418'],
-            ['id' => 'P-1892',  'kind' => 'payable', 'desc' => 'Simples Nacional DAS abril',                           'party' => 'Receita Federal',          'category' => 'Imposto',         'amount' => 2110.00, 'due' => $d(-18), 'paid_at' => $d(-18), 'channel' => 'Boleto', 'invoice' => 'DAS 04/26'],
-            ['id' => 'P-1893',  'kind' => 'payable', 'desc' => 'Recolhimento INSS abril',                              'party' => 'Receita Federal',          'category' => 'Imposto',         'amount' => 612.00,  'due' => $d(12),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'GPS 04/26'],
+            ['id' => 'P-1882',  'kind' => 'payable', 'desc' => 'Papel couche 250g 4 resmas #PC-281 #BL-9982',         'party' => '[TESTE] Suprigraf Distribuidora',  'category' => 'Insumo',          'amount' => 2450.00, 'due' => $d(1),   'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NF 11402'],
+            ['id' => 'P-1883',  'kind' => 'payable', 'desc' => 'Energia eletrica abril',                              'party' => '[TESTE] Equatorial Energia',       'category' => 'Utilidade',       'amount' => 1180.40, 'due' => $d(5),   'paid_at' => null,   'channel' => 'Debito autom', 'invoice' => 'Fat 9981'],
+            ['id' => 'P-1884',  'kind' => 'payable', 'desc' => 'Aluguel galpao maio',                                 'party' => '[TESTE] Imobiliaria Centro',       'category' => 'Aluguel',         'amount' => 4500.00, 'due' => $d(-7),  'paid_at' => $d(-7),  'channel' => 'Transferencia', 'invoice' => 'Recibo 045'],
+            ['id' => 'P-1885',  'kind' => 'payable', 'desc' => 'Internet + telefonia maio',                           'party' => '[TESTE] Vivo Empresas',            'category' => 'Utilidade',       'amount' => 320.00,  'due' => $d(-6),  'paid_at' => $d(-6),  'channel' => 'Debito autom', 'invoice' => 'Fat 7711'],
+            ['id' => 'P-1886',  'kind' => 'payable', 'desc' => 'IPTU 5a parcela',                                     'party' => '[TESTE] Prefeitura Municipal',     'category' => 'Imposto',         'amount' => 890.00,  'due' => $d(11),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'DAM 0058'],
+            ['id' => 'P-1887',  'kind' => 'payable', 'desc' => 'Tinta solvente CMYK plotter',                         'party' => '[TESTE] Tinta Solvent BR',         'category' => 'Insumo',          'amount' => 650.00,  'due' => $d(7),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NF 03340'],
+            ['id' => 'P-1888',  'kind' => 'payable', 'desc' => 'Laminacao BOPP 200m',                                 'party' => '[TESTE] Alphagraf Acabamento',     'category' => 'Serviço',         'amount' => 1120.00, 'due' => $d(-4),  'paid_at' => $d(-4),  'channel' => 'PIX',  'invoice' => 'NF 02281'],
+            ['id' => 'P-1889',  'kind' => 'payable', 'desc' => 'Manutencao plotter Roland',                           'party' => '[TESTE] TecPlot Assistencia',      'category' => 'Serviço',         'amount' => 780.00,  'due' => $d(2),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'OS 1144'],
+            ['id' => 'P-1890',  'kind' => 'payable', 'desc' => 'Salario funcionario demo abril compl',                         'party' => '[TESTE] Folha Funcionario Demo',      'category' => 'Folha',           'amount' => 2800.00, 'due' => $d(-4),  'paid_at' => $d(-4),  'channel' => 'Transferencia', 'invoice' => 'Folha 04/26'],
+            ['id' => 'P-1891',  'kind' => 'payable', 'desc' => 'Lona 440g blackout 50m',                              'party' => '[TESTE] Suprigraf Distribuidora',  'category' => 'Insumo',          'amount' => 1980.00, 'due' => $d(10),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NF 11418'],
+            ['id' => 'P-1892',  'kind' => 'payable', 'desc' => 'Simples Nacional DAS abril',                           'party' => '[TESTE] Receita Federal',          'category' => 'Imposto',         'amount' => 2110.00, 'due' => $d(-18), 'paid_at' => $d(-18), 'channel' => 'Boleto', 'invoice' => 'DAS 04/26'],
+            ['id' => 'P-1893',  'kind' => 'payable', 'desc' => 'Recolhimento INSS abril',                              'party' => '[TESTE] Receita Federal',          'category' => 'Imposto',         'amount' => 612.00,  'due' => $d(12),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'GPS 04/26'],
         ];
     }
 }

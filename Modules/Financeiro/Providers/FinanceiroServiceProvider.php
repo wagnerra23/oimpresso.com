@@ -167,6 +167,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\DevolucoesAbaterCommand::class,
                 // 2026-11-13 — títulos RECEBIDA do Delphi gravados como pagar (dry-run por padrão).
                 \Modules\Financeiro\Console\Commands\CorrigirTipoLegadoCommand::class,
+                // 2026-11-27 — remove os dados [TESTE] do FinanceiroDemoSeeder (dry-run por padrão).
+                \Modules\Financeiro\Console\Commands\DemoLimparCommand::class,
             ]);
         }
     }
