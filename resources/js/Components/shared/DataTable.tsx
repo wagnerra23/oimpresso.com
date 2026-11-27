@@ -175,7 +175,11 @@ const THEAD_PADRAO = 'border-b border-border bg-muted/30 text-xs text-muted-fore
  */
 const DENSIDADE_GRID = {
   thead: 'text-[var(--text-dim)]',
-  th: 'sticky top-0 z-[1] bg-[var(--bg-2)] px-2.5 py-[7px] text-[10px] leading-[1.2] uppercase tracking-[.05em] font-semibold whitespace-nowrap border-b border-border select-none',
+  // `border-[var(--border)]`, não `border-border`: o `border-border` do Tailwind resolve para o
+  // `--color-border` do shadcn (oklch 0,92), e o DataGrid do DS pinta a linha com o `--border` do
+  // cockpit (0,90). Medido 2026-11-27 em /crm/follow-ups e /manufacturing/recipe contra o protótipo:
+  // a linha embaixo do cabeçalho saía mais clara que a do desenho.
+  th: 'sticky top-0 z-[1] bg-[var(--bg-2)] px-2.5 py-[7px] text-[10px] leading-[1.2] uppercase tracking-[.05em] font-semibold whitespace-nowrap border-b border-[var(--border)] select-none',
   // `leading-[1.45]`: a altura de linha do texto no protótipo (medido 2026-10-04: nome 18,125px
   // sobre 12,5px, sub 15,95px sobre 11px). Com o 1,5 herdado do app a linha saía 1px mais alta.
   // Sem `text-[12.5px]` aqui: o tamanho vem do `<table>` (herda), pra a célula mono poder pôr
