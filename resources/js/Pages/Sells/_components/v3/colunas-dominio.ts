@@ -40,7 +40,7 @@ export const GRUPOS: { k: GrupoDeColuna; label: string }[] = [
 
 /*
  * ⚠️ A ORDEM DESTE ARRAY É A ORDEM DE LEITURA DO GRID.
- * `colunasPadrao()` filtra preservando a posição, então quem nunca mexeu vê as colunas
+ * `colunasPadraoDoGrid()` filtra preservando a posição, então quem nunca mexeu vê as colunas
  * exatamente nesta sequência. Agrupar "fixas primeiro" jogava **R$ Total para o 4º
  * lugar**, na frente de desconto e acréscimo — e num grid de venda o total da linha é o
  * fim da conta, não o meio. Ficou latente enquanto o grid renderizava seis colunas
@@ -108,7 +108,7 @@ export function definicaoDe(k: string): DefinicaoDeColuna | undefined {
 }
 
 /** Configuração de quem nunca mexeu: fixas + as marcadas como padrão, na ordem do catálogo. */
-export function colunasPadrao(): string[] {
+export function colunasPadraoDoGrid(): string[] {
   return COLUNAS.filter((c) => c.fixa || c.padrao).map((c) => c.k);
 }
 
@@ -122,7 +122,7 @@ export function colunasPadrao(): string[] {
  *   - coluna FIXA ausente → reinserida, porque a linha não existe sem ela.
  */
 export function sanearColunas(entrada: unknown): string[] {
-  if (!Array.isArray(entrada)) return colunasPadrao();
+  if (!Array.isArray(entrada)) return colunasPadraoDoGrid();
 
   const vistas = new Set<string>();
   const validas = entrada.filter((k): k is string => {
@@ -131,7 +131,7 @@ export function sanearColunas(entrada: unknown): string[] {
     return true;
   });
 
-  if (validas.length === 0) return colunasPadrao();
+  if (validas.length === 0) return colunasPadraoDoGrid();
 
   // fixa que faltou volta na frente — sem ela o grid não tem produto, quantidade ou total
   const faltantes = CHAVES_FIXAS.filter((k) => !vistas.has(k));
@@ -142,10 +142,10 @@ export function sanearColunas(entrada: unknown): string[] {
 export function carregarColunas(storage?: Pick<Storage, 'getItem'>): string[] {
   try {
     const bruto = (storage ?? window.localStorage).getItem(CHAVE_LOCALSTORAGE);
-    if (!bruto) return colunasPadrao();
+    if (!bruto) return colunasPadraoDoGrid();
     return sanearColunas(JSON.parse(bruto));
   } catch {
-    return colunasPadrao();
+    return colunasPadraoDoGrid();
   }
 }
 

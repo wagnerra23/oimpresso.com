@@ -15,7 +15,7 @@ import {
   alternarColuna,
   camposDeProducao,
   carregarColunas,
-  colunasPadrao,
+  colunasPadraoDoGrid,
   moverColuna,
   salvarColunas,
   sanearColunas,
@@ -41,7 +41,7 @@ describe('catálogo de colunas', () => {
 
   it('UC-V365 · o padrão inclui todas as fixas', () => {
     for (const fixa of CHAVES_FIXAS) {
-      expect(colunasPadrao()).toContain(fixa);
+      expect(colunasPadraoDoGrid()).toContain(fixa);
     }
   });
 
@@ -54,7 +54,7 @@ describe('catálogo de colunas', () => {
 describe('sanear — as quatro formas de o dado chegar podre', () => {
   it('UC-V363 · não-array cai no padrão', () => {
     for (const lixo of [null, undefined, 42, 'produto', {}, true]) {
-      expect(sanearColunas(lixo)).toEqual(colunasPadrao());
+      expect(sanearColunas(lixo)).toEqual(colunasPadraoDoGrid());
     }
   });
 
@@ -76,21 +76,21 @@ describe('sanear — as quatro formas de o dado chegar podre', () => {
   });
 
   it('UC-V363 · lista só com lixo cai no padrão, não em lista vazia', () => {
-    expect(sanearColunas(['nada', 'existe'])).toEqual(colunasPadrao());
+    expect(sanearColunas(['nada', 'existe'])).toEqual(colunasPadraoDoGrid());
   });
 });
 
 describe('carregar/salvar — storage é entrada não confiável', () => {
   it('UC-V361 · storage vazio devolve o padrão', () => {
-    expect(carregarColunas(storageFalso(null))).toEqual(colunasPadrao());
+    expect(carregarColunas(storageFalso(null))).toEqual(colunasPadraoDoGrid());
   });
 
   it('UC-V361 · JSON inválido NÃO lança — devolve o padrão', () => {
-    expect(carregarColunas(storageFalso('{isso não é json'))).toEqual(colunasPadrao());
+    expect(carregarColunas(storageFalso('{isso não é json'))).toEqual(colunasPadraoDoGrid());
   });
 
   it('UC-V361 · storage bloqueado (modo anônimo) NÃO lança', () => {
-    expect(carregarColunas(storageFalso(null, true))).toEqual(colunasPadrao());
+    expect(carregarColunas(storageFalso(null, true))).toEqual(colunasPadraoDoGrid());
   });
 
   it('UC-V366 · preferência válida é respeitada', () => {
