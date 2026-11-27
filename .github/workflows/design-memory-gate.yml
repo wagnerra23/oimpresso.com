@@ -234,6 +234,11 @@ jobs:
       # design-diff selftest: prova que o comparador design×prod PEGA o incidente 07/07
       # (center×left + button×div + overflow + roxo escuro×roxinho + texto dark invisível).
       # Se o comparador parar de morder, quebra VERMELHO (é a defesa do strike 2 · LICOES LC-06).
+      # jsdom: o selftest roda a SONDA de verdade num DOM (papel escondido antes do visível,
+      # 2026-11-27). Mesmo idioma do ajv e do playwright neste arquivo: dependência pontual,
+      # sem npm ci. Sem ela o caso falha dizendo "jsdom ausente" — não pula.
+      - name: Install jsdom (sonda real no selftest do design-diff)
+        run: npm install --no-save jsdom@^25.0.0
       - name: design-diff selftest (mede o que o olho perdeu · LC-06)
         run: node scripts/design/design-diff.mjs --selftest
 
