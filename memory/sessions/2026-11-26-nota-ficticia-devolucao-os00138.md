@@ -7,6 +7,7 @@ outcomes:
   - "XML fictício em nfe-brasil/1/notas/900-1.xml (disco nfe_fiscal), marcado como homologação e com aviso em infCpl"
   - "Tentativa rejeitada nº 12 (nfe_emissoes.id 1871) desligada da venda para liberar a trava de uma emissão por venda"
   - "Removida em 2026-11-27 depois dos testes do Luiz (emissão 1873 e XML apagados, 1871 religada)"
+  - "Recriada em 2026-11-27 (nfe_emissoes.id 1875): a remoção foi engano, o Luiz ainda não tinha testado"
 ---
 
 # NF-e fictícia na OS00138 para testar a devolução com nota
@@ -102,3 +103,25 @@ O arquivo `nfe-brasil/1/notas/900-1.xml` foi apagado do disco `nfe_fiscal`.
 
 Conferido em produção: `/sell-return/create?nota=sem` mostra a OS00138 e
 `?nota=nfe` não a mostra mais. Com a venda de volta à conta 635, a conta `WR23` deixa de vê-la.
+
+## Recriada (2026-11-27, 09:46)
+
+A remoção acima foi engano: o Luiz ainda não tinha testado. A Maiara pediu para recriar e
+confirmou que o Luiz testa com a conta `WR23`.
+
+Recriada pela mesma receita, em biz=1, numa transação que só confirmava se cada passo afetasse
+exatamente 1 linha; antes, uma rodada de simulação foi desfeita inteira:
+
+| Item | Valor |
+|---|---|
+| Emissão fictícia | `nfe_emissoes.id` **1875** (o 1874 foi consumido pela simulação desfeita) · série 900 · nº 1 · `autorizada` · cstat 100 |
+| Chave | `42261136613150000118559000000000011933282650` (a mesma de 26/11; o script abortava se saísse diferente) |
+| XML | `nfe-brasil/1/notas/900-1.xml`, remontado do `1-12.xml` como na primeira vez: 1 item, `tpAmb` 2, sem assinatura, aviso em `infCpl` |
+| Tentativa 1871 | desligada de novo da venda (`transaction_id` null, segue `rejeitada`) |
+| Venda | `created_by` = 1 (`WR23`) |
+
+**Conferido em produção**, chamando o próprio `SellReturnController::origemVendas` logado como
+`WR23`: com "Com NF-e" e busca `OS00138` aparece "OS00138 · NF-e 1"; com "Sem nota" a lista vem
+vazia. `DevolucaoService::montarDevolucao` lê o XML com 1 item devolvido e devolve a mesma chave.
+
+Para remover depois, o passo a passo de "Como remover" continua valendo, trocando **1873 por 1875**.
