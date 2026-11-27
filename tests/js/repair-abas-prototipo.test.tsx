@@ -23,11 +23,12 @@ function abasDoPrototipo(): string[] {
   return [...bloco.matchAll(/key:\s*"[^"]+",\s*label:\s*"([^"]+)"/g)].map((m) => m[1]);
 }
 
+/** Lê as abas de `DataController::abasDoRepair()` — as linhas `$aba(key, label, href[, tela])`. */
 function ghostsDoServidor(): Array<{ label: string; href: string }> {
   const src = ler('Modules/Repair/Http/Controllers/DataController.php');
-  const ini = src.indexOf("'ghosts'   => [");
-  const bloco = src.slice(ini, ini + src.slice(ini).search(/\r?\n\s*\],/));
-  return [...bloco.matchAll(/'label' => '([^']+)',\s*'href' => '([^']+)'/g)].map((m) => ({ label: m[1], href: m[2] }));
+  const ini = src.indexOf('return [', src.indexOf('function abasDoRepair'));
+  const bloco = src.slice(ini, src.indexOf('];', ini));
+  return [...bloco.matchAll(/\$aba\('[^']+', '([^']+)', '([^']+)'/g)].map((m) => ({ label: m[1], href: m[2] }));
 }
 
 describe('Repair · lista do módulo igual ao protótipo', () => {

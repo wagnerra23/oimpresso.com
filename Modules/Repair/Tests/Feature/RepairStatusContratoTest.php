@@ -397,3 +397,24 @@ it('UC-RSTIDX-10: criar e editar status grava a marca de aviso; valor fora da li
     ])->assertJson(['success' => false]);
     expect(DB::table('repair_statuses')->where('id', $deles)->value('whatsapp_template_aviso'))->toBeNull();
 });
+
+it('visita Inertia (aba do topo) recebe a tela React, não o JSON do DataTables', function () {
+    // O cliente Inertia manda `X-Requested-With` junto do `X-Inertia`; antes de 2026-11-27 o
+    // `ajax()` vinha primeiro e a aba "Status" abria a janela de erro com o JSON da tabela
+    // (medido em produção). O GET de página inteira dos outros casos não exercia esse caminho.
+    $biz = $this->seededTenant();
+    rstStatus((int) $biz->id, 'Recebido', '#ff0000', 10);
+    $user = rstUser((int) $biz->id);
+    rstSessao((int) $biz->id, (int) $user->id);
+    rstFlagLigada();
+
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $r = $this->actingAs($user)
+        ->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true', 'X-Inertia-Version' => $versao])
+        ->get('/repair/status');
+
+    expect($r->status())->toBe(200);
+    expect($r->json('component'))->toBe('Repair/Status/Index');
+    expect($r->json('draw'))->toBeNull();
+    expect(rstSoOsMeus($r->json('props.statuses')))->toHaveCount(1);
+});

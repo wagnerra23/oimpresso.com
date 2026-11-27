@@ -83,7 +83,9 @@ class RepairController extends Controller
 
         $is_admin = $this->commonUtil->is_admin(auth()->user(), $business_id);
 
-        if (request()->ajax()) {
+        // `! X-Inertia`: o Inertia manda `X-Requested-With` em toda visita, e é o que `ajax()` lê.
+        // Sem esta perna a aba do topo recebia o JSON do DataTables (medido em produção 2026-11-27).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $sells = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
                 ->leftJoin('transaction_payments as tp', 'transactions.id', '=', 'tp.transaction_id')
                 ->join(
