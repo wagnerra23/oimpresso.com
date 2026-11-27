@@ -21,6 +21,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Inline, Stack } from '@/Components/layout';
 
 interface Item { id: number; nome: string; codigo: string | null; descricao: string | null; em_uso: number }
 interface Aba { tipo: string; titulo: string }
@@ -93,22 +94,26 @@ export default function TaxonomiasIndex({ tipo, titulo, subtitulo, rotulo, com_c
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <Stack gap={4}>
       <PageHeader title={titulo} subtitle={subtitulo || undefined} />
 
       {abas.length > 1 ? (
-        <nav className="flex flex-wrap gap-2" aria-label="Listas do módulo">
+        <Inline asChild wrap gap={2}>
+        <nav aria-label="Listas do módulo">
           {abas.map((a) => (
             <Button key={a.tipo} asChild size="sm" variant={a.tipo === tipo ? 'secondary' : 'outline'}>
               <a href={`/taxonomies?type=${a.tipo}`} aria-current={a.tipo === tipo ? 'page' : undefined}>{a.titulo}</a>
             </Button>
           ))}
         </nav>
+        </Inline>
       ) : null}
 
       <Card data-contract="taxonomias">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <form className="flex flex-wrap items-center gap-2" onSubmit={adicionar}>
+        <Stack asChild gap={3}>
+        <CardContent className="p-4">
+          <Inline asChild wrap gap={2}>
+          <form onSubmit={adicionar}>
             <Input className="max-w-xs" value={novo.nome} onChange={(e) => setNovo({ ...novo, nome: e.target.value })}
               placeholder={`Nome do novo item de ${rotulo.toLowerCase()}`} aria-label={`Nome do novo item de ${rotulo.toLowerCase()}`} />
             {com_codigo ? (
@@ -118,6 +123,7 @@ export default function TaxonomiasIndex({ tipo, titulo, subtitulo, rotulo, com_c
             <Button type="submit" size="sm" disabled={ocupado}>Adicionar</Button>
             {itens ? <span className="ml-auto text-xs text-muted-foreground">{itens.length} item(ns)</span> : null}
           </form>
+          </Inline>
 
           {aviso ? (
             <p role="status" className={aviso.ok ? 'text-sm text-muted-foreground' : 'text-sm text-destructive'}>{aviso.texto}</p>
@@ -141,7 +147,8 @@ export default function TaxonomiasIndex({ tipo, titulo, subtitulo, rotulo, com_c
                     <tr key={item.id} className="border-b last:border-0">
                       <td className="py-2 pr-3">
                         {edit?.id === item.id ? (
-                          <form className="flex flex-wrap gap-2" onSubmit={(e) => salvar(e, item)}>
+                          <Inline asChild wrap gap={2}>
+                          <form onSubmit={(e) => salvar(e, item)}>
                             <Input autoFocus className="max-w-xs" value={edit.nome} onChange={(e) => setEdit({ ...edit, nome: e.target.value })} aria-label={`Novo nome de ${item.nome}`} />
                             {com_codigo ? (
                               <Input className="max-w-[160px]" value={edit.codigo} onChange={(e) => setEdit({ ...edit, codigo: e.target.value })} aria-label={rotulo_codigo} />
@@ -149,6 +156,7 @@ export default function TaxonomiasIndex({ tipo, titulo, subtitulo, rotulo, com_c
                             <Button type="submit" size="sm" disabled={ocupado}>Salvar</Button>
                             <Button type="button" size="sm" variant="ghost" onClick={() => setEdit(null)}>Cancelar</Button>
                           </form>
+                          </Inline>
                         ) : item.nome}
                       </td>
                       {com_codigo ? <td className="py-2 pr-3">{item.codigo || '—'}</td> : null}
@@ -175,8 +183,9 @@ export default function TaxonomiasIndex({ tipo, titulo, subtitulo, rotulo, com_c
 
           <p className="text-xs text-muted-foreground">Item em uso não se exclui — troque nos registros antes.</p>
         </CardContent>
+        </Stack>
       </Card>
-    </div>
+    </Stack>
   );
 }
 
