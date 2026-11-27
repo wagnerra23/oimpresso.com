@@ -38,7 +38,7 @@ class CrmMarketplaceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return mixed Blade do formulário ou a tela React (Inertia)
      */
     public function index()
     {
@@ -75,7 +75,7 @@ class CrmMarketplaceController extends Controller
     /**
      * Saves marketplace details
      *
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function save(Request $request)
     {
@@ -118,7 +118,7 @@ class CrmMarketplaceController extends Controller
      * Fetches leads from api and creates leads and followups
      *
      * @param  Request  $request
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function importLeads(Request $request)
     {

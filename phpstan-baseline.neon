@@ -2667,24 +2667,6 @@ parameters:
 			path: Modules/Crm/Http/Controllers/CrmMarketplaceController.php
 
 		-
-			message: '#^Method Modules\\Crm\\Http\\Controllers\\CrmMarketplaceController\:\:importLeads\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Crm/Http/Controllers/CrmMarketplaceController.php
-
-		-
-			message: '#^Method Modules\\Crm\\Http\\Controllers\\CrmMarketplaceController\:\:index\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Crm/Http/Controllers/CrmMarketplaceController.php
-
-		-
-			message: '#^Method Modules\\Crm\\Http\\Controllers\\CrmMarketplaceController\:\:save\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\RedirectResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Crm/Http/Controllers/CrmMarketplaceController.php
-
-		-
 			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
 			identifier: nullCoalesce.offset
 			count: 1
