@@ -6,7 +6,7 @@ outcomes:
   - "Venda OS00138 (transaction 87123, biz=1) ligada a uma NF-e fictícia autorizada: série 900, nº 1, nfe_emissoes.id 1873"
   - "XML fictício em nfe-brasil/1/notas/900-1.xml (disco nfe_fiscal), marcado como homologação e com aviso em infCpl"
   - "Tentativa rejeitada nº 12 (nfe_emissoes.id 1871) desligada da venda para liberar a trava de uma emissão por venda"
-  - "A remover quando o Luiz avisar que terminou os testes"
+  - "Removida em 2026-11-27 depois dos testes do Luiz (emissão 1873 e XML apagados, 1871 religada)"
 ---
 
 # NF-e fictícia na OS00138 para testar a devolução com nota
@@ -85,3 +85,20 @@ Dentro de uma transação, em biz=1:
 
 As devoluções de venda que o Luiz registrar na OS00138 durante o teste são dele: decidir
 com ele se ficam ou saem.
+
+## Removida (2026-11-27)
+
+O Luiz terminou os testes e [W] pediu a exclusão. Antes de apagar: nenhuma NF-e de devolução
+citava a 1873 e a OS00138 não tinha devolução de venda registrada, então não havia nada do
+teste para tratar junto.
+
+Feito numa transação, em biz=1, conferindo que cada comando afetou exatamente 1 linha:
+
+- `nfe_emissoes.id` 1873 apagada (só se ainda tivesse `"ficticia":true` na metadata);
+- `nfe_emissoes.id` 1871 religada à venda (`transaction_id` = 87123, segue `rejeitada`);
+- OS00138 voltou a `created_by = 635`.
+
+O arquivo `nfe-brasil/1/notas/900-1.xml` foi apagado do disco `nfe_fiscal`.
+
+Conferido em produção: `/sell-return/create?nota=sem` mostra a OS00138 e
+`?nota=nfe` não a mostra mais. Com a venda de volta à conta 635, a conta `WR23` deixa de vê-la.
