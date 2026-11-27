@@ -266,18 +266,24 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
   };
 
   return (
-    <Stack gap={4}>
+    <Stack gap={0}>
       <div data-contract="produto-cadastros-header">
         <PageHeader title="Cadastros" subtitle="Unidades, marcas e os demais cadastros que o produto usa." />
       </div>
 
+      {/* Corpo da página = `.pb-body` do protótipo (produto-blade.css): 16px 24px 28px e gap 14px.
+          O PageHeader já tem o próprio px-6; sem este corpo o widget encostava nas bordas do painel. */}
+      <div className="flex flex-col gap-3.5 px-6 pt-4 pb-7" data-contract="produto-cadastros-corpo">
       <Card data-contract="produto-cadastros-widget">
         <CardContent className="p-4">
           <Stack gap={3}>
           <h2 className="text-sm font-medium">Cadastros de apoio</h2>
 
           <div data-contract="produto-cadastros-abas">
+            {/* Protótipo: CliTabs `wrap`, sem rolagem. O SubNav vem com overflow-x-auto e as abas usam -mb-px,
+                o que vaza 1px pra baixo e liga a barra de rolagem; aqui a fileira quebra linha em vez de rolar. */}
             <SubNav
+              className="flex-wrap overflow-visible"
               ariaLabel="Cadastros de apoio"
               value={aba}
               onChange={(v) => { setAba(v as AbaViva); setBusca(''); setErro(null); }}
@@ -355,6 +361,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
           </Stack>
         </CardContent>
       </Card>
+      </div>
 
       {drawer && (
         <CadastroDrawer pedido={drawer} container={cockpit} onClose={() => setDrawer(null)}

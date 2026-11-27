@@ -99,8 +99,12 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
       <CrmCabecalho aba="Leads" />
+
+      {/* Corpo da página = `.pb-body` do protótipo (crm-blade.jsx · produto-blade.css): 16px 24px 28px e gap 14px.
+          O cabeçalho já tem o próprio px-6; sem este corpo os blocos encostavam nas bordas do painel. */}
+      <div className="flex flex-col gap-3.5 px-6 pt-4 pb-7" data-contract="crm-corpo">
 
       <CrmFiltros data-contract="crm-filtros">
         <Deferred data="opcoes" fallback={<Skeleton className="h-16 w-full" />}>
@@ -204,6 +208,7 @@ export default function LeadsIndex({ filtros, rotulos = ROTULOS_PADRAO, opcoes, 
       ) : null}
 
       {converter ? <ConverterLead lead={converter} estagios={estagios} onFechar={() => setConverter(null)} /> : null}
+      </div>
     </div>
   );
 }
