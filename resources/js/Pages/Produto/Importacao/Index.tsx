@@ -21,6 +21,7 @@ import { Input } from '@/Components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { PageHeader } from '@/Components/PageHeader';
 import { Inline, Stack } from '@/Components/layout';
+import { TH, PRIMARIO, SUB } from '../Cadastros/_components/estilo';
 
 interface Msg { success?: number | boolean; msg?: string }
 interface LinhaConferida {
@@ -94,8 +95,12 @@ const colunasEstoque = (formato?: string): [string, string, string][] => [
 ];
 
 const chave = (f: File | null) => (f ? `${f.name}|${f.size}|${f.lastModified}` : '');
-const th = 'border-b border-border py-2 pr-3 font-medium';
-const td = 'border-b border-border py-2 pr-3';
+// Grade do protótipo (`produto-acoes.jsx` → `TabelaInstrucoes`, DataTablePro `compact`), medida em
+// 2026-11-27: cabeçalho 10px 600 caixa alta sobre `--bg-2`, pad 7×10 · célula 12,5px, pad 5×10, borda
+// `--border-2`. Antes a tabela não tinha o fundo cinza no cabeçalho e as células iam a 14px sem recuo.
+// O cabeçalho é o mesmo dos Cadastros de apoio — um só, importado.
+const th = TH;
+const td = 'border-b border-[var(--border-2)] px-2.5 py-[5px] align-middle text-[12.5px] leading-[1.45] text-[var(--text)]';
 
 export default function ImportacaoIndex({ modo, zip, aviso, resultado, conferencia, modelo, formato_data }: Props) {
   const estoque = modo === 'estoque';
@@ -234,13 +239,13 @@ export default function ImportacaoIndex({ modo, zip, aviso, resultado, conferenc
             </p>
             <table className="w-full text-sm">
               <thead className="text-left text-xs text-muted-foreground">
-                <tr><th className={`${th} text-right`}>Nº</th><th className={th}>Coluna</th><th className={th}>O que colocar</th></tr>
+                <tr><th className={th.replace('text-left', 'text-right')}>Nº</th><th className={th}>Coluna</th><th className={th}>O que colocar</th></tr>
               </thead>
               <tbody>
                 {colunas.map(([col, req, ins], i) => (
                   <tr key={col}>
                     <td className={`${td} text-right font-mono tabular-nums`}>{i + 1}</td>
-                    <td className={td}>{col} <span className="text-xs text-muted-foreground">({req})</span></td>
+                    <td className={td}><span className={PRIMARIO}>{col}</span><span className={SUB}>{req}</span></td>
                     <td className={td}>{ins}</td>
                   </tr>
                 ))}
