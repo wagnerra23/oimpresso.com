@@ -4,11 +4,11 @@
 > Regenerar: `node scripts/governance/skills-index-generate.mjs --write`. Convenção de tiers: ADR 0095 · recalibração 5 núcleo + auto-trigger: ADR 0225.
 
 ## Resumo
-- **75** skills · Tier A **5** (5 núcleo + 0 dormente) · Tier B **60** · Tier C **10**
-- Auto-trigger explícito: 9 (session_start 2 · path 5 · intent 1 · on_demand 1)
+- **76** skills · Tier A **5** (5 núcleo + 0 dormente) · Tier B **61** · Tier C **10**
+- Auto-trigger explícito: 10 (session_start 2 · path 5 · intent 1 · on_demand 2)
 - Destacadas no bloco do CLAUDE.md: 13 (entre marcadores AUTO:SKILLS)
 
-## Todas as skills (75)
+## Todas as skills (76)
 | Skill | Tier | auto_trigger | enabled | Descrição (início) |
 |---|---|---|---|---|
 | alinhar-tela | B | — | sim | Use quando Wagner pedir "alinhar a tela X", "ligar a máquina da tela Y", "o que já tem pronto e o que falta na tela Z… |
@@ -82,6 +82,7 @@
 | smoke-prod-evidence | B | — | sim | ATIVAR antes de declarar "funcionando", "smoke OK", "deploy ok", "está rodando" no oimpresso. Trigger por (a) user pe… |
 | tela-smoke-pos-merge | B | — | sim | ATIVAR após PR mergeado que toca resources/js/Pages/**/*.tsx OU quando Wagner pedir "smoke a tela X", "validar tela X… |
 | ticket-triage | B | — | sim | ATIVAR quando user pedir "analise esse ticket", "triage", "vale a pena atender X?", "qual a prioridade", "esse client… |
+| triagem-tickets-dev | B | on_demand | sim | ATIVAR quando o usuário colar uma LISTA de tickets/pendências de desenvolvimento (várias telas ou módulos de uma vez)… |
 | ui-component-creator | B | — | sim | Use ao criar/modificar componentes React (Pages Inertia, sub-componentes em _components/, ou shareds em Components/sh… |
 | validador-modulo | B | — | sim | ATIVAR quando Wagner pedir "valida o módulo X inteiro", "confere a estrutura de <Mod> ligada ao protótipo", "passe ad… |
 | wagner-protocol-enforce | B | on_demand | sim | BLOQUEADOR Tier A always-on — carrega memory/reference/PROTOCOLO-WAGNER-SEMPRE.md no SessionStart de TODA sessão Clau… |
