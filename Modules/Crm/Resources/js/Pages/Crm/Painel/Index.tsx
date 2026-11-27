@@ -60,8 +60,12 @@ const diaDoAniversario = (dob?: string) => {
 
 export default function PainelIndex({ permissoes, pessoal, negocio }: Props) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
       <CrmCabecalho aba="Painel" />
+
+      {/* Corpo da página = `.pb-body` do protótipo (crm-blade.jsx · produto-blade.css): 16px 24px 28px e gap 14px.
+          O cabeçalho já tem o próprio px-6; sem este corpo os blocos encostavam nas bordas do painel. */}
+      <div className="flex flex-col gap-3.5 px-6 pt-4 pb-7" data-contract="crm-corpo">
 
       <Deferred data="pessoal" fallback={espera}>
         <PainelPessoal permissoes={permissoes} pessoal={pessoal} />
@@ -72,6 +76,7 @@ export default function PainelIndex({ permissoes, pessoal, negocio }: Props) {
           {negocio ? <PainelNegocio negocio={negocio} /> : null}
         </Deferred>
       )}
+      </div>
     </div>
   );
 }

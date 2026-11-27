@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: unidade, categoria e marca são referenciadas por todo produto. Apagar uma em uso deixa produto apontando pro nada; errar o escopo mostra cadastro de outro negócio; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-11-25"
+last_run: "2026-11-27"
 last_run_ci: "_pendente_ — o trio nasce na thread Produto/02. O veredito por UC entra no manifesto quando a lane estoque-pest rodar; até lá o Status é 🧪."
 ---
 

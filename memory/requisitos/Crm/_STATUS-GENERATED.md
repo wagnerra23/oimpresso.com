@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 13 |
 | Telas com `casos.md` | 13 |
-| UC declarados | 98 |
-| UC com teste que os cita | 96 |
+| UC declarados | 105 |
+| UC com teste que os cita | 103 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -68,6 +68,9 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CRMACO-21 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-22 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-23 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-24 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-25 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-26 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCAM-01 | Campanhas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCAM-02 | Campanhas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCAM-03 | Campanhas/Index | 🧪 aguarda veredito da lane |
@@ -105,6 +108,10 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CRMLD-11 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-12 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-13 | Leads/Index | 🧪 aguarda veredito da lane |
+| UC-CRMLD-14 | Leads/Index | 🧪 aguarda veredito da lane |
+| UC-CRMLD-15 | Leads/Index | 🧪 aguarda veredito da lane |
+| UC-CRMLD-16 | Leads/Index | 🧪 aguarda veredito da lane |
+| UC-CRMLD-17 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLOG-01 | Logins/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLOG-02 | Logins/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLOG-03 | Logins/Index | 🧪 aguarda veredito da lane |
