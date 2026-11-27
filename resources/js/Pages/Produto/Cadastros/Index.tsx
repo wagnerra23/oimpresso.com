@@ -273,7 +273,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
 
       {/* Corpo da página = `.pb-body` do protótipo (produto-blade.css): 16px 24px 28px e gap 14px.
           O PageHeader já tem o próprio px-6; sem este corpo o widget encostava nas bordas do painel. */}
-      <div className="flex flex-col gap-3.5 px-6 pt-4 pb-7" data-contract="produto-cadastros-corpo">
+      <Stack gap={3} className="gap-3.5 px-6 pt-4 pb-7" data-contract="produto-cadastros-corpo">
       <Card data-contract="produto-cadastros-widget">
         <CardContent className="p-4">
           <Stack gap={3}>
@@ -361,7 +361,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
           </Stack>
         </CardContent>
       </Card>
-      </div>
+      </Stack>
 
       {drawer && (
         <CadastroDrawer pedido={drawer} container={cockpit} onClose={() => setDrawer(null)}

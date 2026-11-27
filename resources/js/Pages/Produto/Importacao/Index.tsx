@@ -134,7 +134,7 @@ export default function ImportacaoIndex({ modo, zip, aviso, resultado, conferenc
 
       {/* Corpo da página = `.pb-body` do protótipo (produto-blade.css): 16px 24px 28px e gap 14px.
           O PageHeader já tem o próprio px-6; sem este corpo os blocos encostavam nas bordas do painel. */}
-      <div className="flex flex-col gap-3.5 px-6 pt-4 pb-7" data-contract="produto-importacao-corpo">
+      <Stack gap={3} className="gap-3.5 px-6 pt-4 pb-7" data-contract="produto-importacao-corpo">
 
       <Card data-contract="produto-importacao-enviar">
         <CardContent className="p-4">
@@ -249,7 +249,7 @@ export default function ImportacaoIndex({ modo, zip, aviso, resultado, conferenc
           </Stack>
         </CardContent>
       </Card>
-      </div>
+      </Stack>
     </Stack>
   );
 }
