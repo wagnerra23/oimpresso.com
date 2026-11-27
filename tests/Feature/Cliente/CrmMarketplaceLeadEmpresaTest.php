@@ -9,8 +9,9 @@ use Modules\Crm\Http\Controllers\CrmMarketplaceController;
 
 /**
  * Importação de leads do marketplace B2B (CrmMarketplaceController@importLeads) reaproveita lead já
- * existente pelo e-mail. Hoje o recurso está desligado (`constants.enable_b2b_marketplace = false`),
- * mas a busca precisa respeitar a empresa para quando for ligado.
+ * existente pelo e-mail. Quando este teste nasceu o recurso estava desligado
+ * (`constants.enable_b2b_marketplace = false`); foi ligado em 2026-11-27 (RUNBOOK-marketplace).
+ * A busca precisa respeitar a empresa.
  *
  * Tier 0 (ADR 0093): lead com o mesmo e-mail em outra empresa → não encontrado (controle negativo);
  * lead da própria empresa → encontrado (controle positivo, em par).

@@ -43,6 +43,10 @@ class FeatureFlagService
      */
     private array $fallbackDefaults = [
         'useV2SellsCreate' => true,
+        // [F] 2026-11-27 ("Sim, pode ligar" + "Tem que ligar a tela nova em react"): Marketplace B2B do CRM
+        // em React para todas as empresas (RUNBOOK-marketplace). Rollback = remover a linha; `?classico=1`
+        // abre a Blade.
+        'useV2CrmMarketplace' => true,
         // useV2ConfiguracoesLocais/Impressoras/CodigoBarras saíram em 2026-10-27: cutover das três
         // telas (D-CFG-LIGAR, [W] 2026-10-07), sem flag nem Blade.
         // Ligada por [W] em 2026-10-13 após #9115 (seleção) e #9159 (editor): Modelos de
