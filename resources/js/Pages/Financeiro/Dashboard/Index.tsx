@@ -168,13 +168,14 @@ function FinanceiroDashboard({
         subtitle={<>Visão geral das contas a pagar e a receber</>}
         actions={
           <>
-            <button
+            <Button
               type="button"
-              className="os-btn ghost"
+              variant="cowork-ghost"
+              size="cowork"
               onClick={() => aplicarFiltro({ tipo: 'all', status: 'all', busca: '' })}
             >
               Limpar filtros
-            </button>
+            </Button>
             <PageHeaderPrimary
               label="Novo título"
               onClick={() => router.visit('/financeiro/unificado/novo')}
