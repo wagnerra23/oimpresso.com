@@ -553,8 +553,31 @@ export const PROBE_SOURCE = /* js */ `(() => {
     }).map((s) => String(s.href).split('/').pop().split('?')[0]);
     const raiz = getComputedStyle(document.documentElement);
     const mortos = ['--accent', '--pos', '--neg', '--warn', '--text-dim', '--sunken', '--border']
-      .filter((t) => !raiz.getPropertyValue(t).trim());
-    return { folhasVazias: vazias, tokensMortos: mortos, nFolhas: document.styleSheets.length };
+      .filter((tk) => !raiz.getPropertyValue(tk).trim());
+    // FONTE QUE NÃO CARREGOU (2026-11-27). Medido no protótipo da Devolução V3: as IBM Plex vêm
+    // por arroba-font-face com url relativa; servido da pasta errada, o arquivo deu 404, a tela
+    // desenhou na fonte reserva do sistema e a saúde dizia OK — folha e tokens estavam sãos.
+    // A pergunta é sobre a família que a tela USA (a 1ª do font-family do body e do título),
+    // não sobre toda face declarada: face não usada fica 'unloaded' por desenho (o browser só
+    // baixa o que desenha). Acusa: usada + declarada + nenhuma face 'loaded' + alguma em 'error'.
+    // Face só em 'loading' NÃO acusa (ainda pode chegar). Família usada SEM declaração não entra:
+    // pode ser fonte do sistema, e isso não se mede aqui.
+    // Sem document.fonts (jsdom, browser antigo) o campo sai null = não medi fonte, nunca OK.
+    // 'carregando' é só informativo: medido no shell Wagner/oimpresso.com.html servido certo,
+    // document.fonts segue em 'loading' depois do ready, sem fonte nenhuma faltando.
+    const fontes = (() => {
+      const fset = document.fonts;
+      if (!fset || typeof fset.forEach !== 'function') return null;
+      const nomeFam = (s) => String(s || '').split(',')[0].replace(/["']/g, '').trim().toLowerCase();
+      const faces = []; fset.forEach((f) => faces.push(f));
+      const usadas = [...new Set([document.body, t].filter(Boolean).map((el) => nomeFam(cs(el).fontFamily)).filter(Boolean))];
+      const naoCarregadas = usadas.filter((u) => {
+        const daFamilia = faces.filter((f) => nomeFam(f.family) === u);
+        return daFamilia.length > 0 && !daFamilia.some((f) => f.status === 'loaded') && daFamilia.some((f) => f.status === 'error');
+      });
+      return { usadas, naoCarregadas, comErro: [...new Set(faces.filter((f) => f.status === 'error').map((f) => nomeFam(f.family)))], carregando: fset.status === 'loading' };
+    })();
+    return { folhasVazias: vazias, tokensMortos: mortos, nFolhas: document.styleSheets.length, fontes };
   })();
   return {
     url: location.href,
@@ -1335,6 +1358,12 @@ export function compare(prodSnap, designSnap, opts = {}) {
       brutas.push({ dim: 'SAÚDE', campo: `tokens.${lado}`, prod: lado === 'prod' ? s.tokensMortos.join(' ') : '—', design: lado === 'design' ? s.tokensMortos.join(' ') : '—',
         veredito: 'NÃO MEDI', detalhe: 'token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback' });
     }
+    const fo = s.fontes;
+    if (fo && fo.naoCarregadas && fo.naoCarregadas.length) {
+      const q = fo.naoCarregadas.join(', ');
+      brutas.push({ dim: 'SAÚDE', campo: `fontes.${lado}`, prod: lado === 'prod' ? q : '—', design: lado === 'design' ? q : '—',
+        veredito: 'NÃO MEDI', detalhe: 'família declarada e usada que NÃO carregou (face em erro: 404 ou caminho errado): a tela desenhou na fonte reserva, e tipografia e largura deste lado NÃO são confiáveis' });
+    }
   }
   // PAPEL SÓ OCULTO -> NÃO MEDI. O seletor casou, mas só elementos sem caixa (lista escondida
   // atrás de uma etapa, aba fechada). Medir o escondido dá número plausível de outra coisa;
@@ -1611,6 +1640,17 @@ function runCompare(argvBruto) {
       console.log(`\n  ⚠ declaração SEM EFEITO (não casou nada — campo errado, ou a divergência já sumiu): ${res.declaracoesSemEfeito.join(', ')}`);
     }
     console.log('');
+  }
+  // FONTE QUE NÃO CARREGOU SAI 2, ANTES DO 1 (2026-11-27). As linhas SAÚDE aparecem no relatório,
+  // mas o processo saía 0 — ou 1 com --check, acusando como bug a medida de um render na fonte
+  // reserva. Vem antes do --check de propósito: com um lado sem fonte, o "DIVERGE(bug)" não vale.
+  // SÓ a fonte, por enquanto: folha vazia e token morto seguem só no relatório. O de tokens tem
+  // falso-positivo medido — lê só o :root, e o fixture do --selftest-sonda do lote (como o
+  // sistema, no .cockpit) declara os tokens fora dele; ligado aqui, derrubava 2 casos legítimos.
+  const semFonte = res.rows.filter((r) => r.dim === 'SAÚDE' && /^fontes\./.test(r.campo) && r.veredito === 'NÃO MEDI');
+  if (semFonte.length) {
+    console.error(`\n  ⛔ NÃO MEDI — fonte não carregou em: ${semFonte.map((r) => `${r.campo} (${r.prod !== '—' ? r.prod : r.design})`).join('; ')}. A tela desenhou na fonte reserva. Conserte o servidor (caminho do arroba-font-face) e meça de novo.\n`);
+    process.exit(2);
   }
   if (argv.includes('--check') && res.bugs > 0) process.exit(1);
 
@@ -2338,7 +2378,7 @@ function selftest() {
   // por um que devolve caixa 0 dentro de [hidden] e 100x20 fora. jsdom é dependência de dev; a
   // lane do CI o instala antes deste step. Sem ele, o caso FALHA dizendo isso — nunca pula.
   const FILTRO_VISIVEL = 'const visivelEl = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };';
-  const sondaNoDom = (fonte, roles) => {
+  const sondaNoDom = (fonte, roles, prep) => {
     let JSDOM;
     try { ({ JSDOM } = createRequire(import.meta.url)('jsdom')); } catch { return { erro: 'jsdom ausente — rode npm install --no-save jsdom@^25' }; }
     const html = '<html><body><main>'
@@ -2359,6 +2399,7 @@ function selftest() {
       return { x: 0, y: 0, top: 0, left: 0, right: 100 * v, bottom: 20 * v, width: 100 * v, height: 20 * v };
     };
     w.__DD_ROLES = roles;
+    if (prep) prep(w);
     try { return w.eval(fonte); } catch (e) { return { erro: String((e && e.message) || e) }; } finally { w.close(); }
   };
   const ROLES_DV = { title: '.tt', primary: '.bp', kpi: '.k', tableRow: 'table.tb tbody tr' };
@@ -2385,6 +2426,52 @@ function selftest() {
     ['SONDA NO DOM controle de mutação: sem o filtro, a sonda mede a lista ESCONDIDA' + (sMutante.erro ? ' — ' + sMutante.erro : ''),
       !sMutante.erro && !mediuAVisivel(sMutante) && Array.isArray(sMutante.roles.celulas) && sMutante.roles.celulas.length === 3],
   );
+
+  // FONTE QUE NÃO CARREGOU (2026-11-27) — a sonda inteira no jsdom, com um document.fonts
+  // falso no formato da API (forEach + status de cada face). Caso real: Devolução V3 servida
+  // da pasta errada, IBM Plex em 404, tela na fonte reserva e saúde OK. O jsdom não tem
+  // document.fonts: o stub é o que permite medir aqui; sem stub, o campo tem que sair null.
+  const comFontes = (faces, status) => (w) => {
+    w.document.body.style.fontFamily = '"IBM Plex Sans", system-ui, sans-serif';
+    Object.defineProperty(w.document, 'fonts', { configurable: true, value: { status: status || 'loaded', forEach: (fn) => faces.forEach(fn) } });
+  };
+  const PLEX_404 = [{ family: '"IBM Plex Sans"', status: 'error' }, { family: '"IBM Plex Mono"', status: 'unloaded' }];
+  const PLEX_OK = [{ family: '"IBM Plex Sans"', status: 'loaded' }, { family: '"IBM Plex Mono"', status: 'unloaded' }];
+  const fQuebrada = sondaNoDom(PROBE_SOURCE, ROLES_DV, comFontes(PLEX_404));
+  const fSa = sondaNoDom(PROBE_SOURCE, ROLES_DV, comFontes(PLEX_OK));
+  const fCarregando = sondaNoDom(PROBE_SOURCE, ROLES_DV, comFontes(PLEX_OK, 'loading'));
+  const fEmVoo = sondaNoDom(PROBE_SOURCE, ROLES_DV, comFontes([{ family: '"IBM Plex Sans"', status: 'loading' }], 'loading'));
+  const fSemApi = sNova; // a sonda acima rodou sem stub: o jsdom não tem document.fonts
+  // CONTROLE DE MUTAÇÃO: sem a checagem de 'loaded', a face em 404 tem que passar despercebida.
+  const CHECA_LOADED = "!daFamilia.some((f) => f.status === 'loaded')";
+  const fonteSemChecagem = PROBE_SOURCE.replace(CHECA_LOADED, 'false');
+  const fMutante = fonteSemChecagem !== PROBE_SOURCE ? sondaNoDom(fonteSemChecagem, ROLES_DV, comFontes(PLEX_404)) : { erro: 'checagem de loaded não encontrada na sonda' };
+  const naoCarr = (snap) => (snap && snap.saude && snap.saude.fontes && snap.saude.fontes.naoCarregadas) || null;
+  const comFonteSaude = (fontes) => ({ theme: 'dark', saude: { folhasVazias: [], tokensMortos: [], nFolhas: 3, fontes }, roles: { chart: svgBase() } });
+  const sadio = comFonteSaude({ usadas: ['ibm plex sans'], naoCarregadas: [], comErro: [], carregando: false });
+  const rFonte = fQuebrada.saude ? compare(comFonteSaude(fQuebrada.saude.fontes), sadio).rows.filter((r) => r.dim === 'SAÚDE') : [];
+  const rFonteSa = fSa.saude ? compare(comFonteSaude(fSa.saude.fontes), sadio).rows.filter((r) => r.dim === 'SAÚDE') : [];
+  const fCliRuim = tmpJson(comFonteSaude(fQuebrada.saude ? fQuebrada.saude.fontes : null));
+  const fCliBom = tmpJson(sadio);
+  const rcFonteRuim = cli(['--compare', fCliRuim, fCliBom]).status;
+  const rcFonteRuimCheck = cli(['--compare', fCliRuim, fCliBom, '--check']).status;
+  const rcFonteBoa = cli(['--compare', fCliBom, fCliBom, '--check']).status;
+  checks.push(
+    ['FONTE: família usada com face em 404 → naoCarregadas' + (fQuebrada.erro ? ' — ' + fQuebrada.erro : ''), JSON.stringify(naoCarr(fQuebrada)) === '["ibm plex sans"]'],
+    ['FONTE: face não usada (Mono "unloaded") NÃO é acusada', !(naoCarr(fQuebrada) || []).includes('ibm plex mono')],
+    ['FONTE: CONTROLE -- família carregada → naoCarregadas vazio, sem linha SAÚDE', Array.isArray(naoCarr(fSa)) && naoCarr(fSa).length === 0 && rFonteSa.length === 0],
+    ['FONTE: CONTROLE -- document.fonts em loading com a família carregada NÃO acusa (FP medido no shell)', !!(fCarregando.saude && fCarregando.saude.fontes && fCarregando.saude.fontes.carregando)
+      && !compare(comFonteSaude(fCarregando.saude.fontes), sadio).rows.some((r) => r.dim === 'SAÚDE')],
+    ['FONTE: CONTROLE -- face da família usada só em loading (sem erro) NÃO acusa', Array.isArray(naoCarr(fEmVoo)) && naoCarr(fEmVoo).length === 0],
+    ['FONTE: sem document.fonts o campo sai null (não medi), nunca lista vazia', !!sNova.saude && fSemApi.saude.fontes === null],
+    ['FONTE: o comparador diz NÃO MEDI no lado quebrado e só nele', rFonte.some((r) => r.campo === 'fontes.prod' && r.veredito === 'NÃO MEDI') && !rFonte.some((r) => /\.design$/.test(r.campo))],
+    ['BITE CLI fonte: --compare com fonte em 404 sai 2 (não 0)', rcFonteRuim === 2],
+    ['BITE CLI fonte: com --check sai 2, não 1 — render quebrado não vira bug', rcFonteRuimCheck === 2],
+    ['BITE CLI fonte: CONTROLE -- render são com --check sai 0', rcFonteBoa === 0],
+    ['FONTE controle de mutação: sem a checagem de loaded, a face em 404 passa despercebida' + (fMutante.erro ? ' — ' + fMutante.erro : ''),
+      !fMutante.erro && Array.isArray(naoCarr(fMutante)) && naoCarr(fMutante).length === 0],
+  );
+  for (const p of [fCliRuim, fCliBom]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
 
 
 

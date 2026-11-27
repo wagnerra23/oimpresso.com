@@ -767,6 +767,9 @@ async function executarAbrir(page, passo) {
 async function medirLado(page, { probe, roles, shell, tema }) {
   if (tema) { await page.evaluate((t) => { document.documentElement.setAttribute('data-theme', t); document.documentElement.classList.toggle('dark', t === 'dark'); }, tema); await page.waitForTimeout(300); }
   await page.evaluate(({ r, s }) => { window.__DD_ROLES = r; if (s) window.__SB_ROLES = s; }, { r: roles, s: shell || null });
+  // A sonda é síncrona e lê document.fonts no instante: sem esperar, fonte ainda baixando sai
+  // como "carregando" (NÃO MEDI). Teto de 10s — fonte que não chega nisso é a que deu 404.
+  await page.evaluate(() => (document.fonts ? Promise.race([document.fonts.ready, new Promise((ok) => setTimeout(ok, 10000))]) : null)).catch(() => {});
   return page.evaluate(probe);
 }
 
