@@ -208,21 +208,14 @@ class DataController extends Controller
      */
     private function abaDoPortal(int $business_id): ?array
     {
-        if ($business_id <= 0 || ! \Illuminate\Support\Facades\Route::has('consulta-os.empresa')) {
+        // Mesmo jeito da RepairSettingsController::linkDoPortal: classe por nome, sem `use`, para a
+        // Assistência seguir funcionando sem o ConsultaOs.
+        $empresaPublica = \Modules\ConsultaOs\Services\EmpresaPublica::class;
+        if ($business_id <= 0 || ! class_exists($empresaPublica) || ! \Illuminate\Support\Facades\Route::has('consulta-os.empresa')) {
             return null;
         }
 
-        try {
-            $codigo = \Illuminate\Support\Facades\DB::table('consulta_os_empresas')
-                ->where('business_id', $business_id)
-                ->value('codigo');
-        } catch (\Throwable $e) {
-            $codigo = null;
-        }
-
-        $href = is_string($codigo) && $codigo !== ''
-            ? route('consulta-os.empresa', ['empresa' => $codigo], false)
-            : '/repair/repair-settings';
+        $href = $empresaPublica::linkExistente($business_id) ?? '/repair/repair-settings';
 
         return ['key' => 'portal', 'label' => 'Portal do cliente', 'href' => $href, 'recarrega' => true];
     }

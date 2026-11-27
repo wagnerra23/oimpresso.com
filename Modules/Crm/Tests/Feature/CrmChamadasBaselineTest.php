@@ -43,6 +43,15 @@ beforeEach(function () {
     }
     config(['constants.enable_crm_call_log' => true]);
     chabLimpa();
+    // Baseline da Blade: a flag da tela React fica desligada aqui de propósito. Desde 2026-11-27 o
+    // default dela é ligado ([F], FeatureFlagService::$fallbackDefaults).
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2CrmChamadas' ? false : parent::isOn($flag, $attrs);
+        }
+    });
 });
 
 afterEach(fn () => chabLimpa());
