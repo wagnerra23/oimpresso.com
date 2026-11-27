@@ -84,7 +84,7 @@ lifecycle: ativo
 | `e2e-gate.yml` | pr+manual | `memory/decisions/0339-promocao-soberana-3-gates-ratchet-ds-required-emenda-0336.md` +7 | E2E Playwright (UCs críticos) — G-3 |
 | `eslint-gate.yml` | pr+push+manual | `memory/decisions/0338-ds-lint-eixo-valor-token-fecha-por-forma.md` +10 | ESLint 9 (ADR 0209) |
 | `essentials-pest.yml` | pr+push+manual | `memory/requisitos/Essentials/RUNBOOK-licencas.md` +8 | Essentials · Pest (MySQL) |
-| `estoque-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Estoque · Pest (MySQL) — movimentação de saldo (venda/compra/devolução) roda no MySQL real; skip no sqlite = verde mente |
+| `estoque-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +15 | Estoque · Pest (MySQL) — movimentação de saldo (venda/compra/devolução) roda no MySQL real; skip no sqlite = verde mente |
 | `exposicao-tier0-sentinel.yml` | cron+manual | `memory/requisitos/_Governanca/programa-ondas/onda-1-sells/1.5-catraca-sentinela.md` +1 | Exposição Tier-0 — sentinela de cadência (Onda 0c · débito Tier-0 por tela dinheiro/estoque/PII/fiscal × cobertura de comportamento · cron semanal + tendência + issue dur… |
 | `fin-hero-gate.yml` | pr+push+manual | (só sessão/handoff · 1) | Fin Hero Gate — KPI hero claro (anti-regressão Onda 28) |
 | `fin-subnav-gate.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Fin SubNav Gate — abas seguem a entry do active (anti-regressão ADR 0180 split) |
@@ -249,7 +249,7 @@ lifecycle: ativo
 | `warn-red-first.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test | `memory/LICOES_CODE.md` +1 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1). |
 | `whats-active-troca-de-alvo.mjs` | PreToolUse(Bash\|PowerShell\|Monitor) PreToolUse(Write\|Edit\|MultiEdit) | test | `.claude/skills/session-start-check/SKILL.md` +3 | AVISA (não bloqueia) quando um Edit/Write adota um ALVO |
 
-## 3. Skills — 75
+## 3. Skills — 76
 
 > Fonte viva com Tier/auto_trigger: **`.claude/skills/_SKILLS-INDEX.md`** (auto-gerado do frontmatter).
 >
@@ -273,7 +273,7 @@ lifecycle: ativo
 | `cliente-discovery` | B | `memory/requisitos/_DesignSystem/RUNBOOK-design-deep.md` +5 | ATIVAR quando Wagner pedir /cliente-discovery, "entrevistar cliente X", "fazer discovery do cliente Y", "criar persona pra <pessoa>", "vou visitar cli… |
 | `cockpit-runbook` | C | `memory/decisions/0104-processo-mwart-canonico-unico-caminho.md` +41 | Generates a detailed RUNBOOK.md or audits a screen against the Chat Cockpit pattern (ADR 0039) for the oimpresso ERP. |
 | `commit-discipline` | A | `memory/decisions/0208-larastan-baseline-ratchet.md` +114 | Use ANTES de git commit ou git push em qualquer PR do oimpresso. |
-| `comparar-design-prod` | B | `memory/requisitos/Jana/Index-visual-comparison.md` +17 | BLOQUEADOR de eyeball — ATIVAR SEMPRE que a tarefa envolver COMPARAR design/protótipo com tela em produção ou declarar que estão iguais. |
+| `comparar-design-prod` | B | `memory/requisitos/Jana/Index-visual-comparison.md` +18 | BLOQUEADOR de eyeball — ATIVAR SEMPRE que a tarefa envolver COMPARAR design/protótipo com tela em produção ou declarar que estão iguais. |
 | `comparativo-do-modulo` | B | `memory/decisions/0213-audit-creates-tasks-loop-fechado.md` +53 | ATIVAR quando user pedir "comparar módulo X com mercado", "auditar escopo do módulo Y", "o que falta no módulo Z vs estado da arte", "inventário aprov… |
 | `constituicao-ui-aware` | B | `memory/decisions/0187-constituicao-ui-v2-ponteiro-canon.md` +8 | Use SEMPRE antes de Edit/Write em qualquer `resources/js/Pages/<X>/*.tsx`, `resources/js/Components/shared/**/*.tsx`, `resources/css/cockpit.css`, `re… |
 | `cowork-prototype-replication` | B | `memory/decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md` +10 | ATIVAR quando user pedir "fazer layout estado-da-arte", "replicar protótipo Cowork", "espelhar visual-source.html", "transformar prototipo-ui/* em Ine… |
@@ -330,7 +330,8 @@ lifecycle: ativo
 | `sidebar-menu-arch` | B | `memory/decisions/0180-sidebar-v3-5-grupos-ghosts-header.md` +21 | Reconhecer, auditar e modificar a arquitetura do sidebar do AppShellV2 — DataController por módulo + agrupamento visual via SIDEBAR_GROUPS no frontend… |
 | `smoke-prod-evidence` | B | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +19 | ATIVAR antes de declarar "funcionando", "smoke OK", "deploy ok", "está rodando" no oimpresso. |
 | `tela-smoke-pos-merge` | B | `memory/decisions/0164-screen-review-pdca-tela-smoke-pos-merge.md` +16 | ATIVAR após PR mergeado que toca resources/js/Pages/**/*.tsx OU quando Wagner pedir "smoke a tela X", "validar tela X visualmente", "ver como ficou te… |
-| `ticket-triage` | B | `memory/decisions/0141-agents-tool-use-pattern-claude-code.md` +10 | ATIVAR quando user pedir "analise esse ticket", "triage", "vale a pena atender X?", "qual a prioridade", "esse cliente é importante?", "score do ticke… |
+| `ticket-triage` | B | `memory/decisions/0141-agents-tool-use-pattern-claude-code.md` +11 | ATIVAR quando user pedir "analise esse ticket", "triage", "vale a pena atender X?", "qual a prioridade", "esse cliente é importante?", "score do ticke… |
+| `triagem-tickets-dev` | B | — | ATIVAR quando o usuário colar uma LISTA de tickets/pendências de desenvolvimento (várias telas ou módulos de uma vez) ou pedir "triagem dos tickets", … |
 | `ui-component-creator` | B | `memory/requisitos/NfeBrasil/SPEC.md` +8 | Use ao criar/modificar componentes React (Pages Inertia, sub-componentes em _components/, ou shareds em Components/shared/) seguindo Cockpit Pattern V… |
 | `validador-modulo` | B | (só sessão/handoff · 1) | ATIVAR quando Wagner pedir "valida o módulo X inteiro", "confere a estrutura |
 | `wagner-protocol-enforce` | B | `memory/decisions/0169-errata-0168-runbook-onda-cowork-canon.md` +12 | BLOQUEADOR Tier A always-on — carrega memory/reference/PROTOCOLO-WAGNER-SEMPRE.md |
@@ -356,7 +357,7 @@ lifecycle: ativo
 | `audit-research-expert` | 🔴 Bash/Write | `memory/decisions/0236-scorecard-universal-entidade-arbitraria.md` +16 | Auditor universal de maturidade — recebe um TEMA (ex "reranker", "knowledge-architecture", "session-handoff", "observability"), pesquisa estado-da-arte 2025-2026, compara… |
 | `audit-senior-expert` | 🔴 Bash/Write | `memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md` +15 | Auditor SÊNIOR — pesquisa profunda (5-7 WebSearch POR gap), comparativo rigoroso, dossier executável pra Onda inteira. |
 | `capterra-senior` | 🔴 Write/Bash | `memory/decisions/0320-programa-ondas-regua-correcao.md` +55 | Use quando Wagner pedir "Capterra do módulo X", "compare meu módulo Y com os melhores e dá nota", "estado-da-arte profundo do módulo Z", "/capterra-senior <Modulo>", "pes… |
-| `ciclo-adversary` | 🔴 Bash | `memory/proibicoes.md` +29 | Adversário read-only do CICLO DE APRENDIZADO (erro → conserta → lápide §5 → ledger LC → defesa mecânica). |
+| `ciclo-adversary` | 🔴 Bash | `memory/proibicoes.md` +30 | Adversário read-only do CICLO DE APRENDIZADO (erro → conserta → lápide §5 → ledger LC → defesa mecânica). |
 | `cliente-drawer-integrar` | 🔴 Bash/Write/Edit | (só sessão/handoff · 1) | Implementador especializado da integração legacy WR Comercial/Delphi → drawer Cliente 760px (ADR 0179). |
 | `como-integrar` | 🔴 Bash/Write | `memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md` +29 | Use ANTES de Wagner aprovar implementação de feature nova/refactor médio no oimpresso. |
 | `comunicacao-visual-expert` | 🔴 Write | — | Especialista de domínio em Comunicação Visual industrial brasileira (CNAE 1813-0/01) — processos OS, PCP, instalação, tributação serviço vs mercadoria, NR-35 fachada, con… |
@@ -521,11 +522,11 @@ lifecycle: ativo
 | `_lib-charter.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/proposals/documentacao-do-fonte-layout-canonico.md` +6 | helpers compartilhados de leitura de charter/bundle. |
 | `analise-regiao.mjs` | ci | 🟢 só lê | — | `memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md` | W3 do processo região-a-região: ROTEIA cada região ao crítico certo, |
 | `ancora-guard.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +8 | CATRACA: o protótipo tem 1 lugar fixo e nunca troca de lugar. |
-| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +215 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
+| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +216 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
 | `build-artefato-prototipo.mjs` | — | 🔴 disco | — | `memory/reference/VISTAS-PUBLICADAS.md` +1 | gera, a partir do git, a página que é publicada como Artefato. |
 | `consumir-map.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +19 | o CONSUMO do <tela>.map.json na FASE 4 (sessão limpa de aplicação). |
 | `design-diff-lote.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` +61 | DRIVER que transforma "ancorada" em "comparada por SONDA", em lote. |
-| `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +111 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
+| `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +112 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
 | `design-lock.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md` +3 | a FONTE de uma comparação é DECLARADA e PROVADA, nunca resolvida por sorte. |
 | `detectar-telas.mjs` | agente, ci, npm, script | 🟢 só lê | selftest + test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +24 | Fase 0 + 0.5 do protocolo aplicar-prototipo, como MECANISMO. |
 | `ds-guard.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +37 | DS-GUARD (defesa tipo-forte) · PROCESSO_MEMORIA_CC.md §8 |
