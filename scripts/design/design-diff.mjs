@@ -286,14 +286,35 @@ export const PROBE_SOURCE = /* js */ `(() => {
       fontPx: Math.round(parseFloat(ca.fontSize)),
       weight: ca.fontWeight,
       blocos: paisDeTexto.length,
+      selecao: !!td.querySelector('input[type="checkbox"]'),
       pill: pill
         ? { radius: cp.borderTopLeftRadius, borda: cp.borderTopWidth !== '0px', bg: cp.backgroundColor, dot }
         : null,
     };
   };
   const linhaEl = R.tableRow ? primeiroVisivel('tableRow', R.tableRow) : null;
+  // CABEÇALHO DE CADA COLUNA (2026-11-27). O comparador pareava célula por ÍNDICE, e uma
+  // coluna a mais de um lado desalinhava todas as seguintes. Medido na Nova devolução: a prod
+  // tem a caixa de seleção como 1ª coluna e o protótipo não, então "Venda" da prod caía contra
+  // "Cliente" do protótipo e assim por diante. Aqui sai o texto do cabeçalho de cada coluna
+  // (a última linha visível do thead, expandindo colspan) para o comparador alinhar por ele.
+  // Sem thead (grade de div, tabela sem cabeçalho), o campo fica null e o pareamento segue
+  // por índice, como antes.
+  const cabecalhos = (() => {
+    const tb = linhaEl ? linhaEl.closest('table') : null;
+    const trs = tb ? [...tb.querySelectorAll('thead tr')].filter(visivelEl) : [];
+    const tr = trs[trs.length - 1];
+    if (!tr) return null;
+    const out = [];
+    for (const th of tr.children) {
+      const n = Math.max(1, parseInt(th.getAttribute('colspan') || '1', 10) || 1);
+      const txt = (th.textContent || '').replace(/\\s+/g, ' ').trim();
+      for (let k = 0; k < n; k++) out.push(txt);
+    }
+    return out;
+  })();
   const celulas = linhaEl
-    ? [...linhaEl.children].map((td, i) => ({ col: i, ...celulaInfo(td, cs(linhaEl).color) }))
+    ? [...linhaEl.children].map((td, i) => ({ col: i, cabecalho: cabecalhos ? (cabecalhos[i] ?? null) : null, ...celulaInfo(td, cs(linhaEl).color) }))
     : null;
   // TABELA — o nível acima da célula, e é dele que sai o único sinal de geometria que NÃO
   // depende de dado. 'table-layout' é decisão de design pura: 'fixed' significa "as larguras
@@ -869,16 +890,63 @@ function dimTexto(prod, design) { // D9
  *
  * @param {any} prod @param {any} design
  */
+/* PAREAMENTO DE COLUNAS PELO CABEÇALHO (2026-11-27). Por índice, uma coluna a mais de um
+ * lado desloca todas as seguintes e cada célula é comparada com a vizinha errada — medido na
+ * Nova devolução (caixa de seleção só na prod). Agora:
+ *  1. âncoras = maior subsequência comum dos cabeçalhos normalizados (sem acento, caixa e
+ *     pontuação). Cabeçalho VAZIO nunca ancora: duas colunas sem título podem ser coisas
+ *     diferentes.
+ *  2. entre âncoras, os trechos que sobram de cada lado: com o mesmo tamanho, pareiam por
+ *     posição (e a diferença de cabeçalho vira linha própria); com tamanhos diferentes, ficam
+ *     sem par ("só na prod" / "só no design"). Não adivinha.
+ * Sem cabeçalho em algum lado (snapshot antigo, tabela sem thead), volta ao índice — o
+ * comportamento de antes, para não mudar veredito de quem não tem como alinhar.
+ * ALINHA_POR_CABECALHO existe para o controle de mutação do --selftest. */
+const ALINHA_POR_CABECALHO = true;
+const chaveCab = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+export function parearColunas(P, D) {
+  const temCab = (L) => L.some((c) => c && chaveCab(c.cabecalho));
+  if (!ALINHA_POR_CABECALHO || !temCab(P) || !temCab(D)) {
+    const n = Math.min(P.length, D.length);
+    return { modo: 'posicao', pares: Array.from({ length: n }, (_, i) => ({ p: i, d: i, porPosicao: true })), soProd: [], soDesign: [] };
+  }
+  const kp = P.map((c) => chaveCab(c && c.cabecalho)), kd = D.map((c) => chaveCab(c && c.cabecalho));
+  const L = Array.from({ length: kp.length + 1 }, () => new Array(kd.length + 1).fill(0));
+  for (let i = kp.length - 1; i >= 0; i--) for (let j = kd.length - 1; j >= 0; j--) {
+    L[i][j] = kp[i] && kp[i] === kd[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  }
+  const ancoras = [];
+  for (let i = 0, j = 0; i < kp.length && j < kd.length;) {
+    if (kp[i] && kp[i] === kd[j]) { ancoras.push([i, j]); i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  const pares = [], soProd = [], soDesign = [];
+  let ip = 0, id = 0;
+  for (const [ap, ad] of [...ancoras, [kp.length, kd.length]]) {
+    const gp = [], gd = [];
+    for (; ip < ap; ip++) gp.push(ip);
+    for (; id < ad; id++) gd.push(id);
+    if (gp.length === gd.length) gp.forEach((p, k) => pares.push({ p, d: gd[k], porPosicao: true }));
+    else { soProd.push(...gp); soDesign.push(...gd); }
+    if (ap < kp.length) { pares.push({ p: ap, d: ad, porPosicao: false }); ip = ap + 1; id = ad + 1; }
+  }
+  return { modo: 'cabecalho', pares, soProd, soDesign };
+}
+const rotuloCol = (c) => (c && c.cabecalho ? '"' + c.cabecalho + '"' : (c && c.selecao ? '(sem título · caixa de seleção)' : '(sem título)'));
+
 function dimCelulas(prod, design) {
   const rows = [];
   const P = prod.celulas, D = design.celulas;
   if (!Array.isArray(P) || !Array.isArray(D)) {
     return [{ dim: 'D4', campo: 'linha da tabela', prod: Array.isArray(P) ? 'ok' : 'não medido', design: Array.isArray(D) ? 'ok' : 'não medido', veredito: 'SEM-DADO', detalhe: 'passe `tableRow` em __DD_ROLES nos DOIS lados' }];
   }
-  const n = Math.min(P.length, D.length);
+  const al = parearColunas(P, D);
   if (P.length !== D.length) {
-    rows.push({ dim: 'D2', campo: 'nº de colunas', prod: P.length, design: D.length, veredito: 'DIVERGE (bug)', detalhe: 'comparando as ' + n + ' primeiras' });
+    rows.push({ dim: 'D2', campo: 'nº de colunas', prod: P.length, design: D.length, veredito: 'DIVERGE (bug)', detalhe: al.modo === 'cabecalho' ? 'colunas alinhadas pelo cabeçalho' : 'sem cabeçalho nos dois lados: comparando as ' + al.pares.length + ' primeiras por posição' });
   }
+  // Sem par: aviso, nunca bug. A contagem acima já reprova; isto diz QUAL coluna sobrou.
+  for (const p of al.soProd) rows.push({ dim: 'D2', campo: 'col' + p + '.só na prod', prod: rotuloCol(P[p]), design: '—', veredito: 'DIVERGE (a classificar)', detalhe: 'coluna sem par no design (pareamento pelo cabeçalho)' });
+  for (const d of al.soDesign) rows.push({ dim: 'D2', campo: 'd' + d + '.só no design', prod: '—', design: rotuloCol(D[d]), veredito: 'DIVERGE (a classificar)', detalhe: 'coluna do design sem par na prod (pareamento pelo cabeçalho)' });
 
   // D2 — GEOMETRIA DA TABELA. Vem antes das colunas de propósito: quando o modo de layout
   // difere, cada largura divergente é sintoma deste fato, e ler a causa primeiro evita
@@ -898,8 +966,13 @@ function dimCelulas(prod, design) {
       rows.push({ dim: 'D6', campo: 'estado de linha', prod: PT.linhasComEstado + '/' + PT.linhas, design: DT.linhasComEstado + '/' + DT.linhas, veredito: 'DIVERGE (dado?)', detalhe: 'um lado distingue linha por estado (trilha/apagado) e o outro não — pode ser capacidade ausente OU nenhuma linha nesse estado hoje; confira antes de tratar como defeito' });
     }
   }
-  for (let i = 0; i < n; i++) {
-    const a = P[i], b = D[i], col = 'col' + i;
+  for (const par of al.pares) {
+    const a = P[par.p], b = D[par.d], col = par.p === par.d ? 'col' + par.p : 'col' + par.p + '~d' + par.d;
+    // Pareadas por posição num trecho entre âncoras: o cabeçalho pode diferir (ex.: "Ações" ×
+    // sem título). Copy, não estrutura: aviso.
+    if (al.modo === 'cabecalho' && par.porPosicao && chaveCab(a.cabecalho) !== chaveCab(b.cabecalho)) {
+      rows.push({ dim: 'D9', campo: col + '.cabeçalho', prod: rotuloCol(a), design: rotuloCol(b), veredito: 'DIVERGE (a classificar)', detalhe: 'mesma posição entre colunas alinhadas, cabeçalho diferente' });
+    }
     // D4 — família monoespaçada é decisão de design, não de tema.
     if (a.mono !== b.mono) {
       rows.push({ dim: 'D4', campo: col + '.mono', prod: a.mono ? 'mono' : 'sem mono', design: b.mono ? 'mono' : 'sem mono', veredito: b.mono ? 'DIVERGE (bug)' : 'DIVERGE (fonte)' });
@@ -2608,6 +2681,57 @@ function selftest() {
     ['TEMA controle de mutação: sem ler o .cockpit, as marcas divergentes passam' + (mCockpit.erro ? ' — ' + mCockpit.erro : ''), !mCockpit.erro && vazioOk(mCockpit)],
   );
   for (const p of [tCliMeio, tCliEsc]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
+  // COLUNAS PELO CABEÇALHO (2026-11-27). Caso real: Nova devolução, prod com a caixa de seleção
+  // como 1ª coluna e "Ações" titulada; protótipo sem a caixa e com a coluna de ações sem título.
+  // Por índice, "Venda" (mono) da prod caía contra "Cliente" do design e cada coluna acusava
+  // mono/align/tag de vizinha.
+  const cel = (cabecalho, o = {}) => ({ cabecalho, tag: null, mono: false, corPropria: false, blocos: 1, pill: null, align: 'left', selecao: false, ...o });
+  const DV_PROD = [cel('', { selecao: true, blocos: 0, corPropria: null }), cel('Venda', { mono: true }), cel('Cliente'), cel('Valor', { mono: true, align: 'right' }), cel('Ações', { tag: 'BUTTON', blocos: 1 })];
+  const DV_DESIGN = [cel('Venda', { mono: true }), cel('Cliente'), cel('Valor', { mono: true, align: 'right' }), cel('', { tag: 'BUTTON', blocos: 1 })];
+  const comCol = (celulas) => ({ theme: 'light', roles: { ...comTexto([]).roles, celulas } });
+  const rCab = compare(comCol(DV_PROD), comCol(DV_DESIGN)).rows;
+  const semCab = (L) => L.map((c) => ({ ...c, cabecalho: null }));
+  const rSemCab = compare(comCol(semCab(DV_PROD)), comCol(DV_DESIGN)).rows;
+  const deVizinha = (rows) => rows.filter((r) => /\.(mono|align|alcancavel|tag)$/.test(r.campo));
+  const al = parearColunas(DV_PROD, DV_DESIGN);
+  const alDesigual = parearColunas([cel('A'), cel('X'), cel('Y'), cel('B')], [cel('A'), cel('Z'), cel('B')]);
+  const rIguais = compare(comCol(DV_DESIGN), comCol(DV_DESIGN)).rows;
+  // CONTROLE DE MUTAÇÃO: uma cópia do script com ALINHA_POR_CABECALHO=false tem que voltar a
+  // comparar vizinhas. Se não voltar, os asserts de cima não dependem do alinhamento.
+  let rMutCab = null, erroMutCab = null;
+  try {
+    const dirMut = mkdtempSync(join(tmpdir(), 'dd-mut-cab-'));
+    const src = readFileSync(EU, 'utf8');
+    const mut = src.replace('const ALINHA_POR_CABECALHO = true;', 'const ALINHA_POR_CABECALHO = false;');
+    if (mut === src) throw new Error('flag ALINHA_POR_CABECALHO não encontrada');
+    writeFileSync(join(dirMut, 'design-diff.mjs'), mut);
+    copyFileSync(join(dirname(EU), 'style-fingerprint.mjs'), join(dirMut, 'style-fingerprint.mjs'));
+    const fp = tmpJson(comCol(DV_PROD)), fd = tmpJson(comCol(DV_DESIGN));
+    const out = spawnSync(process.execPath, [join(dirMut, 'design-diff.mjs'), '--compare', fp, fd, '--json'], { encoding: 'utf8' });
+    rMutCab = JSON.parse(out.stdout).rows;
+    for (const x of [fp, fd]) rmSync(x, { force: true });
+    rmSync(dirMut, { recursive: true, force: true });
+  } catch (e) { erroMutCab = String((e && e.message) || e); }
+  // A SONDA lê o thead: última linha visível, colspan expandido, caixa de seleção marcada.
+  const sCab = sondaNoDom(PROBE_SOURCE, ROLES_DV, (w) => {
+    w.document.querySelectorAll('table.tb')[1].innerHTML = '<thead><tr><th></th><th colspan="2">Venda</th><th>Valor</th></tr></thead>'
+      + '<tbody><tr><td><input type="checkbox"></td><td>V-1</td><td>x</td><td>10</td></tr></tbody>';
+  });
+  const cabs = sCab.roles && Array.isArray(sCab.roles.celulas) ? sCab.roles.celulas.map((c) => c.cabecalho) : null;
+  checks.push(
+    ['COLUNAS morde: caixa só na prod não desloca as outras — nenhuma mono/align/tag de vizinha', deVizinha(rCab).length === 0],
+    ['COLUNAS morde: a caixa sai como "só na prod" (aviso), com o rótulo', rCab.some((r) => r.campo === 'col0.só na prod' && /caixa de seleção/.test(r.prod) && r.veredito === 'DIVERGE (a classificar)')],
+    ['COLUNAS morde: "Ações" × sem título pareiam por posição e a diferença de cabeçalho sai como aviso', rCab.some((r) => r.campo === 'col4~d3.cabeçalho' && r.veredito === 'DIVERGE (a classificar)')],
+    ['COLUNAS: a contagem de colunas segue reprovando (1 bug, o nº de colunas)', compare(comCol(DV_PROD), comCol(DV_DESIGN)).bugs === 1],
+    ['COLUNAS: mapa Venda→Venda, Cliente→Cliente, Valor→Valor', JSON.stringify(al.pares.filter((x) => !x.porPosicao).map((x) => [x.p, x.d])) === '[[1,0],[2,1],[3,2]]'],
+    ['COLUNAS: trecho de tamanhos diferentes entre âncoras fica sem par (não adivinha)', JSON.stringify(alDesigual.soProd) === '[1,2]' && JSON.stringify(alDesigual.soDesign) === '[1]'],
+    ['COLUNAS: CONTROLE -- mesmos cabeçalhos na mesma ordem não geram linha nova', !rIguais.some((r) => /só n|cabeçalho/.test(r.campo))],
+    ['COLUNAS: CONTROLE -- sem cabeçalho num lado volta ao índice (comportamento antigo)', deVizinha(rSemCab).length > 0 && !rSemCab.some((r) => /só n/.test(r.campo))],
+    ['COLUNAS controle de mutação: sem o alinhamento, a vizinha volta a ser acusada' + (erroMutCab ? ' — ' + erroMutCab : ''), !erroMutCab && Array.isArray(rMutCab) && deVizinha(rMutCab).length > 0],
+    ['SONDA lê o thead: colspan expandido e caixa de seleção marcada' + (sCab.erro ? ' — ' + sCab.erro : ''), JSON.stringify(cabs) === '["","Venda","Venda","Valor"]' && sCab.roles.celulas[0].selecao === true && sCab.roles.celulas[1].selecao === false],
+    ['SONDA: CONTROLE -- tabela sem thead deixa cabecalho null', Array.isArray(sNova.roles.celulas) && sNova.roles.celulas.every((c) => c.cabecalho === null)],
+  );
 
 
 
