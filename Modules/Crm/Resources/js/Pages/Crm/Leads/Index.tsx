@@ -240,7 +240,9 @@ function colunas(rotulos: Rotulos, filtros: Filtros, cockpit: HTMLElement | null
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           {/* A linha abre a gaveta; o menu não pode abrir os dois. */}
-          <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.nome}`}
+          {/* O `Kebab` do protótipo (`os-btn sm`): contornado, 26px, letra 11,5px — o mesmo
+              ajuste de Acompanhamentos e da lista de Produtos (AcoesProduto). */}
+          <Button variant="outline" size="sm" className="h-[26px] text-[11.5px]" aria-label={`Ações de ${row.original.nome}`}
             onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>Ações <ChevronDown className="size-3" /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent container={cockpit} align="start" onClick={(e) => e.stopPropagation()}>
