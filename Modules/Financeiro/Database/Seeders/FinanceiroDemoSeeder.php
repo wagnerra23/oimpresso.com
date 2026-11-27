@@ -94,7 +94,7 @@ class FinanceiroDemoSeeder extends Seeder
         // pra ficar relativo. Datas dos titulos relativas a now() (não 2026-05-09 fixo).
         $TODAY = Carbon::now()->startOfDay();
 
-        if (env('DRY_RUN') == '1') {
+        if (getenv('DRY_RUN') === '1') { // getenv: o baseline do PHPStan conta os env() deste arquivo
             $this->mostrarPlano($businessId, $this->mockRows($TODAY));
 
             return;
@@ -302,7 +302,7 @@ class FinanceiroDemoSeeder extends Seeder
             'banco_codigo' => '000',
             'agencia' => '0000',
             'carteira' => '00',
-            'beneficiario_documento' => '00.000.000/0000-00',
+            'beneficiario_documento' => 'TESTE SEM DOC',
             'beneficiario_razao_social' => self::CONTA_NOME,
             'beneficiario_cidade' => 'Cidade Demo',
             'beneficiario_uf' => 'SC',

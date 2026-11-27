@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 444 arquivos em 22 papéis.
+**Total mapeado:** 445 arquivos em 22 papéis.
 
 ## Controllers — 27
 
@@ -143,7 +143,7 @@ module: Financeiro
 - [OnTituloCriadoLog.php](../../../Modules/Financeiro/Listeners/OnTituloCriadoLog.php)
 - [ProcessAsaasPixWebhookListener.php](../../../Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php)
 
-## Console / Commands — 16
+## Console / Commands — 17
 
 - [BackfillExtratoOfxCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillExtratoOfxCommand.php)
 - [BackfillPlanoContaCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillPlanoContaCommand.php)
@@ -151,6 +151,7 @@ module: Financeiro
 - [CorrigirTipoLegadoCommand.php](../../../Modules/Financeiro/Console/Commands/CorrigirTipoLegadoCommand.php)
 - [CusteioRkwCommand.php](../../../Modules/Financeiro/Console/Commands/CusteioRkwCommand.php)
 - [DdaSyncCommand.php](../../../Modules/Financeiro/Console/Commands/DdaSyncCommand.php)
+- [DemoLimparCommand.php](../../../Modules/Financeiro/Console/Commands/DemoLimparCommand.php)
 - [DevolucoesAbaterCommand.php](../../../Modules/Financeiro/Console/Commands/DevolucoesAbaterCommand.php)
 - [FinanceiroHealthCommand.php](../../../Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php)
 - [ImportarExtratoOfxCommand.php](../../../Modules/Financeiro/Console/Commands/ImportarExtratoOfxCommand.php)
