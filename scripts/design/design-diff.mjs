@@ -103,7 +103,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { TOLERANCIAS, diffCampo } from './style-fingerprint.mjs';
+import { TOLERANCIAS, diffCampo, parseCor } from './style-fingerprint.mjs';
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * A SONDA CANÔNICA (roda no browser via Chrome MCP javascript_tool).
@@ -579,9 +579,30 @@ export const PROBE_SOURCE = /* js */ `(() => {
     })();
     return { folhasVazias: vazias, tokensMortos: mortos, nFolhas: document.styleSheets.length, fontes };
   })();
+  // TEMA VERIFICÁVEL (2026-11-27). O campo 'theme' lê só o html, e nesta aplicação o escuro só
+  // fica completo com TRÊS marcas (classe dark no html, data-theme no html, data-theme no
+  // .cockpit — useTheme.ts applyClass). Caso real: só o data-theme do html em dark, o fundo
+  // escureceu (L 0.26) e o título ficou na cor do claro (L 0.22): escuro sobre escuro, e a sonda
+  // dizia "dark". Aqui vão as marcas cruas e as cores do título e da cadeia de fundo atrás dele;
+  // quem julga é o comparador (temaIncoerente), em node, onde dá pra testar.
+  const tema = (() => {
+    const h = document.documentElement;
+    const ck = document.querySelector('.cockpit');
+    const fundos = [];
+    for (let e = t; e && fundos.length < 40; e = e.parentElement) fundos.push(cs(e).backgroundColor || '');
+    return {
+      htmlDark: h.classList.contains('dark'),
+      htmlDataTheme: h.getAttribute('data-theme'),
+      cockpit: ck ? (ck === h ? 'html' : 'interno') : null,
+      cockpitDataTheme: ck && ck !== h ? ck.getAttribute('data-theme') : null,
+      tituloCor: t ? tc.color : null,
+      fundos: t ? fundos : null,
+    };
+  })();
   return {
     url: location.href,
     saude,
+    tema,
     theme: document.documentElement.getAttribute('data-theme') || (document.documentElement.classList.contains('dark') ? 'dark' : 'light'),
     // D0 — ASSINATURA da view. (Sem crase neste bloco: ele vive DENTRO do template
     // string do PROBE_SOURCE, e uma crase aqui fecha a string no meio — foi o que
@@ -691,6 +712,44 @@ function dimTipografia(prod, design) { // D4
   }
   if (!rows.length) rows.push({ dim: 'D4', campo: 'tipografia', prod: 'ok', design: 'ok', veredito: 'IGUAL' });
   return rows;
+}
+
+/* TEMA PELA METADE (2026-11-27). Duas provas independentes, cada uma suficiente:
+ *  1. MARCAS DIVERGENTES — entre as marcas EXPLÍCITAS (classe dark no html, data-theme do html,
+ *     data-theme de um .cockpit interno), duas dizem temas diferentes. AUSÊNCIA não é marca:
+ *     o protótipo (devolucao-v3.html) usa html.cockpit[data-theme] sem a classe dark, e isso é
+ *     coerente; e um .cockpit interno sem data-theme fica com a prova 2.
+ *  2. CONTRASTE — L (OKLab) da cor do título contra o 1º fundo opaco atrás dele: os dois do mesmo
+ *     lado da escala (< 0.5 ou ≥ 0.5) e |ΔL| abaixo do limiar = texto do tema A num fundo do tema B.
+ *     O caso real deu 0.22 × 0.26 (Δ0.04); título legível nos dois temas fica acima de Δ0.5.
+ * Devolve null quando o snapshot não traz 'tema' (formato antigo: não medi, sem alarme) e a lista
+ * de problemas quando traz — vazia = coerente. Cor que não se parseia (color-mix, color(srgb …))
+ * encerra a busca do fundo sem veredito de contraste: não inventa. */
+export const LIMIAR_CONTRASTE_TEMA = 0.25;
+export function temaIncoerente(tema) {
+  if (!tema || typeof tema !== 'object') return null;
+  const probs = [];
+  const marcas = [];
+  if (tema.htmlDark) marcas.push(['classe dark no html', 'dark']);
+  if (tema.htmlDataTheme) marcas.push(['data-theme do html', String(tema.htmlDataTheme)]);
+  if (tema.cockpit === 'interno' && tema.cockpitDataTheme) marcas.push(['data-theme do .cockpit', String(tema.cockpitDataTheme)]);
+  if (new Set(marcas.map((m) => m[1])).size > 1) probs.push('marcas divergentes: ' + marcas.map((m) => `${m[0]}=${m[1]}`).join(' · '));
+  const ct = parseCor(tema.tituloCor);
+  let cf = null;
+  for (const f of tema.fundos || []) {
+    if (!f || f === 'transparent') continue;
+    const p = parseCor(f);
+    if (!p) break;
+    if (p.alfa === 0) continue;
+    cf = p; break;
+  }
+  if (ct && cf) {
+    const lt = ct.lab[0], lb = cf.lab[0];
+    if ((lt < 0.5) === (lb < 0.5) && Math.abs(lt - lb) < LIMIAR_CONTRASTE_TEMA) {
+      probs.push(`título sem contraste com o fundo: L ${lt.toFixed(2)} sobre L ${lb.toFixed(2)} (|ΔL| ${Math.abs(lt - lb).toFixed(2)} < ${LIMIAR_CONTRASTE_TEMA}, mesmo lado da escala)`);
+    }
+  }
+  return probs;
 }
 
 /** oklch/oklab → lightness (1º número) pra comparar sem falso-positivo de tema */
@@ -1365,6 +1424,16 @@ export function compare(prodSnap, designSnap, opts = {}) {
         veredito: 'NÃO MEDI', detalhe: 'família declarada e usada que NÃO carregou (face em erro: 404 ou caminho errado): a tela desenhou na fonte reserva, e tipografia e largura deste lado NÃO são confiáveis' });
     }
   }
+  // TEMA PELA METADE -> NÃO MEDI. Fora do 'if (!s)' acima de propósito: 'tema' é campo irmão de
+  // 'saude' no snapshot. Temas DIFERENTES entre os lados, cada um coerente, NÃO entram aqui —
+  // seguem como 'DIVERGE (tema)' nas dimensões (sameTheme).
+  for (const [lado, snap] of [['prod', prodSnap], ['design', designSnap]]) {
+    const probs = temaIncoerente(snap && snap.tema);
+    if (!probs || !probs.length) continue;
+    const q = probs.join(' | ');
+    brutas.push({ dim: 'SAÚDE', campo: `tema.${lado}`, prod: lado === 'prod' ? q : '—', design: lado === 'design' ? q : '—',
+      veredito: 'NÃO MEDI', detalhe: `tema aplicado pela metade (o 'theme' deste lado diz "${snap.theme}"): cor e contraste deste lado NÃO são confiáveis. Aplique as três marcas (useTheme.ts) e meça de novo` });
+  }
   // PAPEL SÓ OCULTO -> NÃO MEDI. O seletor casou, mas só elementos sem caixa (lista escondida
   // atrás de uma etapa, aba fechada). Medir o escondido dá número plausível de outra coisa;
   // a sonda deixa o papel vazio e diz aqui por quê, em vez de um SEM-DADO genérico.
@@ -1650,6 +1719,13 @@ function runCompare(argvBruto) {
   const semFonte = res.rows.filter((r) => r.dim === 'SAÚDE' && /^fontes\./.test(r.campo) && r.veredito === 'NÃO MEDI');
   if (semFonte.length) {
     console.error(`\n  ⛔ NÃO MEDI — fonte não carregou em: ${semFonte.map((r) => `${r.campo} (${r.prod !== '—' ? r.prod : r.design})`).join('; ')}. A tela desenhou na fonte reserva. Conserte o servidor (caminho do arroba-font-face) e meça de novo.\n`);
+    process.exit(2);
+  }
+  // TEMA PELA METADE SAI 2 PELO MESMO MOTIVO (2026-11-27): com marcas divergentes ou título sem
+  // contraste com o fundo, o "DIVERGE(bug)" de cor deste lado não vale.
+  const temaMeio = res.rows.filter((r) => r.dim === 'SAÚDE' && /^tema\./.test(r.campo) && r.veredito === 'NÃO MEDI');
+  if (temaMeio.length) {
+    console.error(`\n  ⛔ NÃO MEDI — tema pela metade em: ${temaMeio.map((r) => `${r.campo} (${r.prod !== '—' ? r.prod : r.design})`).join('; ')}.\n`);
     process.exit(2);
   }
   if (argv.includes('--check') && res.bugs > 0) process.exit(1);
@@ -2472,6 +2548,66 @@ function selftest() {
       !fMutante.erro && Array.isArray(naoCarr(fMutante)) && naoCarr(fMutante).length === 0],
   );
   for (const p of [fCliRuim, fCliBom]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
+  // TEMA PELA METADE (2026-11-27) — a sonda inteira no jsdom, com as marcas e as cores postas
+  // no DOM. Caso real: só o data-theme do html em dark, fundo L 0.26, título L 0.22 e a sonda
+  // dizendo "dark". jsdom aceita rgb no style inline; o oklch do caso real vai direto na função.
+  const comTema = ({ html = {}, cockpit, titulo, fundo }) => (w) => {
+    const d = w.document, h = d.documentElement;
+    if (html.dark) h.classList.add('dark');
+    if (html.dataTheme) h.setAttribute('data-theme', html.dataTheme);
+    if (html.cockpit) h.classList.add('cockpit');
+    if (cockpit) { const m = d.querySelector('main'); m.classList.add('cockpit'); if (cockpit.dataTheme) m.setAttribute('data-theme', cockpit.dataTheme); }
+    d.querySelectorAll('.tt')[1].style.color = titulo;
+    d.querySelectorAll('section')[1].style.backgroundColor = fundo;
+  };
+  const ESCURO_TXT = 'rgb(245, 245, 245)', ESCURO_BG = 'rgb(38, 38, 43)', CLARO_TXT = 'rgb(30, 30, 33)', CLARO_BG = 'rgb(250, 250, 250)';
+  const T_MEIO = { html: { dataTheme: 'dark' }, cockpit: {}, titulo: 'rgb(27, 27, 31)', fundo: ESCURO_BG };
+  const T_MARCAS = { html: { dark: true, dataTheme: 'dark' }, cockpit: { dataTheme: 'light' }, titulo: ESCURO_TXT, fundo: ESCURO_BG };
+  const T_CLARO = { html: { dataTheme: 'light' }, cockpit: { dataTheme: 'light' }, titulo: CLARO_TXT, fundo: CLARO_BG };
+  const T_ESCURO = { html: { dark: true, dataTheme: 'dark' }, cockpit: { dataTheme: 'dark' }, titulo: ESCURO_TXT, fundo: ESCURO_BG };
+  const T_PROTO = { html: { cockpit: true, dataTheme: 'dark' }, titulo: ESCURO_TXT, fundo: ESCURO_BG };
+  const T_PROTO_CLARO = { html: { cockpit: true, dataTheme: 'light' }, titulo: CLARO_TXT, fundo: CLARO_BG };
+  const sondaTema = (fonte, cfg) => sondaNoDom(fonte, ROLES_DV, comTema(cfg));
+  const probsDe = (snap) => (snap && snap.tema ? temaIncoerente(snap.tema) : null);
+  const tMeio = sondaTema(PROBE_SOURCE, T_MEIO), tMarcas = sondaTema(PROBE_SOURCE, T_MARCAS);
+  const tClaro = sondaTema(PROBE_SOURCE, T_CLARO), tEscuro = sondaTema(PROBE_SOURCE, T_ESCURO);
+  const tProto = sondaTema(PROBE_SOURCE, T_PROTO), tProtoClaro = sondaTema(PROBE_SOURCE, T_PROTO_CLARO);
+  // CONTROLES DE MUTAÇÃO: sem a cadeia de fundo, o meio-tema por contraste passa; sem ler o
+  // data-theme do .cockpit, as marcas divergentes passam. Se passarem igual, o assert é decorativo.
+  const COLETA_FUNDO = 'fundos: t ? fundos : null,', LE_COCKPIT = "cockpitDataTheme: ck && ck !== h ? ck.getAttribute('data-theme') : null,";
+  const semFundo = PROBE_SOURCE.replace(COLETA_FUNDO, 'fundos: null,'), semCockpit = PROBE_SOURCE.replace(LE_COCKPIT, 'cockpitDataTheme: null,');
+  const mFundo = semFundo !== PROBE_SOURCE ? sondaTema(semFundo, T_MEIO) : { erro: 'coleta de fundo não encontrada na sonda' };
+  const mCockpit = semCockpit !== PROBE_SOURCE ? sondaTema(semCockpit, T_MARCAS) : { erro: 'leitura do .cockpit não encontrada na sonda' };
+  const temaSnap = (theme, tema, bg) => ({ theme, tema, roles: { primary: { bg, color: 'oklch(0.99 0 0)', border: 'oklch(0.45 0.15 295)' } } });
+  const rowsTema = (a, b) => compare(a, b).rows.filter((r) => r.dim === 'SAÚDE' && /^tema\./.test(r.campo));
+  const sMeio = temaSnap('dark', tMeio.tema, 'oklch(0.72 0.15 295)'), sEsc = temaSnap('dark', tEscuro.tema, 'oklch(0.72 0.15 295)');
+  const sClaro = temaSnap('light', tClaro.tema, 'oklch(0.55 0.15 295)');
+  const rDifTema = compare(sEsc, sClaro).rows;
+  const tCliMeio = tmpJson(sMeio), tCliEsc = tmpJson(sEsc);
+  const rcTemaMeio = cli(['--compare', tCliMeio, tCliEsc]).status;
+  const rcTemaMeioCheck = cli(['--compare', tCliMeio, tCliEsc, '--check']).status;
+  const rcTemaOk = cli(['--compare', tCliEsc, tCliEsc, '--check']).status;
+  const vazioOk = (snap) => Array.isArray(probsDe(snap)) && probsDe(snap).length === 0;
+  checks.push(
+    ['TEMA: a sonda devolve as marcas e as cores' + (tMeio.erro ? ' — ' + tMeio.erro : ''), !!tMeio.tema && tMeio.tema.htmlDataTheme === 'dark' && tMeio.tema.cockpit === 'interno' && Array.isArray(tMeio.tema.fundos)],
+    ['TEMA morde: só data-theme=dark no html, título escuro no fundo escuro → contraste acusado', (probsDe(tMeio) || []).some((x) => /contraste/.test(x))],
+    ['TEMA morde: o caso real em oklch (título 0.22 × fundo 0.26) → acusado', (temaIncoerente({ tituloCor: 'oklch(0.22 0.01 80)', fundos: ['', 'oklch(0.26 0.01 80)'] }) || []).length === 1],
+    ['TEMA morde: classe dark + html dark × .cockpit light → marcas divergentes', (probsDe(tMarcas) || []).some((x) => /marcas divergentes/.test(x))],
+    ['TEMA: CONTROLE -- claro coerente não acusa', vazioOk(tClaro)],
+    ['TEMA: CONTROLE -- escuro coerente (três marcas) não acusa', vazioOk(tEscuro)],
+    ['TEMA: CONTROLE -- padrão do protótipo (html.cockpit[data-theme=dark], sem classe dark) não acusa', vazioOk(tProto) && tProto.tema.cockpit === 'html'],
+    ['TEMA: CONTROLE -- protótipo no claro não acusa', vazioOk(tProtoClaro)],
+    ['TEMA: CONTROLE -- snapshot sem o campo tema não gera linha', temaIncoerente(undefined) === null && rowsTema({ theme: 'dark', roles: {} }, { theme: 'dark', roles: {} }).length === 0],
+    ['TEMA: o comparador diz NÃO MEDI no lado pela metade e só nele', rowsTema(sMeio, sEsc).some((r) => r.campo === 'tema.prod' && r.veredito === 'NÃO MEDI') && !rowsTema(sMeio, sEsc).some((r) => /\.design$/.test(r.campo))],
+    ['TEMA: CONTROLE -- lados em temas DIFERENTES e coerentes seguem DIVERGE (tema), sem NÃO MEDI', rDifTema.some((r) => r.veredito === 'DIVERGE (tema)') && !rDifTema.some((r) => r.dim === 'SAÚDE')],
+    ['BITE CLI tema: --compare com tema pela metade sai 2', rcTemaMeio === 2],
+    ['BITE CLI tema: com --check sai 2, não 1', rcTemaMeioCheck === 2],
+    ['BITE CLI tema: CONTROLE -- escuro coerente com --check sai 0', rcTemaOk === 0],
+    ['TEMA controle de mutação: sem a cadeia de fundo, o meio-tema passa' + (mFundo.erro ? ' — ' + mFundo.erro : ''), !mFundo.erro && vazioOk(mFundo)],
+    ['TEMA controle de mutação: sem ler o .cockpit, as marcas divergentes passam' + (mCockpit.erro ? ' — ' + mCockpit.erro : ''), !mCockpit.erro && vazioOk(mCockpit)],
+  );
+  for (const p of [tCliMeio, tCliEsc]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
 
 
 
