@@ -1880,6 +1880,7 @@
     "2026-11-17-gerente-merge-fila": "memory/sessions/2026-11-17-gerente-merge-fila.md",
     "2026-11-18-refutacao-gt-g5-lote-11161-r1": "memory/sessions/2026-11-18-refutacao-gt-g5-lote-11161-r1.md",
     "2026-11-23-2035-afasj-recursos-grande-florianopolis": "memory/handoffs/2026-11-23-2035-afasj-recursos-grande-florianopolis.md",
+    "2026-11-26-nota-ficticia-devolucao-os00138": "memory/sessions/2026-11-26-nota-ficticia-devolucao-os00138.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "clientes-rota-livre-smoke": "memory/clientes/rota-livre/SMOKE.md",
     "clientes-wr2-sistemas-smoke": "memory/clientes/wr2-sistemas/SMOKE.md",
@@ -4664,8 +4665,8 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4658,
-    "resolved": 3123,
+    "total": 4659,
+    "resolved": 3124,
     "unstamped": 1535,
     "collisions": 0,
     "by_source": {
@@ -4673,7 +4674,7 @@
       "stamped": 1244,
       "derived-adr": 461,
       "derived-handoffs": 632,
-      "derived-sessions": 786
+      "derived-sessions": 787
     }
   }
 }
