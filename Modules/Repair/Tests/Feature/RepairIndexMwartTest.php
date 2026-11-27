@@ -162,7 +162,9 @@ function repairTransacao(int $businessId, int $locationId, string $sufixo, array
 function repairGetInertia($test, User $user, string $query = '')
 {
     return $test->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => repairInertiaVersion()])
+        // O cliente Inertia manda `X-Requested-With` em toda visita: sem ele o teste não
+        // reproduzia o JSON do DataTables que a aba recebia em produção (2026-11-27).
+        ->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true', 'X-Inertia-Version' => repairInertiaVersion()])
         ->get('/repair/repair'.$query);
 }
 

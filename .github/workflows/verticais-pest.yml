@@ -1017,6 +1017,7 @@ jobs:
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
+            Modules/Repair/Tests/Feature/RepairAbasDoTopoContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardIndicadoresContratoTest.php \
             Modules/Repair/Tests/Feature/RepairFormVendaContratoTest.php \

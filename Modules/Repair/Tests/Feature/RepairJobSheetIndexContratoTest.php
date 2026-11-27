@@ -153,7 +153,9 @@ function jobSheetIndexInertia($test, User $user)
     ]);
 
     return jobSheetIndexActAs($test, $user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => jobSheetIndexInertiaVersion()])
+        // O cliente Inertia manda `X-Requested-With` em toda visita: sem ele o teste não
+        // reproduzia o JSON do DataTables que a aba recebia em produção (2026-11-27).
+        ->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true', 'X-Inertia-Version' => jobSheetIndexInertiaVersion()])
         ->get('/repair/job-sheet');
 }
 

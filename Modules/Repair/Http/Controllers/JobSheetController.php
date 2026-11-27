@@ -78,7 +78,9 @@ class JobSheetController extends Controller
 
         $is_user_admin = $this->commonUtil->is_admin(auth()->user(), $business_id);
 
-        if (request()->ajax()) {
+        // `! X-Inertia`: o Inertia manda `X-Requested-With` em toda visita, e é o que `ajax()` lê.
+        // Sem esta perna a aba do topo recebia o JSON do DataTables (medido em produção 2026-11-27).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $job_sheets = JobSheet::with('invoices')
                     ->leftJoin('contacts', 'repair_job_sheets.contact_id', '=', 'contacts.id')
                     ->leftJoin(

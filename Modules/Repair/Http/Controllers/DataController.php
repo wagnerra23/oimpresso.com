@@ -9,6 +9,7 @@ use App\Warranty;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Menu;
+use Modules\Repair\Concerns\TelaReactPorEmpresa;
 use Modules\Repair\Entities\DeviceModel;
 use Modules\Repair\Entities\JobSheet;
 use Modules\Repair\Entities\RepairStatus;
@@ -16,6 +17,8 @@ use Modules\Repair\Utils\RepairUtil;
 
 class DataController extends Controller
 {
+    use TelaReactPorEmpresa;
+
     /**
      * Sets sell fields from module
      *
@@ -161,6 +164,38 @@ class DataController extends Controller
     }
 
     /**
+     * Abas do topo das telas da Assistência técnica (ModuleTabs) e sub-itens do menu lateral.
+     *
+     * [W] 2026-11-06: o sidebar e as abas mostram o mesmo. Ordem e rótulos do protótipo
+     * (`repair-page.jsx`, barra "Áreas da assistência técnica"). "Portal do cliente" fica fora:
+     * ainda é Blade, sem Page (thread 04).
+     *
+     * `recarrega: true` quando a tela, para esta empresa, ainda responde o Blade: o `<Link>` do
+     * Inertia não abre Blade e mostrava a janela de erro com o HTML dentro (Configurações,
+     * medido em produção 2026-11-27). Com `recarrega` a aba navega com link comum, como o menu
+     * lateral. A decisão é a mesma do controller da tela (`mwartEnabled`), para não divergir.
+     *
+     * @return array<int, array{key: string, label: string, href: string, recarrega?: bool}>
+     */
+    public function abasDoRepair(int $business_id): array
+    {
+        $aba = fn (string $key, string $label, string $href, ?string $tela = null): array => ($tela === null || $this->mwartEnabled($tela, $business_id))
+            ? ['key' => $key, 'label' => $label, 'href' => $href]
+            : ['key' => $key, 'label' => $label, 'href' => $href, 'recarrega' => true];
+
+        return [
+            $aba('painel', 'Painel', '/repair/dashboard', 'repair_dashboard_index'),
+            // Produção da oficina não tem Blade: é sempre a tela React.
+            $aba('producao', 'Produção', '/repair/producao-oficina'),
+            $aba('folhas', 'Folhas de OS', '/repair/job-sheet', 'repair_job_sheet_index'),
+            $aba('reparos', 'Reparos', '/repair/repair', 'repair_index'),
+            $aba('status', 'Status', '/repair/status', 'repair_status_index'),
+            $aba('modelos', 'Modelos', '/repair/device-models', 'repair_device_models_index'),
+            $aba('config', 'Configurações', '/repair/repair-settings', 'repair_settings_index'),
+        ];
+    }
+
+    /**
      * Adds Repair menus
      *
      * @return null
@@ -177,7 +212,8 @@ class DataController extends Controller
         }
 
         if ($is_repair_enabled && (auth()->user()->can('superadmin') || auth()->user()->can('repair.view') || auth()->user()->can('job_sheet.view_assigned') || auth()->user()->can('job_sheet.view_all'))) {
-            Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color) {
+            $ghosts = $this->abasDoRepair((int) $business_id);
+            Menu::modify('admin-sidebar-menu', function ($menu) use ($background_color, $ghosts) {
                 // ADR 0180 Fase 4 Wave B (2026-05-21): entry principal declara
                 // atalho kbd + primary action + ghosts tabs.
                 //  - `shortcut` G O → atalho overlay (Fase 8)
@@ -201,19 +237,8 @@ class DataController extends Controller
                             'href'     => '/pos/create?sub_type=repair',
                             'shortcut' => 'N',
                         ],
-                        // [W] 2026-11-06: as abas do topo das telas leem ESTA lista (ModuleTabs) — o
-                        // sidebar e as abas mostram o mesmo. Ordem e rótulos do protótipo
-                        // (`repair-page.jsx`, barra `MP.Tabs` "Áreas da assistência técnica").
-                        // "Portal do cliente" fica fora: ainda é Blade, sem Page (thread 04).
-                        'ghosts'   => [
-                            ['key' => 'painel',   'label' => 'Painel',        'href' => '/repair/dashboard'],
-                            ['key' => 'producao', 'label' => 'Produção',      'href' => '/repair/producao-oficina'],
-                            ['key' => 'folhas',   'label' => 'Folhas de OS',  'href' => '/repair/job-sheet'],
-                            ['key' => 'reparos',  'label' => 'Reparos',       'href' => '/repair/repair'],
-                            ['key' => 'status',   'label' => 'Status',        'href' => '/repair/status'],
-                            ['key' => 'modelos',  'label' => 'Modelos',       'href' => '/repair/device-models'],
-                            ['key' => 'config',   'label' => 'Configurações', 'href' => '/repair/repair-settings'],
-                        ],
+                        // As abas do topo das telas leem ESTA lista (ModuleTabs) — ver abasDoRepair().
+                        'ghosts'   => $ghosts,
                     ]
                 )
                 ->order(24);

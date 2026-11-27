@@ -48,7 +48,9 @@ class RepairStatusController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // `! X-Inertia`: o Inertia manda `X-Requested-With` em toda visita, e é o que `ajax()` lê.
+        // Sem esta perna a aba do topo recebia o JSON do DataTables (medido em produção 2026-11-27).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
             $statuses = RepairStatus::where('business_id', $business_id)
                         ->select(['name', 'color', 'id', 'sort_order', 'is_completed_status']);
 

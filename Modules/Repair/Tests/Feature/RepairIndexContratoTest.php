@@ -130,7 +130,9 @@ function ridxAbrirFila($test, User $user, string $query = '')
     ridxSessao((int) $user->business_id, (int) $user->id);
 
     $resp = $test->actingAs($user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => ridxInertiaVersion()])
+        // O cliente Inertia manda `X-Requested-With` em toda visita: sem ele o teste não
+        // reproduzia o JSON do DataTables que a aba recebia em produção (2026-11-27).
+        ->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true', 'X-Inertia-Version' => ridxInertiaVersion()])
         ->get('/repair/repair'.$query);
 
     if ($resp->status() === 403) {
