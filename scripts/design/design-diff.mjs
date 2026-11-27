@@ -102,6 +102,7 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { TOLERANCIAS, diffCampo } from './style-fingerprint.mjs';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -118,14 +119,32 @@ export const PROBE_SOURCE = /* js */ `(() => {
   const cs = (el) => el ? getComputedStyle(el) : null;
   const q = (sel) => sel ? document.querySelector(sel) : null;
   const qa = (sel) => sel ? [...document.querySelectorAll(sel)] : [];
+  // VISIBILIDADE dos papéis principais (2026-11-27). Até aqui título, primary, KPI e a linha
+  // da tabela saíam de querySelector cru: o PRIMEIRO no DOM, visível ou não. Medido no
+  // protótipo da Devolução V3, a lista continua no DOM, escondida, quando se abre a etapa
+  // "Nova devolução" — e 'table.tb tbody tr' mediu a tabela ESCONDIDA (DV-0232...) no lugar
+  // da visível (V-1051...), com resultado plausível. Agora cada papel pega o primeiro elemento
+  // com caixa (largura e altura > 0). Seletor que só casa elemento oculto deixa o papel NÃO
+  // MEDIDO e conta em 'roles.ocultos' — nunca vira medida de algo que o usuário não vê.
+  // O shell e a gaveta já usavam este filtro (papelInfo, abaixo).
+  const visivelEl = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  const ocultos = {};
+  const primeiroVisivel = (nome, sel) => {
+    const todos = qa(sel);
+    const el = todos.find(visivelEl) || null;
+    if (!el && todos.length) ocultos[nome] = todos.length;
+    return el;
+  };
   const visualRows = (els) => {
     // nº de linhas visuais = grupos distintos de top (arredondado) dos elementos
     const tops = new Set(els.map((e) => Math.round(e.getBoundingClientRect().top / 6) * 6).filter((t) => t >= 0));
     return tops.size;
   };
   // KPI
-  const kpiEls = qa(R.kpi).slice(0, 8);
-  const kpi = {
+  const kpiTodos = qa(R.kpi);
+  const kpiEls = kpiTodos.filter(visivelEl).slice(0, 8);
+  if (!kpiEls.length && kpiTodos.length) ocultos.kpi = kpiTodos.length;
+  const kpi = ocultos.kpi ? null : {
     count: kpiEls.length,
     tag: kpiEls[0] ? kpiEls[0].tagName : null,
     overflowX: (() => { const p = kpiEls[0] && kpiEls[0].parentElement; return p ? p.scrollWidth > p.clientWidth + 2 : null; })(),
@@ -156,10 +175,10 @@ export const PROBE_SOURCE = /* js */ `(() => {
     }),
   };
   // título
-  const t = q(R.title); const tc = cs(t);
+  const t = primeiroVisivel('title', R.title); const tc = cs(t);
   const title = t ? { fontPx: Math.round(parseFloat(tc.fontSize)), weight: tc.fontWeight, color: tc.color } : null;
   // primary (accent)
-  const p = q(R.primary); const pc = cs(p);
+  const p = primeiroVisivel('primary', R.primary); const pc = cs(p);
   const primary = p ? { bg: pc.backgroundColor, color: pc.color, border: pc.borderTopColor } : null;
   // filtro (barra) — nº de linhas visuais dos controles
   const filterEls = R.filterControls ? qa(R.filterControls) : [];
@@ -272,7 +291,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
         : null,
     };
   };
-  const linhaEl = R.tableRow ? q(R.tableRow) : null;
+  const linhaEl = R.tableRow ? primeiroVisivel('tableRow', R.tableRow) : null;
   const celulas = linhaEl
     ? [...linhaEl.children].map((td, i) => ({ col: i, ...celulaInfo(td, cs(linhaEl).color) }))
     : null;
@@ -366,7 +385,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
   // página atrás dela). 'ocultos' conta o que casou mas tem caixa 0 — a divisória sem borda
   // do painel da ordem (2026-10-19) existia e não desenhava, e sem a contagem isso virava
   // "seletor não casou", que é outra coisa.
-  const visivelEl = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  // (visivelEl é definido no topo da sonda: os papéis principais usam o mesmo filtro.)
   const papelInfo = (sel, base) => {
     let todos;
     try { todos = base ? [...base.querySelectorAll(sel)] : qa(sel); }
@@ -549,7 +568,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
     // 17). Num shell que carrega vários protótipos juntos, comparar sem provar a
     // view mede a TELA ERRADA e devolve veredito plausível — o pior tipo de erro.
     assinatura: textoVisivel(document.body).slice(0, 20000),
-    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela, shell, chart, drawer },
+    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela, shell, chart, drawer, ocultos },
   };
 })()`;
 
@@ -1315,6 +1334,17 @@ export function compare(prodSnap, designSnap, opts = {}) {
     if (s.tokensMortos && s.tokensMortos.length) {
       brutas.push({ dim: 'SAÚDE', campo: `tokens.${lado}`, prod: lado === 'prod' ? s.tokensMortos.join(' ') : '—', design: lado === 'design' ? s.tokensMortos.join(' ') : '—',
         veredito: 'NÃO MEDI', detalhe: 'token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback' });
+    }
+  }
+  // PAPEL SÓ OCULTO -> NÃO MEDI. O seletor casou, mas só elementos sem caixa (lista escondida
+  // atrás de uma etapa, aba fechada). Medir o escondido dá número plausível de outra coisa;
+  // a sonda deixa o papel vazio e diz aqui por quê, em vez de um SEM-DADO genérico.
+  for (const [lado, snap] of [['prod', prodSnap], ['design', designSnap]]) {
+    const oc = snap && snap.roles && snap.roles.ocultos;
+    if (!oc) continue;
+    for (const [papel, n] of Object.entries(oc)) {
+      brutas.push({ dim: 'SONDA', campo: `${papel}.${lado}`, prod: lado === 'prod' ? `${n} oculto(s)` : '—', design: lado === 'design' ? `${n} oculto(s)` : '—',
+        veredito: 'NÃO MEDI', detalhe: `o seletor de '${papel}' casou só elemento(s) sem caixa (escondidos). Abra a vista certa ou aponte um seletor que pegue o visível` });
     }
   }
   const decl = aplicarDeclaracao(brutas, opts.declarado || []);
@@ -2300,6 +2330,61 @@ function selftest() {
     ['BITE CLI gaveta: sem a flag, gaveta divergente NÃO derruba o --check histórico', cli(['--compare', fDwRuim, fDwBoa, '--check']).status === 0],
   );
   for (const p of [fDwBoa, fDwRuim, fDwSem, fDwFechada, fDwDecl]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
+  // SONDA REAL NUM DOM — papel escondido (2026-11-27). Todos os casos acima testam o COMPARADOR
+  // com snapshot montado à mão; a sonda em si nunca rodava no selftest. Aqui ela roda inteira
+  // (a mesma string do --probe) num DOM de jsdom em que a lista ESCONDIDA vem antes da visível,
+  // como no protótipo da Devolução V3. O jsdom não tem layout: getBoundingClientRect é trocado
+  // por um que devolve caixa 0 dentro de [hidden] e 100x20 fora. jsdom é dependência de dev; a
+  // lane do CI o instala antes deste step. Sem ele, o caso FALHA dizendo isso — nunca pula.
+  const FILTRO_VISIVEL = 'const visivelEl = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };';
+  const sondaNoDom = (fonte, roles) => {
+    let JSDOM;
+    try { ({ JSDOM } = createRequire(import.meta.url)('jsdom')); } catch { return { erro: 'jsdom ausente — rode npm install --no-save jsdom@^25' }; }
+    const html = '<html><body><main>'
+      + '<section hidden><h1 class="tt" style="font-size:30px">Devoluções</h1>'
+      + '<button class="bp" style="background-color:rgb(200, 0, 0)">Nova</button>'
+      + '<div class="k">A</div><div class="k">B</div>'
+      + '<table class="tb"><tbody><tr><td>DV-0232</td><td>Cliente</td><td>R</td></tr></tbody></table></section>'
+      + '<section><h1 class="tt" style="font-size:22px">Nova devolução</h1>'
+      + '<button class="bp" style="background-color:rgb(0, 120, 0)">Salvar</button>'
+      + '<div class="k">C</div>'
+      + '<table class="tb"><tbody><tr><td><a href="#">V-1051</a></td></tr></tbody></table></section>'
+      + '<div class="so-oculto" hidden>x</div></main></body></html>';
+    const dom = new JSDOM(html, { runScripts: 'outside-only', pretendToBeVisual: true });
+    const w = dom.window;
+    const escondido = (el) => { for (let e = el; e; e = e.parentElement) if (e.hasAttribute('hidden')) return true; return false; };
+    w.Element.prototype.getBoundingClientRect = function () {
+      const v = escondido(this) ? 0 : 1;
+      return { x: 0, y: 0, top: 0, left: 0, right: 100 * v, bottom: 20 * v, width: 100 * v, height: 20 * v };
+    };
+    w.__DD_ROLES = roles;
+    try { return w.eval(fonte); } catch (e) { return { erro: String((e && e.message) || e) }; } finally { w.close(); }
+  };
+  const ROLES_DV = { title: '.tt', primary: '.bp', kpi: '.k', tableRow: 'table.tb tbody tr' };
+  const mediuAVisivel = (snap) => {
+    const r = (snap && snap.roles) || {};
+    return !!(r.title && r.title.fontPx === 22 && r.primary && /0, 120, 0/.test(r.primary.bg)
+      && r.kpi && r.kpi.count === 1 && Array.isArray(r.celulas) && r.celulas.length === 1 && r.celulas[0].tag === 'A');
+  };
+  const sNova = sondaNoDom(PROBE_SOURCE, ROLES_DV);
+  const sSoOculto = sondaNoDom(PROBE_SOURCE, { title: '.so-oculto', primary: '.so-oculto', kpi: '.so-oculto', tableRow: '.so-oculto' });
+  // CONTROLE DE MUTAÇÃO: a mesma sonda com o filtro trocado por "tudo é visível" (o
+  // comportamento antigo) TEM que medir a lista escondida. Se não medir, o fixture não
+  // discrimina e o assert de cima seria decorativo.
+  const fonteSemFiltro = PROBE_SOURCE.replace(FILTRO_VISIVEL, 'const visivelEl = () => true;');
+  const sMutante = fonteSemFiltro !== PROBE_SOURCE ? sondaNoDom(fonteSemFiltro, ROLES_DV) : { erro: 'filtro não encontrado na sonda — o controle de mutação não pôde rodar' };
+  const rSoOculto = sSoOculto.roles ? compare(sSoOculto, sSoOculto).rows : [];
+  checks.push(
+    ['SONDA NO DOM: roda inteira no jsdom' + (sNova.erro ? ' — ' + sNova.erro : ''), !sNova.erro && !!sNova.roles],
+    ['SONDA NO DOM: lista escondida antes da visível → título, primary, KPI e linha medem a VISÍVEL', mediuAVisivel(sNova)],
+    ['SONDA NO DOM: seletor que só casa oculto → papel vazio + ocultos contado, nunca medida do escondido',
+      !!sSoOculto.roles && sSoOculto.roles.title === null && sSoOculto.roles.primary === null && sSoOculto.roles.kpi === null && sSoOculto.roles.celulas === null
+      && sSoOculto.roles.ocultos.title === 1 && sSoOculto.roles.ocultos.tableRow === 1],
+    ['SONDA NO DOM: o comparador diz NÃO MEDI pro papel só oculto', rSoOculto.some((x) => x.dim === 'SONDA' && x.campo === 'title.prod' && x.veredito === 'NÃO MEDI')],
+    ['SONDA NO DOM controle de mutação: sem o filtro, a sonda mede a lista ESCONDIDA' + (sMutante.erro ? ' — ' + sMutante.erro : ''),
+      !sMutante.erro && !mediuAVisivel(sMutante) && Array.isArray(sMutante.roles.celulas) && sMutante.roles.celulas.length === 3],
+  );
 
 
 
