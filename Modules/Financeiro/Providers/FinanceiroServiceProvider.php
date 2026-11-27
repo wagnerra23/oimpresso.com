@@ -169,6 +169,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\CorrigirTipoLegadoCommand::class,
                 // 2026-11-27 — remove os dados [TESTE] do FinanceiroDemoSeeder (dry-run por padrão).
                 \Modules\Financeiro\Console\Commands\DemoLimparCommand::class,
+                // 2026-11-27 — dá/revoga financeiro.* direto a um usuário de teste (dry-run por padrão).
+                \Modules\Financeiro\Console\Commands\DemoAcessoCommand::class,
             ]);
         }
     }
