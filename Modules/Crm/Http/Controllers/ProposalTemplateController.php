@@ -11,9 +11,14 @@ use Illuminate\Routing\Controller;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\ProposalTemplate;
 use App\Support\Privacy\PiiRedactor;
+use App\Services\FeatureFlagService;
+use Inertia\Inertia;
 
 class ProposalTemplateController extends Controller
 {
+    /** Tela React do Modelo de proposta (RUNBOOK-modelo-proposta). `?classico=1` mantém a Blade. */
+    private const FLAG_V2 = 'useV2CrmModeloProposta';
+
     /**
      * All Utils instance.
      */
@@ -44,8 +49,40 @@ class ProposalTemplateController extends Controller
 
         $proposal_template = $this->__getProposalTemplate($business_id);
 
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => (int) $business_id])) {
+            $user = auth()->user();
+
+            return Inertia::render('Crm/ModeloProposta/Index', [
+                'modelo' => $this->modeloParaTela($proposal_template),
+                'pode_editar' => (bool) $user->can('crm.add_proposal_template'),
+                'pode_mandar' => (bool) $user->can('crm.access_proposal'),
+            ]);
+        }
+
         return view('crm::proposal_template.index')
             ->with(compact('proposal_template'));
+    }
+
+    /**
+     * Modelo da empresa para a tela React. O corpo vem do editor como HTML; a tela recebe só o
+     * texto (fim de bloco vira quebra de linha), como o drawer de Propostas — nada de HTML cru.
+     */
+    private function modeloParaTela(?ProposalTemplate $t): ?array
+    {
+        if (! $t) {
+            return null;
+        }
+        $html = preg_replace('#<\s*(br|/p|/div|/li|/h[1-6])[^>]*>#i', PHP_EOL, (string) $t->body);
+        $texto = html_entity_decode(strip_tags((string) $html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return [
+            'assunto' => (string) $t->subject,
+            'cc' => $t->cc ?: null,
+            'bcc' => $t->bcc ?: null,
+            'corpo' => trim($texto),
+            'atualizado_em' => $t->updated_at ? $t->updated_at->format('d/m/Y H:i') : null,
+            'anexos' => $t->media->map(fn ($m) => ['nome' => $m->display_name, 'url' => $m->display_url])->values()->all(),
+        ];
     }
 
     /**

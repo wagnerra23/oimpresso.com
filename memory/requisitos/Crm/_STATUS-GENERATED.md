@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 4 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 13 |
-| Telas com `casos.md` | 13 |
-| UC declarados | 105 |
-| UC com teste que os cita | 103 |
+| Telas (.tsx) | 14 |
+| Telas com `casos.md` | 14 |
+| UC declarados | 110 |
+| UC com teste que os cita | 108 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -117,6 +117,11 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CRMLOG-03 | Logins/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLOG-04 | Logins/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLOG-05 | Logins/Index | 🧪 aguarda veredito da lane |
+| UC-CRMMOD-01 | ModeloProposta/Index | 🧪 aguarda veredito da lane |
+| UC-CRMMOD-02 | ModeloProposta/Index | 🧪 aguarda veredito da lane |
+| UC-CRMMOD-03 | ModeloProposta/Index | 🧪 aguarda veredito da lane |
+| UC-CRMMOD-04 | ModeloProposta/Index | 🧪 aguarda veredito da lane |
+| UC-CRMMOD-05 | ModeloProposta/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-01 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-02 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-03 | Painel/Index | 🧪 aguarda veredito da lane |

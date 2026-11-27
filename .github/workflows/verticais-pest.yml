@@ -171,6 +171,9 @@ on:
       # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
       - 'Modules/Crm/Http/Controllers/ProposalController.php'
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
+      # Modelo de proposta em React (RUNBOOK-modelo-proposta, Onda 1).
+      - 'Modules/Crm/Http/Controllers/ProposalTemplateController.php'
+      - 'Modules/Crm/Tests/Feature/CrmModeloPropostaContratoTest.php'
       # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
       - 'Modules/Producao/**'
       # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
@@ -340,6 +343,9 @@ jobs:
               # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
               - 'Modules/Crm/Http/Controllers/ProposalController.php'
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
+              # Modelo de proposta em React (RUNBOOK-modelo-proposta, Onda 1).
+              - 'Modules/Crm/Http/Controllers/ProposalTemplateController.php'
+              - 'Modules/Crm/Tests/Feature/CrmModeloPropostaContratoTest.php'
               # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
               - 'Modules/Producao/**'
               # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
@@ -881,6 +887,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmPortalPerfilContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmModeloPropostaContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosContratoTest.php \
