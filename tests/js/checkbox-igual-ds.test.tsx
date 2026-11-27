@@ -31,6 +31,15 @@ describe('Checkbox do app = Checkbox do DS', () => {
     expect(t).not.toContain('shadow-sm');
   });
 
+  it('a borda da desmarcada é a mesma classe nos dois temas: não volta a --border nem ganha exceção por tema', () => {
+    // A exceção do cabeçalho vale nos dois temas: quem muda entre claro e escuro é o VALOR de
+    // --text-mute, não a classe. Uma exceção `dark:` deixaria o claro com a borda que sumia.
+    render(<Checkbox aria-label="x" />);
+    const t = tokens(screen.getByRole('checkbox', { name: 'x' }));
+    expect(t.filter((c) => c.includes('--border'))).toEqual([]);
+    expect(t.filter((c) => c.startsWith('dark:') && c.includes('border-'))).toEqual([]);
+  });
+
   it('marcada: fundo e borda --accent e o ✓ do DS (11px, traço 3,5) na cor --accent-fg', () => {
     render(<Checkbox aria-label="x" checked />);
     const caixa = screen.getByRole('checkbox', { name: 'x' });

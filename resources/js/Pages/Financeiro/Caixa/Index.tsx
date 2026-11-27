@@ -68,7 +68,7 @@ function statusBadge(status: 'open' | 'close'): { label: string; className: stri
   }
   return {
     label: 'Fechado',
-    className: 'bg-stone-100 text-stone-800 border border-stone-300',
+    className: 'bg-muted text-foreground border border-border',
   };
 }
 
@@ -131,23 +131,23 @@ function Caixa({ caixas, stats, filters, links }: Props) {
       {/* KPI cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="rounded-md border bg-white p-4">
-          <div className="text-xs text-stone-500 uppercase tracking-wide">Caixas registrados</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wide">Caixas registrados</div>
           <div className="text-2xl font-semibold mt-1">{stats.total_caixas}</div>
         </div>
         <div className="rounded-md border bg-white p-4">
-          <div className="text-xs text-stone-500 uppercase tracking-wide">Caixas abertos agora</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wide">Caixas abertos agora</div>
           <div className="text-2xl font-semibold mt-1 text-success">
             {stats.caixas_abertos}
           </div>
         </div>
         <div className="rounded-md border bg-white p-4">
-          <div className="text-xs text-stone-500 uppercase tracking-wide">
+          <div className="text-xs text-muted-foreground uppercase tracking-wide">
             Soma de fechamentos
           </div>
           <div className="text-2xl font-semibold mt-1">{fmtMoney(stats.soma_fechamentos)}</div>
         </div>
         <div className="rounded-md border bg-white p-4">
-          <div className="text-xs text-stone-500 uppercase tracking-wide">
+          <div className="text-xs text-muted-foreground uppercase tracking-wide">
             Saldo nos últimos {caixas.length} mostrados
           </div>
           <div className="text-2xl font-semibold mt-1">{fmtMoney(saldoAtual)}</div>
@@ -156,31 +156,31 @@ function Caixa({ caixas, stats, filters, links }: Props) {
 
       {/* Filtros — pill segmented control */}
       <div className="flex items-center gap-2">
-        <span className="text-sm text-stone-600">Filtrar:</span>
+        <span className="text-sm text-muted-foreground">Filtrar:</span>
         <div className="inline-flex rounded-md border bg-white p-1 text-sm">
           <button
             type="button"
             onClick={() => setStatusFilter(null)}
-            className={`px-3 py-1 rounded ${!filters.status ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
+            className={`px-3 py-1 rounded ${!filters.status ? 'bg-foreground text-background' : 'text-foreground hover:bg-muted'}`}
           >
             Todos
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('open')}
-            className={`px-3 py-1 rounded ${filters.status === 'open' ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
+            className={`px-3 py-1 rounded ${filters.status === 'open' ? 'bg-foreground text-background' : 'text-foreground hover:bg-muted'}`}
           >
             Abertos
           </button>
           <button
             type="button"
             onClick={() => setStatusFilter('close')}
-            className={`px-3 py-1 rounded ${filters.status === 'close' ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
+            className={`px-3 py-1 rounded ${filters.status === 'close' ? 'bg-foreground text-background' : 'text-foreground hover:bg-muted'}`}
           >
             Fechados
           </button>
         </div>
-        <span className="ml-auto text-xs text-stone-500">
+        <span className="ml-auto text-xs text-muted-foreground">
           Mostrando últimos {caixas.length} (limite {filters.limit})
         </span>
       </div>
@@ -188,7 +188,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
       {/* Tabela */}
       <section className="rounded-md border bg-white overflow-hidden">
         {caixas.length === 0 ? (
-          <div className="px-5 py-12 text-center text-sm text-stone-500">
+          <div className="px-5 py-12 text-center text-sm text-muted-foreground">
             Nenhum caixa encontrado{filters.status ? ' com este filtro' : ''}.{' '}
             <a href={links.pos_create} className="text-success underline">
               Abra um caixa via POS
@@ -197,7 +197,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-stone-50 text-xs text-stone-600">
+            <thead className="bg-muted/50 text-xs text-muted-foreground">
               <tr className="text-left">
                 <th className="px-4 py-2 font-medium">#</th>
                 <th className="px-4 py-2 font-medium">Status</th>
@@ -215,17 +215,17 @@ function Caixa({ caixas, stats, filters, links }: Props) {
               {caixas.map((c) => {
                 const badge = statusBadge(c.status);
                 return (
-                  <tr key={c.id} className="border-t hover:bg-stone-50">
-                    <td className="px-4 py-3 font-mono text-xs text-stone-500">#{c.id}</td>
+                  <tr key={c.id} className="border-t hover:bg-muted/50">
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">#{c.id}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-block rounded px-2 py-0.5 text-xs ${badge.className}`}>
                         {badge.label}
                       </span>
                     </td>
                     <td className="px-4 py-3">{c.user_name}</td>
-                    <td className="px-4 py-3 text-stone-700">{c.location_name}</td>
-                    <td className="px-4 py-3 text-stone-700">{fmtDateTime(c.open_time)}</td>
-                    <td className="px-4 py-3 text-stone-700">
+                    <td className="px-4 py-3 text-foreground">{c.location_name}</td>
+                    <td className="px-4 py-3 text-foreground">{fmtDateTime(c.open_time)}</td>
+                    <td className="px-4 py-3 text-foreground">
                       {c.status === 'open' ? '—' : fmtDateTime(c.close_time)}
                     </td>
                     <td className="px-4 py-3 text-right text-success">
@@ -265,7 +265,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
                         </button>
                       )}
                       {c.integracao_status === 'nao_aplicavel' && (
-                        <span className="text-stone-400 text-xs">—</span>
+                        <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </td>
                   </tr>
@@ -276,7 +276,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
         )}
       </section>
 
-      <div className="text-xs text-stone-500">
+      <div className="text-xs text-muted-foreground">
         <Lightbulb className="h-3.5 w-3.5 mr-1 inline align-text-bottom" /> Para fechar um caixa aberto, clique no botão "Fechar caixa registradora" na header da{' '}
         <a href={links.pos_create} className="underline">
           tela POS
