@@ -30,13 +30,24 @@ use Modules\Financeiro\Models\TituloBaixa;
  * Wagner 2026-05-20: pediu popular biz=1 (WR2 Sistemas) pra ter visual de teste.
  * Override via env: BIZ_ID (default 1).
  *
+ * 2026-11-27: também cria (se faltarem) os clientes e fornecedores fictícios
+ * dos títulos em `contacts` (contact_id `DEMO-FIN-…`, sem CPF/CNPJ) e uma conta
+ * bancária fictícia (accounts + fin_contas_bancarias) para as baixas. Com
+ * DRY_RUN=1 só mostra quantos registros criaria, sem gravar nada.
+ *
  * Uso:
- *   php artisan db:seed --class="Modules\Financeiro\Database\Seeders\FinanceiroDemoSeeder" --force
- *   BIZ_ID=4 php artisan db:seed --class="Modules\Financeiro\Database\Seeders\FinanceiroDemoSeeder" --force
+ *   DRY_RUN=1 BIZ_ID=225 php artisan db:seed --class="Modules\Financeiro\Database\Seeders\FinanceiroDemoSeeder" --force
+ *   BIZ_ID=225 php artisan db:seed --class="Modules\Financeiro\Database\Seeders\FinanceiroDemoSeeder" --force
  */
 class FinanceiroDemoSeeder extends Seeder
 {
     public const TAG = 'SEEDER_DEMO'; // marker pra idempotência
+
+    /** Prefixo do contact_id dos contatos fictícios (idempotência). */
+    public const CONTATO_PREFIXO = 'DEMO-FIN-';
+
+    /** Razão social da conta bancária fictícia (idempotência). */
+    public const CONTA_NOME = 'Conta Demo (fictícia)';
 
     public function run(): void
     {
@@ -70,6 +81,12 @@ class FinanceiroDemoSeeder extends Seeder
         // pra ficar relativo. Datas dos titulos relativas a now() (não 2026-05-09 fixo).
         $TODAY = Carbon::now()->startOfDay();
 
+        if (env('DRY_RUN') == '1') {
+            $this->mostrarPlano($businessId, $this->mockRows($TODAY));
+
+            return;
+        }
+
         DB::transaction(function () use ($businessId, $createdBy, $TODAY) {
             $this->command->info("Limpando titulos demo anteriores (biz={$businessId})...");
             // Limpa só os com tag SEEDER_DEMO. Soft-delete forçado via DB:: pra ignorar override do Model::delete().
@@ -81,9 +98,12 @@ class FinanceiroDemoSeeder extends Seeder
 
             $categorias = $this->seedCategorias($businessId);
 
-            $contaBancariaId = $this->resolveContaBancaria($businessId);
+            $contaBancariaId = $this->resolveContaBancaria($businessId)
+                ?? $this->criarContaDemo($businessId, $createdBy);
 
             $rows = $this->mockRows($TODAY);
+
+            $contatos = $this->garantirContatos($businessId, $createdBy, $rows);
 
             $this->command->info("Inserindo " . count($rows) . " titulos demo em biz={$businessId}...");
 
@@ -118,7 +138,7 @@ class FinanceiroDemoSeeder extends Seeder
                     'numero'           => str_pad((string) $contadorNumero, 6, '0', STR_PAD_LEFT),
                     'tipo'             => $row['kind'] === 'receivable' ? 'receber' : 'pagar',
                     'status'           => $status,
-                    'cliente_id'       => null,
+                    'cliente_id'       => $contatos[$row['party']] ?? null,
                     'cliente_descricao' => $row['party'],
                     'valor_total'      => $valorTotal,
                     'valor_aberto'     => $valorAberto,
@@ -169,6 +189,110 @@ class FinanceiroDemoSeeder extends Seeder
 
             $this->command->info("Done. " . count($rows) . " titulos criados em biz={$businessId}.");
         });
+    }
+
+    /** DRY_RUN=1: conta o que seria criado, sem gravar. */
+    private function mostrarPlano(int $businessId, array $rows): void
+    {
+        $partes = $this->partesPorTipo($rows);
+        $existentes = DB::table('contacts')
+            ->where('business_id', $businessId)
+            ->where('contact_id', 'LIKE', self::CONTATO_PREFIXO . '%')
+            ->whereNull('deleted_at')
+            ->pluck('name')->all();
+        $novosContatos = count(array_diff(array_keys($partes), $existentes));
+        $temConta = $this->resolveContaBancaria($businessId) !== null;
+        $quitados = count(array_filter($rows, fn ($r) => ($r['paid_at'] ?? null) !== null));
+        $receber = count(array_filter($rows, fn ($r) => $r['kind'] === 'receivable'));
+        $demoAntigos = DB::table('fin_titulos')
+            ->where('business_id', $businessId)
+            ->where('observacoes', 'LIKE', self::TAG . '%')
+            ->whereNull('deleted_at')
+            ->count();
+
+        $this->command->info("DRY-RUN (nada gravado) — business_id={$businessId}");
+        $this->command->line("  contatos fictícios novos: {$novosContatos} (de " . count($partes) . ' partes; ' . count($existentes) . ' já existem)');
+        $this->command->line('  conta bancária fictícia: ' . ($temConta ? '0 (empresa já tem conta)' : '1 (accounts + fin_contas_bancarias)'));
+        $this->command->line('  títulos: ' . count($rows) . " ({$receber} a receber, " . (count($rows) - $receber) . ' a pagar)');
+        $this->command->line("  baixas: {$quitados}");
+        $this->command->line("  títulos demo anteriores que seriam arquivados (soft delete): {$demoAntigos}");
+    }
+
+    /** @return array<string,string> nome da parte => 'customer'|'supplier' */
+    private function partesPorTipo(array $rows): array
+    {
+        $partes = [];
+        foreach ($rows as $row) {
+            $partes[$row['party']] = $row['kind'] === 'receivable' ? 'customer' : 'supplier';
+        }
+
+        return $partes;
+    }
+
+    /**
+     * Garante um contato fictício por parte (cliente ou fornecedor). Reusa o que
+     * já existe com o prefixo DEMO-FIN-. Sem CPF/CNPJ (tax_number fica nulo).
+     *
+     * @return array<string,int> nome => contacts.id
+     */
+    private function garantirContatos(int $businessId, int $createdBy, array $rows): array
+    {
+        $map = [];
+        $i = 0;
+        foreach ($this->partesPorTipo($rows) as $nome => $tipo) {
+            $i++;
+            $id = DB::table('contacts')
+                ->where('business_id', $businessId)
+                ->where('name', $nome)
+                ->where('contact_id', 'LIKE', self::CONTATO_PREFIXO . '%')
+                ->whereNull('deleted_at')
+                ->value('id');
+            if (! $id) {
+                $id = DB::table('contacts')->insertGetId([
+                    'business_id' => $businessId,
+                    'type' => $tipo,
+                    'name' => $nome,
+                    'supplier_business_name' => $tipo === 'supplier' ? $nome : null,
+                    'contact_id' => self::CONTATO_PREFIXO . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+                    'mobile' => '(00) 00000-0000',
+                    'city' => 'Cidade Demo',
+                    'state' => 'SC',
+                    'country' => 'Brasil',
+                    'created_by' => $createdBy,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+            $map[$nome] = (int) $id;
+        }
+
+        return $map;
+    }
+
+    /** Cria a conta bancária fictícia pelo serviço do núcleo (sem saldo de abertura). */
+    private function criarContaDemo(int $businessId, int $createdBy): int
+    {
+        $account = app(\App\Services\Contas\ContasDoNucleo::class)->criar($businessId, $createdBy, [
+            'name' => self::CONTA_NOME,
+            'account_number' => '00000-0',
+            'note' => self::TAG . ' :: conta fictícia para teste',
+        ]);
+
+        return (int) DB::table('fin_contas_bancarias')->insertGetId([
+            'business_id' => $businessId,
+            'account_id' => $account->id,
+            'banco_codigo' => '000',
+            'agencia' => '0000',
+            'carteira' => '00',
+            'beneficiario_documento' => '00.000.000/0000-00',
+            'beneficiario_razao_social' => self::CONTA_NOME,
+            'beneficiario_cidade' => 'Cidade Demo',
+            'beneficiario_uf' => 'SC',
+            'ativo_para_boleto' => false,
+            'metadata' => json_encode(['seeder' => 'FinanceiroDemoSeeder']),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function resolveCreatedBy(int $businessId): ?int
@@ -293,7 +417,7 @@ class FinanceiroDemoSeeder extends Seeder
             ['id' => 'P-1887',  'kind' => 'payable', 'desc' => 'Tinta solvente CMYK plotter',                         'party' => 'Tinta Solvent BR',         'category' => 'Insumo',          'amount' => 650.00,  'due' => $d(7),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'NF 03340'],
             ['id' => 'P-1888',  'kind' => 'payable', 'desc' => 'Laminacao BOPP 200m',                                 'party' => 'Alphagraf Acabamento',     'category' => 'Serviço',         'amount' => 1120.00, 'due' => $d(-4),  'paid_at' => $d(-4),  'channel' => 'PIX',  'invoice' => 'NF 02281'],
             ['id' => 'P-1889',  'kind' => 'payable', 'desc' => 'Manutencao plotter Roland',                           'party' => 'TecPlot Assistencia',      'category' => 'Serviço',         'amount' => 780.00,  'due' => $d(2),   'paid_at' => null,   'channel' => 'PIX',     'invoice' => 'OS 1144'],
-            ['id' => 'P-1890',  'kind' => 'payable', 'desc' => 'Salario Larissa abril compl',                         'party' => 'Folha Larissa Souza',      'category' => 'Folha',           'amount' => 2800.00, 'due' => $d(-4),  'paid_at' => $d(-4),  'channel' => 'Transferencia', 'invoice' => 'Folha 04/26'],
+            ['id' => 'P-1890',  'kind' => 'payable', 'desc' => 'Salario funcionario demo abril compl',                         'party' => 'Folha Funcionario Demo',      'category' => 'Folha',           'amount' => 2800.00, 'due' => $d(-4),  'paid_at' => $d(-4),  'channel' => 'Transferencia', 'invoice' => 'Folha 04/26'],
             ['id' => 'P-1891',  'kind' => 'payable', 'desc' => 'Lona 440g blackout 50m',                              'party' => 'Suprigraf Distribuidora',  'category' => 'Insumo',          'amount' => 1980.00, 'due' => $d(10),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'NF 11418'],
             ['id' => 'P-1892',  'kind' => 'payable', 'desc' => 'Simples Nacional DAS abril',                           'party' => 'Receita Federal',          'category' => 'Imposto',         'amount' => 2110.00, 'due' => $d(-18), 'paid_at' => $d(-18), 'channel' => 'Boleto', 'invoice' => 'DAS 04/26'],
             ['id' => 'P-1893',  'kind' => 'payable', 'desc' => 'Recolhimento INSS abril',                              'party' => 'Receita Federal',          'category' => 'Imposto',         'amount' => 612.00,  'due' => $d(12),  'paid_at' => null,   'channel' => 'Boleto', 'invoice' => 'GPS 04/26'],
