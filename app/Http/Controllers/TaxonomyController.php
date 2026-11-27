@@ -47,7 +47,7 @@ class TaxonomyController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Blade, JSON do DataTables ou a tela React (Inertia) das listas dos módulos
      */
     public function index()
     {

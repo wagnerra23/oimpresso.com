@@ -9,6 +9,7 @@ status: draft
 last_validated: "2026-11-27"
 parent_module: Configuracoes
 related_adrs: [93, 104]
+related_us: [US-MWART-010]
 tier: B
 charter_version: 2
 ---
