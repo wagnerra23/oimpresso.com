@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 288 |
-| UC com teste que os cita | 282 |
+| UC declarados | 303 |
+| UC com teste que os cita | 297 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -146,6 +146,7 @@ authority: generated
 | UC-PCLIB-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PCLIB-08 | Create | 🧪 aguarda veredito da lane |
 | UC-PCPRZ-01 | Quotations | 🧪 aguarda veredito da lane |
+| UC-PIDX-53 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-02 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-03 | Pos/Index | 🧪 aguarda veredito da lane |
@@ -336,6 +337,20 @@ authority: generated
 | UC-V400 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V401 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V402 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V403 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V404 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V405 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V406 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V407 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V408 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V409 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V410 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V411 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V412 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V413 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V414 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V415 | CreateV3 | 🧪 aguarda veredito da lane |
+| UC-V416 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-VCAN-01 | Show | 🧪 aguarda veredito da lane |
 | UC-VCAN-02 | Show | 🧪 aguarda veredito da lane |
 | UC-VCAN-03 | Show | 🧪 aguarda veredito da lane |

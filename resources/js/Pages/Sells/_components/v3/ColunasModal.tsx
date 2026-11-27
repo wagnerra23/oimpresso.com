@@ -25,7 +25,7 @@ import {
   COLUNAS,
   GRUPOS,
   alternarColuna,
-  colunasPadrao,
+  colunasPadraoDoGrid,
   definicaoDe,
   moverColuna,
 } from './colunas-dominio';
@@ -138,7 +138,7 @@ export default function ColunasModal({
         </Stack>
 
         <DialogFooter className="sm:justify-between">
-          <Button type="button" variant="outline" onClick={() => onAtivasChange(colunasPadrao())}>
+          <Button type="button" variant="outline" onClick={() => onAtivasChange(colunasPadraoDoGrid())}>
             Restaurar padrão
           </Button>
           <Button type="button" onClick={onFechar}>

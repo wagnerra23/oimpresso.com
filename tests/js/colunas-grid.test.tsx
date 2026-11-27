@@ -24,7 +24,7 @@ vi.mock('@/Layouts/AppShellV2', () => ({
 }));
 
 import SellsCreateV3 from '@/Pages/Sells/CreateV3';
-import { CHAVE_LOCALSTORAGE, colunasPadrao } from '@/Pages/Sells/_components/v3/colunas-dominio';
+import { CHAVE_LOCALSTORAGE, colunasPadraoDoGrid } from '@/Pages/Sells/_components/v3/colunas-dominio';
 
 const cliente = {
   cod: '0001', nome: 'Consumidor final', padrao: true, doc: '—', ie: 'ISENTO',
@@ -140,7 +140,7 @@ describe('grid de itens · a preferência de colunas chega na tela', () => {
       'Produto / serviço', 'Quant.', 'R$ valor', 'Desc. %', 'Acrésc. %', 'R$ total', 'Ações',
     ]);
     // controle: o padrão do domínio é o que a tela desenhou (menos a coluna de Ações)
-    expect(colunasPadrao()).toHaveLength(cabecalhosDoGrid().length - 1);
+    expect(colunasPadraoDoGrid()).toHaveLength(cabecalhosDoGrid().length - 1);
   });
 
   it('a célula editável continua editável — e é ela que carrega o rótulo acessível', () => {
