@@ -96,7 +96,9 @@ class DataController extends Controller
             return;
         }
 
-        \Menu::modify('admin-sidebar-menu', function ($menu) {
+        $ghosts = self::abasDeCompras($business_id);
+
+        \Menu::modify('admin-sidebar-menu', function ($menu) use ($ghosts) {
             // ADR 0180 Fase 4 Wave B (2026-05-21): entry principal declara
             // atalho kbd + primary action + ghosts tabs.
             //  - `shortcut` G S → atalho overlay (Suprimentos/Estoque)
@@ -119,17 +121,51 @@ class DataController extends Controller
                         'href'     => '/purchases/create',
                         'shortcut' => 'N',
                     ],
-                    'ghosts'   => [
-                        ['key' => 'lista', 'label' => 'Lista', 'href' => '/compras'],
-                        // Fornecedores = a lista que ja existe no cadastro de contatos
-                        // (contacts type=supplier). Decisao [W] 2026-09-24, thread 03
-                        // do playbook Compras: atalho, nao tela propria — a ficha do
-                        // fornecedor (scorecard C11) segue segurada no SPEC.
-                        ['key' => 'fornecedores', 'label' => 'Fornecedores', 'href' => '/cliente?type=supplier'],
-                    ],
+                    'ghosts'   => $ghosts,
                 ]
             )->order(45);
         });
+    }
+
+    /**
+     * Abas do topo das telas de Compras (ModuleTabs) e sub-itens do menu lateral.
+     *
+     * Pedidos, Requisições e Devoluções de compra são as telas do protótipo (`data.jsx`, cmp-*).
+     * Cada aba usa a mesma condição do menu clássico da tela (configuração da empresa +
+     * permissão), para não mostrar aba que dá 403. `recarrega: true` quando a flag da tela está
+     * desligada para a empresa: a rota responde a Blade, que o `<Link>` do Inertia não abre.
+     *
+     * @return array<int, array{key: string, label: string, href: string, recarrega?: bool}>
+     */
+    public static function abasDeCompras(int $business_id): array
+    {
+        $user = auth()->user();
+        $pode = fn (string ...$perms): bool => $user !== null
+            && ($user->can('superadmin') || collect($perms)->contains(fn ($p) => $user->can($p)));
+        $flags = app(\App\Services\FeatureFlagService::class);
+        $aba = fn (string $key, string $label, string $href, string $flag): array => $flags->isOn($flag, ['business_id' => $business_id])
+            ? ['key' => $key, 'label' => $label, 'href' => $href]
+            : ['key' => $key, 'label' => $label, 'href' => $href, 'recarrega' => true];
+        $common = session('business.common_settings');
+        $common = is_array($common) ? $common : [];
+
+        return array_values(array_filter([
+            ['key' => 'lista', 'label' => 'Lista', 'href' => '/compras'],
+            // PurchaseOrderController::index — configuração "pedido de compra" + permissão.
+            ! empty($common['enable_purchase_order']) && $pode('purchase_order.view_all', 'purchase_order.view_own')
+                ? $aba('pedidos', 'Pedidos de compra', '/purchase-order', 'useV2ComprasPedidos') : null,
+            // PurchaseRequisitionController::index — configuração "requisição de compra" + permissão.
+            ! empty($common['enable_purchase_requisition']) && $pode('purchase_requisition.view_all', 'purchase_requisition.view_own')
+                ? $aba('requisicoes', 'Requisições de compra', '/purchase-requisition', 'useV2ComprasRequisicoes') : null,
+            // PurchaseReturnController::index — purchase.view ou purchase.create.
+            $pode('purchase.view', 'purchase.create')
+                ? $aba('devolucoes', 'Devoluções de compra', '/purchase-return', 'useV2ComprasDevolucoes') : null,
+            // Fornecedores = a lista que ja existe no cadastro de contatos
+            // (contacts type=supplier). Decisao [W] 2026-09-24, thread 03
+            // do playbook Compras: atalho, nao tela propria — a ficha do
+            // fornecedor (scorecard C11) segue segurada no SPEC.
+            ['key' => 'fornecedores', 'label' => 'Fornecedores', 'href' => '/cliente?type=supplier'],
+        ]));
     }
 
     /**

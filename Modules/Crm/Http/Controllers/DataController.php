@@ -181,9 +181,9 @@ class DataController extends Controller
                             ],
                             // [W] 2026-11-06: as abas do topo das telas do CRM leem ESTA lista (ModuleTabs).
                             // Rótulos e ordem do protótipo (`crm-blade.jsx`, barra "Telas do módulo CRM").
-                            // O Funil existe só em produção (US-CRM-092) e fica depois do Painel. Comissões,
-                            // Modelo de proposta, Marketplace B2B, Pedido de ordem e Fontes e estágios estão
-                            // no protótipo e entram num PR seguinte, cada um com a permissão da rota.
+                            // O Funil existe só em produção (US-CRM-092) e fica depois do Painel. Pedido de
+                            // ordem entrou em 2026-11-27. Comissões, Modelo de proposta, Marketplace B2B e
+                            // Fontes e estágios entram com a tela React de cada um ([F] 2026-11-27: React, não Blade).
                             'ghosts'   => self::abasDoCrm((int) $business_id, (bool) $is_admin),
                         ]
                     )->order(29); // Wagner 2026-05-22: Crm ACIMA de Vendas core (order 30)
@@ -265,6 +265,9 @@ class DataController extends Controller
             $is_admin ? $aba('reports', 'Relatórios', '/crm/reports', $nova('useV2CrmRelatorios')) : null,
             // ProposalController::index — basta o módulo, que o item do menu já exige.
             $aba('proposals', 'Propostas', '/crm/proposals', $nova('useV2CrmPropostas')),
+            // OrderRequestController::listOrderRequests — a lista só traz linhas com so.view_all/so.view_own.
+            $pode('so.view_all', 'so.view_own')
+                ? $aba('order-request', 'Pedido de ordem', '/crm/order-request', $nova('useV2CrmPedidos')) : null,
             // CrmSettingsController::index — superadmin ou Admin.
             ($is_admin || $pode())
                 ? $aba('settings', 'Configurações', '/crm/settings', $nova('useV2CrmConfiguracoes')) : null,

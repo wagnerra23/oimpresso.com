@@ -144,7 +144,15 @@ it('UC-CRMCFG-05 · flag desligada, ou ?classico=1 com ela ligada, seguem na Bla
     $this->actingAs($admin)->withSession($sessao)->get(CFC_ROTA.'?classico=1')
         ->assertOk()->assertViewIs('crm::settings.index');
 
+    // Desliga a flag explicitamente: desde 2026-11-27 o default é ligado ([F], FeatureFlagService).
     config(['feature-flags.forced_on' => '']);
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2CrmConfiguracoes' ? false : parent::isOn($flag, $attrs);
+        }
+    });
     $this->actingAs($admin)->withSession($sessao)->get(CFC_ROTA)
         ->assertOk()->assertViewIs('crm::settings.index');
 });
