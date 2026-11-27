@@ -38,7 +38,7 @@ class ProposalTemplateController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -81,7 +81,8 @@ class ProposalTemplateController extends Controller
             'bcc' => $t->bcc ?: null,
             'corpo' => trim($texto),
             'atualizado_em' => $t->updated_at ? $t->updated_at->format('d/m/Y H:i') : null,
-            'anexos' => $t->media->map(fn ($m) => ['nome' => $m->display_name, 'url' => $m->display_url])->values()->all(),
+            // `media` já vem carregada por __getProposalTemplate (with(['media'])).
+            'anexos' => collect($t->getRelation('media'))->map(fn ($m) => ['nome' => $m->display_name, 'url' => $m->display_url])->values()->all(),
         ];
     }
 
