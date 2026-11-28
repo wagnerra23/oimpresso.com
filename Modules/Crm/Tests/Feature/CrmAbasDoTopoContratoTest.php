@@ -103,3 +103,16 @@ it('CRM-01 · a chave é lida para a empresa da sessão, não para outra', funct
 
     expect($porKey['campaigns']['recarrega'] ?? null)->toBeTrue();
 });
+
+it('CRM-03 · Pedido de ordem aparece com so.view_all ou so.view_own, e some sem as duas', function () {
+    abasUsuario(['so.view_own']);
+    abasChaves(['useV2CrmPedidos']);
+
+    $porKey = collect(DataController::abasDoCrm(98, false))->keyBy('key');
+    expect($porKey)->toHaveKey('order-request');
+    expect($porKey['order-request']['href'])->toBe('/crm/order-request');
+    expect($porKey['order-request'])->not->toHaveKey('recarrega');
+
+    abasUsuario(['crm.access_all_leads']);
+    expect(abasKeys(DataController::abasDoCrm(98, false)))->not->toContain('order-request');
+});

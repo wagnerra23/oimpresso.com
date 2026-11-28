@@ -44,8 +44,8 @@ it('mantém a ordem e os rótulos do protótipo', function () {
 
     $abas = app(DataController::class)->abasDoRepair(98);
 
-    expect(array_column($abas, 'key'))->toBe(['painel', 'producao', 'folhas', 'reparos', 'status', 'modelos', 'config']);
-    expect(array_column($abas, 'label'))->toBe(['Painel', 'Produção', 'Folhas de OS', 'Reparos', 'Status', 'Modelos', 'Configurações']);
+    expect(array_column($abas, 'key'))->toBe(['painel', 'producao', 'folhas', 'reparos', 'status', 'modelos', 'portal', 'config']);
+    expect(array_column($abas, 'label'))->toBe(['Painel', 'Produção', 'Folhas de OS', 'Reparos', 'Status', 'Modelos', 'Portal do cliente', 'Configurações']);
 });
 
 it('chave desligada marca a aba para recarregar; chave ligada não', function () {
@@ -75,4 +75,15 @@ it('a chave é lida para a empresa pedida, não para outra', function () {
     $porKey = collect(app(DataController::class)->abasDoRepair(99))->keyBy('key');
 
     expect($porKey['config']['recarrega'] ?? null)->toBeTrue();
+});
+
+it('Portal do cliente é o link público do ConsultaOs e sempre recarrega (página fora do shell)', function () {
+    repairAbasChaves([]);
+
+    $porKey = collect(app(DataController::class)->abasDoRepair(98))->keyBy('key');
+
+    expect($porKey['portal']['recarrega'])->toBeTrue();
+    // Sem código criado para a empresa, a aba leva à configuração, que cria o código e mostra o link.
+    // Com código, o link público da empresa: /consulta-os/{codigo}.
+    expect($porKey['portal']['href'])->toMatch('#^(/repair/repair-settings|/consulta-os/[a-hjkmnp-z2-9]{10})$#');
 });

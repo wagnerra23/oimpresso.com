@@ -88,6 +88,26 @@ class EmpresaPublica
         }
     }
 
+    /**
+     * Link público da empresa SÓ se o código já existe — nunca cria. Para quem monta em toda página
+     * (a aba "Portal do cliente" do menu da Assistência) e não pode gravar. Null sem código, sem a
+     * rota do portal ou com a tabela indisponível.
+     */
+    public static function linkExistente(int $businessId): ?string
+    {
+        if ($businessId <= 0 || ! Route::has('consulta-os.empresa')) {
+            return null;
+        }
+
+        try {
+            $codigo = DB::table('consulta_os_empresas')->where('business_id', $businessId)->value('codigo');
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        return is_string($codigo) && $codigo !== '' ? route('consulta-os.empresa', ['empresa' => $codigo], false) : null;
+    }
+
     /** business_id do código, ou null se não existe. */
     public static function empresaDe(string $codigo): ?int
     {

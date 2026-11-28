@@ -167,8 +167,8 @@ class DataController extends Controller
      * Abas do topo das telas da Assistência técnica (ModuleTabs) e sub-itens do menu lateral.
      *
      * [W] 2026-11-06: o sidebar e as abas mostram o mesmo. Ordem e rótulos do protótipo
-     * (`repair-page.jsx`, barra "Áreas da assistência técnica"). "Portal do cliente" fica fora:
-     * ainda é Blade, sem Page (thread 04).
+     * (`repair-page.jsx`, barra "Áreas da assistência técnica"). "Portal do cliente" é o
+     * ConsultaOs público (D-PORTAL, [W] 2026-10-02) e entrou como aba em 2026-11-27 — ver abaDoPortal().
      *
      * `recarrega: true` quando a tela, para esta empresa, ainda responde o Blade: o `<Link>` do
      * Inertia não abre Blade e mostrava a janela de erro com o HTML dentro (Configurações,
@@ -183,7 +183,7 @@ class DataController extends Controller
             ? ['key' => $key, 'label' => $label, 'href' => $href]
             : ['key' => $key, 'label' => $label, 'href' => $href, 'recarrega' => true];
 
-        return [
+        return array_values(array_filter([
             $aba('painel', 'Painel', '/repair/dashboard', 'repair_dashboard_index'),
             // Produção da oficina não tem Blade: é sempre a tela React.
             $aba('producao', 'Produção', '/repair/producao-oficina'),
@@ -191,8 +191,33 @@ class DataController extends Controller
             $aba('reparos', 'Reparos', '/repair/repair', 'repair_index'),
             $aba('status', 'Status', '/repair/status', 'repair_status_index'),
             $aba('modelos', 'Modelos', '/repair/device-models', 'repair_device_models_index'),
+            $this->abaDoPortal($business_id),
             $aba('config', 'Configurações', '/repair/repair-settings', 'repair_settings_index'),
-        ];
+        ]));
+    }
+
+    /**
+     * Aba "Portal do cliente": o link público do ConsultaOs desta empresa (`/consulta-os/{codigo}`).
+     *
+     * Só LÊ o código: o menu monta em toda página e não pode gravar. Se a empresa ainda não tem
+     * código, a aba leva à configuração da Assistência, que cria o código e mostra o link (decisão
+     * [W] 2026-11-18). Sem o ConsultaOs registrado a aba não aparece. É página pública fora do
+     * shell, por isso sempre `recarrega`.
+     *
+     * @return array{key: string, label: string, href: string, recarrega: bool}|null
+     */
+    private function abaDoPortal(int $business_id): ?array
+    {
+        // Mesmo jeito da RepairSettingsController::linkDoPortal: classe por nome, sem `use`, para a
+        // Assistência seguir funcionando sem o ConsultaOs.
+        $empresaPublica = \Modules\ConsultaOs\Services\EmpresaPublica::class;
+        if ($business_id <= 0 || ! class_exists($empresaPublica) || ! \Illuminate\Support\Facades\Route::has('consulta-os.empresa')) {
+            return null;
+        }
+
+        $href = $empresaPublica::linkExistente($business_id) ?? '/repair/repair-settings';
+
+        return ['key' => 'portal', 'label' => 'Portal do cliente', 'href' => $href, 'recarrega' => true];
     }
 
     /**

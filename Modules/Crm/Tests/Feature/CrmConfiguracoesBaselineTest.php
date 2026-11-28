@@ -38,6 +38,15 @@ beforeEach(function () {
         $this->markTestSkipped('Schema incompleto — business.crm_settings ausente.');
     }
     cfbNegocio(CFB_BIZ);
+    // Baseline da Blade: a flag da tela React fica desligada aqui de propósito. Desde 2026-11-27 o
+    // default dela é ligado ([F], FeatureFlagService::$fallbackDefaults).
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2CrmConfiguracoes' ? false : parent::isOn($flag, $attrs);
+        }
+    });
     cfbNegocio(CFB_OUTRO);
     $this->cfbAntes = DB::table('business')->whereIn('id', [CFB_BIZ, CFB_OUTRO])->pluck('crm_settings', 'id')->all();
 });

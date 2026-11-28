@@ -68,6 +68,15 @@ class FeatureFlagService
         // empresa (/business/settings) em React para todas as empresas, com as 18 abas da Blade.
         // Rollback = remover esta linha (ou flag OFF no GrowthBook); `?classico=1` abre a Blade.
         'useV2ConfiguracoesEmpresa' => true,
+        // [F] 2026-11-27 ("Sim, pode ligar", triagem do Grupo 2): telas React do CRM que estavam
+        // prontas atrás de flag desde os recibos 12, 13, 15 e 17 do playbook crm. Nenhuma das quatro
+        // existe no GrowthBook, então este default vale para todas as empresas. Rollback = remover a
+        // linha (ou criar a flag OFF no GrowthBook); `?classico=1` abre a Blade em Pedido de ordem.
+        // O Portal do contato (useV2CrmPortal*) fica de fora: decisão D3 ainda em aberto.
+        'useV2CrmChamadas' => true,
+        'useV2CrmPedidos' => true,
+        'useV2CrmConfiguracoes' => true,
+        'useV2CrmRelatorios' => true,
     ];
 
     public function isOn(string $flag, array $attrs = []): bool

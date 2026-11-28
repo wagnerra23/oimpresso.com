@@ -35,6 +35,15 @@ beforeEach(function () {
     // produção). O banco do CI nasce sem a chave: sem isto o /sells devolve todo pedido de venda
     // (medido no run 38477681096). DatabaseTransactions desfaz no fim.
     DB::table('system')->updateOrInsert(['key' => 'crm_version'], ['value' => '1.0']);
+    // Baseline da Blade: a flag da tela React fica desligada aqui de propósito. Desde 2026-11-27 o
+    // default dela é ligado ([F], FeatureFlagService::$fallbackDefaults).
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2CrmPedidos' ? false : parent::isOn($flag, $attrs);
+        }
+    });
 
     $this->business = $this->seededTenant();
     $this->local = EstoqueFixture::locationId($this->business->id, '-PED17-'.uniqid());

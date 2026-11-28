@@ -80,7 +80,7 @@ return [
     'show_report_606' => false,
     'show_report_607' => false,
     'whatsapp_base_url' => 'https://wa.me',
-    'enable_crm_call_log' => false,
+    'enable_crm_call_log' => true, // ligado por [F] 2026-11-27 (Registro de chamadas do CRM em produção)
     'enable_product_bulk_edit' => false,  //Will be depreciated in future
     'enable_convert_draft_to_invoice' => false, //Experimental beta feature.
     'enable_download_pdf' => false,         //Experimental feature

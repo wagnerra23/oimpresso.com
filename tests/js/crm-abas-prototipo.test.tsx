@@ -7,8 +7,9 @@
  *
  * Diferenças declaradas, não escondidas:
  *  - "Funil" existe só em produção (US-CRM-092, ADR 0441) e fica depois do Painel.
- *  - Cinco abas do protótipo ainda não estão no servidor (Comissões, Modelo de proposta, Marketplace
- *    B2B, Pedido de ordem, Fontes e estágios): entram num PR seguinte, cada uma com a permissão da rota.
+ *  - Quatro abas do protótipo ainda não estão no servidor (Comissões, Modelo de proposta, Marketplace
+ *    B2B, Fontes e estágios): entram com a tela React de cada uma, com a permissão da rota. Pedido de
+ *    ordem entrou em 2026-11-27.
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -17,7 +18,7 @@ import { describe, expect, it } from 'vitest';
 const raiz = resolve(__dirname, '../..');
 const ler = (p: string) => readFileSync(resolve(raiz, p), 'utf8');
 const SO_NO_SERVIDOR = ['Funil'];
-const AINDA_FORA = ['Comissões', 'Modelo de proposta', 'Marketplace B2B', 'Pedido de ordem', 'Fontes e estágios'];
+const AINDA_FORA = ['Comissões', 'Modelo de proposta', 'Marketplace B2B', 'Fontes e estágios'];
 
 function abasDoPrototipo(): string[] {
   const src = ler('prototipo-ui/cowork/Wagner/crm-blade.jsx');
