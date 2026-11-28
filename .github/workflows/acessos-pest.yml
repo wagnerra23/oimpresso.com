@@ -141,6 +141,9 @@ on:
       - 'tests/Feature/Restaurante/**'
       - 'resources/views/printer/**'
       - 'tests/Feature/Configuracoes/**'
+      # Listas dos módulos em React (RUNBOOK-taxonomias).
+      - 'app/Http/Controllers/TaxonomyController.php'
+      - 'resources/js/Pages/Configuracoes/Taxonomias/**'
       # Documentação › Casos de uso por tela: permissão de PLATAFORMA (o Admin#{biz} não abre).
       - 'app/Http/Controllers/CasosPorTelaController.php'
       - 'app/Services/Documentacao/CasosPorTela.php'
@@ -265,6 +268,9 @@ jobs:
               - 'tests/Feature/Restaurante/**'
               - 'resources/views/printer/**'
               - 'tests/Feature/Configuracoes/**'
+              # Listas dos módulos em React (RUNBOOK-taxonomias).
+              - 'app/Http/Controllers/TaxonomyController.php'
+              - 'resources/js/Pages/Configuracoes/Taxonomias/**'
               # Documentação › Casos de uso por tela: permissão de PLATAFORMA (o Admin#{biz} não abre).
               - 'app/Http/Controllers/CasosPorTelaController.php'
               - 'app/Services/Documentacao/CasosPorTela.php'
