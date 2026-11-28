@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **461** arquivos · **446** números únicos · máx **0456**
-- **ADRs ATIVOS (lifecycle ativo): 413** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 392 · superseded 28 · proposto 27 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 413 · substituido 28 · arquivado 20
+- **462** arquivos · **447** números únicos · máx **0457**
+- **ADRs ATIVOS (lifecycle ativo): 414** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 392 · superseded 28 · proposto 28 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 414 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (461)
+## Todas as ADRs (462)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -500,3 +500,4 @@ _(nenhuma)_
 | 0454 | proposto | ativo | decision | Uniafibro conforme o estatuto: tipos de membro, quem é associado, controle de pa |
 | 0455 | proposto | ativo | decision | RecurringBilling: o Pix Automático usa a Jornada 2 (QR da recorrência), não a Jo |
 | 0456 | proposto | ativo | decision | Modules/PaymentGateway é o dono dos drivers, credenciais e webhooks de cobrança; |
+| 0457 | proposto | ativo | decision | Plataforma de fibromialgia e dor crônica: produto da oimpresso, módulos separado |
