@@ -49,6 +49,10 @@ class FeatureFlagService
         // notificação em React para todas as empresas; editor clássico segue em ?legacy=1.
         // Rollback = flag OFF no GrowthBook (vence este default) ou remover esta linha.
         'useV2NotificationTemplates' => true,
+        // [F] 2026-11-27 ("Tem que ligar a tela nova em react"): Modelo de proposta do CRM em React
+        // para todas as empresas (RUNBOOK-modelo-proposta). Rollback = remover a linha ou criar a flag
+        // OFF no GrowthBook; `?classico=1` abre a Blade.
+        'useV2CrmModeloProposta' => true,
         // useV2OfficeimpressoLicencas saiu em 2026-10-06: cutover da lista de Licencas, sem flag
         // nem Blade (RUNBOOK-licencas §F5). useV2OfficeimpressoEmpresas saiu em 2026-10-27, idem
         // (RUNBOOK-empresas §F5).
