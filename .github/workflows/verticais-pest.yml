@@ -171,6 +171,9 @@ on:
       # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
       - 'Modules/Crm/Http/Controllers/ProposalController.php'
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
+      # Marketplace B2B em React (RUNBOOK-marketplace, Onda 1).
+      - 'Modules/Crm/Http/Controllers/CrmMarketplaceController.php'
+      - 'Modules/Crm/Tests/Feature/CrmMarketplaceContratoTest.php'
       # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
       - 'Modules/Producao/**'
       # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
@@ -340,6 +343,9 @@ jobs:
               # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
               - 'Modules/Crm/Http/Controllers/ProposalController.php'
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
+              # Marketplace B2B em React (RUNBOOK-marketplace, Onda 1).
+              - 'Modules/Crm/Http/Controllers/CrmMarketplaceController.php'
+              - 'Modules/Crm/Tests/Feature/CrmMarketplaceContratoTest.php'
               # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
               - 'Modules/Producao/**'
               # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
@@ -874,6 +880,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
+            Modules/Crm/Tests/Feature/CrmMarketplaceContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPedidosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPedidosContratoTest.php \

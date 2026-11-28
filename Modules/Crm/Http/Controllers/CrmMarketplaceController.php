@@ -14,9 +14,15 @@ use Modules\Crm\Entities\CrmMarketplace;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Utils\CrmUtil;
 use App\Support\Privacy\PiiRedactor;
+use App\Services\FeatureFlagService;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class CrmMarketplaceController extends Controller
 {
+    /** Tela React do Marketplace B2B (RUNBOOK-marketplace). `?classico=1` mantém a Blade. */
+    private const FLAG_V2 = 'useV2CrmMarketplace';
+
     /**
      * All Utils instance.
      */
@@ -32,7 +38,7 @@ class CrmMarketplaceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return mixed Blade do formulário ou a tela React (Inertia)
      */
     public function index()
     {
@@ -48,13 +54,28 @@ class CrmMarketplaceController extends Controller
 
         $users = User::forDropdown($business_id, false);
 
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => (int) $business_id])) {
+            $opcao = fn ($lista) => collect($lista)->map(fn ($label, $id) => ['value' => (string) $id, 'label' => (string) $label])->values()->all();
+
+            return Inertia::render('Crm/Marketplace/Index', [
+                'config' => $marketplace ? [
+                    'chave' => (string) $marketplace->site_key,
+                    'email' => (string) $marketplace->site_id,
+                    'usuarios' => array_map('strval', (array) $marketplace->assigned_users),
+                    'fonte' => $marketplace->crm_source_id ? (string) $marketplace->crm_source_id : '',
+                ] : null,
+                'usuarios' => $opcao($users),
+                'fontes' => $opcao($sources),
+            ]);
+        }
+
         return view('crm::marketplace.index')->with(compact('marketplace', 'users', 'sources'));
     }
 
     /**
      * Saves marketplace details
      *
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function save(Request $request)
     {
@@ -65,6 +86,17 @@ class CrmMarketplaceController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
+
+        // RUNBOOK-marketplace §11: usuários e fonte só do negócio da sessão — a importação cria lead e
+        // acompanhamento atribuídos a eles (ADR 0093).
+        $request->validate([
+            'site_key' => ['required', 'string', 'max:191'],
+            'site_id' => ['required', 'email', 'max:191'],
+            'assigned_users' => ['required', 'array', 'min:1'],
+            'assigned_users.*' => ['integer', Rule::exists('users', 'id')->where('business_id', $business_id)],
+            'crm_source_id' => ['nullable', 'integer', Rule::exists('categories', 'id')
+                ->where('business_id', $business_id)->where('category_type', 'source')],
+        ]);
 
         CrmMarketplace::updateOrCreate(
             [
@@ -79,14 +111,14 @@ class CrmMarketplaceController extends Controller
             ]
         );
 
-        return redirect()->back();
+        return redirect()->back()->with('status', ['success' => 1, 'msg' => __('lang_v1.updated_success')]);
     }
 
     /**
      * Fetches leads from api and creates leads and followups
      *
      * @param  Request  $request
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function importLeads(Request $request)
     {
@@ -99,6 +131,9 @@ class CrmMarketplaceController extends Controller
         try {
             $business_id = request()->session()->get('user.business_id');
             $marketplace = CrmMarketplace::first();
+            if (empty($marketplace)) {
+                return redirect()->back()->with('status', ['success' => 0, 'msg' => 'Configure o marketplace (chave e e-mail) antes de importar leads.']);
+            }
 
             $url = 'https://my.exportersindia.com/api-inquiry-detail.php?k='.$marketplace->site_key.'&email='.$marketplace->site_id;
 
@@ -194,7 +229,8 @@ class CrmMarketplaceController extends Controller
 
             $output = [
                 'success' => false,
-                'msg' => 'File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage(),
+                // RUNBOOK-marketplace §11: o detalhe da exceção fica no log (redigido), não na tela.
+                'msg' => __('messages.something_went_wrong'),
             ];
         }
 

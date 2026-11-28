@@ -14,7 +14,7 @@ module: Crm
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Crm/**` + `resources/js/Pages/Crm/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 333 arquivos em 18 papéis.
+**Total mapeado:** 337 arquivos em 18 papéis.
 
 ## Controllers — 29
 
@@ -238,7 +238,7 @@ module: Crm
 - [index.blade.php](../../../Modules/Crm/Resources/views/sell/index.blade.php)
 - [index.blade.php](../../../Modules/Crm/Resources/views/settings/index.blade.php)
 
-## Telas (Inertia/React) — 13
+## Telas (Inertia/React) — 14
 
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.tsx)
@@ -247,6 +247,7 @@ module: Crm
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.tsx)
+- [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Marketplace/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.tsx)
@@ -270,7 +271,7 @@ module: Crm
 - [CrmBlocos.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/_components/CrmBlocos.tsx)
 - [CrmCabecalho.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/_components/CrmCabecalho.tsx)
 
-## Charters (lei da tela) — 13
+## Charters (lei da tela) — 14
 
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.charter.md)
@@ -279,6 +280,7 @@ module: Crm
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.charter.md)
+- [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Marketplace/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.charter.md)
@@ -286,7 +288,7 @@ module: Crm
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.charter.md)
 
-## Casos (contrato UC) — 13
+## Casos (contrato UC) — 14
 
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.casos.md)
@@ -295,6 +297,7 @@ module: Crm
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.casos.md)
+- [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Marketplace/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Portal/Painel/Index.casos.md)
@@ -302,9 +305,9 @@ module: Crm
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.casos.md)
 
-## Testes (Pest) — 46
+## Testes (Pest) — 47
 
-- 46 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- 47 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 49

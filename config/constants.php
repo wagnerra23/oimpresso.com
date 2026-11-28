@@ -86,7 +86,7 @@ return [
     'enable_download_pdf' => false,         //Experimental feature
     'invoice_scheme_separator' => '-',
     'show_payments_recovered_today' => false, //Displays payment recovered today table on dashboard
-    'enable_b2b_marketplace' => false,
+    'enable_b2b_marketplace' => true, // ligado por [F] 2026-11-27 (Marketplace B2B do CRM em produção, RUNBOOK-marketplace)
     'enable_contact_assign' => true, //Used in add/edit contacts screen
     'show_payment_type_on_contact_pay' => false,
     'enable_gst_report_india' => env('ENABLE_GST_REPORT_INDIA', false),
