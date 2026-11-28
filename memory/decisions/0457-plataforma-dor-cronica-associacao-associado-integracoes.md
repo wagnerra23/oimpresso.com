@@ -3,7 +3,7 @@ slug: 0457-plataforma-dor-cronica-associacao-associado-integracoes
 number: 457
 title: "Plataforma de fibromialgia e dor crônica: produto da oimpresso, módulos separados para associação, associado, clínica, pesquisa e integrações, com o paciente dono do próprio histórico"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -33,11 +33,12 @@ review_triggers:
 
 # ADR 0457 · Plataforma de fibromialgia e dor crônica
 
-> **Status `proposto`.** Pedido de [W] em 2026-11-28, textual: *"cada associação no Brasil deva usar, e
+> **Status `aceito`.** Pedido de [W] em 2026-11-28, textual: *"cada associação no Brasil deva usar, e
 > todos que tenham fibromialgia deve usar e integrar tudo. Inclusive as consultas médicas e histórico de
 > atendimento. Inclusive os dados do sistema argos. [...] separe os módulos para que possa funcionar na
-> associação e no associado e módulos adicionais de integrações"*. Esta ADR fixa a arquitetura e as
-> regras de dado antes de qualquer código. O merge é a ratificação.
+> associação e no associado e módulos adicionais de integrações"*. Ratificada por [W] no mesmo dia,
+> textual: *"Sim eu aceito tudo, gostei muito. Pode aceitar as adrs"*, junto com a grade de referências e
+> o modelo de credenciamento com selo (D11). O merge é o ato.
 
 ## Contexto
 
@@ -78,6 +79,25 @@ review_triggers:
 | **Prosas** (Brasil) | Plataforma de editais para OSC | Captação como porta de entrada da associação (já é o Captacao) | — |
 | **Fibro Social** (Brasil, concorrente) | Comunidade, cursos e app de uma associação nacional sediada em SC | — | Concorrer em comunidade; nosso espaço é gestão, captação, histórico e pesquisa |
 
+### Grade das referências de outras doenças (nota 0 a 3 por critério; avaliação do autor, 2026-11-28)
+
+| Solução (doença) | Rede de associações/centros | App do paciente | Consultas e histórico | Pesquisa | Integração com governo | Parecida com fibromialgia | Total |
+|---|---|---|---|---|---|---|---|
+| IBD Plexus (Crohn e colite) | 2 | 2 | 3 | 3 | 1 | 1 | 12 |
+| You + ME (fadiga crônica) | 1 | 3 | 1 | 3 | 0 | 3 | 11 |
+| Rede da fundação de fibrose cística | 3 | 0 | 3 | 3 | 1 | 0 | 10 |
+| Manage My Pain (dor crônica) | 0 | 3 | 3 | 2 | 0 | 2 | 10 |
+| Phendo (endometriose) | 0 | 3 | 1 | 3 | 0 | 2 | 9 |
+| Registro italiano de fibromialgia | 1 | 0 | 2 | 3 | 0 | 3 | 9 |
+| Fox Insight (Parkinson) | 1 | 2 | 0 | 3 | 0 | 1 | 7 |
+
+Leitura: nenhuma junta as seis colunas. O desenho desta ADR combina a **rede com credenciamento** da
+fibrose cística (todos os centros credenciados alimentam o registro nacional), o **app de sintomas que
+oscilam** do You + ME, o **relatório para a consulta e o portal da clínica** do Manage My Pain e a
+**pesquisa com dado sem identificação** do Fox Insight. A coluna "integração com governo" é onde nenhuma
+pontua alto, e é onde a fibromialgia no Brasil tem a peça própria: a carteira CIPF e o laudo
+biopsicossocial ligados à FCEE e à Lei 15.176/2025.
+
 **Lição comum:** quem venceu (a) é grátis para quem forma a rede, (b) deixa o dado de pesquisa sob uma
 entidade sem fins lucrativos e com universidade, (c) devolve valor ao paciente e (d) usa **evidência,
 padrão aberto e certificação** como barreira. **Nenhum venceu por registro regulatório**: o registro
@@ -95,12 +115,18 @@ na Anvisa autoriza vender, não impede o concorrente que cumprir as mesmas regra
 
    | Peça | Para quem | O que tem | Base existente |
    |---|---|---|---|
-   | **Núcleo do paciente** | todos | identidade única (gov.br quando possível), consentimentos por finalidade e destinatário, trilha de auditoria, registro pessoal de saúde | consentimentos do Fisio |
+   | **Núcleo do paciente** | todos | identidade única (login próprio; ver nota abaixo), consentimentos por finalidade e destinatário, trilha de auditoria, registro pessoal de saúde | consentimentos do Fisio |
    | **Associação** | diretoria e representantes | rede, documentos, captação, emendas, prestação de contas, fluxo da carteira CIPF | `Associacoes` + `Captacao` |
    | **Associado** | paciente | app com diário da dor, histórico de consultas, exames e receitas, documentos, carteirinha, guia de direitos | portal do Fisio + área da associada |
    | **Clínica** | profissionais | Fisio hoje; prontuário médico e multiprofissional depois | `Fisio` |
    | **Pesquisa** | universidade e entidade de pesquisa | estudo aprovado no CEP, coleta nos momentos certos, exportação sem identificação | etapa 07 do Fisio, generalizada |
-   | **Integrações** (adicionais) | conforme contrato | Argus/FCEE, RNDS, WhatsApp, Pix, SIGEF e Transferegov, gov.br | `Whatsapp`, `PaymentGateway` |
+   | **Integrações** (adicionais) | conforme contrato | Argus/FCEE, RNDS, WhatsApp, Pix, SIGEF e Transferegov | `Whatsapp`, `PaymentGateway` |
+
+   **Login gov.br fica fora.** A integração com a identidade gov.br é exclusiva de órgão público, pedida
+   por gestor público e com o sistema em domínio gov.br; sistemas em área de concorrência de mercado não
+   recebem (FAQ do Ecossistema da Identidade Digital gov.br, consultada em 2026-11-28). O núcleo usa
+   login próprio (link + PIN, como o portal do Fisio) e, quando houver, aceita o gov.br só por meio de um
+   parceiro público que já o tenha.
 
 3. **D3 — O paciente é dono do próprio histórico.** Os dados continuam separados por empresa (ADR 0093
    segue intacta: nenhuma consulta entre empresas). O que circula entre clínica, associação e o próprio
@@ -124,7 +150,9 @@ na Anvisa autoriza vender, não impede o concorrente que cumprir as mesmas regra
 
 6. **D6 — Consultas e histórico chegam por quatro portas**, nesta ordem de prontidão: (a) o próprio
    paciente, por foto com transcrição conferida (US-FISIO-063); (b) as clínicas que usam a plataforma;
-   (c) a RNDS, depois do credenciamento de integrador; (d) outros sistemas só por contrato. O modelo
+   (c) a RNDS — quem pede o acesso é o **estabelecimento de saúde** com CNES ativo e certificado ICP-Brasil,
+   pelo Portal de Serviços do DATASUS; o oimpresso entra como software integrador daquele estabelecimento,
+   não como credenciado próprio; (d) outros sistemas só por contrato. O modelo
    interno de dado clínico segue **HL7 FHIR** desde a primeira tabela nova.
 
 7. **D7 — Regulatório: amplia a ADR 0450, não a substitui.** Ficam fora do escopo regulado: associação,
@@ -142,7 +170,14 @@ na Anvisa autoriza vender, não impede o concorrente que cumprir as mesmas regra
    declara o vínculo no plano de trabalho e publica no site da rede. Sem isso, não se usa recurso
    público para pagar o sistema.
 
-10. **D10 — Ondas** (até 300 linhas cada):
+10. **D11 — Credenciamento com selo (modelo da rede de fibrose cística).** A rede (a Uniafibro, na
+    primeira) credencia polos de atendimento: associações, equipes de dor crônica do SUS e clínicas. O
+    selo exige três coisas: usar o registro da plataforma com os questionários comuns, cumprir as regras
+    de consentimento da D3 e publicar os números agregados do polo. É esse selo, dado pela rede, que torna
+    a plataforma o caminho obrigatório na prática; o registro na Anvisa não faz isso. A rede é dona do
+    selo e dos critérios; o oimpresso só opera.
+
+11. **D10 — Ondas** (até 300 linhas cada):
     0. Esta ADR.
     1. ADR técnica da transferência por consentimento (D3) e do modelo FHIR (D6).
     2. Associado: app com diário, histórico e documentos sobre o portal do Fisio.

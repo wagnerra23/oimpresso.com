@@ -7,7 +7,7 @@
 ## Resumo
 - **462** arquivos · **447** números únicos · máx **0457**
 - **ADRs ATIVOS (lifecycle ativo): 414** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 392 · superseded 28 · proposto 28 · deprecated 11 · recusado 2 · rascunho 1
+- Por status: aceito 393 · superseded 28 · proposto 27 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 414 · substituido 28 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -500,4 +500,4 @@ _(nenhuma)_
 | 0454 | proposto | ativo | decision | Uniafibro conforme o estatuto: tipos de membro, quem é associado, controle de pa |
 | 0455 | proposto | ativo | decision | RecurringBilling: o Pix Automático usa a Jornada 2 (QR da recorrência), não a Jo |
 | 0456 | proposto | ativo | decision | Modules/PaymentGateway é o dono dos drivers, credenciais e webhooks de cobrança; |
-| 0457 | proposto | ativo | decision | Plataforma de fibromialgia e dor crônica: produto da oimpresso, módulos separado |
+| 0457 | aceito | ativo | decision | Plataforma de fibromialgia e dor crônica: produto da oimpresso, módulos separado |
